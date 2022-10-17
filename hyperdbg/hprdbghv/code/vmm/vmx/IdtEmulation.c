@@ -358,7 +358,7 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       Current
         }
         else
         {
-            return ProcessHandleProcessChange(CurrentProcessorIndex, GuestRegs);
+            return ProcessHandleProcessChange(CurrentGuestState);
         }
     }
 

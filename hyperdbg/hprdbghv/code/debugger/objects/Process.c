@@ -14,14 +14,13 @@
 
 /**
  * @brief handle process changes
- * @param ProcessorIndex Index of processor
- * @param GuestState Guest's gp registers
+ * @param VCpu The virtual processor's state
  *
  *
  * @return VOID
  */
 BOOLEAN
-ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
+ProcessHandleProcessChange(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Check if we reached to the target process or not
@@ -29,7 +28,7 @@ ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
     if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
         (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
-        KdHandleBreakpointAndDebugBreakpoints(ProcessorIndex, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
+        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId, VCpu->Regs, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
 
         //
         // Found

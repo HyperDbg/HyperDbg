@@ -338,6 +338,8 @@ typedef struct _VIRTUAL_MACHINE_STATE
     PKDPC        KdDpcObject;                                                   // DPC object to be used in kernel debugger
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
+    ULONG        ExitReason;                                                    // The core's exit reason
+    UINT32       ExitQualification;                                             // The core's exit qualification
     UINT64       LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64       VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
     UINT64       VmxonRegionVirtualAddress;                                     // VMXON region virtual address

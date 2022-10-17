@@ -41,11 +41,11 @@ HvAdjustControls(ULONG Ctl, ULONG Msr);
 /**
  * @brief Handle Cpuid
  *
- * @param RegistersState
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleCpuid(PGUEST_REGS RegistersState);
+HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Fill guest selector data
@@ -61,12 +61,11 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
 /**
  * @brief Handle Guest's Control Registers Access
  *
- * @param GuestState
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS                     GuestState,
-                              UINT32                          ProcessorIndex,
+HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
                               VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification);
 
 /**

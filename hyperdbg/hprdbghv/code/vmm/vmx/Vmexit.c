@@ -22,7 +22,6 @@ BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
     ULONG                   ExitReason          = 0;
-    ULONG                   ExitQualification   = 0;
     BOOLEAN                 Result              = FALSE;
     BOOLEAN                 ShouldEmulateRdtscp = TRUE;
     VIRTUAL_MACHINE_STATE * VCpu                = NULL;
@@ -75,13 +74,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Read the exit qualification
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &VCpu->ExitQualification);
 
     //
     // Debugging purpose
     //
     // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
-    // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", ExitQualification);
+    // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", VCpu->ExitQualification);
     //
 
     switch (ExitReason)
@@ -119,7 +118,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle unconditional vm-exits (inject #ud)
         //
-        EventInjectUndefinedOpcode(VCpu->CoreId);
+        EventInjectUndefinedOpcode(VCpu);
 
         break;
     }
@@ -140,7 +139,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes from CR access
         //
-        DispatchEventMovToFromControlRegisters(VCpu->Regs, VCpu->CoreId);
+        DispatchEventMovToFromControlRegisters(VCpu);
 
         break;
     }
@@ -149,7 +148,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        DispatchEventRdmsr(VCpu->Regs);
+        DispatchEventRdmsr(VCpu);
 
         break;
     }
@@ -158,13 +157,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        DispatchEventWrmsr(VCpu->Regs);
+        DispatchEventWrmsr(VCpu);
 
         break;
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
-        DispatchEventCpuid(VCpu->Regs);
+        DispatchEventCpuid(VCpu);
 
         break;
     }
@@ -174,13 +173,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Dispatch and trigger the I/O instruction events
         //
-        DispatchEventIO(VCpu->Regs);
+        DispatchEventIO(VCpu);
 
         break;
     }
     case VMX_EXIT_REASON_EPT_VIOLATION:
     {
-        if (EptHandleEptViolation(VCpu->Regs, ExitQualification) == FALSE)
+        if (EptHandleEptViolation(VCpu->Regs, VCpu->ExitQualification) == FALSE)
         {
             LogError("Err, there were errors in handling EPT violation");
         }

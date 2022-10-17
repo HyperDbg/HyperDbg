@@ -5,20 +5,20 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Injects interruption to a guest
- * 
+ *
  * @param InterruptionType Type of interrupt
  * @param Vector Vector Number of Interrupt (IDT Index)
  * @param DeliverErrorCode Deliver Error Code or Not
  * @param ErrorCode Error Code (If DeliverErrorCode is true)
- * @return VOID 
+ * @return VOID
  */
 VOID
 EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode)
@@ -38,8 +38,8 @@ EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vecto
 
 /**
  * @brief Inject #BP to the guest (Event Injection)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 EventInjectBreakpoint()
@@ -52,8 +52,8 @@ EventInjectBreakpoint()
 
 /**
  * @brief Inject #GP to the guest (Event Injection)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 EventInjectGeneralProtection()
@@ -66,24 +66,25 @@ EventInjectGeneralProtection()
 
 /**
  * @brief Inject #UD to the guest (Invalid Opcode - Undefined Opcode)
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex)
+EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu)
 {
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_UNDEFINED_OPCODE, FALSE, 0);
 
     //
     // Suppress RIP increment
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 }
 
 /**
  * @brief Inject Debug Breakpoint Exception
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 EventInjectDebugBreakpoint()
@@ -93,9 +94,9 @@ EventInjectDebugBreakpoint()
 
 /**
  * @brief Inject #PF to the guest (Page-Fault for EFER Injector)
- * 
- * @param PageFaultAddress Address of page fault 
- * @return VOID 
+ *
+ * @param PageFaultAddress Address of page fault
+ * @return VOID
  */
 VOID
 EventInjectPageFault(UINT64 PageFaultAddress)

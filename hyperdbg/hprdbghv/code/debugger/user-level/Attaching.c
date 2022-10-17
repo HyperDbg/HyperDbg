@@ -963,12 +963,11 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
  * @brief Handle the cr3 vm-exits for thread interception
  * @details this function should be called in vmx-root
  *
- * @param CurrentCoreIndex
  * @param NewCr3
  * @return BOOLEAN
  */
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3)
+AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 

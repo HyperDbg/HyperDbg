@@ -2,12 +2,12 @@
  * @file Attaching.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for attaching and detaching for debugging user-mode processes
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-12-28
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,13 +17,13 @@
 
 /**
  * @brief Maximum actions in paused threads storage
- * 
+ *
  */
 #define MAX_USER_ACTIONS_FOR_THREADS 3
 
 /**
- * @brief Maximum threads that a process thread holder might have 
- * 
+ * @brief Maximum threads that a process thread holder might have
+ *
  */
 #define MAX_THREADS_IN_A_PROCESS_HOLDER 100
 /**
@@ -41,9 +41,9 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Description of each active thread in user-mode attaching 
+ * @brief Description of each active thread in user-mode attaching
  * mechanism
- * 
+ *
  */
 typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 {
@@ -85,7 +85,7 @@ BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
 
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3);
+AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3);
 
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);

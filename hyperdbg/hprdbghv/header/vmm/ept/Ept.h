@@ -401,8 +401,7 @@ EptLogicalProcessorInitialize();
  * @return BOOLEAN
  */
 BOOLEAN
-EptHandleEptViolation(_Inout_ PGUEST_REGS Regs,
-                      _In_ ULONG          ExitQualification);
+EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification);
 
 /**
  * @brief Get the PML1 Entry of a special address

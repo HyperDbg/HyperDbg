@@ -109,11 +109,11 @@ DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
 /**
  * @brief Handling debugger functions related to CPUID events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventCpuid(PGUEST_REGS Regs)
+DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT64                                Context;
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
@@ -142,14 +142,14 @@ DispatchEventCpuid(PGUEST_REGS Regs)
         //
         // Adjusting the core context (save eax for the debugger)
         //
-        Context = Regs->rax;
+        Context = VCpu->Regs->rax;
 
         //
         // Triggering the pre-event
         //
         EventTriggerResult = DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   Regs,
+                                                   VCpu->Regs,
                                                    Context,
                                                    &PostEventTriggerReq);
 
@@ -161,7 +161,7 @@ DispatchEventCpuid(PGUEST_REGS Regs)
             //
             // Handle the CPUID event in the case of triggering event
             //
-            HvHandleCpuid(Regs);
+            HvHandleCpuid(VCpu);
         }
 
         //
@@ -171,7 +171,7 @@ DispatchEventCpuid(PGUEST_REGS Regs)
         {
             DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  Regs,
+                                  VCpu->Regs,
                                   Context,
                                   NULL);
         }
@@ -182,7 +182,7 @@ DispatchEventCpuid(PGUEST_REGS Regs)
         // Otherwise and if there is no event, we should handle the CPUID
         // normally
         //
-        HvHandleCpuid(Regs);
+        HvHandleCpuid(VCpu);
     }
 }
 
@@ -299,21 +299,16 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to IO events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventIO(PGUEST_REGS Regs)
+DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification     = {0};
+    VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification     = {.AsUInt = VCpu->ExitQualification};
     RFLAGS                                Flags               = {0};
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult  = DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED;
     BOOLEAN                               PostEventTriggerReq = FALSE;
-
-    //
-    // Read the I/O Qualification which indicates the I/O instruction
-    //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &IoQualification);
 
     //
     // Read Guest's RFLAGS
@@ -327,7 +322,7 @@ DispatchEventIO(PGUEST_REGS Regs)
     {
         EventTriggerResult = DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   Regs,
+                                                   VCpu->Regs,
                                                    IoQualification.PortNumber,
                                                    &PostEventTriggerReq);
     }
@@ -335,7 +330,7 @@ DispatchEventIO(PGUEST_REGS Regs)
     {
         EventTriggerResult = DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   Regs,
+                                                   VCpu->Regs,
                                                    IoQualification.PortNumber,
                                                    &PostEventTriggerReq);
     }
@@ -348,7 +343,7 @@ DispatchEventIO(PGUEST_REGS Regs)
         //
         // Call the I/O Handler
         //
-        IoHandleIoVmExits(Regs, IoQualification, Flags);
+        IoHandleIoVmExits(VCpu, IoQualification, Flags);
     }
 
     //
@@ -360,7 +355,7 @@ DispatchEventIO(PGUEST_REGS Regs)
         {
             DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  Regs,
+                                  VCpu->Regs,
                                   IoQualification.PortNumber,
                                   NULL);
         }
@@ -368,7 +363,7 @@ DispatchEventIO(PGUEST_REGS Regs)
         {
             DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  Regs,
+                                  VCpu->Regs,
                                   IoQualification.PortNumber,
                                   NULL);
         }
@@ -378,11 +373,11 @@ DispatchEventIO(PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to RDMSR events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventRdmsr(PGUEST_REGS Regs)
+DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
@@ -392,8 +387,8 @@ DispatchEventRdmsr(PGUEST_REGS Regs)
     //
     EventTriggerResult = DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
-                                               Regs->rcx & 0xffffffff,
+                                               VCpu->Regs,
+                                               VCpu->Regs->rcx & 0xffffffff,
                                                &PostEventTriggerReq);
 
     //
@@ -404,7 +399,7 @@ DispatchEventRdmsr(PGUEST_REGS Regs)
         //
         // Handle vm-exit and perform changes
         //
-        MsrHandleRdmsrVmexit(Regs);
+        MsrHandleRdmsrVmexit(VCpu->Regs);
     }
 
     //
@@ -414,8 +409,8 @@ DispatchEventRdmsr(PGUEST_REGS Regs)
     {
         DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
-                              Regs->rcx & 0xffffffff,
+                              VCpu->Regs,
+                              VCpu->Regs->rcx & 0xffffffff,
                               NULL);
     }
 }
@@ -423,11 +418,11 @@ DispatchEventRdmsr(PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to WRMSR events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventWrmsr(PGUEST_REGS Regs)
+DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
@@ -437,8 +432,8 @@ DispatchEventWrmsr(PGUEST_REGS Regs)
     //
     EventTriggerResult = DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
-                                               Regs->rcx & 0xffffffff,
+                                               VCpu->Regs,
+                                               VCpu->Regs->rcx & 0xffffffff,
                                                &PostEventTriggerReq);
 
     //
@@ -449,7 +444,7 @@ DispatchEventWrmsr(PGUEST_REGS Regs)
         //
         // Handle vm-exit and perform changes
         //
-        MsrHandleWrmsrVmexit(Regs);
+        MsrHandleWrmsrVmexit(VCpu->Regs);
     }
 
     //
@@ -459,8 +454,8 @@ DispatchEventWrmsr(PGUEST_REGS Regs)
     {
         DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
-                              Regs->rcx & 0xffffffff,
+                              VCpu->Regs,
+                              VCpu->Regs->rcx & 0xffffffff,
                               NULL);
     }
 }
@@ -570,12 +565,11 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to mov to/from CR events
  *
- * @param CoreIndex Current core's index
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
+DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
 {
     BOOLEAN                               ModifyReg;
     VMX_EXIT_QUALIFICATION_MOV_CR *       CrExitQualification;
@@ -604,7 +598,7 @@ DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
     //
     EventTriggerResult = DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                CrExitQualification->ControlRegister,
                                                &PostEventTriggerReq);
 
@@ -616,7 +610,7 @@ DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Handle mov to/from control registers (emulate CR access)
         //
-        HvHandleControlRegisterAccess(Regs, CoreIndex, CrExitQualification);
+        HvHandleControlRegisterAccess(VCpu, CrExitQualification);
     }
 
     //
@@ -626,7 +620,7 @@ DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
     {
         DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
+                              VCpu->Regs,
                               CrExitQualification->ControlRegister,
                               NULL);
     }

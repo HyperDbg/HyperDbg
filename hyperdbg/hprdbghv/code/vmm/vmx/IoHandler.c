@@ -14,19 +14,20 @@
 /**
  * @brief VM-Exit handler for I/O Instructions (in/out)
  *
- * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler
+ * @param VCpu The virtual processor's state
  * @param IoQualification The I/O Qualification that indicates the instruction
  * @param Flags Guest's RFLAGs
  *
  * @return VOID
  */
 VOID
-IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
+IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
-    UINT16 Port  = 0;
-    UINT32 Count = 0;
-    UINT32 Size  = 0;
-    UINT64 GpReg = 0;
+    UINT16      Port      = 0;
+    UINT32      Count     = 0;
+    UINT32      Size      = 0;
+    UINT64      GpReg     = 0;
+    PGUEST_REGS GuestRegs = VCpu->Regs;
 
     //
     // VMWare tools uses port  (port 0x5658/0x5659) as I/O backdoor
