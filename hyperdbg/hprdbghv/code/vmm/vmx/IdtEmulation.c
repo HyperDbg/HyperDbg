@@ -469,12 +469,11 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentPro
 /**
  * @brief Handle NMI-window exitings
  *
- * @param CurrentProcessorIndex processor index
- * @param GuestRegs guest context
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-IdtEmulationHandleNmiWindowExiting(_In_ UINT32 CurrentProcessorIndex, _Inout_ PGUEST_REGS GuestRegs)
+IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
     LogError("Why NMI-window exiting happens?");
 }

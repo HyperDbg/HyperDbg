@@ -26,10 +26,10 @@ VOID
 DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp);
+DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp);
 
 VOID
-DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs);
+DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu);
@@ -41,13 +41,13 @@ VOID
 DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventRdpmc(PGUEST_REGS Regs);
+DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs);
+DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs);

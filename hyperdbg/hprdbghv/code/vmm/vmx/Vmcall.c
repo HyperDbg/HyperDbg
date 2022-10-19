@@ -58,15 +58,15 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
 /**
  * @brief Handle vm-exits of VMCALLs
  *
- * @param GuestRegs Guest Registers
+ * @param VCpu The virtual processor's state
  * @return NTSTATUS
  */
 _Use_decl_annotations_
 NTSTATUS
-VmxHandleVmcallVmExit(UINT32      CoreIndex,
-                      PGUEST_REGS GuestRegs)
+VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    BOOLEAN IsHyperdbgVmcall = FALSE;
+    BOOLEAN      IsHyperdbgVmcall = FALSE;
+    GUEST_REGS * GuestRegs        = VCpu->Regs;
 
     IsHyperdbgVmcall = (GuestRegs->r10 == 0x48564653 &&
                         GuestRegs->r11 == 0x564d43414c4c &&
@@ -76,12 +76,11 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
     //
     if (IsHyperdbgVmcall)
     {
-        GuestRegs->rax = VmxVmcallHandler(CoreIndex,
+        GuestRegs->rax = VmxVmcallHandler(VCpu,
                                           GuestRegs->rcx,
                                           GuestRegs->rdx,
                                           GuestRegs->r8,
-                                          GuestRegs->r9,
-                                          GuestRegs);
+                                          GuestRegs->r9);
     }
     else
     {
@@ -94,7 +93,8 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
 /**
  * @brief Main Vmcall Handler
  *
- * @param VmcallNumber Request Number
+ * @param VCpu The virtual processor's state
+ * @param VmcallNumber
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
@@ -102,12 +102,11 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
  */
 _Use_decl_annotations_
 NTSTATUS
-VmxVmcallHandler(UINT32      CurrentCoreIndex,
-                 UINT64      VmcallNumber,
-                 UINT64      OptionalParam1,
-                 UINT64      OptionalParam2,
-                 UINT64      OptionalParam3,
-                 PGUEST_REGS GuestRegs)
+VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
+                 UINT64                  VmcallNumber,
+                 UINT64                  OptionalParam1,
+                 UINT64                  OptionalParam2,
+                 UINT64                  OptionalParam3)
 {
     NTSTATUS VmcallStatus = STATUS_UNSUCCESSFUL;
     BOOLEAN  HookResult   = FALSE;
@@ -360,8 +359,8 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                              GuestRegs,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
+                                              VCpu->Regs,
                                               DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
                                               NULL);
         VmcallStatus = STATUS_SUCCESS;
@@ -381,7 +380,7 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED:
     {
-        KdSendCommandFinishedSignal(CurrentCoreIndex, GuestRegs);
+        KdSendCommandFinishedSignal(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
@@ -419,8 +418,8 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
         //
         if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
         {
-            KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                                  GuestRegs,
+            KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
+                                                  VCpu->Regs,
                                                   DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
                                                   NULL);
         }
@@ -435,7 +434,7 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
         TriggeredEventDetail.Context = OptionalParam1;
         TriggeredEventDetail.Tag     = OptionalParam2;
 
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
                                               OptionalParam3, // We won't send current vmcall registers
                                                               // instead we send the registers provided
                                                               // from the third parameter

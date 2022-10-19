@@ -857,18 +857,18 @@ KdSendFormatsFunctionResult(UINT64 Value)
 
 /**
  * @brief Notify debugger that the execution of command finished
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdSendCommandFinishedSignal(UINT32      CurrentCore,
-                            PGUEST_REGS GuestRegs)
+KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Halt other cores again
     //
-    KdHandleBreakpointAndDebugBreakpoints(CurrentCore,
-                                          GuestRegs,
+    KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
+                                          VCpu->Regs,
                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
                                           NULL);
 }

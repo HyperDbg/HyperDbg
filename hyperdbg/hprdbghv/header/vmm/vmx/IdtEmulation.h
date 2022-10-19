@@ -30,8 +30,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentPro
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
-IdtEmulationHandleNmiWindowExiting(_In_ UINT32         CurrentProcessorIndex,
-                                   _Inout_ PGUEST_REGS GuestRegs);
+IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex);

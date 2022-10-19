@@ -1,47 +1,51 @@
 /**
  * @file Counters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions for emulating counters 
+ * @brief The functions for emulating counters
  * @details
  * @version 0.1
  * @date 2020-06-14
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Emulate RDTSC
- * 
- * @param GuestRegs guest registers
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
  */
 VOID
-CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
+CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // I realized that if you log anything here (LogInfo) then
     // the system-halts, currently don't have any idea of how
-    // to solve it, in the future we solve it using tsc offsectiong
+    // to solve it, in the future we solve it using tsc offseting
     // or tsc scalling (The reason is because of that fucking patchguard :( )
     //
-    UINT64 Tsc     = __rdtsc();
+    UINT64      Tsc       = __rdtsc();
+    PGUEST_REGS GuestRegs = VCpu->Regs;
+
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
 }
 
 /**
  * @brief Emulate RDTSCP
- * 
- * @param GuestRegs Guest Registers
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
  */
 VOID
-CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
+CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    int    Aux     = 0;
-    UINT64 Tsc     = __rdtscp(&Aux);
+    int         Aux       = 0;
+    UINT64      Tsc       = __rdtscp(&Aux);
+    PGUEST_REGS GuestRegs = VCpu->Regs;
+
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
 
@@ -50,14 +54,15 @@ CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Emulate RDPMC
- * 
- * @param GuestRegs Guest Register
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
  */
 VOID
-CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
+CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ULONG EcxReg = 0;
+    ULONG       EcxReg    = 0;
+    PGUEST_REGS GuestRegs = VCpu->Regs;
 
     EcxReg         = GuestRegs->rcx & 0xffffffff;
     UINT64 Pmc     = __readpmc(EcxReg);
@@ -67,9 +72,9 @@ CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Set the timer value for preemption timer
- * 
+ *
  * @param TimerValue Value of the timer
- * @return VOID 
+ * @return VOID
  */
 VOID
 CounterSetPreemptionTimer(UINT32 TimerValue)
@@ -81,9 +86,9 @@ CounterSetPreemptionTimer(UINT32 TimerValue)
 }
 
 /**
- * @brief Clears the preemption timer 
- * 
- * @return VOID 
+ * @brief Clears the preemption timer
+ *
+ * @return VOID
  */
 VOID
 CounterClearPreemptionTimer()

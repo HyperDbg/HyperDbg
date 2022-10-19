@@ -197,7 +197,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exits of VMCALLs
         //
-        DispatchEventVmcall(VCpu->CoreId, VCpu->Regs);
+        DispatchEventVmcall(VCpu);
 
         break;
     }
@@ -234,7 +234,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Call the NMI-window exiting handler
         //
-        IdtEmulationHandleNmiWindowExiting(VCpu->CoreId, VCpu->Regs);
+        IdtEmulationHandleNmiWindowExiting(VCpu);
 
         break;
     }
@@ -279,7 +279,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle RDPMC's events, triggers and dispatches (emulate RDPMC)
         //
-        DispatchEventRdpmc(VCpu->Regs);
+        DispatchEventRdpmc(VCpu);
 
         break;
     }
@@ -297,7 +297,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle xsetbv (unconditional vm-exit)
         //
-        VmxHandleXsetbv(VCpu->Regs->rcx & 0xffffffff, VCpu->Regs->rdx << 32 | VCpu->Regs->rax);
+        VmxHandleXsetbv(VCpu);
 
         break;
     }
@@ -306,7 +306,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle the VMX preemption timer vm-exit
         //
-        VmxHandleVmxPreemptionTimerVmexit(VCpu->CoreId, VCpu->Regs);
+        VmxHandleVmxPreemptionTimerVmexit(VCpu);
 
         break;
     }

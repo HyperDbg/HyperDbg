@@ -613,19 +613,18 @@ HvSetNmiWindowExiting(BOOLEAN Set)
 /**
  * @brief Handle Mov to Debug Registers Exitings
  *
- * @param ProcessorIndex Index of processor
- * @param Regs Registers of guest
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
+HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMX_EXIT_QUALIFICATION_MOV_DR ExitQualification;
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs         = Regs;
-    VIRTUAL_MACHINE_STATE *       CurrentVmState = &g_GuestState[ProcessorIndex];
+    UINT64 *                      GpRegs = VCpu->Regs;
+
     //
     // The implementation is derived from Hvpp
     //
@@ -662,7 +661,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
         return;
     }
 
@@ -688,7 +687,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
             //
             // re-inject #UD
             //
-            EventInjectUndefinedOpcode(ProcessorIndex);
+            EventInjectUndefinedOpcode(VCpu);
             return;
         }
         else
@@ -736,7 +735,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
         return;
     }
 
@@ -756,7 +755,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
         return;
     }
 

@@ -179,12 +179,11 @@ HvSetNmiWindowExiting(BOOLEAN Set);
 /**
  * @brief Handle Mov to Debug Registers Exitings
  *
- * @param ProcessorIndex
- * @param Regs
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs);
+HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Set the Mov to Debug Registers Exiting

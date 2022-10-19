@@ -189,13 +189,12 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handling debugger functions related to RDTSC/RDTSCP events
  *
- * @param Regs Guest's gp register
- * @param ShouldEmulateTsc Whether or not the debugger is allowed to
- * emulate RDTSC/RDTSCP
+ * @param VCpu The virtual processor's state
+ * @param IsRdtscp Is a RDTSCP or RDTSC
  * @return VOID
  */
 VOID
-DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
+DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
@@ -207,7 +206,7 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
     //
     EventTriggerResult = DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                IsRdtscp,
                                                &PostEventTriggerReq);
 
@@ -219,7 +218,14 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
         //
         // Handle rdtsc (emulate rdtsc/p)
         //
-        CounterEmulateRdtsc(Regs);
+        if (IsRdtscp)
+        {
+            CounterEmulateRdtscp(VCpu);
+        }
+        else
+        {
+            CounterEmulateRdtsc(VCpu);
+        }
     }
 
     //
@@ -229,7 +235,7 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
     {
         DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
+                              VCpu->Regs,
                               IsRdtscp,
                               NULL);
     }
@@ -238,12 +244,11 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
 /**
  * @brief Handling debugger functions related to VMCALL events
  *
- * @param CoreIndex Current core's index
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
+DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
@@ -259,7 +264,7 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         EventTriggerResult = DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   Regs,
+                                                   VCpu->Regs,
                                                    NULL,
                                                    &PostEventTriggerReq);
 
@@ -271,7 +276,7 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
             //
             // Handle the VMCALL event in the case of triggering event
             //
-            VmxHandleVmcallVmExit(CoreIndex, Regs);
+            VmxHandleVmcallVmExit(VCpu);
         }
 
         //
@@ -281,7 +286,7 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
         {
             DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  Regs,
+                                  VCpu->Regs,
                                   NULL,
                                   NULL);
         }
@@ -292,7 +297,7 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
         // Otherwise and if there is no event, we should handle the VMCALL
         // normally
         //
-        VmxHandleVmcallVmExit(CoreIndex, Regs);
+        VmxHandleVmcallVmExit(VCpu);
     }
 }
 
@@ -463,11 +468,11 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handling debugger functions related to RDPMC events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventRdpmc(PGUEST_REGS Regs)
+DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
@@ -477,7 +482,7 @@ DispatchEventRdpmc(PGUEST_REGS Regs)
     //
     EventTriggerResult = DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                NULL,
                                                &PostEventTriggerReq);
 
@@ -489,7 +494,7 @@ DispatchEventRdpmc(PGUEST_REGS Regs)
         //
         // Handle RDPMC (emulate RDPMC)
         //
-        CounterEmulateRdpmc(Regs);
+        CounterEmulateRdpmc(VCpu);
     }
 
     //
@@ -499,7 +504,7 @@ DispatchEventRdpmc(PGUEST_REGS Regs)
     {
         DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
+                              VCpu->Regs,
                               NULL,
                               NULL);
     }
@@ -508,23 +513,21 @@ DispatchEventRdpmc(PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to MOV 2 DR events
  *
- * @param CoreIndex Current core's index
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
+DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
-    VIRTUAL_MACHINE_STATE *               CurrentVmState      = &g_GuestState[CoreIndex];
 
     //
     // Handle access to debug registers, if we should not ignore it, it is
     // because on detecting thread scheduling we ignore the hardware debug
     // registers modifications
     //
-    if (CurrentVmState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
     {
         return;
     }
@@ -534,7 +537,7 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
     //
     EventTriggerResult = DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                NULL,
                                                &PostEventTriggerReq);
 
@@ -546,7 +549,7 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Handle RDPMC (emulate MOV 2 Debug Registers)
         //
-        HvHandleMovDebugRegister(CoreIndex, Regs);
+        HvHandleMovDebugRegister(VCpu);
     }
 
     //
@@ -556,7 +559,7 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
     {
         DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
+                              VCpu->Regs,
                               NULL,
                               NULL);
     }

@@ -403,10 +403,10 @@ BOOLEAN
 VmxAllocateIoBitmaps(_In_ INT ProcessorID);
 
 VOID
-VmxHandleXsetbv(UINT32 Reg, UINT64 Value);
+VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-VmxHandleVmxPreemptionTimerVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs);
+VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 VmxVmptrst();
