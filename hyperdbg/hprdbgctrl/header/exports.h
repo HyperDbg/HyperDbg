@@ -37,7 +37,7 @@ __declspec(dllexport) int HyperDbgStopVmmDriver();
 __declspec(dllexport) int HyperDbgInterpreter(char * Command);
 __declspec(dllexport) void HyperDbgShowSignature();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
-__declspec(dllexport) void HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs);
+__declspec(dllexport) int HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[]);
 __declspec(dllexport) bool HyperDbgContinuePreviousCommand();
-__declspec(dllexport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
+__declspec(dllexport) bool HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset);
 }

@@ -146,7 +146,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
             //
             // Check for multiline commands
             //
-            if (HyperDbgCheckMultilineCommand(Line, Reset))
+            if (HyperDbgCheckMultilineCommand((char *)Line.c_str(), Reset))
             {
                 //
                 // if the reset is true, we should make the saving buffer empty
@@ -217,6 +217,42 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
     {
         ShowMessages("err, invalid file specified for the script\n");
     }
+}
+
+/**
+ * @brief Parsing the command line options for scripts
+ *
+ * @return int
+ */
+int
+HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[])
+{
+    vector<string> Args;
+
+    //
+    // Convert it to the array
+    //
+    for (size_t i = 2; i < argc; i++)
+    {
+        std::string TempStr(argv[i]);
+        Args.push_back(TempStr);
+    }
+
+    //
+    // Check if the target path and args for script is not empty
+    //
+    if (!Args.empty())
+    {
+        HyperDbgScriptReadFileAndExecuteCommand(Args);
+        printf("\n");
+    }
+    else
+    {
+        printf("err, invalid command line options passed to the HyperDbg!\n");
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 /**

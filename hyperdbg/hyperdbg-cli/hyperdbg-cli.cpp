@@ -32,10 +32,9 @@ using namespace std;
 int
 main(int argc, char * argv[])
 {
-    bool           ExitFromDebugger = false;
-    string         PreviousCommand;
-    bool           Reset = false;
-    vector<string> Args;
+    bool   ExitFromDebugger = false;
+    string PreviousCommand;
+    bool   Reset = false;
 
     printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");
@@ -49,27 +48,9 @@ main(int argc, char * argv[])
         if (!strcmp(argv[1], "--script"))
         {
             //
+            // Handle the script
             //
-            //
-            for (size_t i = 2; i < argc; i++)
-            {
-                std::string TempStr(argv[i]);
-                Args.push_back(TempStr);
-            }
-
-            //
-            // Check if the target path and args for script is not empty
-            //
-            if (!Args.empty())
-            {
-                HyperDbgScriptReadFileAndExecuteCommand(Args);
-                printf("\n");
-            }
-            else
-            {
-                printf("err, invalid command line options passed to the HyperDbg!\n");
-                return 1;
-            }
+            HyperDbgScriptReadFileAndExecuteCommandline(argc, argv);
         }
         else
         {
@@ -110,7 +91,7 @@ main(int argc, char * argv[])
         //
         // Check for multi-line commands
         //
-        if (HyperDbgCheckMultilineCommand(TempCommand, Reset) == true)
+        if (HyperDbgCheckMultilineCommand((char *)TempCommand.c_str(), Reset) == true)
         {
             //
             // It's a multi-line command
