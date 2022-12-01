@@ -269,7 +269,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         if (ShouldEmulateRdtscp)
         {
-            DispatchEventTsc(VCpu->Regs, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
+            DispatchEventTsc(VCpu, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
         }
 
         break;
@@ -288,7 +288,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Trigger, dispatch and handle the event
         //
-        DispatchEventMov2DebugRegs(VCpu->CoreId, VCpu->Regs);
+        DispatchEventMov2DebugRegs(VCpu);
 
         break;
     }

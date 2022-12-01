@@ -127,7 +127,7 @@ int TransparentTableLog[] =
  * @brief Generate a random number by utilizing RDTSC instruction.
  *
  * Masking 16 LSB of the measured clock time.
- * @return UINT32 
+ * @return UINT32
  */
 UINT32
 TransparentGetRand()
@@ -144,9 +144,9 @@ TransparentGetRand()
 /**
  * @brief Integer power function definition.
  *
- * @params x Base Value 
- * @params p Power Value 
- * @return int 
+ * @params x Base Value
+ * @params p Power Value
+ * @return int
  */
 int
 TransparentPow(int x, int p)
@@ -162,8 +162,8 @@ TransparentPow(int x, int p)
 /**
  * @brief Integer Natural Logarithm function estimation.
  *
- * @params x input value 
- * @return int 
+ * @params x input value
+ * @return int
  */
 int
 TransparentLog(int x)
@@ -178,15 +178,15 @@ TransparentLog(int x)
     }
 
     //
-    //Use pre-defined values of logarithms and estimate the total value
+    // Use pre-defined values of logarithms and estimate the total value
     //
     return TransparentTableLog[n] / 100 + (Digit * 23) / 10;
 }
 /**
  * @brief Integer root function estimation.
  *
- * @params x input value 
- * @return int 
+ * @params x input value
+ * @return int
  */
 int
 TransparentSqrt(int x)
@@ -220,12 +220,12 @@ TransparentSqrt(int x)
 }
 
 /**
- * @brief Integer Gaussian Random Number Generator(GRNG) based on Box-Muller method. A Float to Integer 
+ * @brief Integer Gaussian Random Number Generator(GRNG) based on Box-Muller method. A Float to Integer
  * mapping is used in the function.
  *
- * @params Average Mean 
+ * @params Average Mean
  * @parans Sigma Standard Deviation of the targeted Gaussian Distribution
- * @return int 
+ * @return int
  */
 int
 TransparentRandn(int Average, int Sigma)
@@ -270,9 +270,9 @@ TransparentRandn(int Average, int Sigma)
 /**
  * @brief Add name or process id of the target process to the list
  * of processes that HyperDbg should apply transparent-mode on them
- * 
- * @param Measurements 
- * @return BOOLEAN 
+ *
+ * @param Measurements
+ * @return BOOLEAN
  */
 BOOLEAN
 TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
@@ -359,9 +359,9 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
 
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
- * 
- * @param Measurements 
- * @return NTSTATUS 
+ *
+ * @param Measurements
+ * @return NTSTATUS
  */
 NTSTATUS
 TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
@@ -435,8 +435,8 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
 
 /**
  * @brief Deactive transparent-mode
- * 
- * @return NTSTATUS 
+ *
+ * @return NTSTATUS
  */
 NTSTATUS
 TransparentUnhideDebugger()
@@ -497,9 +497,9 @@ TransparentUnhideDebugger()
 }
 
 /**
- * @brief VM-Exit handler for different exit reasons 
+ * @brief VM-Exit handler for different exit reasons
  * @details Should be called from vmx-root
- * 
+ *
  * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler (HOST_RIP)
  * @param ProcessorIndex Processor Index
  * @param ExitReason Exit Reason
