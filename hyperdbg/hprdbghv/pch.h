@@ -49,7 +49,14 @@
 #include "platform/Environment.h"
 #include "platform/MetaMacros.h"
 
+//
+// The core's state
+//
 #include "..\hprdbghv\header\common\State.h"
+
+//
+// VMX + Debugger
+//
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"

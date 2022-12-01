@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitReason);
+TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason);
 
 NTSTATUS
 TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements);

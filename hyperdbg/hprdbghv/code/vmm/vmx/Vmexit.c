@@ -53,7 +53,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     if (g_TransparentMode)
     {
-        ShouldEmulateRdtscp = TransparentModeStart(VCpu->Regs, VCpu->CoreId, ExitReason);
+        ShouldEmulateRdtscp = TransparentModeStart(VCpu, ExitReason);
     }
 
     //
