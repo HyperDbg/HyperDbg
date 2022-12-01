@@ -55,14 +55,21 @@
 #include "..\hprdbghv\header\common\State.h"
 
 //
-// VMX + Debugger
+// VMX and EPT Types
+//
+#include "..\hprdbghv\header\vmm\vmx\Vmx.h"
+#include "..\hprdbghv\header\vmm\ept\Ept.h"
+
+//
+// Debugger Types
+//
+#include "..\hprdbghv\header\debugger\core\Debugger.h"
+
+//
+// Debugger Sub-types
 //
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"
-#include "..\hprdbghv\header\debugger\core\Debugger.h"
-#include "..\hprdbghv\header\vmm\ept\Ept.h"
-#include "..\hprdbghv\header\vmm\vmx\Vmx.h"
-
 #include "..\hprdbghv\header\debugger\transparency\Transparency.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"

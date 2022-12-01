@@ -179,7 +179,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EPT_VIOLATION:
     {
-        if (EptHandleEptViolation(VCpu->Regs, VCpu->ExitQualification) == FALSE)
+        if (EptHandleEptViolation(VCpu) == FALSE)
         {
             LogError("Err, there were errors in handling EPT violation");
         }
@@ -225,7 +225,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // Call the interrupt-window exiting handler to re-inject the previous
         // interrupts or disable the interrupt-window exiting bit
         //
-        IdtEmulationHandleInterruptWindowExiting(VCpu->CoreId);
+        IdtEmulationHandleInterruptWindowExiting(VCpu);
 
         break;
     }

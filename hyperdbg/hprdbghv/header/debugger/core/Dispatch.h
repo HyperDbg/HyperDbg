@@ -62,10 +62,10 @@ VOID
 DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context);
 
 BOOLEAN
-DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
+DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
 
 BOOLEAN
-DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
+DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
 
 VOID
 DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Context);

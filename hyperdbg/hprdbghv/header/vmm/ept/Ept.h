@@ -204,7 +204,7 @@ static PVMM_EPT_PAGE_TABLE
 EptAllocateAndCreateIdentityPageTable();
 
 static BOOLEAN
-EptHandlePageHookExit(_Inout_ PGUEST_REGS                       Regs,
+EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
                       _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       _In_ UINT64                               GuestPhysicalAddr);
 
@@ -254,13 +254,12 @@ EptLogicalProcessorInitialize();
 /**
  * @brief Handle EPT Violation
  *
- * @param Regs
- * @param ExitQualification
+ * @param VCpu The virtual processor's state
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification);
+EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Get the PML1 Entry of a special address

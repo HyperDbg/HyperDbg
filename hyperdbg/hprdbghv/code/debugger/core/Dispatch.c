@@ -885,13 +885,13 @@ DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context)
 /**
  * @brief Handling debugger functions related to read & write, write events (pre)
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @param IsTriggeringPostEventAllowed Is the caller required to trigger post event
  * @return BOOLEAN
  */
 BOOLEAN
-DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq  = FALSE;
@@ -902,7 +902,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
     //
     EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -921,7 +921,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
     //
     EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -941,12 +941,13 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
 /**
  * @brief Handling debugger functions related to read & write, read events (pre)
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
+ * @param IsTriggeringPostEventAllowed
  * @return BOOLEAN
  */
 BOOLEAN
-DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq  = FALSE;
@@ -957,7 +958,7 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context
     //
     EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -976,7 +977,7 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context
     //
     EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
+                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 

@@ -1226,7 +1226,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
 /**
  * @brief Handles page hooks
  *
- * @param Regs Guest registers
+ * @param VCpu The virtual processor's state
  * @param HookedEntryDetails The entry that describes the hooked page
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
@@ -1239,7 +1239,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
  * if there was an unexpected ept violation
  */
 BOOLEAN
-EptHookHandleHookedPage(PGUEST_REGS                          Regs,
+EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
@@ -1294,7 +1294,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // Trigger the event related to Monitor Write and Monitor Read & Write
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(Regs, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
@@ -1309,7 +1309,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // Trigger the event related to Monitor Read and Monitor Read & Write
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(Regs, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
     }
     else
     {

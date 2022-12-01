@@ -481,15 +481,14 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handle interrupt-window exitings
  *
- * @param CurrentProcessorIndex processor index
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
+IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit     = {0};
-    ULONG                        ErrorCode         = 0;
-    VIRTUAL_MACHINE_STATE *      CurrentGuestState = &g_GuestState[CurrentProcessorIndex];
+    VMEXIT_INTERRUPT_INFORMATION InterruptExit = {0};
+    ULONG                        ErrorCode     = 0;
 
     //
     // Find the pending interrupt to inject
@@ -500,17 +499,17 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
         //
         // Find an empty space
         //
-        if (CurrentGuestState->PendingExternalInterrupts[i] != NULL)
+        if (VCpu->PendingExternalInterrupts[i] != NULL)
         {
             //
             // Save it for re-injection (interrupt-window exiting)
             //
-            InterruptExit.AsUInt = CurrentGuestState->PendingExternalInterrupts[i];
+            InterruptExit.AsUInt = VCpu->PendingExternalInterrupts[i];
 
             //
             // Free the entry
             //
-            CurrentGuestState->PendingExternalInterrupts[i] = NULL;
+            VCpu->PendingExternalInterrupts[i] = NULL;
             break;
         }
     }
@@ -549,5 +548,5 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
     //
     // avoid incrementing rip
     //
-    CurrentGuestState->IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 }

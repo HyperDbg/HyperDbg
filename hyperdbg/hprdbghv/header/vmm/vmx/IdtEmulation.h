@@ -33,7 +33,7 @@ VOID
 IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex);
+IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorIndex,

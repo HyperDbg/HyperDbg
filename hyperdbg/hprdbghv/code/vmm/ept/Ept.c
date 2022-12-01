@@ -607,22 +607,20 @@ EptLogicalProcessorInitialize()
  * If the memory access attempt was execute and the page was marked not executable, the page is swapped with
  * the hooked page.
  *
- * @param ViolationQualification The violation qualification in vm-exit
+ * @param VCpu The virtual processor's state * @param ViolationQualification The violation qualification in vm-exit
  * @param GuestPhysicalAddr The GUEST_PHYSICAL_ADDRESS that caused this EPT violation
  * @return BOOLEAN Returns true if it was successful or false if the violation was not due to a page hook
  */
 _Use_decl_annotations_
 BOOLEAN
-EptHandlePageHookExit(PGUEST_REGS                          Regs,
+EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN                 ResultOfHandlingHook;
-    BOOLEAN                 IsHandled                    = FALSE;
-    BOOLEAN                 IgnoreReadOrWrite            = FALSE;
-    BOOLEAN                 IsTriggeringPostEventAllowed = FALSE;
-    ULONG                   CurrentCore                  = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState               = &g_GuestState[CurrentCore];
+    BOOLEAN ResultOfHandlingHook;
+    BOOLEAN IsHandled                    = FALSE;
+    BOOLEAN IgnoreReadOrWrite            = FALSE;
+    BOOLEAN IsTriggeringPostEventAllowed = FALSE;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -638,7 +636,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            ResultOfHandlingHook = EptHookHandleHookedPage(Regs,
+            ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,
                                                            HookedEntry,
                                                            ViolationQualification,
                                                            GuestPhysicalAddr,
@@ -668,7 +666,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                     //
-                    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
+                    VCpu->MtfEptHookRestorePoint = HookedEntry;
 
                     //
                     // We have to set Monitor trap flag and give it the HookedEntry to work with
@@ -695,7 +693,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                     // Indicate that we should enable external interrupts and configure external interrupt
                     // window exiting somewhere at MTF
                     //
-                    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    VCpu->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
                 }
             }
 
@@ -719,14 +717,14 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
         //
         // Do not redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
     }
     else
     {
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
     }
 
     return IsHandled;
@@ -737,25 +735,23 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
  * @details Violations are thrown whenever an operation is performed on an EPT entry
  * that does not provide permissions to access that page
  *
- * @param Regs Guest registers
- * @param ExitQualification Exit qualification of the vm-exit
- * @param GuestPhysicalAddr Physical address that caused this EPT violation
+ * @param VCpu The virtual processor's state
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
 _Use_decl_annotations_
 BOOLEAN
-EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification)
+EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT64                               GuestPhysicalAddr;
-    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = ExitQualification};
+    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = VCpu->ExitQualification};
 
     //
     // Reading guest physical address
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
+    if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
     {
         //
         // Handled by page hook code
