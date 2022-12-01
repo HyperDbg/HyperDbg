@@ -191,6 +191,7 @@
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
+    <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
     <ClInclude Include="header\components\registers\DebugRegisters.h" />
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />

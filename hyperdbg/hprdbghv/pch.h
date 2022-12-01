@@ -49,13 +49,14 @@
 #include "platform/Environment.h"
 #include "platform/MetaMacros.h"
 
+#include "..\hprdbghv\header\common\State.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
-#include "..\hprdbghv\header\debugger\transparency\Transparency.h"
 #include "..\hprdbghv\header\vmm\vmx\Vmx.h"
 
+#include "..\hprdbghv\header\debugger\transparency\Transparency.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
 #include "..\hprdbghv\header\vmm\vmx\HypervTlfs.h"
