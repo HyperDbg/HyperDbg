@@ -12,12 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				Debugger Config                 //
-//////////////////////////////////////////////////
-
-#define MaximumHiddenBreakpointsOnPage 40
-
-//////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
 
@@ -100,20 +94,6 @@
  *
  */
 volatile LONG Pml1ModificationAndInvalidationLock;
-
-//////////////////////////////////////////////////
-//				Unions & Structs    			//
-//////////////////////////////////////////////////
-
-//////////////////////////////////////////////////
-//				      typedefs         			 //
-//////////////////////////////////////////////////
-
-typedef EPT_PML4E   EPT_PML4_POINTER, *PEPT_PML4_POINTER;
-typedef EPT_PDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
-typedef EPT_PDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
-typedef EPT_PDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
-typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 
 //////////////////////////////////////////////////
 //			     Structs Cont.                	//
@@ -205,127 +185,6 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     LIST_ENTRY DynamicSplitList;
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
-
-/**
- * @brief Temporary $context used in some EPT hook commands
- *
- */
-typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
-{
-    UINT64 PhysicalAddress;
-    UINT64 VirtualAddress;
-} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
-
-/**
- * @brief Structure to save the state of each hooked pages
- *
- */
-typedef struct _EPT_HOOKED_PAGE_DETAIL
-{
-    DECLSPEC_ALIGN(PAGE_SIZE)
-    CHAR FakePageContents[PAGE_SIZE];
-
-    /**
-     * @brief Linked list entires for each page hook.
-     */
-    LIST_ENTRY PageHookList;
-
-    /**
-     * @brief The virtual address from the caller prespective view (cr3)
-     */
-    UINT64 VirtualAddress;
-
-    /**
-     * @brief The virtual address of it's enty on g_EptHook2sDetourListHead
-     * this way we can de-allocate the list whenever the hook is finished
-     */
-    UINT64 AddressOfEptHook2sDetourListEntry;
-
-    /**
-     * @brief The base address of the page. Used to find this structure in the list of page hooks
-     * when a hook is hit.
-     */
-    SIZE_T PhysicalBaseAddress;
-
-    /**
-     * @brief The base address of the page with fake contents. Used to swap page with fake contents
-     * when a hook is hit.
-     */
-    SIZE_T PhysicalBaseAddressOfFakePageContents;
-
-    /*
-     * @brief The page entry in the page tables that this page is targetting.
-     */
-    PEPT_PML1_ENTRY EntryAddress;
-
-    /**
-     * @brief The original page entry. Will be copied back when the hook is removed
-     * from the page.
-     */
-    EPT_PML1_ENTRY OriginalEntry;
-
-    /**
-     * @brief The original page entry. Will be copied back when the hook is remove from the page.
-     */
-    EPT_PML1_ENTRY ChangedEntry;
-
-    /**
-     * @brief The buffer of the trampoline function which is used in the inline hook.
-     */
-    PCHAR Trampoline;
-
-    /**
-     * @brief This field shows whether the hook contains a hidden hook for execution or not
-     */
-    BOOLEAN IsExecutionHook;
-
-    /**
-     * @brief If TRUE shows that this is the information about
-     * a hidden breakpoint command (not a monitor or hidden detours)
-     */
-    BOOLEAN IsHiddenBreakpoint;
-
-    /**
-     * @brief If TRUE, this hook relates to the write violation of the events
-     */
-    BOOLEAN IsMonitorToWriteOnPages;
-
-    /**
-     * @brief Temporary context for the post event monitors
-     * It shows the context of the last address that triggered the hook
-     * Note: Only used for read/write trigger events
-     */
-    EPT_HOOKS_TEMPORARY_CONTEXT LastContextState;
-
-    /**
-     * @brief This field shows whether the hook should call the post event trigger
-     * after restoring the state or not
-     */
-    BOOLEAN IsPostEventTriggerAllowed;
-
-    /**
-     * @brief Address of hooked pages (multiple breakpoints on a single page)
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    UINT64 BreakpointAddresses[MaximumHiddenBreakpointsOnPage];
-
-    /**
-     * @brief Character that was previously used in BreakpointAddresses
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    CHAR PreviousBytesOnBreakpointAddresses[MaximumHiddenBreakpointsOnPage];
-
-    /**
-     * @brief Count of breakpoints (multiple breakpoints on a single page)
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    UINT64 CountOfBreakpoints;
-
-} EPT_HOOKED_PAGE_DETAIL, *PEPT_HOOKED_PAGE_DETAIL;
-
-//////////////////////////////////////////////////
-//                    Enums		    			//
-//////////////////////////////////////////////////
 
 //////////////////////////////////////////////////
 //				    Functions					//

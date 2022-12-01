@@ -943,27 +943,6 @@ typedef struct _DEBUGGEE_BP_PACKET
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
 
 /**
- * @brief The structure of storing breakpoints
- *
- */
-typedef struct _DEBUGGEE_BP_DESCRIPTOR
-{
-    UINT64     BreakpointId;
-    LIST_ENTRY BreakpointsList;
-    BOOLEAN    Enabled;
-    UINT64     Address;
-    UINT64     PhysAddress;
-    UINT32     Pid;
-    UINT32     Tid;
-    UINT32     Core;
-    UINT16     InstructionLength;
-    BYTE       PreviousByte;
-    BOOLEAN    SetRflagsIFBitOnMtf;
-    BOOLEAN    AvoidReApplyBreakpoint;
-
-} DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
-
-/**
  * @brief breakpoint modification types
  *
  */

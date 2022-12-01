@@ -5,27 +5,11 @@
  * @details
  * @version 0.1
  * @date 2021-12-31
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
-
-//////////////////////////////////////////////////
-//					  Enums		    			//
-//////////////////////////////////////////////////
-
-/**
- * @brief Types of actions for NMI broadcasting
- * 
- */
-typedef enum _NMI_BROADCAST_ACTION_TYPE
-{
-    NMI_BROADCAST_ACTION_NONE = 0,
-    NMI_BROADCAST_ACTION_TEST,
-    NMI_BROADCAST_ACTION_KD_HALT_CORE,
-
-} NMI_BROADCAST_ACTION_TYPE;
 
 //////////////////////////////////////////////////
 //					Functions					//
