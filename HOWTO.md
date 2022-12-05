@@ -8,7 +8,7 @@ The statement generator is available at: https://github.com/HyperDbg/script-engi
 
 This repo is added automatically to HyperDbg when you cloned it with the `--recursive` flag.
 
-To run the tests, you must first run `tasks/test-environment.py` to make the environment for testing the script engine.
+To run the tests, you must first run `utils/test-environment.py` to make the environment for testing the script engine.
 
 After that, run the following command in your HyperDbg command-line:
 
