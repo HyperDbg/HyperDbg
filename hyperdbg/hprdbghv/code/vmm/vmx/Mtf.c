@@ -14,12 +14,11 @@
 /**
  * @brief Handle Monitor Trap Flag vm-exits
  *
- * @param CurrentProcessorIndex
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     BOOLEAN                          AvoidUnsetMtf;
@@ -29,18 +28,17 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     UINT64                      CsSel                 = NULL;
     BOOLEAN                     IsMtfHandled          = FALSE;
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // Redo the instruction
     //
-    CurrentVmState->IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 
     //
     // Explicitly say that we want to unset MTFs
     //
-    CurrentVmState->IgnoreMtfUnset = FALSE;
+    VCpu->IgnoreMtfUnset = FALSE;
 
     //
     // Check if we need to re-apply a breakpoint or not
@@ -84,7 +82,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // *** Regular Monitor Trap Flag functionalities ***
     //
-    if (CurrentVmState->MtfEptHookRestorePoint)
+    if (VCpu->MtfEptHookRestorePoint)
     {
         //
         // MTF is handled
@@ -102,39 +100,39 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Restore the previous state
         //
-        EptHandleMonitorTrapFlag(CurrentVmState->MtfEptHookRestorePoint);
+        EptHandleMonitorTrapFlag(VCpu->MtfEptHookRestorePoint);
 
         //
         // Check to trigger the post event (for events relating the !monitor command
         // and the emulation hardware debug registers)
         //
-        if (CurrentVmState->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
+        if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
         {
             //
             // Check whether this is a "write" monitor hook or not
             //
-            if (CurrentVmState->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
+            if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
             {
                 //
                 // This is a "write" hook
                 //
-                DispatchEventHiddenHookPageReadWriteWritePostEvent(GuestRegs,
-                                                                   &CurrentVmState->MtfEptHookRestorePoint->LastContextState);
+                DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
+                                                                   &VCpu->MtfEptHookRestorePoint->LastContextState);
             }
             else
             {
                 //
                 // This is a "read" hook
                 //
-                DispatchEventHiddenHookPageReadWriteReadPostEvent(GuestRegs,
-                                                                  &CurrentVmState->MtfEptHookRestorePoint->LastContextState);
+                DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
+                                                                  &VCpu->MtfEptHookRestorePoint->LastContextState);
             }
         }
 
         //
         // Set it to NULL
         //
-        CurrentVmState->MtfEptHookRestorePoint = NULL;
+        VCpu->MtfEptHookRestorePoint = NULL;
 
         //
         // Check if we should enable interrupts in this core or not,
@@ -150,7 +148,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Check if there is at least an interrupt that needs to be delivered
             //
-            if (CurrentVmState->PendingExternalInterrupts[0] != NULL)
+            if (VCpu->PendingExternalInterrupts[0] != NULL)
             {
                 //
                 // Enable Interrupt-window exiting.
@@ -191,18 +189,16 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
-                                                                CurrentVmState->LastVmexitRip,
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VCpu,
+                                                                VCpu->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                GuestRegs,
                                                                 &AvoidUnsetMtf))
         {
             //
             // Handle the step
             //
-            ContextAndTag.Context = CurrentVmState->LastVmexitRip;
-            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                                  GuestRegs,
+            ContextAndTag.Context = VCpu->LastVmexitRip;
+            KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &ContextAndTag);
         }
@@ -211,7 +207,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Not unset again (it needs to restore the breakpoint byte)
             //
-            CurrentVmState->IgnoreMtfUnset = AvoidUnsetMtf;
+            VCpu->IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
 
@@ -242,14 +238,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Handle it like an NMI is received from VMX root
             //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(VCpu);
         }
         else
         {
             //
             // Handle halt of the current core as an NMI
             //
-            KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+            KdHandleNmi(VCpu);
         }
     }
 
@@ -277,7 +273,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Final check to unset MTF
     //
-    if (!CurrentVmState->IgnoreMtfUnset)
+    if (!VCpu->IgnoreMtfUnset)
     {
         //
         // We don't need MTF anymore if it set to disable MTF
@@ -289,6 +285,6 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Set it to false to avoid future errors
         //
-        CurrentVmState->IgnoreMtfUnset = FALSE;
+        VCpu->IgnoreMtfUnset = FALSE;
     }
 }

@@ -700,9 +700,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 /**
  * @brief Trigger events of a special type to be managed by debugger
  *
+ * @param VCpu The virtual processor's state
  * @param EventType Type of events
  * @param CallingStage Stage of calling (pre-event or post-event)
- * @param Regs Guest registers
  * @param Context An optional parameter (different in each event)
  * @param PostEventRequired Whether the caller is requested to
  * trigger a post-event event
@@ -710,17 +710,15 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * of handling events
  */
 DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+DebuggerTriggerEvents(VIRTUAL_MACHINE_STATE *           VCpu,
+                      DEBUGGER_EVENT_TYPE_ENUM          EventType,
                       DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PGUEST_REGS                       Regs,
                       PVOID                             Context,
                       BOOLEAN *                         PostEventRequired)
 {
     DebuggerCheckForCondition * ConditionFunc;
-    PLIST_ENTRY                 TempList              = 0;
-    PLIST_ENTRY                 TempList2             = 0;
-    UINT32                      CurrentProcessorIndex = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
+    PLIST_ENTRY                 TempList  = 0;
+    PLIST_ENTRY                 TempList2 = 0;
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -877,7 +875,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Check if this event is for this core or not
         //
-        if (CurrentEvent->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES && CurrentEvent->CoreId != CurrentProcessorIndex)
+        if (CurrentEvent->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES && CurrentEvent->CoreId != VCpu->CoreId)
         {
             //
             // This event is not related to either or core or all cores
@@ -1135,7 +1133,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
             //
             // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
             //
-            if (AsmDebuggerConditionCodeHandler(Regs, Context, ConditionFunc) == 0)
+            if (AsmDebuggerConditionCodeHandler(VCpu->Regs, Context, ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -1148,18 +1146,18 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Reset the the event ignorance mechanism
         //
-        CurrentVmState->DebuggingState.ShortCircuitingEvent = FALSE;
+        VCpu->DebuggingState.ShortCircuitingEvent = FALSE;
 
         //
         // perform the actions
         //
-        DebuggerPerformActions(CurrentEvent, Regs, Context);
+        DebuggerPerformActions(VCpu, CurrentEvent, Context);
     }
 
     //
     // Check if the event should be ignored or not
     //
-    if (CurrentVmState->DebuggingState.ShortCircuitingEvent)
+    if (VCpu->DebuggingState.ShortCircuitingEvent)
     {
         //
         // Event should be ignored
@@ -1178,13 +1176,13 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
 /**
  * @brief Run a special event's action(s)
  *
+ * @param VCpu The virtual processor's state
  * @param Event Event Object
- * @param Regs Guest registers
  * @param Context Optional parameter
  * @return VOID
  */
 VOID
-DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
+DebuggerPerformActions(VIRTUAL_MACHINE_STATE * VCpu, PDEBUGGER_EVENT Event, PVOID Context)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1203,13 +1201,13 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
         switch (CurrentAction->ActionType)
         {
         case BREAK_TO_DEBUGGER:
-            DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
+            DebuggerPerformBreakToDebugger(VCpu, Event->Tag, CurrentAction, Context);
             break;
         case RUN_SCRIPT:
-            DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
+            DebuggerPerformRunScript(VCpu, Event->Tag, CurrentAction, NULL, Context);
             break;
         case RUN_CUSTOM_CODE:
-            DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
+            DebuggerPerformRunTheCustomCode(VCpu, Event->Tag, CurrentAction, Context);
             break;
         default:
 
@@ -1224,29 +1222,23 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 /**
  * @brief Managing run script action
  *
+ * @param VCpu The virtual processor's state
  * @param Tag Tag of event
  * @param Action Action object
- * @param Regs Guest registers
  * @param Context Optional parameter
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerPerformRunScript(UINT64                  Tag,
+DebuggerPerformRunScript(VIRTUAL_MACHINE_STATE * VCpu,
+                         UINT64                  Tag,
                          PDEBUGGER_EVENT_ACTION  Action,
                          PDEBUGGEE_SCRIPT_PACKET ScriptDetails,
-                         PGUEST_REGS             Regs,
                          PVOID                   Context)
 {
     SYMBOL_BUFFER                CodeBuffer    = {0};
     ACTION_BUFFER                ActionBuffer  = {0};
     SYMBOL                       ErrorSymbol   = {0};
     SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
-    ULONG                        CoreIndex     = NULL;
-
-    //
-    // Get core index
-    //
-    CoreIndex = KeGetCurrentProcessorNumber();
 
     if (Action != NULL)
     {
@@ -1294,8 +1286,8 @@ DebuggerPerformRunScript(UINT64                  Tag,
     // Fill the variables list for this run
     //
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = g_GuestState[CoreIndex].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
-    VariablesList.TempList            = g_GuestState[CoreIndex].DebuggingState.ScriptEngineCoreSpecificTempVariable;
+    VariablesList.LocalVariablesList  = VCpu->DebuggingState.ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.TempList            = VCpu->DebuggingState.ScriptEngineCoreSpecificTempVariable;
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
@@ -1322,14 +1314,14 @@ DebuggerPerformRunScript(UINT64                  Tag,
 /**
  * @brief Manage running the custom code action
  *
+ * @param VCpu The virtual processor's state
  * @param Tag Tag of event
  * @param Action Action object
- * @param Regs Guest registers
  * @param Context Optional parameter
  * @return VOID
  */
 VOID
-DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+DebuggerPerformRunTheCustomCode(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
 {
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -1360,34 +1352,33 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(NULL, Regs, Context, Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler(NULL, VCpu->Regs, Context, Action->CustomCodeBufferAddress);
     }
     else
     {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, VCpu->Regs, Context, Action->CustomCodeBufferAddress);
     }
 }
 
 /**
  * @brief Manage breaking to the debugger action
  *
+ * @param VCpu The virtual processor's state
  * @param Tag Tag of event
  * @param Action Action object
- * @param Regs Guest registers
  * @param Context Optional parameter
+ *
  * @return VOID
  */
 VOID
-DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+DebuggerPerformBreakToDebugger(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
-    UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *          CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
 
-    if (CurrentVmState->IsOnVmxRootMode)
+    if (VCpu->IsOnVmxRootMode)
     {
         //
         // The guest is already in vmx-root mode
@@ -1397,8 +1388,7 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
         ContextAndTag.Context = Context;
 
         KdHandleBreakpointAndDebugBreakpoints(
-            CurrentProcessorIndex,
-            Regs,
+            VCpu,
             DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
             &ContextAndTag);
     }

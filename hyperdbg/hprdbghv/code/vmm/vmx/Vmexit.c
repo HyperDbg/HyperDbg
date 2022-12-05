@@ -215,7 +215,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Call the external-interrupt handler
         //
-        DispatchEventExternalInterrupts(VCpu->CoreId, VCpu->Regs);
+        DispatchEventExternalInterrupts(VCpu);
 
         break;
     }
@@ -243,7 +243,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // General handler to monitor trap flags (MTF)
         //
-        MtfHandleVmexit(VCpu->CoreId, VCpu->Regs);
+        MtfHandleVmexit(VCpu);
 
         break;
     }

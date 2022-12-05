@@ -245,9 +245,9 @@ BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
 DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+DebuggerTriggerEvents(VIRTUAL_MACHINE_STATE *           VCpu,
+                      DEBUGGER_EVENT_TYPE_ENUM          EventType,
                       DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PGUEST_REGS                       Regs,
                       PVOID                             Context,
                       BOOLEAN *                         PostEventRequired);
 
@@ -300,13 +300,13 @@ BOOLEAN
 DebuggerDisableEvent(UINT64 Tag);
 
 VOID
-DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformActions(VIRTUAL_MACHINE_STATE * VCpu, PDEBUGGER_EVENT Event, PVOID Context);
 
 VOID
-DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformBreakToDebugger(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);
 
 BOOLEAN
-DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PDEBUGGEE_SCRIPT_PACKET ScriptDetails, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformRunScript(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PDEBUGGEE_SCRIPT_PACKET ScriptDetails, PVOID Context);
 
 VOID
-DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformRunTheCustomCode(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);

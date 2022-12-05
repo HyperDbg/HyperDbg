@@ -106,12 +106,12 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 /**
  * @brief This function emulates the SYSCALL execution
  *
- * @param Regs Guest registers
+ * @param VCpu The virtual processor's state
  * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
-SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
+SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMX_SEGMENT_SELECTOR Cs, Ss;
     UINT32               InstructionLength;
@@ -138,16 +138,16 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     // Save the address of the instruction following SYSCALL into RCX and then
     // load RIP from IA32_LSTAR.
     //
-    MsrValue  = __readmsr(IA32_LSTAR);
-    Regs->rcx = GuestRip + InstructionLength;
-    GuestRip  = MsrValue;
+    MsrValue        = __readmsr(IA32_LSTAR);
+    VCpu->Regs->rcx = GuestRip + InstructionLength;
+    GuestRip        = MsrValue;
     __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Save RFLAGS into R11 and then mask RFLAGS using IA32_FMASK
     //
-    MsrValue  = __readmsr(IA32_FMASK);
-    Regs->r11 = GuestRflags;
+    MsrValue        = __readmsr(IA32_FMASK);
+    VCpu->Regs->r11 = GuestRflags;
     GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
@@ -173,12 +173,12 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 /**
  * @brief This function emulates the SYSRET execution
  *
- * @param Regs Guest registers
+ * @param VCpu The virtual processor's state
  * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
-SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
+SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMX_SEGMENT_SELECTOR Cs, Ss;
     UINT64               MsrValue;
@@ -188,13 +188,13 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
     //
     // Load RIP from RCX
     //
-    GuestRip = Regs->rcx;
+    GuestRip = VCpu->Regs->rcx;
     __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Load RFLAGS from R11. Clear RF, VM, reserved bits
     //
-    GuestRflags = (Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
+    GuestRflags = (VCpu->Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
@@ -219,18 +219,16 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 /**
  * @brief Detect whether the #UD was because of Syscall or Sysret or not
  *
- * @param Regs Guest register
- * @param CoreIndex Logical core index
+ * @param VCpu The virtual processor's state
  * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not
  */
 _Use_decl_annotations_
 BOOLEAN
-SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
+SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    CR3_TYPE                GuestCr3;
-    UINT64                  OriginalCr3;
-    UINT64                  Rip;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    UINT64   Rip;
 
     //
     // Reading guest's RIP
@@ -296,7 +294,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             //
             // The page is not present, we have to inject a #PF
             //
-            CurrentVmState->IncrementRip = FALSE;
+            VCpu->IncrementRip = FALSE;
 
             //
             // For testing purpose
@@ -348,7 +346,7 @@ EmulateSYSRET:
     //
     // Perform the dispatching and the emulation of the SYSRET event
     //
-    DispatchEventEferSysret(CoreIndex, Regs, Rip);
+    DispatchEventEferSysret(VCpu, Rip);
 
     return TRUE;
 
@@ -367,7 +365,7 @@ EmulateSYSCALL:
     //
     // Perform the dispatching and the emulation of the SYSCAKK event
     //
-    DispatchEventEferSyscall(CoreIndex, Regs, Rip);
+    DispatchEventEferSyscall(VCpu, Rip);
 
     return TRUE;
 }

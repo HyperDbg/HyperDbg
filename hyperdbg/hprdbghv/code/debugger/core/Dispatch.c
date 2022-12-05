@@ -22,18 +22,17 @@
  * @return VOID
  */
 VOID
-DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
+DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     BOOLEAN                               PostEventTriggerReq = FALSE;
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    VIRTUAL_MACHINE_STATE *               CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // We should trigger the event of SYSRET here
     //
-    EventTriggerResult = DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               SYSCALL_HOOK_EFER_SYSRET,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -42,8 +41,8 @@ DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        SyscallHookEmulateSYSRET(Regs);
-        CurrentVmState->IncrementRip = FALSE;
+        SyscallHookEmulateSYSRET(VCpu);
+        VCpu->IncrementRip = FALSE;
     }
 
     //
@@ -51,9 +50,9 @@ DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
+        DebuggerTriggerEvents(VCpu,
+                              SYSCALL_HOOK_EFER_SYSRET,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
                               Context,
                               NULL);
     }
@@ -68,20 +67,19 @@ DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
  * @return VOID
  */
 VOID
-DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
+DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     BOOLEAN                               PostEventTriggerReq = FALSE;
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    VIRTUAL_MACHINE_STATE *               CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // We should trigger the event of SYSCALL here, we send the
     // syscall number in rax
     //
-    EventTriggerResult = DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               SYSCALL_HOOK_EFER_SYSCALL,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
-                                               Regs->rax,
+                                               VCpu->Regs->rax,
                                                &PostEventTriggerReq);
 
     //
@@ -89,8 +87,8 @@ DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        SyscallHookEmulateSYSCALL(Regs);
-        CurrentVmState->IncrementRip = FALSE;
+        SyscallHookEmulateSYSCALL(VCpu);
+        VCpu->IncrementRip = FALSE;
     }
 
     //
@@ -98,10 +96,10 @@ DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
+        DebuggerTriggerEvents(VCpu,
+                              SYSCALL_HOOK_EFER_SYSCALL,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
-                              Regs->rax,
+                              VCpu->Regs->rax,
                               NULL);
     }
 }
@@ -147,9 +145,9 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+        EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                                   CPUID_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   VCpu->Regs,
                                                    Context,
                                                    &PostEventTriggerReq);
 
@@ -169,9 +167,9 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+            DebuggerTriggerEvents(VCpu,
+                                  CPUID_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  VCpu->Regs,
                                   Context,
                                   NULL);
         }
@@ -204,9 +202,9 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     // it's an rdtsc (for rdtscp we set Context to true)
     // Note : Using !tsc command in transparent-mode is not allowed
     //
-    EventTriggerResult = DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               TSC_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                IsRdtscp,
                                                &PostEventTriggerReq);
 
@@ -233,9 +231,9 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
+        DebuggerTriggerEvents(VCpu,
+                              TSC_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               IsRdtscp,
                               NULL);
     }
@@ -262,9 +260,9 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION,
+        EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                                   VMCALL_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   VCpu->Regs,
                                                    NULL,
                                                    &PostEventTriggerReq);
 
@@ -284,9 +282,9 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+            DebuggerTriggerEvents(VCpu,
+                                  CPUID_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  VCpu->Regs,
                                   NULL,
                                   NULL);
         }
@@ -325,17 +323,17 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (IoQualification.DirectionOfAccess == AccessIn)
     {
-        EventTriggerResult = DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+        EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                                   IN_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   VCpu->Regs,
                                                    IoQualification.PortNumber,
                                                    &PostEventTriggerReq);
     }
     else if (IoQualification.DirectionOfAccess == AccessOut)
     {
-        EventTriggerResult = DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+        EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                                   OUT_INSTRUCTION_EXECUTION,
                                                    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   VCpu->Regs,
                                                    IoQualification.PortNumber,
                                                    &PostEventTriggerReq);
     }
@@ -358,17 +356,17 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     {
         if (IoQualification.DirectionOfAccess == AccessIn)
         {
-            DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+            DebuggerTriggerEvents(VCpu,
+                                  IN_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  VCpu->Regs,
                                   IoQualification.PortNumber,
                                   NULL);
         }
         else if (IoQualification.DirectionOfAccess == AccessOut)
         {
-            DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+            DebuggerTriggerEvents(VCpu,
+                                  OUT_INSTRUCTION_EXECUTION,
                                   DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  VCpu->Regs,
                                   IoQualification.PortNumber,
                                   NULL);
         }
@@ -390,9 +388,9 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               RDMSR_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                VCpu->Regs->rcx & 0xffffffff,
                                                &PostEventTriggerReq);
 
@@ -412,9 +410,9 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+        DebuggerTriggerEvents(VCpu,
+                              RDMSR_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               VCpu->Regs->rcx & 0xffffffff,
                               NULL);
     }
@@ -435,9 +433,9 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               WRMSR_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                VCpu->Regs->rcx & 0xffffffff,
                                                &PostEventTriggerReq);
 
@@ -457,9 +455,9 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+        DebuggerTriggerEvents(VCpu,
+                              WRMSR_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               VCpu->Regs->rcx & 0xffffffff,
                               NULL);
     }
@@ -480,9 +478,9 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               PMC_INSTRUCTION_EXECUTION,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                NULL,
                                                &PostEventTriggerReq);
 
@@ -502,9 +500,9 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+        DebuggerTriggerEvents(VCpu,
+                              PMC_INSTRUCTION_EXECUTION,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               NULL,
                               NULL);
     }
@@ -535,9 +533,9 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               DEBUG_REGISTERS_ACCESSED,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                NULL,
                                                &PostEventTriggerReq);
 
@@ -557,9 +555,9 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+        DebuggerTriggerEvents(VCpu,
+                              DEBUG_REGISTERS_ACCESSED,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               NULL,
                               NULL);
     }
@@ -599,9 +597,9 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                CrExitQualification->ControlRegister,
                                                &PostEventTriggerReq);
 
@@ -621,9 +619,9 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+        DebuggerTriggerEvents(VCpu,
+                              ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs,
                               CrExitQualification->ControlRegister,
                               NULL);
     }
@@ -632,17 +630,16 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handling debugger functions related to EXCEPTION events
  *
- * @param CoreIndex Current core's index
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
+DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq  = FALSE;
     VMEXIT_INTERRUPT_INFORMATION          InterruptExit        = {0};
-    PROCESSOR_DEBUGGING_STATE *           CurrentDebuggerState = &g_GuestState[CoreIndex].DebuggingState;
+    PROCESSOR_DEBUGGING_STATE *           CurrentDebuggerState = &VCpu->DebuggingState;
 
     //
     // read the exit interruption information
@@ -663,7 +660,7 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
         // a instrument step-in ('i' command) routine
         //
         if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
-            VmxBroadcastNmiHandler(CoreIndex, Regs, FALSE))
+            VmxBroadcastNmiHandler(VCpu, FALSE))
         {
             return;
         }
@@ -689,9 +686,9 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
     // Triggering the pre-event
     // As the context to event trigger, we send the vector or IDT Index
     //
-    EventTriggerResult = DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               EXCEPTION_OCCURRED,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
                                                InterruptExit.Vector,
                                                &PostEventTriggerReq);
 
@@ -721,7 +718,7 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Handle exception (emulate or inject the event)
         //
-        IdtEmulationHandleExceptionAndNmi(CoreIndex, Regs, InterruptExit);
+        IdtEmulationHandleExceptionAndNmi(VCpu, InterruptExit);
     }
 
     //
@@ -729,9 +726,9 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+        DebuggerTriggerEvents(VCpu,
+                              EXCEPTION_OCCURRED,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
                               InterruptExit.Vector,
                               NULL);
     }
@@ -740,17 +737,15 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
 /**
  * @brief Handling debugger functions related to external-interrupt events
  *
- * @param CoreIndex Current core's index
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
+DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMEXIT_INTERRUPT_INFORMATION          InterruptExit;
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
-    VIRTUAL_MACHINE_STATE *               CurrentVmState      = &g_GuestState[CoreIndex];
 
     //
     // read the exit interruption information
@@ -760,7 +755,7 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
     //
     // Check for immediate vm-exit mechanism
     //
-    if (CurrentVmState->WaitForImmediateVmexit &&
+    if (VCpu->WaitForImmediateVmexit &&
         InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
     {
         //
@@ -771,12 +766,12 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Not increase the RIP
         //
-        CurrentVmState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
 
         //
         // Hanlde immediate vm-exit mechanism
         //
-        VmxMechanismHandleImmediateVmexit(CoreIndex, Regs);
+        VmxMechanismHandleImmediateVmexit(VCpu);
 
         //
         // No need to continue, it's a HyperDbg mechanism
@@ -790,14 +785,14 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
     // and process or thread proved to cause a system halt. it halts the system as
     // we Windows expects to switch the thread while we're forcing it to not do it
     //
-    IdtEmulationCheckProcessOrThreadChange(CoreIndex, InterruptExit, Regs);
+    IdtEmulationCheckProcessOrThreadChange(VCpu, InterruptExit);
 
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               EXTERNAL_INTERRUPT_OCCURRED,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Regs,
                                                InterruptExit.Vector,
                                                &PostEventTriggerReq);
 
@@ -809,7 +804,7 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Handle vm-exit and perform changes
         //
-        IdtEmulationHandleExternalInterrupt(CoreIndex, Regs, InterruptExit);
+        IdtEmulationHandleExternalInterrupt(VCpu, InterruptExit);
     }
 
     //
@@ -826,9 +821,9 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
         // because the guest is not in a interruptible state and will
         // be re-injected when the guest is ready for interrupts
         //
-        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+        DebuggerTriggerEvents(VCpu,
+                              EXTERNAL_INTERRUPT_OCCURRED,
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Regs,
                               InterruptExit.Vector,
                               NULL);
     }
@@ -838,12 +833,12 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
  * @brief Handling debugger functions related to hidden hook exec
  * CC events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context)
+DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     BOOLEAN PostEventTriggerReq = FALSE;
 
@@ -851,9 +846,9 @@ DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context)
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_EXEC_CC,
                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Regs,
                           Context,
                           &PostEventTriggerReq); // it will crash if we pass it NULL
 }
@@ -862,12 +857,12 @@ DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context)
  * @brief Handling debugger functions related to hidden hook exec
  * detours events
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context)
+DispatchEventHiddenHookExecDetours(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     BOOLEAN PostEventTriggerReq = FALSE;
 
@@ -875,9 +870,9 @@ DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context)
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_EXEC_DETOURS,
                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Regs,
                           Context,
                           &PostEventTriggerReq); // it will crash if we pass it NULL
 }
@@ -900,9 +895,9 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, 
     //
     // Triggering the pre-event (for the write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               HIDDEN_HOOK_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -919,9 +914,9 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, 
     //
     // Triggering the pre-event (for the read & write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               HIDDEN_HOOK_READ_AND_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -956,9 +951,9 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
     //
     // Triggering the pre-event (for the read hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               HIDDEN_HOOK_READ,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -975,9 +970,9 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
     //
     // Triggering the pre-event (for the read & write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+    EventTriggerResult = DebuggerTriggerEvents(VCpu,
+                                               HIDDEN_HOOK_READ_AND_WRITE,
                                                DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs,
                                                Context,
                                                &PostEventTriggerReq);
 
@@ -997,28 +992,28 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
 /**
  * @brief Handling debugger functions related to read & write, write events (post)
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Context)
+DispatchEventHiddenHookPageReadWriteWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     //
     // Triggering the post-event (for the write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_WRITE,
                           DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                          Regs,
                           Context,
                           NULL);
 
     //
     // Triggering the post-event (for the read & write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_READ_AND_WRITE,
                           DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                          Regs,
                           Context,
                           NULL);
 }
@@ -1026,28 +1021,28 @@ DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Conte
 /**
  * @brief Handling debugger functions related to read & write, read events (post)
  *
- * @param Regs Guest's gp register
+ * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookPageReadWriteReadPostEvent(PGUEST_REGS Regs, PVOID Context)
+DispatchEventHiddenHookPageReadWriteReadPostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     //
     // Triggering the post-event (for the read hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_READ,
                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Regs,
                           Context,
                           NULL);
 
     //
     // Triggering the post-event (for the read & write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+    DebuggerTriggerEvents(VCpu,
+                          HIDDEN_HOOK_READ_AND_WRITE,
                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Regs,
                           Context,
                           NULL);
 }

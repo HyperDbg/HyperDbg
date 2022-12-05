@@ -2,12 +2,12 @@
  * @file BreakpointCommands.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Commands for setting breakpoints
- * 
+ *
  * @version 0.1
  * @date 2021-03-12
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -25,13 +25,12 @@ VOID
 BreakpointRemoveAllBreakpoints();
 
 VOID
-BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  CurrentProcessorIndex,
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VIRTUAL_MACHINE_STATE * VCpu,
                                                    UINT64                  GuestRip,
                                                    DEBUGGEE_PAUSING_REASON Reason,
-                                                   PGUEST_REGS             GuestRegs,
                                                    PBOOLEAN                AvoidUnsetMtf);
 
 BOOLEAN

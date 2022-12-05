@@ -86,7 +86,7 @@ typedef struct _HARDWARE_DEBUG_REGISTER_DETAILS
 //
 
 static VOID
-KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentCore, volatile LONG * Lock, PGUEST_REGS GuestRegs);
+KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * Lock);
 
 static VOID
 KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
@@ -99,21 +99,21 @@ KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
                       _In_ UINT32                    Length);
 
 static VOID
-KdApplyTasksPreHaltCore(UINT32 CurrentCore);
+KdApplyTasksPreHaltCore(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
-KdApplyTasksPostContinueCore(UINT32 CurrentCore);
+KdApplyTasksPostContinueCore(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
-KdContinueDebuggee(_In_ UINT32                                                      CurrentCore,
+KdContinueDebuggee(_Inout_ VIRTUAL_MACHINE_STATE *                                  VCpu,
                    _In_ BOOLEAN                                                     PauseBreaksUntilSpecialMessageSent,
                    _In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse);
 
 static VOID
-KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore);
+KdContinueDebuggeeJustCurrentCore(VIRTUAL_MACHINE_STATE * VCpu);
 
 static BOOLEAN
-KdReadRegisters(_In_ PGUEST_REGS                            Regs,
+KdReadRegisters(_In_ VIRTUAL_MACHINE_STATE *                VCpu,
                 _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 static BOOLEAN
 KdReadMemory(_In_ PGUEST_REGS                            Regs,
@@ -131,17 +131,14 @@ KdReloadSymbolDetailsInDebuggee(_In_ PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket);
 static VOID
 KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len);
 
-// static VOID
-// KdSendFormatsFunctionResult(UINT64 Value);
+static VOID
+KdGuaranteedStepInstruction(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
-KdGuaranteedStepInstruction(UINT32 CurrentCore);
+KdRegularStepInInstruction(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
-KdRegularStepInInstruction(UINT32 CurrentCore);
-
-static VOID
-KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 CoreId);
+KdRegularStepOver(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
 
 static VOID
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader);
@@ -156,7 +153,7 @@ static VOID
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent);
 
 static VOID
-KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs);
+KdDispatchAndPerformCommandsFromDebugger(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
 KdBroadcastHaltOnAllCores();
@@ -169,15 +166,13 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS GuestRegs);
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
-                            PGUEST_REGS                       GuestRegs,
+KdManageSystemHaltOnVmxRoot(VIRTUAL_MACHINE_STATE *           VCpu,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
-KdHandleNmi(_In_ UINT32         CurrentCore,
-            _Inout_ PGUEST_REGS GuestRegs);
+KdHandleNmi(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 KdInitializeKernelDebugger();
@@ -192,14 +187,12 @@ VOID
 KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(_In_ UINT32                       CurrentCore,
-                                      PGUEST_REGS                       GuestRegs,
+KdHandleBreakpointAndDebugBreakpoints(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
                                       _In_ DEBUGGEE_PAUSING_REASON      Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 VOID
-KdHandleHaltsWhenNmiReceivedFromVmxRoot(_In_ UINT32         CurrentCore,
-                                        _Inout_ PGUEST_REGS GuestRegs);
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE             PacketType,

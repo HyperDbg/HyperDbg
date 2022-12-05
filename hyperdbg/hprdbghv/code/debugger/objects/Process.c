@@ -28,7 +28,7 @@ ProcessHandleProcessChange(VIRTUAL_MACHINE_STATE * VCpu)
     if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
         (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
-        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId, VCpu->Regs, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
+        KdHandleBreakpointAndDebugBreakpoints(VCpu, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
 
         //
         // Found
@@ -166,20 +166,20 @@ ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
  * on the running core based on mov-to-cr3 vm-exits
  * @details should be called on vmx root
  *
- * @param CurrentProcessorIndex
+ * @param VCpu The virtual processor's state
  * @param Enable
  * @return VOID
  */
 VOID
-ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
-                                    BOOLEAN Enable)
+ProcessDetectChangeByMov2Cr3Vmexits(VIRTUAL_MACHINE_STATE * VCpu,
+                                    BOOLEAN                 Enable)
 {
     if (Enable)
     {
         //
         // Indicate that we're waiting for mov-to-cr3 vm-exits
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = TRUE;
+        VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = TRUE;
 
         //
         // Set mov to cr3 vm-exit, this flag is also use to remove the
@@ -192,7 +192,7 @@ ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
         //
         // Indicate that we're not waiting for mov-to-cr3 vm-exits
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = FALSE;
+        VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = FALSE;
 
         //
         // Unset mov to cr3 vm-exit, this flag is also use to remove the
@@ -207,15 +207,15 @@ ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
  * on the running core
  * @details should be called on vmx root
  *
- * @param CurrentProcessorIndex
+ * @param VCpu The virtual processor's state
  * @param Enable
  * @param CheckByClockInterrupts
  * @return VOID
  */
 VOID
-ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                          BOOLEAN Enable,
-                                          BOOLEAN CheckByClockInterrupts)
+ProcessEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
+                                          BOOLEAN                 Enable,
+                                          BOOLEAN                 CheckByClockInterrupts)
 {
     //
     // Check whether we should intercept mov-to-cr3 vm-exits or intercept
@@ -223,11 +223,11 @@ ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
     //
     if (!CheckByClockInterrupts)
     {
-        ProcessDetectChangeByMov2Cr3Vmexits(CurrentProcessorIndex, Enable);
+        ProcessDetectChangeByMov2Cr3Vmexits(VCpu, Enable);
     }
     else
     {
-        ProcessDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
+        ProcessDetectChangeByInterceptingClockInterrupts(VCpu, Enable);
     }
 }
 

@@ -91,10 +91,20 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     TempContext.PhysicalAddress = VirtualAddressToPhysicalAddress(CalledFrom);
 
     //
+    // Create a temporary VCpu
+    //
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[KeGetCurrentProcessorNumber()];
+
+    //
+    // Set the register for the temporary VCpu
+    //
+    VCpu->Regs = Regs;
+
+    //
     // As the context to event trigger, we send the address of function
     // which is current hidden hook is triggered for it
     //
-    DispatchEventHiddenHookExecDetours(Regs, &TempContext);
+    DispatchEventHiddenHookExecDetours(VCpu, &TempContext);
 
     //
     // Iterate through the list of hooked pages details to find

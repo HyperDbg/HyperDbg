@@ -359,8 +359,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
-                                              VCpu->Regs,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
                                               NULL);
         VmcallStatus = STATUS_SUCCESS;
@@ -418,8 +417,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
         {
-            KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
-                                                  VCpu->Regs,
+            KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                                   DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
                                                   NULL);
         }
@@ -430,17 +428,29 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     case VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT:
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+        PGUEST_REGS                      TempReg              = NULL;
 
         TriggeredEventDetail.Context = OptionalParam1;
         TriggeredEventDetail.Tag     = OptionalParam2;
 
-        KdHandleBreakpointAndDebugBreakpoints(VCpu->CoreId,
-                                              OptionalParam3, // We won't send current vmcall registers
-                                                              // instead we send the registers provided
-                                                              // from the third parameter
-                                                              //
+        TempReg = VCpu->Regs;
+
+        //
+        // We won't send current vmcall registers
+        // instead we send the registers provided
+        // from the third parameter
+        //
+        VCpu->Regs = OptionalParam3;
+
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                                               &TriggeredEventDetail);
+
+        //
+        // Restore the register
+        //
+        VCpu->Regs = TempReg;
+
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

@@ -75,8 +75,7 @@ BOOLEAN
 AttachingInitialize();
 
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentProcessorIndex,
-                                         PGUEST_REGS                  GuestRegs,
+AttachingCheckPageFaultsWithUserDebugger(VIRTUAL_MACHINE_STATE *      VCpu,
                                          VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                                          UINT64                       Address,
                                          ULONG                        ErrorCode);
@@ -91,7 +90,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+AttachingHandleEntrypointDebugBreak(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();

@@ -5,16 +5,16 @@
  * @details
  * @version 0.1
  * @date 2021-12-16
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Create an immediate vm-exit after vm-entry by using
  * VMX Preemption Timer
- * @return VOID 
+ * @return VOID
  */
 VOID
 VmxMechanismCreateImmediateVmexitByVmxPreemptionTimer()
@@ -35,8 +35,8 @@ VmxMechanismCreateImmediateVmexitByVmxPreemptionTimer()
 /**
  * @brief Disable the immediate vm-exit after vm-entry by using
  * VMX Preemption Timer
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxMechanismDisableImmediateVmexitByVmxPreemptionTimer()
@@ -52,8 +52,8 @@ VmxMechanismDisableImmediateVmexitByVmxPreemptionTimer()
 /**
  * @brief Create an immediate vm-exit after vm-entry by using
  * self-ipi
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxMechanismCreateImmediateVmexitBySelfIpi()
@@ -65,10 +65,10 @@ VmxMechanismCreateImmediateVmexitBySelfIpi()
 }
 
 /**
- * @brief Create an immediate vm-exit after vm-entry 
- * 
+ * @brief Create an immediate vm-exit after vm-entry
+ *
  * @param CurrentCoreIndex
- * @return VOID 
+ * @return VOID
  */
 VOID
 VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
@@ -97,19 +97,18 @@ VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
 }
 
 /**
- * @brief Handle immediate vm-exit after vm-entry 
- * @param CurrentCoreIndex
- * @param GuestRegs
- * 
- * @return VOID 
+ * @brief Handle immediate vm-exit after vm-entry
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs)
+VmxMechanismHandleImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Not waiting for immediate vm-exit anymore
     //
-    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = FALSE;
+    VCpu->WaitForImmediateVmexit = FALSE;
 
     //
     // Set vm-exit on external interrupts

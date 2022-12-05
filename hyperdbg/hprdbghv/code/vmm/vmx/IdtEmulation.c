@@ -48,7 +48,7 @@ IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION Inter
 /**
  * @brief inject #PFs to the guest
  *
- * @param CurrentProcessorIndex processor index
+ * @param VCpu The virtual processor's state
  * @param InterruptExit interrupt info from vm-exit
  * @param Address cr2 address
  * @param ErrorCode Page-fault error code
@@ -56,7 +56,7 @@ IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION Inter
  * @return BOOLEAN
  */
 BOOLEAN
-IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorIndex,
+IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                              _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                              _In_ UINT64                       Address,
                              _In_ ULONG                        ErrorCode)
@@ -64,8 +64,7 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
     //
     // #PF is treated differently, we have to deal with cr2 too.
     //
-    PAGE_FAULT_ERROR_CODE   PageFaultCode     = {0};
-    VIRTUAL_MACHINE_STATE * CurrentGuestState = &g_GuestState[CurrentProcessorIndex];
+    PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
 
     __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &PageFaultCode);
 
@@ -96,7 +95,7 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
-    CurrentGuestState->IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 
     //
     // Re-inject the interrupt/exception
@@ -118,18 +117,16 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
 /**
  * @brief Handle Nmi and expection vm-exits
  *
- * @param CurrentProcessorIndex index of processor
- * @param InterruptExit vm-exit information for interrupt
+ * @param VCpu The virtual processor's state
  * @param GuestRegs guest registers
  * @return VOID
  */
 VOID
-IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProcessorIndex,
-                                  _Inout_ PGUEST_REGS               GuestRegs,
+IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                   _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
     ULONG                       ErrorCode            = 0;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -147,7 +144,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
         //
         // Handle software breakpoints
         //
-        BreakpointHandleBpTraps(CurrentProcessorIndex, GuestRegs);
+        BreakpointHandleBpTraps(VCpu);
 
         break;
 
@@ -156,12 +153,12 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
         //
         // Handle the #UD, checking if this exception was intentional.
         //
-        if (!SyscallHookHandleUD(GuestRegs, CurrentProcessorIndex))
+        if (!SyscallHookHandleUD(VCpu))
         {
             //
             // If this #UD was found to be unintentional, inject a #UD interruption into the guest.
             //
-            EventInjectUndefinedOpcode(CurrentProcessorIndex);
+            EventInjectUndefinedOpcode(VCpu);
         }
 
         break;
@@ -177,8 +174,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
         // Handle page-faults
         //
         if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            AttachingCheckPageFaultsWithUserDebugger(CurrentProcessorIndex,
-                                                     GuestRegs,
+            AttachingCheckPageFaultsWithUserDebugger(VCpu,
                                                      InterruptExit,
                                                      NULL,
                                                      ErrorCode))
@@ -192,7 +188,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
             //
             // The #pf is not related to our debugger
             //
-            IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
+            IdtEmulationHandlePageFaults(VCpu, InterruptExit, NULL, ErrorCode);
         }
 
         break;
@@ -214,7 +210,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
             // this vm-exit, but it's a really rare case, so we left it without
             // handling this case
             //
-            ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+            ThreadHandleThreadChange(VCpu);
         }
         else if (g_UserDebuggerState == TRUE &&
                  (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
@@ -222,7 +218,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
             //
             // Handle for user-mode attaching mechanism
             //
-            AttachingHandleEntrypointDebugBreak(CurrentProcessorIndex, GuestRegs);
+            AttachingHandleEntrypointDebugBreak(VCpu);
         }
         else if (g_KernelDebuggerState == TRUE)
         {
@@ -230,10 +226,9 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached.)
             //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(VCpu);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
-                                                           GuestRegs,
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu,
                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
                                                            NULL))
         {
@@ -288,16 +283,15 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProce
  * interrupt so we can re-inject them to the guest whenever the interrupt window
  * is open
  *
+ * @param VCpu The virtual processor's state
  * @param InterruptExit interrupt info from vm-exit
- * @param CurrentProcessorIndex processor index
  * @return BOOLEAN
  */
 BOOLEAN
-IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                                     _In_ UINT32                       CurrentProcessorIndex)
+IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
+                                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    BOOLEAN                 FoundAPlaceForFutureInjection = FALSE;
-    VIRTUAL_MACHINE_STATE * CurrentGuestState             = &g_GuestState[CurrentProcessorIndex];
+    BOOLEAN FoundAPlaceForFutureInjection = FALSE;
 
     //
     // We can't inject interrupt because the guest's state is not interruptible
@@ -308,13 +302,13 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFOR
         //
         // Find an empty space
         //
-        if (CurrentGuestState->PendingExternalInterrupts[i] == NULL)
+        if (VCpu->PendingExternalInterrupts[i] == NULL)
         {
             //
             // Save it for future re-injection (interrupt-window exiting)
             //
-            CurrentGuestState->PendingExternalInterrupts[i] = InterruptExit.AsUInt;
-            FoundAPlaceForFutureInjection                   = TRUE;
+            VCpu->PendingExternalInterrupts[i] = InterruptExit.AsUInt;
+            FoundAPlaceForFutureInjection      = TRUE;
             break;
         }
     }
@@ -325,19 +319,16 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFOR
 /**
  * @brief Handle process or thread switches
  *
- * @param CurrentProcessorIndex processor index
+ * @param VCpu The virtual processor's state
  * @param InterruptExit interrupt info from vm-exit
- * @param GuestRegs guest context
  *
  * @return BOOLEAN
  */
 BOOLEAN
-IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       CurrentProcessorIndex,
-                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                       _Inout_ PGUEST_REGS               GuestRegs)
+IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
+                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentGuestState    = &g_GuestState[CurrentProcessorIndex];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
 
     //
     // Check whether intercepting this process or thread is active or not,
@@ -346,19 +337,19 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       Current
     //
     if ((CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
          CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
-        ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
-         (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
+        ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
+         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
     {
         //
         // We only handle interrupts that are related to the clock-timer interrupt
         //
         if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
-            return ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+            return ThreadHandleThreadChange(VCpu);
         }
         else
         {
-            return ProcessHandleProcessChange(CurrentGuestState);
+            return ProcessHandleProcessChange(VCpu);
         }
     }
 
@@ -371,22 +362,19 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       Current
 /**
  * @brief external-interrupt vm-exit handler
  *
- * @param CurrentProcessorIndex processor index
+ * @param VCpu The virtual processor's state
  * @param InterruptExit interrupt info from vm-exit
- * @param GuestRegs guest contexts
  *
  * @return VOID
  */
 VOID
-IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentProcessorIndex,
-                                    _Inout_ PGUEST_REGS               GuestRegs,
+IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
     BOOLEAN                     Interruptible         = TRUE;
     VMX_INTERRUPTIBILITY_STATE  InterruptibilityState = {0};
     RFLAGS                      GuestRflags           = {0};
-    VIRTUAL_MACHINE_STATE *     CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &g_GuestState[CurrentProcessorIndex].DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &VCpu->DebuggingState;
 
     //
     // In order to enable External Interrupt Exiting we have to set
@@ -412,12 +400,12 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentPro
         // and process them when we decide to continue the debuggee (guest interrupt windows is open)
         // this way, the serial device works normally and won't become unresponsive
         //
-        IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(InterruptExit, CurrentProcessorIndex);
+        IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VCpu, InterruptExit);
 
         //
         // avoid incrementing rip
         //
-        CurrentGuestState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
@@ -444,7 +432,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentPro
             // We can't inject interrupt because the guest's state is not interruptible
             // we have to queue it an re-inject it when the interrupt window is opened !
             //
-            IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(InterruptExit, CurrentProcessorIndex);
+            IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VCpu, InterruptExit);
 
             //
             // Enable Interrupt-window exiting.
@@ -455,7 +443,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentPro
         //
         // avoid incrementing rip
         //
-        CurrentGuestState->IncrementRip = FALSE;
+        VCpu->IncrementRip = FALSE;
     }
     else
     {

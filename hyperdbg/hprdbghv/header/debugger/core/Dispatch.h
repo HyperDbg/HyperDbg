@@ -17,10 +17,10 @@
 //////////////////////////////////////////////////
 
 VOID
-DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context);
+DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 VOID
-DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context);
+DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 VOID
 DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu);
@@ -50,16 +50,16 @@ VOID
 DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs);
+DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs);
+DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context);
+DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 VOID
-DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context);
+DispatchEventHiddenHookExecDetours(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 BOOLEAN
 DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
@@ -68,7 +68,7 @@ BOOLEAN
 DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
 
 VOID
-DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Context);
+DispatchEventHiddenHookPageReadWriteWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 VOID
-DispatchEventHiddenHookPageReadWriteReadPostEvent(PGUEST_REGS Regs, PVOID Context);
+DispatchEventHiddenHookPageReadWriteReadPostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);

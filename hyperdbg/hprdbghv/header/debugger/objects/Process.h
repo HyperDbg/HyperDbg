@@ -17,9 +17,9 @@
 //////////////////////////////////////////////////
 
 VOID
-ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                          BOOLEAN Enable,
-                                          BOOLEAN CheckByClockInterrupts);
+ProcessEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
+                                          BOOLEAN                 Enable,
+                                          BOOLEAN                 CheckByClockInterrupts);
 
 BOOLEAN
 ProcessHandleProcessChange(VIRTUAL_MACHINE_STATE * VCpu);
