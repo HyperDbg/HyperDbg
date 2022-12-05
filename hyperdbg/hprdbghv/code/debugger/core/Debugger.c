@@ -1294,7 +1294,7 @@ DebuggerPerformRunScript(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // If has error, show error message and abort.
         //
-        if (ScriptEngineExecute(Regs,
+        if (ScriptEngineExecute(VCpu->Regs,
                                 &ActionBuffer,
                                 &VariablesList,
                                 &CodeBuffer,

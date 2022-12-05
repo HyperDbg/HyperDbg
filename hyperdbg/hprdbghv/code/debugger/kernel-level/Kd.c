@@ -2084,10 +2084,10 @@ KdDispatchAndPerformCommandsFromDebugger(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // Run the script in debuggee
                 //
-                if (DebuggerPerformRunScript(OPERATION_LOG_INFO_MESSAGE /* simple print */,
+                if (DebuggerPerformRunScript(VCpu,
+                                             OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,
-                                             GuestRegs,
                                              g_DebuggeeHaltContext))
                 {
                     //

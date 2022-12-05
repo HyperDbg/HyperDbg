@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -80,9 +80,6 @@ ExtensionCommandIoBitmapResetAllCores();
 
 VOID
 ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event);
-
-VOID
-ExtensionCommandDisableMovToControlRegisterExitingAllCores(PDEBUGGER_EVENT Event);
 
 VOID
 ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT Event);
