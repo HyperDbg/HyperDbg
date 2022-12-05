@@ -692,16 +692,15 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 /**
  * @brief change the current operating core to new core
  *
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  * @param NewCore
  * @return BOOLEAN
  */
 BOOLEAN
-KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
+KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore)
 {
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
     ULONG CoreCount = KeQueryActiveProcessorCount(0);
+
     //
     // Check if core is valid or not
     //
@@ -720,7 +719,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     //
     // Check if we should enable interrupts in this core or not
     //
-    if (CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinue)
+    if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue)
     {
         //
         // Enable normal interrupts
@@ -730,7 +729,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (CurrentVmState->PendingExternalInterrupts[0] != NULL)
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
         {
             //
             // Enable Interrupt-window exiting.
@@ -738,7 +737,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
             HvSetInterruptWindowExiting(TRUE);
         }
 
-        CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
+        VCpu->DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
     //
@@ -747,7 +746,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     // automatically but as we want to not have two operating cores
     // at the same time so we unset it here too)
     //
-    CurrentVmState->DebuggingState.MainDebuggingCore = FALSE;
+    VCpu->DebuggingState.MainDebuggingCore = FALSE;
 
     //
     // Set new operating core
@@ -1796,7 +1795,7 @@ KdDispatchAndPerformCommandsFromDebugger(VIRTUAL_MACHINE_STATE * VCpu)
                     //
                     // Switch to new core
                     //
-                    if (KdSwitchCore(VCpu->CoreId, ChangeCorePacket->NewCore))
+                    if (KdSwitchCore(VCpu, ChangeCorePacket->NewCore))
                     {
                         //
                         // No need to wait for new commands

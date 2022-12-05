@@ -126,8 +126,9 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_VMXOFF:
     {
-        VmxVmxoff();
+        VmxVmxoff(VCpu);
         VmcallStatus = STATUS_SUCCESS;
+
         break;
     }
     case VMCALL_CHANGE_PAGE_ATTRIB:
@@ -196,13 +197,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapReadChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapWriteChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -238,7 +239,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapChange(OptionalParam1);
+        IoHandlePerformIoBitmapChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -281,13 +282,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_RESET_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadReset();
+        MsrHandlePerformMsrBitmapReadReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteReset();
+        MsrHandlePerformMsrBitmapWriteReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -299,7 +300,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_RESET_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapReset();
+        IoHandlePerformIoBitmapReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

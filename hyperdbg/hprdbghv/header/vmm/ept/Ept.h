@@ -234,14 +234,12 @@ EptBuildMtrrMap();
  * @param EptPageTable
  * @param PreAllocatedBuffer
  * @param PhysicalAddress
- * @param CoreIndex
  * @return BOOLEAN
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   PVOID               PreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress,
-                  ULONG               CoreIndex);
+                  SIZE_T              PhysicalAddress);
 
 /**
  * @brief Initialize EPT Table based on Processor Index

@@ -420,35 +420,30 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
  * @brief Initialize the Memory Mapper
  * @details This function should be called in vmx non-root
  * in a IRQL <= APC_LEVEL
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-MemoryMapperInitialize()
+MemoryMapperInitialize(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT64                  TempPte;
-    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
-    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
+    UINT64 TempPte;
 
     //
-    // Reserve the address for all cores (read pte and va)
+    // *** Reserve the address for all cores (read pte and va) ***
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
-    {
-        CurrentVmState = &g_GuestState[i];
 
-        //
-        // Initial and reserve for read operations
-        //
-        CurrentVmState->MemoryMapper.VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead = TempPte;
+    //
+    // Initial and reserve for read operations
+    //
+    VCpu->MemoryMapper.VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
+    VCpu->MemoryMapper.PteVirtualAddressForRead = TempPte;
 
-        //
-        // Initial and reserve for write operations
-        //
-        CurrentVmState->MemoryMapper.VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite = TempPte;
-    }
+    //
+    // Initial and reserve for write operations
+    //
+    VCpu->MemoryMapper.VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
+    VCpu->MemoryMapper.PteVirtualAddressForWrite = TempPte;
 }
 
 /**

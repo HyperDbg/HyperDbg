@@ -261,7 +261,7 @@ MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
                                       _In_ CR3_TYPE TargetCr3);
 
 VOID
-MemoryMapperInitialize();
+MemoryMapperInitialize(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 MemoryMapperUninitialize();

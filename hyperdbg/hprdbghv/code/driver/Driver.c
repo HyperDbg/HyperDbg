@@ -238,17 +238,17 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
     //
-    // Set the core's id
+    // Set the core's id and initialize memory mapper
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
         g_GuestState[i].CoreId = i;
-    }
 
-    //
-    // Initialize memory mapper
-    //
-    MemoryMapperInitialize();
+        //
+        // Initialize memory mapper
+        //
+        MemoryMapperInitialize(&g_GuestState[i]);
+    }
 
     //
     // Check if processor supports TSX (RTM)

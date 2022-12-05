@@ -90,17 +90,6 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     BOOLEAN  HookedEntryFound = FALSE;
 
     //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
-    if (CurrentVmState->IsOnVmxRootMode && !CurrentVmState->HasLaunched)
-    {
-        return FALSE;
-    }
-
-    //
     // Translate the page from a physical address to virtual so we can read its memory.
     // This function will return NULL if the physical address was not already mapped in
     // virtual memory.
@@ -136,7 +125,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
         return FALSE;
     }
 
-    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, CurrentCore))
+    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress))
     {
         PoolManagerFreePool(TargetBuffer);
 
@@ -282,7 +271,8 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     //
     // if not launched, there is no need to modify it on a safe environment
     //
-    if (!CurrentVmState->HasLaunched)
+    /*
+    if (!VCpu->HasLaunched)
     {
         //
         // Apply the hook to EPT
@@ -290,12 +280,12 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
         TargetPage->AsUInt = ChangedEntry.AsUInt;
     }
     else
-    {
-        //
-        // Apply the hook to EPT
-        //
-        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
-    }
+    {*/
+    //
+    // Apply the hook to EPT
+    //
+    EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
+    //}
 
     return TRUE;
 }
@@ -393,7 +383,8 @@ ExAllocatePoolWithTagHook(
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
+EptHookPerformPageHook(PVOID    TargetAddress,
+                       CR3_TYPE ProcessCr3)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -405,21 +396,9 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
 
-    ULONG    CurrentCore;
     CR3_TYPE Cr3OfCurrentProcess;
     BYTE     OriginalByte;
     BOOLEAN  HookedEntryFound = FALSE;
-
-    //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    CurrentCore                            = KeGetCurrentProcessorIndex();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
-    if (CurrentVmState->IsOnVmxRootMode && !CurrentVmState->HasLaunched)
-    {
-        return FALSE;
-    }
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -480,20 +459,6 @@ BOOLEAN
 EptHook(PVOID TargetAddress, UINT32 ProcessId)
 {
     //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
-    //
-    // We won't support this type of breakpoint when VMLAUNCH is not executed
-    // take a look at "details" about the function to see why we decide to not
-    // support this feature.
-    //
-    if (CurrentVmState->HasLaunched == FALSE)
-        return FALSE;
-
-    //
     // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
     //
     BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
@@ -502,17 +467,10 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
     {
         LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
-        if (!CurrentVmState->IsOnVmxRootMode)
-        {
-            //
-            // Now we have to notify all the core to invalidate their EPT
-            //
-            BroadcastNotifyAllToInvalidateEptAllCores();
-        }
-        else
-        {
-            LogError("Err, unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode");
-        }
+        //
+        // Now we have to notify all the core to invalidate their EPT
+        //
+        BroadcastNotifyAllToInvalidateEptAllCores();
 
         return TRUE;
     }
@@ -844,20 +802,9 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     UINT64                  PageOffset;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
-    ULONG                   LogicalCoreIndex;
     CR3_TYPE                Cr3OfCurrentProcess;
     PLIST_ENTRY             TempList    = 0;
     PEPT_HOOKED_PAGE_DETAIL HookedEntry = NULL;
-
-    //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    LogicalCoreIndex = KeGetCurrentProcessorIndex();
-
-    if (g_GuestState[LogicalCoreIndex].IsOnVmxRootMode && !g_GuestState[LogicalCoreIndex].HasLaunched)
-    {
-        return FALSE;
-    }
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -916,7 +863,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         return FALSE;
     }
 
-    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
+    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress))
     {
         PoolManagerFreePool(TargetBuffer);
 
@@ -1081,6 +1028,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     //
     // if not launched, there is no need to modify it on a safe environment
     //
+    /*
     if (!g_GuestState[LogicalCoreIndex].HasLaunched)
     {
         //
@@ -1089,12 +1037,13 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         TargetPage->AsUInt = ChangedEntry.AsUInt;
     }
     else
-    {
-        //
-        // Apply the hook to EPT
-        //
-        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
-    }
+    {*/
+
+    //
+    // Apply the hook to EPT
+    //
+    EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
+    //}
 
     return TRUE;
 }

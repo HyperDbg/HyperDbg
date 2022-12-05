@@ -174,7 +174,7 @@ VOID
 IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
-IoHandlePerformIoBitmapChange(UINT64 Port);
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port);
 
 VOID
-IoHandlePerformIoBitmapReset();
+IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu);

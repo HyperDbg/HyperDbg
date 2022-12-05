@@ -323,20 +323,20 @@ VmxPerformTermination();
 
 _Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
 
 _Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateVmmStack(_In_ INT ProcessorID);
+VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateMsrBitmap(_In_ INT ProcessorID);
+VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateIoBitmaps(_In_ INT ProcessorID);
+VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
@@ -351,7 +351,7 @@ VOID
 VmxVmresume();
 
 VOID
-VmxVmxoff();
+VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore();
@@ -360,10 +360,10 @@ VOID
 VmxFixCr4AndCr0Bits();
 
 BOOLEAN
-VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxClearVmcsState(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxClearVmcsState(_In_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxCheckIsOnVmxRoot();
