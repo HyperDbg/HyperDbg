@@ -206,7 +206,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle the EXCEPTION injection/emulation
         //
-        DispatchEventException(VCpu->CoreId, VCpu->Regs);
+        DispatchEventException(VCpu);
 
         break;
     }
