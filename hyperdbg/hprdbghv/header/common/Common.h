@@ -676,7 +676,7 @@ SyscallHookTest();
  *
  */
 VOID
-SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
+SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
 
 /**
  * @brief Manage #UD Exceptions for EFER Syscall

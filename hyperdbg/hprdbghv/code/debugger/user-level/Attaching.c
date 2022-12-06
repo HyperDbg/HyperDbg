@@ -957,11 +957,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
  * @brief Handle the cr3 vm-exits for thread interception
  * @details this function should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param NewCr3
  * @return BOOLEAN
  */
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3)
+AttachingHandleCr3VmexitsForThreadInterception(VIRTUAL_MACHINE_STATE * VCpu, CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
@@ -975,7 +976,7 @@ AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3)
         //
         // not related to user debugger
         //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+        HvUnsetExceptionBitmap(VCpu, EXCEPTION_VECTOR_PAGE_FAULT);
         return FALSE;
     }
 
@@ -1013,7 +1014,7 @@ AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3)
     //
     // Intercept #PFs
     //
-    HvSetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+    HvSetExceptionBitmap(VCpu, EXCEPTION_VECTOR_PAGE_FAULT);
 
     return TRUE;
 }

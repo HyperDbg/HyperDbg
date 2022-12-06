@@ -203,7 +203,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(NewCr3Reg);
+                AttachingHandleCr3VmexitsForThreadInterception(VCpu, NewCr3Reg);
             }
 
             break;
@@ -497,13 +497,15 @@ HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegis
  * @brief Set vm-exit for mov-to-cr3
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the vm-exits
+ *
  * @return VOID
  */
 VOID
-HvSetMovToCr3Vmexit(BOOLEAN Set)
+HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMov2Cr3Exiting(Set);
+    ProtectedHvSetMov2Cr3Exiting(VCpu, Set);
 }
 
 /**
@@ -888,69 +890,74 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
  * @brief Set exception bitmap in VMCS
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
 VOID
-HvSetExceptionBitmap(UINT32 IdtIndex)
+HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvSetExceptionBitmap(IdtIndex);
+    ProtectedHvSetExceptionBitmap(VCpu, IdtIndex);
 }
 
 /**
  * @brief Unset exception bitmap in VMCS
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
 VOID
-HvUnsetExceptionBitmap(UINT32 IdtIndex)
+HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvUnsetExceptionBitmap(IdtIndex);
+    ProtectedHvUnsetExceptionBitmap(VCpu, IdtIndex);
 }
 
 /**
  * @brief Set the External Interrupt Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the External Interrupt Exiting
  * @return VOID
  */
 VOID
-HvSetExternalInterruptExiting(BOOLEAN Set)
+HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvSetExternalInterruptExiting(Set);
+    ProtectedHvSetExternalInterruptExiting(VCpu, Set);
 }
 
 /**
  * @brief Set the RDTSC/P Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the RDTSC/P Exiting
  * @return VOID
  */
 VOID
-HvSetRdtscExiting(BOOLEAN Set)
+HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetRdtscExiting(Set);
+    ProtectedHvSetRdtscExiting(VCpu, Set);
 }
 
 /**
  * @brief Set or unset the Mov to Debug Registers Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the Mov to Debug Registers Exiting
  * @return VOID
  */
 VOID
-HvSetMovDebugRegsExiting(BOOLEAN Set)
+HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMovDebugRegsExiting(Set);
+    ProtectedHvSetMovDebugRegsExiting(VCpu, Set);
 }

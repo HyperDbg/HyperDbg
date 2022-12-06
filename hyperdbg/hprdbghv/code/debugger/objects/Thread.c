@@ -466,7 +466,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Intercept #DBs by changing exception bitmap (one core)
         //
-        HvSetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+        HvSetExceptionBitmap(VCpu, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
 
         //
         // Note, this function is running as a DPC routines, means that
@@ -498,7 +498,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         // are hypervisor and we can easily ignore mov to debug register (0 in
         // this case), however we should somehow hide this process in the future
         //
-        HvSetMovDebugRegsExiting(TRUE);
+        HvSetMovDebugRegsExiting(VCpu, TRUE);
     }
     else
     {
@@ -515,7 +515,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Disable mov to debug regs vm-exit
         //
-        HvSetMovDebugRegsExiting(FALSE);
+        HvSetMovDebugRegsExiting(VCpu, FALSE);
 
         //
         // Disable load debug controls and save debug controls because
@@ -527,7 +527,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Disable intercepting #DBs
         //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+        HvUnsetExceptionBitmap(VCpu, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
 
         //
         // No longer need to store such gs:188 value
@@ -559,7 +559,7 @@ ThreadDetectChangeByInterceptingClockInterrupts(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Intercept external interrupts (for monitoring clock interrupts)
         //
-        HvSetExternalInterruptExiting(TRUE);
+        HvSetExternalInterruptExiting(VCpu, TRUE);
     }
     else
     {
@@ -571,7 +571,7 @@ ThreadDetectChangeByInterceptingClockInterrupts(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Undo intercepting external interrupts
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
     }
 }
 

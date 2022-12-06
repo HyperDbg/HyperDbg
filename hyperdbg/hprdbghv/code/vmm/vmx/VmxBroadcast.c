@@ -94,7 +94,7 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     {
         if (i != VCpu->CoreId)
         {
-            SpinlockInterlockedCompareExchange((volatile LONG *)&g_GuestState[i].DebuggingState.NmiBroadcastAction,
+            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->DebuggingState.NmiBroadcastAction,
                                                VmxBroadcastAction,
                                                NMI_BROADCAST_ACTION_NONE);
         }
@@ -154,7 +154,7 @@ VmxBroadcastHandleKdDebugBreaks(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmi
         //         vm-exit and we won't miss any cpu cycle in the guest
         //
         // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
-        // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
+        // VmxMechanismCreateImmediateVmexit(VCpu);
         HvSetMonitorTrapFlag(TRUE);
     }
     else

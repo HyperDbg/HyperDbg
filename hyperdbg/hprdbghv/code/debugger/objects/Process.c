@@ -127,37 +127,37 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
  *
- * @param CurrentProcessorIndex
+ * @param VCpu The virtual processor's state
  * @param Enable
  * @return VOID
  */
 VOID
-ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
-                                                 BOOLEAN Enable)
+ProcessDetectChangeByInterceptingClockInterrupts(VIRTUAL_MACHINE_STATE * VCpu,
+                                                 BOOLEAN                 Enable)
 {
     if (Enable)
     {
         //
         // Indicate that we're waiting for clock interrupt vm-exits
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = TRUE;
+        VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = TRUE;
 
         //
         // Set external-interrupt vm-exits
         //
-        HvSetExternalInterruptExiting(TRUE);
+        HvSetExternalInterruptExiting(VCpu, TRUE);
     }
     else
     {
         //
         // Indicate that we're not waiting for clock interrupt vm-exits
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = FALSE;
+        VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = FALSE;
 
         //
         // Unset external-interrupt vm-exits
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
     }
 }
 
@@ -185,7 +185,7 @@ ProcessDetectChangeByMov2Cr3Vmexits(VIRTUAL_MACHINE_STATE * VCpu,
         // Set mov to cr3 vm-exit, this flag is also use to remove the
         // mov 2 cr3 on next halt
         //
-        HvSetMovToCr3Vmexit(TRUE);
+        HvSetMovToCr3Vmexit(VCpu, TRUE);
     }
     else
     {
@@ -198,7 +198,7 @@ ProcessDetectChangeByMov2Cr3Vmexits(VIRTUAL_MACHINE_STATE * VCpu,
         // Unset mov to cr3 vm-exit, this flag is also use to remove the
         // mov 2 cr3 on next halt
         //
-        HvSetMovToCr3Vmexit(FALSE);
+        HvSetMovToCr3Vmexit(VCpu, FALSE);
     }
 }
 

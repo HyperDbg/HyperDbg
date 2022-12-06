@@ -84,7 +84,7 @@ BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
 
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(CR3_TYPE NewCr3);
+AttachingHandleCr3VmexitsForThreadInterception(VIRTUAL_MACHINE_STATE * VCpu, CR3_TYPE NewCr3);
 
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);

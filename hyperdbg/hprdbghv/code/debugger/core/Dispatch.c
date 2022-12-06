@@ -761,7 +761,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Disable vm-exit on external interrupts
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
 
         //
         // Not increase the RIP

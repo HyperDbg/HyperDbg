@@ -89,7 +89,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 
                     //
                     // Change guest interrupt-state
                     //
-                    HvSetExternalInterruptExiting(TRUE);
+                    HvSetExternalInterruptExiting(VCpu, TRUE);
 
                     //
                     // Do not vm-exit on interrupt windows

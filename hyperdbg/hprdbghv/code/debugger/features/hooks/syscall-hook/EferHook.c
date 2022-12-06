@@ -23,11 +23,12 @@
  * function EFER MSR is loaded from GUEST_EFER instead of loading
  * from the regular EFER MSR.
  *
+ * @param VCpu The virtual processor's state
  * @param EnableEFERSyscallHook Determines whether we want to enable syscall hook or disable syscall hook
  * @return VOID
  */
 VOID
-SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
+SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook)
 {
     IA32_EFER_REGISTER      MsrValue;
     IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
@@ -69,7 +70,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // also, we have to set exception bitmap to cause vm-exit on #UDs
         //
-        HvSetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
+        HvSetExceptionBitmap(VCpu, EXCEPTION_VECTOR_UNDEFINED_OPCODE);
     }
     else
     {
@@ -99,7 +100,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // unset the exception to not cause vm-exit on #UDs
         //
-        ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands();
+        ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VCpu);
     }
 }
 

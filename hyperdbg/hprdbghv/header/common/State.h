@@ -84,19 +84,6 @@ typedef struct _VMX_VMXOFF_STATE
 } VMX_VMXOFF_STATE, *PVMX_VMXOFF_STATE;
 
 /**
- * @brief Memory mapper PTE and reserved virtual address
- *
- */
-typedef struct _MEMORY_MAPPER_ADDRESSES
-{
-    UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
-    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
-
-    UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
-    UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write
-} MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
-
-/**
  * @brief Temporary $context used in some EPT hook commands
  *
  */
@@ -355,5 +342,4 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VMX_VMXOFF_STATE          VmxoffState;            // Shows the vmxoff state of the guest
     VM_EXIT_TRANSPARENCY      TransparencyState;      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    MEMORY_MAPPER_ADDRESSES   MemoryMapper;           // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

@@ -71,7 +71,7 @@ VmxMechanismCreateImmediateVmexitBySelfIpi()
  * @return VOID
  */
 VOID
-VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
+VmxMechanismCreateImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // I didn't test vm-exit by preemption timer as my machine
@@ -83,7 +83,7 @@ VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
     //
     // Indicate wait for an immediate vm-exit
     //
-    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = TRUE;
+    VCpu->WaitForImmediateVmexit = TRUE;
 
     //
     // Self-ipi current core
@@ -93,7 +93,7 @@ VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
     //
     // Set vm-exit on external interrupts
     //
-    HvSetExternalInterruptExiting(TRUE);
+    HvSetExternalInterruptExiting(VCpu, TRUE);
 }
 
 /**
@@ -113,5 +113,5 @@ VmxMechanismHandleImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set vm-exit on external interrupts
     //
-    HvSetExternalInterruptExiting(FALSE);
+    HvSetExternalInterruptExiting(VCpu, FALSE);
 }

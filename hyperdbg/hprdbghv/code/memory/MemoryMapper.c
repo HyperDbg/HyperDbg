@@ -420,30 +420,60 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
  * @brief Initialize the Memory Mapper
  * @details This function should be called in vmx non-root
  * in a IRQL <= APC_LEVEL
- * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-MemoryMapperInitialize(VIRTUAL_MACHINE_STATE * VCpu)
+MemoryMapperInitialize()
 {
     UINT64 TempPte;
+    ULONG  ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
     // *** Reserve the address for all cores (read pte and va) ***
     //
 
-    //
-    // Initial and reserve for read operations
-    //
-    VCpu->MemoryMapper.VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
-    VCpu->MemoryMapper.PteVirtualAddressForRead = TempPte;
+    if (g_MemoryMapper != NULL)
+    {
+        //
+        // It's already initialized
+        //
+        return;
+    }
 
     //
-    // Initial and reserve for write operations
+    // Allocate the memory buffer structure
     //
-    VCpu->MemoryMapper.VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
-    VCpu->MemoryMapper.PteVirtualAddressForWrite = TempPte;
+    g_MemoryMapper = ExAllocatePoolWithTag(NonPagedPool, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount, POOLTAG);
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(g_MemoryMapper, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
+
+    //
+    // Set the core's id and initialize memory mapper
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        //
+        // *** Initialize memory mapper for each core ***
+        //
+
+        //
+        // Initial and reserve for read operations
+        //
+        g_MemoryMapper[i].VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].PteVirtualAddressForRead = TempPte;
+
+        //
+        // Initial and reserve for write operations
+        //
+        g_MemoryMapper[i].VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].PteVirtualAddressForWrite = TempPte;
+    }
 }
 
 /**
@@ -456,32 +486,34 @@ MemoryMapperInitialize(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 MemoryMapperUninitialize()
 {
-    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
-    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
+    ULONG ProcessorCount = KeQueryActiveProcessorCount(0);
 
     for (size_t i = 0; i < ProcessorCount; i++)
     {
-        CurrentVmState = &g_GuestState[i];
-
         //
         // Unmap and free the reserved buffer
         //
-        if (CurrentVmState->MemoryMapper.VirualAddressForRead != NULL)
+        if (g_MemoryMapper[i].VirualAddressForRead != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(CurrentVmState->MemoryMapper.VirualAddressForRead);
+            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForRead);
         }
 
-        if (CurrentVmState->MemoryMapper.VirualAddressForWrite != NULL)
+        if (g_MemoryMapper[i].VirualAddressForWrite != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(CurrentVmState->MemoryMapper.VirualAddressForWrite);
+            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForWrite);
         }
 
-        CurrentVmState->MemoryMapper.VirualAddressForRead     = NULL;
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead = NULL;
+        g_MemoryMapper[i].VirualAddressForRead     = NULL;
+        g_MemoryMapper[i].PteVirtualAddressForRead = NULL;
 
-        CurrentVmState->MemoryMapper.VirualAddressForWrite     = NULL;
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite = NULL;
+        g_MemoryMapper[i].VirualAddressForWrite     = NULL;
+        g_MemoryMapper[i].PteVirtualAddressForWrite = NULL;
     }
+
+    //
+    // Set the g_MemoryMapper to null
+    //
+    g_MemoryMapper = NULL;
 }
 
 /**
@@ -713,16 +745,15 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     UINT64                                 BufferToSaveMemory,
     SIZE_T                                 SizeToRead)
 {
-    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64                  AddressToCheck;
-    PHYSICAL_ADDRESS        PhysicalAddress;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64           AddressToCheck;
+    PHYSICAL_ADDRESS PhysicalAddress;
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (CurrentVmState->MemoryMapper.VirualAddressForRead == NULL ||
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead == NULL)
+    if (g_MemoryMapper[ProcessorIndex].VirualAddressForRead == NULL ||
+        g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead == NULL)
     {
         //
         // Not initialized
@@ -768,9 +799,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                     PhysicalAddress,
                     BufferToSaveMemory,
                     ReadSize,
-                    CurrentVmState->MemoryMapper.PteVirtualAddressForRead,
-                    CurrentVmState->MemoryMapper.VirualAddressForRead,
-                    CurrentVmState->IsOnVmxRootMode))
+                    g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
+                    g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
+                    FALSE))
             {
                 return FALSE;
             }
@@ -797,9 +828,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             PhysicalAddress,
             BufferToSaveMemory,
             SizeToRead,
-            CurrentVmState->MemoryMapper.PteVirtualAddressForRead,
-            CurrentVmState->MemoryMapper.VirualAddressForRead,
-            CurrentVmState->IsOnVmxRootMode);
+            g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
+            g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
+            FALSE);
     }
 }
 
@@ -1020,16 +1051,15 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                    PCR3_TYPE                              TargetProcessCr3,
                                    UINT32                                 TargetProcessId)
 {
-    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64                  AddressToCheck;
-    PHYSICAL_ADDRESS        PhysicalAddress;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64           AddressToCheck;
+    PHYSICAL_ADDRESS PhysicalAddress;
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (CurrentVmState->MemoryMapper.VirualAddressForWrite == NULL ||
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite == NULL)
+    if (g_MemoryMapper[ProcessorIndex].VirualAddressForWrite == NULL ||
+        g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite == NULL)
     {
         //
         // Not initialized
@@ -1075,9 +1105,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                     Source,
                     PhysicalAddress,
                     WriteSize,
-                    CurrentVmState->MemoryMapper.PteVirtualAddressForWrite,
-                    CurrentVmState->MemoryMapper.VirualAddressForWrite,
-                    CurrentVmState->IsOnVmxRootMode))
+                    g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
+                    g_MemoryMapper[ProcessorIndex].VirualAddressForWrite,
+                    FALSE))
             {
                 return FALSE;
             }
@@ -1102,9 +1132,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
             Source,
             PhysicalAddress,
             SizeToWrite,
-            CurrentVmState->MemoryMapper.PteVirtualAddressForWrite,
-            CurrentVmState->MemoryMapper.VirualAddressForWrite,
-            CurrentVmState->IsOnVmxRootMode);
+            g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
+            g_MemoryMapper[ProcessorIndex].VirualAddressForWrite,
+            FALSE);
     }
 }
 

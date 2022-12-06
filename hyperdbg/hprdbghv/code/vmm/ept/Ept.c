@@ -680,7 +680,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     //
                     // Change guest interrupt-state
                     //
-                    HvSetExternalInterruptExiting(TRUE);
+                    HvSetExternalInterruptExiting(VCpu, TRUE);
 
                     //
                     // Do not vm-exit on interrupt windows

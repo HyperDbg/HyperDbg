@@ -143,7 +143,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Enable normal interrupts
             //
-            HvSetExternalInterruptExiting(FALSE);
+            HvSetExternalInterruptExiting(VCpu, FALSE);
 
             //
             // Check if there is at least an interrupt that needs to be delivered

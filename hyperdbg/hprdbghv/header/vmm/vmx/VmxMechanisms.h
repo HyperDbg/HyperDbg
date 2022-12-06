@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////
 
 VOID
-VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex);
+VmxMechanismCreateImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 VmxMechanismHandleImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu);

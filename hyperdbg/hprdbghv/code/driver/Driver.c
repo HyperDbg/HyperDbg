@@ -182,7 +182,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    int ProcessorCount;
+    ULONG ProcessorCount;
 
     //
     // Check for privilege
@@ -243,12 +243,12 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     for (size_t i = 0; i < ProcessorCount; i++)
     {
         g_GuestState[i].CoreId = i;
-
-        //
-        // Initialize memory mapper
-        //
-        MemoryMapperInitialize(&g_GuestState[i]);
     }
+
+    //
+    // Initialize memory mapper
+    //
+    MemoryMapperInitialize();
 
     //
     // Check if processor supports TSX (RTM)

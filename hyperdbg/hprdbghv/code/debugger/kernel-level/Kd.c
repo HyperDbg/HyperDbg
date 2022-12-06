@@ -545,7 +545,7 @@ KdContinueDebuggee(VIRTUAL_MACHINE_STATE *                 VCpu,
         //
         // Enable normal interrupt
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -724,7 +724,7 @@ KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore)
         //
         // Enable normal interrupts
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -1167,7 +1167,7 @@ KdGuaranteedStepInstruction(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Change guest interrupt-state
     //
-    HvSetExternalInterruptExiting(TRUE);
+    HvSetExternalInterruptExiting(VCpu, TRUE);
 
     //
     // Do not vm-exit on interrupt windows

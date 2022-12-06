@@ -1625,7 +1625,7 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 UINT32
 DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList = 0; 
     UINT32      Counter  = 0;
 
     //
