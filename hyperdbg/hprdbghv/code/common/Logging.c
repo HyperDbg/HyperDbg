@@ -5,17 +5,17 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 #include "Logging.tmh"
 
 /**
  * @brief Initialize the buffer relating to log message tracing
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 LogInitialize()
@@ -94,8 +94,8 @@ LogInitialize()
 
 /**
  * @brief Uninitialize the buffer relating to log message tracing
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 LogUnInitialize()
@@ -121,12 +121,12 @@ LogUnInitialize()
 
 /**
  * @brief Save buffer to the pool
- * 
+ *
  * @param OperationCode The operation code that will be send to user mode
  * @param Buffer Buffer to be send to user mode
  * @param BufferLength Length of the buffer
  * @param Priority Whether the buffer has priority
- * @return BOOLEAN Returns true if the buffer succssfully set to be 
+ * @return BOOLEAN Returns true if the buffer succssfully set to be
  * send to user mode and false if there was an error
  */
 _Use_decl_annotations_
@@ -148,7 +148,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN P
     //
     // Check that if we're in vmx root-mode
     //
-    IsVmxRoot = g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode;
+    IsVmxRoot = VmxGetCurrentExecutionMode();
 
     //
     // Check if we're connected to remote debugger, send it directly to the debugger
@@ -341,11 +341,11 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN P
 }
 
 /**
- * @brief Mark all buffers as read 
+ * @brief Mark all buffers as read
  * @details Priority buffers won't be set as read
- * 
+ *
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
- * @return UINT32 return count of messages that set to invalid 
+ * @return UINT32 return count of messages that set to invalid
  */
 UINT32
 LogMarkAllAsRead(BOOLEAN IsVmxRoot)
@@ -478,12 +478,12 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
 }
 
 /**
- * @brief Attempt to read the buffer 
- * 
+ * @brief Attempt to read the buffer
+ *
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
  * @param BufferToSaveMessage Target buffer to save the message
  * @param ReturnedLength The actual length of the buffer that this function used it
- * @return BOOLEAN return of this function shows whether the read was successfull 
+ * @return BOOLEAN return of this function shows whether the read was successfull
  * or not (e.g FALSE shows there's no new buffer available.)
  */
 BOOLEAN
@@ -700,10 +700,10 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 
 /**
  * @brief Check if new message is available or not
- * 
+ *
  * @param IsVmxRoot Check vmx root pool for message or check vmx non root pool
  * @param Priority Whether the buffer has priority
- * 
+ *
  * @return BOOLEAN return of this function shows whether the read was successfull or not
  * (e.g FALSE shows there's no new buffer available.)
  */
@@ -753,13 +753,13 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot, BOOLEAN Priority)
 /**
  * @brief Prepare a printf-style message mapping and send string messages
  * and tracing for logging and monitoring
- * 
+ *
  * @param OperationCode Optional operation code
  * @param IsImmediateMessage Should be sent immediately
  * @param ShowCurrentSystemTime Show system-time
  * @param Priority Whether the message has priority
  * @param Fmt Message format-string
- * @param ... 
+ * @param ...
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
@@ -781,7 +781,7 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
     //
     // Set Vmx State
     //
-    IsVmxRootMode = g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode;
+    IsVmxRootMode = VmxGetCurrentExecutionMode();
 
     if (ShowCurrentSystemTime)
     {
@@ -899,13 +899,13 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
 
 /**
  * @brief Send string messages and tracing for logging and monitoring
- * 
+ *
  * @param OperationCode Optional operation code
  * @param IsImmediateMessage Should be sent immediately
  * @param LogMessage Link of message buffer
  * @param BufferLen Length of buffer
  * @param Priority Whether the buffer has priority
- * 
+ *
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
@@ -919,7 +919,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
     //
     // Set Vmx State
     //
-    IsVmxRootMode = g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode;
+    IsVmxRootMode = VmxGetCurrentExecutionMode();
 
 #if UseWPPTracing
 
@@ -988,7 +988,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
             KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
         }
         //
-        //Set the result to True
+        // Set the result to True
         //
         Result = TRUE;
 
@@ -1048,12 +1048,12 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
 
 /**
  * @brief Complete the IRP in IRP Pending state and fill the usermode buffers with pool data
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1163,10 +1163,10 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
 
 /**
  * @brief Register a new IRP Pending thread which listens for new buffers
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -1279,10 +1279,10 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /**
  * @brief Create an event-based usermode notifying mechanism
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)

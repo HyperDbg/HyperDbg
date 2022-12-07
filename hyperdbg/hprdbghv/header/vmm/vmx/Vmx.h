@@ -379,3 +379,9 @@ VmxReturnStackPointerForVmxoff();
 
 UINT64
 VmxReturnInstructionPointerForVmxoff();
+
+BOOLEAN
+VmxGetCurrentExecutionMode();
+
+BOOLEAN
+VmxGetCurrentLaunchState();

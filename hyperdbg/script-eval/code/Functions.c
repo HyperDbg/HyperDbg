@@ -749,7 +749,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
         DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
         UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
-        if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+        if (VmxGetCurrentExecutionMode() == TRUE)
         {
             //
             // The guest is already in vmx-root mode

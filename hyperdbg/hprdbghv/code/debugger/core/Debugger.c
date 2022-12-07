@@ -314,7 +314,7 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         return NULL;
     }
@@ -392,7 +392,11 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
  * @return PDEBUGGER_EVENT_ACTION
  */
 PDEBUGGER_EVENT_ACTION
-DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
+DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
+                         DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
+                         BOOLEAN                                         SendTheResultsImmediately,
+                         PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
 {
     PDEBUGGER_EVENT_ACTION Action;
     SIZE_T                 Size;
@@ -401,7 +405,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         return NULL;
     }
@@ -1378,7 +1382,7 @@ DebuggerPerformBreakToDebugger(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGG
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
 
-    if (VCpu->IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // The guest is already in vmx-root mode
@@ -1625,7 +1629,7 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 UINT32
 DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
 {
-    PLIST_ENTRY TempList = 0; 
+    PLIST_ENTRY TempList = 0;
     UINT32      Counter  = 0;
 
     //

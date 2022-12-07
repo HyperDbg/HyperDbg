@@ -13,22 +13,6 @@
  */
 #include "pch.h"
 
-typedef enum _VMX_EXECUTION_MODE
-{
-    VmxExecutionModeRoot,
-    VmxExecutionModeNonRoot,
-} VMX_EXECUTION_MODE;
-
-_Must_inspect_result_
-inline static VMX_EXECUTION_MODE
-GetCurrentVmxExecutionMode()
-{
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
-    return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
-}
-
 /**
  * @brief Check whether the desired PhysicalAddress is already in the g_EptState->HookedPagesList hooks or not
  *
@@ -496,7 +480,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
     //
-    if (!g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == FALSE)
     {
         return FALSE;
     }
@@ -531,8 +515,10 @@ EptHookRestoreAllHooksToOrginalEntry()
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
     //
-    if (GetCurrentVmxExecutionMode() == VmxExecutionModeNonRoot)
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
         return;
+    }
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, CurrEntity)
     {
@@ -1114,7 +1100,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
         return FALSE;
     }
 
-    if (g_GuestState[LogicalCoreIndex].HasLaunched)
+    if (VmxGetCurrentLaunchState())
     {
         //
         // Move Attribute Mask to the upper 32 bits of the VMCALL Number
@@ -1129,7 +1115,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
             // LogInfo("Hook applied from VMX Root Mode");
             //
 
-            if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
+            if (VmxGetCurrentExecutionMode() == FALSE)
             {
                 //
                 // Now we have to notify all the core to invalidate their EPT
@@ -1536,7 +1522,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
     //
     // Should be called from vmx non-root
     //
-    if (GetCurrentVmxExecutionMode() == VmxExecutionModeRoot)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         return FALSE;
     }
@@ -1600,7 +1586,7 @@ EptHookUnHookAll()
     //
     // Should be called from vmx non-root
     //
-    if (GetCurrentVmxExecutionMode() != VmxExecutionModeNonRoot)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         return;
     }

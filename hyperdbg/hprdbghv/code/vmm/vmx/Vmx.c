@@ -68,6 +68,34 @@ VmxCheckVmxSupport()
 }
 
 /**
+ * @brief Check current execution mode (vmx-root and non-root)
+ *
+ * @return BOOLEAN Returns true if the execution is on vmx-root, otherwise false
+ */
+BOOLEAN
+VmxGetCurrentExecutionMode()
+{
+    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+
+    return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
+}
+
+/**
+ * @brief Check if the VMX is launched or not
+ *
+ * @return BOOLEAN Returns true if it's launched, otherwise false
+ */
+BOOLEAN
+VmxGetCurrentLaunchState()
+{
+    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+
+    return CurrentVmState->HasLaunched;
+}
+
+/**
  * @brief Initialize Vmx operation
  *
  * @return BOOLEAN Returns true if vmx initialized successfully

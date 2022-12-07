@@ -403,7 +403,7 @@ AttachingHandleEntrypointDebugBreak(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Show a message that we reached to the entrypoint
             //
-            // Log("Reached to the main module entrypoint (%016llx)\n", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+            // Log("Reached to the main module entrypoint (%016llx)\n", VCpu->LastVmexitRip);
 
             //
             // Not waiting for these event anymore

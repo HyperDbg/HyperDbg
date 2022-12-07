@@ -475,7 +475,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     // Breaking only supported in vmx-root mode, and if user-debugger is
     // loaded
     //
-    if (!g_UserDebuggerState && !VCpu->IsOnVmxRootMode)
+    if (!g_UserDebuggerState && VmxGetCurrentExecutionMode() == FALSE)
     {
         return FALSE;
     }

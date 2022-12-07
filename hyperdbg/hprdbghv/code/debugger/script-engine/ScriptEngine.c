@@ -13,7 +13,7 @@
 
 /**
  * @brief Get current ip from the debugger frame
- * 
+ *
  * @return UINT64 returns the rip of the current debuggee state frame
  */
 UINT64
@@ -27,7 +27,7 @@ ScriptEngineWrapperGetInstructionPointer()
     //
     // Check if we are in vmx-root or not
     //
-    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
         return GuestRip;
@@ -43,7 +43,7 @@ ScriptEngineWrapperGetInstructionPointer()
 
 /**
  * @brief Get the address of reserved buffer
- * 
+ *
  * @param Action Corresponding action
  * @return UINT64 returns the requested buffer address from user
  */
