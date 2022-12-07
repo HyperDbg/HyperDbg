@@ -20,29 +20,25 @@
 //////////////////////////////////////////////////
 
 VOID
-IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProcessorIndex,
-                                  _Inout_ PGUEST_REGS               GuestRegs,
+IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                   _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
-IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentProcessorIndex,
-                                    _Inout_ PGUEST_REGS               GuestRegs,
+IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
-IdtEmulationHandleNmiWindowExiting(_In_ UINT32         CurrentProcessorIndex,
-                                   _Inout_ PGUEST_REGS GuestRegs);
+IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex);
+IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorIndex,
+IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                              _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                              _In_ UINT64                       Address,
                              _In_ ULONG                        ErrorCode);
 
 BOOLEAN
-IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       CurrentProcessorIndex,
-                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                       _Inout_ PGUEST_REGS               GuestRegs);
+IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
+                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);

@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for kernel debugger functions for processes
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,12 +17,12 @@
 //////////////////////////////////////////////////
 
 VOID
-ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                          BOOLEAN Enable,
-                                          BOOLEAN CheckByClockInterrupts);
+ProcessEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
+                                          BOOLEAN                 Enable,
+                                          BOOLEAN                 CheckByClockInterrupts);
 
 BOOLEAN
-ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState);
+ProcessHandleProcessChange(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);

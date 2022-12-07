@@ -211,7 +211,7 @@ EptHook2(PVOID   TargetAddress,
 /**
  * @brief Handle hooked pages in Vmx-root mode
  *
- * @param Regs
+ * @param VCpu
  * @param HookedEntryDetails
  * @param ViolationQualification
  * @param PhysicalAddress
@@ -221,7 +221,7 @@ EptHook2(PVOID   TargetAddress,
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookHandleHookedPage(PGUEST_REGS                          Regs,
+EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,

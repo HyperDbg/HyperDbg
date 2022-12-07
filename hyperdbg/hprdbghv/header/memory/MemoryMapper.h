@@ -66,19 +66,6 @@ typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE
 //////////////////////////////////////////////////
 
 /**
- * @brief Memory mapper PTE and reserved virtual address
- *
- */
-typedef struct _MEMORY_MAPPER_ADDRESSES
-{
-    UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
-    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
-
-    UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
-    UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write
-} MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
-
-/**
  * @brief Page Entries
  *
  */
@@ -140,6 +127,19 @@ typedef struct _CR3_TYPE
         } Fields;
     };
 } CR3_TYPE, *PCR3_TYPE;
+
+/**
+ * @brief Memory mapper PTE and reserved virtual address
+ * @details Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
+ */
+typedef struct _MEMORY_MAPPER_ADDRESSES
+{
+    UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
+    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
+
+    UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
+    UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write
+} MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
 
 //////////////////////////////////////////////////
 //					Functions					//

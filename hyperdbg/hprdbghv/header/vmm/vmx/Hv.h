@@ -41,11 +41,11 @@ HvAdjustControls(ULONG Ctl, ULONG Msr);
 /**
  * @brief Handle Cpuid
  *
- * @param RegistersState
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleCpuid(PGUEST_REGS RegistersState);
+HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Fill guest selector data
@@ -61,12 +61,11 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
 /**
  * @brief Handle Guest's Control Registers Access
  *
- * @param GuestState
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS                     GuestState,
-                              UINT32                          ProcessorIndex,
+HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
                               VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification);
 
 /**
@@ -140,7 +139,7 @@ HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegis
  * @return VOID
  */
 VOID
-HvSetMovToCr3Vmexit(BOOLEAN Set);
+HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Write to the exception bitmap
@@ -180,12 +179,11 @@ HvSetNmiWindowExiting(BOOLEAN Set);
 /**
  * @brief Handle Mov to Debug Registers Exitings
  *
- * @param ProcessorIndex
- * @param Regs
+ * @param VCpu
  * @return VOID
  */
 VOID
-HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs);
+HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Set the Mov to Debug Registers Exiting
@@ -194,7 +192,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs);
  * @return VOID
  */
 VOID
-HvSetMovDebugRegsExiting(BOOLEAN Set);
+HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Set the NMI Exiting
@@ -222,7 +220,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
  * @return VOID
  */
 VOID
-HvSetExceptionBitmap(UINT32 IdtIndex);
+HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
 
 /**
  * @brief Unset exception bitmap in VMCS
@@ -232,7 +230,7 @@ HvSetExceptionBitmap(UINT32 IdtIndex);
  * @return VOID
  */
 VOID
-HvUnsetExceptionBitmap(UINT32 IdtIndex);
+HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
 
 /**
  * @brief Set the External Interrupt Exiting
@@ -241,7 +239,7 @@ HvUnsetExceptionBitmap(UINT32 IdtIndex);
  * @return VOID
  */
 VOID
-HvSetExternalInterruptExiting(BOOLEAN Set);
+HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Set the RDTSC/P Exiting
@@ -250,4 +248,4 @@ HvSetExternalInterruptExiting(BOOLEAN Set);
  * @return VOID
  */
 VOID
-HvSetRdtscExiting(BOOLEAN Set);
+HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);

@@ -5,15 +5,15 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Check whether VMX Feature is supported or not
- * 
+ *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
  */
 BOOLEAN
@@ -69,13 +69,14 @@ VmxCheckVmxSupport()
 
 /**
  * @brief Initialize Vmx operation
- * 
+ *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */
 BOOLEAN
 VmxInitialize()
 {
     ULONG LogicalProcessorsCount;
+
     //
     // ****** Start Virtualizing Current System ******
     //
@@ -99,10 +100,12 @@ VmxInitialize()
         // *** Launching VM for Test (in the all logical processor) ***
         //
 
+        VIRTUAL_MACHINE_STATE * GuestState = &g_GuestState[ProcessorID];
+
         //
-        //Allocating VMM Stack
+        // Allocating VMM Stack
         //
-        if (!VmxAllocateVmmStack(ProcessorID))
+        if (!VmxAllocateVmmStack(GuestState))
         {
             //
             // Some error in allocating Vmm Stack
@@ -113,7 +116,7 @@ VmxInitialize()
         //
         // Allocating MSR Bit
         //
-        if (!VmxAllocateMsrBitmap(ProcessorID))
+        if (!VmxAllocateMsrBitmap(GuestState))
         {
             //
             // Some error in allocating Msr Bitmaps
@@ -124,7 +127,7 @@ VmxInitialize()
         //
         // Allocating I/O Bit
         //
-        if (!VmxAllocateIoBitmaps(ProcessorID))
+        if (!VmxAllocateIoBitmaps(GuestState))
         {
             //
             // Some error in allocating I/O Bitmaps
@@ -164,7 +167,7 @@ VmxInitialize()
 
 /**
  * @brief Initialize essential VMX Operation tasks
- * 
+ *
  * @return BOOLEAN Returns true if vmx is successfully initialized
  */
 BOOLEAN
@@ -258,14 +261,14 @@ VmxPerformVirtualizationOnAllCores()
 
 /**
  * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
     ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState         = &g_GuestState[CurrentProcessorNumber];
+    VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
 
@@ -281,12 +284,12 @@ VmxPerformVirtualizationOnSpecificCore()
 
     LogDebugInfo("VMX-Operation enabled successfully");
 
-    if (!VmxAllocateVmxonRegion(CurrentVmState))
+    if (!VmxAllocateVmxonRegion(VCpu))
     {
         LogError("Err, allocating memory for vmxon region was not successfull");
         return FALSE;
     }
-    if (!VmxAllocateVmcsRegion(CurrentVmState))
+    if (!VmxAllocateVmcsRegion(VCpu))
     {
         LogError("Err, allocating memory for vmcs region was not successfull");
         return FALSE;
@@ -297,9 +300,9 @@ VmxPerformVirtualizationOnSpecificCore()
 
 /**
  * @brief Fix values for cr0 and cr4 bits
- * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change 
+ * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change
  * (https://revers.engineering/day-2-entering-vmx-operation/)
- * 
+ *
  * @return VOID
  */
 VOID
@@ -333,7 +336,7 @@ VmxFixCr4AndCr0Bits()
 /**
  * @brief It can deterministically check whether the caller is on vmx-root mode
  * or not
- * 
+ *
  * @return BOOLEAN Returns true if current operation mode is vmx-root and false
  * if current operation mode is vmx non-root
  */
@@ -361,7 +364,7 @@ VmxCheckIsOnVmxRoot()
 
 /**
  * @brief Initialize VMX Operation
- * 
+ *
  * @param GuestStack Guest stack for the this core (VMCS_GUEST_RSP)
  * @return BOOLEAN This function won't return true as when Vmlaunch is executed the
    rest of the function never executes but returning FALSE is an indication of error
@@ -369,16 +372,16 @@ VmxCheckIsOnVmxRoot()
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
-    UINT64                  ErrorCode      = 0;
-    ULONG                   ProcessorID    = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+    UINT64                  ErrorCode   = 0;
+    ULONG                   ProcessorID = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
     //
-    if (!VmxClearVmcsState(CurrentVmState))
+    if (!VmxClearVmcsState(VCpu))
     {
         LogError("Err, failed to clear vmcs");
         return FALSE;
@@ -387,7 +390,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Load VMCS (Set the Current VMCS)
     //
-    if (!VmxLoadVmcs(CurrentVmState))
+    if (!VmxLoadVmcs(VCpu))
     {
         LogError("Err, failed to load vmcs");
         return FALSE;
@@ -395,7 +398,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     LogDebugInfo("Setting up VMCS for current logical core");
 
-    VmxSetupVmcs(CurrentVmState, GuestStack);
+    VmxSetupVmcs(VCpu, GuestStack);
 
     LogDebugInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
 
@@ -403,7 +406,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     // Setting the state to indicate current core is currently virtualized
     //
 
-    CurrentVmState->HasLaunched = TRUE;
+    VCpu->HasLaunched = TRUE;
 
     __vmx_vmlaunch();
 
@@ -414,7 +417,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // If failed, then indicate that current core is not currently virtualized
     //
-    CurrentVmState->HasLaunched = FALSE;
+    VCpu->HasLaunched = FALSE;
 
     //
     // Read error code firstly
@@ -434,7 +437,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
 /**
  * @brief Broadcast to terminate VMX on all logical cores
- * 
+ *
  * @return BOOLEAN Returns true if vmxoff successfully executed in vmcall or otherwise
  * returns false
  */
@@ -443,7 +446,7 @@ VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
     ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState   = &g_GuestState[CurrentCoreIndex];
+    VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
 
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
@@ -457,12 +460,12 @@ VmxTerminate()
         //
         // Free the destination memory
         //
-        MmFreeContiguousMemory(CurrentVmState->VmxonRegionVirtualAddress);
-        MmFreeContiguousMemory(CurrentVmState->VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(CurrentVmState->VmmStack, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressB, POOLTAG);
+        MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
+        MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
+        ExFreePoolWithTag(VCpu->VmmStack, POOLTAG);
+        ExFreePoolWithTag(VCpu->MsrBitmapVirtualAddress, POOLTAG);
+        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressA, POOLTAG);
+        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressB, POOLTAG);
 
         return TRUE;
     }
@@ -472,8 +475,8 @@ VmxTerminate()
 
 /**
  * @brief Implementation of VMPTRST instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmptrst()
@@ -487,21 +490,21 @@ VmxVmptrst()
 
 /**
  * @brief Clearing Vmcs status using vmclear instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param VCpu
  * @return BOOLEAN If vmclear execution was successful it returns true
  * otherwise and if there was error with vmclear then it returns false
  */
 _Use_decl_annotations_
 BOOLEAN
-VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT8 VmclearStatus;
 
     //
     // Clear the state of the VMCS to inactive
     //
-    VmclearStatus = __vmx_vmclear(&CurrentGuestState->VmcsRegionPhysicalAddress);
+    VmclearStatus = __vmx_vmclear(&VCpu->VmcsRegionPhysicalAddress);
 
     LogDebugInfo("VMCS VMCLEAR status : 0x%x", VmclearStatus);
 
@@ -519,18 +522,18 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Implementation of VMPTRLD instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param VCpu
  * @return BOOLEAN If vmptrld was unsuccessful then it returns false otherwise
  * it returns false
  */
 _Use_decl_annotations_
 BOOLEAN
-VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxLoadVmcs(VIRTUAL_MACHINE_STATE * VCpu)
 {
     int VmptrldStatus;
 
-    VmptrldStatus = __vmx_vmptrld(&CurrentGuestState->VmcsRegionPhysicalAddress);
+    VmptrldStatus = __vmx_vmptrld(&VCpu->VmcsRegionPhysicalAddress);
     if (VmptrldStatus)
     {
         LogDebugInfo("VMCS failed to load, status : 0x%x", VmptrldStatus);
@@ -541,10 +544,10 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Create and Configure a Vmcs Layout
- * 
- * @param CurrentGuestState 
- * @param GuestStack 
- * @return BOOLEAN 
+ *
+ * @param CurrentGuestState
+ * @param GuestStack
+ * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -703,12 +706,12 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(VIRTUAL_PROCESSOR_ID, VPID_TAG);
 
     //
-    //setup guest rsp
+    // setup guest rsp
     //
     __vmx_vmwrite(VMCS_GUEST_RSP, (UINT64)GuestStack);
 
     //
-    //setup guest rip
+    // setup guest rip
     //
     __vmx_vmwrite(VMCS_GUEST_RIP, (UINT64)AsmVmxRestoreState);
 
@@ -726,8 +729,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
 /**
  * @brief Resume vm using VMRESUME instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmresume()
@@ -752,20 +755,17 @@ VmxVmresume()
 
 /**
  * @brief Prepare and execute Vmxoff instruction
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-VmxVmxoff()
+VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ULONG  CurrentProcessorIndex = 0;
     UINT64 GuestRSP              = 0; // Save a pointer to guest rsp for times that we want to return to previous guest stateS
     UINT64 GuestRIP              = 0; // Save a pointer to guest rip for times that we want to return to previous guest state
     UINT64 GuestCr3              = 0;
     UINT64 ExitInstructionLength = 0;
-
-    CurrentProcessorIndex                  = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentProcessorIndex];
 
     //
     // According to SimpleVisor :
@@ -796,13 +796,13 @@ VmxVmxoff()
     //
     // Set the previous register states
     //
-    CurrentVmState->VmxoffState.GuestRip = GuestRIP;
-    CurrentVmState->VmxoffState.GuestRsp = GuestRSP;
+    VCpu->VmxoffState.GuestRip = GuestRIP;
+    VCpu->VmxoffState.GuestRsp = GuestRSP;
 
     //
     // Notify the Vmexit handler that VMX already turned off
     //
-    CurrentVmState->VmxoffState.IsVmxoffExecuted = TRUE;
+    VCpu->VmxoffState.IsVmxoffExecuted = TRUE;
 
     //
     // Restore the previous FS, GS , GDTR and IDTR register as patchguard might find the modified
@@ -813,7 +813,7 @@ VmxVmxoff()
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
     // See sections 24.1 and 24.11 of the SDM.
     //
-    VmxClearVmcsState(CurrentVmState);
+    VmxClearVmcsState(VCpu);
 
     //
     // Execute Vmxoff
@@ -823,7 +823,7 @@ VmxVmxoff()
     //
     // Indicate the current core is not currently virtualized
     //
-    CurrentVmState->HasLaunched = FALSE;
+    VCpu->HasLaunched = FALSE;
 
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
@@ -833,7 +833,7 @@ VmxVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the stack pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -844,7 +844,7 @@ VmxReturnStackPointerForVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the instruction pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -855,8 +855,8 @@ VmxReturnInstructionPointerForVmxoff()
 
 /**
  * @brief Terminate Vmx on all logical cores
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxPerformTermination()

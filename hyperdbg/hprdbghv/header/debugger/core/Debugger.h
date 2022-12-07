@@ -88,88 +88,6 @@ typedef struct _DEBUGGER_CORE_EVENTS
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 
 /**
- * @brief Use to modify Msrs or read MSR values
- *
- */
-typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
-{
-    UINT64 Msr;   // Msr (ecx)
-    UINT64 Value; // the value to write on msr
-
-} PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE, *PPROCESSOR_DEBUGGING_MSR_READ_OR_WRITE;
-
-/**
- * @brief Use to trace the execution in the case of instrumentation step-in
- * command (i command)
- *
- */
-typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
-{
-    BOOLEAN WaitForInstrumentationStepInMtf;
-    UINT16  CsSel; // the cs value to trace the execution modes
-
-} DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
-
-/**
- * @brief Structure to save the state of adding trace for threads
- * and processes
- *
- */
-typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
-{
-    BOOLEAN InitialSetProcessChangeEvent;
-    BOOLEAN InitialSetThreadChangeEvent;
-
-    BOOLEAN InitialSetByClockInterrupt;
-
-    //
-    // For threads
-    //
-    UINT64  CurrentThreadLocationOnGs;
-    BOOLEAN DebugRegisterInterceptionState;
-    BOOLEAN InterceptClockInterruptsForThreadChange;
-
-    //
-    // For processes
-    //
-    BOOLEAN IsWatingForMovCr3VmExits;
-    BOOLEAN InterceptClockInterruptsForProcessChange;
-
-} DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS, *PDEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS;
-
-/**
- * @brief Saves the debugger state
- * @details Each logical processor contains one of this structure which describes about the
- * state of debuggers, flags, etc.
- *
- */
-typedef struct _PROCESSOR_DEBUGGING_STATE
-{
-    volatile LONG                              Lock;
-    volatile BOOLEAN                           WaitingToBeLocked;
-    volatile BOOLEAN                           MainDebuggingCore;
-    volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
-    volatile NMI_BROADCAST_ACTION_TYPE         NmiBroadcastAction;
-    BOOLEAN                                    ShortCircuitingEvent;
-    BOOLEAN                                    IgnoreOneMtf;
-    BOOLEAN                                    WaitForStepTrap;
-    PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
-    PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
-    DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
-    BOOLEAN                                    EnableExternalInterruptsOnContinue;
-    BOOLEAN                                    EnableExternalInterruptsOnContinueMtf;
-    BOOLEAN                                    DisableTrapFlagOnContinue;
-    BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
-    DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
-    BOOLEAN                                    BreakStarterCore;
-    UINT16                                     InstructionLengthHint;
-    UINT64                                     HardwareDebugRegisterForStepping;
-    UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
-    UINT64 *                                   ScriptEngineCoreSpecificTempVariable;
-
-} PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
-
-/**
  * @brief The structure of actions in HyperDbg
  *
  */
@@ -327,9 +245,9 @@ BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
 DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+DebuggerTriggerEvents(VIRTUAL_MACHINE_STATE *           VCpu,
+                      DEBUGGER_EVENT_TYPE_ENUM          EventType,
                       DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PGUEST_REGS                       Regs,
                       PVOID                             Context,
                       BOOLEAN *                         PostEventRequired);
 
@@ -382,13 +300,13 @@ BOOLEAN
 DebuggerDisableEvent(UINT64 Tag);
 
 VOID
-DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformActions(VIRTUAL_MACHINE_STATE * VCpu, PDEBUGGER_EVENT Event, PVOID Context);
 
 VOID
-DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformBreakToDebugger(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);
 
 BOOLEAN
-DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PDEBUGGEE_SCRIPT_PACKET ScriptDetails, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformRunScript(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PDEBUGGEE_SCRIPT_PACKET ScriptDetails, PVOID Context);
 
 VOID
-DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformRunTheCustomCode(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);

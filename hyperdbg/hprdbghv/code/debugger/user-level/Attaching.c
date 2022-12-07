@@ -340,13 +340,12 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
  * @brief Handle the state when it reached to the entrypoint
  * of the user-mode process
  *
- * @param CurrentProcessorIndex
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  * @param ThreadDebuggingToken
  * @return VOID
  */
 VOID
-AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, UINT64 ThreadDebuggingToken)
+AttachingReachedToProcessEntrypoint(VIRTUAL_MACHINE_STATE * VCpu, UINT64 ThreadDebuggingToken)
 {
     //
     // Finish the starting point of the thread
@@ -361,8 +360,7 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Handling state through the kernel-mode debugger
         //
-        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                              GuestRegs,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
                                               NULL);
     }
@@ -371,8 +369,7 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Handling state through the user-mode debugger
         //
-        UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
-                                                  GuestRegs,
+        UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
                                                   NULL);
     }
@@ -381,19 +378,18 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
 /**
  * @brief Handle debug register event (#DB) for attaching to user-mode process
  *
- * @param CurrentProcessorIndex
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+AttachingHandleEntrypointDebugBreak(VIRTUAL_MACHINE_STATE * VCpu)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
 
     //
     // Not increment the RIP register as no instruction is intended to go
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 
     ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
     //
@@ -470,7 +466,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 InterruptInfo.NmiUnblocking    = FALSE;
                 InterruptInfo.Valid            = TRUE;
 
-                IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, ProcessDebuggingDetail->EntrypointOfMainModule, 0x14);
+                IdtEmulationHandlePageFaults(VCpu, InterruptInfo, ProcessDebuggingDetail->EntrypointOfMainModule, 0x14);
 
                 //
                 // Re-apply the hw debug reg breakpoint
@@ -487,7 +483,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 // or another process with same image is currently running
                 // Thus, there is no need to inject #PF, we'll handle it in debugger
                 //
-                AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ProcessDebuggingDetail->Token);
+                AttachingReachedToProcessEntrypoint(VCpu, ProcessDebuggingDetail->Token);
             }
         }
         else if (g_IsWaitingForReturnAndRunFromPageFault)
@@ -501,7 +497,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             // We reached here as a result of setting the second hardware debug breakpoint
             // and after injecting a page-fault
             //
-            AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ProcessDebuggingDetail->Token);
+            AttachingReachedToProcessEntrypoint(VCpu, ProcessDebuggingDetail->Token);
         }
     }
     else
@@ -590,7 +586,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 
 /**
  * @brief Check page-faults with user-debugger
- * @param CurrentProcessorIndex
+ * @param VCpu The virtual processor's state
  * @param InterruptExit
  * @param Address
  * @param ErrorCode
@@ -598,18 +594,17 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentProcessorIndex,
-                                         PGUEST_REGS                  GuestRegs,
+AttachingCheckPageFaultsWithUserDebugger(VIRTUAL_MACHINE_STATE *      VCpu,
                                          VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                                          UINT64                       Address,
                                          ULONG                        ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    VIRTUAL_MACHINE_STATE *             CurrentVmState = &g_GuestState[CurrentProcessorIndex];
+
     //
     // Check if thread is in user-mode
     //
-    if (CurrentVmState->LastVmexitRip & 0xf000000000000000)
+    if (VCpu->LastVmexitRip & 0xf000000000000000)
     {
         //
         // We won't intercept threads in kernel-mode
@@ -641,15 +636,14 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentPro
     //
     // Handling state through the user-mode debugger
     //
-    UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
-                                              GuestRegs,
+    UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
                                               NULL);
 
     //
     // related to user debugger
     //
-    CurrentVmState->IncrementRip = FALSE;
+    VCpu->IncrementRip = FALSE;
 
     return TRUE;
 }
@@ -963,12 +957,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
  * @brief Handle the cr3 vm-exits for thread interception
  * @details this function should be called in vmx-root
  *
- * @param CurrentCoreIndex
+ * @param VCpu The virtual processor's state
  * @param NewCr3
  * @return BOOLEAN
  */
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3)
+AttachingHandleCr3VmexitsForThreadInterception(VIRTUAL_MACHINE_STATE * VCpu, CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
@@ -982,7 +976,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
         //
         // not related to user debugger
         //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+        HvUnsetExceptionBitmap(VCpu, EXCEPTION_VECTOR_PAGE_FAULT);
         return FALSE;
     }
 
@@ -1020,7 +1014,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
     //
     // Intercept #PFs
     //
-    HvSetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+    HvSetExceptionBitmap(VCpu, EXCEPTION_VECTOR_PAGE_FAULT);
 
     return TRUE;
 }

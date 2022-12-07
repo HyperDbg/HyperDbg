@@ -676,34 +676,34 @@ SyscallHookTest();
  *
  */
 VOID
-SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
+SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
 
 /**
  * @brief Manage #UD Exceptions for EFER Syscall
  *
  */
 BOOLEAN
-SyscallHookHandleUD(_Inout_ PGUEST_REGS Regs, _In_ UINT32 CoreIndex);
+SyscallHookHandleUD(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief SYSRET instruction emulation routine
  *
  */
 BOOLEAN
-SyscallHookEmulateSYSRET(_In_ PGUEST_REGS Regs);
+SyscallHookEmulateSYSRET(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief SYSCALL instruction emulation routine
  *
  */
 BOOLEAN
-SyscallHookEmulateSYSCALL(_Out_ PGUEST_REGS Regs);
+SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Get Segment Descriptor
  *
  */
-_Success_(return )
+_Success_(return)
 BOOLEAN
 GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 

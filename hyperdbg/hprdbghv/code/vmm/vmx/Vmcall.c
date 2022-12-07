@@ -58,15 +58,15 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
 /**
  * @brief Handle vm-exits of VMCALLs
  *
- * @param GuestRegs Guest Registers
+ * @param VCpu The virtual processor's state
  * @return NTSTATUS
  */
 _Use_decl_annotations_
 NTSTATUS
-VmxHandleVmcallVmExit(UINT32      CoreIndex,
-                      PGUEST_REGS GuestRegs)
+VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    BOOLEAN IsHyperdbgVmcall = FALSE;
+    BOOLEAN      IsHyperdbgVmcall = FALSE;
+    GUEST_REGS * GuestRegs        = VCpu->Regs;
 
     IsHyperdbgVmcall = (GuestRegs->r10 == 0x48564653 &&
                         GuestRegs->r11 == 0x564d43414c4c &&
@@ -76,12 +76,11 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
     //
     if (IsHyperdbgVmcall)
     {
-        GuestRegs->rax = VmxVmcallHandler(CoreIndex,
+        GuestRegs->rax = VmxVmcallHandler(VCpu,
                                           GuestRegs->rcx,
                                           GuestRegs->rdx,
                                           GuestRegs->r8,
-                                          GuestRegs->r9,
-                                          GuestRegs);
+                                          GuestRegs->r9);
     }
     else
     {
@@ -94,7 +93,8 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
 /**
  * @brief Main Vmcall Handler
  *
- * @param VmcallNumber Request Number
+ * @param VCpu The virtual processor's state
+ * @param VmcallNumber
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
@@ -102,12 +102,11 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
  */
 _Use_decl_annotations_
 NTSTATUS
-VmxVmcallHandler(UINT32      CurrentCoreIndex,
-                 UINT64      VmcallNumber,
-                 UINT64      OptionalParam1,
-                 UINT64      OptionalParam2,
-                 UINT64      OptionalParam3,
-                 PGUEST_REGS GuestRegs)
+VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
+                 UINT64                  VmcallNumber,
+                 UINT64                  OptionalParam1,
+                 UINT64                  OptionalParam2,
+                 UINT64                  OptionalParam3)
 {
     NTSTATUS VmcallStatus = STATUS_UNSUCCESSFUL;
     BOOLEAN  HookResult   = FALSE;
@@ -127,8 +126,9 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_VMXOFF:
     {
-        VmxVmxoff();
+        VmxVmxoff(VCpu);
         VmcallStatus = STATUS_SUCCESS;
+
         break;
     }
     case VMCALL_CHANGE_PAGE_ATTRIB:
@@ -185,31 +185,31 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_ENABLE_SYSCALL_HOOK_EFER:
     {
-        SyscallHookConfigureEFER(TRUE);
+        SyscallHookConfigureEFER(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_DISABLE_SYSCALL_HOOK_EFER:
     {
-        SyscallHookConfigureEFER(FALSE);
+        SyscallHookConfigureEFER(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapReadChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapWriteChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_SET_RDTSC_EXITING:
     {
-        HvSetRdtscExiting(TRUE);
+        HvSetRdtscExiting(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -221,25 +221,25 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_SET_EXCEPTION_BITMAP:
     {
-        HvSetExceptionBitmap(OptionalParam1);
+        HvSetExceptionBitmap(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING:
     {
-        HvSetMovDebugRegsExiting(TRUE);
+        HvSetMovDebugRegsExiting(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING:
     {
-        HvSetExternalInterruptExiting(TRUE);
+        HvSetExternalInterruptExiting(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapChange(OptionalParam1);
+        IoHandlePerformIoBitmapChange(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -256,13 +256,13 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS:
     {
-        ProtectedHvExternalInterruptExitingForDisablingInterruptCommands();
+        ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNSET_RDTSC_EXITING:
     {
-        HvSetRdtscExiting(FALSE);
+        HvSetRdtscExiting(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
 
@@ -276,31 +276,31 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING:
     {
-        HvSetMovDebugRegsExiting(FALSE);
+        HvSetMovDebugRegsExiting(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadReset();
+        MsrHandlePerformMsrBitmapReadReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteReset();
+        MsrHandlePerformMsrBitmapWriteReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS:
     {
-        ProtectedHvResetExceptionBitmapToClearEvents();
+        ProtectedHvResetExceptionBitmapToClearEvents(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapReset();
+        IoHandlePerformIoBitmapReset(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -318,19 +318,19 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_ENABLE_MOV_TO_CR3_EXITING:
     {
-        HvSetMovToCr3Vmexit(TRUE);
+        HvSetMovToCr3Vmexit(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_DISABLE_MOV_TO_CR3_EXITING:
     {
-        HvSetMovToCr3Vmexit(FALSE);
+        HvSetMovToCr3Vmexit(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNSET_EXCEPTION_BITMAP:
     {
-        HvUnsetExceptionBitmap(OptionalParam1);
+        HvUnsetExceptionBitmap(VCpu, OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -360,8 +360,7 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                              GuestRegs,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
                                               NULL);
         VmcallStatus = STATUS_SUCCESS;
@@ -381,7 +380,7 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     }
     case VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED:
     {
-        KdSendCommandFinishedSignal(CurrentCoreIndex, GuestRegs);
+        KdSendCommandFinishedSignal(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
@@ -419,8 +418,7 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
         //
         if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
         {
-            KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                                  GuestRegs,
+            KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                                   DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
                                                   NULL);
         }
@@ -431,35 +429,47 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     case VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT:
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+        PGUEST_REGS                      TempReg              = NULL;
 
         TriggeredEventDetail.Context = OptionalParam1;
         TriggeredEventDetail.Tag     = OptionalParam2;
 
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                              OptionalParam3, // We won't send current vmcall registers
-                                                              // instead we send the registers provided
-                                                              // from the third parameter
-                                                              //
+        TempReg = VCpu->Regs;
+
+        //
+        // We won't send current vmcall registers
+        // instead we send the registers provided
+        // from the third parameter
+        //
+        VCpu->Regs = OptionalParam3;
+
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                                               &TriggeredEventDetail);
+
+        //
+        // Restore the register
+        //
+        VCpu->Regs = TempReg;
+
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS:
     {
-        ProtectedHvDisableRdtscExitingForDisablingTscCommands();
+        ProtectedHvDisableRdtscExitingForDisablingTscCommands(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS:
     {
-        ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();
+        ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS:
     {
-        ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(OptionalParam1, OptionalParam2);
+        ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(VCpu, OptionalParam1, OptionalParam2);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

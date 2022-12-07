@@ -298,28 +298,26 @@ KdLoggingResponsePacketToDebugger(
 /**
  * @brief Handles debug events when kernel-debugger is attached
  *
- * @param CurrentCore
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
     RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     BOOLEAN                          AvoidUnsetMtf;
 
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
-    ContextAndTag.Context = CurrentVmState->LastVmexitRip;
+    ContextAndTag.Context = VCpu->LastVmexitRip;
 
-    if (CurrentVmState->DebuggingState.WaitForStepTrap)
+    if (CurrentDebuggingState->WaitForStepTrap)
     {
         //
         // *** Handle a regular step ***
@@ -347,10 +345,9 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentCore,
-                                                                CurrentVmState->LastVmexitRip,
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VCpu,
+                                                                VCpu->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                GuestRegs,
                                                                 &AvoidUnsetMtf))
         {
             if (g_HardwareDebugRegisterDetailsForStepOver.Address != NULL)
@@ -358,7 +355,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
                 //
                 // Check if it's caused by a step-over hardware debug breakpoint or not
                 //
-                if (CurrentVmState->LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
+                if (VCpu->LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
                 {
                     if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == PsGetCurrentProcessId() &&
                         g_HardwareDebugRegisterDetailsForStepOver.ThreadId == PsGetCurrentThreadId())
@@ -392,9 +389,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
                 //
                 // Handle a regular step
                 //
-                ContextAndTag.Context = CurrentVmState->LastVmexitRip;
-                KdHandleBreakpointAndDebugBreakpoints(CurrentCore,
-                                                      GuestRegs,
+                ContextAndTag.Context = VCpu->LastVmexitRip;
+                KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                       &ContextAndTag);
             }
@@ -405,8 +401,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
         //
         // It's a regular breakpoint
         //
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCore,
-                                              GuestRegs,
+        KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
                                               &ContextAndTag);
     }
@@ -417,15 +412,15 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
  * cores including the main core
  * @details these tasks will be applied in vmx-root
  *
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdApplyTasksPreHaltCore(UINT32 CurrentCore)
+KdApplyTasksPreHaltCore(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+
     //
     // Check to unset mov to cr3 vm-exits
     //
@@ -434,7 +429,7 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
         //
         // Disable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+        ProcessEnableOrDisableThreadChangeMonitor(VCpu,
                                                   FALSE,
                                                   CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
 
@@ -453,7 +448,7 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
         //
         // Disable thread change alerts
         //
-        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+        ThreadEnableOrDisableThreadChangeMonitor(VCpu,
                                                  FALSE,
                                                  CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
 
@@ -470,15 +465,14 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
  * cores including the main core
  * @details these tasks will be applied in vmx-root
  *
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdApplyTasksPostContinueCore(UINT32 CurrentCore)
+KdApplyTasksPostContinueCore(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
     //
     // Check to apply hardware debug register breakpoints for step-over
     //
@@ -500,7 +494,7 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
         //
         // Enable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+        ProcessEnableOrDisableThreadChangeMonitor(VCpu,
                                                   TRUE,
                                                   CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
@@ -513,7 +507,7 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
         //
         // Enable alert for thread changes
         //
-        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+        ThreadEnableOrDisableThreadChangeMonitor(VCpu,
                                                  TRUE,
                                                  CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
@@ -522,7 +516,7 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
 /**
  * @brief continue the debuggee, this function gurantees that all other cores
  * are continued (except current core)
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  * @param SpeialEventResponse
  * @param PauseBreaksUntilSpecialMessageSent
  *
@@ -530,12 +524,11 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
  */
 _Use_decl_annotations_
 VOID
-KdContinueDebuggee(UINT32                                  CurrentCore,
+KdContinueDebuggee(VIRTUAL_MACHINE_STATE *                 VCpu,
                    BOOLEAN                                 PauseBreaksUntilSpecialMessageSent,
                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     if (PauseBreaksUntilSpecialMessageSent)
     {
@@ -552,12 +545,12 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
         //
         // Enable normal interrupt
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (CurrentVmState->PendingExternalInterrupts[0] != NULL)
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
         {
             //
             // Enable Interrupt-window exiting.
@@ -580,25 +573,22 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
 
 /**
  * @brief continue the debuggee, just the current operating core
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
+KdContinueDebuggeeJustCurrentCore(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
-
     //
     // In the case of any halting event, the processor won't send NMIs
     // to other cores if this field is set
     //
-    CurrentDebuggingState->DoNotNmiNotifyOtherCoresByThisCore = TRUE;
+    VCpu->DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = TRUE;
 
     //
     // Unlock the current core
     //
-    SpinlockUnlock(&CurrentDebuggingState->Lock);
+    SpinlockUnlock(&VCpu->DebuggingState.Lock);
 }
 
 /**
@@ -610,7 +600,7 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
  */
 _Use_decl_annotations_
 BOOLEAN
-KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
+KdReadRegisters(VIRTUAL_MACHINE_STATE * VCpu, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
 {
     GUEST_EXTRA_REGISTERS ERegs = {0};
 
@@ -620,7 +610,7 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
         // Add General purpose registers
         //
         memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
-               Regs,
+               VCpu->Regs,
                sizeof(GUEST_REGS));
 
         //
@@ -644,7 +634,7 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
     }
     else
     {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterID);
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(VCpu->Regs, ReadRegisterRequest->RegisterID);
     }
 
     return TRUE;
@@ -702,16 +692,15 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 /**
  * @brief change the current operating core to new core
  *
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  * @param NewCore
  * @return BOOLEAN
  */
 BOOLEAN
-KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
+KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore)
 {
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
     ULONG CoreCount = KeQueryActiveProcessorCount(0);
+
     //
     // Check if core is valid or not
     //
@@ -730,17 +719,17 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     //
     // Check if we should enable interrupts in this core or not
     //
-    if (CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinue)
+    if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue)
     {
         //
         // Enable normal interrupts
         //
-        HvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (CurrentVmState->PendingExternalInterrupts[0] != NULL)
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
         {
             //
             // Enable Interrupt-window exiting.
@@ -748,7 +737,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
             HvSetInterruptWindowExiting(TRUE);
         }
 
-        CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
+        VCpu->DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
     //
@@ -757,7 +746,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     // automatically but as we want to not have two operating cores
     // at the same time so we unset it here too)
     //
-    CurrentVmState->DebuggingState.MainDebuggingCore = FALSE;
+    VCpu->DebuggingState.MainDebuggingCore = FALSE;
 
     //
     // Set new operating core
@@ -857,18 +846,17 @@ KdSendFormatsFunctionResult(UINT64 Value)
 
 /**
  * @brief Notify debugger that the execution of command finished
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdSendCommandFinishedSignal(UINT32      CurrentCore,
-                            PGUEST_REGS GuestRegs)
+KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Halt other cores again
     //
-    KdHandleBreakpointAndDebugBreakpoints(CurrentCore,
-                                          GuestRegs,
+    KdHandleBreakpointAndDebugBreakpoints(VCpu,
                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
                                           NULL);
 }
@@ -876,17 +864,14 @@ KdSendCommandFinishedSignal(UINT32      CurrentCore,
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param UINT32 CurrentCore
- * @param GuestRegs Guest registers
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 _Use_decl_annotations_
 VOID
-KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
-
     //
     // During the debugging of HyperDbg, we realized that whenever an
     // event is set, one core might (and will) get the lock of the
@@ -918,30 +903,28 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentCore, PGUEST_REGS GuestReg
     //
     // Handle halt of the current core as an NMI
     //
-    KdHandleNmi(CurrentCore, GuestRegs);
+    KdHandleNmi(VCpu);
 
     //
     // Set the indication to false as we handled it
     //
-    CurrentVmState->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
+    VCpu->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
 }
 
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param UINT32 CurrentCore
+ * @param VCpu The virtual processor's state
  * @param LONG Lock variable
- * @param GuestRegs Guest registers
  *
  * @return VOID
  */
 VOID
-KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentCore, volatile LONG * Lock, PGUEST_REGS GuestRegs)
+KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * Lock)
 {
     unsigned wait = 1;
 
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
     //
     // *** Lock handling breaks ***
     //
@@ -971,14 +954,14 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentCore, volatile LONG * Lock, PGUE
                 //
                 // Handle it like an NMI is received from VMX root
                 //
-                KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentCore, GuestRegs);
+                KdHandleHaltsWhenNmiReceivedFromVmxRoot(VCpu);
             }
             else
             {
                 //
                 // Handle halt of the current core as an NMI
                 //
-                KdHandleNmi(CurrentCore, GuestRegs);
+                KdHandleNmi(VCpu);
             }
         }
 
@@ -1002,22 +985,22 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentCore, volatile LONG * Lock, PGUE
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 _Use_decl_annotations_
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentCore,
-                                      PGUEST_REGS                       GuestRegs,
+KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // Lock handling breaks
     //
-    KdCustomDebuggerBreakSpinlockLock(CurrentCore, &DebuggerHandleBreakpointLock, GuestRegs);
+    KdCustomDebuggerBreakSpinlockLock(VCpu, &DebuggerHandleBreakpointLock);
 
     //
     // Check if we should ignore this break request or not
@@ -1072,13 +1055,13 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
         //
         // Broadcast NMI with the intention of halting cores
         //
-        VmxBroadcastNmi(CurrentCore, NMI_BROADCAST_ACTION_KD_HALT_CORE);
+        VmxBroadcastNmi(VCpu, NMI_BROADCAST_ACTION_KD_HALT_CORE);
     }
 
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentCore, GuestRegs, EventDetails);
+    KdManageSystemHaltOnVmxRoot(VCpu, EventDetails);
 
     //
     // Clear the halting reason
@@ -1103,18 +1086,16 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
 
 /**
  * @brief Handle NMI Vm-exits
- * @param CurrentCore
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  *
  * @details This function should be called in vmx-root mode
  * @return VOID
  */
 _Use_decl_annotations_
 VOID
-KdHandleNmi(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
+KdHandleNmi(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // Test
@@ -1136,7 +1117,7 @@ KdHandleNmi(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentCore, GuestRegs, NULL);
+    KdManageSystemHaltOnVmxRoot(VCpu, NULL);
 
     //
     // Unlock handling breaks
@@ -1150,14 +1131,15 @@ KdHandleNmi(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
 
 /**
  * @brief apply a guaranteed step one instruction to the debuggee
- * @param CurrentCore
+ *
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID
-KdGuaranteedStepInstruction(UINT32 CurrentCore)
+KdGuaranteedStepInstruction(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // Only 16 bit is needed howerver, vmwrite might write on other bits
@@ -1180,12 +1162,12 @@ KdGuaranteedStepInstruction(UINT32 CurrentCore)
     //
     // Not unset again
     //
-    CurrentVmState->IgnoreMtfUnset = TRUE;
+    VCpu->IgnoreMtfUnset = TRUE;
 
     //
     // Change guest interrupt-state
     //
-    HvSetExternalInterruptExiting(TRUE);
+    HvSetExternalInterruptExiting(VCpu, TRUE);
 
     //
     // Do not vm-exit on interrupt windows
@@ -1266,19 +1248,18 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 
 /**
  * @brief Regualar step-in | step one instruction to the debuggee
- * @param CurrentCore
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdRegularStepInInstruction(UINT32 CurrentCore)
+KdRegularStepInInstruction(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT32 Interruptibility;
     UINT32 InterruptibilityOld = NULL;
     RFLAGS Rflags              = {0};
 
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     //
     // We're waiting for an step
@@ -1332,19 +1313,19 @@ KdRegularStepInInstruction(UINT32 CurrentCore)
  * @brief Regualar step-over | step one instruction to the debuggee if
  * there is a call then it jumps the call
  *
+ * @param VCpu The virtual processor's state
  * @param IsNextInstructionACall
- * @param CurrentCore
+ * @param CallLength
  *
  * @return VOID
  */
 VOID
-KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 CurrentCore)
+KdRegularStepOver(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
 {
     UINT64 NextAddressForHardwareDebugBp = 0;
     ULONG  CoreCount;
 
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     if (IsNextInstructionACall)
     {
@@ -1353,7 +1334,7 @@ KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 Curr
         // on the next instruction
         //
         CurrentDebuggingState->WaitForStepTrap = TRUE;
-        NextAddressForHardwareDebugBp          = CurrentVmState->LastVmexitRip + CallLength;
+        NextAddressForHardwareDebugBp          = VCpu->LastVmexitRip + CallLength;
 
         CoreCount = KeQueryActiveProcessorCount(0);
 
@@ -1378,7 +1359,7 @@ KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 Curr
         //
         // Any instruction other than call (regular step)
         //
-        KdRegularStepInInstruction(CurrentCore);
+        KdRegularStepInInstruction(VCpu);
     }
 }
 
@@ -1462,24 +1443,25 @@ KdQuerySystemState()
 
 /**
  * @brief Perform modify the state of short-circuiting
+ *
+ * @param VCpu The virtual processor's state
  * @param ShortCircuitingEvent
- * @param CurrentProcessorIndex
  *
  * @return VOID
  */
 VOID
-KdPerformSettingTheStateOfShortCircuiting(UINT32 CurrentProcessorIndex, PDEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitingEvent)
+KdPerformSettingTheStateOfShortCircuiting(VIRTUAL_MACHINE_STATE * VCpu, PDEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitingEvent)
 {
     //
     // Perform the short-circuiting changes
     //
     if (ShortCircuitingEvent->IsShortCircuiting)
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
+        VCpu->DebuggingState.ShortCircuitingEvent = TRUE;
     }
     else
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = FALSE;
+        VCpu->DebuggingState.ShortCircuitingEvent = FALSE;
     }
 
     //
@@ -1617,13 +1599,12 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 /**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
- * @param CurrentCore
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
+KdDispatchAndPerformCommandsFromDebugger(VIRTUAL_MACHINE_STATE * VCpu)
 {
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
@@ -1709,7 +1690,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -1732,12 +1713,12 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Indicate a step
                     //
-                    KdGuaranteedStepInstruction(CurrentCore);
+                    KdGuaranteedStepInstruction(VCpu);
 
                     //
                     // Unlock just on core
                     //
-                    KdContinueDebuggeeJustCurrentCore(CurrentCore);
+                    KdContinueDebuggeeJustCurrentCore(VCpu);
 
                     //
                     // No need to wait for new commands
@@ -1753,12 +1734,12 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Indicate a step
                     //
-                    KdRegularStepInInstruction(CurrentCore);
+                    KdRegularStepInInstruction(VCpu);
 
                     //
                     // Unlock other cores
                     //
-                    KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                    KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                     //
                     // Continue to the debuggee
@@ -1770,12 +1751,12 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Step-over (p command)
                     //
-                    KdRegularStepOver(SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength, CurrentCore);
+                    KdRegularStepOver(VCpu, SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength);
 
                     //
                     // Unlock other cores
                     //
-                    KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                    KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                     //
                     // Continue to the debuggee
@@ -1795,7 +1776,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -1809,12 +1790,12 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
                                                                    sizeof(DEBUGGER_REMOTE_PACKET));
 
-                if (CurrentCore != ChangeCorePacket->NewCore)
+                if (VCpu->CoreId != ChangeCorePacket->NewCore)
                 {
                     //
                     // Switch to new core
                     //
-                    if (KdSwitchCore(CurrentCore, ChangeCorePacket->NewCore))
+                    if (KdSwitchCore(VCpu, ChangeCorePacket->NewCore))
                     {
                         //
                         // No need to wait for new commands
@@ -1894,7 +1875,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (CallstackPacket->BaseAddress == NULL)
                 {
-                    CallstackPacket->BaseAddress = GuestRegs->rsp;
+                    CallstackPacket->BaseAddress = VCpu->Regs->rsp;
                 }
 
                 //
@@ -1971,7 +1952,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Read registers
                 //
-                if (KdReadRegisters(GuestRegs, ReadRegisterPacket))
+                if (KdReadRegisters(VCpu, ReadRegisterPacket))
                 {
                     ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
@@ -2102,10 +2083,10 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Run the script in debuggee
                 //
-                if (DebuggerPerformRunScript(OPERATION_LOG_INFO_MESSAGE /* simple print */,
+                if (DebuggerPerformRunScript(VCpu,
+                                             OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,
-                                             GuestRegs,
                                              g_DebuggeeHaltContext))
                 {
                     //
@@ -2145,7 +2126,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -2203,7 +2184,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee(CurrentCore, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
+                KdContinueDebuggee(VCpu, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -2221,7 +2202,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee(CurrentCore, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
+                KdContinueDebuggee(VCpu, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -2244,7 +2225,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Continue Debuggee
                     //
-                    KdContinueDebuggee(CurrentCore, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT);
+                    KdContinueDebuggee(VCpu, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT);
                     EscapeFromTheLoop = TRUE;
                 }
                 else
@@ -2268,7 +2249,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Perform the action
                 //
-                KdPerformSettingTheStateOfShortCircuiting(CurrentCore, ShortCircuitingEventPacket);
+                KdPerformSettingTheStateOfShortCircuiting(VCpu, ShortCircuitingEventPacket);
 
                 //
                 // Send the response of short-circuiting event
@@ -2374,7 +2355,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                KdContinueDebuggee(VCpu, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -2462,28 +2443,25 @@ KdIsGuestOnUsermode32Bit()
 /**
  * @brief manage system halt on vmx-root mode
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
- * @param CurrentCore
- * @param GuestRegs
+ * @param VCpu The virtual processor's state
  * @param EventDetails
  * @param MainCore the core that triggered the event
  *
  * @return VOID
  */
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
-                            PGUEST_REGS                       GuestRegs,
+KdManageSystemHaltOnVmxRoot(VIRTUAL_MACHINE_STATE *           VCpu,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     DEBUGGEE_KD_PAUSED_PACKET PausePacket;
     ULONG                     ExitInstructionLength  = 0;
     UINT64                    SizeOfSafeBufferToRead = 0;
     RFLAGS                    Rflags                 = {0};
-    VIRTUAL_MACHINE_STATE *   CurrentVmState         = &g_GuestState[CurrentCore];
 
     //
     // Perform Pre-halt tasks
     //
-    KdApplyTasksPreHaltCore(CurrentCore);
+    KdApplyTasksPreHaltCore(VCpu);
 
 StartAgain:
 
@@ -2491,7 +2469,7 @@ StartAgain:
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //
-    if (CurrentVmState->DebuggingState.MainDebuggingCore)
+    if (VCpu->DebuggingState.MainDebuggingCore)
     {
         //
         // *** Current Operating Core  ***
@@ -2506,12 +2484,12 @@ StartAgain:
         //
         // Set the current core
         //
-        PausePacket.CurrentCore = CurrentCore;
+        PausePacket.CurrentCore = VCpu->CoreId;
 
         //
         // Set the RIP and mode of execution
         //
-        PausePacket.Rip            = CurrentVmState->LastVmexitRip;
+        PausePacket.Rip            = VCpu->LastVmexitRip;
         PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
 
         //
@@ -2531,9 +2509,9 @@ StartAgain:
         //
         // Read the instruction len
         //
-        if (CurrentVmState->DebuggingState.InstructionLengthHint != 0)
+        if (VCpu->DebuggingState.InstructionLengthHint != 0)
         {
-            ExitInstructionLength = CurrentVmState->DebuggingState.InstructionLengthHint;
+            ExitInstructionLength = VCpu->DebuggingState.InstructionLengthHint;
         }
         else
         {
@@ -2547,7 +2525,7 @@ StartAgain:
             //
             // Compute the amount of buffer we can read without problem
             //
-            SizeOfSafeBufferToRead = CurrentVmState->LastVmexitRip & 0xfff;
+            SizeOfSafeBufferToRead = VCpu->LastVmexitRip & 0xfff;
             SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
 
             if (SizeOfSafeBufferToRead >= PAGE_SIZE)
@@ -2574,7 +2552,7 @@ StartAgain:
         //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafeOnTargetProcess(CurrentVmState->LastVmexitRip,
+        MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip,
                                                   &PausePacket.InstructionBytesOnRip,
                                                   ExitInstructionLength);
 
@@ -2590,13 +2568,13 @@ StartAgain:
         //
         // Perform Commands from the debugger
         //
-        KdDispatchAndPerformCommandsFromDebugger(CurrentCore, GuestRegs);
+        KdDispatchAndPerformCommandsFromDebugger(VCpu);
 
         //
         // Check if it's a change core event or not, otherwise finish the execution
         // and continue debuggee
         //
-        if (!CurrentVmState->DebuggingState.MainDebuggingCore)
+        if (!VCpu->DebuggingState.MainDebuggingCore)
         {
             //
             // It's a core switch, start again
@@ -2614,14 +2592,14 @@ StartAgain:
         // Lock and unlock the lock so all core can get the lock
         // and continue their normal execution
         //
-        CurrentVmState->DebuggingState.WaitingToBeLocked = FALSE;
+        VCpu->DebuggingState.WaitingToBeLocked = FALSE;
 
         ScopedSpinlock(
-            CurrentVmState->DebuggingState.Lock,
+            VCpu->DebuggingState.Lock,
             //
             // Check if it's a change core event or not
             //
-            if (CurrentVmState->DebuggingState.MainDebuggingCore) {
+            if (VCpu->DebuggingState.MainDebuggingCore) {
                 //
                 // It's a core change event
                 //
@@ -2636,7 +2614,7 @@ StartAgain:
     //
     // Apply the basic task for the core before continue
     //
-    KdApplyTasksPostContinueCore(CurrentCore);
+    KdApplyTasksPostContinueCore(VCpu);
 }
 
 /**

@@ -3,33 +3,33 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief All the dpc routines which relates to executing on a single core
  * for multi-core you can use Broadcast.c
- * 
+ *
  * @version 0.1
  * @date 2020-04-29
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief lock for one core execution
- * 
+ *
  */
 volatile LONG OneCoreLock;
 
 /**
  * @brief This function synchronize the function execution for a single core
  * You should only used it for one core, not in multiple threads simultaneously
- * The function that needs to use this featue (Routine parameter function) should 
+ * The function that needs to use this featue (Routine parameter function) should
  * have the when it ends :
- *  
- *              SpinlockUnlock(&OneCoreLock); 
- * 
+ *
+ *              SpinlockUnlock(&OneCoreLock);
+ *
  * @param CoreNumber core number that the target function should run on it
  * @param Routine the target function that should be runned
  * @param DeferredContext an optional parameter to Routine
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
@@ -117,11 +117,11 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 
 /**
  * @brief Broadcast VmxPerformVirtualizationOnSpecificCore
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
  * @return BOOLEAN
  */
 BOOLEAN
@@ -147,20 +147,20 @@ DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemA
 
 /**
  * @brief Broadcast msr write
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentProcessorIndex = 0;
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -181,19 +181,19 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 
 /**
  * @brief Broadcast msr read
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -214,12 +214,12 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
 
 /**
  * @brief change msr bitmap read on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -242,12 +242,12 @@ DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredConte
 
 /**
  * @brief change msr bitmap write on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -270,12 +270,12 @@ DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredCont
 
 /**
  * @brief set rdtsc/rdtscp exiting
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -299,12 +299,12 @@ DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 
 /**
  * @brief set rdpmc exiting
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -328,12 +328,12 @@ DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 
 /**
  * @brief change exception bitmap on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -357,12 +357,12 @@ DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 
 /**
  * @brief Set the Mov to Debug Registers Exitings
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -414,12 +414,12 @@ DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, PDEBUGGER_EVENT E
 
 /**
  * @brief Enable external interrupt exiting on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -443,12 +443,12 @@ DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC * Dpc, PVOID Defer
 
 /**
  * @brief Enable syscall hook EFER on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -472,12 +472,12 @@ DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC * Dpc, PVOID DeferredCon
 
 /**
  * @brief change I/O bitmap on a single core
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -500,12 +500,12 @@ DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, P
 
 /**
  * @brief Broadcast to enable mov-to-cr3 exitings
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -531,12 +531,12 @@ DpcRoutineEnableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemA
 
 /**
  * @brief Broadcast to disable mov-to-cr3 exitings
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -562,12 +562,12 @@ DpcRoutineDisableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID System
 
 /**
  * @brief Broadcast syscall hook to all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -593,12 +593,12 @@ DpcRoutineEnableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
 
 /**
  * @brief Broadcast syscall unhook to all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -624,19 +624,19 @@ DpcRoutineDisableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Syst
 
 /**
  * @brief Broadcast Msr Write
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -659,19 +659,19 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
 
 /**
  * @brief Broadcast Msr read
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -694,12 +694,12 @@ DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgum
 
 /**
  * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -724,12 +724,12 @@ DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
 
 /**
  * @brief Reset Msr Bitmaps on all cores (vm-exit on all msrs)
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -755,12 +755,12 @@ DpcRoutineResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 
 /**
  * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
- * 
- * @param Dpc 
+ *
+ * @param Dpc
  * @param DeferredContext Msr index to be masked on msr bitmap
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -785,12 +785,12 @@ DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
 
 /**
  * @brief Reset Msr Bitmaps on all cores (vm-exit on all msrs)
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -816,12 +816,12 @@ DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
 
 /**
  * @brief Enables rdtsc/rdtscp exiting in primary cpu-based controls
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -847,12 +847,12 @@ DpcRoutineEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 
 /**
  * @brief Disables rdtsc/rdtscp exiting in primary cpu-based controls
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -879,12 +879,12 @@ DpcRoutineDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
 /**
  * @brief Disables rdtsc/rdtscp exiting in primary cpu-based controls
  * ONLY for clearing !tsc events
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -910,14 +910,14 @@ DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID Defe
 }
 
 /**
- * @brief Disables mov to debug registers exiting 
+ * @brief Disables mov to debug registers exiting
  * ONLY for clearing !dr events
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -974,12 +974,12 @@ DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, PDEBUGGER_
 
 /**
  * @brief Enables rdpmc exiting in primary cpu-based controls
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1005,12 +1005,12 @@ DpcRoutineEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 
 /**
  * @brief Disable rdpmc exiting in primary cpu-based controls
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1036,12 +1036,12 @@ DpcRoutineDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
 
 /**
  * @brief Enable Exception Bitmaps on all cores
- * 
- * @param Dpc 
+ *
+ * @param Dpc
  * @param DeferredContext Exception index on IDT
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1066,12 +1066,12 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 
 /**
  * @brief Disable Exception Bitmaps on all cores
- * 
- * @param Dpc 
+ *
+ * @param Dpc
  * @param DeferredContext Exception index on IDT
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1097,12 +1097,12 @@ DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
 /**
  * @brief Reset Exception Bitmaps on all cores
  * @details This function should ONLY be used in clearing !exception events
- * 
- * @param Dpc 
+ *
+ * @param Dpc
  * @param DeferredContext Exception index on IDT
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc,
@@ -1130,12 +1130,12 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
 
 /**
  * @brief Enables mov debug registers exitings
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1221,12 +1221,12 @@ DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, PDEBUGGER_EVENT E
 
 /**
  * @brief Disables mov debug registers exitings
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1252,12 +1252,12 @@ DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredConte
 
 /**
  * @brief Enable vm-exit on all cores for external interrupts
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1283,12 +1283,12 @@ DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferred
 
 /**
  * @brief Disable vm-exit on all cores for external interrupts only for clearing !interrupt events
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores(KDPC * Dpc,
@@ -1317,12 +1317,12 @@ DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCo
 
 /**
  * @brief Change I/O Bitmaps on all cores
- * 
- * @param Dpc 
+ *
+ * @param Dpc
  * @param DeferredContext I/O Port index
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1347,12 +1347,12 @@ DpcRoutineChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syst
 
 /**
  * @brief Reset I/O Bitmaps on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1378,12 +1378,12 @@ DpcRoutineResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
 
 /**
  * @brief Enable breakpoint exiting on exception bitmaps on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1409,12 +1409,12 @@ DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferred
 
 /**
  * @brief Disable breakpoint exiting on exception bitmaps on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1440,12 +1440,12 @@ DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferre
 
 /**
  * @brief Enable vm-exit on NMIs on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1471,12 +1471,12 @@ DpcRoutineEnableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
 
 /**
  * @brief Disable vm-exit on NMIs on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1502,12 +1502,12 @@ DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 
 /**
  * @brief vm-exit and halt the system
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1533,12 +1533,12 @@ DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
 
 /**
  * @brief Enable vm-exit on #DBs and #BPs on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1569,12 +1569,12 @@ DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
 
 /**
  * @brief Disable vm-exit on #DBs and #BPs on all cores
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1605,12 +1605,12 @@ DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVO
 
 /**
  * @brief The broadcast function which removes all the hooks and invalidate TLB
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1636,12 +1636,12 @@ DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID Deferred
 
 /**
  * @brief The broadcast function which removes the single hook and invalidate TLB
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1667,12 +1667,12 @@ DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID Deferre
 
 /**
  * @brief The broadcast function which invalidate EPT using Vmcall
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1706,12 +1706,12 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
 
 /**
  * @brief The broadcast function which initialize the guest
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -1737,12 +1737,12 @@ DpcRoutineInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 
 /**
  * @brief The broadcast function which terminate the guest
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
  */
 VOID
 DpcRoutineTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
