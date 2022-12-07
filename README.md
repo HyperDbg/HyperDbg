@@ -38,13 +38,14 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
 
-**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://arxiv.org/pdf/2207.05676)** [[arXiv](https://arxiv.org/abs/2207.05676)] [[preprints](https://www.preprints.org/manuscript/202205.0416/v1)]
+**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://arxiv.org/pdf/2207.05676)** [[arXiv](https://arxiv.org/abs/2207.05676)]
 
 ```
-@article{karvandi2022hyperdbg,
+@inproceedings{karvandi2022hyperdbg,
   title={HyperDbg: Reinventing Hardware-Assisted Debugging},
-  author={Karvandi, Mohammad Sina and Gholamrezaei, MohammadHossein and Monfared, Saleh Khalaj and Medi, Suorush and Abbassi, Behrooz and Amini, Ali and Mortazavi, Reza and Gorgin, Saeid and Rahmati, Dara and Schwarz, Michael},
-  journal={arXiv preprint arXiv:2207.05676},
+  author={Karvandi, Mohammad Sina and Gholamrezaei, MohammadHosein and Khalaj Monfared, Saleh and Meghdadizanjani, Soroush and Abbassi, Behrooz and Amini, Ali and Mortazavi, Reza and Gorgin, Saeid and Rahmati, Dara and Schwarz, Michael},
+  booktitle={Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security},
+  pages={1709--1723},
   year={2022}
 }
 ```
