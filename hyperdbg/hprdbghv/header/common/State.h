@@ -272,6 +272,18 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
 /**
+ * @brief The status of NMI broadcasting in VMX
+ *
+ */
+typedef struct _NMI_BROADCASTING_STATE
+{
+    volatile NMI_BROADCAST_ACTION_TYPE NmiBroadcastAction; // The broadcast action for NMI
+    volatile BOOLEAN                   NmiCalledInVmxRootRelatedToHaltDebuggee;
+    volatile BOOLEAN                   WaitingToBeLocked;
+
+} NMI_BROADCASTING_STATE, *PNMI_BROADCASTING_STATE;
+
+/**
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.
@@ -280,10 +292,9 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     volatile LONG                              Lock;
-    volatile BOOLEAN                           WaitingToBeLocked;
     volatile BOOLEAN                           MainDebuggingCore;
-    volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
-    volatile NMI_BROADCAST_ACTION_TYPE         NmiBroadcastAction;
+    GUEST_REGS *                               Regs;
+    UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
     BOOLEAN                                    IgnoreOneMtf;
     BOOLEAN                                    WaitForStepTrap;
@@ -339,9 +350,10 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                                 // In practice I haven't seen more than 2 pending interrupts.
 
     VMX_VMXOFF_STATE        VmxoffState;            // Shows the vmxoff state of the guest
+    NMI_BROADCASTING_STATE  NmiBroadcastingState;   // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 
-    PROCESSOR_DEBUGGING_STATE DebuggingState; // Holds the debugging state of the processor (used by HyperDbg to execute commands)
+    // PROCESSOR_DEBUGGING_STATE DebuggingState; // Holds the debugging state of the processor (used by HyperDbg to execute commands)
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

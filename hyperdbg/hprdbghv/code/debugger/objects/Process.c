@@ -103,8 +103,8 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
         //
         for (size_t i = 0; i < CoreCount; i++)
         {
-            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
-            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
+            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
         }
     }
     else
@@ -114,8 +114,8 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
         //
         for (size_t i = 0; i < CoreCount; i++)
         {
-            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
-            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = TRUE;
+            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
+            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = TRUE;
         }
     }
 

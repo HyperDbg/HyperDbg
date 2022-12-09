@@ -94,7 +94,7 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     {
         if (i != VCpu->CoreId)
         {
-            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->DebuggingState.NmiBroadcastAction,
+            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction,
                                                VmxBroadcastAction,
                                                NMI_BROADCAST_ACTION_NONE);
         }
@@ -130,7 +130,7 @@ VmxBroadcastHandleKdDebugBreaks(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmi
     // handled and the core is not locked properly, just waits to get the handle
     // of the "DebuggerHandleBreakpointLock", so we check this flag there
     //
-    VCpu->DebuggingState.WaitingToBeLocked = TRUE;
+    VCpu->NmiBroadcastingState.WaitingToBeLocked = TRUE;
 
     if (IsOnVmxNmiHandler)
     {
@@ -138,7 +138,7 @@ VmxBroadcastHandleKdDebugBreaks(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmi
         // Indicate that it's called from NMI handle, and it relates to
         // halting the debuggee
         //
-        VCpu->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
+        VCpu->NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
 
         //
         // If the core was in the middle of spinning on the spinlock
@@ -184,7 +184,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
     // Check if NMI relates to us or not
     // Set NMI broadcasting action to none (clear the action)
     //
-    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->DebuggingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
+    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
 
     if (BroadcastAction == NMI_BROADCAST_ACTION_NONE)
     {

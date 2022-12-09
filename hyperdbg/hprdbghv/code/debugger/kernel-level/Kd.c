@@ -908,7 +908,7 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set the indication to false as we handled it
     //
-    VCpu->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
+    VCpu->NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
 }
 
 /**
@@ -939,7 +939,7 @@ KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * 
         //
         // check if the core needs to be locked
         //
-        if (CurrentDebuggingState->WaitingToBeLocked)
+        if (VCpu->NmiBroadcastingState.WaitingToBeLocked)
         {
             //
             // We should ignore one MTF as we touched MTF and it's not usable anymore
@@ -949,7 +949,7 @@ KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * 
             //
             // Handle break of the core
             //
-            if (CurrentDebuggingState->NmiCalledInVmxRootRelatedToHaltDebuggee)
+            if (VCpu->NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
             {
                 //
                 // Handle it like an NMI is received from VMX root
@@ -1026,7 +1026,7 @@ KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     // Lock current core
     //
-    CurrentDebuggingState->WaitingToBeLocked = FALSE;
+    VCpu->NmiBroadcastingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&CurrentDebuggingState->Lock);
 
     //
@@ -1111,7 +1111,7 @@ KdHandleNmi(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Lock current core
     //
-    CurrentDebuggingState->WaitingToBeLocked = FALSE;
+    VCpu->NmiBroadcastingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&CurrentDebuggingState->Lock);
 
     //
@@ -1430,7 +1430,7 @@ KdQuerySystemState()
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        if (g_GuestState[i].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        if (g_GuestState[i].NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {
             LogInfo("Core : %d - called from an NMI that is called in VMX-root mode", i);
         }
@@ -2592,7 +2592,7 @@ StartAgain:
         // Lock and unlock the lock so all core can get the lock
         // and continue their normal execution
         //
-        VCpu->DebuggingState.WaitingToBeLocked = FALSE;
+        VCpu->NmiBroadcastingState.WaitingToBeLocked = FALSE;
 
         ScopedSpinlock(
             VCpu->DebuggingState.Lock,

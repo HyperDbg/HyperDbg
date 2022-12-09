@@ -159,8 +159,7 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 {
     ULONG                       CurrentProcessorIndex = 0;
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -192,8 +191,7 @@ VOID
 DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -635,8 +633,7 @@ VOID
 DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -670,8 +667,7 @@ VOID
 DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE *     VCpu                  = &g_GuestState[CurrentCore];
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);

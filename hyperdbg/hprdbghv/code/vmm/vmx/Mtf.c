@@ -223,7 +223,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (CurrentDebuggingState->WaitingToBeLocked)
+    else if (VCpu->NmiBroadcastingState.WaitingToBeLocked)
     {
         //
         // MTF is handled
@@ -233,7 +233,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle break of the core
         //
-        if (CurrentDebuggingState->NmiCalledInVmxRootRelatedToHaltDebuggee)
+        if (VCpu->NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {
             //
             // Handle it like an NMI is received from VMX root
