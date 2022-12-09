@@ -338,8 +338,10 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                                 // Make storage for up-to 64 pending interrupts.
                                                                                 // In practice I haven't seen more than 2 pending interrupts.
 
-    PROCESSOR_DEBUGGING_STATE DebuggingState;         // Holds the debugging state of the processor (used by HyperDbg to execute commands)
-    VMX_VMXOFF_STATE          VmxoffState;            // Shows the vmxoff state of the guest
-    VM_EXIT_TRANSPARENCY      TransparencyState;      // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    VMX_VMXOFF_STATE        VmxoffState;            // Shows the vmxoff state of the guest
+    VM_EXIT_TRANSPARENCY    TransparencyState;      // The state of the debugger in transparent-mode
+    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+
+    PROCESSOR_DEBUGGING_STATE DebuggingState; // Holds the debugging state of the processor (used by HyperDbg to execute commands)
+
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

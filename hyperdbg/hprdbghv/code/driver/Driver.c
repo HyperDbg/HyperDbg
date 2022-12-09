@@ -60,8 +60,14 @@ DriverEntry(
     // we allocate virtual machine here because
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
-
     Ntstatus = GlobalGuestStateAllocateZeroedMemory();
+    if (!NT_SUCCESS(Ntstatus))
+        return Ntstatus;
+
+    //
+    // Also allocate the debugging state
+    //
+    Ntstatus = GlobalDebuggingStateAllocateZeroedMemory();
     if (!NT_SUCCESS(Ntstatus))
         return Ntstatus;
 
@@ -160,6 +166,11 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
+
+    //
+    // Free g_DbgState
+    //
+    GlobalDebuggingStateFreeMemory();
 
     //
     // Free g_GuestState
