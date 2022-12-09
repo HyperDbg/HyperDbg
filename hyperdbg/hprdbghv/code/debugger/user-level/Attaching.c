@@ -389,7 +389,7 @@ AttachingHandleEntrypointDebugBreak(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Not increment the RIP register as no instruction is intended to go
     //
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 
     ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
     //
@@ -643,7 +643,7 @@ AttachingCheckPageFaultsWithUserDebugger(VIRTUAL_MACHINE_STATE *      VCpu,
     //
     // related to user debugger
     //
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 
     return TRUE;
 }

@@ -267,7 +267,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VIRTUAL_MACHINE_STATE * VCpu,
             //
             // Do not increment rip
             //
-            VCpu->IncrementRip = FALSE;
+            VmFuncSuppressRipIncrement(VCpu->CoreId);
 
             //
             // No need to iterate anymore
@@ -302,7 +302,7 @@ BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Don't increment rip by default
     //
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 
     //
     // Check if it relates to !epthook or not
@@ -344,7 +344,7 @@ BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // Increment rip
                 //
-                VCpu->IncrementRip = TRUE;
+                VmFuncPerformRipIncrement(VCpu->CoreId);
             }
         }
         else
@@ -352,7 +352,7 @@ BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Don't increment rip
             //
-            VCpu->IncrementRip = FALSE;
+            VmFuncSuppressRipIncrement(VCpu->CoreId);
 
             //
             // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint

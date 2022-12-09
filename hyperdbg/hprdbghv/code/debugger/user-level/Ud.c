@@ -125,7 +125,7 @@ UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
     //
     // Continue the current instruction won't pass it
     //
-    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumber());
 
     //
     // It's not paused anymore!
@@ -182,7 +182,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     //
     // Continue the current instruction won't pass it
     //
-    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumber());
 
     //
     // It's not paused anymore!

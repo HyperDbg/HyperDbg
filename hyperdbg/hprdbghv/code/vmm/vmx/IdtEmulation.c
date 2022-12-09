@@ -95,7 +95,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 
     //
     // Re-inject the interrupt/exception
@@ -405,7 +405,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
@@ -443,7 +443,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
     else
     {
@@ -536,5 +536,5 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // avoid incrementing rip
     //
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 }

@@ -448,9 +448,8 @@ KdApplyTasksPreHaltCore(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Disable thread change alerts
         //
-        ThreadEnableOrDisableThreadChangeMonitor(VCpu,
-                                                 FALSE,
-                                                 CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
+        ThreadEnableOrDisableThreadChangeMonitor(CurrentDebuggingState,
+                                                 FALSE);
 
         //
         // Avoid future sets/unsets

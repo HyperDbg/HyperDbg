@@ -59,6 +59,7 @@
 //
 #include "..\hprdbghv\header\vmm\vmx\Vmx.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
+#include "..\hprdbghv\header\vmm\export\Export.h"
 
 //
 // Debugger Types

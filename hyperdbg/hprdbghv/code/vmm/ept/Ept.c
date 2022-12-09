@@ -715,14 +715,14 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         //
         // Do not redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
     else
     {
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
 
     return IsHandled;

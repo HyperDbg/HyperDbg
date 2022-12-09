@@ -100,8 +100,8 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = TRUE;
-        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = CheckByClockInterrupt;
+        g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = TRUE;
+        g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = CheckByClockInterrupt;
     }
 
     return TRUE;
@@ -409,13 +409,13 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
  * on the running core based on putting a HW breakpoint on the gs:[188]
  * @details should be called on vmx root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param Enable
  * @return VOID
  */
 VOID
-ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
-                                      BOOLEAN                 Enable)
+ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                      BOOLEAN                     Enable)
 {
     UINT64 MsrGsBase;
 
@@ -448,12 +448,12 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Set the global value for current thread of this processor
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = MsrGsBase;
+        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = MsrGsBase;
 
         //
         // Set interception state
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = TRUE;
+        DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = TRUE;
 
         //
         // Enable load debug controls and save debug controls because we don't
@@ -466,7 +466,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Intercept #DBs by changing exception bitmap (one core)
         //
-        HvSetExceptionBitmap(VCpu, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+        VmFuncSetExceptionBitmap(DbgState->CoreId, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
 
         //
         // Note, this function is running as a DPC routines, means that
@@ -487,7 +487,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
             DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT,
             BREAK_ON_WRITE_ONLY,
             TRUE,
-            VCpu->DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs);
+            DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs);
 
         //
         // Enables mov to debug registers exitings in primary cpu-based controls
@@ -498,7 +498,7 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         // are hypervisor and we can easily ignore mov to debug register (0 in
         // this case), however we should somehow hide this process in the future
         //
-        HvSetMovDebugRegsExiting(VCpu, TRUE);
+        VmFuncSetMovDebugRegsExiting(DbgState->CoreId, TRUE);
     }
     else
     {
@@ -510,12 +510,12 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // We should not ignore debug registers change anymore
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = FALSE;
+        DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = FALSE;
 
         //
         // Disable mov to debug regs vm-exit
         //
-        HvSetMovDebugRegsExiting(VCpu, FALSE);
+        VmFuncSetMovDebugRegsExiting(DbgState->CoreId, FALSE);
 
         //
         // Disable load debug controls and save debug controls because
@@ -527,12 +527,12 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Disable intercepting #DBs
         //
-        HvUnsetExceptionBitmap(VCpu, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+        VmFuncUnsetExceptionBitmap(DbgState->CoreId, EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
 
         //
         // No longer need to store such gs:188 value
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = NULL;
+        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = NULL;
     }
 }
 
@@ -541,37 +541,37 @@ ThreadDetectChangeByDebugRegisterOnGs(VIRTUAL_MACHINE_STATE * VCpu,
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param Enable
  * @return VOID
  */
 VOID
-ThreadDetectChangeByInterceptingClockInterrupts(VIRTUAL_MACHINE_STATE * VCpu,
-                                                BOOLEAN                 Enable)
+ThreadDetectChangeByInterceptingClockInterrupts(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                                BOOLEAN                     Enable)
 {
     if (Enable)
     {
         //
         // We should get the clock interrupts
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = TRUE;
+        DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = TRUE;
 
         //
         // Intercept external interrupts (for monitoring clock interrupts)
         //
-        HvSetExternalInterruptExiting(VCpu, TRUE);
+        VmFuncSetExternalInterruptExiting(DbgState->CoreId, TRUE);
     }
     else
     {
         //
         // We should ignore intercepting any further clock interrupts
         //
-        VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = FALSE;
+        DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = FALSE;
 
         //
         // Undo intercepting external interrupts
         //
-        HvSetExternalInterruptExiting(VCpu, FALSE);
+        VmFuncSetExternalInterruptExiting(DbgState->CoreId, FALSE);
     }
 }
 
@@ -580,26 +580,24 @@ ThreadDetectChangeByInterceptingClockInterrupts(VIRTUAL_MACHINE_STATE * VCpu,
  * on the running core
  * @details should be called on vmx root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param Enable
- * @param CheckByClockInterrupts
  * @return VOID
  */
 VOID
-ThreadEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
-                                         BOOLEAN                 Enable,
-                                         BOOLEAN                 CheckByClockInterrupts)
+ThreadEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                         BOOLEAN                     Enable)
 {
     //
     // Check if it's a HW breakpoint on gs:[188] or a clock interception
     //
-    if (!CheckByClockInterrupts)
+    if (!DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt)
     {
-        ThreadDetectChangeByDebugRegisterOnGs(VCpu, Enable);
+        ThreadDetectChangeByDebugRegisterOnGs(DbgState, Enable);
     }
     else
     {
-        ThreadDetectChangeByInterceptingClockInterrupts(VCpu, Enable);
+        ThreadDetectChangeByInterceptingClockInterrupts(DbgState, Enable);
     }
 }
 

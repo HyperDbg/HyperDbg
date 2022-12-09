@@ -663,7 +663,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
@@ -737,7 +737,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
@@ -757,7 +757,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
