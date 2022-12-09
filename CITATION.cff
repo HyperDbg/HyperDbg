@@ -7,7 +7,7 @@ authors:
   given-names: "MohammadHosein"
 - family-names: "Khalaj Monfared"
   given-names: "Saleh"
-- family-names: "Medi"
+- family-names: "Meghdadizanjani"
   given-names: "Soroush"
 - family-names: "Abbassi"
   given-names: "Behrooz"
@@ -23,6 +23,6 @@ authors:
   given-names: "Michael"
 title: "HyperDbg: Reinventing Hardware-Assisted Debugging"
 version: 1.0.0
-doi: 10.48550/arXiv.2207.05676
-date-released: 2022-05-29
-url: "https://arxiv.org/abs/2207.05676"
+doi: 10.1145/3548606.3560649
+date-released: 2022-11-07
+url: "https://doi.org/10.1145/3548606.3560649"
