@@ -187,9 +187,9 @@ VOID
 KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
-                                      _In_ DEBUGGEE_PAUSING_REASON      Reason,
-                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
+KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState,
+                                      _In_ DEBUGGEE_PAUSING_REASON        Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails);
 
 VOID
 KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);

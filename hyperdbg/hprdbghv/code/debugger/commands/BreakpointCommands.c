@@ -213,7 +213,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VIRTUAL_MACHINE_STATE * VCpu,
                 // breakpoint might be removed ***
                 //
 
-                KdHandleBreakpointAndDebugBreakpoints(VCpu,
+                KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                                       Reason,
                                                       &ContextAndTag);
             }
@@ -337,7 +337,7 @@ BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu)
                 // It's a random breakpoint byte
                 //
                 ContextAndTag.Context = VCpu->LastVmexitRip;
-                KdHandleBreakpointAndDebugBreakpoints(VCpu,
+                KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
                                                       &ContextAndTag);
 

@@ -189,7 +189,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VCpu,
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(&VCpu->DebuggingState,
                                                                 VCpu->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 &AvoidUnsetMtf))
@@ -198,7 +198,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             // Handle the step
             //
             ContextAndTag.Context = VCpu->LastVmexitRip;
-            KdHandleBreakpointAndDebugBreakpoints(VCpu,
+            KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &ContextAndTag);
         }

@@ -14,12 +14,12 @@
 
 /**
  * @brief handle thread changes
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ThreadHandleThreadChange(VIRTUAL_MACHINE_STATE * VCpu)
+ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     //
     // Check if we reached to the target thread or not
@@ -30,7 +30,7 @@ ThreadHandleThreadChange(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Halt the debuggee, we have found the target thread
         //
-        KdHandleBreakpointAndDebugBreakpoints(VCpu, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL);
+        KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL);
 
         //
         // Found

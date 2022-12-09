@@ -195,7 +195,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
-                ProcessHandleProcessChange(VCpu);
+                ProcessHandleProcessChange(&VCpu->DebuggingState);
             }
 
             //

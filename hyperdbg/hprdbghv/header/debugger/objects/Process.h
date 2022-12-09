@@ -17,12 +17,11 @@
 //////////////////////////////////////////////////
 
 VOID
-ProcessEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
-                                          BOOLEAN                 Enable,
-                                          BOOLEAN                 CheckByClockInterrupts);
+ProcessEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                          BOOLEAN                     Enable);
 
 BOOLEAN
-ProcessHandleProcessChange(VIRTUAL_MACHINE_STATE * VCpu);
+ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);

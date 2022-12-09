@@ -390,7 +390,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(VIRTUAL_MACHINE_STATE * VCpu)
                 // Handle a regular step
                 //
                 ContextAndTag.Context = VCpu->LastVmexitRip;
-                KdHandleBreakpointAndDebugBreakpoints(VCpu,
+                KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                       &ContextAndTag);
             }
@@ -401,7 +401,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // It's a regular breakpoint
         //
-        KdHandleBreakpointAndDebugBreakpoints(VCpu,
+        KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
                                               &ContextAndTag);
     }
@@ -429,9 +429,8 @@ KdApplyTasksPreHaltCore(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Disable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(VCpu,
-                                                  FALSE,
-                                                  CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentDebuggingState,
+                                                  FALSE);
 
         //
         // Avoid future sets/unsets
@@ -493,9 +492,8 @@ KdApplyTasksPostContinueCore(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Enable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(VCpu,
-                                                  TRUE,
-                                                  CurrentDebuggingState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentDebuggingState,
+                                                  TRUE);
     }
 
     //
@@ -855,7 +853,7 @@ KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Halt other cores again
     //
-    KdHandleBreakpointAndDebugBreakpoints(VCpu,
+    KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
                                           NULL);
 }
@@ -984,17 +982,19 @@ KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * 
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
+ * @param Reason
+ * @param EventDetails
  *
  * @return VOID
  */
 _Use_decl_annotations_
 VOID
-KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
+KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[DbgState->CoreId];
 
     //
     // Lock handling breaks
@@ -1020,13 +1020,13 @@ KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     // Set it as the main core
     //
-    CurrentDebuggingState->MainDebuggingCore = TRUE;
+    DbgState->MainDebuggingCore = TRUE;
 
     //
     // Lock current core
     //
     VCpu->NmiBroadcastingState.WaitingToBeLocked = FALSE;
-    SpinlockLock(&CurrentDebuggingState->Lock);
+    SpinlockLock(&DbgState->Lock);
 
     //
     // Set the halting reason
@@ -1042,12 +1042,12 @@ KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
         g_DebuggeeHaltTag     = EventDetails->Tag;
     }
 
-    if (CurrentDebuggingState->DoNotNmiNotifyOtherCoresByThisCore == TRUE)
+    if (DbgState->DoNotNmiNotifyOtherCoresByThisCore == TRUE)
     {
         //
         // Unset to avoid future not notifying events
         //
-        CurrentDebuggingState->DoNotNmiNotifyOtherCoresByThisCore = FALSE;
+        DbgState->DoNotNmiNotifyOtherCoresByThisCore = FALSE;
     }
     else
     {
@@ -1076,9 +1076,9 @@ KdHandleBreakpointAndDebugBreakpoints(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     // Unlock handling breaks
     //
-    if (CurrentDebuggingState->MainDebuggingCore)
+    if (DbgState->MainDebuggingCore)
     {
-        CurrentDebuggingState->MainDebuggingCore = FALSE;
+        DbgState->MainDebuggingCore = FALSE;
         SpinlockUnlock(&DebuggerHandleBreakpointLock);
     }
 }
@@ -2441,7 +2441,7 @@ KdIsGuestOnUsermode32Bit()
 
 /**
  * @brief manage system halt on vmx-root mode
- * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
+ * @details This function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param VCpu The virtual processor's state
  * @param EventDetails
  * @param MainCore the core that triggered the event

@@ -1401,7 +1401,7 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag,
         ContextAndTag.Context = Context;
 
         KdHandleBreakpointAndDebugBreakpoints(
-            VCpu,
+            DbgState,
             DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
             &ContextAndTag);
     }

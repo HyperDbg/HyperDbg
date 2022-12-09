@@ -360,7 +360,7 @@ AttachingReachedToProcessEntrypoint(VIRTUAL_MACHINE_STATE * VCpu, UINT64 ThreadD
         //
         // Handling state through the kernel-mode debugger
         //
-        KdHandleBreakpointAndDebugBreakpoints(VCpu,
+        KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
                                               NULL);
     }

@@ -354,6 +354,6 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VM_EXIT_TRANSPARENCY    TransparencyState;      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 
-    // PROCESSOR_DEBUGGING_STATE DebuggingState; // Holds the debugging state of the processor (used by HyperDbg to execute commands)
+    PROCESSOR_DEBUGGING_STATE DebuggingState; // Holds the debugging state of the processor (used by HyperDbg to execute commands)
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

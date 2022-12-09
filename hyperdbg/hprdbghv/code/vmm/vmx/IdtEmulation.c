@@ -210,7 +210,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // this vm-exit, but it's a really rare case, so we left it without
             // handling this case
             //
-            ThreadHandleThreadChange(VCpu);
+            ThreadHandleThreadChange(&VCpu->DebuggingState);
         }
         else if (g_UserDebuggerState == TRUE &&
                  (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
@@ -345,11 +345,11 @@ IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
         //
         if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
-            return ThreadHandleThreadChange(VCpu);
+            return ThreadHandleThreadChange(&VCpu->DebuggingState);
         }
         else
         {
-            return ProcessHandleProcessChange(VCpu);
+            return ProcessHandleProcessChange(&VCpu->DebuggingState);
         }
     }
 
