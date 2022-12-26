@@ -189,7 +189,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(&VCpu->DebuggingState,
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VCpu,
                                                                 VCpu->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 &AvoidUnsetMtf))

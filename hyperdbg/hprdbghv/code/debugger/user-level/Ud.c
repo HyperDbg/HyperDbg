@@ -389,12 +389,12 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
  * @brief Handle after we hit the stepping
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadDebuggingDetails
  * @return VOID
  */
 VOID
-UdHandleAfterSteppingReason(VIRTUAL_MACHINE_STATE *            VCpu,
+UdHandleAfterSteppingReason(PROCESSOR_DEBUGGING_STATE *        DbgState,
                             PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
     RFLAGS Rflags = {0};
@@ -418,14 +418,14 @@ UdHandleAfterSteppingReason(VIRTUAL_MACHINE_STATE *            VCpu,
  * @brief Handle special reasons pre-pausings
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadDebuggingDetails
  * @param Reason
  * @param EventDetails
  * @return VOID
  */
 VOID
-UdPrePausingReasons(VIRTUAL_MACHINE_STATE *            VCpu,
+UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
                     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
                     DEBUGGEE_PAUSING_REASON            Reason,
                     PDEBUGGER_TRIGGERED_EVENT_DETAILS  EventDetails)
@@ -440,7 +440,7 @@ UdPrePausingReasons(VIRTUAL_MACHINE_STATE *            VCpu,
 
         if (ThreadDebuggingDetails->IsRflagsTrapFlagsSet)
         {
-            UdHandleAfterSteppingReason(VCpu, ThreadDebuggingDetails);
+            UdHandleAfterSteppingReason(DbgState, ThreadDebuggingDetails);
         }
 
         break;
@@ -514,7 +514,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Perform the pre-pausing tasks
     //
-    UdPrePausingReasons(VCpu, ThreadDebuggingDetails, Reason, EventDetails);
+    UdPrePausingReasons(&VCpu->DebuggingState, ThreadDebuggingDetails, Reason, EventDetails);
 
     //
     // *** Fill the pausing structure ***

@@ -99,10 +99,10 @@ KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
                       _In_ UINT32                    Length);
 
 static VOID
-KdApplyTasksPreHaltCore(VIRTUAL_MACHINE_STATE * VCpu);
+KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
-KdApplyTasksPostContinueCore(VIRTUAL_MACHINE_STATE * VCpu);
+KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
 KdContinueDebuggee(_Inout_ VIRTUAL_MACHINE_STATE *                                  VCpu,
@@ -110,7 +110,7 @@ KdContinueDebuggee(_Inout_ VIRTUAL_MACHINE_STATE *                              
                    _In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse);
 
 static VOID
-KdContinueDebuggeeJustCurrentCore(VIRTUAL_MACHINE_STATE * VCpu);
+KdContinueDebuggeeJustCurrentCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static BOOLEAN
 KdReadRegisters(_In_ VIRTUAL_MACHINE_STATE *                VCpu,
@@ -120,7 +120,7 @@ KdReadMemory(_In_ PGUEST_REGS                            Regs,
              _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 
 static BOOLEAN
-KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore);
+KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore);
 
 static VOID
 KdCloseConnectionAndUnloadDebuggee();
@@ -135,7 +135,7 @@ static VOID
 KdGuaranteedStepInstruction(VIRTUAL_MACHINE_STATE * VCpu);
 
 static VOID
-KdRegularStepInInstruction(VIRTUAL_MACHINE_STATE * VCpu);
+KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
 KdRegularStepOver(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
