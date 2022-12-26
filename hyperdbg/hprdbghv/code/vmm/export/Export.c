@@ -37,6 +37,18 @@ VmFuncSuppressRipIncrement(UINT32 CoreId)
 }
 
 /**
+ * @brief Supress unsetting MTF
+ *
+ * @param CoreId Target core's ID
+ * @return VOID
+ */
+VOID
+VmFuncSuppressUnsettingMtf(UINT32 CoreId)
+{
+    g_GuestState[CoreId].IgnoreMtfUnset = TRUE;
+}
+
+/**
  * @brief Set the monitor trap flag
  *
  * @param Set Set or unset the MTFs
@@ -242,4 +254,94 @@ VOID
 VmFuncSetMovDebugRegsExiting(UINT32 CoreId, BOOLEAN Set)
 {
     HvSetMovDebugRegsExiting(&g_GuestState[CoreId], Set);
+}
+
+/**
+ * @brief get the last vm-exit RIP
+ *
+ * @param CoreId Target core's ID
+ * @return UINT64
+ */
+UINT64
+VmFuncGetLastVmexitRip(UINT32 CoreId)
+{
+    return g_GuestState[CoreId].LastVmexitRip;
+}
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param CoreId Target core's ID
+ * @return VOID
+ */
+VOID
+VmFuncInjectPendingExternalInterrupts(UINT32 CoreId)
+{
+    //
+    // Check if there is at least an interrupt that needs to be delivered
+    //
+    if (&g_GuestState[CoreId].PendingExternalInterrupts[0] != NULL)
+    {
+        //
+        // Enable Interrupt-window exiting.
+        //
+        HvSetInterruptWindowExiting(TRUE);
+    }
+}
+
+/**
+ * @brief Read CS selector
+ *
+ * @return UINT16
+ */
+UINT16
+VmFuncGetCsSelector()
+{
+    return HvGetCsSelector();
+}
+
+/**
+ * @brief Read guest's RFLAGS
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetRflags()
+{
+    return HvGetRflags();
+}
+
+/**
+ * @brief Set guest's RFLAGS
+ * @param Rflags
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetRflags(UINT64 Rflags)
+{
+    HvSetRflags(Rflags);
+}
+
+/**
+ * @brief Read guest's interruptibility state
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetInterruptibilityState()
+{
+    return HvGetInterruptibilityState();
+}
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param InterruptibilityState
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetInterruptibilityState(UINT64 InterruptibilityState)
+{
+    HvSetInterruptibilityState(InterruptibilityState);
 }

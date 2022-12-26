@@ -961,3 +961,76 @@ HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMovDebugRegsExiting(VCpu, Set);
 }
+
+/**
+ * @brief Read CS selector
+ *
+ * @return UINT16
+ */
+UINT16
+HvGetCsSelector()
+{
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
+
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+
+    return CsSel & 0xffff;
+}
+
+/**
+ * @brief Read guest's RFLAGS
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRflags()
+{
+    UINT64 Rflags = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+
+    return Rflags;
+}
+
+/**
+ * @brief Set guest's RFLAGS
+ * @param Rflags
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflags(UINT64 Rflags)
+{
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, &Rflags);
+}
+
+/**
+ * @brief Read guest's interruptibility state
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetInterruptibilityState()
+{
+    UINT64 InterruptibilityState = NULL;
+
+    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+
+    return InterruptibilityState;
+}
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param InterruptibilityState
+ *
+ * @return VOID
+ */
+VOID
+HvSetInterruptibilityState(UINT64 InterruptibilityState)
+{
+    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+}

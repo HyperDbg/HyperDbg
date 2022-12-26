@@ -105,7 +105,7 @@ static VOID
 KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
-KdContinueDebuggee(_Inout_ VIRTUAL_MACHINE_STATE *                                  VCpu,
+KdContinueDebuggee(_Inout_ PROCESSOR_DEBUGGING_STATE *                              DbgState,
                    _In_ BOOLEAN                                                     PauseBreaksUntilSpecialMessageSent,
                    _In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse);
 
@@ -113,14 +113,14 @@ static VOID
 KdContinueDebuggeeJustCurrentCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static BOOLEAN
-KdReadRegisters(_In_ VIRTUAL_MACHINE_STATE *                VCpu,
+KdReadRegisters(_In_ PROCESSOR_DEBUGGING_STATE *            DbgState,
                 _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 static BOOLEAN
 KdReadMemory(_In_ PGUEST_REGS                            Regs,
              _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 
 static BOOLEAN
-KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore);
+KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore);
 
 static VOID
 KdCloseConnectionAndUnloadDebuggee();
@@ -132,13 +132,13 @@ static VOID
 KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len);
 
 static VOID
-KdGuaranteedStepInstruction(VIRTUAL_MACHINE_STATE * VCpu);
+KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
 KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
-KdRegularStepOver(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
+KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
 
 static VOID
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader);
@@ -153,7 +153,7 @@ static VOID
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent);
 
 static VOID
-KdDispatchAndPerformCommandsFromDebugger(VIRTUAL_MACHINE_STATE * VCpu);
+KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
 KdBroadcastHaltOnAllCores();

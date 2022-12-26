@@ -21,6 +21,9 @@ VOID
 VmFuncSuppressRipIncrement(UINT32 CoreId);
 
 VOID
+VmFuncSuppressUnsettingMtf(UINT32 CoreId);
+
+VOID
 VmFuncSetMonitorTrapFlag(BOOLEAN Set);
 
 VOID
@@ -40,9 +43,6 @@ VmFuncSetMovToCr3Vmexit(UINT32 CoreId, BOOLEAN Set);
 
 VOID
 VmFuncWriteExceptionBitmap(UINT32 BitmapMask);
-
-UINT32
-VmFuncReadExceptionBitmap();
 
 VOID
 VmFuncSetInterruptWindowExiting(BOOLEAN Set);
@@ -67,3 +67,27 @@ VmFuncSetRdtscExiting(UINT32 CoreId, BOOLEAN Set);
 
 VOID
 VmFuncSetMovDebugRegsExiting(UINT32 CoreId, BOOLEAN Set);
+
+VOID
+VmFuncInjectPendingExternalInterrupts(UINT32 CoreId);
+
+VOID
+VmFuncSetRflags(UINT64 Rflags);
+
+VOID
+VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
+
+UINT16
+VmFuncGetCsSelector();
+
+UINT32
+VmFuncReadExceptionBitmap();
+
+UINT64
+VmFuncGetLastVmexitRip(UINT32 CoreId);
+
+UINT64
+VmFuncGetRflags();
+
+UINT64
+VmFuncGetInterruptibilityState();
