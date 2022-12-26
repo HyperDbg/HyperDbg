@@ -120,7 +120,7 @@ KdReadMemory(_In_ PGUEST_REGS                            Regs,
              _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 
 static BOOLEAN
-KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore);
+KdSwitchCore(VIRTUAL_MACHINE_STATE * VCpu, UINT32 NewCore);
 
 static VOID
 KdCloseConnectionAndUnloadDebuggee();
