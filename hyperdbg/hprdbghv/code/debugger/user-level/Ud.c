@@ -454,13 +454,13 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails
  * @return BOOLEAN
  */
 BOOLEAN
-UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu,
+UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                           DEBUGGEE_PAUSING_REASON           Reason,
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
@@ -470,6 +470,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     RFLAGS                              Rflags                  = {0};
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails = NULL;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails  = NULL;
+    UINT64                              LastVmexitRip           = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
     // Breaking only supported in vmx-root mode, and if user-debugger is
@@ -514,7 +515,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Perform the pre-pausing tasks
     //
-    UdPrePausingReasons(&VCpu->DebuggingState, ThreadDebuggingDetails, Reason, EventDetails);
+    UdPrePausingReasons(DbgState, ThreadDebuggingDetails, Reason, EventDetails);
 
     //
     // *** Fill the pausing structure ***
@@ -537,7 +538,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Set the RIP and mode of execution
     //
-    PausePacket.Rip     = VCpu->LastVmexitRip;
+    PausePacket.Rip     = LastVmexitRip;
     PausePacket.Is32Bit = KdIsGuestOnUsermode32Bit();
 
     //
@@ -557,9 +558,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Read the instruction len
     //
-    if (VCpu->DebuggingState.InstructionLengthHint != 0)
+    if (DbgState->InstructionLengthHint != 0)
     {
-        ExitInstructionLength = VCpu->DebuggingState.InstructionLengthHint;
+        ExitInstructionLength = DbgState->InstructionLengthHint;
     }
     else
     {
@@ -573,7 +574,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
         //
         // Compute the amount of buffer we can read without problem
         //
-        SizeOfSafeBufferToRead = VCpu->LastVmexitRip & 0xfff;
+        SizeOfSafeBufferToRead = LastVmexitRip & 0xfff;
         SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
 
         if (SizeOfSafeBufferToRead >= PAGE_SIZE)
@@ -600,14 +601,14 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip,
+    MemoryMapperReadMemorySafeOnTargetProcess(LastVmexitRip,
                                               &PausePacket.InstructionBytesOnRip,
                                               ExitInstructionLength);
 
     //
     // Copy registers to the pause packet
     //
-    RtlCopyMemory(&PausePacket.GuestRegs, VCpu->Regs, sizeof(GUEST_REGS));
+    RtlCopyMemory(&PausePacket.GuestRegs, DbgState->Regs, sizeof(GUEST_REGS));
 
     //
     // Send the pause packet, along with RIP and an indication

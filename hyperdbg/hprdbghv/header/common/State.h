@@ -311,7 +311,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
     BOOLEAN                                    EnableExternalInterruptsOnContinue;
-    BOOLEAN                                    EnableExternalInterruptsOnContinueMtf;
     BOOLEAN                                    DisableTrapFlagOnContinue;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
@@ -336,6 +335,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
+    BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
     ULONG        ExitReason;                                                    // The core's exit reason

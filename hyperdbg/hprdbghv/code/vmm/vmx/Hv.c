@@ -203,7 +203,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(VCpu, NewCr3Reg);
+                AttachingHandleCr3VmexitsForThreadInterception(&VCpu->DebuggingState, NewCr3Reg);
             }
 
             break;

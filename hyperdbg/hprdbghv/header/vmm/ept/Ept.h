@@ -299,3 +299,13 @@ VOID
 EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
                            _In_ EPT_PML1_ENTRY                  EntryValue,
                            _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
+
+/**
+ * @brief Check if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu);

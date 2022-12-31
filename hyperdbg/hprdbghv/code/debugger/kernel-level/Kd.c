@@ -28,9 +28,9 @@ KdInitializeKernelDebugger()
     //
     // for (size_t i = 0; i < CoreCount; i++)
     // {
-    //     g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
+    //     g_DbgState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
     //
-    //     if (g_GuestState[i].KdDpcObject == NULL)
+    //     if (g_DbgState[i].KdDpcObject == NULL)
     //     {
     //         LogError("Err, allocating dpc holder for debuggee");
     //         return;
@@ -342,7 +342,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(&g_GuestState[DbgState->CoreId],
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
                                                                 LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 &AvoidUnsetMtf))
@@ -731,7 +731,6 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
     // *** We should not unlock the spinlock here as the other core might
     // simultaneously start sending packets and corrupt our packets ***
     //
-    // SpinlockUnlock(&g_GuestState[NewCore].DebuggingState.Lock);
 
     return TRUE;
 }

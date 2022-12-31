@@ -691,7 +691,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     // Indicate that we should enable external interrupts and configure external interrupt
                     // window exiting somewhere at MTF
                     //
-                    VCpu->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
                 }
             }
 
@@ -847,4 +847,143 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     // release the lock
     //
     SpinlockUnlock(&Pml1ModificationAndInvalidationLock);
+}
+
+/**
+ * @brief Perform checking and handling if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ * @param GuestRip
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRip)
+{
+    PLIST_ENTRY TempList           = 0;
+    BOOLEAN     IsHandledByEptHook = FALSE;
+
+    //
+    // ***** Check breakpoint for !epthook *****
+    //
+
+    //
+    // Check whether the breakpoint was due to a !epthook command or not
+    //
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        if (HookedEntry->IsExecutionHook)
+        {
+            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            {
+                if (HookedEntry->BreakpointAddresses[i] == GuestRip)
+                {
+                    //
+                    // We found an address that matches the details, let's trigger the event
+                    //
+
+                    //
+                    // As the context to event trigger, we send the rip
+                    // of where triggered this event
+                    //
+                    DispatchEventHiddenHookExecCc(VCpu, GuestRip);
+
+                    //
+                    // Restore to its original entry for one instruction
+                    //
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+
+                    //
+                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                    //
+                    VCpu->MtfEptHookRestorePoint = HookedEntry;
+
+                    //
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
+                    //
+                    HvSetMonitorTrapFlag(TRUE);
+
+                    //
+                    // The following codes are added because we realized if the execution takes long then
+                    // the execution might be switched to another routines, thus, MTF might conclude on
+                    // another routine and we might (and will) trigger the same instruction soon
+                    //
+                    // The following code is not necessary on local debugging (VMI Mode), however, I don't
+                    // know why? just things are not reasonable here for me
+                    // another weird thing that I observed is the fact if you don't touch the routine related
+                    // to the I/O in and out instructions in VMWare then it works perfectly, just touching I/O
+                    // for serial is problematic, it might be a VMWare nested-virtualization bug, however, the
+                    // below approached proved to be work on both Debug Mode and WMI Mode
+                    // If you remove the below codes then when epthook is triggered then the execution stucks
+                    // on the same instruction on where the hooks is triggered, so 'p' and 't' commands for
+                    // steppings won't work
+                    //
+
+                    //
+                    // Change guest interrupt-state
+                    //
+                    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+                    //
+                    // Do not vm-exit on interrupt windows
+                    //
+                    HvSetInterruptWindowExiting(FALSE);
+
+                    //
+                    // Indicate that we should enable external interruts and configure external interrupt
+                    // window exiting somewhere at MTF
+                    //
+                    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+
+                    //
+                    // Indicate that we handled the ept violation
+                    //
+                    IsHandledByEptHook = TRUE;
+
+                    //
+                    // Get out of the loop
+                    //
+                    break;
+                }
+            }
+        }
+    }
+
+    return IsHandledByEptHook;
+}
+
+/**
+ * @brief Check if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT64  GuestRip           = NULL;
+    BOOLEAN IsHandledByEptHook = FALSE;
+
+    //
+    // Reading guest's RIP
+    //
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+
+    //
+    // Don't increment rip by default
+    //
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
+
+    //
+    // Check if it relates to !epthook or not
+    //
+    IsHandledByEptHook = EptCheckAndHandleEptHookBreakpoints(VCpu, GuestRip);
+
+    return IsHandledByEptHook;
 }

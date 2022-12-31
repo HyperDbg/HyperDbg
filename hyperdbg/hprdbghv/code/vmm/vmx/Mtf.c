@@ -138,7 +138,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         // Check if we should enable interrupts in this core or not,
         // we have another same check in SWITCHING CORES too
         //
-        if (CurrentDebuggingState->EnableExternalInterruptsOnContinueMtf)
+        if (VCpu->EnableExternalInterruptsOnContinueMtf)
         {
             //
             // Enable normal interrupts
@@ -156,7 +156,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
                 HvSetInterruptWindowExiting(TRUE);
             }
 
-            CurrentDebuggingState->EnableExternalInterruptsOnContinueMtf = FALSE;
+            VCpu->EnableExternalInterruptsOnContinueMtf = FALSE;
         }
     }
 
@@ -189,7 +189,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check and handle if there is a software defined breakpoint
         //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VCpu,
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentDebuggingState,
                                                                 VCpu->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 &AvoidUnsetMtf))

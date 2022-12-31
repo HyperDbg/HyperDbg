@@ -22,7 +22,7 @@ VOID
 UdUninitializeUserDebugger();
 
 BOOLEAN
-UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu,
+UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                           DEBUGGEE_PAUSING_REASON           Reason,
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
