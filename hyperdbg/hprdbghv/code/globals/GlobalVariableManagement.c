@@ -112,7 +112,7 @@ GlobalEventsAllocateZeroedMemory(VOID)
         g_Events = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_CORE_EVENTS), POOLTAG);
     }
 
-    if (!g_Events)
+    if (g_Events)
     {
         //
         // Zero the buffer

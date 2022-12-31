@@ -276,6 +276,23 @@ VOID
 HvSetRflags(UINT64 Rflags);
 
 /**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRip();
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+HvSetRip(UINT64 Rip);
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64

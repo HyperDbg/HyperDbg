@@ -324,6 +324,29 @@ VmFuncSetRflags(UINT64 Rflags)
 }
 
 /**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetRip()
+{
+    return HvGetRip();
+}
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetRip(UINT64 Rip)
+{
+    HvSetRip(Rip);
+}
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64

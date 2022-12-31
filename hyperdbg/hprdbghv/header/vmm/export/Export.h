@@ -75,6 +75,9 @@ VOID
 VmFuncSetRflags(UINT64 Rflags);
 
 VOID
+VmFuncSetRip(UINT64 Rip);
+
+VOID
 VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
 
 UINT16
@@ -88,6 +91,9 @@ VmFuncGetLastVmexitRip(UINT32 CoreId);
 
 UINT64
 VmFuncGetRflags();
+
+UINT64
+VmFuncGetRip();
 
 UINT64
 VmFuncGetInterruptibilityState();

@@ -1009,6 +1009,33 @@ HvSetRflags(UINT64 Rflags)
 }
 
 /**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRip()
+{
+    UINT64 Rip = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+
+    return Rip;
+}
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+HvSetRip(UINT64 Rip)
+{
+    __vmx_vmwrite(VMCS_GUEST_RIP, &Rip);
+}
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64

@@ -182,6 +182,7 @@ VOID
 BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    UINT64                           GuestRip      = 0;
     BOOLEAN                          AvoidUnsetMtf; // not used here
 
     //
@@ -193,6 +194,7 @@ BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Kernel debugger is attached, let's halt everything
         //
+        GuestRip = VmFuncGetRip();
 
         //
         // A breakpoint triggered and two things might be happened,
@@ -203,14 +205,14 @@ BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
 
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
-                                                                VmFuncGetLastVmexitRip(DbgState->CoreId),
+                                                                GuestRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
                                                                 &AvoidUnsetMtf))
         {
             //
             // It's a random breakpoint byte
             //
-            ContextAndTag.Context = VmFuncGetLastVmexitRip(DbgState->CoreId);
+            ContextAndTag.Context = GuestRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
                                                   &ContextAndTag);

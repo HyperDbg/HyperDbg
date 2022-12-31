@@ -104,7 +104,7 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
     //
     // Configure the RIP again
     //
-    __vmx_vmwrite(VMCS_GUEST_RIP, ThreadDebuggingDetails->ThreadRip);
+    VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
 }
 
 /**
@@ -158,11 +158,11 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         //
         // Set the trap-flag
         //
-        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        Rflags.AsUInt = VmFuncGetRflags();
 
         Rflags.TrapFlag = TRUE;
 
-        __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+        VmFuncSetRflags(Rflags.AsUInt);
 
         //
         // Rflags' trap flag is set
@@ -372,12 +372,12 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
     //
     // Save the RIP for future return
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &ThreadDebuggingDetails->ThreadRip);
+    ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
 
     //
     // Set the rip to new spinning address
     //
-    __vmx_vmwrite(VMCS_GUEST_RIP, ProcessDebuggingDetails->UsermodeReservedBuffer);
+    VmFuncSetRip(ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -402,11 +402,11 @@ UdHandleAfterSteppingReason(PROCESSOR_DEBUGGING_STATE *        DbgState,
     //
     // Unset the trap-flag
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    Rflags.AsUInt = VmFuncGetRflags();
 
     Rflags.TrapFlag = FALSE;
 
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+    VmFuncSetRflags(Rflags.AsUInt);
 
     //
     // Rflags' trap flag is not set anymore
@@ -544,7 +544,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set rflags for finding the results of conditional jumps
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    Rflags.AsUInt      = VmFuncGetRflags();
     PausePacket.Rflags = Rflags.AsUInt;
 
     //
@@ -565,10 +565,8 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     else
     {
         //
-        // Reading instruction length proved to provide wrong results,
-        // so we won't use it anymore
-        //
-        // __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+        // Reading instruction length (VMCS_VMEXIT_INSTRUCTION_LENGTH) proved to
+        // provide wrong results, so we won't use it
         //
 
         //
