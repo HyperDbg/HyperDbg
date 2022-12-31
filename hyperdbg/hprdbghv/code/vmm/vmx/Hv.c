@@ -195,7 +195,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
-                ProcessHandleProcessChange(VCpu);
+                ProcessHandleProcessChange(&VCpu->DebuggingState);
             }
 
             //
@@ -203,7 +203,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(VCpu, NewCr3Reg);
+                AttachingHandleCr3VmexitsForThreadInterception(&VCpu->DebuggingState, NewCr3Reg);
             }
 
             break;
@@ -663,7 +663,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
@@ -737,7 +737,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
@@ -757,7 +757,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
         return;
     }
 
@@ -960,4 +960,104 @@ VOID
 HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMovDebugRegsExiting(VCpu, Set);
+}
+
+/**
+ * @brief Read CS selector
+ *
+ * @return UINT16
+ */
+UINT16
+HvGetCsSelector()
+{
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
+
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+
+    return CsSel & 0xffff;
+}
+
+/**
+ * @brief Read guest's RFLAGS
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRflags()
+{
+    UINT64 Rflags = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+
+    return Rflags;
+}
+
+/**
+ * @brief Set guest's RFLAGS
+ * @param Rflags
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflags(UINT64 Rflags)
+{
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, &Rflags);
+}
+
+/**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRip()
+{
+    UINT64 Rip = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+
+    return Rip;
+}
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+HvSetRip(UINT64 Rip)
+{
+    __vmx_vmwrite(VMCS_GUEST_RIP, &Rip);
+}
+
+/**
+ * @brief Read guest's interruptibility state
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetInterruptibilityState()
+{
+    UINT64 InterruptibilityState = NULL;
+
+    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+
+    return InterruptibilityState;
+}
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param InterruptibilityState
+ *
+ * @return VOID
+ */
+VOID
+HvSetInterruptibilityState(UINT64 InterruptibilityState)
+{
+    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 }

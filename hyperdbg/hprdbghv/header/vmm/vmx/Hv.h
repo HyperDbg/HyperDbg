@@ -249,3 +249,62 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
  */
 VOID
 HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+/**
+ * @brief Read CS selector
+ *
+ * @return UINT16
+ */
+UINT16
+HvGetCsSelector();
+
+/**
+ * @brief Read guest's RFLAGS
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRflags();
+
+/**
+ * @brief Set guest's RFLAGS
+ * @param Rflags
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflags(UINT64 Rflags);
+
+/**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRip();
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+HvSetRip(UINT64 Rip);
+
+/**
+ * @brief Read guest's interruptibility state
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetInterruptibilityState();
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param InterruptibilityState
+ *
+ * @return VOID
+ */
+VOID
+HvSetInterruptibilityState(UINT64 InterruptibilityState);

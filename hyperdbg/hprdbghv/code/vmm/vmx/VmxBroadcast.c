@@ -94,7 +94,7 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     {
         if (i != VCpu->CoreId)
         {
-            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->DebuggingState.NmiBroadcastAction,
+            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction,
                                                VmxBroadcastAction,
                                                NMI_BROADCAST_ACTION_NONE);
         }
@@ -108,62 +108,6 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     SpinlockUnlock(&DebuggerResponseLock);
 
     return TRUE;
-}
-
-/**
- * @brief Handle broadcast NMIs for halting cores in vmx-root mode
- *
- * @param CurrentCoreIndex
- * @param GuestRegs
- * @param IsOnVmxNmiHandler
- *
- * @return VOID
- */
-VOID
-VmxBroadcastHandleKdDebugBreaks(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
-{
-    //
-    // We use it as a global flag (for both vmx-root and vmx non-root), because
-    // generally it doesn't have any use case in vmx-root (IsOnVmxNmiHandler == FALSE)
-    // but in some cases, we might set the MTF but another vm-exit receives before
-    // MTF and in that place if it tries to trigger and event, then the MTF is not
-    // handled and the core is not locked properly, just waits to get the handle
-    // of the "DebuggerHandleBreakpointLock", so we check this flag there
-    //
-    VCpu->DebuggingState.WaitingToBeLocked = TRUE;
-
-    if (IsOnVmxNmiHandler)
-    {
-        //
-        // Indicate that it's called from NMI handle, and it relates to
-        // halting the debuggee
-        //
-        VCpu->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
-
-        //
-        // If the core was in the middle of spinning on the spinlock
-        // of getting the debug lock, this mechansim is not needed,
-        // but if the core is not spinning there or the core is processing
-        // a random vm-exit, then we inject an immediate vm-exit after vm-entry
-        // or inject a DPC
-        // this is used for two reasons.
-        //
-        //      1. first, we will get the registers (context) to halt the core
-        //      2. second, it guarantees that if the NMI arrives within any
-        //         instruction in vmx-root mode, then we injected an immediate
-        //         vm-exit and we won't miss any cpu cycle in the guest
-        //
-        // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
-        // VmxMechanismCreateImmediateVmexit(VCpu);
-        HvSetMonitorTrapFlag(TRUE);
-    }
-    else
-    {
-        //
-        // Handle core break
-        //
-        KdHandleNmi(VCpu);
-    }
 }
 
 /**
@@ -184,7 +128,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
     // Check if NMI relates to us or not
     // Set NMI broadcasting action to none (clear the action)
     //
-    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->DebuggingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
+    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
 
     if (BroadcastAction == NMI_BROADCAST_ACTION_NONE)
     {
@@ -212,7 +156,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         // Handle NMI of halt the other cores
         //
         IsHandled = TRUE;
-        VmxBroadcastHandleKdDebugBreaks(VCpu, IsOnVmxNmiHandler);
+        KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
 
         break;
 

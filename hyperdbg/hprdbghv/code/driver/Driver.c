@@ -60,8 +60,14 @@ DriverEntry(
     // we allocate virtual machine here because
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
-
     Ntstatus = GlobalGuestStateAllocateZeroedMemory();
+    if (!NT_SUCCESS(Ntstatus))
+        return Ntstatus;
+
+    //
+    // Also allocate the debugging state
+    //
+    Ntstatus = GlobalDebuggingStateAllocateZeroedMemory();
     if (!NT_SUCCESS(Ntstatus))
         return Ntstatus;
 
@@ -148,7 +154,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     for (SIZE_T i = 0; i < ProcessorCount; i++)
     {
-        CurrentDebuggerState = &g_GuestState[i].DebuggingState;
+        CurrentDebuggerState = &g_DbgState[i];
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
@@ -160,6 +166,11 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
+
+    //
+    // Free g_DbgState
+    //
+    GlobalDebuggingStateFreeMemory();
 
     //
     // Free g_GuestState
@@ -233,9 +244,10 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Zero the memory
+    // Zero the memory of VM State and Debugging State
     //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
+    RtlZeroMemory(g_DbgState, sizeof(PROCESSOR_DEBUGGING_STATE) * ProcessorCount);
 
     //
     // Set the core's id and initialize memory mapper
@@ -243,6 +255,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     for (size_t i = 0; i < ProcessorCount; i++)
     {
         g_GuestState[i].CoreId = i;
+        g_DbgState[i].CoreId   = i;
     }
 
     //

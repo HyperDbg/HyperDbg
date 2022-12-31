@@ -25,10 +25,16 @@
 UINT32 g_LastError;
 
 /**
- * @brief Save the state and variables related to each to logical core
+ * @brief Save the state and variables related to virtualization on each to logical core
  *
  */
 VIRTUAL_MACHINE_STATE * g_GuestState;
+
+/**
+ * @brief Save the state and variables related to debugging on each to logical core
+ *
+ */
+PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
  * @brief Save the state of memory mapper

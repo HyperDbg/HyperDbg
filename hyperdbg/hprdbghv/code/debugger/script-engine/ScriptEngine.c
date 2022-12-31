@@ -19,8 +19,7 @@
 UINT64
 ScriptEngineWrapperGetInstructionPointer()
 {
-    UINT64 GuestRip = NULL;
-    ULONG  CurrentProcessorIndex;
+    ULONG CurrentProcessorIndex;
 
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
@@ -29,8 +28,7 @@ ScriptEngineWrapperGetInstructionPointer()
     //
     if (VmxGetCurrentExecutionMode() == TRUE)
     {
-        __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
-        return GuestRip;
+        return VmFuncGetRip();
     }
     else
     {

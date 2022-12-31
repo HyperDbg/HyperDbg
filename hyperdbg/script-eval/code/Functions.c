@@ -759,7 +759,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
             ContextAndTag.Context = Context;
 
             KdHandleBreakpointAndDebugBreakpoints(
-                &g_GuestState[CurrentProcessorIndex],
+                &g_DbgState[CurrentProcessorIndex],
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &ContextAndTag);
         }
@@ -823,11 +823,11 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
 
     if (State == 0)
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
+        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = TRUE;
     }
     else
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = FALSE;
+        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = FALSE;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE

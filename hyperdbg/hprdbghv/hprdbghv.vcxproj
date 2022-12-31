@@ -154,6 +154,7 @@
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
+    <ClCompile Include="code\vmm\export\Export.c" />
     <ClCompile Include="code\vmm\vmx\Counters.c" />
     <ClCompile Include="code\vmm\vmx\CrossVmexits.c" />
     <ClCompile Include="code\vmm\vmx\Events.c" />
@@ -227,6 +228,7 @@
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />
+    <ClInclude Include="header\vmm\export\Export.h" />
     <ClInclude Include="header\vmm\vmx\Counters.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
     <ClInclude Include="header\vmm\vmx\Hv.h" />

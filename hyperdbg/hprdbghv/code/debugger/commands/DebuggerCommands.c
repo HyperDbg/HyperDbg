@@ -168,8 +168,8 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             for (size_t i = 0; i < ProcessorCount; i++)
             {
-                g_GuestState[i].DebuggingState.MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
-                g_GuestState[i].DebuggingState.MsrState.Value = ReadOrWriteMsrRequest->Value;
+                g_DbgState[i].MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
+                g_DbgState[i].MsrState.Value = ReadOrWriteMsrRequest->Value;
             }
             //
             // Broadcast to all cores to change their Msrs
@@ -192,8 +192,8 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Otherwise it's valid
             //
-            g_GuestState[ReadOrWriteMsrRequest->CoreNumber].DebuggingState.MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
-            g_GuestState[ReadOrWriteMsrRequest->CoreNumber].DebuggingState.MsrState.Value = ReadOrWriteMsrRequest->Value;
+            g_DbgState[ReadOrWriteMsrRequest->CoreNumber].MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
+            g_DbgState[ReadOrWriteMsrRequest->CoreNumber].MsrState.Value = ReadOrWriteMsrRequest->Value;
 
             //
             // Execute it on a single core
@@ -222,7 +222,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             for (size_t i = 0; i < ProcessorCount; i++)
             {
-                g_GuestState[i].DebuggingState.MsrState.Msr = ReadOrWriteMsrRequest->Msr;
+                g_DbgState[i].MsrState.Msr = ReadOrWriteMsrRequest->Msr;
             }
 
             //
@@ -236,7 +236,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             for (size_t i = 0; i < ProcessorCount; i++)
             {
-                UserBuffer[i] = g_GuestState[i].DebuggingState.MsrState.Value;
+                UserBuffer[i] = g_DbgState[i].MsrState.Value;
             }
 
             //
@@ -263,7 +263,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Otherwise it's valid
             //
-            g_GuestState[ReadOrWriteMsrRequest->CoreNumber].DebuggingState.MsrState.Msr = ReadOrWriteMsrRequest->Msr;
+            g_DbgState[ReadOrWriteMsrRequest->CoreNumber].MsrState.Msr = ReadOrWriteMsrRequest->Msr;
 
             //
             // Execute it on a single core
@@ -278,7 +278,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Restore the result to the usermode
             //
-            UserBuffer[0] = g_GuestState[ReadOrWriteMsrRequest->CoreNumber].DebuggingState.MsrState.Value;
+            UserBuffer[0] = g_DbgState[ReadOrWriteMsrRequest->CoreNumber].MsrState.Value;
 
             *ReturnSize = sizeof(UINT64);
             return STATUS_SUCCESS;

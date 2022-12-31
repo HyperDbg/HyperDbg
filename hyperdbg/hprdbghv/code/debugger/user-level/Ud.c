@@ -104,7 +104,7 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
     //
     // Configure the RIP again
     //
-    __vmx_vmwrite(VMCS_GUEST_RIP, ThreadDebuggingDetails->ThreadRip);
+    VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
 }
 
 /**
@@ -125,7 +125,7 @@ UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
     //
     // Continue the current instruction won't pass it
     //
-    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumber());
 
     //
     // It's not paused anymore!
@@ -158,11 +158,11 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         //
         // Set the trap-flag
         //
-        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        Rflags.AsUInt = VmFuncGetRflags();
 
         Rflags.TrapFlag = TRUE;
 
-        __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+        VmFuncSetRflags(Rflags.AsUInt);
 
         //
         // Rflags' trap flag is set
@@ -182,7 +182,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     //
     // Continue the current instruction won't pass it
     //
-    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumber());
 
     //
     // It's not paused anymore!
@@ -372,12 +372,12 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
     //
     // Save the RIP for future return
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &ThreadDebuggingDetails->ThreadRip);
+    ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
 
     //
     // Set the rip to new spinning address
     //
-    __vmx_vmwrite(VMCS_GUEST_RIP, ProcessDebuggingDetails->UsermodeReservedBuffer);
+    VmFuncSetRip(ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -389,12 +389,12 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
  * @brief Handle after we hit the stepping
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadDebuggingDetails
  * @return VOID
  */
 VOID
-UdHandleAfterSteppingReason(VIRTUAL_MACHINE_STATE *            VCpu,
+UdHandleAfterSteppingReason(PROCESSOR_DEBUGGING_STATE *        DbgState,
                             PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
     RFLAGS Rflags = {0};
@@ -402,11 +402,11 @@ UdHandleAfterSteppingReason(VIRTUAL_MACHINE_STATE *            VCpu,
     //
     // Unset the trap-flag
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    Rflags.AsUInt = VmFuncGetRflags();
 
     Rflags.TrapFlag = FALSE;
 
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+    VmFuncSetRflags(Rflags.AsUInt);
 
     //
     // Rflags' trap flag is not set anymore
@@ -418,14 +418,14 @@ UdHandleAfterSteppingReason(VIRTUAL_MACHINE_STATE *            VCpu,
  * @brief Handle special reasons pre-pausings
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadDebuggingDetails
  * @param Reason
  * @param EventDetails
  * @return VOID
  */
 VOID
-UdPrePausingReasons(VIRTUAL_MACHINE_STATE *            VCpu,
+UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
                     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
                     DEBUGGEE_PAUSING_REASON            Reason,
                     PDEBUGGER_TRIGGERED_EVENT_DETAILS  EventDetails)
@@ -440,7 +440,7 @@ UdPrePausingReasons(VIRTUAL_MACHINE_STATE *            VCpu,
 
         if (ThreadDebuggingDetails->IsRflagsTrapFlagsSet)
         {
-            UdHandleAfterSteppingReason(VCpu, ThreadDebuggingDetails);
+            UdHandleAfterSteppingReason(DbgState, ThreadDebuggingDetails);
         }
 
         break;
@@ -454,13 +454,13 @@ UdPrePausingReasons(VIRTUAL_MACHINE_STATE *            VCpu,
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
- * @param VCpu The virtual processor's state
+ * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails
  * @return BOOLEAN
  */
 BOOLEAN
-UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu,
+UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                           DEBUGGEE_PAUSING_REASON           Reason,
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
@@ -470,6 +470,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     RFLAGS                              Rflags                  = {0};
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails = NULL;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails  = NULL;
+    UINT64                              LastVmexitRip           = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
     // Breaking only supported in vmx-root mode, and if user-debugger is
@@ -514,7 +515,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Perform the pre-pausing tasks
     //
-    UdPrePausingReasons(VCpu, ThreadDebuggingDetails, Reason, EventDetails);
+    UdPrePausingReasons(DbgState, ThreadDebuggingDetails, Reason, EventDetails);
 
     //
     // *** Fill the pausing structure ***
@@ -537,13 +538,13 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Set the RIP and mode of execution
     //
-    PausePacket.Rip     = VCpu->LastVmexitRip;
+    PausePacket.Rip     = LastVmexitRip;
     PausePacket.Is32Bit = KdIsGuestOnUsermode32Bit();
 
     //
     // Set rflags for finding the results of conditional jumps
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    Rflags.AsUInt      = VmFuncGetRflags();
     PausePacket.Rflags = Rflags.AsUInt;
 
     //
@@ -557,23 +558,21 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Read the instruction len
     //
-    if (VCpu->DebuggingState.InstructionLengthHint != 0)
+    if (DbgState->InstructionLengthHint != 0)
     {
-        ExitInstructionLength = VCpu->DebuggingState.InstructionLengthHint;
+        ExitInstructionLength = DbgState->InstructionLengthHint;
     }
     else
     {
         //
-        // Reading instruction length proved to provide wrong results,
-        // so we won't use it anymore
-        //
-        // __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+        // Reading instruction length (VMCS_VMEXIT_INSTRUCTION_LENGTH) proved to
+        // provide wrong results, so we won't use it
         //
 
         //
         // Compute the amount of buffer we can read without problem
         //
-        SizeOfSafeBufferToRead = VCpu->LastVmexitRip & 0xfff;
+        SizeOfSafeBufferToRead = LastVmexitRip & 0xfff;
         SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
 
         if (SizeOfSafeBufferToRead >= PAGE_SIZE)
@@ -600,14 +599,14 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(VIRTUAL_MACHINE_STATE *           VCpu
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip,
+    MemoryMapperReadMemorySafeOnTargetProcess(LastVmexitRip,
                                               &PausePacket.InstructionBytesOnRip,
                                               ExitInstructionLength);
 
     //
     // Copy registers to the pause packet
     //
-    RtlCopyMemory(&PausePacket.GuestRegs, VCpu->Regs, sizeof(GUEST_REGS));
+    RtlCopyMemory(&PausePacket.GuestRegs, DbgState->Regs, sizeof(GUEST_REGS));
 
     //
     // Send the pause packet, along with RIP and an indication

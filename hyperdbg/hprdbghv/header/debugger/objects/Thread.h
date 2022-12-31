@@ -20,12 +20,11 @@ BOOLEAN
 ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
 
 VOID
-ThreadEnableOrDisableThreadChangeMonitor(VIRTUAL_MACHINE_STATE * VCpu,
-                                         BOOLEAN                 Enable,
-                                         BOOLEAN                 CheckByClockInterrupts);
+ThreadEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                         BOOLEAN                     Enable);
 
 BOOLEAN
-ThreadHandleThreadChange(VIRTUAL_MACHINE_STATE * VCpu);
+ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest);

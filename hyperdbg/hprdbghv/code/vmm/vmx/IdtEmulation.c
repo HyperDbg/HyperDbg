@@ -95,7 +95,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 
     //
     // Re-inject the interrupt/exception
@@ -144,7 +144,10 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Handle software breakpoints
         //
-        BreakpointHandleBpTraps(VCpu);
+        if (!EptCheckAndHandleBreakpoint(VCpu))
+        {
+            BreakpointHandleBpTraps(&VCpu->DebuggingState);
+        }
 
         break;
 
@@ -174,7 +177,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // Handle page-faults
         //
         if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            AttachingCheckPageFaultsWithUserDebugger(VCpu,
+            AttachingCheckPageFaultsWithUserDebugger(&VCpu->DebuggingState,
                                                      InterruptExit,
                                                      NULL,
                                                      ErrorCode))
@@ -210,7 +213,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // this vm-exit, but it's a really rare case, so we left it without
             // handling this case
             //
-            ThreadHandleThreadChange(VCpu);
+            ThreadHandleThreadChange(&VCpu->DebuggingState);
         }
         else if (g_UserDebuggerState == TRUE &&
                  (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
@@ -218,7 +221,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Handle for user-mode attaching mechanism
             //
-            AttachingHandleEntrypointDebugBreak(VCpu);
+            AttachingHandleEntrypointDebugBreak(&VCpu->DebuggingState);
         }
         else if (g_KernelDebuggerState == TRUE)
         {
@@ -226,9 +229,9 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached.)
             //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(VCpu);
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(&VCpu->DebuggingState);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu,
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(&VCpu->DebuggingState,
                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
                                                            NULL))
         {
@@ -250,7 +253,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     case EXCEPTION_VECTOR_NMI:
 
         if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
-            CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf ||
+            VCpu->EnableExternalInterruptsOnContinueMtf ||
             CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             //
@@ -345,11 +348,11 @@ IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
         //
         if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
-            return ThreadHandleThreadChange(VCpu);
+            return ThreadHandleThreadChange(&VCpu->DebuggingState);
         }
         else
         {
-            return ProcessHandleProcessChange(VCpu);
+            return ProcessHandleProcessChange(&VCpu->DebuggingState);
         }
     }
 
@@ -387,7 +390,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // the interrupt into the guest
     //
     if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
-        CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf)
+        VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
@@ -405,7 +408,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
@@ -443,7 +446,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VCpu->IncrementRip = FALSE;
+        VmFuncSuppressRipIncrement(VCpu->CoreId);
     }
     else
     {
@@ -536,5 +539,5 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // avoid incrementing rip
     //
-    VCpu->IncrementRip = FALSE;
+    VmFuncSuppressRipIncrement(VCpu->CoreId);
 }

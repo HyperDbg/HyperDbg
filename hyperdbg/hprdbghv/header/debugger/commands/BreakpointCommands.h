@@ -25,13 +25,13 @@ VOID
 BreakpointRemoveAllBreakpoints();
 
 VOID
-BreakpointHandleBpTraps(VIRTUAL_MACHINE_STATE * VCpu);
+BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
-BreakpointCheckAndHandleDebuggerDefinedBreakpoints(VIRTUAL_MACHINE_STATE * VCpu,
-                                                   UINT64                  GuestRip,
-                                                   DEBUGGEE_PAUSING_REASON Reason,
-                                                   PBOOLEAN                AvoidUnsetMtf);
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                                   UINT64                      GuestRip,
+                                                   DEBUGGEE_PAUSING_REASON     Reason,
+                                                   PBOOLEAN                    AvoidUnsetMtf);
 
 BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
