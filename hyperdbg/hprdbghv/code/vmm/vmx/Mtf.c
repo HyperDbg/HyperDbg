@@ -198,7 +198,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             // Handle the step
             //
             ContextAndTag.Context = VCpu->LastVmexitRip;
-            KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
+            KdHandleBreakpointAndDebugBreakpoints(CurrentDebuggingState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &ContextAndTag);
         }
@@ -223,7 +223,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (VCpu->NmiBroadcastingState.WaitingToBeLocked)
+    else if (CurrentDebuggingState->NmiState.WaitingToBeLocked)
     {
         //
         // MTF is handled
@@ -233,19 +233,19 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle break of the core
         //
-        if (VCpu->NmiBroadcastingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        if (CurrentDebuggingState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {
             //
             // Handle it like an NMI is received from VMX root
             //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(VCpu);
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentDebuggingState);
         }
         else
         {
             //
             // Handle halt of the current core as an NMI
             //
-            KdHandleNmi(VCpu);
+            KdHandleNmi(CurrentDebuggingState);
         }
     }
 

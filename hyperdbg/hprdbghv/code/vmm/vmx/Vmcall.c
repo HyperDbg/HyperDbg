@@ -380,7 +380,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED:
     {
-        KdSendCommandFinishedSignal(VCpu);
+        KdSendCommandFinishedSignal(&VCpu->DebuggingState);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

@@ -226,7 +226,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached.)
             //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(VCpu);
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(&VCpu->DebuggingState);
         }
         else if (UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu,
                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,

@@ -91,3 +91,6 @@ VmFuncGetRflags();
 
 UINT64
 VmFuncGetInterruptibilityState();
+
+BOOLEAN
+VmFuncNmiHaltCores(UINT32 CoreId);

@@ -272,14 +272,23 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
 /**
+ * @brief The status of NMI in the kernel debugger
+ *
+ */
+typedef struct _KD_NMI_STATE
+{
+    volatile BOOLEAN NmiCalledInVmxRootRelatedToHaltDebuggee;
+    volatile BOOLEAN WaitingToBeLocked;
+
+} KD_NMI_STATE, *PKD_NMI_STATE;
+
+/**
  * @brief The status of NMI broadcasting in VMX
  *
  */
 typedef struct _NMI_BROADCASTING_STATE
 {
     volatile NMI_BROADCAST_ACTION_TYPE NmiBroadcastAction; // The broadcast action for NMI
-    volatile BOOLEAN                   NmiCalledInVmxRootRelatedToHaltDebuggee;
-    volatile BOOLEAN                   WaitingToBeLocked;
 
 } NMI_BROADCASTING_STATE, *PNMI_BROADCASTING_STATE;
 
@@ -306,11 +315,13 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                    DisableTrapFlagOnContinue;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
+    KD_NMI_STATE                               NmiState;
     BOOLEAN                                    BreakStarterCore;
     UINT16                                     InstructionLengthHint;
     UINT64                                     HardwareDebugRegisterForStepping;
     UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
     UINT64 *                                   ScriptEngineCoreSpecificTempVariable;
+    PKDPC                                      KdDpcObject; // DPC object to be used in kernel debugger
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
@@ -325,7 +336,6 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
-    PKDPC        KdDpcObject;                                                   // DPC object to be used in kernel debugger
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
     ULONG        ExitReason;                                                    // The core's exit reason

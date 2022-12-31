@@ -86,7 +86,7 @@ typedef struct _HARDWARE_DEBUG_REGISTER_DETAILS
 //
 
 static VOID
-KdCustomDebuggerBreakSpinlockLock(VIRTUAL_MACHINE_STATE * VCpu, volatile LONG * Lock);
+KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile LONG * Lock);
 
 static VOID
 KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
@@ -166,13 +166,13 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(VIRTUAL_MACHINE_STATE * VCpu);
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
-KdManageSystemHaltOnVmxRoot(VIRTUAL_MACHINE_STATE *           VCpu,
+KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
-KdHandleNmi(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+KdHandleNmi(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 KdInitializeKernelDebugger();
@@ -184,7 +184,7 @@ VOID
 KdSendFormatsFunctionResult(UINT64 Value);
 
 VOID
-KdSendCommandFinishedSignal(VIRTUAL_MACHINE_STATE * VCpu);
+KdSendCommandFinishedSignal(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState,
@@ -192,7 +192,7 @@ KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgSta
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails);
 
 VOID
-KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
@@ -210,3 +210,6 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 
 BOOLEAN
 KdIsGuestOnUsermode32Bit();
+
+VOID
+KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);

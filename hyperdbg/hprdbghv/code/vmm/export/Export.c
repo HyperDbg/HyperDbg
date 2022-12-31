@@ -345,3 +345,18 @@ VmFuncSetInterruptibilityState(UINT64 InterruptibilityState)
 {
     HvSetInterruptibilityState(InterruptibilityState);
 }
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncNmiHaltCores(UINT32 CoreId)
+{
+    //
+    // Broadcast NMI with the intention of halting cores
+    //
+    return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_KD_HALT_CORE);
+}
