@@ -304,7 +304,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     GUEST_REGS *                               Regs;
     UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
-    BOOLEAN                                    IgnoreOneMtf;
     BOOLEAN                                    WaitForStepTrap;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
@@ -336,6 +335,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
     BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
     BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
+    BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
     ULONG        ExitReason;                                                    // The core's exit reason

@@ -13,17 +13,34 @@
 #include "pch.h"
 
 /**
- * @brief handle process changes
- * @param CoreId 
+ * @brief handle process changes for cr3 registers
+ * @param CoreId
  *
+ * @return VOID
+ */
+VOID
+ProcessTriggerCr3ProcessChange(UINT32 CoreId)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    //
+    // Call kernel debugger handler for mov to cr3 in kernel debugger
+    //
+    if (DbgState->ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+    {
+        ProcessHandleProcessChange(DbgState);
+    }
+}
+
+/**
+ * @brief handle process changes
+ * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
  */
 BOOLEAN
-ProcessHandleProcessChange(UINT32 CoreId)
+ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
     //
     // Check if we reached to the target process or not
     //

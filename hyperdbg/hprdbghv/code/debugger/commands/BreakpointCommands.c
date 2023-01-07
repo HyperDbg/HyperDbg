@@ -12,6 +12,56 @@
 #include "pch.h"
 
 /**
+ * @brief Check and reapply breakpoint
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
+{
+    BOOLEAN                     Result   = FALSE;
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    if (DbgState->SoftwareBreakpointState != NULL)
+    {
+        BYTE BreakpointByte = 0xcc;
+
+        //
+        // MTF is handled
+        //
+        Result = TRUE;
+
+        //
+        // Restore previous breakpoint byte
+        //
+        MemoryMapperWriteMemorySafeByPhysicalAddress(
+            DbgState->SoftwareBreakpointState->PhysAddress,
+            &BreakpointByte,
+            sizeof(BYTE));
+
+        //
+        // Check if we should re-enabled IF bit of RFLAGS or not
+        //
+        if (DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf)
+        {
+            RFLAGS Rflags = {0};
+
+            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+            Rflags.InterruptEnableFlag = TRUE;
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+
+            DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
+        }
+
+        DbgState->SoftwareBreakpointState = NULL;
+    }
+
+    return Result;
+}
+
+/**
  * @brief Check if the breakpoint vm-exit relates to 'bp' command or not
  *
  * @param DbgState The state of the debugger on the current core

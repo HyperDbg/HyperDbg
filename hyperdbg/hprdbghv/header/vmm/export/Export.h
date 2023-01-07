@@ -24,6 +24,9 @@ VOID
 VmFuncChangeMtfUnsettingState(UINT32 CoreId, BOOLEAN Set);
 
 VOID
+VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set);
+
+VOID
 VmFuncSetMonitorTrapFlag(BOOLEAN Set);
 
 VOID

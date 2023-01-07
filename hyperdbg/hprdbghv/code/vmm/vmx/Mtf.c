@@ -37,38 +37,12 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // We check it separately because the guest might step
     // instructions on an MTF so we want to check for the step too
     //
-    if (VCpu->DebuggingState.SoftwareBreakpointState != NULL)
+    if (BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
     {
-        BYTE BreakpointByte = 0xcc;
-
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
-
-        //
-        // Restore previous breakpoint byte
-        //
-        MemoryMapperWriteMemorySafeByPhysicalAddress(
-            VCpu->DebuggingState.SoftwareBreakpointState->PhysAddress,
-            &BreakpointByte,
-            sizeof(BYTE));
-
-        //
-        // Check if we should re-enabled IF bit of RFLAGS or not
-        //
-        if (VCpu->DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf)
-        {
-            RFLAGS Rflags = {0};
-
-            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-            Rflags.InterruptEnableFlag = TRUE;
-            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
-
-            VCpu->DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
-        }
-
-        VCpu->DebuggingState.SoftwareBreakpointState = NULL;
     }
 
     //
@@ -185,43 +159,25 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (VCpu->DebuggingState.NmiState.WaitingToBeLocked)
+    else if (KdCheckAndHandleNmiCallback(VCpu->CoreId))
     {
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
-
-        //
-        // Handle break of the core
-        //
-        if (VCpu->DebuggingState.NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        {
-            //
-            // Handle it like an NMI is received from VMX root
-            //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(&VCpu->DebuggingState);
-        }
-        else
-        {
-            //
-            // Handle halt of the current core as an NMI
-            //
-            KdHandleNmi(&VCpu->DebuggingState);
-        }
     }
 
     //
     // Check for ignored MTFs
     //
-    if (VCpu->DebuggingState.IgnoreOneMtf)
+    if (VCpu->IgnoreOneMtf)
     {
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
 
-        VCpu->DebuggingState.IgnoreOneMtf = FALSE;
+        VCpu->IgnoreOneMtf = FALSE;
     }
 
     //

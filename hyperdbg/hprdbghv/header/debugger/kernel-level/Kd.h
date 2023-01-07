@@ -171,6 +171,9 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId);
 VOID
 KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
+BOOLEAN
+KdCheckAndHandleNmiCallback(_In_ UINT32 CoreId);
+
 VOID
 KdHandleNmi(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
 

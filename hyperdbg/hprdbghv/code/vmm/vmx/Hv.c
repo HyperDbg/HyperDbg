@@ -193,10 +193,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
-            {
-                ProcessHandleProcessChange(VCpu->CoreId);
-            }
+            ProcessTriggerCr3ProcessChange(VCpu->CoreId);
 
             //
             // Call user debugger handler of thread intercepting mechanism

@@ -349,7 +349,7 @@ IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
         }
         else
         {
-            return ProcessHandleProcessChange(VCpu->CoreId);
+            return ProcessHandleProcessChange(&VCpu->DebuggingState);
         }
     }
 

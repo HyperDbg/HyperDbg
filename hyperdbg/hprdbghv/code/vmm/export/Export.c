@@ -50,6 +50,19 @@ VmFuncChangeMtfUnsettingState(UINT32 CoreId, BOOLEAN Set)
 }
 
 /**
+ * @brief Change ignore one MTF state
+ *
+ * @param CoreId Target core's ID
+ * @param Set State of setting or unsetting
+ * @return VOID
+ */
+VOID
+VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set)
+{
+    g_GuestState[CoreId].IgnoreOneMtf = Set;
+}
+
+/**
  * @brief Register for break in the case of an MTF
  *
  * @param CoreId Target core's ID

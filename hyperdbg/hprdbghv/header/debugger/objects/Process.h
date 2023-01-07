@@ -20,8 +20,11 @@ VOID
 ProcessEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
                                           BOOLEAN                     Enable);
 
+VOID
+ProcessTriggerCr3ProcessChange(UINT32 CoreId);
+
 BOOLEAN
-ProcessHandleProcessChange(UINT32 CoreId);
+ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);

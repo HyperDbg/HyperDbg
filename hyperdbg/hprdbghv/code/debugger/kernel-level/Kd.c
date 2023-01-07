@@ -915,7 +915,7 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
             //
             // We should ignore one MTF as we touched MTF and it's not usable anymore
             //
-            DbgState->IgnoreOneMtf = TRUE;
+            VmFuncChangeIgnoreOneMtfState(DbgState->CoreId, TRUE);
 
             //
             // Handle break of the core
@@ -1187,6 +1187,49 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
         DbgState->MainDebuggingCore = FALSE;
         SpinlockUnlock(&DebuggerHandleBreakpointLock);
     }
+}
+
+/**
+ * @brief Handle NMI vm-exits
+ * @param CoreId
+ *
+ * @details This function should be called in vmx-root mode
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+KdCheckAndHandleNmiCallback(UINT32 CoreId)
+{
+    BOOLEAN                     Result   = FALSE;
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    if (DbgState->NmiState.WaitingToBeLocked)
+    {
+        //
+        // The NMI wait is handled here
+        //
+        Result = TRUE;
+
+        //
+        // Handle break of the core
+        //
+        if (DbgState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle it like an NMI is received from VMX root
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(DbgState);
+        }
+        else
+        {
+            //
+            // Handle halt of the current core as an NMI
+            //
+            KdHandleNmi(DbgState);
+        }
+    }
+
+    return Result;
 }
 
 /**
