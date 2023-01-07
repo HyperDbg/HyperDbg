@@ -31,7 +31,7 @@ BOOLEAN
 BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * DbgState,
                                                    UINT64                      GuestRip,
                                                    DEBUGGEE_PAUSING_REASON     Reason,
-                                                   PBOOLEAN                    AvoidUnsetMtf);
+                                                   BOOLEAN                     ChangeMtfState);
 
 BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,

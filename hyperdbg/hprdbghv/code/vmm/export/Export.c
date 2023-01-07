@@ -40,12 +40,13 @@ VmFuncSuppressRipIncrement(UINT32 CoreId)
  * @brief Supress unsetting MTF
  *
  * @param CoreId Target core's ID
+ * @param Set State of setting or unsetting
  * @return VOID
  */
 VOID
-VmFuncSuppressUnsettingMtf(UINT32 CoreId)
+VmFuncChangeMtfUnsettingState(UINT32 CoreId, BOOLEAN Set)
 {
-    g_GuestState[CoreId].IgnoreMtfUnset = TRUE;
+    g_GuestState[CoreId].IgnoreMtfUnset = Set;
 }
 
 /**

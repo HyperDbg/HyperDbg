@@ -17,7 +17,7 @@
  * @param DbgState The state of the debugger on the current core
  * @param GuestRip
  * @param Reason
- * @param AvoidUnsetMtf
+ * @param ChangeMtfState
  *
  * @return BOOLEAN
  */
@@ -25,7 +25,7 @@ BOOLEAN
 BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * DbgState,
                                                    UINT64                      GuestRip,
                                                    DEBUGGEE_PAUSING_REASON     Reason,
-                                                   PBOOLEAN                    AvoidUnsetMtf)
+                                                   BOOLEAN                     ChangeMtfState)
 {
     CR3_TYPE                         GuestCr3;
     BOOLEAN                          IsHandledByBpRoutines = FALSE;
@@ -35,7 +35,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     RFLAGS                           Rflags                = {0};
     ULONG                            LengthOfExitInstr     = 0;
     BYTE                             InstrByte             = NULL;
-    *AvoidUnsetMtf                                         = FALSE;
+    BOOLEAN                          AvoidUnsetMtf         = FALSE;
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -130,7 +130,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 // Fire and MTF
                 //
                 HvSetMonitorTrapFlag(TRUE);
-                *AvoidUnsetMtf = TRUE;
+                AvoidUnsetMtf = TRUE;
 
                 //
                 // As we want to continue debuggee, the MTF might arrive when the
@@ -168,6 +168,11 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
         }
     }
 
+    if (IsHandledByBpRoutines && ChangeMtfState)
+    {
+        VmFuncChangeMtfUnsettingState(DbgState->CoreId, AvoidUnsetMtf);
+    }
+
     return IsHandledByBpRoutines;
 }
 
@@ -183,8 +188,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     UINT64                           GuestRip      = 0;
-    BOOLEAN                          AvoidUnsetMtf; // not used here
-    PROCESSOR_DEBUGGING_STATE *      DbgState = &g_DbgState[CoreId];
+    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
 
     //
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
@@ -208,7 +212,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
                                                                 GuestRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                                &AvoidUnsetMtf))
+                                                                FALSE))
         {
             //
             // It's a random breakpoint byte

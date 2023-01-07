@@ -307,9 +307,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId)
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
     RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
-    BOOLEAN                          AvoidUnsetMtf;
-    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
-    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+    PROCESSOR_DEBUGGING_STATE *      DbgState         = &g_DbgState[CoreId];
+    UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(CoreId);
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
@@ -346,7 +345,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId)
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
                                                                 LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                &AvoidUnsetMtf))
+                                                                FALSE))
         {
             if (g_HardwareDebugRegisterDetailsForStepOver.Address != NULL)
             {
@@ -1037,6 +1036,60 @@ KdHandleBreakpointAndDebugBreakpointsCallback(UINT32                            
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
+ * @param CoreId
+ *
+ * @return VOID
+ */
+_Use_decl_annotations_
+VOID
+KdHandleRegisteredMtfCallback(UINT32 CoreId)
+{
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64                      CsSel         = NULL;
+    PROCESSOR_DEBUGGING_STATE * DbgState      = &g_DbgState[CoreId];
+    UINT64                      LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+
+    //
+    // Check if the cs selector changed or not, which indicates that the
+    // execution changed from user-mode to kernel-mode or kernel-mode to
+    // user-mode
+    //
+    CsSel = VmFuncGetCsSelector();
+
+    KdCheckGuestOperatingModeChanges(DbgState->InstrumentationStepInTrace.CsSel,
+                                     (UINT16)CsSel);
+
+    //
+    //  Unset the MTF flag and previous cs selector
+    //
+    DbgState->InstrumentationStepInTrace.CsSel = 0;
+
+    //
+    // Check and handle if there is a software defined breakpoint
+    //
+    if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
+                                                            LastVmexitRip,
+                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                            TRUE))
+    {
+        //
+        // Handle the step
+        //
+        ContextAndTag.Context = LastVmexitRip;
+        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                              &ContextAndTag);
+    }
+}
+
+/**
+ * @brief Handle #DBs and #BPs for kernel debugger
+ * @details This function can be used in vmx-root
+ *
  * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails
@@ -1211,7 +1264,7 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Not unset MTF again
     //
-    VmFuncSuppressUnsettingMtf(DbgState->CoreId);
+    VmFuncChangeMtfUnsettingState(DbgState->CoreId, TRUE);
 
     //
     // Change guest interrupt-state

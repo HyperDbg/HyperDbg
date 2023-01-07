@@ -125,8 +125,7 @@ VOID
 IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                   _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG                       ErrorCode            = 0;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
+    ULONG ErrorCode = 0;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -201,7 +200,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Check whether it is because of thread change detection or not
         //
-        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             //
             // This way of handling has a problem, if the user set to change
@@ -252,7 +251,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_NMI:
 
-        if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+        if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
             VCpu->RegisterBreakOnMtf)
         {
@@ -331,22 +330,20 @@ BOOLEAN
 IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
                                        _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
-
     //
     // Check whether intercepting this process or thread is active or not,
     // Windows fires a clk interrupt on core 0 and fires IPI on other cores
     // to change a thread
     //
-    if ((CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-         CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
+    if ((VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
+         VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
         ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
          (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
     {
         //
         // We only handle interrupts that are related to the clock-timer interrupt
         //
-        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
+        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
             return ThreadHandleThreadChange(VCpu->CoreId);
         }
@@ -374,10 +371,9 @@ VOID
 IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    BOOLEAN                     Interruptible         = TRUE;
-    VMX_INTERRUPTIBILITY_STATE  InterruptibilityState = {0};
-    RFLAGS                      GuestRflags           = {0};
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &VCpu->DebuggingState;
+    BOOLEAN                    Interruptible         = TRUE;
+    VMX_INTERRUPTIBILITY_STATE InterruptibilityState = {0};
+    RFLAGS                     GuestRflags           = {0};
 
     //
     // In order to enable External Interrupt Exiting we have to set
@@ -389,7 +385,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
-    if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+    if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue ||
         VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //

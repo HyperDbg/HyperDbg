@@ -21,7 +21,7 @@ VOID
 VmFuncSuppressRipIncrement(UINT32 CoreId);
 
 VOID
-VmFuncSuppressUnsettingMtf(UINT32 CoreId);
+VmFuncChangeMtfUnsettingState(UINT32 CoreId, BOOLEAN Set);
 
 VOID
 VmFuncSetMonitorTrapFlag(BOOLEAN Set);
