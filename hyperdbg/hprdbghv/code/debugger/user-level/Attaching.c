@@ -378,13 +378,12 @@ AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64
 /**
  * @brief Handle debug register event (#DB) for attaching to user-mode process
  *
- * @param CoreId
+ * @param DbgState The state of the debugger on the current core
  * @return VOID
  */
 VOID
-AttachingHandleEntrypointDebugBreak(UINT CoreId)
+AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PROCESSOR_DEBUGGING_STATE *         DbgState               = &g_DbgState[CoreId];
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
 
     //

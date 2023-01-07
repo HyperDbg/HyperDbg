@@ -165,3 +165,41 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     //
     return EptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
 }
+
+/**
+ * @brief Handle process or thread switches
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggerCheckProcessOrThreadChange(_In_ UINT32 CoreId)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    //
+    // Check whether intercepting this process or thread is active or not
+    //
+    if (DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
+        DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
+
+    {
+        //
+        // We only handle interrupts that are related to the clock-timer interrupt
+        //
+        if (DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
+        {
+            return ThreadHandleThreadChange(DbgState);
+        }
+        else
+        {
+            return ProcessHandleProcessChange(DbgState);
+        }
+    }
+
+    //
+    // Not handled here
+    //
+    return FALSE;
+}

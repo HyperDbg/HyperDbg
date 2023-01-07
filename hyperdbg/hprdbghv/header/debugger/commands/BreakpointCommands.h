@@ -37,6 +37,9 @@ BOOLEAN
 BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId);
 
 BOOLEAN
+BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId);
+
+BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
                      UINT64                  StartAddress,

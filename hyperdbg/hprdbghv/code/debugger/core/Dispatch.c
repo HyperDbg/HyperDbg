@@ -783,8 +783,14 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     // we cannot ignore injecting the interrupt to the guest if the target interrupt
     // and process or thread proved to cause a system halt. it halts the system as
     // we Windows expects to switch the thread while we're forcing it to not do it
+    // Windows fires a clk interrupt on core 0 and fires IPI on other cores
+    // to change a thread
     //
-    IdtEmulationCheckProcessOrThreadChange(VCpu, InterruptExit);
+    if ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
+        (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT))
+    {
+        DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
+    }
 
     //
     // Triggering the pre-event

@@ -197,49 +197,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
-        //
-        // Check whether it is because of thread change detection or not
-        //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-        {
-            //
-            // This way of handling has a problem, if the user set to change
-            // the thread and instead of using 'g', it pressed the 'p' to
-            // set or a trap happens somewhere then will be ignored
-            // it because we don't know the origin of this debug breakpoint
-            // and it only happens on '.thread2' command, the correct way
-            // to handle it is to find the exact hw debug register that caused
-            // this vm-exit, but it's a really rare case, so we left it without
-            // handling this case
-            //
-            ThreadHandleThreadChange(VCpu->CoreId);
-        }
-        else if (g_UserDebuggerState == TRUE &&
-                 (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
-        {
-            //
-            // Handle for user-mode attaching mechanism
-            //
-            AttachingHandleEntrypointDebugBreak(VCpu->CoreId);
-        }
-        else if (g_KernelDebuggerState == TRUE)
-        {
-            //
-            // Handle debug events (breakpoint, traps, hardware debug register when kernel
-            // debugger is attached.)
-            //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(VCpu->CoreId);
-        }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu->CoreId,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
-        {
-            //
-            // if the above function returns true, no need for further action
-            // it's handled in the user debugger
-            //
-        }
-        else
+        if (!BreakpointCheckAndHandleDebugBreakpoint(VCpu->CoreId))
         {
             //
             // It's not because of thread change detection, so re-inject it
@@ -316,47 +274,6 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STA
     }
 
     return FoundAPlaceForFutureInjection;
-}
-
-/**
- * @brief Handle process or thread switches
- *
- * @param VCpu The virtual processor's state
- * @param InterruptExit interrupt info from vm-exit
- *
- * @return BOOLEAN
- */
-BOOLEAN
-IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
-                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
-{
-    //
-    // Check whether intercepting this process or thread is active or not,
-    // Windows fires a clk interrupt on core 0 and fires IPI on other cores
-    // to change a thread
-    //
-    if ((VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-         VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
-        ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
-         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
-    {
-        //
-        // We only handle interrupts that are related to the clock-timer interrupt
-        //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
-        {
-            return ThreadHandleThreadChange(VCpu->CoreId);
-        }
-        else
-        {
-            return ProcessHandleProcessChange(&VCpu->DebuggingState);
-        }
-    }
-
-    //
-    // Not handled here
-    //
-    return FALSE;
 }
 
 /**

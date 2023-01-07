@@ -12,6 +12,72 @@
 #include "pch.h"
 
 /**
+ * @brief Check and handle debug breakpoint exceptions
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+    BOOLEAN                     Result   = TRUE;
+
+    //
+    // Check whether it is because of thread change detection or not
+    //
+    if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    {
+        //
+        // This way of handling has a problem, if the user set to change
+        // the thread and instead of using 'g', it pressed the 'p' to
+        // set or a trap happens somewhere then will be ignored
+        // it because we don't know the origin of this debug breakpoint
+        // and it only happens on '.thread2' command, the correct way
+        // to handle it is to find the exact hw debug register that caused
+        // this vm-exit, but it's a really rare case, so we left it without
+        // handling this case
+        //
+        ThreadHandleThreadChange(DbgState);
+    }
+    else if (g_UserDebuggerState == TRUE &&
+             (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+    {
+        //
+        // Handle for user-mode attaching mechanism
+        //
+        AttachingHandleEntrypointDebugBreak(DbgState);
+    }
+    else if (g_KernelDebuggerState == TRUE)
+    {
+        //
+        // Handle debug events (breakpoint, traps, hardware debug register when kernel
+        // debugger is attached.)
+        //
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState);
+    }
+    else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                                       NULL))
+    {
+        //
+        // if the above function returns true, no need for further action
+        // it's handled in the user debugger
+        //
+    }
+    else
+    {
+        //
+        // Not handled by debugger
+        //
+        Result = FALSE;
+    }
+
+    return Result;
+}
+
+/**
  * @brief Check and reapply breakpoint
  *
  * @param CoreId
@@ -48,9 +114,11 @@ BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
         {
             RFLAGS Rflags = {0};
 
-            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+            Rflags.AsUInt = VmFuncGetRflags();
+
             Rflags.InterruptEnableFlag = TRUE;
-            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
+
+            VmFuncSetRflags(Rflags.AsUInt);
 
             DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
         }

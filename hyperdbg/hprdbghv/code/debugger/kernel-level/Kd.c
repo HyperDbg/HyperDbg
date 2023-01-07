@@ -296,19 +296,17 @@ KdLoggingResponsePacketToDebugger(
 
 /**
  * @brief Handles debug events when kernel-debugger is attached
- *
- * @param CoreId
+ * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
  */
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId)
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
     RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
-    PROCESSOR_DEBUGGING_STATE *      DbgState         = &g_DbgState[CoreId];
-    UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(CoreId);
+    UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //

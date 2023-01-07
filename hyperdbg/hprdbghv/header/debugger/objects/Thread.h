@@ -24,7 +24,7 @@ ThreadEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
                                          BOOLEAN                     Enable);
 
 BOOLEAN
-ThreadHandleThreadChange(UINT32 CoreId);
+ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest);

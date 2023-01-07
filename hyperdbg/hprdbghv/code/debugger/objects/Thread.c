@@ -14,15 +14,13 @@
 
 /**
  * @brief handle thread changes
- * @param CoreId
+ * @param DbgState The state of the debugger on the current core
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ThreadHandleThreadChange(UINT32 CoreId)
+ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
     //
     // Check if we reached to the target thread or not
     //
