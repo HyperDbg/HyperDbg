@@ -378,12 +378,13 @@ AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64
 /**
  * @brief Handle debug register event (#DB) for attaching to user-mode process
  *
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  * @return VOID
  */
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
+AttachingHandleEntrypointDebugBreak(UINT CoreId)
 {
+    PROCESSOR_DEBUGGING_STATE *         DbgState               = &g_DbgState[CoreId];
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
 
     //
@@ -589,7 +590,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 
 /**
  * @brief Check page-faults with user-debugger
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  * @param InterruptExit
  * @param Address
  * @param ErrorCode
@@ -597,17 +598,18 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(PROCESSOR_DEBUGGING_STATE *  DbgState,
+AttachingCheckPageFaultsWithUserDebugger(UINT32                       CoreId,
                                          VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                                          UINT64                       Address,
                                          ULONG                        ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
 
     //
     // Check if thread is in user-mode
     //
-    if (VmFuncGetLastVmexitRip(DbgState->CoreId) & 0xf000000000000000)
+    if (VmFuncGetLastVmexitRip(CoreId) & 0xf000000000000000)
     {
         //
         // We won't intercept threads in kernel-mode
@@ -615,7 +617,7 @@ AttachingCheckPageFaultsWithUserDebugger(PROCESSOR_DEBUGGING_STATE *  DbgState,
         return FALSE;
     }
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(DbgState->CoreId);
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(CoreId);
 
     if (!ProcessDebuggingDetail)
     {
@@ -646,7 +648,7 @@ AttachingCheckPageFaultsWithUserDebugger(PROCESSOR_DEBUGGING_STATE *  DbgState,
     //
     // related to user debugger
     //
-    VmFuncSuppressRipIncrement(DbgState->CoreId);
+    VmFuncSuppressRipIncrement(CoreId);
 
     return TRUE;
 }
@@ -960,16 +962,17 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
  * @brief Handle the cr3 vm-exits for thread interception
  * @details this function should be called in vmx-root
  *
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  * @param NewCr3
  * @return BOOLEAN
  */
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(PROCESSOR_DEBUGGING_STATE * DbgState, CR3_TYPE NewCr3)
+AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(DbgState->CoreId);
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(CoreId);
 
     //
     // Check if process is valid or if thread is in intercepting phase
@@ -979,7 +982,7 @@ AttachingHandleCr3VmexitsForThreadInterception(PROCESSOR_DEBUGGING_STATE * DbgSt
         //
         // not related to user debugger
         //
-        VmFuncUnsetExceptionBitmap(DbgState->CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
+        VmFuncUnsetExceptionBitmap(CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
         return FALSE;
     }
 
@@ -1017,7 +1020,7 @@ AttachingHandleCr3VmexitsForThreadInterception(PROCESSOR_DEBUGGING_STATE * DbgSt
     //
     // Intercept #PFs
     //
-    VmFuncSetExceptionBitmap(DbgState->CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
+    VmFuncSetExceptionBitmap(CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
 
     return TRUE;
 }

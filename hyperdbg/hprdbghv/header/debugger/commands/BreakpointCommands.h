@@ -25,7 +25,7 @@ VOID
 BreakpointRemoveAllBreakpoints();
 
 VOID
-BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState);
+BreakpointHandleBpTraps(UINT32 CoreId);
 
 BOOLEAN
 BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * DbgState,

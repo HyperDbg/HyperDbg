@@ -758,8 +758,8 @@ ScriptEngineFunctionPause(UINT64      Tag,
             ContextAndTag.Tag     = Tag;
             ContextAndTag.Context = Context;
 
-            KdHandleBreakpointAndDebugBreakpoints(
-                &g_DbgState[CurrentProcessorIndex],
+            KdHandleBreakpointAndDebugBreakpointsCallback(
+                CurrentProcessorIndex,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &ContextAndTag);
         }

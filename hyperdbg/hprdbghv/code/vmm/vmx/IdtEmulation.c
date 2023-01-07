@@ -146,7 +146,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         if (!EptCheckAndHandleBreakpoint(VCpu))
         {
-            BreakpointHandleBpTraps(&VCpu->DebuggingState);
+            BreakpointHandleBpTraps(VCpu->CoreId);
         }
 
         break;
@@ -177,7 +177,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // Handle page-faults
         //
         if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            AttachingCheckPageFaultsWithUserDebugger(&VCpu->DebuggingState,
+            AttachingCheckPageFaultsWithUserDebugger(VCpu->CoreId,
                                                      InterruptExit,
                                                      NULL,
                                                      ErrorCode))
@@ -213,7 +213,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // this vm-exit, but it's a really rare case, so we left it without
             // handling this case
             //
-            ThreadHandleThreadChange(&VCpu->DebuggingState);
+            ThreadHandleThreadChange(VCpu->CoreId);
         }
         else if (g_UserDebuggerState == TRUE &&
                  (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
@@ -221,7 +221,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Handle for user-mode attaching mechanism
             //
-            AttachingHandleEntrypointDebugBreak(&VCpu->DebuggingState);
+            AttachingHandleEntrypointDebugBreak(VCpu->CoreId);
         }
         else if (g_KernelDebuggerState == TRUE)
         {
@@ -229,9 +229,9 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached.)
             //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(&VCpu->DebuggingState);
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(VCpu->CoreId);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(&VCpu->DebuggingState,
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(VCpu->CoreId,
                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
                                                            NULL))
         {
@@ -254,7 +254,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
-            CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+            VCpu->RegisterBreakOnMtf)
         {
             //
             // Ignore the nmi
@@ -348,11 +348,11 @@ IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
         //
         if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
-            return ThreadHandleThreadChange(&VCpu->DebuggingState);
+            return ThreadHandleThreadChange(VCpu->CoreId);
         }
         else
         {
-            return ProcessHandleProcessChange(&VCpu->DebuggingState);
+            return ProcessHandleProcessChange(VCpu->CoreId);
         }
     }
 

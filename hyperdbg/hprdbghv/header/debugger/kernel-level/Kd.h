@@ -166,7 +166,7 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState);
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId);
 
 VOID
 KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
@@ -184,8 +184,12 @@ VOID
 KdSendFormatsFunctionResult(UINT64 Value);
 
 VOID
-KdSendCommandFinishedSignal(PROCESSOR_DEBUGGING_STATE * DbgState);
+KdSendCommandFinishedSignal(UINT32 CoreId);
 
+VOID
+KdHandleBreakpointAndDebugBreakpointsCallback(_In_ UINT32                       CoreId,
+                                              _In_ DEBUGGEE_PAUSING_REASON      Reason,
+                                              PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
 KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState,
                                       _In_ DEBUGGEE_PAUSING_REASON        Reason,

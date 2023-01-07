@@ -454,6 +454,27 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
+ * @param CoreId
+ * @param Reason
+ * @param EventDetails
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdCheckAndHandleBreakpointsAndDebugBreaksCallback(UINT32                            CoreId,
+                                                  DEBUGGEE_PAUSING_REASON           Reason,
+                                                  PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                              Reason,
+                                              EventDetails);
+}
+
+/**
+ * @brief Handle #DBs and #BPs for kernel debugger
+ * @details This function can be used in vmx-root
+ *
  * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails

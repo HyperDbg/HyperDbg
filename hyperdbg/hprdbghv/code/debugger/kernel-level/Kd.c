@@ -297,18 +297,19 @@ KdLoggingResponsePacketToDebugger(
 /**
  * @brief Handles debug events when kernel-debugger is attached
  *
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  *
  * @return VOID
  */
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CoreId)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
     RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     BOOLEAN                          AvoidUnsetMtf;
-    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
+    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
@@ -818,19 +819,19 @@ KdSendFormatsFunctionResult(UINT64 Value)
 
 /**
  * @brief Notify debugger that the execution of command finished
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  *
  * @return VOID
  */
 VOID
-KdSendCommandFinishedSignal(PROCESSOR_DEBUGGING_STATE * DbgState)
+KdSendCommandFinishedSignal(UINT32 CoreId)
 {
     //
     // Halt other cores again
     //
-    KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                          DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
-                                          NULL);
+    KdHandleBreakpointAndDebugBreakpointsCallback(CoreId,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
+                                                  NULL);
 }
 
 /**
@@ -1015,6 +1016,27 @@ KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root
  *
+ * @param CoreId
+ * @param Reason
+ * @param EventDetails
+ *
+ * @return VOID
+ */
+_Use_decl_annotations_
+VOID
+KdHandleBreakpointAndDebugBreakpointsCallback(UINT32                            CoreId,
+                                              DEBUGGEE_PAUSING_REASON           Reason,
+                                              PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    KdHandleBreakpointAndDebugBreakpoints(DbgState, Reason, EventDetails);
+}
+
+/**
+ * @brief Handle #DBs and #BPs for kernel debugger
+ * @details This function can be used in vmx-root
+ *
  * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails
@@ -1182,9 +1204,9 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->InstrumentationStepInTrace.CsSel = (UINT16)CsSel;
 
     //
-    // Set an indicator of wait for MTF
+    // Set an indicator of a break in the case of an MTF
     //
-    DbgState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = TRUE;
+    VmFuncRegisterMtfBreak(DbgState->CoreId);
 
     //
     // Not unset MTF again

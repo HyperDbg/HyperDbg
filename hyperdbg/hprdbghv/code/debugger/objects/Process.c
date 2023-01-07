@@ -14,14 +14,16 @@
 
 /**
  * @brief handle process changes
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId 
  *
  *
  * @return VOID
  */
 BOOLEAN
-ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
+ProcessHandleProcessChange(UINT32 CoreId)
 {
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
     //
     // Check if we reached to the target process or not
     //

@@ -360,9 +360,9 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
-                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
-                                              NULL);
+        KdHandleBreakpointAndDebugBreakpointsCallback(VCpu->CoreId,
+                                                      DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+                                                      NULL);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -380,7 +380,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED:
     {
-        KdSendCommandFinishedSignal(&VCpu->DebuggingState);
+        KdSendCommandFinishedSignal(VCpu->CoreId);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
@@ -418,9 +418,9 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
         {
-            KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
-                                                  DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
-                                                  NULL);
+            KdHandleBreakpointAndDebugBreakpointsCallback(VCpu->CoreId,
+                                                          DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
+                                                          NULL);
         }
 
         VmcallStatus = STATUS_SUCCESS;
@@ -443,9 +443,9 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         //
         VCpu->Regs = OptionalParam3;
 
-        KdHandleBreakpointAndDebugBreakpoints(&VCpu->DebuggingState,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-                                              &TriggeredEventDetail);
+        KdHandleBreakpointAndDebugBreakpointsCallback(VCpu->CoreId,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+                                                      &TriggeredEventDetail);
 
         //
         // Restore the register

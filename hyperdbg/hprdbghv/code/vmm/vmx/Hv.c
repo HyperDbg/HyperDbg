@@ -195,7 +195,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
-                ProcessHandleProcessChange(&VCpu->DebuggingState);
+                ProcessHandleProcessChange(VCpu->CoreId);
             }
 
             //
@@ -203,7 +203,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(&VCpu->DebuggingState, NewCr3Reg);
+                AttachingHandleCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
             }
 
             break;

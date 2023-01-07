@@ -22,6 +22,11 @@ VOID
 UdUninitializeUserDebugger();
 
 BOOLEAN
+UdCheckAndHandleBreakpointsAndDebugBreaksCallback(UINT32                            CoreId,
+                                                  DEBUGGEE_PAUSING_REASON           Reason,
+                                                  PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
+
+BOOLEAN
 UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                           DEBUGGEE_PAUSING_REASON           Reason,
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);

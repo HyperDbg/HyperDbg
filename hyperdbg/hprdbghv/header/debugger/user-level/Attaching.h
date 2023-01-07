@@ -75,7 +75,7 @@ BOOLEAN
 AttachingInitialize();
 
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(PROCESSOR_DEBUGGING_STATE *  DbgState,
+AttachingCheckPageFaultsWithUserDebugger(UINT32                       CoreId,
                                          VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                                          UINT64                       Address,
                                          ULONG                        ErrorCode);
@@ -84,13 +84,13 @@ BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
 
 BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(PROCESSOR_DEBUGGING_STATE * DbgState, CR3_TYPE NewCr3);
+AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3);
 
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState);
+AttachingHandleEntrypointDebugBreak(UINT32 CoreId);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();

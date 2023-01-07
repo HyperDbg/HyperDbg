@@ -637,9 +637,8 @@ VOID
 DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                               PostEventTriggerReq  = FALSE;
-    VMEXIT_INTERRUPT_INFORMATION          InterruptExit        = {0};
-    PROCESSOR_DEBUGGING_STATE *           CurrentDebuggerState = &VCpu->DebuggingState;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+    VMEXIT_INTERRUPT_INFORMATION          InterruptExit       = {0};
 
     //
     // read the exit interruption information
@@ -659,7 +658,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
         // a instrument step-in ('i' command) routine
         //
-        if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
+        if (!VCpu->RegisterBreakOnMtf &&
             VmxBroadcastNmiHandler(VCpu, FALSE))
         {
             return;
@@ -667,9 +666,9 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Also, avoid exception when we're running instrumentation step-in
+    // Also, avoid exception when we're running on a register form MTF (instrumentation step-in)
     //
-    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (VCpu->RegisterBreakOnMtf)
     {
         //
         // We ignore it because an MTF should handle it as it's an instrumentation step-in
@@ -693,7 +692,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
                                                VCpu->Regs);
 
     //
-    // Now, we check if the guest enabled MTF for instrumentation stepping
+    // Now, we check if the guest enabled MTF for debugging (instrumentation stepping)
     // This is because based on Intel SDM :
     // If the "monitor trap flag" VM-execution control is 1 and VM entry is
     // injecting a vectored event, an MTF VM exit is pending on the instruction
@@ -705,7 +704,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // So, we'll ignore the injection of Exception in this case
     //
-    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (VCpu->RegisterBreakOnMtf)
     {
         return;
     }

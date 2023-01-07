@@ -49,6 +49,32 @@ VmFuncSuppressUnsettingMtf(UINT32 CoreId)
 }
 
 /**
+ * @brief Register for break in the case of an MTF
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return VOID
+ */
+VOID
+VmFuncRegisterMtfBreak(UINT32 CoreId)
+{
+    g_GuestState[CoreId].RegisterBreakOnMtf = TRUE;
+}
+
+/**
+ * @brief Unregister for break in the case of an MTF
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return VOID
+ */
+VOID
+VmFuncUnRegisterMtfBreak(UINT32 CoreId)
+{
+    g_GuestState[CoreId].RegisterBreakOnMtf = FALSE;
+}
+
+/**
  * @brief Set the monitor trap flag
  *
  * @param Set Set or unset the MTFs

@@ -163,7 +163,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check for insturmentation step-in
     //
-    if (CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (VCpu->RegisterBreakOnMtf)
     {
         //
         // MTF is handled
@@ -183,8 +183,8 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         //  Unset the MTF flag and previous cs selector
         //
-        CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = FALSE;
-        CurrentDebuggingState->InstrumentationStepInTrace.CsSel                           = 0;
+        VCpu->RegisterBreakOnMtf                                = FALSE;
+        CurrentDebuggingState->InstrumentationStepInTrace.CsSel = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
@@ -198,9 +198,9 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             // Handle the step
             //
             ContextAndTag.Context = VCpu->LastVmexitRip;
-            KdHandleBreakpointAndDebugBreakpoints(CurrentDebuggingState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                  &ContextAndTag);
+            KdHandleBreakpointAndDebugBreakpointsCallback(VCpu->CoreId,
+                                                          DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                          &ContextAndTag);
         }
         else
         {

@@ -27,6 +27,12 @@ VOID
 VmFuncSetMonitorTrapFlag(BOOLEAN Set);
 
 VOID
+VmFuncRegisterMtfBreak(UINT32 CoreId);
+
+VOID
+VmFuncUnRegisterMtfBreak(UINT32 CoreId);
+
+VOID
 VmFuncSetLoadDebugControls(BOOLEAN Set);
 
 VOID

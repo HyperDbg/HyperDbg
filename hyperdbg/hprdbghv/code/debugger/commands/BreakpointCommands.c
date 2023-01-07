@@ -174,16 +174,17 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
 /**
  * @brief Handle breakpoint vm-exits (#BP)
  *
- * @param DbgState The state of the debugger on the current core
+ * @param CoreId
  *
  * @return VOID
  */
 VOID
-BreakpointHandleBpTraps(PROCESSOR_DEBUGGING_STATE * DbgState)
+BreakpointHandleBpTraps(UINT32 CoreId)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     UINT64                           GuestRip      = 0;
     BOOLEAN                          AvoidUnsetMtf; // not used here
+    PROCESSOR_DEBUGGING_STATE *      DbgState = &g_DbgState[CoreId];
 
     //
     // re-inject #BP back to the guest if not handled by the hidden breakpoint

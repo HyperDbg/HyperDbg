@@ -218,8 +218,7 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
  */
 typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 {
-    BOOLEAN WaitForInstrumentationStepInMtf;
-    UINT16  CsSel; // the cs value to trace the execution modes
+    UINT16 CsSel; // the cs value to trace the execution modes
 
 } DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
 
@@ -336,6 +335,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
     BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
+    BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
     ULONG        ExitReason;                                                    // The core's exit reason
