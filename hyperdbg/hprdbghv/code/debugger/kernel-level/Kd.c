@@ -522,20 +522,7 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     // Check if we should enable interrupts in this core or not,
     // we have another same check in SWITCHING CORES too
     //
-    if (DbgState->EnableExternalInterruptsOnContinue)
-    {
-        //
-        // Enable normal interrupt
-        //
-        VmFuncSetExternalInterruptExiting(DbgState->CoreId, FALSE);
-
-        //
-        // Check if there is at least an interrupt that needs to be delivered
-        //
-        VmFuncInjectPendingExternalInterrupts(DbgState->CoreId);
-
-        DbgState->EnableExternalInterruptsOnContinue = FALSE;
-    }
+    VmFuncCheckAndEnableExternalInterrupts(DbgState->CoreId);
 
     //
     // Unlock all the cores
@@ -696,20 +683,7 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
     //
     // Check if we should enable interrupts in this core or not
     //
-    if (DbgState->EnableExternalInterruptsOnContinue)
-    {
-        //
-        // Enable normal interrupts
-        //
-        VmFuncSetExternalInterruptExiting(DbgState->CoreId, FALSE);
-
-        //
-        // Check if there is at least an interrupt that needs to be delivered
-        //
-        VmFuncInjectPendingExternalInterrupts(DbgState->CoreId);
-
-        DbgState->EnableExternalInterruptsOnContinue = FALSE;
-    }
+    VmFuncCheckAndEnableExternalInterrupts(DbgState->CoreId);
 
     //
     // Unset the current operating core (this is not important as if we
@@ -1308,15 +1282,9 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     VmFuncChangeMtfUnsettingState(DbgState->CoreId, TRUE);
 
     //
-    // Change guest interrupt-state
+    // Disable external interrupts and interrupt Window
     //
-    VmFuncSetExternalInterruptExiting(DbgState->CoreId, TRUE);
-
-    //
-    // Do not vm-exit on interrupt windows
-    //
-    VmFuncSetInterruptWindowExiting(FALSE);
-    DbgState->EnableExternalInterruptsOnContinue = TRUE;
+    VmFuncDisableExternalInterruptsAndInterruptWindow(DbgState->CoreId);
 
     //
     // Set the MTF flag

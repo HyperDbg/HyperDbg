@@ -89,6 +89,12 @@ VmFuncSetRip(UINT64 Rip);
 VOID
 VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
 
+VOID
+VmFuncCheckAndEnableExternalInterrupts(UINT32 CoreId);
+
+VOID
+VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId);
+
 UINT16
 VmFuncGetCsSelector();
 

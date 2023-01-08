@@ -308,7 +308,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
-    BOOLEAN                                    EnableExternalInterruptsOnContinue;
     BOOLEAN                                    DisableTrapFlagOnContinue;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
@@ -333,6 +332,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
+    BOOLEAN      EnableExternalInterruptsOnContinue;                            // Whether to enable external interrupts on the continue  or not
     BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
     BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
     BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF

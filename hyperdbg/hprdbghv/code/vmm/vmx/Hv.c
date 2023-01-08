@@ -1058,3 +1058,77 @@ HvSetInterruptibilityState(UINT64 InterruptibilityState)
 {
     __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 }
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if there is at least an interrupt that needs to be delivered
+    //
+    if (VCpu->PendingExternalInterrupts[0] != NULL)
+    {
+        //
+        // Enable Interrupt-window exiting.
+        //
+        HvSetInterruptWindowExiting(TRUE);
+    }
+}
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if we should enable interrupts in this core or not
+    //
+    if (VCpu->EnableExternalInterruptsOnContinue)
+    {
+        //
+        // Enable normal interrupts
+        //
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        HvInjectPendingExternalInterrupts(VCpu);
+
+        VCpu->EnableExternalInterruptsOnContinue = FALSE;
+    }
+}
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    VCpu->EnableExternalInterruptsOnContinue = TRUE;
+}

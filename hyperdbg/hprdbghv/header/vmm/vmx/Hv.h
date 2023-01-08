@@ -308,3 +308,33 @@ HvGetInterruptibilityState();
  */
 VOID
 HvSetInterruptibilityState(UINT64 InterruptibilityState);
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);

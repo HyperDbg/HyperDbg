@@ -209,7 +209,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_NMI:
 
-        if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue ||
+        if (VCpu->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
             VCpu->RegisterBreakOnMtf)
         {
@@ -302,7 +302,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
-    if (VCpu->DebuggingState.EnableExternalInterruptsOnContinue ||
+    if (VCpu->EnableExternalInterruptsOnContinue ||
         VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //

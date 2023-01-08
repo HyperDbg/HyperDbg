@@ -317,16 +317,7 @@ VmFuncGetLastVmexitRip(UINT32 CoreId)
 VOID
 VmFuncInjectPendingExternalInterrupts(UINT32 CoreId)
 {
-    //
-    // Check if there is at least an interrupt that needs to be delivered
-    //
-    if (&g_GuestState[CoreId].PendingExternalInterrupts[0] != NULL)
-    {
-        //
-        // Enable Interrupt-window exiting.
-        //
-        HvSetInterruptWindowExiting(TRUE);
-    }
+    HvInjectPendingExternalInterrupts(&g_GuestState[CoreId]);
 }
 
 /**
@@ -422,4 +413,30 @@ VmFuncNmiHaltCores(UINT32 CoreId)
     // Broadcast NMI with the intention of halting cores
     //
     return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_KD_HALT_CORE);
+}
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return VOID
+ */
+VOID
+VmFuncCheckAndEnableExternalInterrupts(UINT32 CoreId)
+{
+    HvCheckAndEnableExternalInterrupts(&g_GuestState[CoreId]);
+}
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param CoreId
+ *
+ * @return VOID
+ */
+VOID
+VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId)
+{
+    HvDisableExternalInterruptsAndInterruptWindow(&g_GuestState[CoreId]);
 }
