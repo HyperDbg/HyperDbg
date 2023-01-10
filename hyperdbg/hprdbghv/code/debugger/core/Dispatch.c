@@ -525,7 +525,8 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     // because on detecting thread scheduling we ignore the hardware debug
     // registers modifications
     //
-    if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
     {
         return;
     }

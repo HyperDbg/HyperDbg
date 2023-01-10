@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Things to consider when applying resour
+ * @brief Things to consider when applying resources
  *
  */
 typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS

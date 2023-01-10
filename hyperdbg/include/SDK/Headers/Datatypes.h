@@ -22,6 +22,20 @@ typedef enum _VMX_EXECUTION_MODE
     VmxExecutionModeRoot    = TRUE
 } VMX_EXECUTION_MODE;
 
+/**
+ * @brief enum to query different process and thread interception mechanisms
+ *
+ */
+typedef enum _DEBUGGER_THREAD_PROCESS_TRACING
+{
+
+    DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_THREAD_CHANGE,
+    DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_PROCESS_CHANGE,
+    DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION,
+    DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_WAITING_FOR_MOV_CR3_VM_EXITS,
+
+} DEBUGGER_THREAD_PROCESS_TRACING;
+
 //////////////////////////////////////////////////
 //            Callback Definitions              //
 //////////////////////////////////////////////////

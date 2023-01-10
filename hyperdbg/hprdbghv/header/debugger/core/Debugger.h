@@ -258,6 +258,9 @@ BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag);
 
 BOOLEAN
+DebuggerQueryDebuggerStatus();
+
+BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode);
 
 BOOLEAN

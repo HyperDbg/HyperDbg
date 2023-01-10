@@ -138,6 +138,56 @@ KdFireDpc(PVOID Routine, PVOID Paramter)
 }
 
 /**
+ * @brief Query for process/thread interception status
+ * @param CoreId
+ * @param TracingType
+ *
+ * @return BOOLEAN whether it's activated or not
+ */
+BOOLEAN
+KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,
+                                                          DEBUGGER_THREAD_PROCESS_TRACING TracingType)
+{
+    BOOLEAN                     Result   = FALSE;
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    switch (TracingType)
+    {
+    case DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_THREAD_CHANGE:
+
+        Result = DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange;
+
+        break;
+
+    case DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_PROCESS_CHANGE:
+
+        Result = DbgState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange;
+
+        break;
+
+    case DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION:
+
+        Result = DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState;
+
+        break;
+
+    case DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_WAITING_FOR_MOV_CR3_VM_EXITS:
+
+        Result = DbgState->ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits;
+
+        break;
+
+    default:
+
+        LogError("Err, debugger encountered an unknown query type for querying process or thread interception details");
+
+        break;
+    }
+
+    return Result;
+}
+
+/**
  * @brief calculate the checksum of recived buffer from debugger
  *
  * @param Buffer

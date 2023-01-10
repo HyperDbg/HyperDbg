@@ -223,3 +223,7 @@ KdIsGuestOnUsermode32Bit();
 
 VOID
 KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
+
+BOOLEAN
+KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,
+                                                          DEBUGGER_THREAD_PROCESS_TRACING TracingType);

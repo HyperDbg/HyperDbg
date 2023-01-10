@@ -1820,6 +1820,25 @@ DebuggerIsTagValid(UINT64 Tag)
 }
 
 /**
+ * @brief Detect whether the user or kernel debugger
+ * is active or not
+ *
+ * @return BOOLEAN TRUE if any of the are activated and FALSE if not
+ */
+BOOLEAN
+DebuggerQueryDebuggerStatus()
+{
+    if (g_KernelDebuggerState || g_UserDebuggerState)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
  * @brief Remove the event from event list by its tag
  *
  * @details should not be called from vmx-root mode, also

@@ -27,7 +27,7 @@
  *
  * @return VOID
  */
-UINT32
+VOID
 ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     //
@@ -67,9 +67,9 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
-    // Check for kernel or user debugger presence
+    // Check for kernel or user debugger's presence
     //
-    if (g_KernelDebuggerState || g_UserDebuggerState)
+    if (DebuggerQueryDebuggerStatus())
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
@@ -78,7 +78,8 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Check for intercepting #DB by threads tracer
     //
-    if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
     }
@@ -266,8 +267,10 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
         //
         // Check if it should remain active for thread or process changing or not
         //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-            VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
+        if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                      DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_THREAD_CHANGE) ||
+            KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                      DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_PROCESS_CHANGE))
         {
             return;
         }
@@ -454,7 +457,8 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
         //
         // Check if thread switching is enabled or not
         //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                      DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
         {
             //
             // We should ignore it as we want this to switch to new thread
@@ -598,7 +602,8 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
         //
         // Check if process switching is enabled or not
         //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+        if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+                                                                      DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_WAITING_FOR_MOV_CR3_VM_EXITS))
         {
             //
             // We should ignore it as we want this to switch to new process
