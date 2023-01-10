@@ -694,11 +694,6 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
 
     //
-    // Indicate that the future #PFs should or should not be checked with user debugger
-    //
-    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = Enable;
-
-    //
     // We're or we're not in thread intercepting phase now
     //
     ProcessDebuggingDetail->IsOnThreadInterceptingPhase = Enable;

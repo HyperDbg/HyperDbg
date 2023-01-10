@@ -41,6 +41,11 @@ DebuggerEventDisableEferOnAllProcessors()
 VOID
 DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 {
+    //
+    // Indicate that the future #PFs should or should not be checked with user debugger
+    //
+    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = TRUE;
+
     KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
 }
 
@@ -52,6 +57,11 @@ DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 {
+    //
+    // Indicate that the future #PFs should or should not be checked with user debugger
+    //
+    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = FALSE;
+
     KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
 }
 
