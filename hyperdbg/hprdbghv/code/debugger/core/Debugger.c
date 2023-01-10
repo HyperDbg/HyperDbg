@@ -627,78 +627,23 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 {
+    PLIST_ENTRY TargetEventList = NULL;
+
     //
     // Register the event
     //
-    switch (Event->EventType)
+    TargetEventList = DebuggerGetEventListByEventType(Event->EventType);
+
+    if (TargetEventList != NULL)
     {
-    case HIDDEN_HOOK_READ_AND_WRITE:
-        InsertHeadList(&g_Events->HiddenHookReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case HIDDEN_HOOK_READ:
-        InsertHeadList(&g_Events->HiddenHookReadEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case HIDDEN_HOOK_WRITE:
-        InsertHeadList(&g_Events->HiddenHookWriteEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case HIDDEN_HOOK_EXEC_DETOURS:
-        InsertHeadList(&g_Events->EptHook2sExecDetourEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case HIDDEN_HOOK_EXEC_CC:
-        InsertHeadList(&g_Events->EptHookExecCcEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case SYSCALL_HOOK_EFER_SYSCALL:
-        InsertHeadList(&g_Events->SyscallHooksEferSyscallEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case SYSCALL_HOOK_EFER_SYSRET:
-        InsertHeadList(&g_Events->SyscallHooksEferSysretEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case CPUID_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->CpuidInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case RDMSR_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->RdmsrInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case WRMSR_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->WrmsrInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case EXCEPTION_OCCURRED:
-        InsertHeadList(&g_Events->ExceptionOccurredEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case TSC_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->TscInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case PMC_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->PmcInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case IN_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->InInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case OUT_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->OutInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case DEBUG_REGISTERS_ACCESSED:
-        InsertHeadList(&g_Events->DebugRegistersAccessedEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case EXTERNAL_INTERRUPT_OCCURRED:
-        InsertHeadList(&g_Events->ExternalInterruptOccurredEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case VMCALL_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case CONTROL_REGISTER_MODIFIED:
-        InsertHeadList(&g_Events->ControlRegisterModifiedEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    default:
+        InsertHeadList(TargetEventList, &(Event->EventsOfSameTypeList));
 
-        //
-        // Wrong event type
-        //
-        return FALSE;
-        break;
+        return TRUE;
     }
-
-    return TRUE;
+    else
+    {
+        return FALSE;
+    }
 }
 
 /**
@@ -747,129 +692,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
     //
     // Find the debugger events list base on the type of the event
     //
-    switch (EventType)
-    {
-    case HIDDEN_HOOK_READ_AND_WRITE:
-    {
-        TempList  = &g_Events->HiddenHookReadAndWriteEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case HIDDEN_HOOK_READ:
-    {
-        TempList  = &g_Events->HiddenHookReadEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case HIDDEN_HOOK_WRITE:
-    {
-        TempList  = &g_Events->HiddenHookWriteEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case HIDDEN_HOOK_EXEC_DETOURS:
-    {
-        TempList  = &g_Events->EptHook2sExecDetourEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case HIDDEN_HOOK_EXEC_CC:
-    {
-        TempList  = &g_Events->EptHookExecCcEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case SYSCALL_HOOK_EFER_SYSCALL:
-    {
-        TempList  = &g_Events->SyscallHooksEferSyscallEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case SYSCALL_HOOK_EFER_SYSRET:
-    {
-        TempList  = &g_Events->SyscallHooksEferSysretEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case CPUID_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->CpuidInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case RDMSR_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->RdmsrInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case WRMSR_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->WrmsrInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case EXCEPTION_OCCURRED:
-    {
-        TempList  = &g_Events->ExceptionOccurredEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case TSC_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->TscInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case PMC_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->PmcInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case IN_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->InInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case OUT_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->OutInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case DEBUG_REGISTERS_ACCESSED:
-    {
-        TempList  = &g_Events->DebugRegistersAccessedEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case CONTROL_REGISTER_MODIFIED:
-    {
-        TempList  = &g_Events->ControlRegisterModifiedEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case EXTERNAL_INTERRUPT_OCCURRED:
-    {
-        TempList  = &g_Events->ExternalInterruptOccurredEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case VMCALL_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->VmcallInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    default:
+    TempList  = DebuggerGetEventListByEventType(EventType);
+    TempList2 = TempList;
 
-        //
-        // Event type is not found
-        //
+    if (TempList == NULL)
+    {
         return DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
-        break;
     }
 
     while (TempList2 != TempList->Flink)
@@ -1627,6 +1455,91 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 }
 
 /**
+ * @brief Get List of event based on event type
+ *
+ * @param EventType type of event
+ * @return PLIST_ENTRY
+ */
+PLIST_ENTRY
+DebuggerGetEventListByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType)
+{
+    PLIST_ENTRY ResultList = NULL;
+    //
+    // Register the event
+    //
+    switch (EventType)
+    {
+    case HIDDEN_HOOK_READ_AND_WRITE:
+        ResultList = &g_Events->HiddenHookReadAndWriteEventsHead;
+        break;
+    case HIDDEN_HOOK_READ:
+        ResultList = &g_Events->HiddenHookReadEventsHead;
+        break;
+    case HIDDEN_HOOK_WRITE:
+        ResultList = &g_Events->HiddenHookWriteEventsHead;
+        break;
+    case HIDDEN_HOOK_EXEC_DETOURS:
+        ResultList = &g_Events->EptHook2sExecDetourEventsHead;
+        break;
+    case HIDDEN_HOOK_EXEC_CC:
+        ResultList = &g_Events->EptHookExecCcEventsHead;
+        break;
+    case SYSCALL_HOOK_EFER_SYSCALL:
+        ResultList = &g_Events->SyscallHooksEferSyscallEventsHead;
+        break;
+    case SYSCALL_HOOK_EFER_SYSRET:
+        ResultList = &g_Events->SyscallHooksEferSysretEventsHead;
+        break;
+    case CPUID_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->CpuidInstructionExecutionEventsHead;
+        break;
+    case RDMSR_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->RdmsrInstructionExecutionEventsHead;
+        break;
+    case WRMSR_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->WrmsrInstructionExecutionEventsHead;
+        break;
+    case EXCEPTION_OCCURRED:
+        ResultList = &g_Events->ExceptionOccurredEventsHead;
+        break;
+    case TSC_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->TscInstructionExecutionEventsHead;
+        break;
+    case PMC_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->PmcInstructionExecutionEventsHead;
+        break;
+    case IN_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->InInstructionExecutionEventsHead;
+        break;
+    case OUT_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->OutInstructionExecutionEventsHead;
+        break;
+    case DEBUG_REGISTERS_ACCESSED:
+        ResultList = &g_Events->DebugRegistersAccessedEventsHead;
+        break;
+    case EXTERNAL_INTERRUPT_OCCURRED:
+        ResultList = &g_Events->ExternalInterruptOccurredEventsHead;
+        break;
+    case VMCALL_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
+        break;
+    case CONTROL_REGISTER_MODIFIED:
+        ResultList = &g_Events->ControlRegisterModifiedEventsHead;
+        break;
+    default:
+
+        //
+        // Wrong event type
+        //
+        LogError("Err, wrong event type is specified");
+        ResultList = NULL;
+        break;
+    }
+
+    return ResultList;
+}
+
+/**
  * @brief Count the list of events in a special list that
  * are activate on a target core
  *
@@ -1640,6 +1553,47 @@ DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
 {
     PLIST_ENTRY TempList = 0;
     UINT32      Counter  = 0;
+
+    //
+    // We have to iterate through all events of this list
+    //
+    TempList = TargetEventList;
+
+    while (TargetEventList != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
+            CurrentEvent->CoreId == TargetCore)
+        {
+            //
+            // Increase the counter
+            //
+            Counter++;
+        }
+    }
+
+    return Counter;
+}
+
+/**
+ * @brief Count the list of events by a special event type that
+ * are activate on a target core
+ *
+ * @param EventType target event type
+ * @param TargetCore target core
+ *
+ * @return UINT32 count of events on the list which is activated
+ * on the target core
+ */
+UINT32
+DebuggerEventListCountByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType, UINT32 TargetCore)
+{
+    PLIST_ENTRY TempList = 0;
+    UINT32      Counter  = 0;
+
+    PLIST_ENTRY TargetEventList = DebuggerGetEventListByEventType(EventType);
 
     //
     // We have to iterate through all events of this list

@@ -56,8 +56,8 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
         // if no, we can safely ignore #UDs, otherwise, #UDs should be
         // activated
         //
-        if (DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSyscallEventsHead, VCpu->CoreId) != 0 ||
-            DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSysretEventsHead, VCpu->CoreId) != 0)
+        if (DebuggerEventListCountByEventType(SYSCALL_HOOK_EFER_SYSCALL, VCpu->CoreId) != 0 ||
+            DebuggerEventListCountByEventType(SYSCALL_HOOK_EFER_SYSRET, VCpu->CoreId) != 0)
         {
             //
             // #UDs should be activated
@@ -254,7 +254,7 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
             // we have to check for !interrupt events and decide whether to
             // ignore this event or not
             //
-            if (DebuggerEventListCountByCore(&g_Events->ExternalInterruptOccurredEventsHead, VCpu->CoreId) != 0)
+            if (DebuggerEventListCountByEventType(EXTERNAL_INTERRUPT_OCCURRED, VCpu->CoreId) != 0)
             {
                 //
                 // We should ignore this unset, because !interrupt is enabled for this core
@@ -369,7 +369,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
             // we have to check for !tsc events and decide whether to
             // ignore this event or not
             //
-            if (DebuggerEventListCountByCore(&g_Events->TscInstructionExecutionEventsHead, VCpu->CoreId) != 0)
+            if (DebuggerEventListCountByEventType(TSC_INSTRUCTION_EXECUTION, VCpu->CoreId) != 0)
             {
                 //
                 // We should ignore this unset, because !tsc is enabled for this core
@@ -444,7 +444,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
             // we have to check for !dr events and decide whether to
             // ignore this event or not
             //
-            if (DebuggerEventListCountByCore(&g_Events->DebugRegistersAccessedEventsHead, VCpu->CoreId) != 0)
+            if (DebuggerEventListCountByEventType(DEBUG_REGISTERS_ACCESSED, VCpu->CoreId) != 0)
             {
                 //
                 // We should ignore this unset, because !dr is enabled for this core
@@ -563,7 +563,7 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
             // we have to check for !dr events and decide whether to
             // ignore this event or not
             //
-            if (DebuggerEventListCountByCore(&g_Events->ControlRegisterModifiedEventsHead, VCpu->CoreId) != 0)
+            if (DebuggerEventListCountByEventType(CONTROL_REGISTER_MODIFIED, VCpu->CoreId) != 0)
             {
                 //
                 // We should ignore this unset, because !dr is enabled for this core

@@ -288,6 +288,9 @@ UINT32
 DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore);
 
 UINT32
+DebuggerEventListCountByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType, UINT32 TargetCore);
+
+UINT32
 DebuggerExceptionEventBitmapMask(UINT32 CoreIndex);
 
 BOOLEAN
@@ -313,3 +316,6 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBU
 
 VOID
 DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);
+
+PLIST_ENTRY
+DebuggerGetEventListByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType);
