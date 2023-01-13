@@ -10,7 +10,6 @@
  *
  */
 #include "pch.h"
-#include "Logging.tmh"
 
 /**
  * @brief Initialize the buffer relating to log message tracing

@@ -10,108 +10,111 @@
  */
 #pragma once
 
+#define EXPORT_FUNC __declspec(dllexport)
+#define IMPORT_FUNC __declspec(dllimport)
+
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
 
-VOID
+EXPORT_FUNC VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSuppressRipIncrement(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncChangeMtfUnsettingState(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetMonitorTrapFlag(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncRegisterMtfBreak(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncUnRegisterMtfBreak(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetLoadDebugControls(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetSaveDebugControls(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetPmcVmexit(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetMovToCr3Vmexit(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncWriteExceptionBitmap(UINT32 BitmapMask);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetInterruptWindowExiting(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetNmiWindowExiting(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetNmiExiting(BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetExceptionBitmap(UINT32 CoreId, UINT32 IdtIndex);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncUnsetExceptionBitmap(UINT32 CoreId, UINT32 IdtIndex);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetExternalInterruptExiting(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetRdtscExiting(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetMovDebugRegsExiting(UINT32 CoreId, BOOLEAN Set);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncInjectPendingExternalInterrupts(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetRflags(UINT64 Rflags);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetRip(UINT64 Rip);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncCheckAndEnableExternalInterrupts(UINT32 CoreId);
 
-VOID
+EXPORT_FUNC VOID
 VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId);
 
-UINT16
+EXPORT_FUNC UINT16
 VmFuncGetCsSelector();
 
-UINT32
+EXPORT_FUNC UINT32
 VmFuncReadExceptionBitmap();
 
-UINT64
+EXPORT_FUNC UINT64
 VmFuncGetLastVmexitRip(UINT32 CoreId);
 
-UINT64
+EXPORT_FUNC UINT64
 VmFuncGetRflags();
 
-UINT64
+EXPORT_FUNC UINT64
 VmFuncGetRip();
 
-UINT64
+EXPORT_FUNC UINT64
 VmFuncGetInterruptibilityState();
 
-BOOLEAN
+EXPORT_FUNC BOOLEAN
 VmFuncNmiHaltCores(UINT32 CoreId);

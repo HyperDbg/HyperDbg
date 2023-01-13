@@ -84,9 +84,6 @@
     <Filter Include="code\devices">
       <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\driver">
-      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\debugger\core">
       <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
     </Filter>
@@ -181,12 +178,6 @@
     </ClCompile>
     <ClCompile Include="code\devices\Apic.c">
       <Filter>code\devices</Filter>
-    </ClCompile>
-    <ClCompile Include="code\driver\Driver.c">
-      <Filter>code\driver</Filter>
-    </ClCompile>
-    <ClCompile Include="code\driver\Ioctl.c">
-      <Filter>code\driver</Filter>
     </ClCompile>
     <ClCompile Include="code\vmm\ept\Ept.c">
       <Filter>code\vmm\ept</Filter>
@@ -355,6 +346,9 @@
     </ClCompile>
     <ClCompile Include="code\vmm\export\Export.c">
       <Filter>code\vmm\Export</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\Ioctl.c">
+      <Filter>code\debugger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -531,6 +525,9 @@
     </ClInclude>
     <ClInclude Include="header\vmm\export\Export.h">
       <Filter>header\vmm\export</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\RefactorTempStructs.h">
+      <Filter>header\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

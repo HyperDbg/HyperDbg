@@ -40,9 +40,13 @@
 #include "ia32-doc/out/ia32.h"
 
 //
-// HyperDbg Kernel-mode headers
+// HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
+
+//
+// HyperDbg Kernel-mode headers
+//
 #include "Definition.h"
 #include "Configuration.h"
 #include "platform/CrossApi.h"
@@ -53,6 +57,7 @@
 // The core's state
 //
 #include "..\hprdbghv\header\common\State.h"
+#include "..\hprdbghv\header\common\RefactorTempStructs.h"
 
 //
 // VMX and EPT Types
@@ -69,13 +74,13 @@
 //
 // Debugger Sub-types
 //
+#include "..\hprdbghv\header\common\Logging.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"
 #include "..\hprdbghv\header\debugger\transparency\Transparency.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
 #include "..\hprdbghv\header\vmm\vmx\HypervTlfs.h"
-#include "..\hprdbghv\header\common\Logging.h"
 #include "..\hprdbghv\header\common\Msr.h"
 #include "..\hprdbghv\header\debugger\tests\KernelTests.h"
 #include "..\hprdbghv\header\memory\PoolManager.h"

@@ -11,8 +11,11 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+//
+// Windows defined functions
+//
+
 #include "pch.h"
-#include "Driver.tmh"
 
 /**
  * @brief Main Driver Entry in the case of driver load
@@ -34,12 +37,6 @@ DriverEntry(
 
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
-
-    //
-    // Initialize WPP Tracing
-    //
-
-    WPP_INIT_TRACING(DriverObject, RegistryPath);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
     if (!LogInitialize())
@@ -176,11 +173,6 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     // Free g_GuestState
     //
     GlobalGuestStateFreeMemory();
-
-    //
-    // Stop the tracing
-    //
-    WPP_CLEANUP(DriverObject);
 }
 
 /**

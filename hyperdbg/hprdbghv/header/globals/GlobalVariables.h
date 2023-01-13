@@ -86,13 +86,6 @@ BOOLEAN g_AllowIOCTLFromUsermode;
 BOOLEAN g_EnableDebuggerEvents;
 
 /**
- * @brief Determines whether the one application gets the handle or not
- * this is used to ensure that only one application can get the handle
- *
- */
-BOOLEAN g_HandleInUse;
-
-/**
  * @brief List header of hidden hooks detour
  *
  */
