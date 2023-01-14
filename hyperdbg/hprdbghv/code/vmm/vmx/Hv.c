@@ -1141,17 +1141,40 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 HvInitVmm()
 {
-    ULONG ProcessorCount;
+    ULONG   ProcessorCount;
+    BOOLEAN Result = FALSE;
+
+#if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
     //
-    // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
+    // Initialize the logging mechanism
+    //
+    if (!LogInitialize())
+    {
+        DbgPrint("[*] Log buffer is not initialized !\n");
+        return FALSE;
+    }
+#endif
+
+    //
+    // we allocate virtual machine here because
+    // we want to use its state (vmx-root or vmx non-root) in logs
+    //
+    Result = GlobalGuestStateAllocateZeroedMemory();
+
+    if (Result)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // We have a zeroed guest state
     //
     ProcessorCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Zero the memory of VM State and Debugging State
-    //
-    RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
     //
     // Set the core's id and initialize memory mapper

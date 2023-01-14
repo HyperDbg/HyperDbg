@@ -59,6 +59,14 @@ DebuggerInitialize()
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     //
+    // Also allocate the debugging state
+    //
+    if (!GlobalDebuggingStateAllocateZeroedMemory())
+    {
+        return FALSE;
+    }
+
+    //
     // Allocate buffer for saving events
     //
     if (GlobalEventsAllocateZeroedMemory() == FALSE)

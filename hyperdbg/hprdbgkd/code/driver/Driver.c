@@ -34,14 +34,6 @@ DriverEntry(
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
 
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking
-    if (!LogInitialize())
-    {
-        DbgPrint("[*] Log buffer is not initialized !\n");
-        DbgBreakPoint();
-    }
-#endif
-
     //
     // Opt-in to using non-executable pool memory on Windows 8 and later.
     // https://msdn.microsoft.com/en-us/library/windows/hardware/hh920402(v=vs.85).aspx
@@ -49,23 +41,8 @@ DriverEntry(
     ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
     //
-    // we allocate virtual machine here because
-    // we want to use its state (vmx-root or vmx non-root) in logs
+    // Creating the device for interaction with user-mode
     //
-    Ntstatus = GlobalGuestStateAllocateZeroedMemory();
-
-    if (!NT_SUCCESS(Ntstatus))
-        return Ntstatus;
-
-    //
-    // Also allocate the debugging state
-    //
-    Ntstatus = GlobalDebuggingStateAllocateZeroedMemory();
-    if (!NT_SUCCESS(Ntstatus))
-        return Ntstatus;
-
-    LogDebugInfo("HyperDbg is loaded :)");
-
     Ntstatus = IoCreateDevice(DriverObject,
                               0,
                               &DriverName,
@@ -79,7 +56,10 @@ DriverEntry(
         for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
             DriverObject->MajorFunction[Index] = DrvUnsupported;
 
-        LogDebugInfo("Setting device major functions");
+        //
+        // We cannot use logging mechanism of HyperDbg as it's not initialized yet
+        //
+        DbgPrint("Setting device major functions");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_READ]           = DrvRead;
@@ -95,6 +75,11 @@ DriverEntry(
     //
     DeviceObject->Flags |= DO_BUFFERED_IO;
 
+    //
+    // We cannot use logging mechanism of HyperDbg as it's not initialized yet
+    //
+    DbgPrint("HyperDbg is loaded :)");
+
     ASSERT(NT_SUCCESS(Ntstatus));
     return Ntstatus;
 }
@@ -108,67 +93,16 @@ DriverEntry(
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
 {
-    UNICODE_STRING              DosDeviceName;
-    ULONG                       ProcessorCount;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    UNICODE_STRING DosDeviceName;
 
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperDbgHypervisorDevice");
     IoDeleteSymbolicLink(&DosDeviceName);
     IoDeleteDevice(DriverObject->DeviceObject);
 
-    DbgPrint("HyperDbg's hypervisor driver unloaded\n");
-
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking
-
     //
-    // Uinitialize log buffer
+    // Unloading VMM and Debugger
     //
-    DbgPrint("Uinitializing logs\n");
-    LogUnInitialize();
-#endif
-
-    //
-    // Free g_Events
-    //
-    GlobalEventsFreeMemory();
-
-    //
-    // Free g_ScriptGlobalVariables
-    //
-    if (g_ScriptGlobalVariables != NULL)
-    {
-        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
-    }
-
-    //
-    // Free core specific local and temp variables
-    //
-    for (SIZE_T i = 0; i < ProcessorCount; i++)
-    {
-        CurrentDebuggerState = &g_DbgState[i];
-
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
-        {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
-        }
-
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
-        {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
-        }
-    }
-
-    //
-    // Free g_DbgState
-    //
-    GlobalDebuggingStateFreeMemory();
-
-    //
-    // Free g_GuestState
-    //
-    GlobalGuestStateFreeMemory();
+    LoaderUnloadVmmAndDebugger();
 }
 
 /**
@@ -251,7 +185,10 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    LogWarning("Not implemented yet :(");
+    //
+    // Not used
+    //
+    DbgPrint("This function is not used");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -270,7 +207,10 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    LogWarning("Not implemented yet :(");
+    //
+    // Not used
+    //
+    DbgPrint("This function is not used");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -313,7 +253,10 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    DbgPrint("This function is not supported :(");
+    //
+    // Not supported
+    //
+    DbgPrint("This function is not supported");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;

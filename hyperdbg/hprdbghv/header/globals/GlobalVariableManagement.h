@@ -15,10 +15,10 @@
 //					Functions					//
 //////////////////////////////////////////////////
 
-NTSTATUS
+BOOLEAN
 GlobalGuestStateAllocateZeroedMemory(VOID);
 
-NTSTATUS
+BOOLEAN
 GlobalDebuggingStateAllocateZeroedMemory(VOID);
 
 BOOLEAN

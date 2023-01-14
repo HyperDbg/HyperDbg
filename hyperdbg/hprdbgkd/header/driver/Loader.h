@@ -18,3 +18,6 @@
 
 BOOLEAN
 LoaderInitVmmAndDebugger();
+
+VOID
+LoaderUnloadVmmAndDebugger();

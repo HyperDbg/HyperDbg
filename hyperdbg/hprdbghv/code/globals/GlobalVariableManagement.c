@@ -14,9 +14,9 @@
 /**
  * @brief Allocate debugging state memory
  *
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 GlobalDebuggingStateAllocateZeroedMemory(VOID)
 {
     SSIZE_T BufferSizeInByte = sizeof(PROCESSOR_DEBUGGING_STATE) * KeQueryActiveProcessorCount(0);
@@ -33,7 +33,7 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
         //
 
         LogInfo("err, insufficient memory for allocating debugging state\n");
-        return STATUS_INSUFFICIENT_RESOURCES;
+        return FALSE;
     }
 
     //
@@ -41,13 +41,13 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
     //
     RtlZeroMemory(g_DbgState, BufferSizeInByte);
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
  * @brief Free debugging state memory
  *
- * @return NTSTATUS
+ * @return VOID
  */
 VOID
 GlobalDebuggingStateFreeMemory(VOID)
@@ -58,9 +58,9 @@ GlobalDebuggingStateFreeMemory(VOID)
 /**
  * @brief Allocate guest state memory
  *
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 GlobalGuestStateAllocateZeroedMemory(VOID)
 {
     SSIZE_T BufferSizeInByte = sizeof(VIRTUAL_MACHINE_STATE) * KeQueryActiveProcessorCount(0);
@@ -68,18 +68,15 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     // Allocate global variable to hold Guest(s) state
     //
-
-    g_GuestState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
-
     if (!g_GuestState)
     {
-        //
-        // we use DbgPrint as the vmx-root or non-root is not initialized
-        //
+        g_GuestState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
 
-        DbgPrint("err, insufficient memory\n");
-        DbgBreakPoint();
-        return STATUS_INSUFFICIENT_RESOURCES;
+        if (!g_GuestState)
+        {
+            LogError("Err, insufficient memory\n");
+            return FALSE;
+        }
     }
 
     //
@@ -87,13 +84,13 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     RtlZeroMemory(g_GuestState, BufferSizeInByte);
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
  * @brief Free guest state memory
  *
- * @return NTSTATUS
+ * @return VOID
  */
 VOID
 GlobalGuestStateFreeMemory(VOID)

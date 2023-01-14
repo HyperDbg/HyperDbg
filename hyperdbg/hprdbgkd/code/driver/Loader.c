@@ -11,15 +11,13 @@
 #include "pch.h"
 
 /**
- * @brief Load the VMM and Debugger
+ * @brief Initialize the VMM and Debugger
  *
- * @return VOID
+ * @return BOOLEAN
  */
 BOOLEAN
 LoaderInitVmmAndDebugger()
 {
-    LogDebugInfo("Starting HyperDbg...");
-
     //
     // Allow to server IOCTL
     //
@@ -62,4 +60,70 @@ LoaderInitVmmAndDebugger()
     g_AllowIOCTLFromUsermode = FALSE;
 
     return FALSE;
+}
+
+/**
+ * @brief Unload the VMM and Debugger
+ *
+ * @return VOID
+ */
+VOID
+LoaderUnloadVmmAndDebugger()
+{
+    ULONG                       ProcessorCount;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    DbgPrint("Unloading HyperDbg's debugger...\n");
+
+#if !UseDbgPrintInsteadOfUsermodeMessageTracking
+
+    //
+    // Uinitialize log buffer
+    //
+    DbgPrint("Uinitializing logs\n");
+    LogUnInitialize();
+#endif
+
+    //
+    // Free g_Events
+    //
+    GlobalEventsFreeMemory();
+
+    //
+    // Free g_ScriptGlobalVariables
+    //
+    if (g_ScriptGlobalVariables != NULL)
+    {
+        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+    }
+
+    //
+    // Free core specific local and temp variables
+    //
+    for (SIZE_T i = 0; i < ProcessorCount; i++)
+    {
+        CurrentDebuggerState = &g_DbgState[i];
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
+        {
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+        }
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
+        {
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
+        }
+    }
+
+    //
+    // Free g_DbgState
+    //
+    GlobalDebuggingStateFreeMemory();
+
+    //
+    // Free g_GuestState
+    //
+    GlobalGuestStateFreeMemory();
 }
