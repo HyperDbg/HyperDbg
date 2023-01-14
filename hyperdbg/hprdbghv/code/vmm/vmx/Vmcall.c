@@ -65,16 +65,16 @@ _Use_decl_annotations_
 NTSTATUS
 VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    BOOLEAN      IsHyperdbgVmcall = FALSE;
+    BOOLEAN      IsHyperDbgVmcall = FALSE;
     GUEST_REGS * GuestRegs        = VCpu->Regs;
 
-    IsHyperdbgVmcall = (GuestRegs->r10 == 0x48564653 &&
+    IsHyperDbgVmcall = (GuestRegs->r10 == 0x48564653 &&
                         GuestRegs->r11 == 0x564d43414c4c &&
                         GuestRegs->r12 == 0x4e4f485950455256);
     //
     // Check if it's our routines that request the VMCALL, or it relates to the Hyper-V
     //
-    if (IsHyperdbgVmcall)
+    if (IsHyperDbgVmcall)
     {
         GuestRegs->rax = VmxVmcallHandler(VCpu,
                                           GuestRegs->rcx,

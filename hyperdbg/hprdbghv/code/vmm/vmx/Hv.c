@@ -1132,3 +1132,52 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
 
     VCpu->EnableExternalInterruptsOnContinue = TRUE;
 }
+
+/**
+ * @brief Initializes the hypervisor
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvInitVmm()
+{
+    ULONG ProcessorCount;
+
+    //
+    // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
+    //
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Zero the memory of VM State and Debugging State
+    //
+    RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
+
+    //
+    // Set the core's id and initialize memory mapper
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        g_GuestState[i].CoreId = i;
+    }
+
+    //
+    // Initialize memory mapper
+    //
+    MemoryMapperInitialize();
+
+    //
+    // Check if processor supports TSX (RTM)
+    //
+    g_RtmSupport = CheckCpuSupportRtm();
+
+    //
+    // Get x86 processor width for virtual address
+    //
+    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+
+    //
+    // Initializes VMX
+    //
+    return VmxInitialize();
+}

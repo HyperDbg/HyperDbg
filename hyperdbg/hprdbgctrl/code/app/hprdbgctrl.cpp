@@ -37,7 +37,7 @@ extern LIST_ENTRY g_OutputSources;
  * @param handler Function that handles the messages
  */
 VOID
-HyperdbgSetTextMessageCallback(Callback handler)
+HyperDbgSetTextMessageCallback(Callback handler)
 {
     g_MessageHandler = handler;
 }
@@ -134,7 +134,7 @@ ReadIrpBasedBuffer()
     // if you know why this problem happens, then contact me !
     //
     Handle = CreateFileA(
-        "\\\\.\\HyperdbgHypervisorDevice",
+        "\\\\.\\HyperDbgHypervisorDevice",
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
@@ -517,7 +517,7 @@ HyperDbgInstallVmmDriver()
  * was error
  */
 int
-HyperdbgStopDriver(LPCTSTR DriverName)
+HyperDbgStopDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded
@@ -542,7 +542,7 @@ HyperdbgStopDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgStopVmmDriver()
 {
-    return HyperdbgStopDriver(VMM_DRIVER_NAME);
+    return HyperDbgStopDriver(VMM_DRIVER_NAME);
 }
 
 /**
@@ -552,7 +552,7 @@ HyperDbgStopVmmDriver()
  * was error
  */
 int
-HyperdbgUninstallDriver(LPCTSTR DriverName)
+HyperDbgUninstallDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded.  Ignore any errors
@@ -577,7 +577,7 @@ HyperdbgUninstallDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgUninstallVmmDriver()
 {
-    return HyperdbgUninstallDriver(VMM_DRIVER_NAME);
+    return HyperDbgUninstallDriver(VMM_DRIVER_NAME);
 }
 
 /**
@@ -636,7 +636,7 @@ HyperDbgLoadVmm()
     // Init entering vmx
     //
     g_DeviceHandle = CreateFileA(
-        "\\\\.\\HyperdbgHypervisorDevice",
+        "\\\\.\\HyperDbgHypervisorDevice",
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes

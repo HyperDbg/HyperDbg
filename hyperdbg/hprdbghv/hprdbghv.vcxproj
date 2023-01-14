@@ -232,7 +232,6 @@
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />
-    <ClInclude Include="header\vmm\export\Export.h" />
     <ClInclude Include="header\vmm\vmx\Counters.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
     <ClInclude Include="header\vmm\vmx\Hv.h" />

@@ -32,8 +32,8 @@ DriverEntry(
     NTSTATUS       Ntstatus      = STATUS_SUCCESS;
     UINT64         Index         = 0;
     PDEVICE_OBJECT DeviceObject  = NULL;
-    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
-    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
+    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperDbgHypervisorDevice");
+    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperDbgHypervisorDevice");
 
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
@@ -68,7 +68,7 @@ DriverEntry(
     if (!NT_SUCCESS(Ntstatus))
         return Ntstatus;
 
-    LogDebugInfo("Hyperdbg is loaded :)");
+    LogDebugInfo("HyperDbg is loaded :)");
 
     Ntstatus = IoCreateDevice(DriverObject,
                               0,
@@ -118,11 +118,11 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
-    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisorDevice");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperDbgHypervisorDevice");
     IoDeleteSymbolicLink(&DosDeviceName);
     IoDeleteDevice(DriverObject->DeviceObject);
 
-    DbgPrint("Hyperdbg's hypervisor driver unloaded\n");
+    DbgPrint("HyperDbg's hypervisor driver unloaded\n");
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
@@ -185,8 +185,6 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    ULONG ProcessorCount;
-
     //
     // Check for privilege
     //
@@ -228,56 +226,21 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     g_AllowIOCTLFromUsermode = TRUE;
 
-    LogDebugInfo("Hyperdbg's hypervisor started...");
-
-    //
-    // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
-    //
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Zero the memory of VM State and Debugging State
-    //
-    RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
-    RtlZeroMemory(g_DbgState, sizeof(PROCESSOR_DEBUGGING_STATE) * ProcessorCount);
-
-    //
-    // Set the core's id and initialize memory mapper
-    //
-    for (size_t i = 0; i < ProcessorCount; i++)
-    {
-        g_GuestState[i].CoreId = i;
-        g_DbgState[i].CoreId   = i;
-    }
-
-    //
-    // Initialize memory mapper
-    //
-    MemoryMapperInitialize();
-
-    //
-    // Check if processor supports TSX (RTM)
-    //
-    g_RtmSupport = CheckCpuSupportRtm();
-
-    //
-    // Get x86 processor width for virtual address
-    //
-    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+    LogDebugInfo("Starting HyperDbg...");
 
     //
     // Initialize Vmx
     //
-    if (VmxInitialize())
+    if (VmFuncInitVmm())
     {
-        LogDebugInfo("Hyperdbg's hypervisor loaded successfully");
+        LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
         //
         // Initialize the debugger
         //
         if (DebuggerInitialize())
         {
-            LogDebugInfo("Hyperdbg's debugger loaded successfully");
+            LogDebugInfo("HyperDbg's debugger loaded successfully");
 
             //
             // Set the variable so no one else can get a handle anymore
@@ -292,12 +255,12 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
         else
         {
-            LogError("Err, Hyperdbg's debugger was not loaded");
+            LogError("Err, HyperDbg's debugger was not loaded");
         }
     }
     else
     {
-        LogError("Err, Hyperdbg's hypervisor was not loaded :(");
+        LogError("Err, HyperDbg's hypervisor was not loaded :(");
     }
 
     //

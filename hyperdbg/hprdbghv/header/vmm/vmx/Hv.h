@@ -338,3 +338,11 @@ HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
  */
 VOID
 HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Initializes the hypervisor
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvInitVmm();

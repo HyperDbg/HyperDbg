@@ -162,9 +162,6 @@
     <Filter Include="code\vmm\Export">
       <UniqueIdentifier>{eb436c9d-4db9-403c-a163-3ec7357a72c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\vmm\export">
-      <UniqueIdentifier>{9755ca21-0c73-435b-8ba9-1cde4e8f2e88}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -522,9 +519,6 @@
     </ClInclude>
     <ClInclude Include="header\common\State.h">
       <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\vmm\export\Export.h">
-      <Filter>header\vmm\export</Filter>
     </ClInclude>
     <ClInclude Include="header\common\RefactorTempStructs.h">
       <Filter>header\common</Filter>

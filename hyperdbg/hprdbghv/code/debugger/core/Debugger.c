@@ -62,7 +62,17 @@ DebuggerInitialize()
     // Allocate buffer for saving events
     //
     if (GlobalEventsAllocateZeroedMemory() == FALSE)
+    {
         return FALSE;
+    }
+
+    //
+    // Set the core's IDs
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        g_DbgState[i].CoreId = i;
+    }
 
     //
     // Initialize lists relating to the debugger events store

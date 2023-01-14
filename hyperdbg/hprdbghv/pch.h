@@ -33,6 +33,7 @@
 //
 #define SCRIPT_ENGINE_KERNEL_MODE
 #define HYPERDBG_KERNEL_MODE
+#define HYPERDBG_VMM
 
 //
 // External headers
@@ -64,7 +65,7 @@
 //
 #include "..\hprdbghv\header\vmm\vmx\Vmx.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
-#include "..\hprdbghv\header\vmm\export\Export.h"
+#include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
 // Debugger Types

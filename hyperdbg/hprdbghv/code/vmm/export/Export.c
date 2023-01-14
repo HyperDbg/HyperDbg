@@ -440,3 +440,14 @@ VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId)
 {
     HvDisableExternalInterruptsAndInterruptWindow(&g_GuestState[CoreId]);
 }
+
+/**
+ * @brief Initializes hypervisor
+ *
+ * @return BOOLEAN Shows whether the initialization was successful or not
+ */
+BOOLEAN
+VmFuncInitVmm()
+{
+    return HvInitVmm();
+}

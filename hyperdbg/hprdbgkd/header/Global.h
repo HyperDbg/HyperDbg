@@ -34,15 +34,3 @@ BOOLEAN g_HandleInUse;
  *
  */
 BOOLEAN g_AllowIOCTLFromUsermode;
-
-/**
- * @brief check for RTM support
- *
- */
-BOOLEAN g_RtmSupport;
-
-/**
- * @brief Virtual address width for x86 processors
- *
- */
-UINT32 g_VirtualAddressWidth;

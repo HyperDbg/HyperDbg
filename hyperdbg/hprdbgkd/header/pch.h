@@ -15,6 +15,7 @@
 // HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
+#include "SDK/Imports/HyperDbgVmmImports.h"
 #include "../../hprdbghv/header/common/RefactorTempStructs.h" // should be removed
 
 #include "Global.h"
