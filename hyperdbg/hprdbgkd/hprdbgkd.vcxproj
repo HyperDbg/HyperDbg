@@ -104,10 +104,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\driver\Driver.c" />
+    <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="header\Driver.h" />
-    <ClInclude Include="header\Global.h" />
+    <ClInclude Include="header\driver\Driver.h" />
+    <ClInclude Include="header\driver\Loader.h" />
+    <ClInclude Include="header\globals\Global.h" />
     <ClInclude Include="header\pch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

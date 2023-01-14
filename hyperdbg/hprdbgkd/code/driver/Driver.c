@@ -11,10 +11,6 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-//
-// Windows defined functions
-//
-
 #include "pch.h"
 
 /**
@@ -50,7 +46,6 @@ DriverEntry(
     // Opt-in to using non-executable pool memory on Windows 8 and later.
     // https://msdn.microsoft.com/en-us/library/windows/hardware/hh920402(v=vs.85).aspx
     //
-
     ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
     //
@@ -58,6 +53,7 @@ DriverEntry(
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
     Ntstatus = GlobalGuestStateAllocateZeroedMemory();
+
     if (!NT_SUCCESS(Ntstatus))
         return Ntstatus;
 
@@ -222,56 +218,27 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
-    // Allow to server IOCTL
+    // Initialize the vmm and the debugger
     //
-    g_AllowIOCTLFromUsermode = TRUE;
-
-    LogDebugInfo("Starting HyperDbg...");
-
-    //
-    // Initialize Vmx
-    //
-    if (VmFuncInitVmm())
+    if (LoaderInitVmmAndDebugger())
     {
-        LogDebugInfo("HyperDbg's hypervisor loaded successfully");
+        Irp->IoStatus.Status      = STATUS_SUCCESS;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-        //
-        // Initialize the debugger
-        //
-        if (DebuggerInitialize())
-        {
-            LogDebugInfo("HyperDbg's debugger loaded successfully");
-
-            //
-            // Set the variable so no one else can get a handle anymore
-            //
-            g_HandleInUse = TRUE;
-
-            Irp->IoStatus.Status      = STATUS_SUCCESS;
-            Irp->IoStatus.Information = 0;
-            IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-            return STATUS_SUCCESS;
-        }
-        else
-        {
-            LogError("Err, HyperDbg's debugger was not loaded");
-        }
+        return STATUS_SUCCESS;
     }
     else
     {
-        LogError("Err, HyperDbg's hypervisor was not loaded :(");
+        //
+        // There was a problem, so not loaded
+        //
+        Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+        return STATUS_UNSUCCESSFUL;
     }
-
-    //
-    // if we didn't return by now, means that there is a problem
-    //
-
-    Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-    return STATUS_UNSUCCESSFUL;
 }
 
 /**

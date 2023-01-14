@@ -14,6 +14,12 @@
     <Filter Include="code\driver">
       <UniqueIdentifier>{91ca318b-95ce-4a71-95a2-05777c960048}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\driver">
+      <UniqueIdentifier>{2aeca400-d056-4b3a-a3f1-bda439acd37b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\globals">
+      <UniqueIdentifier>{735642d8-2faf-4b34-92c3-1ce7278f8836}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -24,16 +30,22 @@
     <ClCompile Include="code\driver\Driver.c">
       <Filter>code\driver</Filter>
     </ClCompile>
+    <ClCompile Include="code\driver\Loader.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="header\Global.h">
-      <Filter>header</Filter>
+    <ClInclude Include="header\driver\Driver.h">
+      <Filter>header\driver</Filter>
     </ClInclude>
-    <ClInclude Include="header\Driver.h">
-      <Filter>header</Filter>
+    <ClInclude Include="header\globals\Global.h">
+      <Filter>header\globals</Filter>
+    </ClInclude>
+    <ClInclude Include="header\driver\Loader.h">
+      <Filter>header\driver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

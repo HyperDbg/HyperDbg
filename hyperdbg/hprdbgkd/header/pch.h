@@ -18,5 +18,6 @@
 #include "SDK/Imports/HyperDbgVmmImports.h"
 #include "../../hprdbghv/header/common/RefactorTempStructs.h" // should be removed
 
-#include "Global.h"
-#include "Driver.h"
+#include "globals/Global.h"
+#include "driver/Driver.h"
+#include "driver/Loader.h"
