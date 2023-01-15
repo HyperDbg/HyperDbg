@@ -149,43 +149,27 @@ each chunk has PacketChunkSize + sizeof(BUFFER_HEADER) size
 */
 
 //////////////////////////////////////////////////
+//				Global Variables				//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Save the state of the thread that waits for messages to deliver to user-mode
+ *
+ */
+NOTIFY_RECORD * g_GlobalNotifyRecord;
+
+/**
+ * @brief Global variable that holds callbacks
+ *
+ */
+MESSAGE_TRACING_CALLBACKS g_MsgTracingCallbacks;
+
+//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
 BOOLEAN
-LogInitialize();
-
-VOID
-LogUnInitialize();
-
-BOOLEAN
-LogSendBuffer(_In_ UINT32                          OperationCode,
-              _In_reads_bytes_(BufferLength) PVOID Buffer,
-              _In_ UINT32                          BufferLength,
-              _In_ BOOLEAN                         Priority);
-
-UINT32
-LogMarkAllAsRead(BOOLEAN IsVmxRoot);
-
-BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength);
-
-BOOLEAN
-LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                BOOLEAN      IsImmediateMessage,
-                                BOOLEAN      ShowCurrentSystemTime,
-                                BOOLEAN      Priority,
-                                const char * Fmt,
-                                ...);
-
-BOOLEAN
-LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
 VOID
 LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-NTSTATUS
-LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);

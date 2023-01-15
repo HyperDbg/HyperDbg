@@ -196,6 +196,7 @@
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\RefactorTempStructs.h" />
+    <ClInclude Include="header\common\Spinlock.h" />
     <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
     <ClInclude Include="header\components\registers\DebugRegisters.h" />

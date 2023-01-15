@@ -150,7 +150,21 @@ static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_UD_PAUSED_PACKET");
 
 //////////////////////////////////////////////////
-//                  Debugger                    //
+//            Message Tracing Enums             //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Type of transferring buffer between user-to-kernel
+ *
+ */
+typedef enum _NOTIFY_TYPE
+{
+    IRP_BASED,
+    EVENT_BASED
+} NOTIFY_TYPE;
+
+//////////////////////////////////////////////////
+//                  Structures                  //
 //////////////////////////////////////////////////
 
 /**
@@ -163,3 +177,14 @@ typedef struct _DEBUGGEE_MESSAGE_PACKET
     CHAR   Message[PacketChunkSize];
 
 } DEBUGGEE_MESSAGE_PACKET, *PDEBUGGEE_MESSAGE_PACKET;
+
+/**
+ * @brief Used to register event for transferring buffer between user-to-kernel
+ *
+ */
+typedef struct _REGISTER_NOTIFY_BUFFER
+{
+    NOTIFY_TYPE Type;
+    HANDLE      hEvent;
+
+} REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;

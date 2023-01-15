@@ -55,6 +55,11 @@
 #include "platform/MetaMacros.h"
 
 //
+// HyperLog Module
+//
+#include "SDK/Modules/HyperLog.h"
+
+//
 // The core's state
 //
 #include "..\hprdbghv\header\common\State.h"
@@ -91,6 +96,7 @@
 #include "..\hprdbghv\header\vmm\ept\Vpid.h"
 #include "..\hprdbghv\header\debugger\core\DebuggerEvents.h"
 #include "..\hprdbghv\header\common\Common.h"
+#include "..\hprdbghv\header\common\Spinlock.h"
 #include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\debugger\script-engine\ScriptEngine.h"
 #include "..\hprdbghv\header\devices\Apic.h"

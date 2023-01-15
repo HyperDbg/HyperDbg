@@ -168,24 +168,3 @@ typedef struct _DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 } DEBUGGER_EVENT_AND_ACTION_REG_BUFFER, *PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER;
 
 #define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)
-
-/**
- * @brief Type of transferring buffer between user-to-kernel
- *
- */
-typedef enum _NOTIFY_TYPE
-{
-    IRP_BASED,
-    EVENT_BASED
-} NOTIFY_TYPE;
-
-/**
- * @brief Used to register event for transferring buffer between user-to-kernel
- *
- */
-typedef struct _REGISTER_NOTIFY_BUFFER
-{
-    NOTIFY_TYPE Type;
-    HANDLE      hEvent;
-
-} REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;

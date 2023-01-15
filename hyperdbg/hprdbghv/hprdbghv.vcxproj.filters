@@ -523,6 +523,9 @@
     <ClInclude Include="header\common\RefactorTempStructs.h">
       <Filter>header\common</Filter>
     </ClInclude>
+    <ClInclude Include="header\common\Spinlock.h">
+      <Filter>header\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">
