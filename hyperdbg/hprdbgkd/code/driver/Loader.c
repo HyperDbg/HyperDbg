@@ -75,14 +75,14 @@ LoaderUnloadVmmAndDebugger()
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
-    DbgPrint("Unloading HyperDbg's debugger...\n");
+    LogDebugInfo("Unloading HyperDbg's debugger...\n");
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
     //
     // Uinitialize log buffer
     //
-    DbgPrint("Uinitializing logs\n");
+    LogDebugInfo("Uninitializing logs\n");
     LogUnInitialize();
 #endif
 

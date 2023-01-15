@@ -1,5 +1,5 @@
 /**
- * @file HyperDbgHyperLog.h
+ * @file HyperDbgHyperLogImports.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers relating exported functions from hyperlog project
  * @version 0.1

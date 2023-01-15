@@ -85,6 +85,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Imports", "Imports", "{B3D9DA75-8FBD-4A2C-826A-B50406396EC4}"
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\Imports\HyperDbgCtrlImports.h = include\SDK\Imports\HyperDbgCtrlImports.h
+		include\SDK\Imports\HyperDbgHyperLogImports.h = include\SDK\Imports\HyperDbgHyperLogImports.h
+		include\SDK\Imports\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\HyperDbgHyperLogIntrinsics.h
 		include\SDK\Imports\HyperDbgScriptImports.h = include\SDK\Imports\HyperDbgScriptImports.h
 		include\SDK\Imports\HyperDbgSymImports.h = include\SDK\Imports\HyperDbgSymImports.h
 		include\SDK\Imports\HyperDbgVmmImports.h = include\SDK\Imports\HyperDbgVmmImports.h

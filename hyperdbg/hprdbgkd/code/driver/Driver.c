@@ -60,6 +60,7 @@ DriverEntry(
         // We cannot use logging mechanism of HyperDbg as it's not initialized yet
         //
         DbgPrint("Setting device major functions");
+
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_READ]           = DrvRead;
@@ -78,7 +79,7 @@ DriverEntry(
     //
     // We cannot use logging mechanism of HyperDbg as it's not initialized yet
     //
-    DbgPrint("HyperDbg is loaded :)");
+    DbgPrint("HyperDbg's device and major functions are loaded");
 
     ASSERT(NT_SUCCESS(Ntstatus));
     return Ntstatus;

@@ -18,7 +18,7 @@
 
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLog.h"
+#include "SDK/Imports/HyperDbgHyperLogImports.h"
 #include "Spinlock.h"
 #include "Logging.h"
 

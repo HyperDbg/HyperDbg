@@ -58,6 +58,7 @@
 // HyperLog Module
 //
 #include "SDK/Modules/HyperLog.h"
+#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
 
 //
 // The core's state
