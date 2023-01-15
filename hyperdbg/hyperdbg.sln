@@ -108,6 +108,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{13E49D84-7EA0-43A2-9B60-4B408A4C7602}"
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\Modules\HyperLog.h = include\SDK\Modules\HyperLog.h
+		include\SDK\Modules\VMM.h = include\SDK\Modules\VMM.h
 	EndProjectSection
 EndProject
 Global

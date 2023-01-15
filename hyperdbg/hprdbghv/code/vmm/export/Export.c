@@ -443,11 +443,12 @@ VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId)
 
 /**
  * @brief Initializes hypervisor
+ * @param VmmCallbacks
  *
  * @return BOOLEAN Shows whether the initialization was successful or not
  */
 BOOLEAN
-VmFuncInitVmm()
+VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
     return HvInitVmm();
 }

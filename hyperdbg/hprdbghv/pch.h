@@ -61,6 +61,11 @@
 #include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
 
 //
+// VMM Callbacks
+//
+#include "SDK/Modules/VMM.h"
+
+//
 // The core's state
 //
 #include "..\hprdbghv\header\common\State.h"

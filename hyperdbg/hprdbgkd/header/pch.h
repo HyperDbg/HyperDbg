@@ -31,7 +31,6 @@
 // HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/HyperDbgVmmImports.h"
 #include "../../hprdbghv/header/common/RefactorTempStructs.h" // should be removed
 
 //
@@ -40,6 +39,12 @@
 #include "SDK/Modules/HyperLog.h"
 #include "SDK/Imports/HyperDbgHyperLogImports.h"
 #include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
+
+//
+// Import VMM Module
+//
+#include "SDK/Modules/VMM.h"
+#include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
 // Local Debugger headers

@@ -123,7 +123,7 @@ IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncNmiHaltCores(UINT32 CoreId);
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
-VmFuncInitVmm();
+VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
 
 IMPORT_EXPORT_VMFUNC VOID
 VmFuncUninitializeMemory();

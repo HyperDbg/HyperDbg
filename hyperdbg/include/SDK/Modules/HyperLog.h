@@ -42,7 +42,7 @@ typedef BOOLEAN (*SEND_IMMEDIATE_MESSAGE)(CHAR * OptionalBuffer,
 //////////////////////////////////////////////////
 
 /**
- * @brief Details of each command
+ * @brief Prototype of each function needed by message tracer
  *
  */
 typedef struct _MESSAGE_TRACING_CALLBACKS

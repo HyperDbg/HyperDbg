@@ -18,14 +18,8 @@
 BOOLEAN
 LoaderInitVmmAndDebugger()
 {
-    MESSAGE_TRACING_CALLBACKS MsgTracingCallback = {0};
-
-    //
-    // Fill the callbacks for the message tracer
-    //
-    MsgTracingCallback.VmxOpeationCheck             = VmFuncVmxGetCurrentExecutionMode;
-    MsgTracingCallback.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
-    MsgTracingCallback.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
+    MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = {0};
+    VMM_CALLBACKS             VmmCallbacks        = {0};
 
     //
     // Allow to server IOCTL
@@ -33,14 +27,27 @@ LoaderInitVmmAndDebugger()
     g_AllowIOCTLFromUsermode = TRUE;
 
     //
+    // Fill the callbacks for the message tracer
+    //
+    MsgTracingCallbacks.VmxOpeationCheck             = VmFuncVmxGetCurrentExecutionMode;
+    MsgTracingCallbacks.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
+    MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
+
+    //
+    // Fill the callbacks for the VMM module
+    //
+    VmmCallbacks.LogPrepareAndSendMessageToQueue = LogPrepareAndSendMessageToQueue;
+    VmmCallbacks.LogSendMessageToQueue           = LogSendMessageToQueue;
+
+    //
     // Initialize message tracer
     //
-    if (LogInitialize(&MsgTracingCallback))
+    if (LogInitialize(&MsgTracingCallbacks))
     {
         //
         // Initialize Vmx
         //
-        if (VmFuncInitVmm())
+        if (VmFuncInitVmm(&VmmCallbacks))
         {
             LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
