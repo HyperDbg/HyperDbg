@@ -205,6 +205,9 @@ VOID
 KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
+KdCheckImmediateMessagingMechanism(UINT32 OperationCode);
+
+BOOLEAN
 KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
                            _In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
                            _In_reads_bytes_opt_(OptionalBufferLength) CHAR *                OptionalBuffer,

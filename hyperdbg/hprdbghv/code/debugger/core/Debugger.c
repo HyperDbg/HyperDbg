@@ -237,6 +237,11 @@ DebuggerInitialize()
 VOID
 DebuggerUninitialize()
 {
+    ULONG                       ProcessorCount;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
     //
     //  *** Disable, terminate and clear all the events ***
     //
@@ -294,6 +299,42 @@ DebuggerUninitialize()
     // Uinitialize APIC related function
     //
     ApicUninitialize();
+
+    //
+    // Free g_Events
+    //
+    GlobalEventsFreeMemory();
+
+    //
+    // Free g_ScriptGlobalVariables
+    //
+    if (g_ScriptGlobalVariables != NULL)
+    {
+        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+    }
+
+    //
+    // Free core specific local and temp variables
+    //
+    for (SIZE_T i = 0; i < ProcessorCount; i++)
+    {
+        CurrentDebuggerState = &g_DbgState[i];
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
+        {
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+        }
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
+        {
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
+        }
+    }
+
+    //
+    // Free g_DbgState
+    //
+    GlobalDebuggingStateFreeMemory();
 }
 
 /**

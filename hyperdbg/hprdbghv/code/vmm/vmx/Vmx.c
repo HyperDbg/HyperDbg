@@ -944,5 +944,15 @@ VmxPerformTermination()
     //
     PoolManagerUninitialize();
 
+    //
+    // Uninitialize memory mapper
+    //
+    MemoryMapperUninitialize();
+
+    //
+    // Remove the memory related to the VMM
+    //
+    VmFuncUninitializeMemory();
+
     LogDebugInfo("VMX operation turned off successfully");
 }

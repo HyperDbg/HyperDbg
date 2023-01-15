@@ -101,6 +101,19 @@ KdUninitializeKernelDebugger()
 }
 
 /**
+ * @brief Checks whether the immediate messaging mechism is
+ * needed or not
+ * @param OperationCode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckImmediateMessagingMechanism(UINT32 OperationCode)
+{
+    return (g_KernelDebuggerState && !(OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT));
+}
+
+/**
  * @brief A test function for DPC
  * @param Dpc
  * @param DeferredContext

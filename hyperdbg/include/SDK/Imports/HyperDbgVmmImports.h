@@ -124,3 +124,25 @@ VmFuncNmiHaltCores(UINT32 CoreId);
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncInitVmm();
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncUninitializeMemory();
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+VmFuncVmxGetCurrentExecutionMode();
+
+//////////////////////////////// Remove All functions after this line : \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+KdLoggingResponsePacketToDebugger(_In_reads_bytes_opt_(OptionalBufferLength) CHAR * OptionalBuffer,
+                                  _In_ UINT32                                       OptionalBufferLength,
+                                  _In_ UINT32                                       OperationCode);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+KdCheckImmediateMessagingMechanism(UINT32 OperationCode);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+DebuggerInitialize();
+
+IMPORT_EXPORT_VMFUNC NTSTATUS
+DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);

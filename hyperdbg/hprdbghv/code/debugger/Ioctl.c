@@ -135,11 +135,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             VmxPerformTermination();
 
-            //
-            // Uninitialize memory mapper
-            //
-            MemoryMapperUninitialize();
-
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_DEBUGGER_READ_MEMORY:

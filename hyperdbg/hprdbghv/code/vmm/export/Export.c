@@ -451,3 +451,28 @@ VmFuncInitVmm()
 {
     return HvInitVmm();
 }
+
+/**
+ * @brief Uninitialize VMM memories
+ *
+ * @return VOID
+ */
+VOID
+VmFuncUninitializeMemory()
+{
+    //
+    // Free g_GuestState
+    //
+    GlobalGuestStateFreeMemory();
+}
+
+/**
+ * @brief Get the current vmx opeation state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncVmxGetCurrentExecutionMode()
+{
+    return VmxGetCurrentExecutionMode();
+}

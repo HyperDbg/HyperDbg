@@ -18,40 +18,59 @@
 BOOLEAN
 LoaderInitVmmAndDebugger()
 {
+    MESSAGE_TRACING_CALLBACKS MsgTracingCallback = {0};
+
+    //
+    // Fill the callbacks for the message tracer
+    //
+    MsgTracingCallback.VmxOpeationCheck             = VmFuncVmxGetCurrentExecutionMode;
+    MsgTracingCallback.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
+    MsgTracingCallback.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
+
     //
     // Allow to server IOCTL
     //
     g_AllowIOCTLFromUsermode = TRUE;
 
     //
-    // Initialize Vmx
+    // Initialize message tracer
     //
-    if (VmFuncInitVmm())
+    if (LogInitialize(&MsgTracingCallback))
     {
-        LogDebugInfo("HyperDbg's hypervisor loaded successfully");
-
         //
-        // Initialize the debugger
+        // Initialize Vmx
         //
-        if (DebuggerInitialize())
+        if (VmFuncInitVmm())
         {
-            LogDebugInfo("HyperDbg's debugger loaded successfully");
+            LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
             //
-            // Set the variable so no one else can get a handle anymore
+            // Initialize the debugger
             //
-            g_HandleInUse = TRUE;
+            if (DebuggerInitialize())
+            {
+                LogDebugInfo("HyperDbg's debugger loaded successfully");
 
-            return TRUE;
+                //
+                // Set the variable so no one else can get a handle anymore
+                //
+                g_HandleInUse = TRUE;
+
+                return TRUE;
+            }
+            else
+            {
+                LogError("Err, HyperDbg's debugger was not loaded");
+            }
         }
         else
         {
-            LogError("Err, HyperDbg's debugger was not loaded");
+            LogError("Err, HyperDbg's hypervisor was not loaded");
         }
     }
     else
     {
-        LogError("Err, HyperDbg's hypervisor was not loaded :(");
+        LogError("Err, HyperDbg's message tracing module was not loaded");
     }
 
     //
@@ -63,18 +82,13 @@ LoaderInitVmmAndDebugger()
 }
 
 /**
- * @brief Unload the VMM and Debugger
+ * @brief Uninitialize the log tracer
  *
  * @return VOID
  */
 VOID
-LoaderUnloadVmmAndDebugger()
+LoaderUninitializeLogTracer()
 {
-    ULONG                       ProcessorCount;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
     LogDebugInfo("Unloading HyperDbg's debugger...\n");
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
@@ -85,45 +99,4 @@ LoaderUnloadVmmAndDebugger()
     LogDebugInfo("Uninitializing logs\n");
     LogUnInitialize();
 #endif
-
-    //
-    // Free g_Events
-    //
-    GlobalEventsFreeMemory();
-
-    //
-    // Free g_ScriptGlobalVariables
-    //
-    if (g_ScriptGlobalVariables != NULL)
-    {
-        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
-    }
-
-    //
-    // Free core specific local and temp variables
-    //
-    for (SIZE_T i = 0; i < ProcessorCount; i++)
-    {
-        CurrentDebuggerState = &g_DbgState[i];
-
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
-        {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
-        }
-
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
-        {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
-        }
-    }
-
-    //
-    // Free g_DbgState
-    //
-    GlobalDebuggingStateFreeMemory();
-
-    //
-    // Free g_GuestState
-    //
-    GlobalGuestStateFreeMemory();
 }

@@ -20,4 +20,4 @@ BOOLEAN
 LoaderInitVmmAndDebugger();
 
 VOID
-LoaderUnloadVmmAndDebugger();
+LoaderUninitializeLogTracer();
