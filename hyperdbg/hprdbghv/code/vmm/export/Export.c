@@ -450,7 +450,7 @@ VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId)
 BOOLEAN
 VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
-    return HvInitVmm();
+    return HvInitVmm(VmmCallbacks);
 }
 
 /**

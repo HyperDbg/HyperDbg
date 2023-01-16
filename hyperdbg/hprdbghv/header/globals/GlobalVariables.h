@@ -19,6 +19,12 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief List of callbacks
+ *
+ */
+VMM_CALLBACKS g_Callbacks;
+
+/**
  * @brief The value of last error
  *
  */
@@ -59,12 +65,6 @@ DEBUGGER_CORE_EVENTS * g_Events;
  *
  */
 UINT64 * g_ScriptGlobalVariables;
-
-/**
- * @brief Save the state of the thread that waits for messages to deliver to user-mode
- *
- */
-NOTIFY_RECORD * g_GlobalNotifyRecord;
 
 /**
  * @brief Support for execute-only pages (indicating that data accesses are

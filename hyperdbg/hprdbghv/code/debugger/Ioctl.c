@@ -94,10 +94,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             switch (RegisterEventRequest->Type)
             {
             case IRP_BASED:
-                Status = LogRegisterIrpBasedNotification(DeviceObject, Irp);
+                Status = g_Callbacks.LogRegisterIrpBasedNotification(DeviceObject, Irp);
                 break;
             case EVENT_BASED:
-                Status = LogRegisterEventBasedNotification(DeviceObject, Irp);
+                Status = g_Callbacks.LogRegisterEventBasedNotification(DeviceObject, Irp);
                 break;
             default:
                 LogError("Err, unknow notification type from user-mode");
@@ -116,10 +116,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Send an immediate message, and we're no longer get new IRP
             //
-            LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
-                          "$",
-                          1,
-                          TRUE);
+            g_Callbacks.LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
+                                      "$",
+                                      1,
+                                      TRUE);
 
             Status = STATUS_SUCCESS;
             break;

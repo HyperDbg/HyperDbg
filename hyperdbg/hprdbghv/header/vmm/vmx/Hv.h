@@ -341,8 +341,9 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Initializes the hypervisor
+ * @param VmmCallbacks
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HvInitVmm();
+HvInitVmm(VMM_CALLBACKS * VmmCallbacks);

@@ -11,6 +11,20 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//					Prefix						//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Used for prefixs to callbacks
+ *
+ */
+#ifdef HYPERLOG_PREFIX
+#    define HYPERLOG_CALLBACK_PREFIX HYPERLOG_PREFIX.
+#else
+#    define HYPERLOG_CALLBACK_PREFIX
+#endif
+
+//////////////////////////////////////////////////
 //					Enums						//
 //////////////////////////////////////////////////
 
@@ -68,83 +82,83 @@ typedef enum _LOG_TYPE
  * @brief Log, general
  *
  */
-#    define LogInfo(format, ...)                                                  \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                        UseImmediateMessaging,                    \
-                                        ShowSystemTimeOnDebugMessages,            \
-                                        FALSE,                                    \
-                                        "[+] Information (%s:%d) | " format "\n", \
-                                        __func__,                                 \
-                                        __LINE__,                                 \
-                                        __VA_ARGS__)
+#    define LogInfo(format, ...)                                                                           \
+        HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                                                 UseImmediateMessaging,                    \
+                                                                 ShowSystemTimeOnDebugMessages,            \
+                                                                 FALSE,                                    \
+                                                                 "[+] Information (%s:%d) | " format "\n", \
+                                                                 __func__,                                 \
+                                                                 __LINE__,                                 \
+                                                                 __VA_ARGS__)
 
 /**
  * @brief Log in the case of priority message
  *
  */
-#    define LogInfoPriority(format, ...)                                          \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                        TRUE,                                     \
-                                        ShowSystemTimeOnDebugMessages,            \
-                                        TRUE,                                     \
-                                        "[+] Information (%s:%d) | " format "\n", \
-                                        __func__,                                 \
-                                        __LINE__,                                 \
-                                        __VA_ARGS__)
+#    define LogInfoPriority(format, ...)                                                                   \
+        HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                                                 TRUE,                                     \
+                                                                 ShowSystemTimeOnDebugMessages,            \
+                                                                 TRUE,                                     \
+                                                                 "[+] Information (%s:%d) | " format "\n", \
+                                                                 __func__,                                 \
+                                                                 __LINE__,                                 \
+                                                                 __VA_ARGS__)
 
 /**
  * @brief Log in the case of warning
  *
  */
-#    define LogWarning(format, ...)                                           \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
-                                        UseImmediateMessaging,                \
-                                        ShowSystemTimeOnDebugMessages,        \
-                                        TRUE,                                 \
-                                        "[-] Warning (%s:%d) | " format "\n", \
-                                        __func__,                             \
-                                        __LINE__,                             \
-                                        __VA_ARGS__)
+#    define LogWarning(format, ...)                                                                    \
+        HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
+                                                                 UseImmediateMessaging,                \
+                                                                 ShowSystemTimeOnDebugMessages,        \
+                                                                 TRUE,                                 \
+                                                                 "[-] Warning (%s:%d) | " format "\n", \
+                                                                 __func__,                             \
+                                                                 __LINE__,                             \
+                                                                 __VA_ARGS__)
 
 /**
  * @brief Log in the case of error
  *
  */
-#    define LogError(format, ...)                                           \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
-                                        UseImmediateMessaging,              \
-                                        ShowSystemTimeOnDebugMessages,      \
-                                        TRUE,                               \
-                                        "[!] Error (%s:%d) | " format "\n", \
-                                        __func__,                           \
-                                        __LINE__,                           \
-                                        __VA_ARGS__);                       \
-        if (DebugMode)                                                      \
+#    define LogError(format, ...)                                                                    \
+        HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
+                                                                 UseImmediateMessaging,              \
+                                                                 ShowSystemTimeOnDebugMessages,      \
+                                                                 TRUE,                               \
+                                                                 "[!] Error (%s:%d) | " format "\n", \
+                                                                 __func__,                           \
+                                                                 __LINE__,                           \
+                                                                 __VA_ARGS__);                       \
+        if (DebugMode)                                                                               \
         DbgBreakPoint()
 
 /**
  * @brief Log without any prefix
  *
  */
-#    define Log(format, ...)                                        \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
-                                        TRUE,                       \
-                                        FALSE,                      \
-                                        FALSE,                      \
-                                        format,                     \
-                                        __VA_ARGS__)
+#    define Log(format, ...)                                                                 \
+        HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
+                                                                 TRUE,                       \
+                                                                 FALSE,                      \
+                                                                 FALSE,                      \
+                                                                 format,                     \
+                                                                 __VA_ARGS__)
 
 /**
  * @brief Log without any prefix and bypass the stack
  * problem (getting two temporary stacks in preparing phase)
  *
  */
-#    define LogSimpleWithTag(tag, isimmdte, buffer, len) \
-        LogSendMessageToQueue(tag,                       \
-                              isimmdte,                  \
-                              buffer,                    \
-                              len,                       \
-                              FALSE)
+#    define LogSimpleWithTag(tag, isimmdte, buffer, len)         \
+        HYPERLOG_CALLBACK_PREFIX LogSendMessageToQueue(tag,      \
+                                                       isimmdte, \
+                                                       buffer,   \
+                                                       len,      \
+                                                       FALSE)
 
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
@@ -152,13 +166,13 @@ typedef enum _LOG_TYPE
  * @brief Log, initilize boot information and debug information
  *
  */
-#define LogDebugInfo(format, ...)                                             \
-    if (DebugMode)                                                            \
-    LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                    UseImmediateMessaging,                    \
-                                    ShowSystemTimeOnDebugMessages,            \
-                                    FALSE,                                    \
-                                    "[+] Information (%s:%d) | " format "\n", \
-                                    __func__,                                 \
-                                    __LINE__,                                 \
-                                    __VA_ARGS__)
+#define LogDebugInfo(format, ...)                                                                      \
+    if (DebugMode)                                                                                     \
+    HYPERLOG_CALLBACK_PREFIX LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                                             UseImmediateMessaging,                    \
+                                                             ShowSystemTimeOnDebugMessages,            \
+                                                             FALSE,                                    \
+                                                             "[+] Information (%s:%d) | " format "\n", \
+                                                             __func__,                                 \
+                                                             __LINE__,                                 \
+                                                             __VA_ARGS__)

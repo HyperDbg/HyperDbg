@@ -1135,26 +1135,20 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
 
 /**
  * @brief Initializes the hypervisor
+ * @param VmmCallbacks
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HvInitVmm()
+HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
     ULONG   ProcessorCount;
     BOOLEAN Result = FALSE;
 
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking
-
     //
-    // Initialize the logging mechanism
+    // Save the callbacks
     //
-    if (!LogInitialize())
-    {
-        DbgPrint("[*] Log buffer is not initialized !\n");
-        return FALSE;
-    }
-#endif
+    RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VmmCallbacks));
 
     //
     // we allocate virtual machine here because

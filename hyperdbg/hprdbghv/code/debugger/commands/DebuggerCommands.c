@@ -1088,8 +1088,8 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     //
     // We try to flush buffers for both vmx-root and regular kernel buffer
     //
-    DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = LogMarkAllAsRead(TRUE);
-    DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
+    DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = g_Callbacks.LogMarkAllAsRead(TRUE);
+    DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = g_Callbacks.LogMarkAllAsRead(FALSE);
     DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;

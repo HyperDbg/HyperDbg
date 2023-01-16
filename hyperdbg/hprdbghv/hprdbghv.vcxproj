@@ -120,7 +120,6 @@
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
-    <ClCompile Include="code\common\Logging.c" />
     <ClCompile Include="code\common\Spinlock.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
@@ -193,7 +192,6 @@
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
-    <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\RefactorTempStructs.h" />
     <ClInclude Include="header\common\Spinlock.h" />

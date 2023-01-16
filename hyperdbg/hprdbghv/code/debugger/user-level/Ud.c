@@ -612,10 +612,10 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     // Send the pause packet, along with RIP and an indication
     // to pause to the user debugger
     //
-    LogSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE,
-                  &PausePacket,
-                  sizeof(DEBUGGEE_UD_PAUSED_PACKET),
-                  TRUE);
+    g_Callbacks.LogSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE,
+                              &PausePacket,
+                              sizeof(DEBUGGEE_UD_PAUSED_PACKET),
+                              TRUE);
 
     //
     // Halt the thread on nop sleds

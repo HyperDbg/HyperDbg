@@ -55,12 +55,6 @@
 #include "platform/MetaMacros.h"
 
 //
-// HyperLog Module
-//
-#include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
-
-//
 // VMM Callbacks
 //
 #include "SDK/Modules/VMM.h"
@@ -86,7 +80,6 @@
 //
 // Debugger Sub-types
 //
-#include "..\hprdbghv\header\common\Logging.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"
 #include "..\hprdbghv\header\debugger\transparency\Transparency.h"
@@ -142,3 +135,14 @@
 //
 #include "..\hprdbghv\header\globals\GlobalVariableManagement.h"
 #include "..\hprdbghv\header\globals\GlobalVariables.h"
+
+//
+// Define callback prefix for hyperlog
+//
+#define HYPERLOG_PREFIX g_Callbacks
+
+//
+// HyperLog Module
+//
+#include "SDK/Modules/HyperLog.h"
+#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
