@@ -20,6 +20,12 @@
     <Filter Include="header\globals">
       <UniqueIdentifier>{735642d8-2faf-4b34-92c3-1ce7278f8836}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger">
+      <UniqueIdentifier>{52042a93-3c15-42f0-97e6-11c09853ab34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger">
+      <UniqueIdentifier>{6661cd48-c84d-43e6-a631-65b75de25af2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -33,6 +39,33 @@
     <ClCompile Include="code\driver\Loader.c">
       <Filter>code\driver</Filter>
     </ClCompile>
+    <ClCompile Include="code\driver\Ioctl.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\UserAccess.c" />
+    <ClCompile Include="code\debugger\user-level\Ud.c" />
+    <ClCompile Include="code\debugger\user-level\ThreadHolder.c" />
+    <ClCompile Include="code\debugger\user-level\Attaching.c" />
+    <ClCompile Include="code\debugger\transparency\Transparency.c" />
+    <ClCompile Include="code\debugger\tests\KernelTests.c" />
+    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
+    <ClCompile Include="code\debugger\objects\Thread.c" />
+    <ClCompile Include="code\debugger\objects\Process.c" />
+    <ClCompile Include="code\debugger\kernel-level\Kd.c" />
+    <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c" />
+    <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c" />
+    <ClCompile Include="code\debugger\core\Termination.c" />
+    <ClCompile Include="code\debugger\core\Dispatch.c" />
+    <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
+    <ClCompile Include="code\debugger\core\Debugger.c" />
+    <ClCompile Include="code\debugger\communication\SerialConnection.c" />
+    <ClCompile Include="code\debugger\commands\ExtensionCommands.c" />
+    <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
+    <ClCompile Include="code\debugger\commands\Callstack.c" />
+    <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
+    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -47,5 +80,27 @@
     <ClInclude Include="header\driver\Loader.h">
       <Filter>header\driver</Filter>
     </ClInclude>
+    <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
+    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
+    <ClInclude Include="header\debugger\commands\Callstack.h" />
+    <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
+    <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
+    <ClInclude Include="header\debugger\communication\SerialConnection.h" />
+    <ClInclude Include="header\debugger\core\Debugger.h" />
+    <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
+    <ClInclude Include="header\debugger\core\Dispatch.h" />
+    <ClInclude Include="header\debugger\core\Termination.h" />
+    <ClInclude Include="header\debugger\features\Hooks.h" />
+    <ClInclude Include="header\debugger\kernel-level\Kd.h" />
+    <ClInclude Include="header\debugger\objects\Process.h" />
+    <ClInclude Include="header\debugger\objects\Thread.h" />
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
+    <ClInclude Include="header\debugger\tests\KernelTests.h" />
+    <ClInclude Include="header\debugger\transparency\Transparency.h" />
+    <ClInclude Include="header\debugger\user-level\UserAccess.h" />
+    <ClInclude Include="header\debugger\user-level\Ud.h" />
+    <ClInclude Include="header\debugger\user-level\ThreadHolder.h" />
+    <ClInclude Include="header\debugger\user-level\Attaching.h" />
   </ItemGroup>
 </Project>
