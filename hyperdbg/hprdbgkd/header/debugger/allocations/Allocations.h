@@ -1,10 +1,10 @@
 /**
- * @file GlobalVariableManagement.h
- * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
+ * @file Allocations.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers for management of global variables
  * @details
- * @version 0.1
- * @date 2022-03-29
+ * @version 0.2
+ * @date 2023-01-17
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -16,7 +16,13 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-GlobalGuestStateAllocateZeroedMemory(VOID);
+GlobalDebuggingStateAllocateZeroedMemory(VOID);
+
+BOOLEAN
+GlobalEventsAllocateZeroedMemory(VOID);
+
+BOOLEAN
+GlobalEventsFreeMemory(VOID);
 
 VOID
-    GlobalGuestStateFreeMemory(VOID);
+    GlobalDebuggingStateFreeMemory(VOID);

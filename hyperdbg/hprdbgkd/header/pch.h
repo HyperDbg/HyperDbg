@@ -31,7 +31,6 @@
 // HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
-#include "../../hprdbghv/header/common/RefactorTempStructs.h" // should be removed
 
 //
 // Import HyperLog Module
@@ -49,6 +48,8 @@
 //
 // Local Debugger headers
 //
+
+#include "debugger/core/State.h"
 #include "globals/Global.h"
 #include "driver/Driver.h"
 #include "driver/Loader.h"
@@ -60,14 +61,13 @@
 //
 // Debugger Sub-types
 //
-#include "header/debugger/transparency/Transparency.h"
 #include "header/debugger/tests/KernelTests.h"
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/core/DebuggerEvents.h"
 #include "header/debugger/script-engine/ScriptEngine.h"
+#include "header/debugger/allocations/Allocations.h"
 #include "header/debugger/kernel-level/Kd.h"
 #include "header/debugger/user-level/Ud.h"
-#include "header/debugger/core/Dispatch.h"
 #include "header/debugger/features/Hooks.h"
 #include "header/debugger/broadcast/Broadcast.h"
 #include "header/debugger/commands/BreakpointCommands.h"

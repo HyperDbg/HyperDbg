@@ -101,5 +101,7 @@
     <ClInclude Include="header\debugger\user-level\Ud.h" />
     <ClInclude Include="header\debugger\user-level\ThreadHolder.h" />
     <ClInclude Include="header\debugger\user-level\Attaching.h" />
+    <ClInclude Include="header\debugger\allocations\Allocations.h" />
+    <ClInclude Include="header\debugger\core\State.h" />
   </ItemGroup>
 </Project>

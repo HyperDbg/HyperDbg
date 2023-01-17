@@ -132,6 +132,7 @@
     <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="header\debugger\allocations\Allocations.h" />
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="header\debugger\communication\SerialConnection.h" />
     <ClInclude Include="header\debugger\core\Debugger.h" />
     <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
+    <ClInclude Include="header\debugger\core\State.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
     <ClInclude Include="header\debugger\features\Hooks.h" />
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />

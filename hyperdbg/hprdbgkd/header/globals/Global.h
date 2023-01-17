@@ -42,12 +42,6 @@ BOOLEAN g_AllowIOCTLFromUsermode;
 DEBUGGER_CORE_EVENTS * g_Events;
 
 /**
- * @brief holds the measurements from the user-mode and kernel-mode
- *
- */
-TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
-
-/**
  * @brief Holds the requests to pause the break of debuggee until
  * a special event happens
  *

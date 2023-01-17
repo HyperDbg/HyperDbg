@@ -62,54 +62,54 @@
 //
 // The core's state
 //
-#include "..\hprdbghv\header\common\State.h"
-#include "..\hprdbghv\header\common\RefactorTempStructs.h"
+#include "header/common/State.h"
 
 //
 // VMX and EPT Types
 //
-#include "..\hprdbghv\header\vmm\vmx\Vmx.h"
-#include "..\hprdbghv\header\vmm\ept\Ept.h"
+#include "header/vmm/vmx/Vmx.h"
+#include "header/vmm/ept/Ept.h"
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
 // VMX and Capabilities
 //
-#include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
-#include "..\hprdbghv\header\memory\MemoryMapper.h"
-#include "..\hprdbghv\header\interface\Dispatch.h"
-#include "..\hprdbghv\header\common\Dpc.h"
-#include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
-#include "..\hprdbghv\header\vmm\vmx\HypervTlfs.h"
-#include "..\hprdbghv\header\common\Msr.h"
-#include "..\hprdbghv\header\memory\PoolManager.h"
-#include "..\hprdbghv\header\common\Trace.h"
-#include "..\hprdbghv\header\misc\InlineAsm.h"
-#include "..\hprdbghv\header\vmm\ept\Vpid.h"
-#include "..\hprdbghv\header\common\Common.h"
-#include "..\hprdbghv\header\common\Spinlock.h"
-#include "..\hprdbghv\header\vmm\vmx\Events.h"
-#include "..\hprdbghv\header\devices\Apic.h"
-#include "..\hprdbghv\header\vmm\vmx\Mtf.h"
-#include "..\hprdbghv\header\vmm\vmx\Counters.h"
-#include "..\hprdbghv\header\vmm\vmx\IdtEmulation.h"
-#include "..\hprdbghv\header\vmm\ept\Invept.h"
-#include "..\hprdbghv\header\vmm\vmx\Vmcall.h"
-#include "..\hprdbghv\header\vmm\vmx\ManageRegs.h"
-#include "..\hprdbghv\header\components\registers\DebugRegisters.h"
-#include "..\hprdbghv\header\vmm\vmx\Hv.h"
-#include "..\hprdbghv\header\vmm\vmx\MsrHandlers.h"
-#include "..\hprdbghv\header\vmm\vmx\ProtectedHv.h"
-#include "..\hprdbghv\header\vmm\vmx\IoHandler.h"
-#include "..\hprdbghv\header\vmm\vmx\VmxMechanisms.h"
-#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
-#include "..\script-eval\header\ScriptEngineHeader.h"
+#include "transparency/Transparency.h"
+#include "vmm/vmx/VmxBroadcast.h"
+#include "memory/MemoryMapper.h"
+#include "interface/Dispatch.h"
+#include "common/Dpc.h"
+#include "common/LengthDisassemblerEngine.h"
+#include "vmm/vmx/HypervTlfs.h"
+#include "common/Msr.h"
+#include "memory/PoolManager.h"
+#include "common/Trace.h"
+#include "misc/InlineAsm.h"
+#include "vmm/ept/Vpid.h"
+#include "common/Common.h"
+#include "common/Spinlock.h"
+#include "vmm/vmx/Events.h"
+#include "devices/Apic.h"
+#include "vmm/vmx/Mtf.h"
+#include "vmm/vmx/Counters.h"
+#include "vmm/vmx/IdtEmulation.h"
+#include "vmm/ept/Invept.h"
+#include "vmm/vmx/Vmcall.h"
+#include "vmm/vmx/ManageRegs.h"
+#include "components/registers/DebugRegisters.h"
+#include "vmm/vmx/Hv.h"
+#include "vmm/vmx/MsrHandlers.h"
+#include "vmm/vmx/ProtectedHv.h"
+#include "vmm/vmx/IoHandler.h"
+#include "vmm/vmx/VmxMechanisms.h"
+#include "../script-eval/header/ScriptEngineCommonDefinitions.h"
+#include "../script-eval/header/ScriptEngineHeader.h"
 
 //
 // Global Variables should be the last header to include
 //
-#include "..\hprdbghv\header\globals\GlobalVariableManagement.h"
-#include "..\hprdbghv\header\globals\GlobalVariables.h"
+#include "header/globals/GlobalVariableManagement.h"
+#include "header/globals/GlobalVariables.h"
 
 //
 // Define callback prefix for hyperlog

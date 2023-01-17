@@ -13,6 +13,50 @@
 #include "pch.h"
 
 /**
+ * @brief Allocate debugging state memory
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+GlobalDebuggingStateAllocateZeroedMemory(VOID)
+{
+    SSIZE_T BufferSizeInByte = sizeof(PROCESSOR_DEBUGGING_STATE) * KeQueryActiveProcessorCount(0);
+
+    //
+    // Allocate global variable to hold Debugging(s) state
+    //
+    g_DbgState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
+
+    if (!g_DbgState)
+    {
+        //
+        // we use DbgPrint as the vmx-root or non-root is not initialized
+        //
+
+        LogInfo("err, insufficient memory for allocating debugging state\n");
+        return FALSE;
+    }
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(g_DbgState, BufferSizeInByte);
+
+    return TRUE;
+}
+
+/**
+ * @brief Free debugging state memory
+ *
+ * @return VOID
+ */
+VOID
+GlobalDebuggingStateFreeMemory(VOID)
+{
+    ExFreePoolWithTag(g_DbgState, POOLTAG);
+}
+
+/**
  * @brief Allocate event store memory
  *
  * @return BOOLEAN

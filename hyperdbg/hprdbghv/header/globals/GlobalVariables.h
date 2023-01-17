@@ -37,12 +37,6 @@ UINT32 g_LastError;
 VIRTUAL_MACHINE_STATE * g_GuestState;
 
 /**
- * @brief Save the state and variables related to debugging on each to logical core
- *
- */
-PROCESSOR_DEBUGGING_STATE * g_DbgState;
-
-/**
  * @brief Save the state of memory mapper
  *
  */
@@ -72,6 +66,12 @@ BOOLEAN g_ExecuteOnlySupport;
  *
  */
 BOOLEAN g_AllowIOCTLFromUsermode;
+
+/**
+ * @brief holds the measurements from the user-mode and kernel-mode
+ *
+ */
+TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 
 /**
  * @brief Determines whether the debugger events should be active or not

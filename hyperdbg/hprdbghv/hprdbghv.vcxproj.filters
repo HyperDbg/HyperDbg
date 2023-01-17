@@ -194,6 +194,9 @@
     <ClCompile Include="code\interface\Dispatch.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\transparency\Transparency.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -298,13 +301,13 @@
     <ClInclude Include="header\common\State.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\RefactorTempStructs.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
     <ClInclude Include="header\common\Spinlock.h">
       <Filter>header\common</Filter>
     </ClInclude>
     <ClInclude Include="header\interface\Dispatch.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\transparency\Transparency.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
