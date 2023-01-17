@@ -34,3 +34,40 @@ BOOLEAN g_HandleInUse;
  *
  */
 BOOLEAN g_AllowIOCTLFromUsermode;
+
+/**
+ * @brief events list (for debugger)
+ *
+ */
+DEBUGGER_CORE_EVENTS * g_Events;
+
+/**
+ * @brief holds the measurements from the user-mode and kernel-mode
+ *
+ */
+TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
+
+/**
+ * @brief Holds the requests to pause the break of debuggee until
+ * a special event happens
+ *
+ */
+DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
+
+/**
+ * @brief Holds the state of hardware debug register for step-over
+ *
+ */
+HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
+
+/**
+ * @brief Process switch to EPROCESS or Process ID
+ *
+ */
+DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
+
+/**
+ * @brief Thread switch to ETHREAD or Thread ID
+ *
+ */
+DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;

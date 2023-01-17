@@ -55,12 +55,6 @@ MEMORY_MAPPER_ADDRESSES * g_MemoryMapper;
 EPT_STATE * g_EptState;
 
 /**
- * @brief events list (for debugger)
- *
- */
-DEBUGGER_CORE_EVENTS * g_Events;
-
-/**
  * @brief Holder of script engines global variables
  *
  */
@@ -109,12 +103,6 @@ UINT64 g_MaximumBreakpointId;
  *
  */
 BOOLEAN g_TransparentMode;
-
-/**
- * @brief holds the measurements from the user-mode and kernel-mode
- *
- */
-TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 
 /**
  * @brief shows whether the kernel debugger is enabled or disabled
@@ -184,19 +172,6 @@ BOOLEAN g_RtmSupport;
 UINT32 g_VirtualAddressWidth;
 
 /**
- * @brief Holds the requests to pause the break of debuggee until
- * a special event happens
- *
- */
-DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
-
-/**
- * @brief Holds the state of hardware debug register for step-over
- *
- */
-HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
-
-/**
  * @brief Target function for kernel tests
  *
  */
@@ -229,18 +204,6 @@ UINT64 g_KernelTestR12;
  *
  */
 BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
-
-/**
- * @brief Process switch to EPROCESS or Process ID
- *
- */
-DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
-
-/**
- * @brief Thread switch to ETHREAD or Thread ID
- *
- */
-DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
 
 /**
  * @brief Bitmap of MSRs that cause #GP

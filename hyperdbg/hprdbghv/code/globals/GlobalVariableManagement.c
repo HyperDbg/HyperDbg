@@ -97,37 +97,3 @@ GlobalGuestStateFreeMemory(VOID)
 {
     ExFreePoolWithTag(g_GuestState, POOLTAG);
 }
-
-BOOLEAN
-GlobalEventsAllocateZeroedMemory(VOID)
-{
-    //
-    // Allocate buffer for saving events
-    //
-    if (!g_Events)
-    {
-        g_Events = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_CORE_EVENTS), POOLTAG);
-    }
-
-    if (g_Events)
-    {
-        //
-        // Zero the buffer
-        //
-        RtlZeroBytes(g_Events, sizeof(DEBUGGER_CORE_EVENTS));
-    }
-
-    return g_Events != NULL;
-}
-
-BOOLEAN
-GlobalEventsFreeMemory(VOID)
-{
-    if (g_Events != NULL)
-    {
-        ExFreePoolWithTag(g_Events, POOLTAG);
-        g_Events = NULL;
-    }
-
-    return g_Events == NULL;
-}

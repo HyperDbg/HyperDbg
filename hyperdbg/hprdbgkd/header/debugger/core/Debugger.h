@@ -157,24 +157,6 @@ typedef struct _DEBUGGER_EVENT
  */
 
 //////////////////////////////////////////////////
-//	    				Enums					//
-//////////////////////////////////////////////////
-
-/**
- * @brief The status of triggering events
- *
- */
-typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-{
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED = 0,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL                = 0,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT   = 1,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED      = 2,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE        = 3,
-
-} DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE;
-
-//////////////////////////////////////////////////
 //					Data Type					//
 //////////////////////////////////////////////////
 

@@ -188,6 +188,12 @@
     <ClCompile Include="code\vmm\export\Export.c">
       <Filter>code\vmm\Export</Filter>
     </ClCompile>
+    <ClCompile Include="code\interface\Export.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\interface\Dispatch.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -297,6 +303,9 @@
     </ClInclude>
     <ClInclude Include="header\common\Spinlock.h">
       <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Dispatch.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
