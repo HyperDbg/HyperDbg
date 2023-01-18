@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief Thread for listening for results 
+ * @brief Thread for listening for results
  *
  * @param Data
  * @return DWORD Device Handle
@@ -86,7 +86,7 @@ ReadAgain:
  * @param PipeHandle
  * @param KernelInformation
  * @param KernelInformationSize
- * 
+ *
  * @return VOID
  */
 VOID

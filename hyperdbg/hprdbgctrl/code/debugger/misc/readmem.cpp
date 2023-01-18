@@ -27,7 +27,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  * @param Pid The target process id
  * @param Size size of memory to read
  * @param DtDetails Options for dt structure show details
- * 
+ *
  * @return VOID
  */
 VOID

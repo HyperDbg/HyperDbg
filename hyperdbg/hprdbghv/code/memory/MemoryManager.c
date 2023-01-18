@@ -1,28 +1,28 @@
 /**
  * @file MemoryManager.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Reading/Writing memory and all memory affairs 
- * 
+ * @brief Reading/Writing memory and all memory affairs
+ *
  * @version 0.1
  * @date 2020-04-24
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Read process memory
- * 
+ *
  * @details This function should not be called from vmx-root mode
- * 
+ *
  * @param PID Target Process Id
  * @param Address Target Address
  * @param MemType Type of memory
  * @param UserBuffer Buffer to save to the user. This buffer must be in nonpageable memory.
  * @param Size Size of read
  * @param ReturnSize Return Size
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,

@@ -72,14 +72,23 @@
     <Filter Include="code\globals">
       <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\script-eval">
-      <UniqueIdentifier>{59005a75-5137-42a4-867a-ccf06fae2f9f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\devices\globals">
       <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\vmm\Export">
       <UniqueIdentifier>{eb436c9d-4db9-403c-a163-3ec7357a72c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\interface">
+      <UniqueIdentifier>{20741da2-52c0-4c6c-ab4f-d8a29bae81e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\transparency">
+      <UniqueIdentifier>{33ddc8db-b65a-4ebd-a214-1b8060bf6ab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\transparency">
+      <UniqueIdentifier>{3646ca74-c21f-4d7d-8e93-51ec5fae9d0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\interface">
+      <UniqueIdentifier>{bd4cf053-c1f6-40df-984d-37f9f50b85ac}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -167,35 +176,17 @@
     <ClCompile Include="code\globals\GlobalVariableManagement.c">
       <Filter>code\globals</Filter>
     </ClCompile>
-    <ClCompile Include="pch.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
-      <Filter>code\script-eval</Filter>
-    </ClCompile>
-    <ClCompile Include="..\script-eval\code\PseudoRegisters.c">
-      <Filter>code\script-eval</Filter>
-    </ClCompile>
-    <ClCompile Include="..\script-eval\code\Keywords.c">
-      <Filter>code\script-eval</Filter>
-    </ClCompile>
-    <ClCompile Include="..\script-eval\code\Functions.c">
-      <Filter>code\script-eval</Filter>
-    </ClCompile>
-    <ClCompile Include="..\script-eval\code\Regs.c">
-      <Filter>code\script-eval</Filter>
-    </ClCompile>
     <ClCompile Include="code\vmm\export\Export.c">
       <Filter>code\vmm\Export</Filter>
     </ClCompile>
-    <ClCompile Include="code\interface\Export.c">
-      <Filter>code</Filter>
-    </ClCompile>
     <ClCompile Include="code\interface\Dispatch.c">
-      <Filter>code</Filter>
+      <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\interface\Export.c">
+      <Filter>code\interface</Filter>
     </ClCompile>
     <ClCompile Include="code\transparency\Transparency.c">
-      <Filter>code</Filter>
+      <Filter>code\transparency</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -304,11 +295,11 @@
     <ClInclude Include="header\common\Spinlock.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\interface\Dispatch.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="header\transparency\Transparency.h">
-      <Filter>header</Filter>
+      <Filter>header\transparency</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Dispatch.h">
+      <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -51,12 +51,12 @@ extern BOOLEAN                                      g_AddressConversion;
 typedef struct ZydisSymbol_
 {
     /**
-   * @brief The symbol address.
-   */
+     * @brief The symbol address.
+     */
     ZyanU64 address;
     /**
-   * @brief The symbol name.
-   */
+     * @brief The symbol name.
+     */
     const char * name;
 } ZydisSymbol;
 

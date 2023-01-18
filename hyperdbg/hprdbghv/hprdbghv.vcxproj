@@ -70,7 +70,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <ExternalWarningLevel>Level4</ExternalWarningLevel>
@@ -100,7 +100,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -114,11 +114,6 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\script-eval\code\Functions.c" />
-    <ClCompile Include="..\script-eval\code\Keywords.c" />
-    <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
-    <ClCompile Include="..\script-eval\code\Regs.c" />
-    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Spinlock.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
@@ -134,7 +129,6 @@
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
-    <ClCompile Include="code\vmm\export\Export.c" />
     <ClCompile Include="code\vmm\vmx\Counters.c" />
     <ClCompile Include="code\vmm\vmx\CrossVmexits.c" />
     <ClCompile Include="code\vmm\vmx\Events.c" />
@@ -151,10 +145,6 @@
     <ClCompile Include="code\vmm\vmx\VmxBroadcast.c" />
     <ClCompile Include="code\vmm\vmx\VmxMechanisms.c" />
     <ClCompile Include="code\vmm\vmx\VmxRegions.c" />
-    <ClCompile Include="pch.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm" />

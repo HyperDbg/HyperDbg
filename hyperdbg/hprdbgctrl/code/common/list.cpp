@@ -16,8 +16,8 @@
 // *
 // * @param ListHead
 // */
-//void
-//InitializeListHead(PLIST_ENTRY ListHead)
+// void
+// InitializeListHead(PLIST_ENTRY ListHead)
 //{
 //    ListHead->Flink = ListHead->Blink = ListHead;
 //}
@@ -28,8 +28,8 @@
 // * @param ListHead
 // * @param Entry
 // */
-//void
-//InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
+// void
+// InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 //{
 //    PLIST_ENTRY Flink;
 //
@@ -46,8 +46,8 @@
 // * @param Entry
 // * @return BOOLEAN
 // */
-//BOOLEAN
-//RemoveEntryList(PLIST_ENTRY Entry)
+// BOOLEAN
+// RemoveEntryList(PLIST_ENTRY Entry)
 //{
 //    PLIST_ENTRY PrevEntry;
 //    PLIST_ENTRY NextEntry;

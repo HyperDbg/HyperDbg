@@ -3,12 +3,12 @@
  * @file MetaMacros.h
  * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
  * @brief Helper macros
- * @details 
+ * @details
  * @version 0.1
  * @date 2022-05-05
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 

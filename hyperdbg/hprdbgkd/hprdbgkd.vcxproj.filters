@@ -26,6 +26,9 @@
     <Filter Include="header\debugger">
       <UniqueIdentifier>{6661cd48-c84d-43e6-a631-65b75de25af2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\script-eval">
+      <UniqueIdentifier>{9c5ef820-f8c2-41f0-9684-12ac16703f85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -66,6 +69,21 @@
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\allocations\Allocations.c" />
+    <ClCompile Include="..\script-eval\code\Functions.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Keywords.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Regs.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">

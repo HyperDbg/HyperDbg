@@ -19,8 +19,9 @@
 //
 // Scope definitions
 //
-#define SCRIPT_ENGINE_KERNEL_MODE
 #define HYPERDBG_KERNEL_MODE
+#define HYPERDBG_DEBUGGER
+#define SCRIPT_ENGINE_KERNEL_MODE
 
 //
 // Import Configuration
@@ -58,6 +59,7 @@
 // Debugger Types
 //
 #include "header/debugger/core/Debugger.h"
+
 //
 // Debugger Sub-types
 //
@@ -81,3 +83,9 @@
 #include "header/debugger/core/Termination.h"
 #include "header/debugger/user-level/UserAccess.h"
 #include "header/debugger/user-level/ThreadHolder.h"
+
+//
+// Script engine headers
+//
+#include "../script-eval/header/ScriptEngineCommonDefinitions.h"
+#include "../script-eval/header/ScriptEngineHeader.h"

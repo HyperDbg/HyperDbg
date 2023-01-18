@@ -2,20 +2,20 @@
  * @file ThreadHolder.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief User debugger's thread holder
- * @details 
+ * @details
  *
  * @version 0.1
  * @date 2022-01-28
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
- * @brief Pre allocate buffer for thread holder 
- * 
- * @return VOID 
+ * @brief Pre allocate buffer for thread holder
+ *
+ * @return VOID
  */
 VOID
 ThreadHolderAllocateThreadHoldingBuffers()
@@ -33,10 +33,10 @@ ThreadHolderAllocateThreadHoldingBuffers()
 }
 
 /**
- * @brief Assign a thread holder to process debugging details 
- * 
- * @param ProcessDebuggingDetail 
- * @return BOOLEAN 
+ * @brief Assign a thread holder to process debugging details
+ *
+ * @param ProcessDebuggingDetail
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadHolderAssignThreadHolderToProcessDebuggingDetails(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
@@ -68,10 +68,10 @@ ThreadHolderAssignThreadHolderToProcessDebuggingDetails(PUSERMODE_DEBUGGING_PROC
 }
 
 /**
- * @brief Check if there is any thread paused by checking process debugging details 
- * 
- * @param ProcessDebuggingDetail 
- * @return BOOLEAN 
+ * @brief Check if there is any thread paused by checking process debugging details
+ *
+ * @param ProcessDebuggingDetail
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
@@ -100,10 +100,10 @@ ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 
 /**
  * @brief Find the active threads of the process from process id
- * 
- * @param ProcessId 
- * @param ThreadId 
- * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
+ *
+ * @param ProcessId
+ * @param ThreadId
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS
  */
 PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId)
@@ -149,9 +149,9 @@ ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT
 
 /**
  * @brief Find the first active threads of the process from process id
- * 
- * @param ProcessId 
- * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
+ *
+ * @param ProcessId
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS
  */
 PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId)
@@ -197,9 +197,9 @@ ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId)
 
 /**
  * @brief Find the active process debugging detail from the thread id
- * 
- * @param ThreadId 
- * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
+ *
+ * @param ThreadId
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS
  */
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 ThreadHolderGetProcessDebuggingDetailsByThreadId(UINT32 ThreadId)
@@ -248,10 +248,10 @@ ThreadHolderGetProcessDebuggingDetailsByThreadId(UINT32 ThreadId)
 
 /**
  * @brief Find or create user-mode debugging details for threads
- * 
- * @param ThreadId 
- * @param ProcessDebuggingDetail 
- * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
+ *
+ * @param ThreadId
+ * @param ProcessDebuggingDetail
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS
  */
 PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
@@ -352,13 +352,13 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
 }
 
 /**
- * @brief Apply the action of the user debugger to a specific thread or 
+ * @brief Apply the action of the user debugger to a specific thread or
  * all threads
- * 
- * @param ProcessDebuggingDetails 
- * @param ActionRequest 
  *
- * @return BOOLEAN Shows whether the command is applied or not 
+ * @param ProcessDebuggingDetails
+ * @param ActionRequest
+ *
+ * @return BOOLEAN Shows whether the command is applied or not
  */
 BOOLEAN
 ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
@@ -456,10 +456,10 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 }
 
 /**
- * @brief Free all of thread holder structures 
- * 
- * @param ProcessDebuggingDetail 
- * @return VOID 
+ * @brief Free all of thread holder structures
+ *
+ * @param ProcessDebuggingDetail
+ * @return VOID
  */
 VOID
 ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
@@ -484,8 +484,8 @@ ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDeb
 
 /**
  * @brief Query count of active debugging threads and processes
- * 
- * @return UINT32 
+ *
+ * @return UINT32
  */
 UINT32
 ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses()
@@ -539,11 +539,11 @@ ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses()
 
 /**
  * @brief Query details of active debugging threads and processes
- * 
+ *
  * @param BufferToStoreDetails
  * @param MaxCount
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(

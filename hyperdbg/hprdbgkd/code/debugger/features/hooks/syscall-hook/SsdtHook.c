@@ -5,17 +5,17 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Get the kernel base and Image size
- * 
+ *
  * @param pImageSize [Out] Image size
- * @return PVOID 
+ * @return PVOID
  */
 PVOID
 SyscallHookGetKernelBase(PULONG pImageSize)
@@ -76,7 +76,7 @@ SyscallHookGetKernelBase(PULONG pImageSize)
 
 /**
  * @brief Find SSDT address of Nt fucntions and W32Table
- * 
+ *
  * @param NtTable [Out] Address of Nt Syscall Table
  * @param Win32kTable [Out] Address of Win32k Syscall Table
  * @return BOOLEAN Returns true if it can find the nt tables and win32k successfully otherwise
@@ -150,7 +150,7 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 
 /**
  * @brief Find entry from SSDT table of Nt fucntions and W32Table syscalls
- * 
+ *
  * @param ApiNumber The Syscall Number
  * @param GetFromWin32k Is this syscall from Win32K
  * @return PVOID Returns the address of the function from SSDT, otherwise returns NULL
@@ -200,19 +200,19 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 
 /**
  * @brief Hook function that hooks NtCreateFile
- * 
- * @param FileHandle 
- * @param DesiredAccess 
- * @param ObjectAttributes 
- * @param IoStatusBlock 
- * @param AllocationSize 
- * @param FileAttributes 
- * @param ShareAccess 
- * @param CreateDisposition 
- * @param CreateOptions 
- * @param EaBuffer 
- * @param EaLength 
- * @return NTSTATUS 
+ *
+ * @param FileHandle
+ * @param DesiredAccess
+ * @param ObjectAttributes
+ * @param IoStatusBlock
+ * @param AllocationSize
+ * @param FileAttributes
+ * @param ShareAccess
+ * @param CreateDisposition
+ * @param CreateOptions
+ * @param EaBuffer
+ * @param EaLength
+ * @return NTSTATUS
  */
 NTSTATUS
 NtCreateFileHook(
@@ -266,8 +266,8 @@ NtCreateFileHook(
 /**
  * @brief Make examples for testing hidden hooks
  * @details THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 SyscallHookTest()

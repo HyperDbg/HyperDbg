@@ -12,16 +12,16 @@
  */
 #include "pch.h"
 
-//#define _SCRIPT_ENGINE_LALR_DBG_EN
-//#define _SCRIPT_ENGINE_LL1_DBG_EN
-//#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
+// #define _SCRIPT_ENGINE_LALR_DBG_EN
+// #define _SCRIPT_ENGINE_LL1_DBG_EN
+// #define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
  * @brief Converts name to address
- * 
- * @param FunctionOrVariableName 
- * @param WasFound 
- * @return UINT64 
+ *
+ * @param FunctionOrVariableName
+ * @param WasFound
+ * @return UINT64
  */
 UINT64
 ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
@@ -33,13 +33,13 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 }
 
 /**
- * 
+ *
 
  Load symbol files
- * 
- * @param BaseAddress 
- * @param PdbFileName 
- * @return UINT32 
+ *
+ * @param BaseAddress
+ * @param PdbFileName
+ * @return UINT32
  */
 UINT32
 ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
@@ -52,9 +52,9 @@ ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
 /**
  * @brief Set the message handler as an alternative to printf
- * 
- * @param Handler 
- * @return VOID 
+ *
+ * @param Handler
+ * @return VOID
  */
 VOID
 ScriptEngineSetTextMessageCallback(PVOID Handler)
@@ -64,8 +64,8 @@ ScriptEngineSetTextMessageCallback(PVOID Handler)
 
 /**
  * @brief Unload all the previously loaded symbols
- * 
- * @return UINT32 
+ *
+ * @return UINT32
  */
 UINT32
 ScriptEngineUnloadAllSymbols()
@@ -78,9 +78,9 @@ ScriptEngineUnloadAllSymbols()
 
 /**
  * @brief Unload a special pdb
- * 
- * @param ModuleName 
- * @return UINT32 
+ *
+ * @param ModuleName
+ * @return UINT32
  */
 UINT32
 ScriptEngineUnloadModuleSymbol(char * ModuleName)
@@ -93,9 +93,9 @@ ScriptEngineUnloadModuleSymbol(char * ModuleName)
 
 /**
  * @brief Search for a special mask
- * 
- * @param SearchMask 
- * @return UINT32 
+ *
+ * @param SearchMask
+ * @return UINT32
  */
 UINT32
 ScriptEngineSearchSymbolForMask(const char * SearchMask)
@@ -108,11 +108,11 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
 
 /**
  * @brief Get offset of a field from the structure
- * 
- * @param TypeName 
- * @param FieldName 
- * @param FieldOffset 
- * @return BOOLEAN 
+ *
+ * @param TypeName
+ * @param FieldName
+ * @param FieldOffset
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
@@ -125,10 +125,10 @@ ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffs
 
 /**
  * @brief Get size of a data type (structure)
- * 
- * @param TypeName 
- * @param TypeSize 
- * @return BOOLEAN 
+ *
+ * @param TypeName
+ * @param TypeSize
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
@@ -141,9 +141,9 @@ ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
 
 /**
  * @brief Create symbol table for disassembler
- * 
- * @param CallbackFunction 
- * @return BOOLEAN 
+ *
+ * @param CallbackFunction
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
@@ -156,10 +156,10 @@ ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
 
 /**
  * @brief Convert local file to pdb path
- * 
- * @param LocalFilePath 
- * @param ResultPath 
- * @return BOOLEAN 
+ *
+ * @param LocalFilePath
+ * @param ResultPath
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
@@ -172,13 +172,13 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 
 /**
  * @brief Initial load of the symbols
- * 
- * @param BufferToStoreDetails 
- * @param StoredLength 
- * @param DownloadIfAvailable 
- * @param SymbolPath 
- * @param IsSilentLoad 
- * @return BOOLEAN 
+ *
+ * @param BufferToStoreDetails
+ * @param StoredLength
+ * @param DownloadIfAvailable
+ * @param SymbolPath
+ * @param IsSilentLoad
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
@@ -195,13 +195,13 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
 
 /**
  * @brief Show data based on symbol types
- * 
- * @param TypeName 
- * @param Address 
- * @param IsStruct 
- * @param BufferAddress 
- * @param AdditionalParameters 
- * @return BOOLEAN 
+ *
+ * @param TypeName
+ * @param Address
+ * @param IsStruct
+ * @param BufferAddress
+ * @param AdditionalParameters
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
@@ -218,8 +218,8 @@ ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
 
 /**
  * @brief Cancel loading
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ScriptEngineSymbolAbortLoading()
@@ -232,11 +232,11 @@ ScriptEngineSymbolAbortLoading()
 
 /**
  * @brief Convert file to pdb attributes for symbols
- * 
- * @param LocalFilePath 
- * @param PdbFilePath 
- * @param GuidAndAgeDetails 
- * @return BOOLEAN 
+ *
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
@@ -249,9 +249,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 
 /**
  * @brief The entry point of script engine
- * 
- * @param str 
- * @return PSYMBOL_BUFFER 
+ *
+ * @param str
+ * @return PSYMBOL_BUFFER
  */
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
@@ -476,12 +476,12 @@ ScriptEngineParse(char * str)
 }
 
 /**
- * @brief Script Engine code generator 
- * 
- * @param MatchedStack 
- * @param CodeBuffer 
- * @param Operator 
- * @param Error 
+ * @brief Script Engine code generator
+ *
+ * @param MatchedStack
+ * @param CodeBuffer
+ * @param Operator
+ * @param Error
  */
 void
 CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
@@ -1505,11 +1505,11 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
 /**
  * @brief Computes the boolean expression length starting from the current input position
- * 
- * @param str 
- * @param WaitForWaitStatementBooleanExpression 
- * @param CurrentIn 
- * @return UINT64 
+ *
+ * @param str
+ * @param WaitForWaitStatementBooleanExpression
+ * @param CurrentIn
+ * @return UINT64
  */
 UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn)
@@ -1552,15 +1552,15 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 }
 
 /**
- * @brief LALR parser used for parsing boolean expression 
- * 
- * @param BooleanExpressionSize 
- * @param FirstToken 
- * @param MatchedStack 
- * @param CodeBuffer 
- * @param str 
- * @param c 
- * @param Error 
+ * @brief LALR parser used for parsing boolean expression
+ *
+ * @param BooleanExpressionSize
+ * @param FirstToken
+ * @param MatchedStack
+ * @param CodeBuffer
+ * @param str
+ * @param c
+ * @param Error
  */
 void
 ScriptEngineBooleanExpresssionParse(
@@ -1734,9 +1734,9 @@ ScriptEngineBooleanExpresssionParse(
 }
 
 /**
- * @brief Allocates a new SYMBOL and returns the reference to it 
- * 
- * @return PSYMBOL 
+ * @brief Allocates a new SYMBOL and returns the reference to it
+ *
+ * @return PSYMBOL
  */
 PSYMBOL
 NewSymbol(void)
@@ -1749,10 +1749,10 @@ NewSymbol(void)
 }
 
 /**
- * @brief Allocates a new SYMBOL with string type and returns the reference to it 
- * 
- * @param value 
- * @return PSYMBOL 
+ * @brief Allocates a new SYMBOL with string type and returns the reference to it
+ *
+ * @param value
+ * @return PSYMBOL
  */
 PSYMBOL
 NewStringSymbol(char * value)
@@ -1766,10 +1766,10 @@ NewStringSymbol(char * value)
 }
 
 /**
- * @brief Returns the number of SYMBOL objects (16 bytes) allocated by string sybmol 
- * 
- * @param Symbol 
- * @return unsigned int 
+ * @brief Returns the number of SYMBOL objects (16 bytes) allocated by string sybmol
+ *
+ * @param Symbol
+ * @return unsigned int
  */
 unsigned int
 GetStringSymbolSize(PSYMBOL Symbol)
@@ -1780,8 +1780,8 @@ GetStringSymbolSize(PSYMBOL Symbol)
 
 /**
  * @brief Frees the memory allocate by this Symbol
- * 
- * @param Symbol 
+ *
+ * @param Symbol
  */
 void
 RemoveSymbol(PSYMBOL * Symbol)
@@ -1793,8 +1793,8 @@ RemoveSymbol(PSYMBOL * Symbol)
 
 /**
  * @brief Prints symbol
- * 
- * @param Symbol 
+ *
+ * @param Symbol
  */
 void
 PrintSymbol(PSYMBOL Symbol)
@@ -1811,10 +1811,10 @@ PrintSymbol(PSYMBOL Symbol)
 
 /**
  * @brief Converts Token to Symbol and returns the reference to it
- * 
- * @param Token 
- * @param Error 
- * @return PSYMBOL 
+ *
+ * @param Token
+ * @param Error
+ * @return PSYMBOL
  */
 PSYMBOL
 ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
@@ -1879,9 +1879,9 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
- * @brief allocates a new Symbol Buffer and returns the reference to it 
- * 
- * @return PSYMBOL_BUFFER 
+ * @brief allocates a new Symbol Buffer and returns the reference to it
+ *
+ * @return PSYMBOL_BUFFER
  */
 PSYMBOL_BUFFER
 NewSymbolBuffer(void)
@@ -1896,9 +1896,9 @@ NewSymbolBuffer(void)
 }
 
 /**
- * @brief Frees the memory allocated by SymbolBuffer 
- * 
- * @param SymbolBuffer 
+ * @brief Frees the memory allocated by SymbolBuffer
+ *
+ * @param SymbolBuffer
  */
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
@@ -1910,10 +1910,10 @@ RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 
 /**
  * @brief Gets a symbol and push it into the symbol buffer
- * 
- * @param SymbolBuffer 
- * @param Symbol 
- * @return PSYMBOL_BUFFER 
+ *
+ * @param SymbolBuffer
+ * @param Symbol
+ * @return PSYMBOL_BUFFER
  */
 PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
@@ -2016,8 +2016,8 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 
 /**
  * @brief Prints a symbol buffer
- * 
- * @param SymbolBuffer 
+ *
+ * @param SymbolBuffer
  */
 void
 PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
@@ -2043,9 +2043,9 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 
 /**
  * @brief Converts register string to integer
- * 
- * @param str 
- * @return unsigned long long int 
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 RegisterToInt(char * str)
@@ -2062,9 +2062,9 @@ RegisterToInt(char * str)
 
 /**
  * @brief Converts pseudo register string to integer
- * 
- * @param str 
- * @return unsigned long long int 
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 PseudoRegToInt(char * str)
@@ -2080,10 +2080,10 @@ PseudoRegToInt(char * str)
 }
 
 /**
- * @brief Converts a sematinc rule token to integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts a sematinc rule token to integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 SemanticRuleToInt(char * str)
@@ -2099,11 +2099,11 @@ SemanticRuleToInt(char * str)
 }
 
 /**
- * @brief Prints some information about the error 
- * 
- * @param Error 
- * @param str 
- * @return char* 
+ * @brief Prints some information about the error
+ *
+ * @param Error
+ * @param str
+ * @return char*
  */
 char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
@@ -2192,10 +2192,10 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 }
 
 /**
- * @brief Returns the integer assigned to global variable 
- * 
- * @param Token 
- * @return int 
+ * @brief Returns the integer assigned to global variable
+ *
+ * @param Token
+ * @return int
  */
 int
 GetGlobalIdentifierVal(PTOKEN Token)
@@ -2214,9 +2214,9 @@ GetGlobalIdentifierVal(PTOKEN Token)
 
 /**
  * @brief Returns the integer assigned to local variable
- * 
- * @param Token 
- * @return int 
+ *
+ * @param Token
+ * @return int
  */
 int
 GetLocalIdentifierVal(PTOKEN Token)
@@ -2234,10 +2234,10 @@ GetLocalIdentifierVal(PTOKEN Token)
 }
 
 /**
- * @brief Allocates a new gloabal variable and returns the integer assigned to it 
- * 
- * @param Token 
- * @return int 
+ * @brief Allocates a new gloabal variable and returns the integer assigned to it
+ *
+ * @param Token
+ * @return int
  */
 int
 NewGlobalIdentifier(PTOKEN Token)
@@ -2248,10 +2248,10 @@ NewGlobalIdentifier(PTOKEN Token)
 }
 
 /**
- * @brief Allocates a new local variable and returns the integer assigned to it 
- * 
- * @param Token 
- * @return int 
+ * @brief Allocates a new local variable and returns the integer assigned to it
+ *
+ * @param Token
+ * @return int
  */
 int
 NewLocalIdentifier(PTOKEN Token)
@@ -2262,10 +2262,10 @@ NewLocalIdentifier(PTOKEN Token)
 }
 
 /**
- * @brief Returns the size of Right Hand Side (RHS) of a rule  
- * 
- * @param RuleId 
- * @return int 
+ * @brief Returns the size of Right Hand Side (RHS) of a rule
+ *
+ * @param RuleId
+ * @return int
  */
 int
 LalrGetRhsSize(int RuleId)
@@ -2283,10 +2283,10 @@ LalrGetRhsSize(int RuleId)
 }
 
 /**
- * @brief Returns TRUE if the Token can be the operand of an operator 
- * 
- * @param Token 
- * @return BOOL 
+ * @brief Returns TRUE if the Token can be the operand of an operator
+ *
+ * @param Token
+ * @return BOOL
  */
 BOOL
 LalrIsOperandType(PTOKEN Token)

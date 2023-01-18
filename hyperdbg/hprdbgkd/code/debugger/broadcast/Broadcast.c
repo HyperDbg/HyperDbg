@@ -5,17 +5,17 @@
  * @details This file uses DPC to run its functions on all logical cores
  * @version 0.1
  * @date 2020-04-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief routines to broadcast virtualization and vmx initialization
-*  on all cores 
-*
-* @return VOID 
+ *  on all cores
+ *
+ * @return VOID
  */
 VOID
 BroadcastVmxVirtualizationAllCores()
@@ -27,9 +27,9 @@ BroadcastVmxVirtualizationAllCores()
 }
 
 /**
- * @brief routines to set vm-exit on all #DBs and #BP on all cores 
-*
-* @return VOID 
+ * @brief routines to set vm-exit on all #DBs and #BP on all cores
+ *
+ * @return VOID
  */
 VOID
 BroadcastEnableDbAndBpExitingAllCores()
@@ -41,9 +41,9 @@ BroadcastEnableDbAndBpExitingAllCores()
 }
 
 /**
- * @brief routines to unset vm-exit on all #DBs and #BP on all cores 
+ * @brief routines to unset vm-exit on all #DBs and #BP on all cores
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 BroadcastDisableDbAndBpExitingAllCores()
@@ -55,9 +55,9 @@ BroadcastDisableDbAndBpExitingAllCores()
 }
 
 /**
- * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
+ * @brief routines to enable vm-exit for breakpoints (exception bitmap)
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
@@ -69,9 +69,9 @@ BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
 }
 
 /**
- * @brief routines to disable vm-exit for breakpoints (exception bitmap) 
-*
-* @return VOID 
+ * @brief routines to disable vm-exit for breakpoints (exception bitmap)
+ *
+ * @return VOID
  */
 VOID
 BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
@@ -83,9 +83,9 @@ BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
 }
 
 /**
- * @brief routines to set vm-exit on all NMIs on all cores 
+ * @brief routines to set vm-exit on all NMIs on all cores
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 BroadcastEnableNmiExitingAllCores()
@@ -97,9 +97,9 @@ BroadcastEnableNmiExitingAllCores()
 }
 
 /**
- * @brief routines to set vm-exit on all NMIs on all cores 
+ * @brief routines to set vm-exit on all NMIs on all cores
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 BroadcastDisableNmiExitingAllCores()
@@ -111,9 +111,9 @@ BroadcastDisableNmiExitingAllCores()
 }
 
 /**
- * @brief routines to notify to invalidate their ept on all cores 
+ * @brief routines to notify to invalidate their ept on all cores
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 BroadcastNotifyAllToInvalidateEptAllCores()

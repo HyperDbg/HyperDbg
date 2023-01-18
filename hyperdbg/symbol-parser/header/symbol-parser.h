@@ -2,7 +2,7 @@
  * @file symbol-parser.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief symbol parser headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-05-29
  *

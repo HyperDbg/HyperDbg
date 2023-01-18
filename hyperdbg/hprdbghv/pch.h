@@ -102,8 +102,6 @@
 #include "vmm/vmx/ProtectedHv.h"
 #include "vmm/vmx/IoHandler.h"
 #include "vmm/vmx/VmxMechanisms.h"
-#include "../script-eval/header/ScriptEngineCommonDefinitions.h"
-#include "../script-eval/header/ScriptEngineHeader.h"
 
 //
 // Global Variables should be the last header to include

@@ -65,7 +65,7 @@ KdHyperDbgTest(UINT16 Byte)
 
     CPPORT TempPort    = {0};
     TempPort.Address   = 0x2f8;
-    TempPort.BaudRate  = 0x01c200; //115200
+    TempPort.BaudRate  = 0x01c200; // 115200
     TempPort.Flags     = 0;
     TempPort.ByteWidth = 1;
 
