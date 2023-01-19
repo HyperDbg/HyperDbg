@@ -34,10 +34,23 @@ LoaderInitVmmAndDebugger()
     MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
 
     //
-    // Fill the callbacks for the VMM module
+    // Fill the callbacks for using hyperlog in VMM
     //
     VmmCallbacks.LogPrepareAndSendMessageToQueue = LogPrepareAndSendMessageToQueue;
     VmmCallbacks.LogSendMessageToQueue           = LogSendMessageToQueue;
+    VmmCallbacks.LogSendBuffer                   = LogSendBuffer;
+
+    //
+    // Fill the callbacks for the VMM module
+    //
+    VmmCallbacks.DebuggerTriggerEvents                          = DebuggerTriggerEvents;
+    VmmCallbacks.BreakpointCheckAndHandleDebugBreakpoint        = BreakpointCheckAndHandleDebugBreakpoint;
+    VmmCallbacks.BreakpointHandleBpTraps                        = BreakpointHandleBpTraps;
+    VmmCallbacks.UdCheckForCommand                              = UdCheckForCommand;
+    VmmCallbacks.ProcessTriggerCr3ProcessChange                 = ProcessTriggerCr3ProcessChange;
+    VmmCallbacks.DebuggerCheckProcessOrThreadChange             = DebuggerCheckProcessOrThreadChange;
+    VmmCallbacks.AttachingCheckPageFaultsWithUserDebugger       = AttachingCheckPageFaultsWithUserDebugger;
+    VmmCallbacks.AttachingHandleCr3VmexitsForThreadInterception = AttachingHandleCr3VmexitsForThreadInterception;
 
     //
     // Initialize message tracer

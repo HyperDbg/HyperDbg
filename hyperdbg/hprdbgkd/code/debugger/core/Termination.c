@@ -622,7 +622,7 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
         // to the vmcalls (still they cause vm-exits as vmcall is an
         // unconditional instruction for vm-exit)
         //
-        g_TriggerEventForVmcalls = FALSE;
+        VmFuncSetTriggerEventForVmcalls(FALSE);
     }
 }
 
@@ -660,7 +660,7 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
         // to the cpuids (still they cause vm-exits as cpuid is an
         // unconditional instruction for vm-exit)
         //
-        g_TriggerEventForCpuids = FALSE;
+        VmFuncSetTriggerEventForCpuids(FALSE);
     }
 }
 

@@ -108,27 +108,6 @@ typedef struct _PAGE_ENTRY
 } PAGE_ENTRY, *PPAGE_ENTRY;
 
 /**
- * @brief CR3 Structure
- *
- */
-typedef struct _CR3_TYPE
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Pcid : 12;
-            UINT64 PageFrameNumber : 36;
-            UINT64 Reserved1 : 12;
-            UINT64 Reserved_2 : 3;
-            UINT64 PcidInvalidate : 1;
-        } Fields;
-    };
-} CR3_TYPE, *PCR3_TYPE;
-
-/**
  * @brief Memory mapper PTE and reserved virtual address
  * @details Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
  */

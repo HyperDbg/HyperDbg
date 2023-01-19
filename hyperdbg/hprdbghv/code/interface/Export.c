@@ -477,3 +477,27 @@ VmFuncVmxGetCurrentExecutionMode()
 {
     return VmxGetCurrentExecutionMode();
 }
+
+/**
+ * @brief Set triggering events for VMCALLs
+ *
+ * @param Set Set or unset the trigger
+ * @return VOID
+ */
+VOID
+VmFuncSetTriggerEventForVmcalls(BOOLEAN Set)
+{
+    g_TriggerEventForVmcalls = Set;
+}
+
+/**
+ * @brief Set triggering events for CPUIDs
+ *
+ * @param Set Set or unset the trigger
+ * @return VOID
+ */
+VOID
+VmFuncSetTriggerEventForCpuids(BOOLEAN Set)
+{
+    g_TriggerEventForCpuids = Set;
+}

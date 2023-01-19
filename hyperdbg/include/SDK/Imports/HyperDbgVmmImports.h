@@ -93,6 +93,12 @@ IMPORT_EXPORT_VMFUNC VOID
 VmFuncSetRip(UINT64 Rip);
 
 IMPORT_EXPORT_VMFUNC VOID
+VmFuncSetTriggerEventForVmcalls(BOOLEAN Set);
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncSetTriggerEventForCpuids(BOOLEAN Set);
+
+IMPORT_EXPORT_VMFUNC VOID
 VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
 
 IMPORT_EXPORT_VMFUNC VOID
@@ -130,19 +136,3 @@ VmFuncUninitializeMemory();
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
-
-//////////////////////////////// Remove All functions after this line : \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-IMPORT_EXPORT_VMFUNC BOOLEAN
-KdLoggingResponsePacketToDebugger(_In_reads_bytes_opt_(OptionalBufferLength) CHAR * OptionalBuffer,
-                                  _In_ UINT32                                       OptionalBufferLength,
-                                  _In_ UINT32                                       OperationCode);
-
-IMPORT_EXPORT_VMFUNC BOOLEAN
-KdCheckImmediateMessagingMechanism(UINT32 OperationCode);
-
-IMPORT_EXPORT_VMFUNC BOOLEAN
-DebuggerInitialize();
-
-IMPORT_EXPORT_VMFUNC NTSTATUS
-DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);

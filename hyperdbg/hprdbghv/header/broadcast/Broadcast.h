@@ -38,3 +38,9 @@ BroadcastDisableNmiExitingAllCores();
 
 VOID
 BroadcastNotifyAllToInvalidateEptAllCores();
+
+VOID
+BroadcastEnableRdtscExitingAllCores();
+
+VOID
+BroadcastDisableRdtscExitingAllCores();

@@ -123,3 +123,29 @@ BroadcastNotifyAllToInvalidateEptAllCores()
     //
     KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, g_EptState->EptPointer.AsUInt);
 }
+
+/**
+ * @brief a broadcast that causes vm-exit on all execution of rdtsc/rdtscp
+ * @return VOID
+ */
+VOID
+BroadcastEnableRdtscExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineEnableRdtscExitingAllCores, NULL);
+}
+
+/**
+ * @brief a broadcast that causes for disabling rdtsc/p exiting
+ * @return VOID
+ */
+VOID
+BroadcastDisableRdtscExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
+}

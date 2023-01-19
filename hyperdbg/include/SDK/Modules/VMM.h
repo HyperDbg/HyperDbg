@@ -33,16 +33,80 @@ typedef BOOLEAN (*LOG_PREPARE_AND_SEND_MESSAGE_TO_QUEUE)(UINT32       OperationC
  */
 typedef BOOLEAN (*LOG_SEND_MESSAGE_TO_QUEUE)(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
-//
-// Definitions below this line all should be removed
-//
+/**
+ * @brief A function that sends the messages to message tracer buffers
+ *
+ */
 typedef BOOLEAN (*LOG_SEND_BUFFER)(_In_ UINT32                          OperationCode,
                                    _In_reads_bytes_(BufferLength) PVOID Buffer,
                                    _In_ UINT32                          BufferLength,
                                    _In_ BOOLEAN                         Priority);
-typedef BOOLEAN (*LOG_REGISTER_IRP_BASED_NOTIFICATION)(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-typedef BOOLEAN (*LOG_REGISTER_EVENT_BASED_NOTIFICATION)(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-typedef BOOLEAN (*LOG_MARK_ALL_AS_READ)(BOOLEAN IsVmxRoot);
+
+/**
+ * @brief A function that handles trigger events
+ *
+ */
+typedef DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE (*DEBUGGER_TRIGGER_EVENTS)(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+                                                                         DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
+                                                                         PVOID                             Context,
+                                                                         BOOLEAN *                         PostEventRequired,
+                                                                         GUEST_REGS *                      Regs);
+/**
+ * @brief A function that checks and handles debug breakpoints
+ *
+ */
+typedef BOOLEAN (*BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT)(UINT32 CoreId);
+
+/**
+ * @brief A function that checks and handles debug breakpoints
+ *
+ */
+typedef VOID (*BREAKPOINT_HANDLE_BP_TRAPS)(UINT32 CoreId);
+
+/**
+ * @brief Check for commands in user-debugger
+ *
+ */
+typedef BOOLEAN (*UD_CHECK_FOR_COMMAND)();
+
+/**
+ * @brief Handle registered MTF callback
+ *
+ */
+typedef VOID (*KD_HANDLE_REGISTERED_MTF_CALLBACK)(UINT32 CoreId);
+
+/**
+ * @brief Handle registered MTF callback
+ *
+ */
+typedef VOID (*PROCESS_TRIGGER_CR3_PROCESS_CHANGE)(UINT32 CoreId);
+
+/**
+ * @brief Handle breakpoint and debug breakpoint callback
+ *
+ */
+typedef VOID (*PROCESS_TRIGGER_CR3_PROCESS_CHANGE)(UINT32 CoreId);
+
+/**
+ * @brief Check for process or thread change callback
+ *
+ */
+typedef BOOLEAN (*DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE)(_In_ UINT32 CoreId);
+
+/**
+ * @brief Check for page-faults in user-debugger
+ *
+ */
+typedef BOOLEAN (*ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER)(UINT32                       CoreId,
+                                                                  VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                                                  UINT64                       Address,
+                                                                  ULONG                        ErrorCode);
+
+/**
+ * @brief Check to handle cr3 events for thread interception
+ *
+ */
+typedef BOOLEAN (*ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION)(UINT32 CoreId, CR3_TYPE NewCr3);
 
 //////////////////////////////////////////////////
 //			   Callback Structure               //
@@ -54,15 +118,32 @@ typedef BOOLEAN (*LOG_MARK_ALL_AS_READ)(BOOLEAN IsVmxRoot);
  */
 typedef struct _VMM_CALLBACKS
 {
+    //
+    // Hyperlog callbacks
+    //
     LOG_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogPrepareAndSendMessageToQueue;
     LOG_SEND_MESSAGE_TO_QUEUE             LogSendMessageToQueue;
+    LOG_SEND_BUFFER                       LogSendBuffer;
 
     //
-    // Callback below this line are not needed !
+    // Debugger callbacks
     //
-    LOG_SEND_BUFFER                       LogSendBuffer;
-    LOG_MARK_ALL_AS_READ                  LogMarkAllAsRead;
-    LOG_REGISTER_IRP_BASED_NOTIFICATION   LogRegisterIrpBasedNotification;
-    LOG_REGISTER_EVENT_BASED_NOTIFICATION LogRegisterEventBasedNotification;
+    DEBUGGER_TRIGGER_EVENTS                      DebuggerTriggerEvents;
+    BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT BreakpointCheckAndHandleDebugBreakpoint;
+    BREAKPOINT_HANDLE_BP_TRAPS                   BreakpointHandleBpTraps;
+    KD_HANDLE_REGISTERED_MTF_CALLBACK            KdHandleRegisteredMtfCallback;
+
+    //
+    // User Debugger
+    //
+    UD_CHECK_FOR_COMMAND UdCheckForCommand;
+
+    //
+    // Process/Thread interception mechanism
+    //
+    PROCESS_TRIGGER_CR3_PROCESS_CHANGE                  ProcessTriggerCr3ProcessChange;
+    DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE             DebuggerCheckProcessOrThreadChange;
+    ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER      AttachingCheckPageFaultsWithUserDebugger;
+    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION AttachingHandleCr3VmexitsForThreadInterception;
 
 } VMM_CALLBACKS, *PVMM_CALLBACKS;

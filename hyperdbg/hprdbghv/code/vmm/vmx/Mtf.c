@@ -144,7 +144,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle MTF in the debugger
         //
-        KdHandleRegisteredMtfCallback(VCpu->CoreId);
+        g_Callbacks.KdHandleRegisteredMtfCallback(VCpu->CoreId);
     }
 
     //

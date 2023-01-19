@@ -123,12 +123,12 @@ DebuggerInitialize()
     //
     // Set initial state of triggering events for VMCALLs
     //
-    g_TriggerEventForVmcalls = FALSE;
+    VmFuncSetTriggerEventForVmcalls(FALSE);
 
     //
     // Set initial state of triggering events for VMCALLs
     //
-    g_TriggerEventForCpuids = FALSE;
+    VmFuncSetTriggerEventForCpuids(FALSE);
 
     //
     // Initialize script engines global variables holder
@@ -2781,7 +2781,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // users can use condition(s) to check for
         // their custom optional parameters
         //
-        g_TriggerEventForVmcalls = TRUE;
+        VmFuncSetTriggerEventForVmcalls(TRUE);
 
         break;
     }
@@ -2794,7 +2794,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // users can use condition(s) to check for
         // their custom optional parameters
         //
-        g_TriggerEventForCpuids = TRUE;
+        VmFuncSetTriggerEventForCpuids(TRUE);
 
         break;
     }

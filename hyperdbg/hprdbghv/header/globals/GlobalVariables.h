@@ -242,3 +242,21 @@ LIST_ENTRY g_ProcessDebuggingDetailsListHead;
  *
  */
 BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;
+
+//////////////////////////////////////////////////
+//  	Global Variable (debugger-related)	    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Showes whether the vmcall handler is
+ * allowed to trigger an event or not
+ *
+ */
+BOOLEAN g_TriggerEventForVmcalls;
+
+/**
+ * @brief Showes whether the cpuid handler is
+ * allowed to trigger an event or not
+ *
+ */
+BOOLEAN g_TriggerEventForCpuids;

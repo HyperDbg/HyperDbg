@@ -799,8 +799,8 @@ ScriptEngineFunctionFlush()
     //
     // Mark all buffers as read
     //
-    g_Callbacks.LogMarkAllAsRead(TRUE);
-    g_Callbacks.LogMarkAllAsRead(FALSE);
+    LogMarkAllAsRead(TRUE);
+    LogMarkAllAsRead(FALSE);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

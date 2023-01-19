@@ -415,7 +415,7 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
         //
         // Enable RDTSC and RDTSCP exiting on all cores
         //
-        ExtensionCommandEnableRdtscExitingAllCores();
+        BroadcastEnableRdtscExitingAllCores();
 
         //
         // Finally, enable the transparent-mode
@@ -455,7 +455,7 @@ TransparentUnhideDebugger()
         //
         // Disable RDTSC and RDTSCP emulation
         //
-        ExtensionCommandDisableRdtscExitingAllCores();
+        BroadcastDisableRdtscExitingAllCores();
 
         //
         // Free list of allocated buffers

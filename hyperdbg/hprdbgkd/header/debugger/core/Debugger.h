@@ -12,24 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//  	Global Variable (debugger-related)	    //
-//////////////////////////////////////////////////
-
-/**
- * @brief Showes whether the vmcall handler is
- * allowed to trigger an event or not
- *
- */
-BOOLEAN g_TriggerEventForVmcalls;
-
-/**
- * @brief Showes whether the cpuid handler is
- * allowed to trigger an event or not
- *
- */
-BOOLEAN g_TriggerEventForCpuids;
-
-//////////////////////////////////////////////////
 //              Debugger Internals              //
 //////////////////////////////////////////////////
 

@@ -30,11 +30,11 @@ DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     // We should trigger the event of SYSRET here
     //
-    EventTriggerResult = DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Context,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           Context,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -50,11 +50,11 @@ DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              Context,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          Context,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -76,11 +76,11 @@ DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     // We should trigger the event of SYSCALL here, we send the
     // syscall number in rax
     //
-    EventTriggerResult = DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs->rax,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           VCpu->Regs->rax,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -96,11 +96,11 @@ DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs->rax,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          VCpu->Regs->rax,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -121,7 +121,7 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // Check if attaching is for command dispatching in user debugger
     // or a regular CPUID
     //
-    if (g_UserDebuggerState && UdCheckForCommand())
+    if (g_UserDebuggerState && g_Callbacks.UdCheckForCommand())
     {
         //
         // It's a thread command for user debugger, no need to run the
@@ -145,11 +145,11 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
-                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   Context,
-                                                   &PostEventTriggerReq,
-                                                   VCpu->Regs);
+        EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+                                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                               Context,
+                                                               &PostEventTriggerReq,
+                                                               VCpu->Regs);
 
         //
         // Check whether we need to short-circuiting event emulation or not
@@ -167,11 +167,11 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
-                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  Context,
-                                  NULL,
-                                  VCpu->Regs);
+            g_Callbacks.DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+                                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                              Context,
+                                              NULL,
+                                              VCpu->Regs);
         }
     }
     else
@@ -202,11 +202,11 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     // it's an rdtsc (for rdtscp we set Context to true)
     // Note : Using !tsc command in transparent-mode is not allowed
     //
-    EventTriggerResult = DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               IsRdtscp,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           IsRdtscp,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -231,11 +231,11 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              IsRdtscp,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          IsRdtscp,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -260,11 +260,11 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION,
-                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   NULL,
-                                                   &PostEventTriggerReq,
-                                                   VCpu->Regs);
+        EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION,
+                                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                               NULL,
+                                                               &PostEventTriggerReq,
+                                                               VCpu->Regs);
 
         //
         // Check whether we need to short-circuiting event emulation or not
@@ -282,11 +282,11 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
-                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  NULL,
-                                  NULL,
-                                  VCpu->Regs);
+            g_Callbacks.DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+                                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                              NULL,
+                                              NULL,
+                                              VCpu->Regs);
         }
     }
     else
@@ -323,19 +323,19 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (IoQualification.DirectionOfAccess == AccessIn)
     {
-        EventTriggerResult = DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
-                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   IoQualification.PortNumber,
-                                                   &PostEventTriggerReq,
-                                                   VCpu->Regs);
+        EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+                                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                               IoQualification.PortNumber,
+                                                               &PostEventTriggerReq,
+                                                               VCpu->Regs);
     }
     else if (IoQualification.DirectionOfAccess == AccessOut)
     {
-        EventTriggerResult = DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
-                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                   IoQualification.PortNumber,
-                                                   &PostEventTriggerReq,
-                                                   VCpu->Regs);
+        EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+                                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                               IoQualification.PortNumber,
+                                                               &PostEventTriggerReq,
+                                                               VCpu->Regs);
     }
 
     //
@@ -356,19 +356,19 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     {
         if (IoQualification.DirectionOfAccess == AccessIn)
         {
-            DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
-                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  IoQualification.PortNumber,
-                                  NULL,
-                                  VCpu->Regs);
+            g_Callbacks.DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+                                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                              IoQualification.PortNumber,
+                                              NULL,
+                                              VCpu->Regs);
         }
         else if (IoQualification.DirectionOfAccess == AccessOut)
         {
-            DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
-                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                                  IoQualification.PortNumber,
-                                  NULL,
-                                  VCpu->Regs);
+            g_Callbacks.DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+                                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                              IoQualification.PortNumber,
+                                              NULL,
+                                              VCpu->Regs);
         }
     }
 }
@@ -388,11 +388,11 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs->rcx & 0xffffffff,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           VCpu->Regs->rcx & 0xffffffff,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -410,11 +410,11 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs->rcx & 0xffffffff,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          VCpu->Regs->rcx & 0xffffffff,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -433,11 +433,11 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               VCpu->Regs->rcx & 0xffffffff,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           VCpu->Regs->rcx & 0xffffffff,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -455,11 +455,11 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              VCpu->Regs->rcx & 0xffffffff,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          VCpu->Regs->rcx & 0xffffffff,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -478,11 +478,11 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               NULL,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           NULL,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -500,11 +500,11 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              NULL,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          NULL,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -534,11 +534,11 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               NULL,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           NULL,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -556,11 +556,11 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              NULL,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          NULL,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -598,11 +598,11 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               CrExitQualification->ControlRegister,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           CrExitQualification->ControlRegister,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -620,11 +620,11 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              CrExitQualification->ControlRegister,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          CrExitQualification->ControlRegister,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -686,11 +686,11 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     // Triggering the pre-event
     // As the context to event trigger, we send the vector or IDT Index
     //
-    EventTriggerResult = DebuggerTriggerEvents(EXCEPTION_OCCURRED,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               InterruptExit.Vector,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           InterruptExit.Vector,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Now, we check if the guest enabled MTF for debugging (instrumentation stepping)
@@ -726,11 +726,11 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        DebuggerTriggerEvents(EXCEPTION_OCCURRED,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              InterruptExit.Vector,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          InterruptExit.Vector,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -790,17 +790,17 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     if ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT))
     {
-        DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
+        g_Callbacks.DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
     }
 
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               InterruptExit.Vector,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           InterruptExit.Vector,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     //
     // Check whether we need to short-circuiting event emulation or not
@@ -827,11 +827,11 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         // because the guest is not in a interruptible state and will
         // be re-injected when the guest is ready for interrupts
         //
-        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
-                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                              InterruptExit.Vector,
-                              NULL,
-                              VCpu->Regs);
+        g_Callbacks.DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+                                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                          InterruptExit.Vector,
+                                          NULL,
+                                          VCpu->Regs);
     }
 }
 
@@ -852,11 +852,11 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC,
-                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Context,
-                          &PostEventTriggerReq,
-                          VCpu->Regs); // it will crash if we pass it NULL
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC,
+                                      DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                      Context,
+                                      &PostEventTriggerReq,
+                                      VCpu->Regs); // it will crash if we pass it NULL
 }
 
 /**
@@ -876,11 +876,11 @@ DispatchEventHiddenHookExecDetours(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS,
-                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Context,
-                          &PostEventTriggerReq,
-                          VCpu->Regs); // it will crash if we pass it NULL
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS,
+                                      DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                      Context,
+                                      &PostEventTriggerReq,
+                                      VCpu->Regs); // it will crash if we pass it NULL
 }
 
 /**
@@ -901,11 +901,11 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, 
     //
     // Triggering the pre-event (for the write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Context,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           Context,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -920,11 +920,11 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, 
     //
     // Triggering the pre-event (for the read & write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Context,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           Context,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -957,11 +957,11 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
     //
     // Triggering the pre-event (for the read hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Context,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           Context,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -976,11 +976,11 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
     //
     // Triggering the pre-event (for the read & write hooks)
     //
-    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               Context,
-                                               &PostEventTriggerReq,
-                                               VCpu->Regs);
+    EventTriggerResult = g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                                           DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                           Context,
+                                                           &PostEventTriggerReq,
+                                                           VCpu->Regs);
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -1008,20 +1008,20 @@ DispatchEventHiddenHookPageReadWriteWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Triggering the post-event (for the write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
-                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                          Context,
-                          NULL,
-                          VCpu->Regs);
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+                                      DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                      Context,
+                                      NULL,
+                                      VCpu->Regs);
 
     //
     // Triggering the post-event (for the read & write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-                          Context,
-                          NULL,
-                          VCpu->Regs);
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                      DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                      Context,
+                                      NULL,
+                                      VCpu->Regs);
 }
 
 /**
@@ -1037,18 +1037,18 @@ DispatchEventHiddenHookPageReadWriteReadPostEvent(VIRTUAL_MACHINE_STATE * VCpu, 
     //
     // Triggering the post-event (for the read hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ,
-                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Context,
-                          NULL,
-                          VCpu->Regs);
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+                                      DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                      Context,
+                                      NULL,
+                                      VCpu->Regs);
 
     //
     // Triggering the post-event (for the read & write hooks)
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-                          Context,
-                          NULL,
-                          VCpu->Regs);
+    g_Callbacks.DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                      DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                      Context,
+                                      NULL,
+                                      VCpu->Regs);
 }

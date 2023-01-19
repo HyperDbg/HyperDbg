@@ -145,7 +145,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         if (!EptCheckAndHandleBreakpoint(VCpu))
         {
-            BreakpointHandleBpTraps(VCpu->CoreId);
+            g_Callbacks.BreakpointHandleBpTraps(VCpu->CoreId);
         }
 
         break;
@@ -176,10 +176,10 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // Handle page-faults
         //
         if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            AttachingCheckPageFaultsWithUserDebugger(VCpu->CoreId,
-                                                     InterruptExit,
-                                                     NULL,
-                                                     ErrorCode))
+            g_Callbacks.AttachingCheckPageFaultsWithUserDebugger(VCpu->CoreId,
+                                                                 InterruptExit,
+                                                                 NULL,
+                                                                 ErrorCode))
         {
             //
             // The page-fault is handled through the user debugger, no need further action
@@ -197,7 +197,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
-        if (!BreakpointCheckAndHandleDebugBreakpoint(VCpu->CoreId))
+        if (!g_Callbacks.BreakpointCheckAndHandleDebugBreakpoint(VCpu->CoreId))
         {
             //
             // It's not because of thread change detection, so re-inject it
