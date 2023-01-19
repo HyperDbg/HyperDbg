@@ -141,3 +141,16 @@ typedef struct _DEBUGGER_SHORT_CIRCUITING_EVENT
     BOOLEAN IsShortCircuiting; // Determines whether to perform short circuting (on | off)
 
 } DEBUGGER_SHORT_CIRCUITING_EVENT, *PDEBUGGER_SHORT_CIRCUITING_EVENT;
+
+/**
+ * @brief request for performing a short-circuiting event
+ *
+ */
+typedef struct _DEBUGGER_BROADCASTING_OPTIONS
+{
+    UINT64 OptionalParam1; // Optional parameter
+    UINT64 OptionalParam2; // Optional parameter
+    UINT64 OptionalParam3; // Optional parameter
+    UINT64 OptionalParam4; // Optional parameter
+
+} DEBUGGER_BROADCASTING_OPTIONS, *PDEBUGGER_BROADCASTING_OPTIONS;

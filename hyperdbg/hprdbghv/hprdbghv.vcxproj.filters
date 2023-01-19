@@ -90,6 +90,24 @@
     <Filter Include="header\interface">
       <UniqueIdentifier>{bd4cf053-c1f6-40df-984d-37f9f50b85ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\hooks">
+      <UniqueIdentifier>{9ee6fedc-6246-4954-95e3-bd0496205437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\hooks">
+      <UniqueIdentifier>{99e17324-753e-41fe-923d-c6038e8bf91a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\hooks\ept-hook">
+      <UniqueIdentifier>{e3632fff-6811-445c-a3b1-43faf02b5eae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\hooks\syscall-hook">
+      <UniqueIdentifier>{293a7e14-23fc-4526-bdf7-6ba3beca6077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\broadcast">
+      <UniqueIdentifier>{39d36642-070d-46ba-a979-47eab170264c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\broadcast">
+      <UniqueIdentifier>{16a14404-8d63-4ea1-89df-609d3b4f13fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -176,9 +194,6 @@
     <ClCompile Include="code\globals\GlobalVariableManagement.c">
       <Filter>code\globals</Filter>
     </ClCompile>
-    <ClCompile Include="code\vmm\export\Export.c">
-      <Filter>code\vmm\Export</Filter>
-    </ClCompile>
     <ClCompile Include="code\interface\Dispatch.c">
       <Filter>code\interface</Filter>
     </ClCompile>
@@ -187,6 +202,21 @@
     </ClCompile>
     <ClCompile Include="code\transparency\Transparency.c">
       <Filter>code\transparency</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\ept-hook\EptHook.c">
+      <Filter>code\hooks\ept-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\syscall-hook\EferHook.c">
+      <Filter>code\hooks\syscall-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c">
+      <Filter>code\hooks\syscall-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="code\broadcast\Broadcast.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\broadcast\DpcRoutines.c">
+      <Filter>code\broadcast</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -300,6 +330,15 @@
     </ClInclude>
     <ClInclude Include="header\interface\Dispatch.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\Hooks.h">
+      <Filter>header\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="header\broadcast\Broadcast.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\broadcast\DpcRoutines.h">
+      <Filter>header\broadcast</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -70,7 +70,6 @@
 #include "header/debugger/allocations/Allocations.h"
 #include "header/debugger/kernel-level/Kd.h"
 #include "header/debugger/user-level/Ud.h"
-#include "header/debugger/features/Hooks.h"
 #include "header/debugger/broadcast/Broadcast.h"
 #include "header/debugger/commands/BreakpointCommands.h"
 #include "header/debugger/commands/DebuggerCommands.h"
@@ -83,6 +82,8 @@
 #include "header/debugger/core/Termination.h"
 #include "header/debugger/user-level/UserAccess.h"
 #include "header/debugger/user-level/ThreadHolder.h"
+#include "header/debugger/broadcast/DpcRoutines.h"
+#include "header/debugger/broadcast/Broadcast.h"
 
 //
 // Script engine headers

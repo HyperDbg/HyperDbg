@@ -882,7 +882,12 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, CurrentEvent);
+                    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+
+                    BroadcastingOption.OptionalParam1 = CurrentEvent->OptionalParam1;
+                    BroadcastingOption.OptionalParam2 = CurrentEvent->OptionalParam2;
+
+                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
                 }
             }
         }

@@ -102,6 +102,13 @@
 #include "vmm/vmx/ProtectedHv.h"
 #include "vmm/vmx/IoHandler.h"
 #include "vmm/vmx/VmxMechanisms.h"
+#include "header/hooks/Hooks.h"
+
+//
+// Broadcast headers
+//
+#include "header/broadcast/Broadcast.h"
+#include "header/broadcast/DpcRoutines.h"
 
 //
 // Global Variables should be the last header to include

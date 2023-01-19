@@ -38,6 +38,13 @@ KdInitializeKernelDebugger()
     // }
 
     //
+    // Request pages for breakpoint detail
+    //
+    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
+                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
+                                 BREAKPOINT_DEFINITION_STRUCTURE);
+
+    //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //

@@ -387,10 +387,15 @@ ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
 VOID
 ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT Event)
 {
+    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+
+    BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
+    BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
+
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, Event);
+    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, &BroadcastingOption);
 }
 
 /**
@@ -487,10 +492,15 @@ ExtensionCommandResetExceptionBitmapAllCores()
 VOID
 ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event)
 {
+    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+
+    BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
+    BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
+
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, Event);
+    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, &BroadcastingOption);
 }
 
 /**
@@ -501,10 +511,15 @@ ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event)
 VOID
 ExtensionCommandDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT Event)
 {
+    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+
+    BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
+    BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
+
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, Event);
+    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, &BroadcastingOption);
 }
 
 /**

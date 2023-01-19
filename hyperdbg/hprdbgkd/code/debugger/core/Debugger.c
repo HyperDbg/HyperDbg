@@ -2618,7 +2618,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, Event);
+            DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+
+            BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
+            BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
+
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
         }
 
         break;

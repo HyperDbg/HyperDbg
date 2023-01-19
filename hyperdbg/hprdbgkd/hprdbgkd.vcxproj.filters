@@ -29,6 +29,12 @@
     <Filter Include="code\script-eval">
       <UniqueIdentifier>{9c5ef820-f8c2-41f0-9684-12ac16703f85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\broadcast">
+      <UniqueIdentifier>{45b3e82f-ba47-4291-a676-55a58825f5cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\broadcast">
+      <UniqueIdentifier>{e9487dbd-bb04-44e4-848f-a4bd0833f5a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -55,9 +61,6 @@
     <ClCompile Include="code\debugger\objects\Thread.c" />
     <ClCompile Include="code\debugger\objects\Process.c" />
     <ClCompile Include="code\debugger\kernel-level\Kd.c" />
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c" />
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c" />
-    <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\debugger\core\Termination.c" />
     <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
     <ClCompile Include="code\debugger\core\Debugger.c" />
@@ -66,8 +69,6 @@
     <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
     <ClCompile Include="code\debugger\commands\Callstack.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
-    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
-    <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\allocations\Allocations.c" />
     <ClCompile Include="..\script-eval\code\Functions.c">
       <Filter>code\script-eval</Filter>
@@ -84,6 +85,9 @@
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
       <Filter>code\script-eval</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c">
+      <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -98,8 +102,6 @@
     <ClInclude Include="header\driver\Loader.h">
       <Filter>header\driver</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
-    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
     <ClInclude Include="header\debugger\commands\Callstack.h" />
     <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
@@ -108,7 +110,6 @@
     <ClInclude Include="header\debugger\core\Debugger.h" />
     <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
-    <ClInclude Include="header\debugger\features\Hooks.h" />
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
     <ClInclude Include="header\debugger\objects\Process.h" />
     <ClInclude Include="header\debugger\objects\Thread.h" />
@@ -121,5 +122,8 @@
     <ClInclude Include="header\debugger\user-level\Attaching.h" />
     <ClInclude Include="header\debugger\allocations\Allocations.h" />
     <ClInclude Include="header\debugger\core\State.h" />
+    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h">
+      <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
