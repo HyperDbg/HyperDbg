@@ -51,7 +51,6 @@
 //
 
 #include "debugger/core/State.h"
-#include "globals/Global.h"
 #include "driver/Driver.h"
 #include "driver/Loader.h"
 
@@ -70,7 +69,6 @@
 #include "header/debugger/allocations/Allocations.h"
 #include "header/debugger/kernel-level/Kd.h"
 #include "header/debugger/user-level/Ud.h"
-#include "header/debugger/broadcast/Broadcast.h"
 #include "header/debugger/commands/BreakpointCommands.h"
 #include "header/debugger/commands/DebuggerCommands.h"
 #include "header/debugger/commands/ExtensionCommands.h"
@@ -83,7 +81,6 @@
 #include "header/debugger/user-level/UserAccess.h"
 #include "header/debugger/user-level/ThreadHolder.h"
 #include "header/debugger/broadcast/DpcRoutines.h"
-#include "header/debugger/broadcast/Broadcast.h"
 #include "header/debugger/core/DebuggerVmcalls.h"
 
 //
@@ -91,3 +88,8 @@
 //
 #include "../script-eval/header/ScriptEngineCommonDefinitions.h"
 #include "../script-eval/header/ScriptEngineHeader.h"
+
+//
+// Global variables
+//
+#include "globals/Global.h"

@@ -590,17 +590,15 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 /**
  * @brief Check page-faults with user-debugger
  * @param CoreId
- * @param InterruptExit
  * @param Address
  * @param ErrorCode
  *
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                       CoreId,
-                                         VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                         UINT64                       Address,
-                                         ULONG                        ErrorCode)
+AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
+                                         UINT64 Address,
+                                         ULONG  ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];

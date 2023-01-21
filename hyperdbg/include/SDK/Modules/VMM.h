@@ -97,10 +97,9 @@ typedef BOOLEAN (*DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE)(_In_ UINT32 CoreId);
  * @brief Check for page-faults in user-debugger
  *
  */
-typedef BOOLEAN (*ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER)(UINT32                       CoreId,
-                                                                  VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                                                  UINT64                       Address,
-                                                                  ULONG                        ErrorCode);
+typedef BOOLEAN (*ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER)(UINT32 CoreId,
+                                                                  UINT64 Address,
+                                                                  ULONG  ErrorCode);
 
 /**
  * @brief Check to handle cr3 events for thread interception

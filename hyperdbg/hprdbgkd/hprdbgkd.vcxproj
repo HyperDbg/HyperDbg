@@ -124,7 +124,6 @@
     <ClCompile Include="code\debugger\objects\Thread.c" />
     <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
     <ClCompile Include="code\debugger\tests\KernelTests.c" />
-    <ClCompile Include="code\debugger\transparency\Transparency.c" />
     <ClCompile Include="code\debugger\user-level\Attaching.c" />
     <ClCompile Include="code\debugger\user-level\ThreadHolder.c" />
     <ClCompile Include="code\debugger\user-level\Ud.c" />
@@ -151,7 +150,6 @@
     <ClInclude Include="header\debugger\objects\Thread.h" />
     <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
     <ClInclude Include="header\debugger\tests\KernelTests.h" />
-    <ClInclude Include="header\debugger\transparency\Transparency.h" />
     <ClInclude Include="header\debugger\user-level\Attaching.h" />
     <ClInclude Include="header\debugger\user-level\ThreadHolder.h" />
     <ClInclude Include="header\debugger\user-level\Ud.h" />

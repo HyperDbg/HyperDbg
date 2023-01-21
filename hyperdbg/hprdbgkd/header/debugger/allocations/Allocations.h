@@ -21,8 +21,8 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID);
 BOOLEAN
 GlobalEventsAllocateZeroedMemory(VOID);
 
-BOOLEAN
-GlobalEventsFreeMemory(VOID);
+VOID
+    GlobalEventsFreeMemory(VOID);
 
 VOID
     GlobalDebuggingStateFreeMemory(VOID);
