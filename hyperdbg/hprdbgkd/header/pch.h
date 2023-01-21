@@ -84,6 +84,7 @@
 #include "header/debugger/user-level/ThreadHolder.h"
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/broadcast/Broadcast.h"
+#include "header/debugger/core/DebuggerVmcalls.h"
 
 //
 // Script engine headers

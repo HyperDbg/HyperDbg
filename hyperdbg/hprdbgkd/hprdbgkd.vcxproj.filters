@@ -35,6 +35,12 @@
     <Filter Include="header\debugger\broadcast">
       <UniqueIdentifier>{e9487dbd-bb04-44e4-848f-a4bd0833f5a4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\core">
+      <UniqueIdentifier>{e786087b-04e9-449c-90f4-74acf1f90080}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\core">
+      <UniqueIdentifier>{9f94f25f-ef8a-412c-a064-a62c58ac23f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -88,6 +94,9 @@
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c">
       <Filter>code\debugger\broadcast</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\core\DebuggerVmcalls.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -124,6 +133,9 @@
     <ClInclude Include="header\debugger\core\State.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h">
       <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\DebuggerVmcalls.h">
+      <Filter>header\debugger\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

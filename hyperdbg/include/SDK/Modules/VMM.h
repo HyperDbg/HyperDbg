@@ -147,6 +147,22 @@ typedef BOOLEAN (*TERMINATE_QUERY_DEBUGGER_RESOURCE)(UINT32                     
                                                      PVOID                                Context,
                                                      PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
 
+/**
+ * @brief Query debugger thread or process tracing details by core ID
+ *
+ */
+typedef BOOLEAN (*KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID)(UINT32                          CoreId,
+                                                                                  DEBUGGER_THREAD_PROCESS_TRACING TracingType);
+/**
+ * @brief Handler of debugger specific VMCALLs
+ *
+ */
+typedef BOOLEAN (*DEBUGGER_VMCALL_HANDLER)(UINT32 CoreId,
+                                           UINT64 VmcallNumber,
+                                           UINT64 OptionalParam1,
+                                           UINT64 OptionalParam2,
+                                           UINT64 OptionalParam3);
+
 //////////////////////////////////////////////////
 //			   Callback Structure               //
 //////////////////////////////////////////////////
@@ -169,6 +185,7 @@ typedef struct _VMM_CALLBACKS
     //
     DEBUGGER_TRIGGER_EVENTS                           DebuggerTriggerEvents;
     DEBUGGER_SET_LAST_ERROR                           DebuggerSetLastError;
+    DEBUGGER_VMCALL_HANDLER                           DebuggerVmcallHandler;
     BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT      BreakpointCheckAndHandleDebugBreakpoint;
     BREAKPOINT_HANDLE_BP_TRAPS                        BreakpointHandleBpTraps;
     BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT BreakpointCheckAndHandleReApplyingBreakpoint;
@@ -186,9 +203,10 @@ typedef struct _VMM_CALLBACKS
     //
     // Process/Thread interception mechanism
     //
-    PROCESS_TRIGGER_CR3_PROCESS_CHANGE                  ProcessTriggerCr3ProcessChange;
-    DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE             DebuggerCheckProcessOrThreadChange;
-    ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER      AttachingCheckPageFaultsWithUserDebugger;
-    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION AttachingHandleCr3VmexitsForThreadInterception;
+    PROCESS_TRIGGER_CR3_PROCESS_CHANGE                             ProcessTriggerCr3ProcessChange;
+    DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE                        DebuggerCheckProcessOrThreadChange;
+    ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER                 AttachingCheckPageFaultsWithUserDebugger;
+    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION            AttachingHandleCr3VmexitsForThreadInterception;
+    KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 
 } VMM_CALLBACKS, *PVMM_CALLBACKS;

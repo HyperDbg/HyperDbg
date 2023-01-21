@@ -301,6 +301,17 @@ const unsigned char BuildVersion[] =
 #define COMMUNICATION_BUFFER_SIZE PacketChunkSize + 0x100
 
 //////////////////////////////////////////////////
+//             VMCALL Numbers                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The start number of VMCALL number allowed to be
+ * used by top-level drivers
+ *
+ */
+#define TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER 0x00000200
+
+//////////////////////////////////////////////////
 //             Operation Codes                  //
 //////////////////////////////////////////////////
 

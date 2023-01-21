@@ -267,7 +267,7 @@ AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
  *
  */
 extern void
-AsmGeneralDetourHook();
+AsmGeneralDetourHook(void);
 
 /**
  * @brief default custom code handler for debugger

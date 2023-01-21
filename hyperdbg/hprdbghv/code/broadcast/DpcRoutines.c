@@ -1364,37 +1364,6 @@ DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 }
 
 /**
- * @brief vm-exit and halt the system
- *
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
- * @return VOID
- */
-VOID
-DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
-{
-    UNREFERENCED_PARAMETER(Dpc);
-    UNREFERENCED_PARAMETER(DeferredContext);
-
-    //
-    // vm-exit and halt current core
-    //
-    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
-
-    //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
-}
-
-/**
  * @brief Enable vm-exit on #DBs and #BPs on all cores
  *
  * @param Dpc
