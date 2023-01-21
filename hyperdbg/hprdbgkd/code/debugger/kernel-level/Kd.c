@@ -1200,9 +1200,19 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     else
     {
         //
+        // Make sure, nobody is in the middle of sending anything
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
+        //
         // Broadcast NMI with the intention of halting cores
         //
         VmFuncNmiHaltCores(DbgState->CoreId);
+
+        //
+        // Unlock the sending response lock to perform regular debugging
+        //
+        SpinlockUnlock(&DebuggerResponseLock);
     }
 
     //

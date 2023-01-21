@@ -83,11 +83,6 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // make sure, nobody is in the middle of sending anything
-    //
-    SpinlockLock(&DebuggerResponseLock);
-
-    //
     // Indicate that we're waiting for NMI
     //
     for (size_t i = 0; i < CoreCount; i++)
@@ -104,8 +99,6 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     // Broadcast NMI through APIC (xAPIC or x2APIC)
     //
     ApicTriggerGenericNmi();
-
-    SpinlockUnlock(&DebuggerResponseLock);
 
     return TRUE;
 }
@@ -156,7 +149,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         // Handle NMI of halt the other cores
         //
         IsHandled = TRUE;
-        KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
+        g_Callbacks.KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
 
         break;
 

@@ -108,6 +108,36 @@ typedef BOOLEAN (*ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER)(UINT32        
  */
 typedef BOOLEAN (*ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION)(UINT32 CoreId, CR3_TYPE NewCr3);
 
+/**
+ * @brief Check for user-mode access for loaded module details
+ *
+ */
+typedef BOOLEAN (*USER_ACCESS_CHECK_FOR_LOADED_MODULE_DETAILS)();
+
+/**
+ * @brief Check and handle reapplying breakpoint
+ *
+ */
+typedef BOOLEAN (*BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT)(UINT32 CoreId);
+
+/**
+ * @brief Handle NMI broadcast and debug breaks
+ *
+ */
+typedef VOID (*KD_HANDLE_NMI_BROADCAST_DEBUG_BREAKS)(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
+
+/**
+ * @brief Check and handle NMI callbacks
+ *
+ */
+typedef BOOLEAN (*KD_CHECK_AND_HANDLE_NMI_CALLBACK)(UINT32 CoreId);
+
+/**
+ * @brief Check and handle NMI callbacks
+ *
+ */
+typedef VOID (*DEBUGGER_SET_LAST_ERROR)(UINT32 LastError);
+
 //////////////////////////////////////////////////
 //			   Callback Structure               //
 //////////////////////////////////////////////////
@@ -128,15 +158,20 @@ typedef struct _VMM_CALLBACKS
     //
     // Debugger callbacks
     //
-    DEBUGGER_TRIGGER_EVENTS                      DebuggerTriggerEvents;
-    BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT BreakpointCheckAndHandleDebugBreakpoint;
-    BREAKPOINT_HANDLE_BP_TRAPS                   BreakpointHandleBpTraps;
-    KD_HANDLE_REGISTERED_MTF_CALLBACK            KdHandleRegisteredMtfCallback;
+    DEBUGGER_TRIGGER_EVENTS                           DebuggerTriggerEvents;
+    DEBUGGER_SET_LAST_ERROR                           DebuggerSetLastError;
+    BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT      BreakpointCheckAndHandleDebugBreakpoint;
+    BREAKPOINT_HANDLE_BP_TRAPS                        BreakpointHandleBpTraps;
+    BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT BreakpointCheckAndHandleReApplyingBreakpoint;
+    KD_HANDLE_REGISTERED_MTF_CALLBACK                 KdHandleRegisteredMtfCallback;
+    KD_HANDLE_NMI_BROADCAST_DEBUG_BREAKS              KdHandleNmiBroadcastDebugBreaks;
+    KD_CHECK_AND_HANDLE_NMI_CALLBACK                  KdCheckAndHandleNmiCallback;
 
     //
     // User Debugger
     //
-    UD_CHECK_FOR_COMMAND UdCheckForCommand;
+    UD_CHECK_FOR_COMMAND                        UdCheckForCommand;
+    USER_ACCESS_CHECK_FOR_LOADED_MODULE_DETAILS UserAccessCheckForLoadedModuleDetails;
 
     //
     // Process/Thread interception mechanism
