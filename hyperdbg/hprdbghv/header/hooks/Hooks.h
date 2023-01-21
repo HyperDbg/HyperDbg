@@ -283,3 +283,13 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2);
  */
 BOOLEAN
 EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address);
+
+/**
+ * @brief routines to generally handle breakpoint hit for detour
+ * @param Regs
+ * @param CalledFrom
+ *
+ * @return PVOID
+ */
+PVOID
+EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
