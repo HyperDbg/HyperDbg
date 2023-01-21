@@ -1156,3 +1156,357 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
         DebuggerEventDisableEferOnAllProcessors();
     }
 }
+
+/**
+ * @brief Check and modify state of exception bitmap
+ *
+ * @param CoreId Core specific resource
+ * @param BitmapMask The current bitmask of the resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceExceptionBitmap(UINT32                               CoreId,
+                                              UINT32 *                             BitmapMask,
+                                              PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if the integrity check is because of clearing
+    // events or not, if it's for clearing events, the debugger
+    // will automatically set
+    //
+    if (!(PassOver & PASSING_OVER_EXCEPTION_EVENTS))
+    {
+        //
+        // we have to check for !exception events and apply the mask
+        //
+        *BitmapMask = *BitmapMask | DebuggerExceptionEventBitmapMask(CoreId);
+    }
+
+    //
+    // Check if it's because of disabling !syscall or !sysret commands
+    // or not, if it's because of clearing #UD in these events then we
+    // can ignore the checking for this command, otherwise, we have to
+    // check it
+    //
+    if (!(PassOver & PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK))
+    {
+        //
+        // Check if the debugger has events relating to syscall or sysret,
+        // if no, we can safely ignore #UDs, otherwise, #UDs should be
+        // activated
+        //
+        if (DebuggerEventListCountByEventType(SYSCALL_HOOK_EFER_SYSCALL, CoreId) != 0 ||
+            DebuggerEventListCountByEventType(SYSCALL_HOOK_EFER_SYSRET, CoreId) != 0)
+        {
+            //
+            // #UDs should be activated
+            //
+            *BitmapMask = *BitmapMask | (1 << EXCEPTION_VECTOR_UNDEFINED_OPCODE);
+        }
+    }
+
+    //
+    // Check for kernel or user debugger's presence
+    //
+    if (DebuggerQueryDebuggerStatus())
+    {
+        *BitmapMask = *BitmapMask | (1 << EXCEPTION_VECTOR_BREAKPOINT);
+        *BitmapMask = *BitmapMask | (1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+    }
+
+    //
+    // Check for intercepting #DB by threads tracer
+    //
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
+    {
+        *BitmapMask = *BitmapMask | (1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+    }
+
+    //
+    // Do not terminate the operation
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Check and modify state of external interrupt exiting
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceExternalInterruptExiting(UINT32                               CoreId,
+                                                       PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if the integrity check is because of clearing
+    // events or not, if it's for clearing events, the debugger
+    // will automatically set
+    //
+    if (!(PassOver & PASSING_OVER_INTERRUPT_EVENTS))
+    {
+        //
+        // we have to check for !interrupt events and decide whether to
+        // ignore this event or not
+        //
+        if (DebuggerEventListCountByEventType(EXTERNAL_INTERRUPT_OCCURRED, CoreId) != 0)
+        {
+            //
+            // We should ignore this unset, because !interrupt is enabled for this core
+            //
+            return TRUE;
+        }
+    }
+
+    //
+    // Check if it should remain active for thread or process changing or not
+    //
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_THREAD_CHANGE) ||
+        KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_INTERRUPTS_FOR_PROCESS_CHANGE))
+    {
+        //
+        // Terminate the operation
+        //
+        return TRUE;
+    }
+
+    //
+    // Not terminate it
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Check and modify state of TSC exiting
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceTscExiting(UINT32                               CoreId,
+                                         PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if the integrity check is because of clearing
+    // events or not, if it's for clearing events, the debugger
+    // will automatically set
+    //
+    if (!(PassOver & PASSING_OVER_TSC_EVENTS))
+    {
+        //
+        // we have to check for !tsc events and decide whether to
+        // ignore this event or not
+        //
+        if (DebuggerEventListCountByEventType(TSC_INSTRUCTION_EXECUTION, CoreId) != 0)
+        {
+            //
+            // We should ignore this unset, because !tsc is enabled for this core
+            //
+            return TRUE;
+        }
+    }
+
+    //
+    // Not terminate it
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Check and modify state of mov 2 debug regs exiting
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceMov2DebugRegExiting(UINT32                               CoreId,
+                                                  PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if the integrity check is because of clearing
+    // events or not, if it's for clearing events, the debugger
+    // will automatically set
+    //
+    if (!(PassOver & PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS))
+    {
+        //
+        // we have to check for !dr events and decide whether to
+        // ignore this event or not
+        //
+        if (DebuggerEventListCountByEventType(DEBUG_REGISTERS_ACCESSED, CoreId) != 0)
+        {
+            //
+            // We should ignore this unset, because !dr is enabled for this core
+            //
+
+            return TRUE;
+        }
+    }
+
+    //
+    // Check if thread switching is enabled or not
+    //
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
+    {
+        //
+        // We should ignore it as we want this to switch to new thread
+        //
+        return TRUE;
+    }
+
+    //
+    // Not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Check and modify state of move to control register exiting
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceMovControlRegsExiting(UINT32                               CoreId,
+                                                    PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if the integrity check is because of clearing
+    // events or not, if it's for clearing events, the debugger
+    // will automatically set
+    //
+    if (!(PassOver & PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS))
+    {
+        //
+        // we have to check for !dr events and decide whether to
+        // ignore this event or not
+        //
+        if (DebuggerEventListCountByEventType(CONTROL_REGISTER_MODIFIED, CoreId) != 0)
+        {
+            //
+            // We should ignore this unset, because !dr is enabled for this core
+            //
+            return TRUE;
+        }
+    }
+
+    //
+    // Not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Check and modify state of move to cr3 control register exiting
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                               CoreId,
+                                              PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    //
+    // Check if process switching is enabled or not
+    //
+    if (KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                  DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_WAITING_FOR_MOV_CR3_VM_EXITS))
+    {
+        //
+        // We should ignore it as we want this to switch to new process
+        //
+        return TRUE;
+    }
+
+    //
+    // Do not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Termination query state of debugger
+ *
+ * @param CoreId Core specific resource
+ * @param ResourceType Type of resource
+ * @param Context The context specified to the resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN If TRUE the caller might terminate the operation
+ */
+BOOLEAN
+TerminateQueryDebuggerResource(UINT32                               CoreId,
+                               PROTECTED_HV_RESOURCES_TYPE          ResourceType,
+                               PVOID                                Context,
+                               PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    BOOLEAN Result = FALSE;
+
+    switch (ResourceType)
+    {
+    case PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP:
+
+        Result = TerminateQueryDebuggerResourceExceptionBitmap(CoreId, (UINT32 *)Context, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING:
+
+        Result = TerminateQueryDebuggerResourceExternalInterruptExiting(CoreId, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING:
+
+        Result = TerminateQueryDebuggerResourceTscExiting(CoreId, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING:
+
+        Result = TerminateQueryDebuggerResourceMov2DebugRegExiting(CoreId, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING:
+
+        Result = TerminateQueryDebuggerResourceMovControlRegsExiting(CoreId, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING:
+
+        Result = TerminateQueryDebuggerResourceMovToCr3Exiting(CoreId, PassOver);
+
+        break;
+
+    default:
+
+        Result = FALSE;
+
+        LogError("Err, invalid protected type");
+
+        break;
+    }
+
+    //
+    // Check termination result
+    //
+    return Result;
+}

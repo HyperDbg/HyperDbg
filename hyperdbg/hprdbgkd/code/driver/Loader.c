@@ -48,6 +48,7 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.BreakpointCheckAndHandleDebugBreakpoint        = BreakpointCheckAndHandleDebugBreakpoint;
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint   = BreakpointCheckAndHandleReApplyingBreakpoint;
     VmmCallbacks.BreakpointHandleBpTraps                        = BreakpointHandleBpTraps;
+    VmmCallbacks.TerminateQueryDebuggerResource                 = TerminateQueryDebuggerResource;
     VmmCallbacks.UdCheckForCommand                              = UdCheckForCommand;
     VmmCallbacks.ProcessTriggerCr3ProcessChange                 = ProcessTriggerCr3ProcessChange;
     VmmCallbacks.DebuggerCheckProcessOrThreadChange             = DebuggerCheckProcessOrThreadChange;

@@ -133,10 +133,19 @@ typedef VOID (*KD_HANDLE_NMI_BROADCAST_DEBUG_BREAKS)(UINT32 CoreId, BOOLEAN IsOn
 typedef BOOLEAN (*KD_CHECK_AND_HANDLE_NMI_CALLBACK)(UINT32 CoreId);
 
 /**
- * @brief Check and handle NMI callbacks
+ * @brief Set the top-level driver's error status
  *
  */
 typedef VOID (*DEBUGGER_SET_LAST_ERROR)(UINT32 LastError);
+
+/**
+ * @brief Check and modify the protected resources of the hypervisor
+ *
+ */
+typedef BOOLEAN (*TERMINATE_QUERY_DEBUGGER_RESOURCE)(UINT32                               CoreId,
+                                                     PROTECTED_HV_RESOURCES_TYPE          ResourceType,
+                                                     PVOID                                Context,
+                                                     PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
 
 //////////////////////////////////////////////////
 //			   Callback Structure               //
@@ -163,6 +172,7 @@ typedef struct _VMM_CALLBACKS
     BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT      BreakpointCheckAndHandleDebugBreakpoint;
     BREAKPOINT_HANDLE_BP_TRAPS                        BreakpointHandleBpTraps;
     BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT BreakpointCheckAndHandleReApplyingBreakpoint;
+    TERMINATE_QUERY_DEBUGGER_RESOURCE                 TerminateQueryDebuggerResource;
     KD_HANDLE_REGISTERED_MTF_CALLBACK                 KdHandleRegisteredMtfCallback;
     KD_HANDLE_NMI_BROADCAST_DEBUG_BREAKS              KdHandleNmiBroadcastDebugBreaks;
     KD_CHECK_AND_HANDLE_NMI_CALLBACK                  KdCheckAndHandleNmiCallback;

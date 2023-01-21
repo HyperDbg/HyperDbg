@@ -154,3 +154,62 @@ typedef struct _DEBUGGER_BROADCASTING_OPTIONS
     UINT64 OptionalParam4; // Optional parameter
 
 } DEBUGGER_BROADCASTING_OPTIONS, *PDEBUGGER_BROADCASTING_OPTIONS;
+
+//////////////////////////////////////////////////
+//    Enums For Event And Debugger Resources    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Things to consider when applying resources
+ *
+ */
+typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
+{
+    //
+    // for exception bitmap
+    //
+    PASSING_OVER_NONE                                  = 0,
+    PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK = 1,
+    PASSING_OVER_EXCEPTION_EVENTS,
+
+    //
+    // for external interupts-exitings
+    //
+    PASSING_OVER_INTERRUPT_EVENTS,
+
+    //
+    // for external rdtsc/p exitings
+    //
+    PASSING_OVER_TSC_EVENTS,
+
+    //
+    // for external mov to hardware debug registers exitings
+    //
+    PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS,
+
+    //
+    // for external mov to control registers exitings
+    //
+    PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS,
+
+} PROTECTED_HV_RESOURCES_PASSING_OVERS;
+
+/**
+ * @brief Type of protected (multi-used) resources
+ *
+ */
+typedef enum _PROTECTED_HV_RESOURCES_TYPE
+{
+    PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
+
+    PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
+
+    PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
+
+    PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
+
+    PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
+
+    PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
+
+} PROTECTED_HV_RESOURCES_TYPE;

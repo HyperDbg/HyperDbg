@@ -66,3 +66,9 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event);
 
 VOID
 TerminateControlRegistersEvent(PDEBUGGER_EVENT Event);
+
+BOOLEAN
+TerminateQueryDebuggerResource(UINT32                               CoreId,
+                               PROTECTED_HV_RESOURCES_TYPE          ResourceType,
+                               PVOID                                Context,
+                               PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
