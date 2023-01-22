@@ -13,6 +13,22 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//               Memory Stages                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Different levels of paging
+ *
+ */
+typedef enum _PAGING_LEVEL
+{
+    PagingLevelPageTable = 0,
+    PagingLevelPageDirectory,
+    PagingLevelPageDirectoryPointerTable,
+    PagingLevelPageMapLevel4
+} PAGING_LEVEL;
+
+//////////////////////////////////////////////////
 //              Execution Stages                //
 //////////////////////////////////////////////////
 

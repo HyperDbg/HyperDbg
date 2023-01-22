@@ -203,3 +203,91 @@ GetRunningCr3OnTargetProcess();
 
 IMPORT_EXPORT_VMFUNC VOID
 RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
+
+//////////////////////////////////////////////////
+//         Memory Management Functions 	   		//
+//////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// PTE-related Functions
+//
+
+IMPORT_EXPORT_VMFUNC PVOID
+MemoryMapperGetPteVa(_In_ PVOID        Va,
+                     _In_ PAGING_LEVEL Level);
+
+IMPORT_EXPORT_VMFUNC PVOID
+MemoryMapperGetPteVaByCr3(_In_ PVOID        Va,
+                          _In_ PAGING_LEVEL Level,
+                          _In_ CR3_TYPE     TargetCr3);
+
+IMPORT_EXPORT_VMFUNC PVOID
+MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                          _In_ PAGING_LEVEL Level,
+                                          _In_ CR3_TYPE     TargetCr3);
+
+// ----------------------------------------------------------------------------
+// Reading Memory Functions
+//
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
+                           _Inout_ PVOID BufferToSaveMemory,
+                           _In_ SIZE_T   SizeToRead);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64    PaAddressToRead,
+                                            _Inout_ UINT64 BufferToSaveMemory,
+                                            _In_ SIZE_T    SizeToRead);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
+                                          _Inout_ PVOID BufferToSaveMemory,
+                                          _In_ SIZE_T   SizeToRead);
+
+// ----------------------------------------------------------------------------
+// Writing Memory Functions
+//
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
+                            _In_ PVOID     Source,
+                            _In_ SIZE_T    SizeToWrite,
+                            _In_ CR3_TYPE  TargetProcessCr3);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperWriteMemorySafeOnTargetProcess(_Inout_ UINT64 Destination,
+                                           _In_ PVOID     Source,
+                                           _In_ SIZE_T    Size);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
+                                             _In_ UINT64    Source,
+                                             _In_ SIZE_T    SizeToWrite);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
+                              _In_ PVOID     Source,
+                              _In_ SIZE_T    SizeToWrite,
+                              _In_ UINT32    TargetProcessId);
+
+// ----------------------------------------------------------------------------
+// Reserving Memory Functions
+//
+IMPORT_EXPORT_VMFUNC UINT64
+MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
+                                                  _In_ BOOLEAN Allocate);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
+                                      _Inout_ PVOID BaseAddress);
+
+// ----------------------------------------------------------------------------
+// Miscellaneous Memory Functions
+//
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                                  _In_ BOOLEAN      Set,
+                                                  _In_ PAGING_LEVEL Level,
+                                                  _In_ CR3_TYPE     TargetCr3);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);

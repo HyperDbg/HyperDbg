@@ -28,18 +28,6 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Different levels of paging
- *
- */
-typedef enum _PAGING_LEVEL
-{
-    PagingLevelPageTable = 0,
-    PagingLevelPageDirectory,
-    PagingLevelPageDirectoryPointerTable,
-    PagingLevelPageMapLevel4
-} PAGING_LEVEL;
-
-/**
  * @brief Memory wrapper for reading safe from the memory
  *
  */
@@ -202,89 +190,17 @@ MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE T
 // Public Interfaces
 //
 
-BOOLEAN
-MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
-                           _Inout_ PVOID BufferToSaveMemory,
-                           _In_ SIZE_T   SizeToRead);
-
-BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64    PaAddressToRead,
-                                            _Inout_ UINT64 BufferToSaveMemory,
-                                            _In_ SIZE_T    SizeToRead);
-
-BOOLEAN
-MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
-                                          _Inout_ PVOID BufferToSaveMemory,
-                                          _In_ SIZE_T   SizeToRead);
-
-BOOLEAN
-MemoryMapperWriteMemorySafeOnTargetProcess(_Inout_ UINT64 Destination,
-                                           _In_ PVOID     Source,
-                                           _In_ SIZE_T    Size);
-
-BOOLEAN
-MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
-                            _In_ PVOID     Source,
-                            _In_ SIZE_T    SizeToWrite,
-                            _In_ CR3_TYPE  TargetProcessCr3);
-
-PPAGE_ENTRY
-MemoryMapperGetPteVa(_In_ PVOID        Va,
-                     _In_ PAGING_LEVEL Level);
-
-PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3(_In_ PVOID        Va,
-                          _In_ PAGING_LEVEL Level,
-                          _In_ CR3_TYPE     TargetCr3);
-
-PPAGE_ENTRY
-MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
-                                          _In_ PAGING_LEVEL Level,
-                                          _In_ CR3_TYPE     TargetCr3);
-
-BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
-                                                  _In_ BOOLEAN      Set,
-                                                  _In_ PAGING_LEVEL Level,
-                                                  _In_ CR3_TYPE     TargetCr3);
-
-BOOLEAN
-MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
-                                      _In_ CR3_TYPE TargetCr3);
-
 VOID
 MemoryMapperInitialize();
 
 VOID
 MemoryMapperUninitialize();
 
+BOOLEAN
+MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
+                                      _In_ CR3_TYPE TargetCr3);
+
 VOID
 MemoryMapperMapPhysicalAddressToPte(_In_ PHYSICAL_ADDRESS PhysicalAddress,
                                     _In_ PVOID            TargetProcessVirtualAddress,
                                     _In_ CR3_TYPE         TargetProcessKernelCr3);
-
-UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
-                                                  _In_ BOOLEAN Allocate);
-
-BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
-                                      _Inout_ PVOID BaseAddress);
-
-BOOLEAN
-MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
-                              _In_ PVOID     Source,
-                              _In_ SIZE_T    SizeToWrite,
-                              _In_ UINT32    TargetProcessId);
-
-BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
-                                             _In_ UINT64    Source,
-                                             _In_ SIZE_T    SizeToWrite);
-
-BOOLEAN
-MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
-
-// ----------------------------------------------------------------------------
-// Exported Interfaces
-//

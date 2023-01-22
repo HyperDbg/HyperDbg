@@ -52,10 +52,10 @@ MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
  *
  * @param Va Virtual Address
  * @param Level PMLx
- * @return PPAGE_ENTRY virtual address of PTE
+ * @return PVOID virtual address of PTE
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
 {
     CR3_TYPE Cr3;
@@ -81,10 +81,10 @@ MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
  * @param Va Virtual Address
  * @param Level PMLx
  * @param TargetCr3 kernel cr3 of target process
- * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ * @return PVOID virtual address of PTE based on cr3
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     PPAGE_ENTRY PageEntry         = NULL;
@@ -123,10 +123,10 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
  * @param Va Virtual Address
  * @param Level PMLx
  * @param TargetCr3 kernel cr3 of target process
- * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ * @return PVOID virtual address of PTE based on cr3
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     CR3_TYPE Cr3;

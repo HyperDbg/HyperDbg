@@ -56,19 +56,3 @@ typedef struct _PAGE_ENTRY
         } Fields;
     };
 } PAGE_ENTRY, *PPAGE_ENTRY;
-
-//////////////////////////////////////////////////
-//				   	 Enums	     				//
-//////////////////////////////////////////////////
-
-/**
- * @brief Different levels of paging
- *
- */
-typedef enum _PAGING_LEVEL
-{
-    PagingLevelPageTable = 0,
-    PagingLevelPageDirectory,
-    PagingLevelPageDirectoryPointerTable,
-    PagingLevelPageMapLevel4
-} PAGING_LEVEL;
