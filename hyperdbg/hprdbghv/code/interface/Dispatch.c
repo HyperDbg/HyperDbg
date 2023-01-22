@@ -121,7 +121,7 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // Check if attaching is for command dispatching in user debugger
     // or a regular CPUID
     //
-    if (g_UserDebuggerState && g_Callbacks.UdCheckForCommand())
+    if (g_Callbacks.UdCheckForCommand())
     {
         //
         // It's a thread command for user debugger, no need to run the

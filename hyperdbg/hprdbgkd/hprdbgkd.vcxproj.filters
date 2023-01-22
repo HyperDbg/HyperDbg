@@ -41,9 +41,6 @@
     <Filter Include="header\debugger\core">
       <UniqueIdentifier>{9f94f25f-ef8a-412c-a064-a62c58ac23f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\debugger\allocations">
-      <UniqueIdentifier>{b565cacb-0d0c-4821-8e00-528e0755ac1f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\debugger\allocations">
       <UniqueIdentifier>{472f768a-7134-4236-8c4d-927c07671c4d}</UniqueIdentifier>
     </Filter>
@@ -89,6 +86,12 @@
     <Filter Include="header\debugger\user-level">
       <UniqueIdentifier>{c9e1f225-b893-4ffa-969f-9b7454369104}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\debugger\memory">
+      <UniqueIdentifier>{e39979cc-db7b-4745-b879-f58e129226f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\memory">
+      <UniqueIdentifier>{fbe20be3-c0c6-4de9-9278-33c27bdbbbbe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -125,9 +128,6 @@
     </ClCompile>
     <ClCompile Include="code\debugger\core\DebuggerVmcalls.c">
       <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\allocations\Allocations.c">
-      <Filter>code\debugger\allocations</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c">
       <Filter>code\debugger\commands</Filter>
@@ -179,6 +179,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\objects\Thread.c">
       <Filter>code\debugger\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\memory\Allocations.c">
+      <Filter>code\debugger\memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -256,6 +259,12 @@
     </ClInclude>
     <ClInclude Include="header\debugger\objects\Thread.h">
       <Filter>header\debugger\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\memory\Allocations.h">
+      <Filter>header\debugger\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\memory\Memory.h">
+      <Filter>header\debugger\memory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

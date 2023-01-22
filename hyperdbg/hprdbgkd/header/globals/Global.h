@@ -65,3 +65,82 @@ DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
  *
  */
 DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
+
+/**
+ * @brief The value of last error
+ *
+ */
+UINT32 g_LastError;
+
+/**
+ * @brief Determines whether the debugger events should be active or not
+ *
+ */
+BOOLEAN g_EnableDebuggerEvents;
+
+/**
+ * @brief List header of breakpoints for debugger-mode
+ *
+ */
+LIST_ENTRY g_BreakpointsListHead;
+
+/**
+ * @brief Seed for setting id of breakpoints
+ *
+ */
+UINT64 g_MaximumBreakpointId;
+
+/**
+ * @brief shows whether the kernel debugger is enabled or disabled
+ *
+ */
+BOOLEAN g_KernelDebuggerState;
+
+/**
+ * @brief shows whether the user debugger is enabled or disabled
+ *
+ */
+BOOLEAN g_UserDebuggerState;
+
+/**
+ * @brief Reason that the debuggee is halted
+ *
+ */
+DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
+
+/**
+ * @brief Optional context as the debuggee is halted
+ *
+ */
+PVOID g_DebuggeeHaltContext;
+
+/**
+ * @brief Optional tag as the debuggee is halted
+ *
+ */
+UINT64 g_DebuggeeHaltTag;
+
+/**
+ * @brief NMI handler pointer for KeDeregisterNmiCallback
+ *
+ */
+PVOID g_NmiHandlerForKeDeregisterNmiCallback;
+
+/**
+ * @brief Seed for tokens of unique details buffer for threads
+ *
+ */
+UINT64 g_SeedOfUserDebuggingDetails;
+
+/**
+ * @brief Whether the thread attaching mechanism is waiting for a page-fault
+ * finish or not
+ *
+ */
+BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
+
+/**
+ * @brief List header of thread debugging details
+ *
+ */
+LIST_ENTRY g_ProcessDebuggingDetailsListHead;

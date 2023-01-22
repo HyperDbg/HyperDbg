@@ -108,7 +108,6 @@
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
-    <ClCompile Include="code\debugger\allocations\Allocations.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
     <ClCompile Include="code\debugger\commands\Callstack.c" />
@@ -120,6 +119,7 @@
     <ClCompile Include="code\debugger\core\DebuggerVmcalls.c" />
     <ClCompile Include="code\debugger\core\Termination.c" />
     <ClCompile Include="code\debugger\kernel-level\Kd.c" />
+    <ClCompile Include="code\debugger\memory\Allocations.c" />
     <ClCompile Include="code\debugger\objects\Process.c" />
     <ClCompile Include="code\debugger\objects\Thread.c" />
     <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
@@ -146,6 +146,8 @@
     <ClInclude Include="header\debugger\core\State.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
+    <ClInclude Include="header\debugger\memory\Allocations.h" />
+    <ClInclude Include="header\debugger\memory\Memory.h" />
     <ClInclude Include="header\debugger\objects\Process.h" />
     <ClInclude Include="header\debugger\objects\Thread.h" />
     <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />

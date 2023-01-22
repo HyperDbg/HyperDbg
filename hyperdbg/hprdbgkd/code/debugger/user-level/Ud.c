@@ -255,6 +255,14 @@ UdCheckForCommand()
 {
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
 
+    //
+    // Check if user-debugger is initialized or not
+    //
+    if (!g_UserDebuggerState)
+    {
+        return FALSE;
+    }
+
     ThreadDebuggingDetails =
         ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
                                                                   PsGetCurrentThreadId());

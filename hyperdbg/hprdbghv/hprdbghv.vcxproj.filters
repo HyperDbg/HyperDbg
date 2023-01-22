@@ -72,9 +72,6 @@
     <Filter Include="code\globals">
       <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\devices\globals">
-      <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\vmm\Export">
       <UniqueIdentifier>{eb436c9d-4db9-403c-a163-3ec7357a72c7}</UniqueIdentifier>
     </Filter>
@@ -107,6 +104,9 @@
     </Filter>
     <Filter Include="header\broadcast">
       <UniqueIdentifier>{16a14404-8d63-4ea1-89df-609d3b4f13fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\globals">
+      <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -308,10 +308,10 @@
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariableManagement.h">
-      <Filter>header\devices\globals</Filter>
+      <Filter>header\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariables.h">
-      <Filter>header\devices\globals</Filter>
+      <Filter>header\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\platform\MetaMacros.h">
       <Filter>header\platform</Filter>
