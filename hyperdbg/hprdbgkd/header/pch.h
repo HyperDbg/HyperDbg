@@ -24,6 +24,11 @@
 #define SCRIPT_ENGINE_KERNEL_MODE
 
 //
+// Definition of Intel primitives (External header)
+//
+#include "ia32-doc/out/ia32.h"
+
+//
 // Import Configuration
 //
 #include "Configuration.h"

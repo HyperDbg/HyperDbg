@@ -46,6 +46,12 @@ typedef RFLAGS * PRFLAGS;
  */
 #define VMM_DRIVER_NAME "hprdbghv"
 
+/**
+ * @brief name of HyperDbg's VMM driver
+ *
+ */
+#define KERNEL_DEBUGGER_DRIVER_NAME "hprdbgkd"
+
 //////////////////////////////////////////////////
 //				   Test Cases                   //
 //////////////////////////////////////////////////

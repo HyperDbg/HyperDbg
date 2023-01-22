@@ -41,6 +41,54 @@
     <Filter Include="header\debugger\core">
       <UniqueIdentifier>{9f94f25f-ef8a-412c-a064-a62c58ac23f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\allocations">
+      <UniqueIdentifier>{b565cacb-0d0c-4821-8e00-528e0755ac1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\allocations">
+      <UniqueIdentifier>{472f768a-7134-4236-8c4d-927c07671c4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\commands">
+      <UniqueIdentifier>{68893ab3-e9cb-4647-8380-0b8041bf4705}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\communication">
+      <UniqueIdentifier>{30aa4d97-947b-4a9d-aa05-1aad01fc9556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\kernel-level">
+      <UniqueIdentifier>{641ab271-4004-4333-bebd-77517a64401a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\objects">
+      <UniqueIdentifier>{305c68d8-e3fd-41b4-b6a1-dc28bbfb44ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\script-engine">
+      <UniqueIdentifier>{5897bdbb-ff35-46eb-8159-375e895043b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\tests">
+      <UniqueIdentifier>{09802905-f49f-4bbb-92d7-47d7edafdfce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\user-level">
+      <UniqueIdentifier>{8c098a63-0ead-4bc1-9c97-57f7b1706ffa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\commands">
+      <UniqueIdentifier>{15dd9723-c11d-472e-aabe-3346b2e4c12e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\communication">
+      <UniqueIdentifier>{bac542ae-ef44-4fe4-8006-3fc92d6050eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\kernel-level">
+      <UniqueIdentifier>{df04843e-f835-4760-8320-c3832fdc4b32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\objects">
+      <UniqueIdentifier>{e93dfc16-8235-4d33-9570-7fafca7d5583}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\script-engine">
+      <UniqueIdentifier>{81808a30-c025-4f73-92bf-e54d5e2ace42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\tests">
+      <UniqueIdentifier>{fe900b5c-7d27-47d6-8bf7-a2fecca1d83b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\user-level">
+      <UniqueIdentifier>{c9e1f225-b893-4ffa-969f-9b7454369104}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -57,24 +105,6 @@
     <ClCompile Include="code\driver\Ioctl.c">
       <Filter>code\driver</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\user-level\UserAccess.c" />
-    <ClCompile Include="code\debugger\user-level\Ud.c" />
-    <ClCompile Include="code\debugger\user-level\ThreadHolder.c" />
-    <ClCompile Include="code\debugger\user-level\Attaching.c" />
-    <ClCompile Include="code\debugger\tests\KernelTests.c" />
-    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
-    <ClCompile Include="code\debugger\objects\Thread.c" />
-    <ClCompile Include="code\debugger\objects\Process.c" />
-    <ClCompile Include="code\debugger\kernel-level\Kd.c" />
-    <ClCompile Include="code\debugger\core\Termination.c" />
-    <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
-    <ClCompile Include="code\debugger\core\Debugger.c" />
-    <ClCompile Include="code\debugger\communication\SerialConnection.c" />
-    <ClCompile Include="code\debugger\commands\ExtensionCommands.c" />
-    <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
-    <ClCompile Include="code\debugger\commands\Callstack.c" />
-    <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
-    <ClCompile Include="code\debugger\allocations\Allocations.c" />
     <ClCompile Include="..\script-eval\code\Functions.c">
       <Filter>code\script-eval</Filter>
     </ClCompile>
@@ -96,6 +126,60 @@
     <ClCompile Include="code\debugger\core\DebuggerVmcalls.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\allocations\Allocations.c">
+      <Filter>code\debugger\allocations</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\BreakpointCommands.c">
+      <Filter>code\debugger\commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\DebuggerCommands.c">
+      <Filter>code\debugger\commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\ExtensionCommands.c">
+      <Filter>code\debugger\commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\Callstack.c">
+      <Filter>code\debugger\commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\communication\SerialConnection.c">
+      <Filter>code\debugger\communication</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\Debugger.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\DebuggerEvents.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\Termination.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\kernel-level\Kd.c">
+      <Filter>code\debugger\kernel-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\Attaching.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\ThreadHolder.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\Ud.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\UserAccess.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\tests\KernelTests.c">
+      <Filter>code\debugger\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c">
+      <Filter>code\debugger\script-engine</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\objects\Process.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\objects\Thread.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -110,30 +194,68 @@
     <ClInclude Include="header\driver\Loader.h">
       <Filter>header\driver</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
-    <ClInclude Include="header\debugger\commands\Callstack.h" />
-    <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
-    <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
-    <ClInclude Include="header\debugger\communication\SerialConnection.h" />
-    <ClInclude Include="header\debugger\core\Debugger.h" />
-    <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
-    <ClInclude Include="header\debugger\core\Termination.h" />
-    <ClInclude Include="header\debugger\kernel-level\Kd.h" />
-    <ClInclude Include="header\debugger\objects\Process.h" />
-    <ClInclude Include="header\debugger\objects\Thread.h" />
-    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
-    <ClInclude Include="header\debugger\tests\KernelTests.h" />
-    <ClInclude Include="header\debugger\user-level\UserAccess.h" />
-    <ClInclude Include="header\debugger\user-level\Ud.h" />
-    <ClInclude Include="header\debugger\user-level\ThreadHolder.h" />
-    <ClInclude Include="header\debugger\user-level\Attaching.h" />
-    <ClInclude Include="header\debugger\allocations\Allocations.h" />
-    <ClInclude Include="header\debugger\core\State.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h">
       <Filter>header\debugger\broadcast</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\DebuggerVmcalls.h">
       <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\allocations\Allocations.h">
+      <Filter>header\debugger\allocations</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\commands\BreakpointCommands.h">
+      <Filter>header\debugger\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\commands\Callstack.h">
+      <Filter>header\debugger\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\commands\DebuggerCommands.h">
+      <Filter>header\debugger\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\commands\ExtensionCommands.h">
+      <Filter>header\debugger\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\communication\SerialConnection.h">
+      <Filter>header\debugger\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Debugger.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\DebuggerEvents.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\State.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Termination.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\kernel-level\Kd.h">
+      <Filter>header\debugger\kernel-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\Attaching.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\ThreadHolder.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\Ud.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\UserAccess.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\tests\KernelTests.h">
+      <Filter>header\debugger\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h">
+      <Filter>header\debugger\script-engine</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Process.h">
+      <Filter>header\debugger\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Thread.h">
+      <Filter>header\debugger\objects</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

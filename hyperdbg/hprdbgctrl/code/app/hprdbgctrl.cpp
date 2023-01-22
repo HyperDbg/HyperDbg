@@ -495,14 +495,14 @@ HyperDbgInstallVmmDriver()
         return 1;
     }
 
-    if (!ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
         ShowMessages("unable to install driver\n");
 
         //
         // Error - remove driver
         //
-        ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
         return 1;
     }
@@ -542,7 +542,7 @@ HyperDbgStopDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgStopVmmDriver()
 {
-    return HyperDbgStopDriver(VMM_DRIVER_NAME);
+    return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
 }
 
 /**
@@ -577,7 +577,7 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgUninstallVmmDriver()
 {
-    return HyperDbgUninstallDriver(VMM_DRIVER_NAME);
+    return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
 }
 
 /**

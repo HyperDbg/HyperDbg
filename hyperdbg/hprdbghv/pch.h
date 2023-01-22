@@ -36,7 +36,7 @@
 #define HYPERDBG_VMM
 
 //
-// External headers
+// Definition of Intel primitives (External header)
 //
 #include "ia32-doc/out/ia32.h"
 
