@@ -108,6 +108,7 @@
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
+    <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
     <ClCompile Include="code\debugger\commands\Callstack.c" />
@@ -133,6 +134,7 @@
     <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\debugger\allocations\Allocations.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />

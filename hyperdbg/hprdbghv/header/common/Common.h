@@ -62,20 +62,6 @@ typedef enum _PROCESS_KILL_METHODS
 #define PROFILE_LEVEL  15 // timer used for profiling.
 #define HIGH_LEVEL     15 // Highest interrupt level
 
-/*
- * @brief Segment register and corresponding GDT meaning in Windows
- */
-#define KGDT64_NULL      (0 * 16)     // NULL descriptor
-#define KGDT64_R0_CODE   (1 * 16)     // kernel mode 64-bit code
-#define KGDT64_R0_DATA   (1 * 16) + 8 // kernel mode 64-bit data (stack)
-#define KGDT64_R3_CMCODE (2 * 16)     // user mode 32-bit code
-#define KGDT64_R3_DATA   (2 * 16) + 8 // user mode 32-bit data
-#define KGDT64_R3_CODE   (3 * 16)     // user mode 64-bit code
-#define KGDT64_SYS_TSS   (4 * 16)     // kernel mode system task state
-#define KGDT64_R3_CMTEB  (5 * 16)     // user mode 32-bit TEB
-#define KGDT64_R0_CMCODE (6 * 16)     // kernel mode 32-bit code
-#define KGDT64_LAST      (7 * 16)     // last entry
-
 /**
  * @brief Intel CPU flags in CR0
  */
@@ -358,70 +344,11 @@ ClearBit(int nth, unsigned long * addr);
 void
 SetBit(int nth, unsigned long * addr);
 
-CR3_TYPE
-GetCr3FromProcessId(_In_ UINT32 ProcessId);
-
 BOOLEAN
 BroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
-UINT64
-PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
-
-UINT64
-VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
-
-UINT64
-VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
-                                           _In_ UINT32 ProcessId);
-
-UINT64
-VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
-                                            _In_ CR3_TYPE TargetCr3);
-
-UINT64
-VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
-
-UINT64
-PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress, _In_ UINT32 ProcessId);
-
-UINT64
-PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
-
-UINT64
-PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
-
-CR3_TYPE
-GetRunningCr3OnTargetProcess();
-
-int
-MathPower(int Base, int Exp);
-
-UINT64
-FindSystemDirectoryTableBase();
-
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
-
-CR3_TYPE
-SwitchOnMemoryLayoutOfTargetProcess();
-
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
-
-VOID
-RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
-
-PCHAR
-GetProcessNameFromEprocess(PEPROCESS eprocess);
-
 BOOLEAN
 StartsWith(const char * pre, const char * str);
-
-BOOLEAN
-IsProcessExist(UINT32 ProcId);
-
-BOOLEAN
-CheckIfAddressIsValidUsingTsx(CHAR * Address);
 
 VOID
 GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
@@ -432,14 +359,20 @@ CheckCpuSupportRtm();
 UINT64 *
 AllocateInvalidMsrBimap();
 
-UINT32
-Getx86VirtualAddressWidth();
-
 BOOLEAN
 CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress);
 
-BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+PCHAR
+GetProcessNameFromEprocess(PEPROCESS eprocess);
+
+UINT64
+FindSystemDirectoryTableBase();
+
+CR3_TYPE
+GetCr3FromProcessId(_In_ UINT32 ProcessId);
+
+UINT32
+Getx86VirtualAddressWidth();
 
 //////////////////////////////////////////////////
 //			         Functions  				//

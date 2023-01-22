@@ -92,6 +92,12 @@
     <Filter Include="code\debugger\memory">
       <UniqueIdentifier>{fbe20be3-c0c6-4de9-9278-33c27bdbbbbe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\common">
+      <UniqueIdentifier>{25b81e11-c2ea-4b57-999a-75a9293e34a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\common">
+      <UniqueIdentifier>{d3285ad7-c442-4380-b475-53c862491f53}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -183,6 +189,9 @@
     <ClCompile Include="code\debugger\memory\Allocations.c">
       <Filter>code\debugger\memory</Filter>
     </ClCompile>
+    <ClCompile Include="code\common\Common.c">
+      <Filter>code\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -265,6 +274,9 @@
     </ClInclude>
     <ClInclude Include="header\debugger\memory\Memory.h">
       <Filter>header\debugger\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\Common.h">
+      <Filter>header\common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

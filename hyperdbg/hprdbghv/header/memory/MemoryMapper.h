@@ -284,3 +284,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
 
 BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces
+//

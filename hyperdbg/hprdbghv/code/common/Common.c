@@ -12,36 +12,6 @@
 #include "pch.h"
 
 /**
- * @brief Power function in order to computer address for MSR bitmaps
- *
- * @param Base Base for power function
- * @param Exp Exponent for power function
- * @return int Returns the result of power function
- */
-int
-MathPower(int Base, int Exp)
-{
-    int result;
-
-    result = 1;
-
-    for (;;)
-    {
-        if (Exp & 1)
-        {
-            result *= Base;
-        }
-        Exp >>= 1;
-        if (!Exp)
-        {
-            break;
-        }
-        Base *= Base;
-    }
-    return result;
-}
-
-/**
  * @brief Broadcast a function to all logical cores
  * @details This function is deprecated as we want to supporrt more than 32 processors
  *
@@ -677,36 +647,6 @@ StartsWith(const char * pre, const char * str)
     size_t lenpre = strlen(pre),
            lenstr = strlen(str);
     return lenstr < lenpre ? FALSE : memcmp(pre, str, lenpre) == 0;
-}
-
-/**
- * @brief Checks whether the process with ProcId exists or not
- *
- * @details this function should NOT be called from vmx-root mode
- *
- * @param UINT32 ProcId
- * @return BOOLEAN Returns true if the process
- * exists and false if it the process doesn't exist
- */
-BOOLEAN
-IsProcessExist(UINT32 ProcId)
-{
-    PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
-
-    if (PsLookupProcessByProcessId(ProcId, &TargetEprocess) != STATUS_SUCCESS)
-    {
-        //
-        // There was an error, probably the process id was not found
-        //
-        return FALSE;
-    }
-    else
-    {
-        ObDereferenceObject(TargetEprocess);
-
-        return TRUE;
-    }
 }
 
 /**

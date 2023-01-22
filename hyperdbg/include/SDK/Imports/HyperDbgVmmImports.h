@@ -17,7 +17,7 @@
 #endif
 
 //////////////////////////////////////////////////
-//				   Functions					//
+//                 VM Functions 	    		//
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_VMFUNC VOID
@@ -136,3 +136,70 @@ VmFuncUninitializeMemory();
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
+
+//////////////////////////////////////////////////
+//                General Functions 	   		//
+//////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces For Virtual Addresses
+//
+
+IMPORT_EXPORT_VMFUNC UINT64
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
+
+IMPORT_EXPORT_VMFUNC UINT64
+VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
+                                           _In_ UINT32 ProcessId);
+
+IMPORT_EXPORT_VMFUNC UINT64
+VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
+                                            _In_ CR3_TYPE TargetCr3);
+
+IMPORT_EXPORT_VMFUNC UINT64
+VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces For Physical Addresses
+//
+IMPORT_EXPORT_VMFUNC UINT64
+PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
+
+IMPORT_EXPORT_VMFUNC UINT64
+PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress, _In_ UINT32 ProcessId);
+
+IMPORT_EXPORT_VMFUNC UINT64
+PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
+
+IMPORT_EXPORT_VMFUNC UINT64
+PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces For Layout Switching Functions
+//
+IMPORT_EXPORT_VMFUNC CR3_TYPE
+SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
+
+IMPORT_EXPORT_VMFUNC CR3_TYPE
+SwitchOnMemoryLayoutOfTargetProcess();
+
+IMPORT_EXPORT_VMFUNC CR3_TYPE
+SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces For Check Validity of Addresses
+//
+IMPORT_EXPORT_VMFUNC BOOLEAN
+CheckIfAddressIsValidUsingTsx(CHAR * Address);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+
+// ----------------------------------------------------------------------------
+// Exported Interfaces For Miscellaneous Functions
+//
+IMPORT_EXPORT_VMFUNC CR3_TYPE
+GetRunningCr3OnTargetProcess();
+
+IMPORT_EXPORT_VMFUNC VOID
+RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
