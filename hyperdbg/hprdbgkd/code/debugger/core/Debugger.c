@@ -373,7 +373,7 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         return NULL;
     }
@@ -464,7 +464,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         return NULL;
     }
@@ -1278,7 +1278,7 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag,
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
 
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // The guest is already in vmx-root mode

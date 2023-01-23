@@ -95,7 +95,6 @@
 #include "vmm/vmx/IdtEmulation.h"
 #include "vmm/ept/Invept.h"
 #include "vmm/vmx/Vmcall.h"
-#include "vmm/vmx/ManageRegs.h"
 #include "components/registers/DebugRegisters.h"
 #include "vmm/vmx/Hv.h"
 #include "vmm/vmx/MsrHandlers.h"

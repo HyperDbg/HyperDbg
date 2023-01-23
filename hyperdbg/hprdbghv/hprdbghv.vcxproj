@@ -192,7 +192,6 @@
     <ClInclude Include="header\vmm\vmx\HypervTlfs.h" />
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
-    <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
     <ClInclude Include="header\vmm\vmx\MsrHandlers.h" />
     <ClInclude Include="header\vmm\vmx\Mtf.h" />
     <ClInclude Include="header\vmm\vmx\ProtectedHv.h" />

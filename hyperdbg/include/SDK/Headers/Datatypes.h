@@ -223,3 +223,80 @@ typedef struct _REGISTER_NOTIFY_BUFFER
     HANDLE      hEvent;
 
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
+
+//////////////////////////////////////////////////
+//                 Segment Types                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Describe segment selector in VMX
+ * @details This structure is copied from ia32.h to the SDK to
+ * be used as a data type for functions
+ *
+ */
+typedef union
+{
+    struct
+    {
+        /**
+         * [Bits 3:0] Segment type.
+         */
+        UINT32 Type : 4;
+
+        /**
+         * [Bit 4] S - Descriptor type (0 = system; 1 = code or data).
+         */
+        UINT32 DescriptorType : 1;
+
+        /**
+         * [Bits 6:5] DPL - Descriptor privilege level.
+         */
+        UINT32 DescriptorPrivilegeLevel : 2;
+
+        /**
+         * [Bit 7] P - Segment present.
+         */
+        UINT32 Present : 1;
+
+        UINT32 Reserved1 : 4;
+
+        /**
+         * [Bit 12] AVL - Available for use by system software.
+         */
+        UINT32 AvailableBit : 1;
+
+        /**
+         * [Bit 13] Reserved (except for CS). L - 64-bit mode active (for CS only).
+         */
+        UINT32 LongMode : 1;
+
+        /**
+         * [Bit 14] D/B - Default operation size (0 = 16-bit segment; 1 = 32-bit segment).
+         */
+        UINT32 DefaultBig : 1;
+
+        /**
+         * [Bit 15] G - Granularity.
+         */
+        UINT32 Granularity : 1;
+        /**
+         * [Bit 16] Segment unusable (0 = usable; 1 = unusable).
+         */
+        UINT32 Unusable : 1;
+        UINT32 Reserved2 : 15;
+    };
+
+    UINT32 AsUInt;
+} VMX_SEGMENT_ACCESS_RIGHTS_TYPE;
+
+/**
+ * @brief Segment selector
+ *
+ */
+typedef struct _VMX_SEGMENT_SELECTOR
+{
+    UINT16                         Selector;
+    VMX_SEGMENT_ACCESS_RIGHTS_TYPE Attributes;
+    UINT32                         Limit;
+    UINT64                         Base;
+} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;

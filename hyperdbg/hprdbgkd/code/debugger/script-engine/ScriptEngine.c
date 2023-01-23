@@ -26,7 +26,7 @@ ScriptEngineWrapperGetInstructionPointer()
     //
     // Check if we are in vmx-root or not
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         return VmFuncGetRip();
     }

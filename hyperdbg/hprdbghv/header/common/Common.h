@@ -220,19 +220,6 @@ typedef enum _PROCESS_KILL_METHODS
 typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
 
 /**
- * @brief Segment selector
- *
- */
-
-typedef struct _VMX_SEGMENT_SELECTOR
-{
-    UINT16                    Selector;
-    VMX_SEGMENT_ACCESS_RIGHTS Attributes;
-    UINT32                    Limit;
-    UINT64                    Base;
-} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
-
-/**
  * @brief CPUID Registers
  *
  */

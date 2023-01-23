@@ -484,7 +484,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     // Breaking only supported in vmx-root mode, and if user-debugger is
     // loaded
     //
-    if (!g_UserDebuggerState && VmxGetCurrentExecutionMode() == FALSE)
+    if (!g_UserDebuggerState && VmFuncVmxGetCurrentExecutionMode() == FALSE)
     {
         return FALSE;
     }

@@ -271,9 +271,6 @@
     <ClInclude Include="header\vmm\vmx\IoHandler.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="header\vmm\vmx\ManageRegs.h">
-      <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
     <ClInclude Include="header\vmm\vmx\Mtf.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
