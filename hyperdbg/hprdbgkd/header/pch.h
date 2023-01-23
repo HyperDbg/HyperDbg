@@ -75,6 +75,11 @@
 #include "header/debugger/core/Debugger.h"
 
 //
+// Assembly files
+//
+#include "header/assembly/Assembly.h"
+
+//
 // Debugger Sub-types
 //
 #include "header/debugger/tests/KernelTests.h"
@@ -99,6 +104,11 @@
 #include "header/debugger/user-level/ThreadHolder.h"
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/core/DebuggerVmcalls.h"
+
+//
+// DPC Headers
+//
+#include "header/common/Dpc.h"
 
 //
 // Script engine headers

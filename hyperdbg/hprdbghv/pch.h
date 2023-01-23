@@ -84,7 +84,7 @@
 #include "common/Msr.h"
 #include "memory/PoolManager.h"
 #include "common/Trace.h"
-#include "misc/InlineAsm.h"
+#include "assembly/InlineAsm.h"
 #include "vmm/ept/Vpid.h"
 #include "common/Common.h"
 #include "components/spinlock/header/Spinlock.h"
