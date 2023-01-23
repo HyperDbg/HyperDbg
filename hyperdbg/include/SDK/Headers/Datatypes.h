@@ -29,6 +29,25 @@ typedef enum _PAGING_LEVEL
 } PAGING_LEVEL;
 
 //////////////////////////////////////////////////
+//                 Pool Manager      			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Inum of intentions for buffers (buffer tag)
+ *
+ */
+typedef enum _POOL_ALLOCATION_INTENTION
+{
+    TRACKING_HOOKED_PAGES,
+    EXEC_TRAMPOLINE,
+    SPLIT_2MB_PAGING_TO_4KB_PAGE,
+    DETOUR_HOOK_DETAILS,
+    BREAKPOINT_DEFINITION_STRUCTURE,
+    PROCESS_THREAD_HOLDER,
+
+} POOL_ALLOCATION_INTENTION;
+
+//////////////////////////////////////////////////
 //              Execution Stages                //
 //////////////////////////////////////////////////
 

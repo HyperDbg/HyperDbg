@@ -291,3 +291,19 @@ MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
+
+//////////////////////////////////////////////////
+//                 Pool Manager     	   		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+PoolManagerCheckAndPerformAllocationAndDeallocation();
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
+
+IMPORT_EXPORT_VMFUNC UINT64
+PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+PoolManagerFreePool(UINT64 AddressToFree);
