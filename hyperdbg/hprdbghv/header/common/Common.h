@@ -245,18 +245,6 @@ typedef struct _CPUID
 } CPUID, *PCPUID;
 
 /**
- * @brief KPROCESS Brief structure
- *
- */
-typedef struct _NT_KPROCESS
-{
-    DISPATCHER_HEADER Header;
-    LIST_ENTRY        ProfileListHead;
-    ULONG_PTR         DirectoryTableBase;
-    UCHAR             Data[1];
-} NT_KPROCESS, *PNT_KPROCESS;
-
-/**
  * @brief Page-Fault Error Code
  *
  */
@@ -285,6 +273,22 @@ typedef union _CR_FIXED
     } Fields;
 
 } CR_FIXED, *PCR_FIXED;
+
+//////////////////////////////////////////////////
+//         Windows-specific structures          //
+//////////////////////////////////////////////////
+
+/**
+ * @brief KPROCESS Brief structure
+ *
+ */
+typedef struct _NT_KPROCESS
+{
+    DISPATCHER_HEADER Header;
+    LIST_ENTRY        ProfileListHead;
+    ULONG_PTR         DirectoryTableBase;
+    UCHAR             Data[1];
+} NT_KPROCESS, *PNT_KPROCESS;
 
 //////////////////////////////////////////////////
 //				 Function Types					//

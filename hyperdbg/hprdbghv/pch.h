@@ -87,7 +87,7 @@
 #include "misc/InlineAsm.h"
 #include "vmm/ept/Vpid.h"
 #include "common/Common.h"
-#include "common/Spinlock.h"
+#include "components/spinlock/header/Spinlock.h"
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"
 #include "vmm/vmx/Mtf.h"

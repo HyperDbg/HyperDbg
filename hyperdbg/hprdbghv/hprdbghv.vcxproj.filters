@@ -108,12 +108,15 @@
     <Filter Include="header\globals">
       <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\components\spinlock">
+      <UniqueIdentifier>{91f41500-46a9-4c4d-ad6b-3697f1ba5639}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\spinlock">
+      <UniqueIdentifier>{3850bccc-e309-4094-8ba9-625b5f59a1e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
-      <Filter>code\common</Filter>
-    </ClCompile>
-    <ClCompile Include="code\common\Spinlock.c">
       <Filter>code\common</Filter>
     </ClCompile>
     <ClCompile Include="code\devices\Apic.c">
@@ -217,6 +220,9 @@
     </ClCompile>
     <ClCompile Include="code\broadcast\DpcRoutines.c">
       <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+      <Filter>code\components\spinlock</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -322,9 +328,6 @@
     <ClInclude Include="header\common\State.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\Spinlock.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
     <ClInclude Include="header\transparency\Transparency.h">
       <Filter>header\transparency</Filter>
     </ClInclude>
@@ -339,6 +342,9 @@
     </ClInclude>
     <ClInclude Include="header\broadcast\DpcRoutines.h">
       <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header\components\spinlock</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

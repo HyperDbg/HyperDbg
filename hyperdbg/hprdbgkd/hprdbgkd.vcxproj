@@ -103,6 +103,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
@@ -134,6 +135,7 @@
     <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\debugger\allocations\Allocations.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />

@@ -23,7 +23,7 @@
     <ClCompile Include="code\Logging.c">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="code\Spinlock.c">
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>
@@ -31,7 +31,10 @@
     <ClInclude Include="header\Logging.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="header\Spinlock.h">
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

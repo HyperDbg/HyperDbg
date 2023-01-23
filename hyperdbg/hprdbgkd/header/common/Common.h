@@ -13,6 +13,22 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//         Windows-specific structures          //
+//////////////////////////////////////////////////
+
+/**
+ * @brief KPROCESS Brief structure
+ *
+ */
+typedef struct _NT_KPROCESS
+{
+    DISPATCHER_HEADER Header;
+    LIST_ENTRY        ProfileListHead;
+    ULONG_PTR         DirectoryTableBase;
+    UCHAR             Data[1];
+} NT_KPROCESS, *PNT_KPROCESS;
+
+//////////////////////////////////////////////////
 //		        	  Constants			    	//
 //////////////////////////////////////////////////
 

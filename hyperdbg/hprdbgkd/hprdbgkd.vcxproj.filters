@@ -98,6 +98,18 @@
     <Filter Include="header\common">
       <UniqueIdentifier>{d3285ad7-c442-4380-b475-53c862491f53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{15b0e029-bb3f-4bf8-8c70-4fbae0fc4347}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{68e14462-70a0-47e2-adb6-a877eb75d51f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\spinlock">
+      <UniqueIdentifier>{54c8f9bc-5510-43da-ac97-934c7c56997f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\spinlock">
+      <UniqueIdentifier>{47f299fa-dbe7-4d52-9427-1f3310708174}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -192,6 +204,9 @@
     <ClCompile Include="code\common\Common.c">
       <Filter>code\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+      <Filter>code\components\spinlock</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -277,6 +292,9 @@
     </ClInclude>
     <ClInclude Include="header\common\Common.h">
       <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header\components\spinlock</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

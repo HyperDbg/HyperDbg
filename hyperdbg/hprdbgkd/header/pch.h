@@ -60,6 +60,11 @@
 #include "driver/Loader.h"
 
 //
+// Spinlock component
+//
+#include "components/spinlock/header/Spinlock.h"
+
+//
 // Debugger Types
 //
 #include "header/debugger/core/Debugger.h"
