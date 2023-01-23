@@ -110,6 +110,9 @@
     <Filter Include="code\components\spinlock">
       <UniqueIdentifier>{47f299fa-dbe7-4d52-9427-1f3310708174}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\macros">
+      <UniqueIdentifier>{187bb874-c3e8-4282-aa76-aa22b0d0fdf6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbgkd.inf">
@@ -295,6 +298,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
       <Filter>header\components\spinlock</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\macros\MetaMacros.h">
+      <Filter>header\macros</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

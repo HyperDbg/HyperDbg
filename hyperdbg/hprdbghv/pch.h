@@ -50,9 +50,9 @@
 //
 #include "Definition.h"
 #include "Configuration.h"
+#include "macros/MetaMacros.h"
 #include "platform/CrossApi.h"
 #include "platform/Environment.h"
-#include "platform/MetaMacros.h"
 
 //
 // VMM Callbacks

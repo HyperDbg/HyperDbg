@@ -34,6 +34,11 @@
 #include "Configuration.h"
 
 //
+// Macros
+//
+#include "macros/MetaMacros.h"
+
+//
 // HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"

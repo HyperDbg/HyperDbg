@@ -114,6 +114,9 @@
     <Filter Include="code\components\spinlock">
       <UniqueIdentifier>{3850bccc-e309-4094-8ba9-625b5f59a1e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\macros">
+      <UniqueIdentifier>{3341e414-60a5-4c8c-9dee-59addb1b6bca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -316,9 +319,6 @@
     <ClInclude Include="header\globals\GlobalVariables.h">
       <Filter>header\globals</Filter>
     </ClInclude>
-    <ClInclude Include="header\platform\MetaMacros.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
     <ClInclude Include="header\vmm\vmx\HypervTlfs.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
@@ -342,6 +342,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
       <Filter>header\components\spinlock</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\macros\MetaMacros.h">
+      <Filter>header\macros</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
