@@ -12,23 +12,11 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//					Functions					//
+//		  Internal Broadcast Functions			//
 //////////////////////////////////////////////////
 
 VOID
 BroadcastVmxVirtualizationAllCores();
-
-VOID
-BroadcastEnableDbAndBpExitingAllCores();
-
-VOID
-BroadcastDisableDbAndBpExitingAllCores();
-
-VOID
-BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
-
-VOID
-BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
 
 VOID
 BroadcastEnableNmiExitingAllCores();
@@ -38,9 +26,3 @@ BroadcastDisableNmiExitingAllCores();
 
 VOID
 BroadcastNotifyAllToInvalidateEptAllCores();
-
-VOID
-BroadcastEnableRdtscExitingAllCores();
-
-VOID
-BroadcastDisableRdtscExitingAllCores();

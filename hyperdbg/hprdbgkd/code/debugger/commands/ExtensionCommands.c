@@ -296,7 +296,7 @@ ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapReadOnAllCores, BitmapMask);
+    BroadcastChangeAllMsrBitmapReadAllCores(BitmapMask);
 }
 
 /**
@@ -309,7 +309,7 @@ ExtensionCommandResetChangeAllMsrBitmapReadAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetMsrBitmapReadOnAllCores, NULL);
+    BroadcastResetChangeAllMsrBitmapReadAllCores();
 }
 
 /**
@@ -323,7 +323,7 @@ ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapWriteOnAllCores, BitmapMask);
+    BroadcastChangeAllMsrBitmapWriteAllCores(BitmapMask);
 }
 
 /**
@@ -336,7 +336,7 @@ ExtensionCommandResetAllMsrBitmapWriteAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetMsrBitmapWriteOnAllCores, NULL);
+    BroadcastResetAllMsrBitmapWriteAllCores();
 }
 
 /**
@@ -350,7 +350,7 @@ ExtensionCommandEnableRdtscExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableRdtscExitingAllCores, NULL);
+    BroadcastEnableRdtscExitingAllCores();
 }
 
 /**
@@ -363,7 +363,7 @@ ExtensionCommandDisableRdtscExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
+    BroadcastDisableRdtscExitingAllCores();
 }
 
 /**
@@ -376,7 +376,7 @@ ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores, NULL);
+    BroadcastDisableRdtscExitingForClearingEventsAllCores();
 }
 
 /**
@@ -395,7 +395,7 @@ ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, &BroadcastingOption);
+    BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(&BroadcastingOption);
 }
 
 /**
@@ -408,7 +408,7 @@ ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores, NULL);
+    BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores();
 }
 
 /**
@@ -422,7 +422,7 @@ ExtensionCommandEnableRdpmcExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableRdpmcExitingAllCores, NULL);
+    BroadcastEnableRdpmcExitingAllCores();
 }
 
 /**
@@ -435,7 +435,7 @@ ExtensionCommandDisableRdpmcExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdpmcExitingAllCores, NULL);
+    BroadcastDisableRdpmcExitingAllCores();
 }
 
 /**
@@ -451,7 +451,7 @@ ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, ExceptionIndex);
+    BroadcastSetExceptionBitmapAllCores(ExceptionIndex);
 }
 
 /**
@@ -467,7 +467,7 @@ ExtensionCommandUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, ExceptionIndex);
+    BroadcastUnsetExceptionBitmapAllCores(ExceptionIndex);
 }
 
 /**
@@ -480,7 +480,7 @@ ExtensionCommandResetExceptionBitmapAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
+    BroadcastResetExceptionBitmapAllCores();
 }
 
 /**
@@ -500,7 +500,7 @@ ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, &BroadcastingOption);
+    BroadcastEnableMovControlRegisterExitingAllCores(&BroadcastingOption);
 }
 
 /**
@@ -519,7 +519,7 @@ ExtensionCommandDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT Even
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, &BroadcastingOption);
+    BroadcastDisableMovToControlRegistersExitingAllCores(&BroadcastingOption);
 }
 
 /**
@@ -533,7 +533,7 @@ ExtensionCommandEnableMovDebugRegistersExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableMovDebigRegisterExitingAllCores, NULL);
+    BroadcastEnableMovDebugRegistersExitingAllCores();
 }
 
 /**
@@ -546,7 +546,7 @@ ExtensionCommandDisableMovDebugRegistersExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMovDebigRegisterExitingAllCores, NULL);
+    BroadcastDisableMovDebugRegistersExitingAllCores();
 }
 
 /**
@@ -560,7 +560,7 @@ ExtensionCommandSetExternalInterruptExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetEnableExternalInterruptExitingOnAllCores, NULL);
+    BroadcastSetExternalInterruptExitingAllCores();
 }
 
 /**
@@ -573,7 +573,7 @@ ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCor
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores, NULL);
+    BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
 }
 
 /**
@@ -587,7 +587,7 @@ ExtensionCommandIoBitmapChangeAllCores(UINT64 Port)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeIoBitmapOnAllCores, Port);
+    BroadcastIoBitmapChangeAllCores(Port);
 }
 
 /**
@@ -600,5 +600,5 @@ ExtensionCommandIoBitmapResetAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetIoBitmapOnAllCores, NULL);
+    BroadcastIoBitmapResetAllCores();
 }

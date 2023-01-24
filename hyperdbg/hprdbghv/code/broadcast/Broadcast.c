@@ -149,3 +149,282 @@ BroadcastDisableRdtscExitingAllCores()
     //
     KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
 }
+
+///////// -----------------------------------------------------------------------------
+
+/**
+ * @brief routines for !msrread command which
+ * @details causes vm-exit on all msr reads
+ * @param BitmapMask Bit mask of msr to put on msr bitmap
+ * @return VOID
+ */
+VOID
+BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineChangeMsrBitmapReadOnAllCores, BitmapMask);
+}
+
+/**
+ * @brief routines for disable (reset) !msrread command
+ * @return VOID
+ */
+VOID
+BroadcastResetChangeAllMsrBitmapReadAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineResetMsrBitmapReadOnAllCores, NULL);
+}
+
+/**
+ * @brief routines for !msrwrite command which
+ * @details causes vm-exit on all msr writes
+ * @return VOID
+ */
+VOID
+BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineChangeMsrBitmapWriteOnAllCores, BitmapMask);
+}
+
+/**
+ * @brief routines for reset !msrwrite command which
+ * @return VOID
+ */
+VOID
+BroadcastResetAllMsrBitmapWriteAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineResetMsrBitmapWriteOnAllCores, NULL);
+}
+
+/**
+ * @brief routines ONLY for disabling !tsc command
+ * @return VOID
+ */
+VOID
+BroadcastDisableRdtscExitingForClearingEventsAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores, NULL);
+}
+
+/**
+ * @brief routines ONLY for disabling !crwrite command
+ * @param Event
+ * @return VOID
+ */
+VOID
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, BroadcastingOption);
+}
+
+/**
+ * @brief routines ONLY for disabling !dr command
+ * @return VOID
+ */
+VOID
+BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores, NULL);
+}
+
+/**
+ * @brief routines for !pmc
+ * @details causes vm-exit on all execution of rdpmc
+ * @return VOID
+ */
+VOID
+BroadcastEnableRdpmcExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineEnableRdpmcExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines for disabling !pmc
+ * @return VOID
+ */
+VOID
+BroadcastDisableRdpmcExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableRdpmcExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines for !exception command which
+ * @details causes vm-exit when exception occurred
+ * @param ExceptionIndex index of exception on IDT
+ *
+ * @return VOID
+ */
+VOID
+BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, ExceptionIndex);
+}
+
+/**
+ * @brief routines for disabling exception bitmap
+ * @details removes vm-exit when exception occurred
+ * @param ExceptionIndex index of exception on IDT
+ *
+ * @return VOID
+ */
+VOID
+BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, ExceptionIndex);
+}
+
+/**
+ * @brief routines for reset !exception command
+ * @return VOID
+ */
+VOID
+BroadcastResetExceptionBitmapAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
+}
+
+/**
+ * @brief routines for !crwrite
+ * @details causes vm-exit on all accesses to debug registers
+ * @param Event
+ * @return VOID
+ */
+VOID
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, BroadcastingOption);
+}
+
+/**
+ * @brief routines for disabling !crwrite
+ * @param Event
+ * @return VOID
+ */
+VOID
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, BroadcastingOption);
+}
+
+/**
+ * @brief routines for !dr
+ * @details causes vm-exit on all accesses to debug registers
+ * @return VOID
+ */
+VOID
+BroadcastEnableMovDebugRegistersExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineEnableMovDebigRegisterExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines for disabling !dr
+ * @return VOID
+ */
+VOID
+BroadcastDisableMovDebugRegistersExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMovDebigRegisterExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines for !interrupt command which
+ * @details causes vm-exit when external interrupt occurs
+ * @return VOID
+ */
+VOID
+BroadcastSetExternalInterruptExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineSetEnableExternalInterruptExitingOnAllCores, NULL);
+}
+
+/**
+ * @brief routines for ONLY terminate !interrupt command
+ * @return VOID
+ */
+VOID
+BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores, NULL);
+}
+
+/**
+ * @brief routines for !ioin and !ioout command which
+ * @details causes vm-exit on all i/o instructions or one port
+ * @return VOID
+ */
+VOID
+BroadcastIoBitmapChangeAllCores(UINT64 Port)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineChangeIoBitmapOnAllCores, Port);
+}
+
+/**
+ * @brief routines for reset !ioin and !ioout command
+ * @return VOID
+ */
+VOID
+BroadcastIoBitmapResetAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineResetIoBitmapOnAllCores, NULL);
+}

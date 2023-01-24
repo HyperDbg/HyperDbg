@@ -492,3 +492,85 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
 
 IMPORT_EXPORT_VMFUNC NTSTATUS
 TransparentUnhideDebugger();
+
+//////////////////////////////////////////////////
+//     Non-internal Broadcasting Functions    	//
+//////////////////////////////////////////////////
+
+VOID
+BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
+
+VOID
+BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
+
+VOID
+BroadcastEnableDbAndBpExitingAllCores();
+
+VOID
+BroadcastDisableDbAndBpExitingAllCores();
+
+VOID
+BroadcastEnableRdtscExitingAllCores();
+
+VOID
+BroadcastDisableRdtscExitingAllCores();
+
+VOID
+BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask);
+
+VOID
+BroadcastResetChangeAllMsrBitmapReadAllCores();
+
+VOID
+BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask);
+
+VOID
+BroadcastResetAllMsrBitmapWriteAllCores();
+
+VOID
+BroadcastDisableRdtscExitingForClearingEventsAllCores();
+
+VOID
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+
+VOID
+BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores();
+
+VOID
+BroadcastEnableRdpmcExitingAllCores();
+
+VOID
+BroadcastDisableRdpmcExitingAllCores();
+
+VOID
+BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+
+VOID
+BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+
+VOID
+BroadcastResetExceptionBitmapAllCores();
+
+VOID
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+
+VOID
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+
+VOID
+BroadcastEnableMovDebugRegistersExitingAllCores();
+
+VOID
+BroadcastDisableMovDebugRegistersExitingAllCores();
+
+VOID
+BroadcastSetExternalInterruptExitingAllCores();
+
+VOID
+BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+
+VOID
+BroadcastIoBitmapChangeAllCores(UINT64 Port);
+
+VOID
+BroadcastIoBitmapResetAllCores();
