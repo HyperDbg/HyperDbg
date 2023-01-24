@@ -122,3 +122,80 @@ EventInjectPageFault(UINT64 PageFaultAddress)
     //
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.Flags);
 }
+
+/**
+ * @brief re-inject interrupt or exception to the guest
+ *
+ * @param InterruptExit interrupt info from vm-exit
+ *
+ * @return VOID
+ */
+VOID
+EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
+{
+    ULONG ErrorCode = 0;
+
+    //
+    // Re-inject it
+    //
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
+
+    //
+    // re-write error code (if any)
+    //
+    if (InterruptExit.ErrorCodeValid)
+    {
+        //
+        // Read the error code
+        //
+        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+
+        //
+        // Write the error code
+        //
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+    }
+}
+
+/**
+ * @brief re-inject interrupt or exception to the guest
+ *
+ * @param VCpu The virtual processor's state
+ * @param Address Page fault address
+ *
+ * @return VOID
+ */
+VOID
+EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
+{
+    //
+    // Inject #PF
+    //
+    VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
+
+    //
+    // Configure the #PF injection
+    //
+
+    //
+    // InterruptExit                 [Type: _VMEXIT_INTERRUPT_INFO]
+    //
+    // [+0x000 ( 7: 0)] Vector           : 0xe [Type: unsigned int]
+    // [+0x000 (10: 8)] InterruptionType : 0x3 [Type: unsigned int]
+    // [+0x000 (11:11)] ErrorCodeValid   : 0x1 [Type: unsigned int]
+    // [+0x000 (12:12)] NmiUnblocking    : 0x0 [Type: unsigned int]
+    // [+0x000 (30:13)] Reserved         : 0x0 [Type: unsigned int]
+    // [+0x000 (31:31)] Valid            : 0x1 [Type: unsigned int]
+    // [+0x000] Flags                    : 0x80000b0e [Type: unsigned int]
+    //
+    InterruptInfo.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
+    InterruptInfo.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
+    InterruptInfo.ErrorCodeValid   = TRUE;
+    InterruptInfo.NmiUnblocking    = FALSE;
+    InterruptInfo.Valid            = TRUE;
+
+    IdtEmulationHandlePageFaults(VCpu,
+                                 InterruptInfo,
+                                 Address,
+                                 0x14);
+}

@@ -525,3 +525,17 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
 {
     return VmxCompatibleWcslen(s);
 }
+
+/**
+ * @brief Inject #PF and configure CR2 register
+ *
+ * @param CoreId Target core's ID
+ * @param Address Page-fault address
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address)
+{
+    EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address);
+}

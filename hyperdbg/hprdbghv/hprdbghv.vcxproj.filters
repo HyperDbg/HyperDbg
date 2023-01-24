@@ -111,6 +111,9 @@
     <Filter Include="header\assembly">
       <UniqueIdentifier>{b4e447d1-4548-43ad-8e5d-f9e0aaf64076}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\components\disasm">
+      <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -232,9 +235,6 @@
     <ClInclude Include="header\common\Dpc.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\LengthDisassemblerEngine.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
     <ClInclude Include="header\common\Msr.h">
       <Filter>header\common</Filter>
     </ClInclude>
@@ -336,6 +336,9 @@
     </ClInclude>
     <ClInclude Include="header\assembly\InlineAsm.h">
       <Filter>header\assembly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h">
+      <Filter>header\components\disasm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

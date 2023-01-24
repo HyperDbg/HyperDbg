@@ -71,6 +71,11 @@
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
+// Disassembler Engine
+//
+#include "components/disasm/LengthDisassemblerEngine.h"
+
+//
 // VMX and Capabilities
 //
 #include "transparency/Transparency.h"
@@ -78,7 +83,6 @@
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
 #include "common/Dpc.h"
-#include "common/LengthDisassemblerEngine.h"
 #include "vmm/vmx/HypervTlfs.h"
 #include "common/Msr.h"
 #include "memory/PoolManager.h"

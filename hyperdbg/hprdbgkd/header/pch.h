@@ -52,6 +52,11 @@
 #include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
 
 //
+// Disassembler Engine
+//
+#include "components/disasm/LengthDisassemblerEngine.h"
+
+//
 // Import VMM Module
 //
 #include "SDK/Modules/VMM.h"
@@ -60,7 +65,6 @@
 //
 // Local Debugger headers
 //
-
 #include "debugger/core/State.h"
 #include "driver/Driver.h"
 #include "driver/Loader.h"

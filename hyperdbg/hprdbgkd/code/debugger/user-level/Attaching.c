@@ -436,40 +436,11 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
 
                 //
-                // Inject #PF
-                //
-                VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
-
-                //
                 // We're waiting for this pointer to be called again after handling page-fault
                 //
                 g_IsWaitingForReturnAndRunFromPageFault = TRUE;
 
-                //
-                // Configure the #PF injection
-                //
-
-                //
-                // InterruptExit                 [Type: _VMEXIT_INTERRUPT_INFO]
-                //
-                // [+0x000 ( 7: 0)] Vector           : 0xe [Type: unsigned int]
-                // [+0x000 (10: 8)] InterruptionType : 0x3 [Type: unsigned int]
-                // [+0x000 (11:11)] ErrorCodeValid   : 0x1 [Type: unsigned int]
-                // [+0x000 (12:12)] NmiUnblocking    : 0x0 [Type: unsigned int]
-                // [+0x000 (30:13)] Reserved         : 0x0 [Type: unsigned int]
-                // [+0x000 (31:31)] Valid            : 0x1 [Type: unsigned int]
-                // [+0x000] Flags                    : 0x80000b0e [Type: unsigned int]
-                //
-                InterruptInfo.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
-                InterruptInfo.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
-                InterruptInfo.ErrorCodeValid   = TRUE;
-                InterruptInfo.NmiUnblocking    = FALSE;
-                InterruptInfo.Valid            = TRUE;
-
-                IdtEmulationHandlePageFaults(&g_GuestState[DbgState->CoreId],
-                                             InterruptInfo,
-                                             ProcessDebuggingDetail->EntrypointOfMainModule,
-                                             0x14);
+                VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId, ProcessDebuggingDetail->EntrypointOfMainModule);
 
                 //
                 // Re-apply the hw debug reg breakpoint

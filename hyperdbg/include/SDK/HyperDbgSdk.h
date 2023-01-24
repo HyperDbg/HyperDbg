@@ -4,7 +4,7 @@
 #include "SDK/Headers/BasicTypes.h"
 #include "SDK/Headers/ErrorCodes.h"
 #include "SDK/Headers/Connection.h"
-#include "SDK/Headers/DataTypes2.h"
+#include "SDK/Headers/DataTypes.h"
 #include "SDK/Headers/Ioctls.h"
 #include "SDK/Headers/Events.h"
 #include "SDK/Headers/RequestStructures.h"

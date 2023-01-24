@@ -77,6 +77,9 @@ typedef struct _EVENT_INFORMATION
 //////////////////////////////////////////////////
 
 VOID
+EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
+
+VOID
 EventInjectBreakpoint();
 
 VOID
@@ -93,3 +96,6 @@ EventInjectPageFault(UINT64 PageFaultAddress);
 
 VOID
 EventInjectDebugBreakpoint();
+
+VOID
+EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address);

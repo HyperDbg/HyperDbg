@@ -95,3 +95,6 @@ IsProcessExist(UINT32 ProcId);
 
 PCHAR
 GetProcessNameFromEprocess(PEPROCESS Eprocess);
+
+BOOLEAN
+KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);

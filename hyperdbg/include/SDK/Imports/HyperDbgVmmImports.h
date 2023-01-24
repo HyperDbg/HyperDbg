@@ -107,6 +107,12 @@ VmFuncCheckAndEnableExternalInterrupts(UINT32 CoreId);
 IMPORT_EXPORT_VMFUNC VOID
 VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId);
 
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address);
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncUninitializeMemory();
+
 IMPORT_EXPORT_VMFUNC UINT16
 VmFuncGetCsSelector();
 
@@ -125,23 +131,20 @@ VmFuncGetRip();
 IMPORT_EXPORT_VMFUNC UINT64
 VmFuncGetInterruptibilityState();
 
+IMPORT_EXPORT_VMFUNC UINT32
+VmFuncVmxCompatibleStrlen(const CHAR * s);
+
+IMPORT_EXPORT_VMFUNC UINT32
+VmFuncVmxCompatibleWcslen(const wchar_t * s);
+
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncNmiHaltCores(UINT32 CoreId);
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
 
-IMPORT_EXPORT_VMFUNC VOID
-VmFuncUninitializeMemory();
-
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
-
-IMPORT_EXPORT_VMFUNC UINT32
-VmFuncVmxCompatibleStrlen(const CHAR * s);
-
-IMPORT_EXPORT_VMFUNC UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

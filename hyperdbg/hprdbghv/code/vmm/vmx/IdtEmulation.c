@@ -12,40 +12,6 @@
 #include "pch.h"
 
 /**
- * @brief re-inject interrupt or exception to the guest
- *
- * @param InterruptExit interrupt info from vm-exit
- *
- * @return BOOLEAN
- */
-BOOLEAN
-IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
-{
-    ULONG ErrorCode = 0;
-
-    //
-    // Re-inject it
-    //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
-
-    //
-    // re-write error code (if any)
-    //
-    if (InterruptExit.ErrorCodeValid)
-    {
-        //
-        // Read the error code
-        //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
-
-        //
-        // Write the error code
-        //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-    }
-}
-
-/**
  * @brief inject #PFs to the guest
  *
  * @param VCpu The virtual processor's state
@@ -201,7 +167,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // It's not because of thread change detection, so re-inject it
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
 
         break;
@@ -221,7 +187,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Re-inject the interrupt/exception because it doesn't relate to us
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
 
         break;
@@ -231,7 +197,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Re-inject the interrupt/exception, nothing special to handle
         //
-        IdtEmulationReInjectInterruptOrException(InterruptExit);
+        EventInjectInterruptOrException(InterruptExit);
 
         break;
     }
@@ -339,7 +305,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Re-inject the interrupt/exception
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
         else
         {
