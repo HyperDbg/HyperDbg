@@ -247,7 +247,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 //
                 // Fire and MTF
                 //
-                HvSetMonitorTrapFlag(TRUE);
+                VmFuncSetMonitorTrapFlag(TRUE);
                 AvoidUnsetMtf = TRUE;
 
                 //

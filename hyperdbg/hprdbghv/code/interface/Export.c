@@ -501,3 +501,27 @@ VmFuncSetTriggerEventForCpuids(BOOLEAN Set)
 {
     g_TriggerEventForCpuids = Set;
 }
+
+/**
+ * @brief VMX-root compatible strlen
+ * @param s A pointer to the string
+ *
+ * @return UINT32
+ */
+UINT32
+VmFuncVmxCompatibleStrlen(const CHAR * s)
+{
+    return VmxCompatibleStrlen(s);
+}
+
+/**
+ * @brief VMX-root compatible strlen
+ * @param s A pointer to the string
+ *
+ * @return UINT32
+ */
+UINT32
+VmFuncVmxCompatibleWcslen(const wchar_t * s)
+{
+    return VmxCompatibleWcslen(s);
+}

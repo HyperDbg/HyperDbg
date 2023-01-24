@@ -69,9 +69,6 @@
     <Filter Include="code\globals">
       <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\vmm\Export">
-      <UniqueIdentifier>{eb436c9d-4db9-403c-a163-3ec7357a72c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\interface">
       <UniqueIdentifier>{20741da2-52c0-4c6c-ab4f-d8a29bae81e7}</UniqueIdentifier>
     </Filter>

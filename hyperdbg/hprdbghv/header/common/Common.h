@@ -282,17 +282,6 @@ typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorID);
 UCHAR *
 PsGetProcessImageFileName(IN PEPROCESS Process);
 
-NTKERNELAPI NTSTATUS NTAPI
-SeCreateAccessState(
-    PACCESS_STATE    AccessState,
-    PVOID            AuxData,
-    ACCESS_MASK      DesiredAccess,
-    PGENERIC_MAPPING Mapping);
-
-NTKERNELAPI VOID NTAPI
-SeDeleteAccessState(
-    PACCESS_STATE AccessState);
-
 //////////////////////////////////////////////////
 //			 Function Definitions				//
 //////////////////////////////////////////////////
@@ -353,52 +342,27 @@ Getx86VirtualAddressWidth();
 
 #define MAX_EXEC_TRAMPOLINE_SIZE 100
 
-/**
- * @brief A test function for Syscall hook
- *
- * @return VOID
- */
 VOID
 SyscallHookTest();
 
-/**
- * @brief Enable or Disable Syscall Hook for EFER MSR
- *
- */
 VOID
 SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
 
-/**
- * @brief Manage #UD Exceptions for EFER Syscall
- *
- */
 BOOLEAN
 SyscallHookHandleUD(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief SYSRET instruction emulation routine
- *
- */
 BOOLEAN
 SyscallHookEmulateSYSRET(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief SYSCALL instruction emulation routine
- *
- */
 BOOLEAN
 SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief Get Segment Descriptor
- *
- */
 _Success_(return)
 BOOLEAN
 GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 
 UINT32
-VmxrootCompatibleStrlen(const CHAR * S);
+VmxCompatibleStrlen(const CHAR * S);
 
 UINT32
-VmxrootCompatibleWcslen(const wchar_t * S);
+VmxCompatibleWcslen(const wchar_t * S);

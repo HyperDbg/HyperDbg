@@ -18,12 +18,6 @@
 BOOLEAN
 TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason);
 
-NTSTATUS
-TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements);
-
-NTSTATUS
-TransparentUnhideDebugger();
-
 //////////////////////////////////////////////////
 //				   Definitions					//
 //////////////////////////////////////////////////

@@ -22,6 +22,17 @@ PsGetProcessImageFileName(IN PEPROCESS Process);
 PVOID
 PsGetProcessSectionBaseAddress(PEPROCESS Process); // Used to get the base address of process's executable image
 
+NTKERNELAPI NTSTATUS NTAPI
+SeCreateAccessState(
+    PACCESS_STATE    AccessState,
+    PVOID            AuxData,
+    ACCESS_MASK      DesiredAccess,
+    PGENERIC_MAPPING Mapping);
+
+NTKERNELAPI VOID NTAPI
+SeDeleteAccessState(
+    PACCESS_STATE AccessState);
+
 NTSTATUS
 MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap process's executable image
 

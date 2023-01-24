@@ -492,7 +492,7 @@ ScriptEngineFunctionStrlen(const char * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleStrlen(Address);
+    Result = VmFuncVmxCompatibleStrlen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -514,7 +514,7 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleWcslen(Address);
+    Result = VmFuncVmxCompatibleWcslen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -893,11 +893,11 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (IsWstring)
     {
-        return VmxrootCompatibleWcslen((const wchar_t *)StrAddr);
+        return VmFuncVmxCompatibleWcslen((const wchar_t *)StrAddr);
     }
     else
     {
-        return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+        return VmFuncVmxCompatibleStrlen((const CHAR *)StrAddr);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

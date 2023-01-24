@@ -1042,7 +1042,7 @@ KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
         //         vm-exit and we won't miss any cpu cycle in the guest
         //
         // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
-        HvSetMonitorTrapFlag(TRUE);
+        VmFuncSetMonitorTrapFlag(TRUE);
     }
     else
     {

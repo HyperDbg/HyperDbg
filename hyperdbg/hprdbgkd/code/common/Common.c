@@ -62,6 +62,66 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
 }
 
 /**
+ * @brief The undocumented way of NtOpenProcess
+ * @param ProcessHandle
+ * @param DesiredAccess
+ * @param ProcessId
+ * @param AccessMode
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+UndocumentedNtOpenProcess(
+    PHANDLE         ProcessHandle,
+    ACCESS_MASK     DesiredAccess,
+    HANDLE          ProcessId,
+    KPROCESSOR_MODE AccessMode)
+{
+    NTSTATUS     status = STATUS_SUCCESS;
+    ACCESS_STATE accessState;
+    char         auxData[0x200];
+    PEPROCESS    processObject = NULL;
+    HANDLE       processHandle = NULL;
+
+    status = SeCreateAccessState(
+        &accessState,
+        auxData,
+        DesiredAccess,
+        (PGENERIC_MAPPING)((PCHAR)*PsProcessType + 52));
+
+    if (!NT_SUCCESS(status))
+        return status;
+
+    accessState.PreviouslyGrantedAccess |= accessState.RemainingDesiredAccess;
+    accessState.RemainingDesiredAccess = 0;
+
+    status = PsLookupProcessByProcessId(ProcessId, &processObject);
+
+    if (!NT_SUCCESS(status))
+    {
+        SeDeleteAccessState(&accessState);
+        return status;
+    }
+    status = ObOpenObjectByPointer(
+        processObject,
+        0,
+        &accessState,
+        0,
+        *PsProcessType,
+        AccessMode,
+        &processHandle);
+
+    SeDeleteAccessState(&accessState);
+
+    ObDereferenceObject(processObject);
+
+    if (NT_SUCCESS(status))
+        *ProcessHandle = processHandle;
+
+    return status;
+}
+
+/**
  * @brief Kill a user-mode process with different methods
  * @param ProcessId
  * @param KillingMethod

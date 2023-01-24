@@ -137,6 +137,12 @@ VmFuncUninitializeMemory();
 IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
 
+IMPORT_EXPORT_VMFUNC UINT32
+VmFuncVmxCompatibleStrlen(const CHAR * s);
+
+IMPORT_EXPORT_VMFUNC UINT32
+VmFuncVmxCompatibleWcslen(const wchar_t * s);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////
@@ -470,3 +476,13 @@ SetGuestDr6(UINT64 value);
 
 IMPORT_EXPORT_VMFUNC VOID
 SetGuestDr7(UINT64 value);
+
+//////////////////////////////////////////////////
+//              Transparent Mode        		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMFUNC NTSTATUS
+TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements);
+
+IMPORT_EXPORT_VMFUNC NTSTATUS
+TransparentUnhideDebugger();
