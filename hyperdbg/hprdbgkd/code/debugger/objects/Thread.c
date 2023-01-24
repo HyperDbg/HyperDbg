@@ -483,7 +483,7 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // on Mov 2 Debug regs handler (vm-exit), but we set from here
         // to make sure that the vm-exit handler set this break on access
         //
-        DebugRegistersSet(
+        SetDebugRegisters(
             DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT,
             BREAK_ON_WRITE_ONLY,
             TRUE,

@@ -48,9 +48,6 @@
     <Filter Include="header\components">
       <UniqueIdentifier>{6d4d41d1-afae-48ce-9a7b-a9e9160e647a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\components\registers">
-      <UniqueIdentifier>{035d2800-79f5-4650-808a-f320d57db543}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\vmm">
       <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
     </Filter>
@@ -282,9 +279,6 @@
     </ClInclude>
     <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
-    </ClInclude>
-    <ClInclude Include="header\components\registers\DebugRegisters.h">
-      <Filter>header\components\registers</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">
       <Filter>header\vmm\vmx</Filter>

@@ -172,7 +172,6 @@
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
-    <ClInclude Include="header\components\registers\DebugRegisters.h" />
     <ClInclude Include="header\devices\Apic.h" />
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />

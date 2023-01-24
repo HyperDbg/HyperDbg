@@ -29,9 +29,10 @@
 #include "ia32-doc/out/ia32.h"
 
 //
-// Import Configuration
+// Import Configuration and Definitions
 //
 #include "Configuration.h"
+#include "Definition.h"
 
 //
 // Macros

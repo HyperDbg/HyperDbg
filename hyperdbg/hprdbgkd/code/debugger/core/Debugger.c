@@ -830,8 +830,8 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
             //
             // Context should be checked in physical address
             //
-            if (!(((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 &&
-                  ((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
+            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 &&
+                  ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
             {
                 //
                 // The value is not withing our expected range
@@ -843,7 +843,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
                 //
                 // Fix the context to virtual address
                 //
-                Context = ((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->VirtualAddress;
+                Context = ((PEPT_HOOKS_CONTEXT)(Context))->VirtualAddress;
             }
 
             break;
@@ -883,7 +883,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_TEMPORARY_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
+            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -899,7 +899,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
                 //
                 // Convert it to virtual address
                 //
-                Context = ((PEPT_HOOKS_TEMPORARY_CONTEXT)Context)->VirtualAddress;
+                Context = ((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress;
             }
 
             break;

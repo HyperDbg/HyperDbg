@@ -48,7 +48,6 @@
 //
 // HyperDbg Kernel-mode headers
 //
-#include "Definition.h"
 #include "Configuration.h"
 #include "macros/MetaMacros.h"
 #include "platform/CrossApi.h"
@@ -95,7 +94,6 @@
 #include "vmm/vmx/IdtEmulation.h"
 #include "vmm/ept/Invept.h"
 #include "vmm/vmx/Vmcall.h"
-#include "components/registers/DebugRegisters.h"
 #include "vmm/vmx/Hv.h"
 #include "vmm/vmx/MsrHandlers.h"
 #include "vmm/vmx/ProtectedHv.h"

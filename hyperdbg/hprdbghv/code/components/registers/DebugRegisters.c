@@ -34,7 +34,7 @@
  * it's either not supported or not correct configuration
  */
 BOOLEAN
-DebugRegistersSet(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
+SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
     DR7 Dr7 = {0};
 

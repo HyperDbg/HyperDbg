@@ -1,5 +1,5 @@
 /**
- * @file Datatypes.h
+ * @file DataTypes.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief HyperDbg's SDK data type definitions
  * @details This file contains definitions of structures, enums, etc.
@@ -235,6 +235,20 @@ typedef struct _REGISTER_NOTIFY_BUFFER
     HANDLE      hEvent;
 
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
+
+//////////////////////////////////////////////////
+//                  EPT Hook                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Temporary $context used in some EPT hook commands
+ *
+ */
+typedef struct _EPT_HOOKS_CONTEXT
+{
+    UINT64 PhysicalAddress;
+    UINT64 VirtualAddress;
+} EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
 
 //////////////////////////////////////////////////
 //                 Segment Types                //

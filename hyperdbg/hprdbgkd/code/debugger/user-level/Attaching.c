@@ -474,7 +474,7 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Re-apply the hw debug reg breakpoint
                 //
-                DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                                   BREAK_ON_INSTRUCTION_FETCH,
                                   FALSE,
                                   ProcessDebuggingDetail->EntrypointOfMainModule);
@@ -516,7 +516,7 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
             //
             // Re-apply the hw debug reg breakpoint
             //
-            DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                               BREAK_ON_INSTRUCTION_FETCH,
                               FALSE,
                               ProcessDebuggingDetail->EntrypointOfMainModule);

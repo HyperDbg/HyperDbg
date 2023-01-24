@@ -477,6 +477,9 @@ SetGuestDr6(UINT64 value);
 IMPORT_EXPORT_VMFUNC VOID
 SetGuestDr7(UINT64 value);
 
+IMPORT_EXPORT_VMFUNC BOOLEAN
+SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress);
+
 //////////////////////////////////////////////////
 //              Transparent Mode        		//
 //////////////////////////////////////////////////

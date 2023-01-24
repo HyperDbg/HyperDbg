@@ -441,7 +441,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                         //
                         // Also, we should re-apply the hardware debug breakpoint on this thread
                         //
-                        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
                                           BREAK_ON_INSTRUCTION_FETCH,
                                           FALSE,
                                           g_HardwareDebugRegisterDetailsForStepOver.Address);
@@ -536,7 +536,7 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     if (DbgState->HardwareDebugRegisterForStepping != NULL)
     {
-        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
                           BREAK_ON_INSTRUCTION_FETCH,
                           FALSE,
                           DbgState->HardwareDebugRegisterForStepping);

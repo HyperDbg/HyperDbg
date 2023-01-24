@@ -1178,7 +1178,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
-                        EPT_HOOKS_TEMPORARY_CONTEXT *        LastContext,
+                        EPT_HOOKS_CONTEXT *                  LastContext,
                         BOOLEAN *                            IgnoreReadOrWrite,
                         BOOLEAN *                            IsTriggeringPostEventAllowed)
 {
@@ -1635,8 +1635,8 @@ EptHookUnHookAll()
 PVOID
 EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
 {
-    PLIST_ENTRY                 TempList    = 0;
-    EPT_HOOKS_TEMPORARY_CONTEXT TempContext = {0};
+    PLIST_ENTRY       TempList    = 0;
+    EPT_HOOKS_CONTEXT TempContext = {0};
 
     //
     // The RSP register is the at the RCX and we just added (reverse by stack) to it's

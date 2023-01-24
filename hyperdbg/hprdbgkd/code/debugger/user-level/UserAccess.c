@@ -863,7 +863,7 @@ UserAccessCheckForLoadedModuleDetails()
         //
         // Set debug register to get the entrypoint of user-mode processs
         //
-        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                           BREAK_ON_INSTRUCTION_FETCH,
                           FALSE,
                           Entrypoint);

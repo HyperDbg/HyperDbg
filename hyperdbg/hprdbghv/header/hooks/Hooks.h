@@ -225,7 +225,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
-                        EPT_HOOKS_TEMPORARY_CONTEXT *        LastContext,
+                        EPT_HOOKS_CONTEXT *                  LastContext,
                         BOOLEAN *                            IgnoreReadOrWrite,
                         BOOLEAN *                            IsTriggeringPostEventAllowed);
 

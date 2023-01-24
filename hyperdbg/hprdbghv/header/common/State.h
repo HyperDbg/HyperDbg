@@ -84,16 +84,6 @@ typedef struct _VMX_VMXOFF_STATE
 } VMX_VMXOFF_STATE, *PVMX_VMXOFF_STATE;
 
 /**
- * @brief Temporary $context used in some EPT hook commands
- *
- */
-typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
-{
-    UINT64 PhysicalAddress;
-    UINT64 VirtualAddress;
-} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
-
-/**
  * @brief Structure to save the state of each hooked pages
  *
  */
@@ -172,7 +162,7 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      * It shows the context of the last address that triggered the hook
      * Note: Only used for read/write trigger events
      */
-    EPT_HOOKS_TEMPORARY_CONTEXT LastContextState;
+    EPT_HOOKS_CONTEXT LastContextState;
 
     /**
      * @brief This field shows whether the hook should call the post event trigger
