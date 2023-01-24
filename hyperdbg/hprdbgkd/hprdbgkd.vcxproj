@@ -169,6 +169,7 @@
     <ClInclude Include="header\pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="code\assembly\AsmDebugger.asm" />
     <MASM Include="code\assembly\AsmKernelSideTests.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

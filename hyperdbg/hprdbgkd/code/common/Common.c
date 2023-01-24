@@ -60,3 +60,101 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
 
     return Result;
 }
+
+/**
+ * @brief Kill a user-mode process with different methods
+ * @param ProcessId
+ * @param KillingMethod
+ *
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
+{
+    NTSTATUS  Status        = STATUS_SUCCESS;
+    HANDLE    ProcessHandle = NULL;
+    PEPROCESS Process       = NULL;
+
+    if (ProcessId == NULL)
+    {
+        return FALSE;
+    }
+
+    switch (KillingMethod)
+    {
+    case PROCESS_KILL_METHOD_1:
+
+        Status = GetHandleFromProcess(ProcessId, &ProcessHandle);
+
+        if (!NT_SUCCESS(Status) || ProcessHandle == NULL)
+        {
+            return FALSE;
+        }
+
+        //
+        // Call ZwTerminateProcess with NULL handle
+        //
+        Status = ZwTerminateProcess(ProcessHandle, 0);
+
+        if (!NT_SUCCESS(Status))
+        {
+            return FALSE;
+        }
+
+        break;
+
+    case PROCESS_KILL_METHOD_2:
+
+        UndocumentedNtOpenProcess(
+            &ProcessHandle,
+            PROCESS_ALL_ACCESS,
+            ProcessId,
+            KernelMode);
+
+        if (ProcessHandle == NULL)
+        {
+            return FALSE;
+        }
+
+        //
+        // Call ZwTerminateProcess with NULL handle
+        //
+        Status = ZwTerminateProcess(ProcessHandle, 0);
+
+        if (!NT_SUCCESS(Status))
+        {
+            return FALSE;
+        }
+
+        break;
+
+    case PROCESS_KILL_METHOD_3:
+
+        //
+        // Get the base address of process's executable image and unmap it
+        //
+        Status = MmUnmapViewOfSection(Process, PsGetProcessSectionBaseAddress(Process));
+
+        //
+        // Dereference the target process
+        //
+        ObDereferenceObject(Process);
+
+        break;
+
+    default:
+
+        //
+        // Unknow killing method
+        //
+        return FALSE;
+        break;
+    }
+
+    //
+    // If we reached here, it means the functionality of
+    // the above codes was successful
+    //
+    return TRUE;
+}

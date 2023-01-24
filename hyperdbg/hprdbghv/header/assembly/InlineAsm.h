@@ -258,8 +258,8 @@ extern void
 AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
 
 //
-// ====================  Debugger Functions ====================
-// File : AsmDebugger.asm
+// ====================  Hook Functions ====================
+// File : AsmHooks.asm
 //
 
 /**
@@ -268,36 +268,6 @@ AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
  */
 extern void
 AsmGeneralDetourHook(void);
-
-/**
- * @brief default custom code handler for debugger
- *
- * @param Param1
- * @param Param2
- * @param Param3
- * @param Param4
- * @return unsigned long long
- */
-extern void
-AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
-
-/**
- * @brief default condition code handler
- *
- * @param Param1
- * @param Param2
- * @param Param3
- * @return unsigned long long
- */
-extern unsigned long long
-AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
-
-/**
- * @brief Spin on thread
- *
- */
-extern void
-AsmDebuggerSpinOnThread();
 
 //
 // ====================  Kernel Test Functions ====================

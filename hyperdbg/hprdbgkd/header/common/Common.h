@@ -13,6 +13,19 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				External Functions				//
+//////////////////////////////////////////////////
+
+UCHAR *
+PsGetProcessImageFileName(IN PEPROCESS Process);
+
+PVOID
+PsGetProcessSectionBaseAddress(PEPROCESS Process); // Used to get the base address of process's executable image
+
+NTSTATUS
+MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap process's executable image
+
+//////////////////////////////////////////////////
 //         Windows-specific structures          //
 //////////////////////////////////////////////////
 
@@ -27,6 +40,22 @@ typedef struct _NT_KPROCESS
     ULONG_PTR         DirectoryTableBase;
     UCHAR             Data[1];
 } NT_KPROCESS, *PNT_KPROCESS;
+
+//////////////////////////////////////////////////
+//		        	  Enums 			    	//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Different methods of killing a process
+ *
+ */
+typedef enum _PROCESS_KILL_METHODS
+{
+    PROCESS_KILL_METHOD_1 = 0,
+    PROCESS_KILL_METHOD_2,
+    PROCESS_KILL_METHOD_3,
+
+} PROCESS_KILL_METHODS;
 
 //////////////////////////////////////////////////
 //		        	  Constants			    	//

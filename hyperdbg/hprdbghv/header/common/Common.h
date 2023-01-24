@@ -31,18 +31,6 @@ typedef enum _SEGMENT_REGISTERS
     TR
 } SEGMENT_REGISTERS;
 
-/**
- * @brief Different methods of killing a process
- *
- */
-typedef enum _PROCESS_KILL_METHODS
-{
-    PROCESS_KILL_METHOD_1 = 0,
-    PROCESS_KILL_METHOD_2,
-    PROCESS_KILL_METHOD_3,
-
-} PROCESS_KILL_METHODS;
-
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
@@ -305,12 +293,6 @@ NTKERNELAPI VOID NTAPI
 SeDeleteAccessState(
     PACCESS_STATE AccessState);
 
-PVOID
-PsGetProcessSectionBaseAddress(PEPROCESS Process); // Used to get the base address of process's executable image
-
-NTSTATUS
-MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap process's executable image
-
 //////////////////////////////////////////////////
 //			 Function Definitions				//
 //////////////////////////////////////////////////
@@ -414,13 +396,6 @@ SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 _Success_(return)
 BOOLEAN
 GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
-
-/**
- * @brief Kill a process using different methods
- *
- */
-BOOLEAN
-KillProcess(_In_ UINT32 ProcessId, _In_ PROCESS_KILL_METHODS KillingMethod);
 
 UINT32
 VmxrootCompatibleStrlen(const CHAR * S);
