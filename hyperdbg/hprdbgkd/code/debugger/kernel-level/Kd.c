@@ -2843,7 +2843,7 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     //
     // vm-exit and halt current core
     //
-    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
 
     //
     // Set the status

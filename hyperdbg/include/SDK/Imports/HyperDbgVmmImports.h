@@ -20,6 +20,12 @@
 //                 VM Functions 	    		//
 //////////////////////////////////////////////////
 
+IMPORT_EXPORT_VMFUNC NTSTATUS
+VmFuncVmxVmcall(unsigned long long VmcallNumber,
+                unsigned long long OptionalParam1,
+                unsigned long long OptionalParam2,
+                long long          OptionalParam3);
+
 IMPORT_EXPORT_VMFUNC VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
 
@@ -112,6 +118,12 @@ VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address);
 
 IMPORT_EXPORT_VMFUNC VOID
 VmFuncUninitializeMemory();
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncVmxBroadcastInitialize();
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncVmxBroadcastUninitialize();
 
 IMPORT_EXPORT_VMFUNC UINT16
 VmFuncGetCsSelector();

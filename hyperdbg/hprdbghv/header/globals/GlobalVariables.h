@@ -88,6 +88,12 @@ VOID * g_ApicBase;
 BOOLEAN g_NmiBroadcastingInitialized;
 
 /**
+ * @brief NMI handler pointer for KeDeregisterNmiCallback
+ *
+ */
+PVOID g_NmiHandlerForKeDeregisterNmiCallback;
+
+/**
  * @brief check for RTM support
  *
  */

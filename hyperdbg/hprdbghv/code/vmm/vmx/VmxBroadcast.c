@@ -12,6 +12,68 @@
 #include "pch.h"
 
 /**
+ * @brief Initialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastInitialize()
+{
+    //
+    // *** Initialize NMI broadcasting mechanism ***
+    //
+
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    BroadcastEnableNmiExitingAllCores();
+
+    //
+    // Indicate that NMI broadcasting is initialized
+    //
+    g_NmiBroadcastingInitialized = TRUE;
+}
+
+/**
+ * @brief Uninitialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastUninitialize()
+{
+    //
+    // *** Uninitialize NMI broadcasting mechanism ***
+    //
+    g_NmiBroadcastingInitialized = FALSE;
+
+    //
+    // De-register NMI handler
+    //
+    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    BroadcastDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
+}
+
+/**
  * @brief Handles NMIs in kernel-mode
  *
  * @param Context

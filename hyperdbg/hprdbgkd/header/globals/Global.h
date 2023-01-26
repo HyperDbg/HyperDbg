@@ -121,12 +121,6 @@ PVOID g_DebuggeeHaltContext;
 UINT64 g_DebuggeeHaltTag;
 
 /**
- * @brief NMI handler pointer for KeDeregisterNmiCallback
- *
- */
-PVOID g_NmiHandlerForKeDeregisterNmiCallback;
-
-/**
  * @brief Seed for tokens of unique details buffer for threads
  *
  */

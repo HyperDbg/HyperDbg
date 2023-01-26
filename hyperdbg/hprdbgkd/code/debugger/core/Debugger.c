@@ -194,28 +194,9 @@ DebuggerInitialize()
     }
 
     //
-    // *** Initialize NMI broadcasting mechanism ***
+    // Initialize NMI broadcasting mechanism
     //
-
-    //
-    // Initialize APIC
-    //
-    ApicInitialize();
-
-    //
-    // Register NMI handler for vmx-root
-    //
-    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
-
-    //
-    // Broadcast on all core to cause exit for NMIs
-    //
-    BroadcastEnableNmiExitingAllCores();
-
-    //
-    // Indicate that NMI broadcasting is initialized
-    //
-    g_NmiBroadcastingInitialized = TRUE;
+    VmFuncVmxBroadcastInitialize();
 
     //
     // Initialize attaching mechanism,
@@ -281,24 +262,9 @@ DebuggerUninitialize()
     UdUninitializeUserDebugger();
 
     //
-    // *** Uninitialize NMI broadcasting mechanism ***
+    // Uninitialize NMI broadcasting mechanism
     //
-    g_NmiBroadcastingInitialized = FALSE;
-
-    //
-    // De-register NMI handler
-    //
-    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
-
-    //
-    // Broadcast on all core to cause not to exit for NMIs
-    //
-    BroadcastDisableNmiExitingAllCores();
-
-    //
-    // Uinitialize APIC related function
-    //
-    ApicUninitialize();
+    VmFuncVmxBroadcastUninitialize();
 
     //
     // Free g_Events
@@ -1297,7 +1263,7 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag,
         //
         // The guest is on vmx non-root mode
         //
-        AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
     }
 }
 

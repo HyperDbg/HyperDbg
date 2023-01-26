@@ -539,3 +539,43 @@ VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address)
 {
     EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address);
 }
+
+/**
+ * @brief Export for running VMX VMCALLs
+ *
+ * @param VmcallNumber
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @return NTSTATUS
+ */
+NTSTATUS
+VmFuncVmxVmcall(unsigned long long VmcallNumber,
+                unsigned long long OptionalParam1,
+                unsigned long long OptionalParam2,
+                long long          OptionalParam3)
+{
+    AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
+}
+
+/**
+ * @brief Export for initialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmFuncVmxBroadcastInitialize()
+{
+    VmxBroadcastInitialize();
+}
+
+/**
+ * @brief Export for uninitialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmFuncVmxBroadcastUninitialize()
+{
+    VmxBroadcastUninitialize();
+}

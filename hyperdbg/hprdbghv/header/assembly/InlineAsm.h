@@ -37,7 +37,10 @@ extern void inline AsmRestoreToVmxOffState();
  * @param OptionalParam3
  * @return NTSTATUS
  */
-extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber, unsigned long long OptionalParam1, unsigned long long OptionalParam2, long long OptionalParam3);
+extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber,
+                                    unsigned long long OptionalParam1,
+                                    unsigned long long OptionalParam2,
+                                    long long          OptionalParam3);
 
 /**
  * @brief Hyper-v vmcall handler
@@ -279,4 +282,7 @@ AsmGeneralDetourHook(void);
  *
  */
 extern unsigned long long
-AsmTestWrapperWithTestTags(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
+AsmTestWrapperWithTestTags(unsigned long long Param1,
+                           unsigned long long Param2,
+                           unsigned long long Param3,
+                           unsigned long long Param4);

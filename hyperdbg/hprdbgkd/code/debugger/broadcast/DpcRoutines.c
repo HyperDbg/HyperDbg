@@ -266,7 +266,7 @@ DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     // vm-exit and halt current core
     //
-    AsmVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

@@ -1108,7 +1108,7 @@ DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SI
     //
     // It's better to send the signal from vmx-root mode
     //
-    AsmVmxVmcall(VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED, 0, 0, 0);
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED, 0, 0, 0);
 
     DebuggerFinishedExecutionRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -1127,10 +1127,10 @@ DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER Debugger
     //
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
-    AsmVmxVmcall(VMCALL_SEND_MESSAGES_TO_DEBUGGER,
-                 (UINT64)DebuggerSendUsermodeMessageRequest + (SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER),
-                 DebuggerSendUsermodeMessageRequest->Length,
-                 0);
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_MESSAGES_TO_DEBUGGER,
+                    (UINT64)DebuggerSendUsermodeMessageRequest + (SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER),
+                    DebuggerSendUsermodeMessageRequest->Length,
+                    0);
 
     DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -1149,10 +1149,10 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
     //
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
-    AsmVmxVmcall(VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
-                 DebuggeeBufferRequest,
-                 0,
-                 0);
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
+                    DebuggeeBufferRequest,
+                    0,
+                    0);
 
     DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
