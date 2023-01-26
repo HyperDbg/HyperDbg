@@ -1084,6 +1084,16 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     }
 
     //
+    // Initialize the list of ept hook detours if it's not already initialized
+    //
+    if (!g_IsEptHook2sDetourListInitialized)
+    {
+        g_IsEptHook2sDetourListInitialized = TRUE;
+
+        InitializeListHead(&g_EptHook2sDetourListHead);
+    }
+
+    //
     // Check whether we are in VMX Root Mode or Not
     //
     LogicalCoreIndex = KeGetCurrentProcessorIndex();

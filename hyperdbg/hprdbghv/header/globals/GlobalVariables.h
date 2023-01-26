@@ -62,6 +62,12 @@ TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 LIST_ENTRY g_EptHook2sDetourListHead;
 
 /**
+ * @brief List header of hidden hooks detour
+ *
+ */
+BOOLEAN g_IsEptHook2sDetourListInitialized;
+
+/**
  * @brief Shows whether the debugger transparent mode
  * is enabled (true) or not (false)
  *

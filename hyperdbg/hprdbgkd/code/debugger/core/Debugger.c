@@ -106,11 +106,6 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
-    // Initialize the list of hidden hooks headers
-    //
-    InitializeListHead(&g_EptHook2sDetourListHead);
-
-    //
     // Enabled Debugger Events
     //
     g_EnableDebuggerEvents = TRUE;
