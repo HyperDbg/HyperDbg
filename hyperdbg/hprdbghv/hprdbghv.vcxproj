@@ -124,6 +124,7 @@
     <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
@@ -176,6 +177,7 @@
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />
     <ClInclude Include="header\hooks\Hooks.h" />
+    <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />

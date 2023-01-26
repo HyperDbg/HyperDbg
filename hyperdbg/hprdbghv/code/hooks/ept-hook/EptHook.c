@@ -989,6 +989,15 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
 
         //
+        // Make sure if handler function is valid or if it's default
+        // then we set it to the default hanlder
+        //
+        if (HookFunction == NULL)
+        {
+            HookFunction = AsmGeneralDetourHook;
+        }
+
+        //
         // Create Hook
         //
         if (!EptHookInstructionMemory(HookedPage, ProcessCr3, TargetAddress, TargetAddressInSafeMemory, HookFunction))
@@ -1703,4 +1712,28 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     // guest normally
     //
     return CalledFrom;
+}
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+EptHookAllocateExtraHookingPages(UINT32 Count)
+{
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
+                                 Count,
+                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
+                                 Count,
+                                 TRACKING_HOOKED_PAGES);
 }

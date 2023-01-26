@@ -838,6 +838,14 @@ UserAccessCheckForLoadedModuleDetails()
     UINT64                              Entrypoint  = NULL;
 
     //
+    // Check if the callback needs to be handled or not
+    //
+    if (!g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+    {
+        return FALSE;
+    }
+
+    //
     // Find the thread debugging detail structure
     //
     ProcessDebuggingDetail =

@@ -293,3 +293,12 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address);
  */
 PVOID
 EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+EptHookAllocateExtraHookingPages(UINT32 Count);

@@ -116,11 +116,6 @@ DebuggerInitialize()
     g_EnableDebuggerEvents = TRUE;
 
     //
-    // Show that debugger is not in transparent-mode
-    //
-    g_TransparentMode = FALSE;
-
-    //
     // Set initial state of triggering events for VMCALLs
     //
     VmFuncSetTriggerEventForVmcalls(FALSE);
@@ -2357,7 +2352,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        if (!EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE))
+        if (!EptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2382,7 +2377,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2415,7 +2410,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2476,7 +2471,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2504,7 +2499,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2532,7 +2527,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2560,7 +2555,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2599,7 +2594,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2633,7 +2628,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
 
         //
@@ -2666,19 +2661,21 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
+
+        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
 
         //
         // whether it's a !syscall2 or !sysret2
         //
         if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
         {
-            g_IsUnsafeSyscallOrSysretHandling = TRUE;
+            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
         }
         else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
         {
-            g_IsUnsafeSyscallOrSysretHandling = FALSE;
+            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
 
         //
@@ -2689,7 +2686,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // All cores
             //
-            DebuggerEventEnableEferOnAllProcessors();
+            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
         }
         else
         {
@@ -2700,9 +2697,11 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         }
 
         //
-        // Set the event's target syscall number
+        // Set the event's target syscall number and save the approach
+        // of handling event details
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->OptionalParam2 = SyscallHookType;
 
         break;
     }
@@ -2711,8 +2710,22 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
         //
+
+        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
+
+        //
+        // whether it's a !syscall2 or !sysret2
+        //
+        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        {
+            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
+        }
+        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        {
+            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
+        }
 
         //
         // Let's see if it is for all cores or just one core
@@ -2722,7 +2735,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // All cores
             //
-            DebuggerEventEnableEferOnAllProcessors();
+            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
         }
         else
         {
@@ -2731,10 +2744,13 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
         }
+
         //
-        // Set the event's target syscall number
+        // Set the event's target syscall number and save the approach
+        // of handling event details
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->OptionalParam2 = SyscallHookType;
 
         break;
     }

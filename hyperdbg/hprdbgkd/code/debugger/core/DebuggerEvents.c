@@ -13,13 +13,14 @@
 
 /**
  * @brief routines for !syscall command (enable syscall hook)
+ * @param SyscallHookType
  *
  * @return VOID
  */
 VOID
-DebuggerEventEnableEferOnAllProcessors()
+DebuggerEventEnableEferOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
 {
-    KeGenericCallDpc(DpcRoutineEnableEferSyscallEvents, 0x0);
+    ConfigureEnableEferSyscallEventsOnAllProcessors(SyscallHookType);
 }
 
 /**
@@ -30,7 +31,7 @@ DebuggerEventEnableEferOnAllProcessors()
 VOID
 DebuggerEventDisableEferOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineDisableEferSyscallEvents, 0x0);
+    ConfigureDisableEferSyscallEventsOnAllProcessors();
 }
 
 /**
@@ -41,12 +42,7 @@ DebuggerEventDisableEferOnAllProcessors()
 VOID
 DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 {
-    //
-    // Indicate that the future #PFs should or should not be checked with user debugger
-    //
-    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = TRUE;
-
-    KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
+    ConfigureEnableMovToCr3ExitingOnAllProcessors();
 }
 
 /**
@@ -57,12 +53,7 @@ DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 {
-    //
-    // Indicate that the future #PFs should or should not be checked with user debugger
-    //
-    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = FALSE;
-
-    KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
+    ConfigureDisableMovToCr3ExitingOnAllProcessors();
 }
 
 /**

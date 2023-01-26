@@ -125,6 +125,15 @@ VmFuncVmxBroadcastInitialize();
 IMPORT_EXPORT_VMFUNC VOID
 VmFuncVmxBroadcastUninitialize();
 
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncEventInjectBreakpoint();
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
+
+IMPORT_EXPORT_VMFUNC VOID
+VmFuncUninitVmm();
+
 IMPORT_EXPORT_VMFUNC UINT16
 VmFuncGetCsSelector();
 
@@ -144,6 +153,12 @@ IMPORT_EXPORT_VMFUNC UINT64
 VmFuncGetInterruptibilityState();
 
 IMPORT_EXPORT_VMFUNC UINT32
+VmFuncClearSteppingBits(UINT32 Interruptibility);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
+
+IMPORT_EXPORT_VMFUNC UINT32
 VmFuncVmxCompatibleStrlen(const CHAR * s);
 
 IMPORT_EXPORT_VMFUNC UINT32
@@ -153,10 +168,23 @@ IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncNmiHaltCores(UINT32 CoreId);
 
 IMPORT_EXPORT_VMFUNC BOOLEAN
-VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
-
-IMPORT_EXPORT_VMFUNC BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
+
+//////////////////////////////////////////////////
+//            Configuration Functions 	   		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableMovToCr3ExitingOnAllProcessors();
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureDisableMovToCr3ExitingOnAllProcessors();
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureDisableEferSyscallEventsOnAllProcessors();
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
@@ -586,3 +614,15 @@ BroadcastIoBitmapChangeAllCores(UINT64 Port);
 
 VOID
 BroadcastIoBitmapResetAllCores();
+
+VOID
+BroadcastEnableMovToCr3ExitingOnAllProcessors();
+
+VOID
+BroadcastDisableMovToCr3ExitingOnAllProcessors();
+
+VOID
+BroadcastEnableEferSyscallEventsOnAllProcessors();
+
+VOID
+BroadcastDisableEferSyscallEventsOnAllProcessors();

@@ -1171,23 +1171,12 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     switch (PreallocRequest->Type)
     {
     case DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR:
+
         //
         // Perform the allocations for !monitor command
         //
+        VmFuncEptHookAllocateExtraHookingPages(PreallocRequest->Count);
 
-        //
-        // Request pages to be allocated for converting 2MB to 4KB pages
-        //
-        PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
-                                     PreallocRequest->Count,
-                                     SPLIT_2MB_PAGING_TO_4KB_PAGE);
-
-        //
-        // Request pages to be allocated for paged hook details
-        //
-        PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
-                                     PreallocRequest->Count,
-                                     TRACKING_HOOKED_PAGES);
         break;
 
     case DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION:

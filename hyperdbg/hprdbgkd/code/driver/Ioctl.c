@@ -123,6 +123,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             Status = STATUS_SUCCESS;
             break;
+
         case IOCTL_TERMINATE_VMX:
 
             //
@@ -131,12 +132,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerUninitialize();
 
             //
-            // terminate vmx
+            // Terminate VMX
             //
-            VmxPerformTermination();
+            VmFuncUninitVmm();
 
             Status = STATUS_SUCCESS;
+
             break;
+
         case IOCTL_DEBUGGER_READ_MEMORY:
             //
             // First validate the parameters.
@@ -176,6 +179,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             break;
+
         case IOCTL_DEBUGGER_READ_OR_WRITE_MSR:
             //
             // First validate the parameters.

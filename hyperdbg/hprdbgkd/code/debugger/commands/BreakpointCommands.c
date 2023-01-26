@@ -356,7 +356,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
         //
         // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
         //
-        EventInjectBreakpoint();
+        VmFuncEventInjectBreakpoint();
     }
 }
 

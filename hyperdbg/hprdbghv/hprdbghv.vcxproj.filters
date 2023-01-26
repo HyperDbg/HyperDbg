@@ -224,6 +224,9 @@
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
       <Filter>code\components\spinlock</Filter>
     </ClCompile>
+    <ClCompile Include="code\interface\Configuration.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -339,6 +342,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h">
       <Filter>header\components\disasm</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Configuration.h">
+      <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -119,12 +119,6 @@ BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
 UINT64 * g_MsrBitmapInvalidMsrs;
 
 /**
- * @brief Whether the thread attaching mechanism is waiting for #DB or not
- *
- */
-BOOLEAN g_IsWaitingForUserModeModuleEntrypointToBeCalled;
-
-/**
  * @brief Whether the page-fault and cr3 vm-exits in vmx-root should check
  * the #PFs or the PML4.Supervisor with user debugger or not
  *

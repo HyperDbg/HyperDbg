@@ -1490,7 +1490,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 
     Interruptibility = InterruptibilityOld;
 
-    Interruptibility &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
+    Interruptibility = VmFuncClearSteppingBits(Interruptibility);
 
     if ((Interruptibility != InterruptibilityOld))
     {

@@ -1045,7 +1045,7 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    DebuggerEventEnableEferOnAllProcessors();
+                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
                 }
                 else
                 {
@@ -1131,7 +1131,7 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    DebuggerEventEnableEferOnAllProcessors();
+                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
                 }
                 else
                 {

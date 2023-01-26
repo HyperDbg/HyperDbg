@@ -1179,28 +1179,3 @@ AllocateInvalidMsrBimap()
 
     return InvalidMsrBitmap;
 }
-
-/**
- * @brief Get handle from Process Id
- * @param Handle
- * @param ProcessId
- *
- * @return NTSTATUS
- */
-_Use_decl_annotations_
-NTSTATUS
-GetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
-{
-    NTSTATUS Status;
-    Status = STATUS_SUCCESS;
-    OBJECT_ATTRIBUTES ObjAttr;
-    CLIENT_ID         Cid;
-    InitializeObjectAttributes(&ObjAttr, NULL, 0, NULL, NULL);
-
-    Cid.UniqueProcess = ProcessId;
-    Cid.UniqueThread  = (HANDLE)0;
-
-    Status = ZwOpenProcess(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
-
-    return Status;
-}

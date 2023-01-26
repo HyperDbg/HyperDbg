@@ -150,8 +150,6 @@ BroadcastDisableRdtscExitingAllCores()
     KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
 }
 
-///////// -----------------------------------------------------------------------------
-
 /**
  * @brief routines for !msrread command which
  * @details causes vm-exit on all msr reads
@@ -427,4 +425,48 @@ BroadcastIoBitmapResetAllCores()
     // Broadcast to all cores
     //
     KeGenericCallDpc(DpcRoutineResetIoBitmapOnAllCores, NULL);
+}
+
+/**
+ * @brief routines for debugging threads (enable mov-to-cr3 exiting)
+ *
+ * @return VOID
+ */
+VOID
+BroadcastEnableMovToCr3ExitingOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
+}
+
+/**
+ * @brief routines for debugging threads (disable mov-to-cr3 exiting)
+ *
+ * @return VOID
+ */
+VOID
+BroadcastDisableMovToCr3ExitingOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
+}
+
+/**
+ * @brief routines for enabling syscall hooks on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastEnableEferSyscallEventsOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableEferSyscallEvents, 0x0);
+}
+
+/**
+ * @brief routines for disabling syscall hooks on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastDisableEferSyscallEventsOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineDisableEferSyscallEvents, 0x0);
 }

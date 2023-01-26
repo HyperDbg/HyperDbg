@@ -460,8 +460,8 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // want dr7 and dr0 remove their configuration on vm-exits and also
         // we'll be able to change the dr7 of the guest on VMCS
         //
-        HvSetLoadDebugControls(TRUE);
-        HvSetSaveDebugControls(TRUE);
+        VmFuncSetLoadDebugControls(TRUE);
+        VmFuncSetSaveDebugControls(TRUE);
 
         //
         // Intercept #DBs by changing exception bitmap (one core)
@@ -521,8 +521,8 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // Disable load debug controls and save debug controls because
         // no longer needed
         //
-        HvSetLoadDebugControls(FALSE);
-        HvSetSaveDebugControls(FALSE);
+        VmFuncSetLoadDebugControls(FALSE);
+        VmFuncSetSaveDebugControls(FALSE);
 
         //
         // Disable intercepting #DBs

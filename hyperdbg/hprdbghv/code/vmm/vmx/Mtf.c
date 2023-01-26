@@ -58,10 +58,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check for user-mode attaching mechanisms
         //
-        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
-        {
-            g_Callbacks.UserAccessCheckForLoadedModuleDetails();
-        }
+        g_Callbacks.UserAccessCheckForLoadedModuleDetails();
 
         //
         // Restore the previous state

@@ -165,3 +165,9 @@ UINT64 g_KernelTestR15;
 UINT64 g_KernelTestR14;
 UINT64 g_KernelTestR13;
 UINT64 g_KernelTestR12;
+
+/**
+ * @brief Whether the thread attaching mechanism is waiting for #DB or not
+ *
+ */
+BOOLEAN g_IsWaitingForUserModeModuleEntrypointToBeCalled;

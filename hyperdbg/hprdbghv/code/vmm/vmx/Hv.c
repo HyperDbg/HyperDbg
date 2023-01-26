@@ -1048,6 +1048,21 @@ HvGetInterruptibilityState()
 }
 
 /**
+ * @brief Clear STI and MOV SS bits
+ *
+ * @return UINT32
+ */
+UINT32
+HvClearSteppingBits(UINT32 Interruptibility)
+{
+    UINT32 InterruptibilityState = Interruptibility;
+
+    InterruptibilityState &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
+
+    return InterruptibilityState;
+}
+
+/**
  * @brief Set guest's interruptibility state
  * @param InterruptibilityState
  *
@@ -1192,6 +1207,11 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     // Get x86 processor width for virtual address
     //
     g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+
+    //
+    // Make sure that transparent-mode is disabled
+    //
+    g_TransparentMode = FALSE;
 
     //
     // Initializes VMX

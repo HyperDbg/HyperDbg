@@ -389,6 +389,17 @@ VmFuncGetInterruptibilityState()
 }
 
 /**
+ * @brief Clear STI and MOV SS bits
+ *
+ * @return UINT32
+ */
+UINT32
+VmFuncClearSteppingBits(UINT32 Interruptibility)
+{
+    return HvClearSteppingBits(Interruptibility);
+}
+
+/**
  * @brief Set guest's interruptibility state
  * @param InterruptibilityState
  *
@@ -451,6 +462,17 @@ BOOLEAN
 VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
     return HvInitVmm(VmmCallbacks);
+}
+
+/**
+ * @brief Uninitialize Terminate Vmx on all logical cores
+ *
+ * @return VOID
+ */
+VOID
+VmFuncUninitVmm()
+{
+    VmxPerformTermination();
 }
 
 /**
@@ -578,4 +600,27 @@ VOID
 VmFuncVmxBroadcastUninitialize()
 {
     VmxBroadcastUninitialize();
+}
+
+/**
+ * @brief Inject #BP to the guest (Event Injection)
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventInjectBreakpoint()
+{
+    EventInjectBreakpoint();
+}
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
+{
+    EptHookAllocateExtraHookingPages(Count);
 }
