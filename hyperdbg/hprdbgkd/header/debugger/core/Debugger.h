@@ -174,13 +174,6 @@ typedef PVOID
 DebuggerRunCustomCodeFunc(PVOID PreAllocatedBufferAddress, PGUEST_REGS Regs, PVOID Context);
 
 //////////////////////////////////////////////////
-//				Memory Manager		    		//
-//////////////////////////////////////////////////
-
-NTSTATUS
-MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
-
-//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 

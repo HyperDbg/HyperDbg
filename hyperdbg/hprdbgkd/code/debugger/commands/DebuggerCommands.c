@@ -18,9 +18,10 @@
  * @param ReadMemRequest request structure for reading memory
  * @param UserBuffer user buffer to copy the memory
  * @param ReturnSize size that should be returned to user mode buffers
- * @return NTSTATUS
+ *
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize)
 {
     UINT32                    Pid;
