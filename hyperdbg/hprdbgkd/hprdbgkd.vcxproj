@@ -97,9 +97,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="hprdbgkd.inf" />
-  </ItemGroup>
-  <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>

@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Driver Files">
-      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
-      <Extensions>inf;inv;inx;mof;mc;</Extensions>
-    </Filter>
     <Filter Include="code">
       <UniqueIdentifier>{d791a394-1021-4e4e-bc4d-1ff4713a9828}</UniqueIdentifier>
     </Filter>
@@ -119,11 +115,6 @@
     <Filter Include="header\assembly">
       <UniqueIdentifier>{1bfd6479-55ce-4298-89d0-057d7f92dcdf}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Inf Include="hprdbgkd.inf">
-      <Filter>Driver Files</Filter>
-    </Inf>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\driver\Driver.c">
