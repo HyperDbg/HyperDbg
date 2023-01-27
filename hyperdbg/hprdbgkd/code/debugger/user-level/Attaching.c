@@ -1023,9 +1023,9 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
         //
         // The entrypoint is called, we should remove the hook
         //
-        if (!EptHookUnHookSingleAddress(ProcessDebuggingDetails->PebAddressToMonitor,
-                                        NULL,
-                                        ProcessDebuggingDetails->ProcessId))
+        if (!ConfigureEptHookUnHookSingleAddress(ProcessDebuggingDetails->PebAddressToMonitor,
+                                                 NULL,
+                                                 ProcessDebuggingDetails->ProcessId))
         {
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS;
             return FALSE;

@@ -186,6 +186,45 @@ ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TY
 IMPORT_EXPORT_VMFUNC VOID
 ConfigureDisableEferSyscallEventsOnAllProcessors();
 
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port);
+
+IMPORT_EXPORT_VMFUNC VOID
+ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+
+IMPORT_EXPORT_VMFUNC BOOLEAN
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////

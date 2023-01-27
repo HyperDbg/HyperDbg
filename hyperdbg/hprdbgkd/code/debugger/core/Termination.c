@@ -72,7 +72,7 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
+                    ConfigureSetExternalInterruptExitingOnSingleCore(CurrentEvent->CoreId);
                 }
             }
         }
@@ -120,7 +120,7 @@ TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+        ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
     }
 }
 
@@ -147,7 +147,7 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    EptHookUnHookSingleAddress(Event->OptionalParam1, NULL, Event->ProcessId);
+    ConfigureEptHookUnHookSingleAddress(Event->OptionalParam1, NULL, Event->ProcessId);
 }
 
 /**
@@ -175,7 +175,7 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    EptHookUnHookSingleAddress(NULL, Event->OptionalParam1, Event->ProcessId);
+    ConfigureEptHookUnHookSingleAddress(NULL, Event->OptionalParam1, Event->ProcessId);
 }
 
 /**
@@ -238,7 +238,7 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, CurrentEvent->OptionalParam1);
+                    ConfigureChangeMsrBitmapReadOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
                 }
             }
         }
@@ -317,7 +317,7 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, CurrentEvent->OptionalParam1);
+                    ConfigureChangeMsrBitmapWriteOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
                 }
             }
         }
@@ -397,7 +397,7 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, CurrentEvent->OptionalParam1);
+                    ConfigureSetExceptionBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
                 }
             }
         }
@@ -483,7 +483,7 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, CurrentEvent->OptionalParam1);
+                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
                 }
             }
         }
@@ -569,7 +569,7 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, CurrentEvent->OptionalParam1);
+                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
                 }
             }
         }
@@ -724,7 +724,7 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
+                    ConfigureEnableRdtscExitingOnSingleCore(CurrentEvent->CoreId);
                 }
             }
         }
@@ -803,7 +803,7 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
+                    ConfigureEnableRdpmcExitingOnSingleCore(CurrentEvent->CoreId);
                 }
             }
         }
@@ -887,7 +887,7 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
                     BroadcastingOption.OptionalParam1 = CurrentEvent->OptionalParam1;
                     BroadcastingOption.OptionalParam2 = CurrentEvent->OptionalParam2;
 
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
+                    ConfigureEnableMovToControlRegisterExitingOnSingleCore(CurrentEvent->CoreId, &BroadcastingOption);
                 }
             }
         }
@@ -966,7 +966,7 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
+                    ConfigureEnableMovToDebugRegistersExitingOnSingleCore(CurrentEvent->CoreId);
                 }
             }
         }
@@ -1052,7 +1052,7 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
                 }
             }
         }
@@ -1138,7 +1138,7 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
                 }
             }
         }

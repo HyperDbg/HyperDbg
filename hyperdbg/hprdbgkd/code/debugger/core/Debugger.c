@@ -2257,7 +2257,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 //
                 for (size_t j = 0; j < i; j++)
                 {
-                    EptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
+                    ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
                 }
 
                 break;
@@ -2313,7 +2313,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        if (!EptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
+        if (!ConfigureEptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2347,7 +2347,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        if (!EptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE))
+        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2390,7 +2390,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, EventDetails->OptionalParam1);
+            ConfigureChangeMsrBitmapReadOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
         }
 
         //
@@ -2423,7 +2423,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, EventDetails->OptionalParam1);
+            ConfigureChangeMsrBitmapWriteOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
         }
 
         //
@@ -2451,7 +2451,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, EventDetails->OptionalParam1);
+            ConfigureChangeIoBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
         }
 
         //
@@ -2484,7 +2484,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
+            ConfigureEnableRdtscExitingOnSingleCore(EventDetails->CoreId);
         }
 
         break;
@@ -2512,7 +2512,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
+            ConfigureEnableRdpmcExitingOnSingleCore(EventDetails->CoreId);
         }
 
         break;
@@ -2540,7 +2540,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
+            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(EventDetails->CoreId);
         }
 
         break;
@@ -2579,7 +2579,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
             BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
 
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
+            ConfigureEnableMovToControlRegisterExitingOnSingleCore(EventDetails->CoreId, &BroadcastingOption);
         }
 
         break;
@@ -2608,7 +2608,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, EventDetails->OptionalParam1);
+            ConfigureSetExceptionBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
         }
 
         //
@@ -2641,7 +2641,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
+            ConfigureSetExternalInterruptExitingOnSingleCore(EventDetails->CoreId);
         }
 
         //
@@ -2688,7 +2688,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
         }
 
         //
@@ -2737,7 +2737,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
         }
 
         //
