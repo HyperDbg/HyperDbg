@@ -1,7 +1,7 @@
 /**
  * @file scanner.h
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
- * 
+ *
  * @details Scanner headers
  * @version 0.1
  * @date 2020-10-22
@@ -15,28 +15,28 @@
 #    define SCANNER_H
 
 /**
-* @brief lookup table for storing Ids
-*/
+ * @brief lookup table for storing Ids
+ */
 PTOKEN_LIST IdTable;
 
 /**
-* @brief number of read characters from input
-*/
+ * @brief number of read characters from input
+ */
 unsigned int InputIdx;
 
 /**
-* @brief number of current reading line
-*/
+ * @brief number of current reading line
+ */
 unsigned int CurrentLine;
 
 /*
-* @brief current line start postion  
-*/
+ * @brief current line start postion
+ */
 unsigned int CurrentLineIdx;
 
 /*
-* @brief curren PTOKEN start postion
-*/
+ * @brief curren PTOKEN start postion
+ */
 unsigned int CurrentTokenIdx;
 
 ////////////////////////////////////////////////////

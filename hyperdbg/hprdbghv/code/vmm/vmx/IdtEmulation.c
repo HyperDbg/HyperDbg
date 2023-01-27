@@ -12,40 +12,6 @@
 #include "pch.h"
 
 /**
- * @brief re-inject interrupt or exception to the guest
- *
- * @param InterruptExit interrupt info from vm-exit
- *
- * @return BOOLEAN
- */
-BOOLEAN
-IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
-{
-    ULONG ErrorCode = 0;
-
-    //
-    // Re-inject it
-    //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
-
-    //
-    // re-write error code (if any)
-    //
-    if (InterruptExit.ErrorCodeValid)
-    {
-        //
-        // Read the error code
-        //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
-
-        //
-        // Write the error code
-        //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-    }
-}
-
-/**
  * @brief inject #PFs to the guest
  *
  * @param VCpu The virtual processor's state
@@ -125,8 +91,7 @@ VOID
 IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                   _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG                       ErrorCode            = 0;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
+    ULONG ErrorCode = 0;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -146,7 +111,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         if (!EptCheckAndHandleBreakpoint(VCpu))
         {
-            BreakpointHandleBpTraps(&VCpu->DebuggingState);
+            g_Callbacks.BreakpointHandleBpTraps(VCpu->CoreId);
         }
 
         break;
@@ -177,10 +142,9 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // Handle page-faults
         //
         if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            AttachingCheckPageFaultsWithUserDebugger(&VCpu->DebuggingState,
-                                                     InterruptExit,
-                                                     NULL,
-                                                     ErrorCode))
+            g_Callbacks.AttachingCheckPageFaultsWithUserDebugger(VCpu->CoreId,
+                                                                 NULL,
+                                                                 ErrorCode))
         {
             //
             // The page-fault is handled through the user debugger, no need further action
@@ -198,63 +162,21 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
-        //
-        // Check whether it is because of thread change detection or not
-        //
-        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-        {
-            //
-            // This way of handling has a problem, if the user set to change
-            // the thread and instead of using 'g', it pressed the 'p' to
-            // set or a trap happens somewhere then will be ignored
-            // it because we don't know the origin of this debug breakpoint
-            // and it only happens on '.thread2' command, the correct way
-            // to handle it is to find the exact hw debug register that caused
-            // this vm-exit, but it's a really rare case, so we left it without
-            // handling this case
-            //
-            ThreadHandleThreadChange(&VCpu->DebuggingState);
-        }
-        else if (g_UserDebuggerState == TRUE &&
-                 (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
-        {
-            //
-            // Handle for user-mode attaching mechanism
-            //
-            AttachingHandleEntrypointDebugBreak(&VCpu->DebuggingState);
-        }
-        else if (g_KernelDebuggerState == TRUE)
-        {
-            //
-            // Handle debug events (breakpoint, traps, hardware debug register when kernel
-            // debugger is attached.)
-            //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(&VCpu->DebuggingState);
-        }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(&VCpu->DebuggingState,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
-        {
-            //
-            // if the above function returns true, no need for further action
-            // it's handled in the user debugger
-            //
-        }
-        else
+        if (!g_Callbacks.BreakpointCheckAndHandleDebugBreakpoint(VCpu->CoreId))
         {
             //
             // It's not because of thread change detection, so re-inject it
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
 
         break;
 
     case EXCEPTION_VECTOR_NMI:
 
-        if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+        if (VCpu->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
-            CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+            VCpu->RegisterBreakOnMtf)
         {
             //
             // Ignore the nmi
@@ -265,7 +187,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Re-inject the interrupt/exception because it doesn't relate to us
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
 
         break;
@@ -275,7 +197,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Re-inject the interrupt/exception, nothing special to handle
         //
-        IdtEmulationReInjectInterruptOrException(InterruptExit);
+        EventInjectInterruptOrException(InterruptExit);
 
         break;
     }
@@ -320,49 +242,6 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STA
 }
 
 /**
- * @brief Handle process or thread switches
- *
- * @param VCpu The virtual processor's state
- * @param InterruptExit interrupt info from vm-exit
- *
- * @return BOOLEAN
- */
-BOOLEAN
-IdtEmulationCheckProcessOrThreadChange(_In_ VIRTUAL_MACHINE_STATE *      VCpu,
-                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
-{
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &VCpu->DebuggingState;
-
-    //
-    // Check whether intercepting this process or thread is active or not,
-    // Windows fires a clk interrupt on core 0 and fires IPI on other cores
-    // to change a thread
-    //
-    if ((CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-         CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
-        ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
-         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
-    {
-        //
-        // We only handle interrupts that are related to the clock-timer interrupt
-        //
-        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
-        {
-            return ThreadHandleThreadChange(&VCpu->DebuggingState);
-        }
-        else
-        {
-            return ProcessHandleProcessChange(&VCpu->DebuggingState);
-        }
-    }
-
-    //
-    // Not handled here
-    //
-    return FALSE;
-}
-
-/**
  * @brief external-interrupt vm-exit handler
  *
  * @param VCpu The virtual processor's state
@@ -374,10 +253,9 @@ VOID
 IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    BOOLEAN                     Interruptible         = TRUE;
-    VMX_INTERRUPTIBILITY_STATE  InterruptibilityState = {0};
-    RFLAGS                      GuestRflags           = {0};
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &VCpu->DebuggingState;
+    BOOLEAN                    Interruptible         = TRUE;
+    VMX_INTERRUPTIBILITY_STATE InterruptibilityState = {0};
+    RFLAGS                     GuestRflags           = {0};
 
     //
     // In order to enable External Interrupt Exiting we have to set
@@ -389,7 +267,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
-    if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+    if (VCpu->EnableExternalInterruptsOnContinue ||
         VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //
@@ -427,7 +305,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             //
             // Re-inject the interrupt/exception
             //
-            IdtEmulationReInjectInterruptOrException(InterruptExit);
+            EventInjectInterruptOrException(InterruptExit);
         }
         else
         {

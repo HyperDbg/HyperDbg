@@ -21,11 +21,11 @@
 /**
  * @brief Create server and wait for a client to connect
  * @details this function only accepts one client not multiple clients
- * 
- * @param Port 
- * @param ClientSocketArg 
- * @param ListenSocketArg 
- * @return int 
+ *
+ * @param Port
+ * @param ClientSocketArg
+ * @param ListenSocketArg
+ * @return int
  */
 int
 CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
@@ -137,11 +137,11 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
 
 /**
  * @brief listen and receive message as the server
- * 
- * @param ClientSocket 
- * @param recvbuf 
- * @param recvbuflen 
- * @return int 
+ *
+ * @param ClientSocket
+ * @param recvbuf
+ * @param recvbuflen
+ * @return int
  */
 int
 CommunicationServerReceiveMessage(SOCKET ClientSocket, char * recvbuf, int recvbuflen)
@@ -178,11 +178,11 @@ CommunicationServerReceiveMessage(SOCKET ClientSocket, char * recvbuf, int recvb
 
 /**
  * @brief send message as the server
- * 
- * @param ClientSocket 
- * @param sendbuf 
- * @param length 
- * @return int 
+ *
+ * @param ClientSocket
+ * @param sendbuf
+ * @param length
+ * @return int
  */
 int
 CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int length)
@@ -198,7 +198,7 @@ CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int le
         /*
     ShowMessages("err, send failed (%x)\n", WSAGetLastError());
     closesocket(ClientSocket);
-    WSACleanup();   
+    WSACleanup();
         */
         return 1;
     }
@@ -207,10 +207,10 @@ CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int le
 
 /**
  * @brief Shutdown and cleanup connection as server
- * 
- * @param ClientSocket 
- * @param ListenSocket 
- * @return int 
+ *
+ * @param ClientSocket
+ * @param ListenSocket
+ * @return int
  */
 int
 CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,

@@ -75,10 +75,20 @@ VmxCheckVmxSupport()
 BOOLEAN
 VmxGetCurrentExecutionMode()
 {
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+    if (g_GuestState)
+    {
+        ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+        VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
-    return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
+        return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
+    }
+    else
+    {
+        //
+        // The structure for guest state is not initialized, thus, we're in VMX non-root
+        //
+        return VmxExecutionModeNonRoot;
+    }
 }
 
 /**
@@ -933,6 +943,16 @@ VmxPerformTermination()
     // Free the Pool manager
     //
     PoolManagerUninitialize();
+
+    //
+    // Uninitialize memory mapper
+    //
+    MemoryMapperUninitialize();
+
+    //
+    // Remove the memory related to the VMM
+    //
+    VmFuncUninitializeMemory();
 
     LogDebugInfo("VMX operation turned off successfully");
 }

@@ -15,8 +15,8 @@
  * @brief Trigger NMI on XAPIC
  * @param Low
  * @param High
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 XApicIcrWrite(UINT32 Low, UINT32 High)
@@ -29,8 +29,8 @@ XApicIcrWrite(UINT32 Low, UINT32 High)
  * @brief Trigger NMI on X2APIC
  * @param Low
  * @param High
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 X2ApicIcrWrite(UINT32 Low, UINT32 High)
@@ -40,8 +40,8 @@ X2ApicIcrWrite(UINT32 Low, UINT32 High)
 
 /**
  * @brief Trigger NMI on X2APIC or APIC based on Current system
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ApicTriggerGenericNmi()
@@ -58,8 +58,8 @@ ApicTriggerGenericNmi()
 
 /**
  * @brief Initialize APIC
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ApicInitialize()
@@ -91,8 +91,8 @@ ApicInitialize()
 
 /**
  * @brief Uninitialize APIC
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ApicUninitialize()
@@ -106,9 +106,9 @@ ApicUninitialize()
 
 /**
  * @brief Self IPI the current core
- * 
+ *
  * @param Vector
- * @return VOID 
+ * @return VOID
  */
 VOID
 ApicSelfIpi(UINT32 Vector)

@@ -12,6 +12,68 @@
 #include "pch.h"
 
 /**
+ * @brief Initialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastInitialize()
+{
+    //
+    // *** Initialize NMI broadcasting mechanism ***
+    //
+
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    BroadcastEnableNmiExitingAllCores();
+
+    //
+    // Indicate that NMI broadcasting is initialized
+    //
+    g_NmiBroadcastingInitialized = TRUE;
+}
+
+/**
+ * @brief Uninitialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastUninitialize()
+{
+    //
+    // *** Uninitialize NMI broadcasting mechanism ***
+    //
+    g_NmiBroadcastingInitialized = FALSE;
+
+    //
+    // De-register NMI handler
+    //
+    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    BroadcastDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
+}
+
+/**
  * @brief Handles NMIs in kernel-mode
  *
  * @param Context
@@ -83,11 +145,6 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // make sure, nobody is in the middle of sending anything
-    //
-    SpinlockLock(&DebuggerResponseLock);
-
-    //
     // Indicate that we're waiting for NMI
     //
     for (size_t i = 0; i < CoreCount; i++)
@@ -104,8 +161,6 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     // Broadcast NMI through APIC (xAPIC or x2APIC)
     //
     ApicTriggerGenericNmi();
-
-    SpinlockUnlock(&DebuggerResponseLock);
 
     return TRUE;
 }
@@ -156,7 +211,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         // Handle NMI of halt the other cores
         //
         IsHandled = TRUE;
-        KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
+        g_Callbacks.KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
 
         break;
 

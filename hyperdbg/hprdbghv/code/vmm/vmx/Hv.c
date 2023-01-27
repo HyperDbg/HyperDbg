@@ -193,17 +193,14 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
-            {
-                ProcessHandleProcessChange(&VCpu->DebuggingState);
-            }
+            g_Callbacks.ProcessTriggerCr3ProcessChange(VCpu->CoreId);
 
             //
             // Call user debugger handler of thread intercepting mechanism
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(&VCpu->DebuggingState, NewCr3Reg);
+                g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
             }
 
             break;
@@ -1051,6 +1048,21 @@ HvGetInterruptibilityState()
 }
 
 /**
+ * @brief Clear STI and MOV SS bits
+ *
+ * @return UINT32
+ */
+UINT32
+HvClearSteppingBits(UINT32 Interruptibility)
+{
+    UINT32 InterruptibilityState = Interruptibility;
+
+    InterruptibilityState &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
+
+    return InterruptibilityState;
+}
+
+/**
  * @brief Set guest's interruptibility state
  * @param InterruptibilityState
  *
@@ -1060,4 +1072,149 @@ VOID
 HvSetInterruptibilityState(UINT64 InterruptibilityState)
 {
     __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+}
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if there is at least an interrupt that needs to be delivered
+    //
+    if (VCpu->PendingExternalInterrupts[0] != NULL)
+    {
+        //
+        // Enable Interrupt-window exiting.
+        //
+        HvSetInterruptWindowExiting(TRUE);
+    }
+}
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if we should enable interrupts in this core or not
+    //
+    if (VCpu->EnableExternalInterruptsOnContinue)
+    {
+        //
+        // Enable normal interrupts
+        //
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        HvInjectPendingExternalInterrupts(VCpu);
+
+        VCpu->EnableExternalInterruptsOnContinue = FALSE;
+    }
+}
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    VCpu->EnableExternalInterruptsOnContinue = TRUE;
+}
+
+/**
+ * @brief Initializes the hypervisor
+ * @param VmmCallbacks
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
+{
+    ULONG   ProcessorCount;
+    BOOLEAN Result = FALSE;
+
+    //
+    // Save the callbacks
+    //
+    RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VmmCallbacks));
+
+    //
+    // we allocate virtual machine here because
+    // we want to use its state (vmx-root or vmx non-root) in logs
+    //
+    Result = GlobalGuestStateAllocateZeroedMemory();
+
+    if (Result)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // We have a zeroed guest state
+    //
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Set the core's id and initialize memory mapper
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        g_GuestState[i].CoreId = i;
+    }
+
+    //
+    // Initialize memory mapper
+    //
+    MemoryMapperInitialize();
+
+    //
+    // Check if processor supports TSX (RTM)
+    //
+    g_RtmSupport = CheckCpuSupportRtm();
+
+    //
+    // Get x86 processor width for virtual address
+    //
+    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+
+    //
+    // Make sure that transparent-mode is disabled
+    //
+    g_TransparentMode = FALSE;
+
+    //
+    // Initializes VMX
+    //
+    return VmxInitialize();
 }

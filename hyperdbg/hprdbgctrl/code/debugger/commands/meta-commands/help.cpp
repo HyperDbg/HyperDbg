@@ -13,10 +13,10 @@
 
 /**
  * @brief help of help command :)
- * 
+ *
  * @param SplittedCommand
  * @param Command
- * @return VOID 
+ * @return VOID
  */
 VOID
 CommandHelpHelp()

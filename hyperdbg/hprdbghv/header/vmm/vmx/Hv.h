@@ -301,6 +301,14 @@ UINT64
 HvGetInterruptibilityState();
 
 /**
+ * @brief Clear STI and MOV SS bits
+ *
+ * @return UINT32
+ */
+UINT32
+HvClearSteppingBits(UINT32 Interruptibility);
+
+/**
  * @brief Set guest's interruptibility state
  * @param InterruptibilityState
  *
@@ -308,3 +316,42 @@ HvGetInterruptibilityState();
  */
 VOID
 HvSetInterruptibilityState(UINT64 InterruptibilityState);
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Initializes the hypervisor
+ * @param VmmCallbacks
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvInitVmm(VMM_CALLBACKS * VmmCallbacks);

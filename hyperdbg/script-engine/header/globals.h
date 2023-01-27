@@ -1,7 +1,7 @@
 /**
  * @file globals.h
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
- * 
+ *
  * @details Global variables header
  * @version 0.1
  * @date 2020-10-22

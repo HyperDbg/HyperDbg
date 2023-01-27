@@ -12,55 +12,11 @@
 #include "pch.h"
 
 /**
- * @brief Allocate debugging state memory
- *
- * @return NTSTATUS
- */
-NTSTATUS
-GlobalDebuggingStateAllocateZeroedMemory(VOID)
-{
-    SSIZE_T BufferSizeInByte = sizeof(PROCESSOR_DEBUGGING_STATE) * KeQueryActiveProcessorCount(0);
-
-    //
-    // Allocate global variable to hold Debugging(s) state
-    //
-    g_DbgState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
-
-    if (!g_DbgState)
-    {
-        //
-        // we use DbgPrint as the vmx-root or non-root is not initialized
-        //
-
-        LogInfo("err, insufficient memory for allocating debugging state\n");
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_DbgState, BufferSizeInByte);
-
-    return STATUS_SUCCESS;
-}
-
-/**
- * @brief Free debugging state memory
- *
- * @return NTSTATUS
- */
-VOID
-GlobalDebuggingStateFreeMemory(VOID)
-{
-    ExFreePoolWithTag(g_DbgState, POOLTAG);
-}
-
-/**
  * @brief Allocate guest state memory
  *
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 GlobalGuestStateAllocateZeroedMemory(VOID)
 {
     SSIZE_T BufferSizeInByte = sizeof(VIRTUAL_MACHINE_STATE) * KeQueryActiveProcessorCount(0);
@@ -68,18 +24,15 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     // Allocate global variable to hold Guest(s) state
     //
-
-    g_GuestState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
-
     if (!g_GuestState)
     {
-        //
-        // we use DbgPrint as the vmx-root or non-root is not initialized
-        //
+        g_GuestState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
 
-        DbgPrint("err, insufficient memory\n");
-        DbgBreakPoint();
-        return STATUS_INSUFFICIENT_RESOURCES;
+        if (!g_GuestState)
+        {
+            LogError("Err, insufficient memory\n");
+            return FALSE;
+        }
     }
 
     //
@@ -87,50 +40,16 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     RtlZeroMemory(g_GuestState, BufferSizeInByte);
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
  * @brief Free guest state memory
  *
- * @return NTSTATUS
+ * @return VOID
  */
 VOID
 GlobalGuestStateFreeMemory(VOID)
 {
     ExFreePoolWithTag(g_GuestState, POOLTAG);
-}
-
-BOOLEAN
-GlobalEventsAllocateZeroedMemory(VOID)
-{
-    //
-    // Allocate buffer for saving events
-    //
-    if (!g_Events)
-    {
-        g_Events = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_CORE_EVENTS), POOLTAG);
-    }
-
-    if (g_Events)
-    {
-        //
-        // Zero the buffer
-        //
-        RtlZeroBytes(g_Events, sizeof(DEBUGGER_CORE_EVENTS));
-    }
-
-    return g_Events != NULL;
-}
-
-BOOLEAN
-GlobalEventsFreeMemory(VOID)
-{
-    if (g_Events != NULL)
-    {
-        ExFreePoolWithTag(g_Events, POOLTAG);
-        g_Events = NULL;
-    }
-
-    return g_Events == NULL;
 }

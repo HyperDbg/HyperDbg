@@ -31,45 +31,6 @@ typedef enum _SEGMENT_REGISTERS
     TR
 } SEGMENT_REGISTERS;
 
-/**
- * @brief Different methods of killing a process
- *
- */
-typedef enum _PROCESS_KILL_METHODS
-{
-    PROCESS_KILL_METHOD_1 = 0,
-    PROCESS_KILL_METHOD_2,
-    PROCESS_KILL_METHOD_3,
-
-} PROCESS_KILL_METHODS;
-
-//////////////////////////////////////////////////
-//				 Spinlock Funtions				//
-//////////////////////////////////////////////////
-
-BOOLEAN
-SpinlockTryLock(volatile LONG * Lock);
-
-void
-SpinlockLock(volatile LONG * Lock);
-
-void
-SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
-
-void
-SpinlockUnlock(volatile LONG * Lock);
-
-void
-SpinlockInterlockedCompareExchange(
-    LONG volatile * Destination,
-    LONG            Exchange,
-    LONG            Comperand);
-
-#define ScopedSpinlock(LockObject, CodeToRun)   \
-    MetaScopedExpr(SpinlockLock(&LockObject),   \
-                   SpinlockUnlock(&LockObject), \
-                   CodeToRun)
-
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
@@ -88,20 +49,6 @@ SpinlockInterlockedCompareExchange(
 #define POWER_LEVEL    14 // Power failure level
 #define PROFILE_LEVEL  15 // timer used for profiling.
 #define HIGH_LEVEL     15 // Highest interrupt level
-
-/*
- * @brief Segment register and corresponding GDT meaning in Windows
- */
-#define KGDT64_NULL      (0 * 16)     // NULL descriptor
-#define KGDT64_R0_CODE   (1 * 16)     // kernel mode 64-bit code
-#define KGDT64_R0_DATA   (1 * 16) + 8 // kernel mode 64-bit data (stack)
-#define KGDT64_R3_CMCODE (2 * 16)     // user mode 32-bit code
-#define KGDT64_R3_DATA   (2 * 16) + 8 // user mode 32-bit data
-#define KGDT64_R3_CODE   (3 * 16)     // user mode 64-bit code
-#define KGDT64_SYS_TSS   (4 * 16)     // kernel mode system task state
-#define KGDT64_R3_CMTEB  (5 * 16)     // user mode 32-bit TEB
-#define KGDT64_R0_CMCODE (6 * 16)     // kernel mode 32-bit code
-#define KGDT64_LAST      (7 * 16)     // last entry
 
 /**
  * @brief Intel CPU flags in CR0
@@ -217,12 +164,6 @@ SpinlockInterlockedCompareExchange(
 #define MAXIMUM_ADDRESS 0xffffffffffffffff
 
 /**
- * @brief Pool tag
- *
- */
-#define POOLTAG 0x48444247 // [H]yper[DBG] (HDBG)
-
-/**
  * @brief System and User ring definitions
  *
  */
@@ -267,19 +208,6 @@ SpinlockInterlockedCompareExchange(
 typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
 
 /**
- * @brief Segment selector
- *
- */
-
-typedef struct _VMX_SEGMENT_SELECTOR
-{
-    UINT16                    Selector;
-    VMX_SEGMENT_ACCESS_RIGHTS Attributes;
-    UINT32                    Limit;
-    UINT64                    Base;
-} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
-
-/**
  * @brief CPUID Registers
  *
  */
@@ -290,18 +218,6 @@ typedef struct _CPUID
     int ecx;
     int edx;
 } CPUID, *PCPUID;
-
-/**
- * @brief KPROCESS Brief structure
- *
- */
-typedef struct _NT_KPROCESS
-{
-    DISPATCHER_HEADER Header;
-    LIST_ENTRY        ProfileListHead;
-    ULONG_PTR         DirectoryTableBase;
-    UCHAR             Data[1];
-} NT_KPROCESS, *PNT_KPROCESS;
 
 /**
  * @brief Page-Fault Error Code
@@ -334,6 +250,22 @@ typedef union _CR_FIXED
 } CR_FIXED, *PCR_FIXED;
 
 //////////////////////////////////////////////////
+//         Windows-specific structures          //
+//////////////////////////////////////////////////
+
+/**
+ * @brief KPROCESS Brief structure
+ *
+ */
+typedef struct _NT_KPROCESS
+{
+    DISPATCHER_HEADER Header;
+    LIST_ENTRY        ProfileListHead;
+    ULONG_PTR         DirectoryTableBase;
+    UCHAR             Data[1];
+} NT_KPROCESS, *PNT_KPROCESS;
+
+//////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////
 
@@ -344,177 +276,11 @@ typedef union _CR_FIXED
 typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorID);
 
 //////////////////////////////////////////////////
-//					Logging						//
-//////////////////////////////////////////////////
-
-/**
- * @brief Types of log messages
- *
- */
-typedef enum _LOG_TYPE
-{
-    LOG_INFO,
-    LOG_WARNING,
-    LOG_ERROR
-
-} LOG_TYPE;
-
-/**
- * @brief Define log variables
- *
- */
-#if UseDbgPrintInsteadOfUsermodeMessageTracking
-/* Use DbgPrint */
-#    define Logformat, ...)                           \
-        DbgPrint("[+] Information (%s:%d) | " format "\n", \
-                 __func__,                                 \
-                 __LINE__,                                 \
-                 __VA_ARGS__)
-
-#    define LogWarning(format, ...)                    \
-        DbgPrint("[-] Warning (%s:%d) | " format "\n", \
-                 __func__,                             \
-                 __LINE__,                             \
-                 __VA_ARGS__)
-
-#    define LogError(format, ...)                    \
-        DbgPrint("[!] Error (%s:%d) | " format "\n", \
-                 __func__,                           \
-                 __LINE__,                           \
-                 __VA_ARGS__);                       \
-        DbgBreakPoint()
-
-/**
- * @brief Log without any prefix
- *
- */
-#    define Log(format, ...) \
-        DbgPrint(format, __VA_ARGS__)
-
-#else
-
-/**
- * @brief Log, general
- *
- */
-#    define LogInfo(format, ...)                                                  \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                        UseImmediateMessaging,                    \
-                                        ShowSystemTimeOnDebugMessages,            \
-                                        FALSE,                                    \
-                                        "[+] Information (%s:%d) | " format "\n", \
-                                        __func__,                                 \
-                                        __LINE__,                                 \
-                                        __VA_ARGS__)
-
-/**
- * @brief Log in the case of priority message
- *
- */
-#    define LogInfoPriority(format, ...)                                          \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                        TRUE,                                     \
-                                        ShowSystemTimeOnDebugMessages,            \
-                                        TRUE,                                     \
-                                        "[+] Information (%s:%d) | " format "\n", \
-                                        __func__,                                 \
-                                        __LINE__,                                 \
-                                        __VA_ARGS__)
-
-/**
- * @brief Log in the case of warning
- *
- */
-#    define LogWarning(format, ...)                                           \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
-                                        UseImmediateMessaging,                \
-                                        ShowSystemTimeOnDebugMessages,        \
-                                        TRUE,                                 \
-                                        "[-] Warning (%s:%d) | " format "\n", \
-                                        __func__,                             \
-                                        __LINE__,                             \
-                                        __VA_ARGS__)
-
-/**
- * @brief Log in the case of error
- *
- */
-#    define LogError(format, ...)                                           \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
-                                        UseImmediateMessaging,              \
-                                        ShowSystemTimeOnDebugMessages,      \
-                                        TRUE,                               \
-                                        "[!] Error (%s:%d) | " format "\n", \
-                                        __func__,                           \
-                                        __LINE__,                           \
-                                        __VA_ARGS__);                       \
-        if (DebugMode)                                                      \
-        DbgBreakPoint()
-
-/**
- * @brief Log without any prefix
- *
- */
-#    define Log(format, ...)                                        \
-        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
-                                        TRUE,                       \
-                                        FALSE,                      \
-                                        FALSE,                      \
-                                        format,                     \
-                                        __VA_ARGS__)
-
-/**
- * @brief Log without any prefix and bypass the stack
- * problem (getting two temporary stacks in preparing phase)
- *
- */
-#    define LogSimpleWithTag(tag, isimmdte, buffer, len) \
-        LogSendMessageToQueue(tag,                       \
-                              isimmdte,                  \
-                              buffer,                    \
-                              len,                       \
-                              FALSE)
-
-#endif // UseDbgPrintInsteadOfUsermodeMessageTracking
-
-/**
- * @brief Log, initilize boot information and debug information
- *
- */
-#define LogDebugInfo(format, ...)                                             \
-    if (DebugMode)                                                            \
-    LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                                    UseImmediateMessaging,                    \
-                                    ShowSystemTimeOnDebugMessages,            \
-                                    FALSE,                                    \
-                                    "[+] Information (%s:%d) | " format "\n", \
-                                    __func__,                                 \
-                                    __LINE__,                                 \
-                                    __VA_ARGS__)
-
-//////////////////////////////////////////////////
 //				External Functions				//
 //////////////////////////////////////////////////
 
 UCHAR *
 PsGetProcessImageFileName(IN PEPROCESS Process);
-
-NTKERNELAPI NTSTATUS NTAPI
-SeCreateAccessState(
-    PACCESS_STATE    AccessState,
-    PVOID            AuxData,
-    ACCESS_MASK      DesiredAccess,
-    PGENERIC_MAPPING Mapping);
-
-NTKERNELAPI VOID NTAPI
-SeDeleteAccessState(
-    PACCESS_STATE AccessState);
-
-PVOID
-PsGetProcessSectionBaseAddress(PEPROCESS Process); // Used to get the base address of process's executable image
-
-NTSTATUS
-MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap process's executable image
 
 //////////////////////////////////////////////////
 //			 Function Definitions				//
@@ -540,70 +306,11 @@ ClearBit(int nth, unsigned long * addr);
 void
 SetBit(int nth, unsigned long * addr);
 
-CR3_TYPE
-GetCr3FromProcessId(_In_ UINT32 ProcessId);
-
 BOOLEAN
 BroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
-UINT64
-PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
-
-UINT64
-VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
-
-UINT64
-VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
-                                           _In_ UINT32 ProcessId);
-
-UINT64
-VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
-                                            _In_ CR3_TYPE TargetCr3);
-
-UINT64
-VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
-
-UINT64
-PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress, _In_ UINT32 ProcessId);
-
-UINT64
-PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
-
-UINT64
-PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
-
-CR3_TYPE
-GetRunningCr3OnTargetProcess();
-
-int
-MathPower(int Base, int Exp);
-
-UINT64
-FindSystemDirectoryTableBase();
-
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
-
-CR3_TYPE
-SwitchOnMemoryLayoutOfTargetProcess();
-
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
-
-VOID
-RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
-
-PCHAR
-GetProcessNameFromEprocess(PEPROCESS eprocess);
-
 BOOLEAN
 StartsWith(const char * pre, const char * str);
-
-BOOLEAN
-IsProcessExist(UINT32 ProcId);
-
-BOOLEAN
-CheckIfAddressIsValidUsingTsx(CHAR * Address);
 
 VOID
 GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
@@ -614,48 +321,20 @@ CheckCpuSupportRtm();
 UINT64 *
 AllocateInvalidMsrBimap();
 
-UINT32
-Getx86VirtualAddressWidth();
-
 BOOLEAN
 CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress);
 
-BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+PCHAR
+GetProcessNameFromEprocess(PEPROCESS eprocess);
 
-//////////////////////////////////////////////////
-//			 WDK Major Functions				//
-//////////////////////////////////////////////////
+UINT64
+FindSystemDirectoryTableBase();
 
-/**
- * @brief Load & Unload
- */
-NTSTATUS
-DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
+CR3_TYPE
+GetCr3FromProcessId(_In_ UINT32 ProcessId);
 
-VOID
-DrvUnload(PDRIVER_OBJECT DriverObject);
-
-/**
- * @brief IRP Major Functions
- */
-NTSTATUS
-DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-
-NTSTATUS
-DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+UINT32
+Getx86VirtualAddressWidth();
 
 //////////////////////////////////////////////////
 //			         Functions  				//
@@ -663,59 +342,27 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
 #define MAX_EXEC_TRAMPOLINE_SIZE 100
 
-/**
- * @brief A test function for Syscall hook
- *
- * @return VOID
- */
 VOID
 SyscallHookTest();
 
-/**
- * @brief Enable or Disable Syscall Hook for EFER MSR
- *
- */
 VOID
 SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
 
-/**
- * @brief Manage #UD Exceptions for EFER Syscall
- *
- */
 BOOLEAN
 SyscallHookHandleUD(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief SYSRET instruction emulation routine
- *
- */
 BOOLEAN
 SyscallHookEmulateSYSRET(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief SYSCALL instruction emulation routine
- *
- */
 BOOLEAN
 SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
-/**
- * @brief Get Segment Descriptor
- *
- */
 _Success_(return)
 BOOLEAN
 GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 
-/**
- * @brief Kill a process using different methods
- *
- */
-BOOLEAN
-KillProcess(_In_ UINT32 ProcessId, _In_ PROCESS_KILL_METHODS KillingMethod);
+UINT32
+VmxCompatibleStrlen(const CHAR * S);
 
 UINT32
-VmxrootCompatibleStrlen(const CHAR * S);
-
-UINT32
-VmxrootCompatibleWcslen(const wchar_t * S);
+VmxCompatibleWcslen(const wchar_t * S);

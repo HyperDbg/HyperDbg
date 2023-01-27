@@ -213,7 +213,7 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  *
  */
-#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x0000020
+#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x00000020
 
 /**
  * @brief VMCALL to unset VM-exit SAVE DEBUG CONTROLS
@@ -221,84 +221,51 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  *
  */
-#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x0000021
-
-/**
- * @brief VMCALL to cause vm-exit and halt the system
- *
- */
-#define VMCALL_VM_EXIT_HALT_SYSTEM 0x0000022
+#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x00000021
 
 /**
  * @brief VMCALL to cause vm-exit on NMIs
  *
  */
-#define VMCALL_SET_VM_EXIT_ON_NMIS 0x0000023
+#define VMCALL_SET_VM_EXIT_ON_NMIS 0x00000022
 
 /**
  * @brief VMCALL to not cause vm-exit on NMIs
  *
  */
-#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x0000024
-
-/**
- * @brief VMCALL to signal debugger that debuggee finished
- * execution of the command
- *
- */
-#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x25
-
-/**
- * @brief VMCALL to send messages to the debugger
- *
- */
-#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x26
-
-/**
- * @brief VMCALL to send general buffers from debuggee user-mode
- * to the debugger
- *
- */
-#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x27
-
-/**
- * @brief VMCALL to cause vm-exit and halt the system because
- * of triggering an event
- *
- */
-#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x28
+#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x00000023
 
 /**
  * @brief VMCALL to clear rdtsc exiting bit ONLY in the case of disabling
  * the events for !tsc command
  *
  */
-#define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x29
+#define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x00000024
 
 /**
  * @brief VMCALL to clear mov 2 hw dr exiting bit ONLY in the case of disabling
  * the events for !dr command
  *
  */
-#define VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x2a
+#define VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x00000025
 
 /**
  * @brief VMCALL to enable mov to CR exiting
  */
-#define VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING 0x2b
+#define VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING 0x00000026
 
 /**
  * @brief VMCALL to disable mov to CR exiting
  *
  */
-#define VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING 0x2c
+#define VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING 0x00000027
 
 /**
  * @brief VMCALL to clear mov 2 cr exiting bit ONLY in the case of disabling
  * the events for !crwrite command
  *
  */
-#define VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS 0x2d
+#define VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS 0x00000028
 
 //////////////////////////////////////////////////
 //				    Functions					//

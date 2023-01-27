@@ -20,15 +20,7 @@
 VOID
 MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
-    BOOLEAN                          AvoidUnsetMtf;
-    //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
-    // and corrupt other variables, that's why we get 64bit
-    //
-    UINT64                      CsSel                 = NULL;
-    BOOLEAN                     IsMtfHandled          = FALSE;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &VCpu->DebuggingState;
+    BOOLEAN IsMtfHandled = FALSE;
 
     //
     // Redo the instruction
@@ -45,38 +37,12 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // We check it separately because the guest might step
     // instructions on an MTF so we want to check for the step too
     //
-    if (CurrentDebuggingState->SoftwareBreakpointState != NULL)
+    if (g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
     {
-        BYTE BreakpointByte = 0xcc;
-
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
-
-        //
-        // Restore previous breakpoint byte
-        //
-        MemoryMapperWriteMemorySafeByPhysicalAddress(
-            CurrentDebuggingState->SoftwareBreakpointState->PhysAddress,
-            &BreakpointByte,
-            sizeof(BYTE));
-
-        //
-        // Check if we should re-enabled IF bit of RFLAGS or not
-        //
-        if (CurrentDebuggingState->SoftwareBreakpointState->SetRflagsIFBitOnMtf)
-        {
-            RFLAGS Rflags = {0};
-
-            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-            Rflags.InterruptEnableFlag = TRUE;
-            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.AsUInt);
-
-            CurrentDebuggingState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
-        }
-
-        CurrentDebuggingState->SoftwareBreakpointState = NULL;
     }
 
     //
@@ -92,10 +58,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check for user-mode attaching mechanisms
         //
-        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
-        {
-            UserAccessCheckForLoadedModuleDetails();
-        }
+        g_Callbacks.UserAccessCheckForLoadedModuleDetails();
 
         //
         // Restore the previous state
@@ -163,7 +126,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check for insturmentation step-in
     //
-    if (CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (VCpu->RegisterBreakOnMtf)
     {
         //
         // MTF is handled
@@ -171,44 +134,14 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         IsMtfHandled = TRUE;
 
         //
-        // Check if the cs selector changed or not, which indicates that the
-        // execution changed from user-mode to kernel-mode or kernel-mode to
-        // user-mode
+        // Change the MTF registeration state (might be changed in the caller)
         //
-        __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
-
-        KdCheckGuestOperatingModeChanges(CurrentDebuggingState->InstrumentationStepInTrace.CsSel,
-                                         (UINT16)CsSel);
+        VCpu->RegisterBreakOnMtf = FALSE;
 
         //
-        //  Unset the MTF flag and previous cs selector
+        // Handle MTF in the debugger
         //
-        CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = FALSE;
-        CurrentDebuggingState->InstrumentationStepInTrace.CsSel                           = 0;
-
-        //
-        // Check and handle if there is a software defined breakpoint
-        //
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentDebuggingState,
-                                                                VCpu->LastVmexitRip,
-                                                                DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                &AvoidUnsetMtf))
-        {
-            //
-            // Handle the step
-            //
-            ContextAndTag.Context = VCpu->LastVmexitRip;
-            KdHandleBreakpointAndDebugBreakpoints(CurrentDebuggingState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                  &ContextAndTag);
-        }
-        else
-        {
-            //
-            // Not unset again (it needs to restore the breakpoint byte)
-            //
-            VCpu->IgnoreMtfUnset = AvoidUnsetMtf;
-        }
+        g_Callbacks.KdHandleRegisteredMtfCallback(VCpu->CoreId);
     }
 
     //
@@ -223,43 +156,25 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (CurrentDebuggingState->NmiState.WaitingToBeLocked)
+    else if (g_Callbacks.KdCheckAndHandleNmiCallback(VCpu->CoreId))
     {
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
-
-        //
-        // Handle break of the core
-        //
-        if (CurrentDebuggingState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        {
-            //
-            // Handle it like an NMI is received from VMX root
-            //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentDebuggingState);
-        }
-        else
-        {
-            //
-            // Handle halt of the current core as an NMI
-            //
-            KdHandleNmi(CurrentDebuggingState);
-        }
     }
 
     //
     // Check for ignored MTFs
     //
-    if (CurrentDebuggingState->IgnoreOneMtf)
+    if (VCpu->IgnoreOneMtf)
     {
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
 
-        CurrentDebuggingState->IgnoreOneMtf = FALSE;
+        VCpu->IgnoreOneMtf = FALSE;
     }
 
     //

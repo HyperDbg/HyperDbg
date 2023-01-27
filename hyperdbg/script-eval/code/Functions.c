@@ -492,7 +492,7 @@ ScriptEngineFunctionStrlen(const char * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleStrlen(Address);
+    Result = VmFuncVmxCompatibleStrlen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -514,7 +514,7 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleWcslen(Address);
+    Result = VmFuncVmxCompatibleWcslen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -749,7 +749,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
         DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
         UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
-        if (VmxGetCurrentExecutionMode() == TRUE)
+        if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
         {
             //
             // The guest is already in vmx-root mode
@@ -758,8 +758,8 @@ ScriptEngineFunctionPause(UINT64      Tag,
             ContextAndTag.Tag     = Tag;
             ContextAndTag.Context = Context;
 
-            KdHandleBreakpointAndDebugBreakpoints(
-                &g_DbgState[CurrentProcessorIndex],
+            KdHandleBreakpointAndDebugBreakpointsCallback(
+                CurrentProcessorIndex,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &ContextAndTag);
         }
@@ -769,7 +769,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
         }
     }
     else
@@ -893,11 +893,11 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (IsWstring)
     {
-        return VmxrootCompatibleWcslen((const wchar_t *)StrAddr);
+        return VmFuncVmxCompatibleWcslen((const wchar_t *)StrAddr);
     }
     else
     {
-        return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+        return VmFuncVmxCompatibleStrlen((const CHAR *)StrAddr);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

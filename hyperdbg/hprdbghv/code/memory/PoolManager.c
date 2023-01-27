@@ -88,13 +88,6 @@ PoolManagerInitialize()
     PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
 
     //
-    // Request pages for breakpoint detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
-                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
-                                 BREAKPOINT_DEFINITION_STRUCTURE);
-
-    //
     // Nothing to deallocate
     //
     g_IsNewRequestForDeAllocation = FALSE;

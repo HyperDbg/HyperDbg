@@ -1,0 +1,288 @@
+/**
+ * @file InlineAsm.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief The definition of functions written in Assembly
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
+#pragma once
+
+//
+// ====================  Vmx Operations ====================
+// File : AsmVmxOperation.asm
+//
+
+/**
+ * @brief Enable VMX Operation
+ *
+ */
+extern void inline AsmEnableVmxOperation();
+
+/**
+ * @brief Restore in vmxoff state
+ *
+ */
+extern void inline AsmRestoreToVmxOffState();
+
+/**
+ * @brief Request Vmcall
+ *
+ * @param VmcallNumber
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @return NTSTATUS
+ */
+extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber,
+                                    unsigned long long OptionalParam1,
+                                    unsigned long long OptionalParam2,
+                                    long long          OptionalParam3);
+
+/**
+ * @brief Hyper-v vmcall handler
+ *
+ * @param GuestRegisters
+ * @return void
+ */
+extern void inline AsmHypervVmcall(unsigned long long GuestRegisters);
+
+//
+// ====================  Vmx Context State Operations ====================
+// File : AsmVmxContextState.asm
+//
+
+/**
+ * @brief Save state on vmx
+ *
+ */
+extern void
+AsmVmxSaveState();
+
+/**
+ * @brief Restore state on vmx
+ *
+ */
+extern void
+AsmVmxRestoreState();
+
+//
+// ====================  Vmx VM-Exit Handler ====================
+// File : AsmVmexitHandler.asm
+//
+
+/**
+ * @brief Vm-exit handler
+ *
+ */
+extern void
+AsmVmexitHandler();
+
+/**
+ * @brief Save vmxoff state
+ *
+ */
+extern void inline AsmSaveVmxOffState();
+
+//
+// ====================  Extended Page Tables ====================
+// File : AsmEpt.asm
+//
+
+/**
+ * @brief INVEPT wrapper
+ *
+ * @param Type
+ * @param Descriptors
+ * @return unsigned char
+ */
+extern unsigned char inline AsmInvept(unsigned long Type, void * Descriptors);
+
+/**
+ * @brief INVVPID wrapper
+ *
+ * @param Type
+ * @param Descriptors
+ * @return unsigned char
+ */
+extern unsigned char inline AsmInvvpid(unsigned long Type, void * Descriptors);
+
+//
+// ====================  Get segment registers ====================
+// File : AsmSegmentRegs.asm
+//
+
+/* ********* Segment registers ********* */
+
+/**
+ * @brief Get CS Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetCs();
+
+/**
+ * @brief Get DS Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetDs();
+
+/**
+ * @brief Get ES Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetEs();
+
+/**
+ * @brief Get SS Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetSs();
+
+/**
+ * @brief Get FS Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetFs();
+
+/**
+ * @brief Get GS Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetGs();
+
+/**
+ * @brief Get LDTR Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetLdtr();
+
+/**
+ * @brief Get TR Register
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetTr();
+
+/* ******* Gdt related functions ******* */
+
+/**
+ * @brief get GDT base
+ *
+ * @return unsigned long long
+ */
+extern unsigned long long inline AsmGetGdtBase();
+
+/**
+ * @brief Get GDT Limit
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetGdtLimit();
+
+/* ******* Idt related functions ******* */
+
+/**
+ * @brief Get IDT base
+ *
+ * @return unsigned long long
+ */
+extern unsigned long long inline AsmGetIdtBase();
+
+/**
+ * @brief Get IDT limit
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetIdtLimit();
+
+extern UINT32
+AsmGetAccessRights(unsigned short Selector);
+//
+// ====================  Common Functions ====================
+// File : AsmCommon.asm
+//
+
+/**
+ * @brief Get R/EFLAGS
+ *
+ * @return unsigned short
+ */
+extern unsigned short
+AsmGetRflags();
+
+/**
+ * @brief Run CLI Instruction
+ *
+ */
+extern void inline AsmCliInstruction();
+
+/**
+ * @brief Run STI Instruction
+ *
+ */
+extern void inline AsmStiInstruction();
+
+/**
+ * @brief Reload new GDTR
+ *
+ * @param GdtBase
+ * @param GdtLimit
+ */
+extern void
+AsmReloadGdtr(void * GdtBase, unsigned long GdtLimit);
+
+/**
+ * @brief Reload new IDTR
+ *
+ * @param GdtBase
+ * @param GdtLimit
+ */
+extern void
+AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
+
+//
+// ====================  Hook Functions ====================
+// File : AsmHooks.asm
+//
+
+/**
+ * @brief Detour hook handler
+ *
+ */
+extern void
+AsmGeneralDetourHook(void);
+
+//
+// ====================  Kernel Test Functions ====================
+// File : AsmKernelSideTests.asm
+//
+
+/**
+ * @brief Tests with test tags wrapper
+ *
+ */
+extern unsigned long long
+AsmTestWrapperWithTestTags(unsigned long long Param1,
+                           unsigned long long Param2,
+                           unsigned long long Param3,
+                           unsigned long long Param4);

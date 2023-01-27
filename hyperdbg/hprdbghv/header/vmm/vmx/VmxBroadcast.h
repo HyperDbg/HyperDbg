@@ -15,6 +15,12 @@
 //					Functions					//
 //////////////////////////////////////////////////
 
+VOID
+VmxBroadcastInitialize();
+
+VOID
+VmxBroadcastUninitialize();
+
 BOOLEAN
 VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled);
 

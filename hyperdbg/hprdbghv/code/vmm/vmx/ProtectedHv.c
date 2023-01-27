@@ -27,60 +27,18 @@
  *
  * @return VOID
  */
-UINT32
+VOID
 ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     //
-    // Check if the integrity check is because of clearing
-    // events or not, if it's for clearing events, the debugger
-    // will automatically set
+    // Ask the top-level module to reshape the mask
     //
-    if (!(PassOver & PASSING_OVER_EXCEPTION_EVENTS))
+    if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                   PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
+                                                   &CurrentMask,
+                                                   PassOver))
     {
-        //
-        // we have to check for !exception events and apply the mask
-        //
-        CurrentMask |= DebuggerExceptionEventBitmapMask(VCpu->CoreId);
-    }
-
-    //
-    // Check if it's because of disabling !syscall or !sysret commands
-    // or not, if it's because of clearing #UD in these events then we
-    // can ignore the checking for this command, otherwise, we have to
-    // check it
-    //
-    if (!(PassOver & PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK))
-    {
-        //
-        // Check if the debugger has events relating to syscall or sysret,
-        // if no, we can safely ignore #UDs, otherwise, #UDs should be
-        // activated
-        //
-        if (DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSyscallEventsHead, VCpu->CoreId) != 0 ||
-            DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSysretEventsHead, VCpu->CoreId) != 0)
-        {
-            //
-            // #UDs should be activated
-            //
-            CurrentMask |= 1 << EXCEPTION_VECTOR_UNDEFINED_OPCODE;
-        }
-    }
-
-    //
-    // Check for kernel or user debugger presence
-    //
-    if (g_KernelDebuggerState || g_UserDebuggerState)
-    {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
-    }
-
-    //
-    // Check for intercepting #DB by threads tracer
-    //
-    if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-    {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+        return;
     }
 
     //
@@ -243,31 +201,12 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Ask the top-level driver whether to terminate this operation or not
         //
-        if (!(PassOver & PASSING_OVER_INTERRUPT_EVENTS))
-        {
-            //
-            // we have to check for !interrupt events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->ExternalInterruptOccurredEventsHead, VCpu->CoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !interrupt is enabled for this core
-                //
-
-                return;
-            }
-        }
-
-        //
-        // Check if it should remain active for thread or process changing or not
-        //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-            VCpu->DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
+        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
             return;
         }
@@ -356,24 +295,14 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the top-level driver's state
         //
-        if (!(PassOver & PASSING_OVER_TSC_EVENTS))
+        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            //
-            // we have to check for !tsc events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->TscInstructionExecutionEventsHead, VCpu->CoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !tsc is enabled for this core
-                //
-
-                return;
-            }
+            return;
         }
 
         //
@@ -431,34 +360,13 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the top-level driver's state
         //
-        if (!(PassOver & PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS))
+        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            //
-            // we have to check for !dr events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->DebugRegistersAccessedEventsHead, VCpu->CoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !dr is enabled for this core
-                //
-
-                return;
-            }
-        }
-
-        //
-        // Check if thread switching is enabled or not
-        //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-        {
-            //
-            // We should ignore it as we want this to switch to new thread
-            //
             return;
         }
     }
@@ -549,26 +457,17 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the state of top-level driver
         //
-        if (!(PassOver & PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS))
+        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            //
-            // we have to check for !dr events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->ControlRegisterModifiedEventsHead, VCpu->CoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !dr is enabled for this core
-                //
-
-                return;
-            }
+            return;
         }
     }
+
     ProtectedHvSetMovToCrVmexit(Set, ControlRegister, MaskRegister);
 }
 
@@ -596,13 +495,13 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     if (Set == FALSE)
     {
         //
-        // Check if process switching is enabled or not
+        // Check the top-level driver's state
         //
-        if (VCpu->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            //
-            // We should ignore it as we want this to switch to new process
-            //
             return;
         }
 

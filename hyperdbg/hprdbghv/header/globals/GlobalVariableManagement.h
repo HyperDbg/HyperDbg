@@ -15,20 +15,8 @@
 //					Functions					//
 //////////////////////////////////////////////////
 
-NTSTATUS
+BOOLEAN
 GlobalGuestStateAllocateZeroedMemory(VOID);
-
-NTSTATUS
-GlobalDebuggingStateAllocateZeroedMemory(VOID);
-
-BOOLEAN
-GlobalEventsAllocateZeroedMemory(VOID);
-
-BOOLEAN
-GlobalEventsFreeMemory(VOID);
 
 VOID
     GlobalGuestStateFreeMemory(VOID);
-
-VOID
-    GlobalDebuggingStateFreeMemory(VOID);
