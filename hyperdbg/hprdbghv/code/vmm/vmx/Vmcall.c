@@ -115,7 +115,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     //
     if (VmcallNumber >= TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER)
     {
-        if (g_Callbacks.DebuggerVmcallHandler(VCpu->CoreId, VmcallNumber & 0xffffffff, OptionalParam1, OptionalParam2, OptionalParam3))
+        if (VmmCallbackVmcallHandler(VCpu->CoreId, VmcallNumber & 0xffffffff, OptionalParam1, OptionalParam2, OptionalParam3))
         {
             return STATUS_SUCCESS;
         }

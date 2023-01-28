@@ -715,14 +715,14 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         //
         // Do not redo the instruction
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
     else
     {
         //
         // Redo the instruction
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
 
     return IsHandled;
@@ -978,7 +978,7 @@ EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Don't increment rip by default
     //
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 
     //
     // Check if it relates to !epthook or not

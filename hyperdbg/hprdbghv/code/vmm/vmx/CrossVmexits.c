@@ -37,5 +37,5 @@ VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Not increase the RIP by default
     //
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 }

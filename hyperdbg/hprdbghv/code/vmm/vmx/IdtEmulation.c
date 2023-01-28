@@ -61,7 +61,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 
     //
     // Re-inject the interrupt/exception
@@ -111,7 +111,18 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         if (!EptCheckAndHandleBreakpoint(VCpu))
         {
-            g_Callbacks.BreakpointHandleBpTraps(VCpu->CoreId);
+            if (!DebuggingCallbackHandleBreakpointException(VCpu->CoreId))
+            {
+                //
+                // Don't increment rip
+                //
+                HvSuppressRipIncrement(VCpu);
+
+                //
+                // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
+                //
+                EventInjectBreakpoint();
+            }
         }
 
         break;
@@ -162,7 +173,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
-        if (!g_Callbacks.BreakpointCheckAndHandleDebugBreakpoint(VCpu->CoreId))
+        if (!DebuggingCallbackHandleDebugBreakpointException(VCpu->CoreId))
         {
             //
             // It's not because of thread change detection, so re-inject it
@@ -286,7 +297,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
@@ -324,7 +335,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // avoid incrementing rip
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
     else
     {
@@ -417,5 +428,5 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // avoid incrementing rip
     //
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 }

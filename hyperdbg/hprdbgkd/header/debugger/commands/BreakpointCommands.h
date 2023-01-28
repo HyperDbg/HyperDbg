@@ -15,16 +15,16 @@
 //				     Functions		      		//
 //////////////////////////////////////////////////
 
+VOID
+BreakpointRemoveAllBreakpoints();
+
 BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg);
 
 BOOLEAN
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
 
-VOID
-BreakpointRemoveAllBreakpoints();
-
-VOID
+BOOLEAN
 BreakpointHandleBpTraps(UINT32 CoreId);
 
 BOOLEAN

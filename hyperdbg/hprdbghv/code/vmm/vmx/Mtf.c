@@ -25,7 +25,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Redo the instruction
     //
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 
     //
     // Explicitly say that we want to unset MTFs

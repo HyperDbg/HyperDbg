@@ -78,7 +78,7 @@ EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Suppress RIP increment
     //
-    VmFuncSuppressRipIncrement(VCpu->CoreId);
+    HvSuppressRipIncrement(VCpu);
 }
 
 /**

@@ -299,9 +299,9 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
  *
  * @param CoreId
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 BreakpointHandleBpTraps(UINT32 CoreId)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
@@ -349,15 +349,12 @@ BreakpointHandleBpTraps(UINT32 CoreId)
     else
     {
         //
-        // Don't increment rip
+        // re-inject back to the guest as not handled here
         //
-        VmFuncSuppressRipIncrement(DbgState->CoreId);
-
-        //
-        // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
-        //
-        VmFuncEventInjectBreakpoint();
+        return FALSE;
     }
+
+    return TRUE;
 }
 
 /**

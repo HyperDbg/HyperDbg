@@ -295,7 +295,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // The page is not present, we have to inject a #PF
             //
-            VmFuncSuppressRipIncrement(VCpu->CoreId);
+            HvSuppressRipIncrement(VCpu);
 
             //
             // For testing purpose

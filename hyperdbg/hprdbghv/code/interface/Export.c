@@ -21,7 +21,7 @@
 VOID
 VmFuncPerformRipIncrement(UINT32 CoreId)
 {
-    g_GuestState[CoreId].IncrementRip = TRUE;
+    HvPerformRipIncrement(&g_GuestState[CoreId]);
 }
 
 /**
@@ -33,7 +33,7 @@ VmFuncPerformRipIncrement(UINT32 CoreId)
 VOID
 VmFuncSuppressRipIncrement(UINT32 CoreId)
 {
-    g_GuestState[CoreId].IncrementRip = FALSE;
+    HvSuppressRipIncrement(&g_GuestState[CoreId]);
 }
 
 /**
@@ -473,20 +473,6 @@ VOID
 VmFuncUninitVmm()
 {
     VmxPerformTermination();
-}
-
-/**
- * @brief Uninitialize VMM memories
- *
- * @return VOID
- */
-VOID
-VmFuncUninitializeMemory()
-{
-    //
-    // Free g_GuestState
-    //
-    GlobalGuestStateFreeMemory();
 }
 
 /**

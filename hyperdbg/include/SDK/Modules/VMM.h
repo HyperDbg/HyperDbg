@@ -55,13 +55,13 @@ typedef VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE (*VMM_CALLBACK_TRIGGER_EVENTS)
  * @brief A function that checks and handles debug breakpoints
  *
  */
-typedef BOOLEAN (*BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT)(UINT32 CoreId);
+typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 CoreId);
 
 /**
  * @brief A function that checks and handles debug breakpoints
  *
  */
-typedef VOID (*BREAKPOINT_HANDLE_BP_TRAPS)(UINT32 CoreId);
+typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION)(UINT32 CoreId);
 
 /**
  * @brief Check for commands in user-debugger
@@ -135,7 +135,7 @@ typedef BOOLEAN (*KD_CHECK_AND_HANDLE_NMI_CALLBACK)(UINT32 CoreId);
  * @brief Set the top-level driver's error status
  *
  */
-typedef VOID (*DEBUGGER_SET_LAST_ERROR)(UINT32 LastError);
+typedef VOID (*VMM_CALLBACK_SET_LAST_ERROR)(UINT32 LastError);
 
 /**
  * @brief Check and modify the protected resources of the hypervisor
@@ -156,11 +156,11 @@ typedef BOOLEAN (*KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID
  * @brief Handler of debugger specific VMCALLs
  *
  */
-typedef BOOLEAN (*DEBUGGER_VMCALL_HANDLER)(UINT32 CoreId,
-                                           UINT64 VmcallNumber,
-                                           UINT64 OptionalParam1,
-                                           UINT64 OptionalParam2,
-                                           UINT64 OptionalParam3);
+typedef BOOLEAN (*VMM_CALLBACK_VMCALL_HANDLER)(UINT32 CoreId,
+                                               UINT64 VmcallNumber,
+                                               UINT64 OptionalParam1,
+                                               UINT64 OptionalParam2,
+                                               UINT64 OptionalParam3);
 
 //////////////////////////////////////////////////
 //			   Callback Structure               //
@@ -173,20 +173,25 @@ typedef BOOLEAN (*DEBUGGER_VMCALL_HANDLER)(UINT32 CoreId,
 typedef struct _VMM_CALLBACKS
 {
     //
-    // Hyperlog callbacks
+    // Logging (Hyperlog) callbacks
     //
     LOG_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogPrepareAndSendMessageToQueue;
     LOG_SEND_MESSAGE_TO_QUEUE             LogSendMessageToQueue;
     LOG_SEND_BUFFER                       LogSendBuffer;
 
     //
-    // Debugger callbacks
+    // VMM callbacks
     //
-    VMM_CALLBACK_TRIGGER_EVENTS                       VmmCallbackTriggerEvents; // Fixed
-    DEBUGGER_SET_LAST_ERROR                           DebuggerSetLastError;
-    DEBUGGER_VMCALL_HANDLER                           DebuggerVmcallHandler;
-    BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT      BreakpointCheckAndHandleDebugBreakpoint;
-    BREAKPOINT_HANDLE_BP_TRAPS                        BreakpointHandleBpTraps;
+    VMM_CALLBACK_TRIGGER_EVENTS VmmCallbackTriggerEvents; // Fixed
+    VMM_CALLBACK_SET_LAST_ERROR VmmCallbackSetLastError;  // Fixed
+    VMM_CALLBACK_VMCALL_HANDLER VmmCallbackVmcallHandler; // Fixed
+
+    //
+    // Debugging callbacks
+    //
+    DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;      // Fixed
+    DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException; // Fixed
+
     BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT BreakpointCheckAndHandleReApplyingBreakpoint;
     TERMINATE_QUERY_DEBUGGER_RESOURCE                 TerminateQueryDebuggerResource;
     KD_HANDLE_REGISTERED_MTF_CALLBACK                 KdHandleRegisteredMtfCallback;

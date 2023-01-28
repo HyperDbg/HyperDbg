@@ -307,6 +307,32 @@ HvResumeToNextInstruction()
 }
 
 /**
+ * @brief Supress the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+inline VOID
+HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->IncrementRip = FALSE;
+}
+
+/**
+ * @brief Perform the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+inline VOID
+HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->IncrementRip = TRUE;
+}
+
+/**
  * @brief Set the monitor trap flag
  *
  * @param Set Set or unset the MTFs
@@ -660,7 +686,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
         return;
     }
 
@@ -734,7 +760,8 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
+
         return;
     }
 
@@ -754,7 +781,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Redo the instruction
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
         return;
     }
 

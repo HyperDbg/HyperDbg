@@ -42,7 +42,7 @@ DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
         SyscallHookEmulateSYSRET(VCpu);
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
 
     //
@@ -88,7 +88,7 @@ DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
         SyscallHookEmulateSYSCALL(VCpu);
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
     }
 
     //
@@ -766,7 +766,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Not increase the RIP
         //
-        VmFuncSuppressRipIncrement(VCpu->CoreId);
+        HvSuppressRipIncrement(VCpu);
 
         //
         // Hanlde immediate vm-exit mechanism

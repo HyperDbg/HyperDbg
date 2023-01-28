@@ -93,7 +93,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
 
     if (!PhysicalBaseAddress)
     {
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -105,7 +105,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
 
     if (!TargetBuffer)
     {
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -114,7 +114,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
         PoolManagerFreePool(TargetBuffer);
 
         LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
         return FALSE;
     }
 
@@ -130,7 +130,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     {
         PoolManagerFreePool(TargetBuffer);
 
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
         return FALSE;
     }
 
@@ -148,7 +148,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     {
         PoolManagerFreePool(TargetBuffer);
 
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -293,7 +293,7 @@ EptHookUpdateHookPage(_In_ PVOID                       TargetAddress,
         //
         // Means that breakpoint is full and we can't apply this breakpoint
         //
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT);
         return FALSE;
     }
 
@@ -404,7 +404,7 @@ EptHookPerformPageHook(PVOID    TargetAddress,
 
     if (!PhysicalBaseAddress)
     {
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -812,7 +812,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
 
     if (!PhysicalBaseAddress)
     {
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -832,7 +832,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
             // Means that we find the address and !epthook2 doesn't support
             // multiple breakpoints in on page
             //
-            g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE);
+            VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE);
             return FALSE;
         }
     }
@@ -845,7 +845,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
 
     if (!TargetBuffer)
     {
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -854,7 +854,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         PoolManagerFreePool(TargetBuffer);
 
         LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
         return FALSE;
     }
 
@@ -870,7 +870,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     {
         PoolManagerFreePool(TargetBuffer);
 
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
         return FALSE;
     }
 
@@ -901,7 +901,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     {
         PoolManagerFreePool(TargetBuffer);
 
-        g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -1005,7 +1005,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
             PoolManagerFreePool(TargetBuffer);
             PoolManagerFreePool(HookedPage);
 
-            g_Callbacks.DebuggerSetLastError(DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
+            VmmCallbackSetLastError(DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
             return FALSE;
         }
     }

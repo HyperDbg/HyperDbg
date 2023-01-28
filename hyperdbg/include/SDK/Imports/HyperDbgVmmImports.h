@@ -117,9 +117,6 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncUninitializeMemory();
-
-IMPORT_EXPORT_VMM VOID
 VmFuncVmxBroadcastInitialize();
 
 IMPORT_EXPORT_VMM VOID

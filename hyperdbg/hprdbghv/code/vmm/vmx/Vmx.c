@@ -950,9 +950,9 @@ VmxPerformTermination()
     MemoryMapperUninitialize();
 
     //
-    // Remove the memory related to the VMM
+    // Free g_GuestState
     //
-    VmFuncUninitializeMemory();
+    GlobalGuestStateFreeMemory();
 
     LogDebugInfo("VMX operation turned off successfully");
 }

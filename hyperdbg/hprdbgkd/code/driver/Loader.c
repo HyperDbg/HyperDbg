@@ -41,14 +41,18 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.LogSendBuffer                   = LogSendBuffer;
 
     //
-    // Fill the callbacks for the VMM module
+    // Fill the VMM callback
     //
-    VmmCallbacks.VmmCallbackTriggerEvents                                  = DebuggerTriggerEvents;
-    VmmCallbacks.DebuggerSetLastError                                      = DebuggerSetLastError;
-    VmmCallbacks.DebuggerVmcallHandler                                     = DebuggerVmcallHandler;
-    VmmCallbacks.BreakpointCheckAndHandleDebugBreakpoint                   = BreakpointCheckAndHandleDebugBreakpoint;
+    VmmCallbacks.VmmCallbackTriggerEvents = DebuggerTriggerEvents;
+    VmmCallbacks.VmmCallbackSetLastError  = DebuggerSetLastError;
+    VmmCallbacks.VmmCallbackVmcallHandler = DebuggerVmcallHandler;
+
+    //
+    // Fill the debugging callback
+    //
+    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBpTraps;
+    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
-    VmmCallbacks.BreakpointHandleBpTraps                                   = BreakpointHandleBpTraps;
     VmmCallbacks.TerminateQueryDebuggerResource                            = TerminateQueryDebuggerResource;
     VmmCallbacks.UdCheckForCommand                                         = UdCheckForCommand;
     VmmCallbacks.ProcessTriggerCr3ProcessChange                            = ProcessTriggerCr3ProcessChange;

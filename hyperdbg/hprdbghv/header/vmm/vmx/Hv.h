@@ -77,6 +77,26 @@ VOID
 HvResumeToNextInstruction();
 
 /**
+ * @brief Supress the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+extern inline VOID
+HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Perform the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+extern inline VOID
+HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
  * @brief Set or unset the monitor trap flags
  *
  * @param Set
