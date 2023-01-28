@@ -226,7 +226,7 @@ LogUnInitialize()
  */
 _Use_decl_annotations_
 BOOLEAN
-LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority)
+LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority)
 {
     KIRQL   OldIRQL;
     UINT32  Index;
@@ -433,6 +433,8 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN P
         //
         KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
+
+    return TRUE;
 }
 
 /**
@@ -858,14 +860,13 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot, BOOLEAN Priority)
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
-LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                BOOLEAN      IsImmediateMessage,
-                                BOOLEAN      ShowCurrentSystemTime,
-                                BOOLEAN      Priority,
-                                const char * Fmt,
-                                ...)
+LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
+                                               BOOLEAN      IsImmediateMessage,
+                                               BOOLEAN      ShowCurrentSystemTime,
+                                               BOOLEAN      Priority,
+                                               const char * Fmt,
+                                               va_list      ArgList)
 {
-    va_list ArgList;
     size_t  WrittenSize;
     BOOLEAN IsVmxRootMode;
     int     SprintfResult;
@@ -884,13 +885,12 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
         // It's actually not necessary to use -1 but because user-mode code might assume a null-terminated buffer so
         // it's better to use - 1
         //
-        va_start(ArgList, Fmt);
+
         //
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchVPrintfA(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
         //
         SprintfResult = vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
-        va_end(ArgList);
 
         //
         // Check if the buffer passed the limit
@@ -951,14 +951,12 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
         // It's actually not necessary to use -1 but because user-mode code might assume a null-terminated buffer so
         // it's better to use - 1
         //
-        va_start(ArgList, Fmt);
 
         //
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchVPrintfA(LogMessage, PacketChunkSize - 1, Fmt, ArgList);
         //
         SprintfResult = vsprintf_s(LogMessage, PacketChunkSize - 1, Fmt, ArgList);
-        va_end(ArgList);
 
         //
         // Check if the buffer passed the limit
@@ -989,7 +987,42 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
     //
     // Send the prepared buffer (with no priority)
     //
-    return LogSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
+    return LogCallbackSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
+}
+
+/**
+ * @brief Prepare a printf-style message mapping and send string messages
+ * and tracing for logging and monitoring
+ *
+ * @param OperationCode Optional operation code
+ * @param IsImmediateMessage Should be sent immediately
+ * @param ShowCurrentSystemTime Show system-time
+ * @param Priority Whether the message has priority
+ * @param Fmt Message format-string
+ * @param ...
+ * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
+ */
+BOOLEAN
+LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
+                                        BOOLEAN      IsImmediateMessage,
+                                        BOOLEAN      ShowCurrentSystemTime,
+                                        BOOLEAN      Priority,
+                                        const char * Fmt,
+                                        ...)
+{
+    va_list ArgList;
+    BOOLEAN Result;
+
+    va_start(ArgList, Fmt);
+
+    Result = LogCallbackPrepareAndSendMessageToQueueWrapper(OperationCode,
+                                                            IsImmediateMessage,
+                                                            ShowCurrentSystemTime,
+                                                            Priority,
+                                                            Fmt,
+                                                            ArgList);
+
+    va_end(ArgList);
 }
 
 /**
@@ -1004,7 +1037,7 @@ LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
-LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority)
+LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority)
 {
     BOOLEAN Result;
     UINT32  Index;
@@ -1054,7 +1087,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
 #else
     if (IsImmediateMessage)
     {
-        return LogSendBuffer(OperationCode, LogMessage, BufferLen, Priority);
+        return LogCallbackSendBuffer(OperationCode, LogMessage, BufferLen, Priority);
     }
     else
     {
@@ -1096,10 +1129,10 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
             // Send the previous buffer (non-immediate message),
             // accumulated messages don't have priority
             //
-            Result = LogSendBuffer(OPERATION_LOG_NON_IMMEDIATE_MESSAGE,
-                                   MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
-                                   MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
-                                   FALSE);
+            Result = LogCallbackSendBuffer(OPERATION_LOG_NON_IMMEDIATE_MESSAGE,
+                                           MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
+                                           MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
+                                           FALSE);
 
             //
             // Free the immediate buffer

@@ -20,27 +20,27 @@
  * queue of the messages
  *
  */
-typedef BOOLEAN (*LOG_PREPARE_AND_SEND_MESSAGE_TO_QUEUE)(UINT32       OperationCode,
-                                                         BOOLEAN      IsImmediateMessage,
-                                                         BOOLEAN      ShowCurrentSystemTime,
-                                                         BOOLEAN      Priority,
-                                                         const char * Fmt,
-                                                         ...);
+typedef BOOLEAN (*LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE)(UINT32       OperationCode,
+                                                                  BOOLEAN      IsImmediateMessage,
+                                                                  BOOLEAN      ShowCurrentSystemTime,
+                                                                  BOOLEAN      Priority,
+                                                                  const char * Fmt,
+                                                                  va_list      ArgList);
 
 /**
  * @brief A function that sends the messages to message tracer buffers
  *
  */
-typedef BOOLEAN (*LOG_SEND_MESSAGE_TO_QUEUE)(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
+typedef BOOLEAN (*LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE)(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
 /**
  * @brief A function that sends the messages to message tracer buffers
  *
  */
-typedef BOOLEAN (*LOG_SEND_BUFFER)(_In_ UINT32                          OperationCode,
-                                   _In_reads_bytes_(BufferLength) PVOID Buffer,
-                                   _In_ UINT32                          BufferLength,
-                                   _In_ BOOLEAN                         Priority);
+typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                          OperationCode,
+                                            _In_reads_bytes_(BufferLength) PVOID Buffer,
+                                            _In_ UINT32                          BufferLength,
+                                            _In_ BOOLEAN                         Priority);
 
 /**
  * @brief A function that handles trigger events
@@ -173,11 +173,11 @@ typedef BOOLEAN (*VMM_CALLBACK_VMCALL_HANDLER)(UINT32 CoreId,
 typedef struct _VMM_CALLBACKS
 {
     //
-    // Logging (Hyperlog) callbacks
+    // Log (Hyperlog) callbacks
     //
-    LOG_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogPrepareAndSendMessageToQueue;
-    LOG_SEND_MESSAGE_TO_QUEUE             LogSendMessageToQueue;
-    LOG_SEND_BUFFER                       LogSendBuffer;
+    LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogCallbackPrepareAndSendMessageToQueueWrapper; // Fixed
+    LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;                  // Fixed
+    LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;                          // Fixed
 
     //
     // VMM callbacks

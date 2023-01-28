@@ -120,11 +120,6 @@
 #include "globals/GlobalVariables.h"
 
 //
-// Define callback prefix for hyperlog
-//
-#define HYPERLOG_PREFIX g_Callbacks
-
-//
 // HyperLog Module
 //
 #include "SDK/Modules/HyperLog.h"

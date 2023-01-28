@@ -686,13 +686,6 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     PLIST_ENTRY                 TempList2 = 0;
     PROCESSOR_DEBUGGING_STATE * DbgState  = NULL;
 
-    DbgState = &g_DbgState[KeGetCurrentProcessorNumber()];
-
-    //
-    // Set the registers for debug state
-    //
-    DbgState->Regs = Regs;
-
     //
     // Check if triggering debugging actions are allowed or not
     //
@@ -703,6 +696,16 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED;
     }
+
+    //
+    // Find the debugging state structure
+    //
+    DbgState = &g_DbgState[KeGetCurrentProcessorNumber()];
+
+    //
+    // Set the registers for debug state
+    //
+    DbgState->Regs = Regs;
 
     //
     // Find the debugger events list base on the type of the event

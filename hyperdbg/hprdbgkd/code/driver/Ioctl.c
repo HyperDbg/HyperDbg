@@ -116,10 +116,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Send an immediate message, and we're no longer get new IRP
             //
-            LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
-                          "$",
-                          1,
-                          TRUE);
+            LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
+                                      "$",
+                                      1,
+                                      TRUE);
 
             Status = STATUS_SUCCESS;
             break;

@@ -437,10 +437,10 @@ VmcallTest(_In_ UINT64 Param1,
     // Send one byte buffer to show that Hypervisor
     // is successfully loaded
     //
-    g_Callbacks.LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
-                              "$",
-                              1,
-                              TRUE);
+    g_Callbacks.LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
+                                          "$",
+                                          1,
+                                          TRUE);
 
     return STATUS_SUCCESS;
 }

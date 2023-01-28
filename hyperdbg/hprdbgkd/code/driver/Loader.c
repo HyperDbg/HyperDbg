@@ -36,9 +36,9 @@ LoaderInitVmmAndDebugger()
     //
     // Fill the callbacks for using hyperlog in VMM
     //
-    VmmCallbacks.LogPrepareAndSendMessageToQueue = LogPrepareAndSendMessageToQueue;
-    VmmCallbacks.LogSendMessageToQueue           = LogSendMessageToQueue;
-    VmmCallbacks.LogSendBuffer                   = LogSendBuffer;
+    VmmCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueueWrapper;
+    VmmCallbacks.LogCallbackSendMessageToQueue                  = LogCallbackSendMessageToQueue;
+    VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
 
     //
     // Fill the VMM callback
