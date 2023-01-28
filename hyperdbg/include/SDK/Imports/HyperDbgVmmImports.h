@@ -162,7 +162,7 @@ IMPORT_EXPORT_VMM UINT32
 VmFuncVmxCompatibleWcslen(const wchar_t * s);
 
 IMPORT_EXPORT_VMM BOOLEAN
-VmFuncNmiHaltCores(UINT32 CoreId);
+VmFuncNmiBroadcastRequest(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();

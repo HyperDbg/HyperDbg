@@ -48,15 +48,26 @@ VmmCallbackTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                          BOOLEAN *                             PostEventRequired,
                          GUEST_REGS *                          Regs);
 
-VOID
-VmmCallbackSetLastError(UINT32 LastError);
-
 BOOLEAN
 VmmCallbackVmcallHandler(UINT32 CoreId,
                          UINT64 VmcallNumber,
                          UINT64 OptionalParam1,
                          UINT64 OptionalParam2,
                          UINT64 OptionalParam3);
+
+BOOLEAN
+VmmCallbackQueryTerminateProtectedResource(UINT32                               CoreId,
+                                           PROTECTED_HV_RESOURCES_TYPE          ResourceType,
+                                           PVOID                                Context,
+                                           PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
+VOID
+VmmCallbackSetLastError(UINT32 LastError);
+
+VOID
+VmmCallbackRegisteredMtfHandler(UINT32 CoreId);
+
+VOID
+VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
 
 //
 // Debugging Callbacks
@@ -67,3 +78,10 @@ DebuggingCallbackHandleBreakpointException(UINT32 CoreId);
 
 BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
+
+//
+// Interception Callbacks
+//
+
+VOID
+InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId);

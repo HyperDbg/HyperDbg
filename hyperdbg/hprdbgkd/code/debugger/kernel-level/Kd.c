@@ -789,9 +789,9 @@ KdCloseConnectionAndUnloadDebuggee()
     // Send one byte buffer and operation codes
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
-                              "$",
-                              1,
-                              TRUE);
+                          "$",
+                          1,
+                          TRUE);
 }
 
 /**
@@ -808,9 +808,9 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
     // Send one byte buffer and operation codes
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
-                              SymPacket,
-                              sizeof(DEBUGGEE_SYMBOL_REQUEST_PACKET),
-                              TRUE);
+                          SymPacket,
+                          sizeof(DEBUGGEE_SYMBOL_REQUEST_PACKET),
+                          TRUE);
 }
 
 /**
@@ -829,9 +829,9 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
     // the user-mode
     //
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
-                              Descriptor,
-                              Len,
-                              TRUE);
+                          Descriptor,
+                          Len,
+                          TRUE);
 }
 
 /**
@@ -1207,7 +1207,7 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
         //
         // Broadcast NMI with the intention of halting cores
         //
-        VmFuncNmiHaltCores(DbgState->CoreId);
+        VmFuncNmiBroadcastRequest(DbgState->CoreId);
 
         //
         // Unlock the sending response lock to perform regular debugging
@@ -1560,9 +1560,9 @@ VOID
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
 {
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
-                              ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                              EventDetailHeader->Length,
-                              TRUE);
+                          ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                          EventDetailHeader->Length,
+                          TRUE);
 }
 
 /**
@@ -1575,9 +1575,9 @@ VOID
 KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
 {
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
-                              ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                              ActionDetailHeader->Length,
-                              TRUE);
+                          ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                          ActionDetailHeader->Length,
+                          TRUE);
 }
 
 /**
@@ -1770,9 +1770,9 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         // Send one byte buffer and operation codes
         //
         LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
-                                  ModifyAndQueryEvent,
-                                  sizeof(DEBUGGER_MODIFY_EVENTS),
-                                  TRUE);
+                              ModifyAndQueryEvent,
+                              sizeof(DEBUGGER_MODIFY_EVENTS),
+                              TRUE);
     }
     else
     {

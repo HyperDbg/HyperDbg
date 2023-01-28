@@ -205,13 +205,14 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         IsHandled = TRUE;
 
         break;
-    case NMI_BROADCAST_ACTION_KD_HALT_CORE:
+
+    case NMI_BROADCAST_ACTION_REQUEST:
 
         //
         // Handle NMI of halt the other cores
         //
         IsHandled = TRUE;
-        g_Callbacks.KdHandleNmiBroadcastDebugBreaks(VCpu->CoreId, IsOnVmxNmiHandler);
+        VmmCallbackNmiBroadcastRequestHandler(VCpu->CoreId, IsOnVmxNmiHandler);
 
         break;
 

@@ -194,6 +194,76 @@ VmmCallbackVmcallHandler(UINT32 CoreId,
 }
 
 /**
+ * @brief routine callback to handle registered MTF
+ *
+ * @param CoreId
+ *
+ * @return VOID
+ */
+VOID
+VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
+{
+    if (g_Callbacks.VmmCallbackRegisteredMtfHandler == NULL)
+    {
+        //
+        // ignore it
+        //
+        return;
+    }
+
+    g_Callbacks.VmmCallbackRegisteredMtfHandler(CoreId);
+}
+
+/**
+ * @brief routine callback to handle NMI requests
+ *
+ * @param CoreId
+ * @param IsOnVmxNmiHandler
+ *
+ * @return VOID
+ */
+VOID
+VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
+{
+    if (g_Callbacks.VmmCallbackNmiBroadcastRequestHandler == NULL)
+    {
+        //
+        // ignore it
+        //
+        return;
+    }
+
+    g_Callbacks.VmmCallbackNmiBroadcastRequestHandler(CoreId, IsOnVmxNmiHandler);
+}
+
+/**
+ * @brief routine callback to query for termination of protected resources
+ *
+ * @param CoreId
+ * @param ResourceType
+ * @param Context
+ * @param PassOver
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmmCallbackQueryTerminateProtectedResource(UINT32                               CoreId,
+                                           PROTECTED_HV_RESOURCES_TYPE          ResourceType,
+                                           PVOID                                Context,
+                                           PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    if (g_Callbacks.VmmCallbackQueryTerminateProtectedResource == NULL)
+    {
+        //
+        // ignore it
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.VmmCallbackQueryTerminateProtectedResource(CoreId, ResourceType, Context, PassOver);
+}
+
+/**
  * @brief routine callback to handle breakpoint exception
  *
  * @param CoreId
@@ -233,4 +303,25 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
     }
 
     return g_Callbacks.DebuggingCallbackHandleDebugBreakpointException(CoreId);
+}
+
+/**
+ * @brief routine callback to handle cr3 process change
+ *
+ * @param CoreId
+ *
+ * @return VOID
+ */
+VOID
+InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
+{
+    if (g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange == NULL)
+    {
+        //
+        // ignore it
+        //
+        return;
+    }
+
+    g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange(CoreId);
 }

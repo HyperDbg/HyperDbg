@@ -199,7 +199,7 @@ KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgSta
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails);
 
 VOID
-KdHandleRegisteredMtfCallback(UINT32 CoreId);
+KdHandleRegisteredMtfCallback(_In_ UINT32 CoreId);
 
 VOID
 KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);

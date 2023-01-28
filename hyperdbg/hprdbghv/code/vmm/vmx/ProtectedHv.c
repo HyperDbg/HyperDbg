@@ -33,7 +33,7 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Ask the top-level module to reshape the mask
     //
-    if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+    if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                    PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
                                                    &CurrentMask,
                                                    PassOver))
@@ -203,7 +203,7 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
         //
         // Ask the top-level driver whether to terminate this operation or not
         //
-        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                        PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
                                                        NULL,
                                                        PassOver))
@@ -297,7 +297,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
         //
         // Check the top-level driver's state
         //
-        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                        PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
                                                        NULL,
                                                        PassOver))
@@ -362,7 +362,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
         //
         // Check the top-level driver's state
         //
-        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                        PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
                                                        NULL,
                                                        PassOver))
@@ -459,7 +459,7 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
         //
         // Check the state of top-level driver
         //
-        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                        PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
                                                        NULL,
                                                        PassOver))
@@ -497,7 +497,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
         //
         // Check the top-level driver's state
         //
-        if (g_Callbacks.TerminateQueryDebuggerResource(VCpu->CoreId,
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
                                                        PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
                                                        NULL,
                                                        PassOver))

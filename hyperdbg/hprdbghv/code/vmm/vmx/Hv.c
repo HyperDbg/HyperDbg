@@ -193,7 +193,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            g_Callbacks.ProcessTriggerCr3ProcessChange(VCpu->CoreId);
+            InterceptionCallbackTriggerCr3ProcessChange(VCpu->CoreId);
 
             //
             // Call user debugger handler of thread intercepting mechanism

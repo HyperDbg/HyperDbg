@@ -41,28 +41,33 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
 
     //
-    // Fill the VMM callback
+    // Fill the VMM callbacks
     //
-    VmmCallbacks.VmmCallbackTriggerEvents = DebuggerTriggerEvents;
-    VmmCallbacks.VmmCallbackSetLastError  = DebuggerSetLastError;
-    VmmCallbacks.VmmCallbackVmcallHandler = DebuggerVmcallHandler;
+    VmmCallbacks.VmmCallbackTriggerEvents                   = DebuggerTriggerEvents;
+    VmmCallbacks.VmmCallbackSetLastError                    = DebuggerSetLastError;
+    VmmCallbacks.VmmCallbackVmcallHandler                   = DebuggerVmcallHandler;
+    VmmCallbacks.VmmCallbackRegisteredMtfHandler            = KdHandleRegisteredMtfCallback;
+    VmmCallbacks.VmmCallbackNmiBroadcastRequestHandler      = KdHandleNmiBroadcastDebugBreaks;
+    VmmCallbacks.VmmCallbackQueryTerminateProtectedResource = TerminateQueryDebuggerResource;
 
     //
-    // Fill the debugging callback
+    // Fill the debugging callbacks
     //
     VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBpTraps;
     VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
-    VmmCallbacks.TerminateQueryDebuggerResource                            = TerminateQueryDebuggerResource;
     VmmCallbacks.UdCheckForCommand                                         = UdCheckForCommand;
-    VmmCallbacks.ProcessTriggerCr3ProcessChange                            = ProcessTriggerCr3ProcessChange;
     VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
     VmmCallbacks.AttachingCheckPageFaultsWithUserDebugger                  = AttachingCheckPageFaultsWithUserDebugger;
     VmmCallbacks.AttachingHandleCr3VmexitsForThreadInterception            = AttachingHandleCr3VmexitsForThreadInterception;
     VmmCallbacks.UserAccessCheckForLoadedModuleDetails                     = UserAccessCheckForLoadedModuleDetails;
-    VmmCallbacks.KdHandleNmiBroadcastDebugBreaks                           = KdHandleNmiBroadcastDebugBreaks;
     VmmCallbacks.KdCheckAndHandleNmiCallback                               = KdCheckAndHandleNmiCallback;
     VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
+
+    //
+    // Fill the interception callbacks
+    //
+    VmmCallbacks.InterceptionCallbackTriggerCr3ProcessChange = ProcessTriggerCr3ProcessChange;
 
     //
     // Initialize message tracer
