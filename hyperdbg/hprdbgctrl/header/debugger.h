@@ -174,7 +174,7 @@ BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                    SplittedCommand,
     vector<string> *                    SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
     PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,

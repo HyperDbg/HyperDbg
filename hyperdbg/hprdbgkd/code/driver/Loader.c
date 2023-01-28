@@ -43,7 +43,7 @@ LoaderInitVmmAndDebugger()
     //
     // Fill the callbacks for the VMM module
     //
-    VmmCallbacks.DebuggerTriggerEvents                                     = DebuggerTriggerEvents;
+    VmmCallbacks.VmmCallbackTriggerEvents                                  = DebuggerTriggerEvents;
     VmmCallbacks.DebuggerSetLastError                                      = DebuggerSetLastError;
     VmmCallbacks.DebuggerVmcallHandler                                     = DebuggerVmcallHandler;
     VmmCallbacks.BreakpointCheckAndHandleDebugBreakpoint                   = BreakpointCheckAndHandleDebugBreakpoint;

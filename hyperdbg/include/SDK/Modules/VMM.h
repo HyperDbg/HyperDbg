@@ -46,11 +46,11 @@ typedef BOOLEAN (*LOG_SEND_BUFFER)(_In_ UINT32                          Operatio
  * @brief A function that handles trigger events
  *
  */
-typedef DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE (*DEBUGGER_TRIGGER_EVENTS)(DEBUGGER_EVENT_TYPE_ENUM          EventType,
-                                                                         DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                                                                         PVOID                             Context,
-                                                                         BOOLEAN *                         PostEventRequired,
-                                                                         GUEST_REGS *                      Regs);
+typedef VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE (*VMM_CALLBACK_TRIGGER_EVENTS)(VMM_EVENT_TYPE_ENUM                   EventType,
+                                                                                 VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
+                                                                                 PVOID                                 Context,
+                                                                                 BOOLEAN *                             PostEventRequired,
+                                                                                 GUEST_REGS *                          Regs);
 /**
  * @brief A function that checks and handles debug breakpoints
  *
@@ -182,7 +182,7 @@ typedef struct _VMM_CALLBACKS
     //
     // Debugger callbacks
     //
-    DEBUGGER_TRIGGER_EVENTS                           DebuggerTriggerEvents;
+    VMM_CALLBACK_TRIGGER_EVENTS                       VmmCallbackTriggerEvents; // Fixed
     DEBUGGER_SET_LAST_ERROR                           DebuggerSetLastError;
     DEBUGGER_VMCALL_HANDLER                           DebuggerVmcallHandler;
     BREAKPOINT_CHECK_AND_HANDLE_DEBUG_BREAKPOINT      BreakpointCheckAndHandleDebugBreakpoint;

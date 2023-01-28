@@ -104,12 +104,12 @@ typedef struct _DEBUGGER_EVENT_ACTION
  */
 typedef struct _DEBUGGER_EVENT
 {
-    UINT64                   Tag;
-    LIST_ENTRY               EventsOfSameTypeList; // Linked-list of events of a same type
-    DEBUGGER_EVENT_TYPE_ENUM EventType;
-    BOOLEAN                  Enabled;
-    UINT32                   CoreId; // determines the core index to apply this event to, if it's
-                                     // 0xffffffff means that we have to apply it to all cores
+    UINT64              Tag;
+    LIST_ENTRY          EventsOfSameTypeList; // Linked-list of events of a same type
+    VMM_EVENT_TYPE_ENUM EventType;
+    BOOLEAN             Enabled;
+    UINT32              CoreId; // determines the core index to apply this event to, if it's
+                                // 0xffffffff means that we have to apply it to all cores
 
     UINT32
     ProcessId; // determines the pid to apply this event to, if it's
@@ -121,7 +121,7 @@ typedef struct _DEBUGGER_EVENT
     BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
                                    // is enabled or not for this event
 
-    DEBUGGER_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
     // of the event (whether it's a pre- or post- event)
 
     UINT64 OptionalParam1; // Optional parameter to be used differently by events
@@ -193,7 +193,7 @@ VOID
 DebuggerUninitialize();
 
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, UINT32 ProcessId, DEBUGGER_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3, UINT64 OptionalParam4, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
+DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, UINT32 ProcessId, VMM_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3, UINT64 OptionalParam4, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
 
 PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
@@ -201,12 +201,12 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
-DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
-                      DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PVOID                             Context,
-                      BOOLEAN *                         PostEventRequired,
-                      GUEST_REGS *                      Regs);
+VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
+DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
+                      VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
+                      PVOID                                 Context,
+                      BOOLEAN *                             PostEventRequired,
+                      GUEST_REGS *                          Regs);
 
 PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag);
@@ -245,7 +245,7 @@ UINT32
 DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore);
 
 UINT32
-DebuggerEventListCountByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType, UINT32 TargetCore);
+DebuggerEventListCountByEventType(VMM_EVENT_TYPE_ENUM EventType, UINT32 TargetCore);
 
 UINT32
 DebuggerExceptionEventBitmapMask(UINT32 CoreIndex);
@@ -275,4 +275,4 @@ VOID
 DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context);
 
 PLIST_ENTRY
-DebuggerGetEventListByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType);
+DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType);

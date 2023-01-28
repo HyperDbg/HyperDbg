@@ -61,13 +61,13 @@
 //
 // The core's state
 //
-#include "header/common/State.h"
+#include "common/State.h"
 
 //
 // VMX and EPT Types
 //
-#include "header/vmm/vmx/Vmx.h"
-#include "header/vmm/ept/Ept.h"
+#include "vmm/vmx/Vmx.h"
+#include "vmm/ept/Ept.h"
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
@@ -104,19 +104,20 @@
 #include "vmm/vmx/ProtectedHv.h"
 #include "vmm/vmx/IoHandler.h"
 #include "vmm/vmx/VmxMechanisms.h"
-#include "header/hooks/Hooks.h"
+#include "hooks/Hooks.h"
+#include "interface/Callback.h"
 
 //
 // Broadcast headers
 //
-#include "header/broadcast/Broadcast.h"
-#include "header/broadcast/DpcRoutines.h"
+#include "broadcast/Broadcast.h"
+#include "broadcast/DpcRoutines.h"
 
 //
 // Global Variables should be the last header to include
 //
-#include "header/globals/GlobalVariableManagement.h"
-#include "header/globals/GlobalVariables.h"
+#include "globals/GlobalVariableManagement.h"
+#include "globals/GlobalVariables.h"
 
 //
 // Define callback prefix for hyperlog

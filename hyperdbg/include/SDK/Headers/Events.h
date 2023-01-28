@@ -66,6 +66,35 @@ typedef enum _EXCEPTION_VECTORS
 } EXCEPTION_VECTORS;
 
 //////////////////////////////////////////////////
+//			     Callback Enums                 //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The status of triggering events
+ *
+ */
+typedef enum _VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED = 0,
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL                = 0,
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT   = 1,
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED      = 2,
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE        = 3,
+
+} VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE;
+
+/**
+ * @brief Type of calling the event
+ *
+ */
+typedef enum _VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE
+{
+    VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+    VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+
+} VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE;
+
+//////////////////////////////////////////////////
 //               Event Details                  //
 //////////////////////////////////////////////////
 
@@ -73,7 +102,7 @@ typedef enum _EXCEPTION_VECTORS
  * @brief enum to show type of all HyperDbg events
  *
  */
-typedef enum _DEBUGGER_EVENT_TYPE_ENUM
+typedef enum _VMM_EVENT_TYPE_ENUM
 {
 
     HIDDEN_HOOK_READ_AND_WRITE,
@@ -107,7 +136,7 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM
     CONTROL_REGISTER_MODIFIED,
     CONTROL_REGISTER_READ,
 
-} DEBUGGER_EVENT_TYPE_ENUM;
+} VMM_EVENT_TYPE_ENUM;
 
 /**
  * @brief Type of Actions
@@ -120,17 +149,6 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM
     RUN_CUSTOM_CODE
 
 } DEBUGGER_EVENT_ACTION_TYPE_ENUM;
-
-/**
- * @brief Type of calling the event
- *
- */
-typedef enum _DEBUGGER_EVENT_CALLING_STAGE_TYPE
-{
-    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
-    DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
-
-} DEBUGGER_EVENT_CALLING_STAGE_TYPE;
 
 /**
  * @brief Type of handling !syscall or !sysret
@@ -156,20 +174,6 @@ typedef enum _DEBUGGER_MODIFY_EVENTS_TYPE
     DEBUGGER_MODIFY_EVENTS_DISABLE,
     DEBUGGER_MODIFY_EVENTS_CLEAR,
 } DEBUGGER_MODIFY_EVENTS_TYPE;
-
-/**
- * @brief The status of triggering events
- *
- */
-typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-{
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED = 0,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL                = 0,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT   = 1,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED      = 2,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE        = 3,
-
-} DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE;
 
 /**
  * @brief request for modifying events (enable/disable/clear)
@@ -297,7 +301,7 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
     BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
                                    // is enabled or not for this event
 
-    DEBUGGER_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
     // of the event (whether it's a pre- or post- event)
 
     BOOLEAN HasCustomOutput; // Shows whether this event has a custom output
@@ -316,8 +320,8 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 
     UINT32 CountOfActions;
 
-    UINT64                   Tag; // is same as operation code
-    DEBUGGER_EVENT_TYPE_ENUM EventType;
+    UINT64              Tag; // is same as operation code
+    VMM_EVENT_TYPE_ENUM EventType;
 
     UINT64 OptionalParam1;
     UINT64 OptionalParam2;

@@ -227,6 +227,9 @@
     <ClCompile Include="code\interface\Configuration.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="code\interface\Callback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -344,6 +347,9 @@
       <Filter>header\components\disasm</Filter>
     </ClInclude>
     <ClInclude Include="header\interface\Configuration.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Callback.h">
       <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>

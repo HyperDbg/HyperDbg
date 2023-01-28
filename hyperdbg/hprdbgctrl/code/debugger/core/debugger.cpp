@@ -2076,7 +2076,7 @@ BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                    SplittedCommand,
     vector<string> *                    SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
     PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,
@@ -3058,14 +3058,14 @@ InterpretGeneralEventAndActionsFields(
     //
     if (IsAPostEvent)
     {
-        TempEvent->EventMode = DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION;
+        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
     }
     else
     {
         //
         // By default, event's are 'pre-event'
         //
-        TempEvent->EventMode = DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION;
+        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
     }
 
     //

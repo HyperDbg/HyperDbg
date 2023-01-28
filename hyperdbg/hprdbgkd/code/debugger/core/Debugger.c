@@ -313,17 +313,17 @@ DebuggerUninitialize()
  * object address when it's successful
  */
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN                  Enabled,
-                    UINT32                   CoreId,
-                    UINT32                   ProcessId,
-                    DEBUGGER_EVENT_TYPE_ENUM EventType,
-                    UINT64                   Tag,
-                    UINT64                   OptionalParam1,
-                    UINT64                   OptionalParam2,
-                    UINT64                   OptionalParam3,
-                    UINT64                   OptionalParam4,
-                    UINT32                   ConditionsBufferSize,
-                    PVOID                    ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN             Enabled,
+                    UINT32              CoreId,
+                    UINT32              ProcessId,
+                    VMM_EVENT_TYPE_ENUM EventType,
+                    UINT64              Tag,
+                    UINT64              OptionalParam1,
+                    UINT64              OptionalParam2,
+                    UINT64              OptionalParam3,
+                    UINT64              OptionalParam4,
+                    UINT32              ConditionsBufferSize,
+                    PVOID               ConditionBuffer)
 {
     //
     // As this function uses ExAllocatePoolWithTag,
@@ -671,15 +671,15 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * trigger a post-event event
  * @param Regs Guest gp-registers
  *
- * @return DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE returns the staus
+ * @return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE returns the staus
  * of handling events
  */
-DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
-                      DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PVOID                             Context,
-                      BOOLEAN *                         PostEventRequired,
-                      GUEST_REGS *                      Regs)
+VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
+DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
+                      VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
+                      PVOID                                 Context,
+                      BOOLEAN *                             PostEventRequired,
+                      GUEST_REGS *                          Regs)
 {
     DebuggerCheckForCondition * ConditionFunc;
     PLIST_ENTRY                 TempList  = 0;
@@ -701,7 +701,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Debugger is not enabled
         //
-        return DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED;
+        return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED;
     }
 
     //
@@ -712,7 +712,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
 
     if (TempList == NULL)
     {
-        return DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
+        return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
     }
 
     while (TempList2 != TempList->Flink)
@@ -951,8 +951,8 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Check the stage of calling (pre and post event)
         //
-        if (CallingStage == DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION &&
-            CurrentEvent->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
+        if (CallingStage == VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION &&
+            CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
         {
             //
             // Here it means that the current event is a post-event event and
@@ -1018,14 +1018,14 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Event should be ignored
         //
-        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
+        return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
     }
     else
     {
         //
         // Event shouldn't be ignored
         //
-        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL;
+        return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL;
     }
 }
 
@@ -1476,7 +1476,7 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
  * @return PLIST_ENTRY
  */
 PLIST_ENTRY
-DebuggerGetEventListByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType)
+DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
 {
     PLIST_ENTRY ResultList = NULL;
     //
@@ -1603,7 +1603,7 @@ DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
  * on the target core
  */
 UINT32
-DebuggerEventListCountByEventType(DEBUGGER_EVENT_TYPE_ENUM EventType, UINT32 TargetCore)
+DebuggerEventListCountByEventType(VMM_EVENT_TYPE_ENUM EventType, UINT32 TargetCore)
 {
     PLIST_ENTRY TempList = 0;
     UINT32      Counter  = 0;
@@ -2006,7 +2006,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // it is because using the short-circuiting mechanism with
     // post-events doesn't make sense; it's not supported!
     //
-    if (EventDetails->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION &&
+    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION &&
         EventDetails->EnableShortCircuiting == TRUE)
     {
         ResultsToReturnUsermode->IsSuccessful = FALSE;
@@ -2796,16 +2796,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Set the event mode (pre- post- event)
     //
-    if (EventDetails->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
+    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
     {
-        Event->EventMode = DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION;
+        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
     }
     else
     {
         //
         // Any other value results to be pre-event
         //
-        Event->EventMode = DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION;
+        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
     }
 
     //
