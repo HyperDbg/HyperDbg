@@ -1163,7 +1163,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // Save the callbacks
     //
-    RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VmmCallbacks));
+    RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VMM_CALLBACKS));
 
     //
     // we allocate virtual machine here because
@@ -1171,11 +1171,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     Result = GlobalGuestStateAllocateZeroedMemory();
 
-    if (Result)
-    {
-        return TRUE;
-    }
-    else
+    if (!Result)
     {
         return FALSE;
     }
