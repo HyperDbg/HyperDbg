@@ -37,7 +37,8 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // We check it separately because the guest might step
     // instructions on an MTF so we want to check for the step too
     //
-    if (g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
+    if (g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint != NULL &&
+        g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
     {
         //
         // MTF is handled
@@ -58,7 +59,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check for user-mode attaching mechanisms
         //
-        g_Callbacks.UserAccessCheckForLoadedModuleDetails();
+        VmmCallbackRestoreEptState();
 
         //
         // Restore the previous state
@@ -156,7 +157,8 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (g_Callbacks.KdCheckAndHandleNmiCallback(VCpu->CoreId))
+    else if (g_Callbacks.KdCheckAndHandleNmiCallback != NULL &&
+             g_Callbacks.KdCheckAndHandleNmiCallback(VCpu->CoreId))
     {
         //
         // MTF is handled

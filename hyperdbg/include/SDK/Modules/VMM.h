@@ -65,6 +65,14 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION)(UINT32 CoreId)
 typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 CoreId);
 
 /**
+ * @brief Check for page-faults in user-debugger
+ *
+ */
+typedef BOOLEAN (*DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION)(UINT32 CoreId,
+                                                                       UINT64 Address,
+                                                                       ULONG  ErrorCode);
+
+/**
  * @brief Check for commands in user-debugger
  *
  */
@@ -77,36 +85,28 @@ typedef BOOLEAN (*UD_CHECK_FOR_COMMAND)();
 typedef VOID (*VMM_CALLBACK_REGISTERED_MTF_HANDLER)(UINT32 CoreId);
 
 /**
+ * @brief Check for user-mode access for loaded module details
+ *
+ */
+typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)();
+
+/**
  * @brief Handle cr3 process change callbacks
  *
  */
-typedef VOID (*INTERCEPTION_CALLBACK_TRIGGER_CR3_PROCESS_CHANGE)(UINT32 CoreId);
+typedef VOID (*INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE)(UINT32 CoreId);
 
 /**
  * @brief Check for process or thread change callback
  *
  */
-typedef BOOLEAN (*DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE)(_In_ UINT32 CoreId);
-
-/**
- * @brief Check for page-faults in user-debugger
- *
- */
-typedef BOOLEAN (*ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER)(UINT32 CoreId,
-                                                                  UINT64 Address,
-                                                                  ULONG  ErrorCode);
+typedef BOOLEAN (*INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI)(_In_ UINT32 CoreId);
 
 /**
  * @brief Check to handle cr3 events for thread interception
  *
  */
 typedef BOOLEAN (*ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION)(UINT32 CoreId, CR3_TYPE NewCr3);
-
-/**
- * @brief Check for user-mode access for loaded module details
- *
- */
-typedef BOOLEAN (*USER_ACCESS_CHECK_FOR_LOADED_MODULE_DETAILS)();
 
 /**
  * @brief Check and handle reapplying breakpoint
@@ -180,32 +180,31 @@ typedef struct _VMM_CALLBACKS
     VMM_CALLBACK_TRIGGER_EVENTS                     VmmCallbackTriggerEvents;                   // Fixed
     VMM_CALLBACK_SET_LAST_ERROR                     VmmCallbackSetLastError;                    // Fixed
     VMM_CALLBACK_VMCALL_HANDLER                     VmmCallbackVmcallHandler;                   // Fixed
-    VMM_CALLBACK_REGISTERED_MTF_HANDLER             VmmCallbackRegisteredMtfHandler;            // Fixed
     VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER      VmmCallbackNmiBroadcastRequestHandler;      // Fixed
     VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource; // Fixed
+    VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;                 // Fixed
 
     //
     // Debugging callbacks
     //
     DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;      // Fixed
     DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException; // Fixed
+    DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION  DebuggingCallbackConditionalPageFaultException;  // Fixed
 
     //
     // Interception callbacks
     //
-    INTERCEPTION_CALLBACK_TRIGGER_CR3_PROCESS_CHANGE InterceptionCallbackTriggerCr3ProcessChange; // Fixed
-
-    DEBUGGER_CHECK_PROCESS_OR_THREAD_CHANGE                        DebuggerCheckProcessOrThreadChange;
-    ATTACHING_CHECK_PAGE_FAULTS_WITH_USER_DEBUGGER                 AttachingCheckPageFaultsWithUserDebugger;
-    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION            AttachingHandleCr3VmexitsForThreadInterception;
-    KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
-    USER_ACCESS_CHECK_FOR_LOADED_MODULE_DETAILS                    UserAccessCheckForLoadedModuleDetails;
+    INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE InterceptionCallbackTriggerCr3ProcessChange; // Fixed
 
     //
     // Callbacks to be removed
     //
-    BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT BreakpointCheckAndHandleReApplyingBreakpoint;
-    UD_CHECK_FOR_COMMAND                              UdCheckForCommand;
-    KD_CHECK_AND_HANDLE_NMI_CALLBACK                  KdCheckAndHandleNmiCallback;
+    BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT              BreakpointCheckAndHandleReApplyingBreakpoint;
+    UD_CHECK_FOR_COMMAND                                           UdCheckForCommand;
+    KD_CHECK_AND_HANDLE_NMI_CALLBACK                               KdCheckAndHandleNmiCallback;
+    VMM_CALLBACK_REGISTERED_MTF_HANDLER                            VmmCallbackRegisteredMtfHandler; // Fixed but not good
+    INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI                    DebuggerCheckProcessOrThreadChange;
+    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION            AttachingHandleCr3VmexitsForThreadInterception;
+    KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 
 } VMM_CALLBACKS, *PVMM_CALLBACKS;

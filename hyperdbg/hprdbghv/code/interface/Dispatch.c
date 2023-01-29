@@ -121,7 +121,7 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // Check if attaching is for command dispatching in user debugger
     // or a regular CPUID
     //
-    if (g_Callbacks.UdCheckForCommand())
+    if (g_Callbacks.UdCheckForCommand != NULL && g_Callbacks.UdCheckForCommand())
     {
         //
         // It's a thread command for user debugger, no need to run the
@@ -525,7 +525,8 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     // because on detecting thread scheduling we ignore the hardware debug
     // registers modifications
     //
-    if (g_Callbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
+    if (g_Callbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId != NULL &&
+        g_Callbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
                                                                               DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
     {
         return;
@@ -790,7 +791,10 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     if ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT))
     {
-        g_Callbacks.DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
+        if (g_Callbacks.DebuggerCheckProcessOrThreadChange != NULL)
+        {
+            g_Callbacks.DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
+        }
     }
 
     //

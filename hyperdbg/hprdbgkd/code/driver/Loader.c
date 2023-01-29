@@ -49,6 +49,7 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.VmmCallbackRegisteredMtfHandler            = KdHandleRegisteredMtfCallback;
     VmmCallbacks.VmmCallbackNmiBroadcastRequestHandler      = KdHandleNmiBroadcastDebugBreaks;
     VmmCallbacks.VmmCallbackQueryTerminateProtectedResource = TerminateQueryDebuggerResource;
+    VmmCallbacks.VmmCallbackRestoreEptState                 = UserAccessCheckForLoadedModuleDetails;
 
     //
     // Fill the debugging callbacks
@@ -58,9 +59,8 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
     VmmCallbacks.UdCheckForCommand                                         = UdCheckForCommand;
     VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
-    VmmCallbacks.AttachingCheckPageFaultsWithUserDebugger                  = AttachingCheckPageFaultsWithUserDebugger;
+    VmmCallbacks.DebuggingCallbackConditionalPageFaultException            = AttachingCheckPageFaultsWithUserDebugger;
     VmmCallbacks.AttachingHandleCr3VmexitsForThreadInterception            = AttachingHandleCr3VmexitsForThreadInterception;
-    VmmCallbacks.UserAccessCheckForLoadedModuleDetails                     = UserAccessCheckForLoadedModuleDetails;
     VmmCallbacks.KdCheckAndHandleNmiCallback                               = KdCheckAndHandleNmiCallback;
     VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 

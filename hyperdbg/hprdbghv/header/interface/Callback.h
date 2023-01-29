@@ -60,6 +60,10 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
                                            PROTECTED_HV_RESOURCES_TYPE          ResourceType,
                                            PVOID                                Context,
                                            PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
+
+BOOLEAN
+VmmCallbackRestoreEptState();
+
 VOID
 VmmCallbackSetLastError(UINT32 LastError);
 
@@ -78,6 +82,11 @@ DebuggingCallbackHandleBreakpointException(UINT32 CoreId);
 
 BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
+
+BOOLEAN
+DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
+                                               UINT64 Address,
+                                               ULONG  ErrorCode);
 
 //
 // Interception Callbacks

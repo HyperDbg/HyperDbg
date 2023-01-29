@@ -264,6 +264,25 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
 }
 
 /**
+ * @brief routine callback to restore EPT state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmmCallbackRestoreEptState()
+{
+    if (g_Callbacks.VmmCallbackRestoreEptState == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+
+    g_Callbacks.VmmCallbackRestoreEptState();
+}
+
+/**
  * @brief routine callback to handle breakpoint exception
  *
  * @param CoreId
@@ -303,6 +322,31 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
     }
 
     return g_Callbacks.DebuggingCallbackHandleDebugBreakpointException(CoreId);
+}
+
+/**
+ * @brief routine callback to handle conditional page-fault exception
+ *
+ * @param CoreId
+ * @param Address
+ * @param ErrorCode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
+                                               UINT64 Address,
+                                               ULONG  ErrorCode)
+{
+    if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
+    {
+        //
+        // re-inject it to not disrupt system normal execution
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.DebuggingCallbackConditionalPageFaultException(CoreId, Address, ErrorCode);
 }
 
 /**
