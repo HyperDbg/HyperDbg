@@ -1,12 +1,11 @@
 /**
  * @file Driver.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The project entry
- * @details This file contains major functions and all the interactions
- * with usermode codes are managed from here.
- * e.g debugger commands and extension commands
- * @version 0.1
- * @date 2020-04-10
+ * @brief The project entry (RM)
+ * @details
+ *
+ * @version 0.2
+ * @date 2023-01-29
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -28,8 +27,8 @@ DriverEntry(
     NTSTATUS       Ntstatus      = STATUS_SUCCESS;
     UINT64         Index         = 0;
     PDEVICE_OBJECT DeviceObject  = NULL;
-    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperDbgDebuggerDevice");
-    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperDbgDebuggerDevice");
+    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperDbgReversingMachineDevice");
+    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperDbgReversingMachineDevice");
 
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
@@ -61,11 +60,11 @@ DriverEntry(
         //
         DbgPrint("Setting device major functions");
 
-        DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
-        DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
-        DriverObject->MajorFunction[IRP_MJ_READ]           = DrvRead;
-        DriverObject->MajorFunction[IRP_MJ_WRITE]          = DrvWrite;
-        DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvDispatchIoControl;
+        DriverObject->MajorFunction[IRP_MJ_CLOSE]  = DrvClose;
+        DriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
+        DriverObject->MajorFunction[IRP_MJ_READ]   = DrvRead;
+        DriverObject->MajorFunction[IRP_MJ_WRITE]  = DrvWrite;
+        // DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvDispatchIoControl;
 
         DriverObject->DriverUnload = DrvUnload;
         IoCreateSymbolicLink(&DosDeviceName, &DriverName);
@@ -96,7 +95,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
-    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperDbgDebuggerDevice");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperDbgReversingMachineDevice");
     IoDeleteSymbolicLink(&DosDeviceName);
     IoDeleteDevice(DriverObject->DeviceObject);
 
