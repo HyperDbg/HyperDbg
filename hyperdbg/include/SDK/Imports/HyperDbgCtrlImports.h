@@ -20,12 +20,12 @@ __declspec(dllimport) int HyperDbgStopVmmDriver();
 //
 // General imports
 //
-__declspec(dllimport) int HyperDbgInterpreter(char * Command);
+__declspec(dllimport) int HyperDbgInterpreter(char* Command);
 __declspec(dllimport) void HyperDbgShowSignature();
 __declspec(dllimport) void HyperDbgSetTextMessageCallback(Callback handler);
-__declspec(dllimport) int HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[]);
+__declspec(dllimport) int HyperDbgScriptReadFileAndExecuteCommandline(int argc, char* argv[]);
 __declspec(dllimport) bool HyperDbgContinuePreviousCommand();
-__declspec(dllimport) bool HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset);
+__declspec(dllimport) bool HyperDbgCheckMultilineCommand(char* CurrentCommand, bool Reset);
 
 #ifdef __cplusplus
 }

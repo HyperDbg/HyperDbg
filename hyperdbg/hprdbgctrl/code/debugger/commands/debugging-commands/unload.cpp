@@ -24,8 +24,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
  *
  * @return VOID
  */
-VOID
-CommandUnloadHelp()
+VOID CommandUnloadHelp()
 {
     ShowMessages(
         "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
@@ -44,11 +43,9 @@ CommandUnloadHelp()
  * @param Command
  * @return VOID
  */
-VOID
-CommandUnload(vector<string> SplittedCommand, string Command)
+VOID CommandUnload(vector<string> SplittedCommand, string Command)
 {
-    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
-    {
+    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3) {
         ShowMessages("incorrect use of 'unload'\n\n");
         CommandUnloadHelp();
         return;
@@ -57,12 +54,8 @@ CommandUnload(vector<string> SplittedCommand, string Command)
     //
     // Check for the module
     //
-    if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("vmm")) ||
-        (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") &&
-         !SplittedCommand.at(1).compare("remove")))
-    {
-        if (!g_IsConnectedToHyperDbgLocally)
-        {
+    if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("vmm")) || (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") && !SplittedCommand.at(1).compare("remove"))) {
+        if (!g_IsConnectedToHyperDbgLocally) {
             ShowMessages("you're not connected to any instance of HyperDbg, did you "
                          "use '.connect'? \n");
             return;
@@ -71,32 +64,26 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         //
         // Check to avoid using this command in debugger-mode
         //
-        if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger)
-        {
+        if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger) {
             ShowMessages("you're connected to a an instance of HyperDbg, please use "
                          "'.debug close' command\n");
             return;
         }
 
-        if (g_IsDebuggerModulesLoaded)
-        {
+        if (g_IsDebuggerModulesLoaded) {
             HyperDbgUnloadVmm();
-        }
-        else
-        {
+        } else {
             ShowMessages("there is nothing to unload\n");
         }
 
         //
         // Check to remove the driver
         //
-        if (!SplittedCommand.at(1).compare("remove"))
-        {
+        if (!SplittedCommand.at(1).compare("remove")) {
             //
             // Stop the driver
             //
-            if (HyperDbgStopVmmDriver())
-            {
+            if (HyperDbgStopVmmDriver()) {
                 ShowMessages("err, failed to stop driver\n");
                 return;
             }
@@ -104,17 +91,15 @@ CommandUnload(vector<string> SplittedCommand, string Command)
             //
             // Uninstall the driver
             //
-            if (HyperDbgUninstallVmmDriver())
-            {
+            if (HyperDbgUninstallVmmDriver()) {
                 ShowMessages("err, failed to uninstall the driver\n");
                 return;
             }
 
             ShowMessages("the driver is removed\n");
         }
-    }
-    else
-    {
+    } else {
+
         //
         // Module not found
         //

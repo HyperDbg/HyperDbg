@@ -19,11 +19,11 @@
 
 #define USE_LIB_IA32
 #if defined(USE_LIB_IA32)
-#    pragma warning(push, 0)
+#pragma warning(push, 0)
 // #    pragma warning(disable : 4201) // suppress nameless struct/union warning
-#    include <ia32-doc/out/ia32.h>
-#    pragma warning(pop)
-typedef RFLAGS * PRFLAGS;
+#include <ia32-doc/out/ia32.h>
+#pragma warning(pop)
+typedef RFLAGS* PRFLAGS;
 #endif // USE_LIB_IA32
 
 //////////////////////////////////////////////////
@@ -51,6 +51,12 @@ typedef RFLAGS * PRFLAGS;
  *
  */
 #define KERNEL_DEBUGGER_DRIVER_NAME "hprdbgkd"
+
+/**
+ * @brief name of HyperDbg's Reversing Machine driver
+ *
+ */
+#define KERNEL_REVERSING_MACHINE_DRIVER_NAME "hprdbgrm"
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
