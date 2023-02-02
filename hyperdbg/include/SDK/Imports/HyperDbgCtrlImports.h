@@ -24,9 +24,17 @@ extern "C" {
 __declspec(dllimport) int HyperDbgLoadVmm();
 __declspec(dllimport) int HyperDbgUnloadVmm();
 __declspec(dllimport) int HyperDbgInstallVmmDriver();
-__declspec(dllimport) int HyperDbgInstallReversingMachineDriver();
 __declspec(dllimport) int HyperDbgUninstallVmmDriver();
 __declspec(dllimport) int HyperDbgStopVmmDriver();
+
+//
+// Reversing Machine Module
+//
+__declspec(dllimport) int HyperDbgLoadReversingMachine();
+__declspec(dllimport) int HyperDbgUnloadReversingMachine();
+__declspec(dllimport) int HyperDbgInstallReversingMachineDriver();
+__declspec(dllimport) int HyperDbgUninstallReversingMachineDriver();
+__declspec(dllimport) int HyperDbgStopReversingMachineDriver();
 
 //
 // General imports

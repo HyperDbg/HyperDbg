@@ -16,6 +16,7 @@
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsReversingMachineModulesLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
@@ -98,12 +99,58 @@ VOID CommandUnload(vector<string> SplittedCommand, string Command)
 
             ShowMessages("the driver is removed\n");
         }
+    } else if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("rev")) || (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("rev") && !SplittedCommand.at(1).compare("remove"))) {
+
+        if (!g_IsConnectedToHyperDbgLocally) {
+            ShowMessages("you're not connected to any instance of HyperDbg, did you "
+                         "use '.connect'? \n");
+            return;
+        }
+
+        //
+        // Check to avoid using this command in debugger-mode
+        //
+        if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger) {
+            ShowMessages("you're connected to a an instance of HyperDbg, you can not "
+                         "use the reversing machine in this execution-mode, make sure "
+                         "to use it in VMI mode\n");
+            return;
+        }
+
+        if (g_IsReversingMachineModulesLoaded) {
+            HyperDbgUnloadReversingMachine();
+        } else {
+            ShowMessages("there is nothing to unload\n");
+        }
+
+        //
+        // Check to remove the driver
+        //
+        if (!SplittedCommand.at(1).compare("remove")) {
+
+            //
+            // Stop the driver
+            //
+            if (HyperDbgStopReversingMachineDriver()) {
+                ShowMessages("err, failed to stop driver\n");
+                return;
+            }
+
+            //
+            // Uninstall the driver
+            //
+            if (HyperDbgUninstallReversingMachineDriver()) {
+                ShowMessages("err, failed to uninstall the driver\n");
+                return;
+            }
+
+            ShowMessages("the driver is removed\n");
+        }
     } else {
 
         //
         // Module not found
         //
-        ShowMessages("module not found, currently 'vmm' is the only available "
-                     "module for HyperDbg\n");
+        ShowMessages("err, module not found\n");
     }
 }

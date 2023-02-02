@@ -22,6 +22,7 @@ extern "C" {
 // Reversing Machine Module
 //
 __declspec(dllimport) int ReversingMachineStart();
+__declspec(dllimport) int ReversingMachineStop();
 
 #ifdef __cplusplus
 }

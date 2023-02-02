@@ -28,6 +28,7 @@ extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_OutputSourcesInitialized;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsReversingMachineModulesLoaded;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -528,6 +529,18 @@ HyperDbgStopVmmDriver()
 }
 
 /**
+ * @brief Stop reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgStopReversingMachineDriver()
+{
+    return HyperDbgStopDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
+}
+
+/**
  * @brief Remove the driver
  *
  * @return int return zero if it was successful or non-zero if there
@@ -555,6 +568,18 @@ HPRDBGCTRL_API int
 HyperDbgUninstallVmmDriver()
 {
     return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
+}
+
+/**
+ * @brief Remove the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgUninstallReversingMachineDriver()
+{
+    return HyperDbgUninstallDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
 }
 
 /**
@@ -658,13 +683,11 @@ HyperDbgLoadReversingMachine()
 {
     string CpuID;
 
-    /*
-    if (g_DeviceHandle) {
+    if (g_DeviceHandle || g_IsReversingMachineModulesLoaded) {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
         return 1;
     }
-    */
 
     CpuID = ReadVendorString();
 
@@ -792,6 +815,31 @@ HyperDbgUnloadVmm()
     SymbolDeleteSymTable();
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgUnloadReversingMachine()
+{
+    BOOL Status;
+
+    AssertShowMessageReturnStmt(g_IsReversingMachineModulesLoaded, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    ShowMessages("start terminating...\n");
+
+    //
+    // Call the unloader of the hprdbgrev module
+    //
+    ReversingMachineStop();
+
+    ShowMessages("you're not on reversing machine's hypervisor anymore!\n");
 
     return 0;
 }

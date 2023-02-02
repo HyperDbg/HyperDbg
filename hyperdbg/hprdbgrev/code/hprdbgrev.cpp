@@ -53,6 +53,7 @@ extern "C" {
 #endif
 
 __declspec(dllexport) int ReversingMachineStart();
+__declspec(dllexport) int ReversingMachineStop();
 
 #ifdef __cplusplus
 }
@@ -235,6 +236,20 @@ IrpBasedBufferThread(void* data)
 }
 
 /**
+ * @brief Unload the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+int ReversingMachineStop()
+{
+    //
+    // Not implemented
+    //
+    return 0;
+}
+
+/**
  * @brief Load the reversing machine driver
  *
  * @return int return zero if it was successful or non-zero if there
@@ -293,7 +308,7 @@ int ReversingMachineStart()
     // }
 
     //
-    // Show loaded message
+    // Operation was successful
     //
-    ShowMessages("reversing module is running...\n");
+    return 0;
 }

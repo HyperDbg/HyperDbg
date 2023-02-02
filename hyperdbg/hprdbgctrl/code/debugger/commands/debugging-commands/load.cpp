@@ -18,6 +18,7 @@ extern HANDLE g_IsDriverLoadedSuccessfully;
 extern HANDLE g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsReversingMachineModulesLoaded;
 
 /**
  * @brief help of load command
@@ -33,8 +34,6 @@ VOID CommandLoadHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
 }
-
-// ----------------------------------------------------------------
 
 /**
  * @brief load reversing machine module
@@ -65,50 +64,27 @@ CommandLoadReversingMachineModule()
     //
     // Install RM driver
     //
-    if (HyperDbgInstallReversingMachineDriver() == 1)
-    {
+    if (HyperDbgInstallReversingMachineDriver() == 1) {
         return FALSE;
     }
 
-    //
-    // Create event to show if the hypervisor is loaded or not
-    //
-    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (HyperDbgLoadReversingMachine() == 1) {
 
-    if (HyperDbgLoadVmm() == 1) {
         //
         // No need to handle anymore
         //
-        CloseHandle(g_IsDriverLoadedSuccessfully);
         return FALSE;
     }
-
-    //
-    // Vmm module (Hypervisor) is loaded
-    //
-
-    //
-    // We wait for the first message from the kernel debugger to continue
-    //
-    WaitForSingleObject(
-        g_IsDriverLoadedSuccessfully,
-        INFINITE);
-
-    //
-    // No need to handle anymore
-    //
-    CloseHandle(g_IsDriverLoadedSuccessfully);
 
     //
     // If we reach here so the module are loaded
     //
-    g_IsDebuggerModulesLoaded = TRUE;
+    g_IsReversingMachineModulesLoaded = TRUE;
 
-    ShowMessages("vmm module is running...\n");
+    ShowMessages("reversing machine module is running...\n");
 
     return TRUE;
 }
-// ----------------------------------------------------------------
 
 /**
  * @brief load vmm module
@@ -234,11 +210,33 @@ VOID CommandLoad(vector<string> SplittedCommand, string Command)
         // symbols
         //
         SymbolLocalReload(GetCurrentProcessId());
+
+    } else if (!SplittedCommand.at(1).compare("rev")) {
+
+        //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_DeviceHandle || g_IsDebuggerModulesLoaded) {
+
+            ShowMessages("handle of the driver found, if you use 'load' before, please "
+                         "first unload it then call 'unload'\n");
+            return;
+        }
+
+        //
+        // Load Reversing Machine Module
+        //
+        ShowMessages("loading the reversing machine's driver\n");
+
+        if (!CommandLoadReversingMachineModule()) {
+            ShowMessages("failed to install or load the driver\n");
+            return;
+        }
+
     } else {
         //
         // Module not found
         //
-        ShowMessages("module not found, currently 'vmm' is the only available "
-                     "module for HyperDbg\n");
+        ShowMessages("err, module not found\n");
     }
 }
