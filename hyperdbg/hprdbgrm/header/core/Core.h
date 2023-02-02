@@ -17,4 +17,4 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-CoreInitRM();
+CoreInitReversingMachine();

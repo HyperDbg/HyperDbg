@@ -130,14 +130,21 @@ void ReadIrpBasedBuffer()
         NULL); /// lpTemplateFile
 
     if (Handle == INVALID_HANDLE_VALUE) {
+
         ErrorNum = GetLastError();
+
         if (ErrorNum == ERROR_ACCESS_DENIED) {
+
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
+
         } else if (ErrorNum == ERROR_GEN_FAILURE) {
+
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
+
         } else {
+
             ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
         }
 
@@ -397,14 +404,15 @@ void ReadIrpBasedBuffer()
                 //
                 if (!CloseHandle(Handle)) {
                     ShowMessages("err, closing handle 0x%x\n", GetLastError());
-                };
+                }
 
                 return;
             }
         }
     } catch (const std::exception&) {
-        ShowMessages(" Exception !\n");
+        ShowMessages("err, exception occured in creating handle or parsing buffer\n");
     }
+
     free(OutputBuffer);
 
     //
@@ -448,7 +456,7 @@ HyperDbgInstallVmmDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation))) {
+    if (!SetupDriverName(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation))) {
         return 1;
     }
 
@@ -480,7 +488,7 @@ HyperDbgInstallReversingMachineDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation))) {
+    if (!SetupDriverName(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation))) {
         return 1;
     }
 

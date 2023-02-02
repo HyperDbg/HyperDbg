@@ -1,7 +1,7 @@
 /**
  * @file Core.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions used in core of RM
+ * @brief The functions used in core of reversing machine
  * @version 0.2
  * @date 2023-01-29
  *
@@ -11,12 +11,12 @@
 #include "pch.h"
 
 /**
- * @brief Initialize the RM
+ * @brief Initialize the reversing machine
  *
  * @return BOOLEAN
  */
 BOOLEAN
-CoreInitRM()
+CoreInitReversingMachine()
 {
     return TRUE;
 }

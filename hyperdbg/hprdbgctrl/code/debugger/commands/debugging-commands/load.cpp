@@ -65,6 +65,7 @@ CommandLoadReversingMachineModule()
     // Install RM driver
     //
     if (HyperDbgInstallReversingMachineDriver() == 1) {
+
         return FALSE;
     }
 

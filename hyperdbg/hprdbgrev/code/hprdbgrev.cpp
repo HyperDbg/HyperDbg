@@ -196,15 +196,24 @@ void ReadIrpBasedBuffer()
 
                 break;
 
+            case OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED:
+
+                //
+                // Indicate that driver (Hypervisor) is loaded successfully
+                //
+                SetEvent(g_IsDriverLoadedSuccessfully);
+
+                break;
+
             default:
 
-                ShowMessages("err, unknown message is received in rev module");
+                ShowMessages("err, unknown message is received in rev module\n");
 
                 break;
             }
         }
     } catch (const std::exception&) {
-        ShowMessages(" Exception !\n");
+        ShowMessages("err, exception occured in creating handle or parsing buffer\n");
     }
     free(OutputBuffer);
 
@@ -285,27 +294,50 @@ int ReversingMachineStart()
         NULL); /// lpTemplateFile
 
     if (g_DeviceHandle == INVALID_HANDLE_VALUE) {
+
         ErrorNum = GetLastError();
+
         if (ErrorNum == ERROR_ACCESS_DENIED) {
+
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
+
         } else if (ErrorNum == ERROR_GEN_FAILURE) {
+
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
+
         } else {
+
             ShowMessages("err, CreateFile failed (%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;
         return 1;
     }
+    //
+    // Create event to show if the hypervisor is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     HANDLE Thread = CreateThread(NULL, 0, IrpBasedBufferThread, NULL, 0, &ThreadId);
 
     // if (Thread)
     // {
-    // ShowMessages("thread Created successfully\n");
+    //    ShowMessages("thread Created successfully\n");
     // }
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
 
     //
     // Operation was successful

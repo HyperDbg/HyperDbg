@@ -63,7 +63,7 @@ DriverEntry(
         DriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_READ] = DrvRead;
         DriverObject->MajorFunction[IRP_MJ_WRITE] = DrvWrite;
-        // DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvDispatchIoControl;
+        DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvDispatchIoControl;
 
         DriverObject->DriverUnload = DrvUnload;
         IoCreateSymbolicLink(&DosDeviceName, &DriverName);
@@ -148,9 +148,9 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
-    // Initialize the vmm and the debugger
+    // Initialize the vmm and the reversing machine
     //
-    if (LoaderInitVmmAndDebugger()) {
+    if (LoaderInitVmmAndReversingMachine()) {
         Irp->IoStatus.Status = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);

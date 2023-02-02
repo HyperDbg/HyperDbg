@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClCompile Include="code\core\Core.c" />
     <ClCompile Include="code\driver\Driver.c" />
+    <ClCompile Include="code\driver\Ioctl.c" />
     <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
