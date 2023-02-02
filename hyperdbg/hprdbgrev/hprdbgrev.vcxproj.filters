@@ -9,7 +9,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\hprdbgrmctrl.cpp">
+    <ClCompile Include="code\hprdbgrev.cpp">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

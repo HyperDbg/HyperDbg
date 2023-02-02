@@ -110,10 +110,10 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // HyperDbg defined headers
 //
-#include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/HyperDbgCtrlImports.h"
 #include "Configuration.h"
 #include "Definition.h"
+#include "SDK/HyperDbgSdk.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"
 
 //
 // Script-engine

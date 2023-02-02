@@ -12,6 +12,48 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//                 Definitions                  //
+//////////////////////////////////////////////////
+
+//
+// The following controls are mainly defined in <winioctl.h>
+//
+
+//
+// Macro definition for defining IOCTL and FSCTL function control codes.  Note
+// that function codes 0-2047 are reserved for Microsoft Corporation, and
+// 2048-4095 are reserved for customers.
+//
+#ifndef CTL_CODE
+
+#define CTL_CODE(DeviceType, Function, Method, Access) ( \
+    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
+
+#endif // ! CTL_CODE
+
+#ifndef FILE_ANY_ACCESS
+
+#define FILE_ANY_ACCESS 0
+
+#endif // !FILE_ANY_ACCESS
+
+//
+// Define the method codes for how buffers are passed for I/O and FS controls
+//
+
+#ifndef METHOD_BUFFERED
+
+#define METHOD_BUFFERED 0
+
+#endif // !METHOD_BUFFERED
+
+#ifndef FILE_DEVICE_UNKNOWN
+
+#define FILE_DEVICE_UNKNOWN 0x00000022
+
+#endif // !FILE_DEVICE_UNKNOWN
+
+//////////////////////////////////////////////////
 //                   IOCTLs                     //
 //////////////////////////////////////////////////
 

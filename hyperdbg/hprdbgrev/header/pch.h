@@ -31,3 +31,9 @@
 
 #include <iostream>
 #include <stdio.h>
+
+//
+// HyperDbg SDK headers
+//
+#include "Definition.h"
+#include "SDK/HyperDbgSdk.h"

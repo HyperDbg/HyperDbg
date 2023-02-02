@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\hprdbgrmctrl.cpp" />
+    <ClCompile Include="code\hprdbgrev.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h" />

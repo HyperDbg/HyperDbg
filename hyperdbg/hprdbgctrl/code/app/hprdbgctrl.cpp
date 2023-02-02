@@ -92,8 +92,6 @@ VOID ShowMessages(const char* Fmt, ...)
     }
 }
 
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking
-
 /**
  * @brief Read kernel buffers using IRP Pending
  *
@@ -423,7 +421,7 @@ void ReadIrpBasedBuffer()
  * @return DWORD Device Handle
  */
 DWORD WINAPI
-ThreadFunc(void* data)
+IrpBasedBufferThread(void* data)
 {
     //
     // Do stuff.  This will be the first function called on the new
@@ -434,7 +432,6 @@ ThreadFunc(void* data)
 
     return 0;
 }
-#endif
 
 /**
  * @brief Install VMM driver
@@ -455,12 +452,44 @@ HyperDbgInstallVmmDriver()
     }
 
     if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL)) {
-        ShowMessages("unable to install driver\n");
+        ShowMessages("unable to install VMM driver\n");
 
         //
         // Error - remove driver
         //
         ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Install Reversing Machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgInstallReversingMachineDriver()
+{
+    //
+    // The driver is not started yet so let us the install driver
+    // First setup full path to driver name
+    //
+
+    if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation))) {
+        return 1;
+    }
+
+    if (!ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL)) {
+        ShowMessages("unable to install reversing machine's driver\n");
+
+        //
+        // Error - remove driver
+        //
+        ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
         return 1;
     }
@@ -529,7 +558,7 @@ HyperDbgUninstallVmmDriver()
 }
 
 /**
- * @brief Load the driver
+ * @brief Load the VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
@@ -539,7 +568,6 @@ HyperDbgLoadVmm()
 {
     string CpuID;
     DWORD ErrorNum;
-    HANDLE hProcess;
     DWORD ThreadId;
 
     if (g_DeviceHandle) {
@@ -607,7 +635,7 @@ HyperDbgLoadVmm()
     InitializeListHead(&g_EventTrace);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
-    HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
+    HANDLE Thread = CreateThread(NULL, 0, IrpBasedBufferThread, NULL, 0, &ThreadId);
 
     // if (Thread)
     // {
@@ -615,6 +643,51 @@ HyperDbgLoadVmm()
     // }
 
 #endif
+
+    return 0;
+}
+
+/**
+ * @brief Load the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgLoadReversingMachine()
+{
+    string CpuID;
+
+    /*
+    if (g_DeviceHandle) {
+        ShowMessages("handle of the driver found, if you use 'load' before, please "
+                     "unload it using 'unload'\n");
+        return 1;
+    }
+    */
+
+    CpuID = ReadVendorString();
+
+    ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
+
+    if (CpuID == "GenuineIntel") {
+        ShowMessages("virtualization technology is vt-x\n");
+    } else {
+        ShowMessages("this program is not designed to run in a non-VT-x "
+                     "environemnt !\n");
+        return 1;
+    }
+
+    if (VmxSupportDetection()) {
+        ShowMessages("vmx operation is supported by your processor\n");
+    } else {
+        ShowMessages("vmx operation is not supported by your processor\n");
+        return 1;
+    }
+
+    //
+    // Call hprdbgrev start function
+    //
 
     return 0;
 }

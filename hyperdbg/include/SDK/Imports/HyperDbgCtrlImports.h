@@ -14,6 +14,7 @@ extern "C" {
 __declspec(dllimport) int HyperDbgLoadVmm();
 __declspec(dllimport) int HyperDbgUnloadVmm();
 __declspec(dllimport) int HyperDbgInstallVmmDriver();
+__declspec(dllimport) int HyperDbgInstallReversingMachineDriver();
 __declspec(dllimport) int HyperDbgUninstallVmmDriver();
 __declspec(dllimport) int HyperDbgStopVmmDriver();
 
