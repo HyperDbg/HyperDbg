@@ -1,3 +1,13 @@
+/**
+ * @file HyperDbgCtrlImports.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Headers relating exported functions from controller interface
+ * @version 0.2
+ * @date 2023-02-02
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
 
 //

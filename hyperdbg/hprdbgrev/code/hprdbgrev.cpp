@@ -48,6 +48,16 @@ BOOLEAN g_IsReversingMachineModulesLoaded;
  */
 BOOLEAN g_IsVmxOffProcessStart;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+__declspec(dllexport) int ReversingMachineStart();
+
+#ifdef __cplusplus
+}
+#endif
+
 /**
  * @brief Show messages
  *
@@ -281,9 +291,9 @@ int ReversingMachineStart()
     // {
     // ShowMessages("thread Created successfully\n");
     // }
-}
 
-int main()
-{
-    std::cout << "Hello World!\n";
+    //
+    // Show loaded message
+    //
+    ShowMessages("reversing module is running...\n");
 }

@@ -688,6 +688,7 @@ HyperDbgLoadReversingMachine()
     //
     // Call hprdbgrev start function
     //
+    ReversingMachineStart();
 
     return 0;
 }
