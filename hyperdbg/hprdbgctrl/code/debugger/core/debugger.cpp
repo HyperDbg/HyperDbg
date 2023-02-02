@@ -14,17 +14,17 @@
 //
 // Global Variables
 //
-extern UINT64                   g_EventTag;
-extern LIST_ENTRY               g_EventTrace;
-extern BOOLEAN                  g_EventTraceInitialized;
-extern BOOLEAN                  g_BreakPrintingOutput;
-extern BOOLEAN                  g_AutoUnpause;
-extern BOOLEAN                  g_OutputSourcesInitialized;
-extern LIST_ENTRY               g_OutputSources;
-extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN                  g_IsConnectedToRemoteDebugger;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebugger;
+extern UINT64 g_EventTag;
+extern LIST_ENTRY g_EventTrace;
+extern BOOLEAN g_EventTraceInitialized;
+extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_AutoUnpause;
+extern BOOLEAN g_OutputSourcesInitialized;
+extern LIST_ENTRY g_OutputSources;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -36,94 +36,93 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 BOOLEAN
 ShowErrorMessage(UINT32 Error)
 {
-    switch (Error)
-    {
+    switch (Error) {
     case DEBUGGER_ERROR_TAG_NOT_EXISTS:
         ShowMessages("err, tag not found (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_ACTION_TYPE:
         ShowMessages("err, invalid action type (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO:
         ShowMessages("err, action buffer size is zero (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID:
         ShowMessages("err, the event type is invalid (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT:
         ShowMessages("err, unable to create event (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_ADDRESS:
         ShowMessages("err, invalid address (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_CORE_ID:
         ShowMessages("err, invalid core id (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES:
         ShowMessages("err, exception index exceed first 32 entries (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID:
         ShowMessages("err, interrupt index is not valid (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
         ShowMessages("err, unable to hide or unhide debugger (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE:
         ShowMessages("err, debugger already unhide (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER:
         ShowMessages("err, edit memeory request has invalid parameters (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS:
         ShowMessages("err, edit memory request has invalid address based on "
                      "current process layout, the address might be valid but not "
                      "present in the ram (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS:
         ShowMessages("err, edit memory request has invalid address based on other "
                      "process layout (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG:
         ShowMessages("err, modify event with invalid tag (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION:
         ShowMessages("err, modify event with invalid type of action (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER:
         ShowMessages("err, invalid parameter passsed to stepping core. (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED:
@@ -134,32 +133,32 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_BAUDRATE:
         ShowMessages("err, invalid baud rate (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT:
         ShowMessages("err, invalid serial port (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE:
         ShowMessages("err, invalid core selected in switching cores (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS:
         ShowMessages("err, unable to switch to the new process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT:
         ShowMessages("err, unable to run the script on remote debuggee (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
         ShowMessages("err, invalid register number (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE:
@@ -167,63 +166,63 @@ ShowErrorMessage(UINT32 Error)
                      "send an ioctl to re-allocate new pre-allocated buffers or "
                      "configure HyperDbg to pre-allocated more buffers by "
                      "configuring MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ALREADY_EXISTS_ON_THE_ADDRESS:
         ShowMessages("err, breakpoint already exists on target address, you can "
                      "use 'bl' command to view a list of breakpoints (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND:
         ShowMessages("err, breakpoint id is invalid (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED:
         ShowMessages("err, breakpoint already disabled (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED:
         ShowMessages("err, breakpoint already enabled (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_MEMORY_TYPE_INVALID:
         ShowMessages("err, the memory type is invalid (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_PROCESS_ID:
         ShowMessages("err, the process id is invalid, make sure to enter the "
                      "process id in hex format, or if you want to use it in decimal "
                      "format, add '0n' prefix to the number (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EVENT_IS_NOT_APPLIED:
         ShowMessages("err, the event is not applied (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
         ShowMessages("err, either the process id or the _EPROCESS is invalid or "
                      "cannot get the details based on the provided parameters (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER:
         ShowMessages("err, either the thread id, _ETHREAD, or _EPROCESS is invalid or "
                      "cannot get the details based on the provided parameters (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
         ShowMessages("err, the maximum breakpoint for a single page is hit, "
                      "you cannot apply more breakpoints in this page (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY:
@@ -231,94 +230,94 @@ ShowErrorMessage(UINT32 Error)
                      "filled at the next IOCTL when the debugger is continued (%x)\n"
                      "please visit the documentation for the 'prealloc' command or use "
                      "'.help prealloc' to to reserve more pre-allocated pools\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
         ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS:
         ShowMessages("err, failed to get the PML1 entry of the target address (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE:
         ShowMessages("err, the page modification is not applied, make sure that you don't "
                      "put multiple EPT Hooks or Monitors on a single page (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK:
         ShowMessages("err, could not build the EPT hook (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE:
         ShowMessages("err, could not find the allocation type (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_TEST_QUERY_INDEX:
         ShowMessages("err, invalid index specified for test query command (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS:
         ShowMessages("err, unable to attach to the target process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED:
         ShowMessages("err, unable to remove hooks as the entrypoint of user-mode "
                      "process is not reached yet (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS:
         ShowMessages("err, unable to remove hooks (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED:
         ShowMessages("err, the routines for getting the PEB is not correctly "
                      "initialized (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS:
         ShowMessages("err, unable to detect whether the process was 32-bit "
                      "or 64-bit (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS:
         ShowMessages("err, unable to kill the process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN:
         ShowMessages("err, invalid thread debugging token (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS:
         ShowMessages("err, unable to pause the threads of the process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_AN_ALREADY_ATTACHED_PROCESS:
         ShowMessages("err, the user debugger is already attached to this "
                      "process, please use the '.switch' command to switch "
                      "to this process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS:
         ShowMessages("err, the user debugger is not already attached to "
                      "the process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS:
@@ -327,7 +326,7 @@ ShowErrorMessage(UINT32 Error)
                      "target process, please make sure to remove all "
                      "the events and continue the target process, then "
                      "perform the detach again (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID:
@@ -335,33 +334,33 @@ ShowErrorMessage(UINT32 Error)
                      "as the target process id or thread id is not found in "
                      "the attached threads list, please view the list of "
                      "processes and threads by using the '.switch list' command (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS:
         ShowMessages("err, unable to switch to the process as the process doesn't "
                      "contain an active intercepted thread (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS:
         ShowMessages("err, unable to get user-mode modules of the process (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK:
         ShowMessages("err, unable to get the callstack (%x)\n",
-                     Error);
+            Error);
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS:
         ShowMessages("err, unable to query count of processes or threads (%x)\n",
-                     Error);
+            Error);
         break;
 
     default:
         ShowMessages("err, error not found (%x)\n",
-                     Error);
+            Error);
         return FALSE;
         break;
     }
@@ -377,10 +376,10 @@ ShowErrorMessage(UINT32 Error)
 UINT64
 DebuggerGetNtoskrnlBase()
 {
-    NTSTATUS             Status                  = STATUS_UNSUCCESSFUL;
-    UINT64               NtoskrnlBase            = NULL;
-    PRTL_PROCESS_MODULES Modules                 = NULL;
-    ULONG                SysModuleInfoBufferSize = 0;
+    NTSTATUS Status = STATUS_UNSUCCESSFUL;
+    UINT64 NtoskrnlBase = NULL;
+    PRTL_PROCESS_MODULES Modules = NULL;
+    ULONG SysModuleInfoBufferSize = 0;
 
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
@@ -391,12 +390,9 @@ DebuggerGetNtoskrnlBase()
 
     NtQuerySystemInformation(SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
-    for (int i = 0; i < Modules->NumberOfModules; i++)
-    {
-        if (!strcmp((const char *)Modules->Modules[i].FullPathName +
-                        Modules->Modules[i].OffsetToFileName,
-                    "ntoskrnl.exe"))
-        {
+    for (int i = 0; i < Modules->NumberOfModules; i++) {
+        if (!strcmp((const char*)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
+                "ntoskrnl.exe")) {
             NtoskrnlBase = (UINT64)Modules->Modules[i].ImageBase;
             break;
         }
@@ -416,41 +412,36 @@ DebuggerGetNtoskrnlBase()
 BOOLEAN
 DebuggerPauseDebuggee()
 {
-    BOOLEAN                        StatusIoctl    = 0;
-    ULONG                          ReturnedLength = 0;
-    DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest   = {0};
+    BOOLEAN StatusIoctl = 0;
+    ULONG ReturnedLength = 0;
+    DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = { 0 };
 
     //
     // Send a pause IOCTL
     //
-    StatusIoctl =
-        DeviceIoControl(g_DeviceHandle,                        // Handle to device
-                        IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
-                        &PauseRequest,                         // Input Buffer to driver.
-                        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
-                                                               // length
-                        &PauseRequest,                         // Output Buffer from driver.
-                        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
-                                                               // buffer in bytes.
-                        &ReturnedLength,                       // Bytes placed in buffer.
-                        NULL                                   // synchronous call
-        );
+    StatusIoctl = DeviceIoControl(g_DeviceHandle, // Handle to device
+        IOCTL_PAUSE_PACKET_RECEIVED, // IO Control code
+        &PauseRequest, // Input Buffer to driver.
+        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
+                                               // length
+        &PauseRequest, // Output Buffer from driver.
+        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
+                                               // buffer in bytes.
+        &ReturnedLength, // Bytes placed in buffer.
+        NULL // synchronous call
+    );
 
-    if (!StatusIoctl)
-    {
+    if (!StatusIoctl) {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
 
-    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-    {
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
         //
         // Nothing to show, the request was successfully processed
         //
         return TRUE;
-    }
-    else
-    {
+    } else {
         ShowErrorMessage(PauseRequest.Result);
         return FALSE;
     }
@@ -468,36 +459,27 @@ DebuggerPauseDebuggee()
 BOOLEAN
 IsConnectedToAnyInstanceOfDebuggerOrDebuggee()
 {
-    if (g_DeviceHandle)
-    {
+    if (g_DeviceHandle) {
         ShowMessages("err, the current system is already connected to the local "
                      "debugging, use '.disconnect' to disconnect\n");
         return TRUE;
-    }
-    else if (g_IsConnectedToRemoteDebuggee)
-    {
+    } else if (g_IsConnectedToRemoteDebuggee) {
         ShowMessages("err, the current system is already connected to remote "
                      "machine (debuggee), use '.disconnect' to disconnect from the "
                      "remote machine\n");
         return TRUE;
-    }
-    else if (g_IsConnectedToRemoteDebugger)
-    {
+    } else if (g_IsConnectedToRemoteDebugger) {
         ShowMessages("err, the current system is already connected to remote "
                      "machine (debugger), use '.disconnect' to disconnect from the "
                      "remote machine from debugger\n");
         return TRUE;
-    }
-    else if (g_IsSerialConnectedToRemoteDebuggee)
-    {
+    } else if (g_IsSerialConnectedToRemoteDebuggee) {
         ShowMessages(
             "err, the current system is already connected to remote "
             "machine (debuggee), use '.debug close' to disconnect from the "
             "remote machine\n");
         return TRUE;
-    }
-    else if (g_IsSerialConnectedToRemoteDebugger)
-    {
+    } else if (g_IsSerialConnectedToRemoteDebugger) {
         ShowMessages(
             "err, the current system is already connected to remote "
             "machine (debugger), use '.debug close' to disconnect from the "
@@ -519,24 +501,20 @@ IsConnectedToAnyInstanceOfDebuggerOrDebuggee()
 BOOLEAN
 IsTagExist(UINT64 Tag)
 {
-    PLIST_ENTRY                    TempList      = 0;
-    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+    PLIST_ENTRY TempList = 0;
+    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = { 0 };
 
-    if (!g_EventTraceInitialized)
-    {
+    if (!g_EventTraceInitialized) {
         return FALSE;
     }
 
     TempList = &g_EventTrace;
-    while (&g_EventTrace != TempList->Blink)
-    {
+    while (&g_EventTrace != TempList->Blink) {
         TempList = TempList->Blink;
 
         CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
-        if (CommandDetail->Tag == Tag ||
-            Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
-        {
+        if (CommandDetail->Tag == Tag || Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
             return TRUE;
         }
     }
@@ -562,49 +540,45 @@ IsTagExist(UINT64 Tag)
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> * SplittedCommand,
-                vector<string> * SplittedCommandCaseSensitive,
-                PBOOLEAN         ScriptSyntaxErrors,
-                PUINT64          BufferAddress,
-                PUINT32          BufferLength,
-                PUINT32          Pointer,
-                PUINT64          ScriptCodeBuffer)
+InterpretScript(vector<string>* SplittedCommand,
+    vector<string>* SplittedCommandCaseSensitive,
+    PBOOLEAN ScriptSyntaxErrors,
+    PUINT64 BufferAddress,
+    PUINT32 BufferLength,
+    PUINT32 Pointer,
+    PUINT64 ScriptCodeBuffer)
 {
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         AppendedFinalBuffer;
+    BOOLEAN IsTextVisited = FALSE;
+    BOOLEAN IsInState = FALSE;
+    BOOLEAN IsEnded = FALSE;
+    string AppendedFinalBuffer;
     vector<string> SaveBuffer;
-    vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
-    int            Index            = 0;
-    int            NewIndexToRemove = 0;
-    int            OpenBracket      = 0;
-    size_t         CountOfOpenBrackets;
-    size_t         CountOfCloseBrackets;
-    UINT32         IndexInCommandCaseSensitive          = 0;
+    vector<int> IndexesToRemove;
+    UCHAR* FinalBuffer;
+    int Index = 0;
+    int NewIndexToRemove = 0;
+    int OpenBracket = 0;
+    size_t CountOfOpenBrackets;
+    size_t CountOfCloseBrackets;
+    UINT32 IndexInCommandCaseSensitive = 0;
     vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
-    string         TempStr;
+    string TempStr;
 
     //
     // Indicate that there is an error at first
     //
     *ScriptSyntaxErrors = TRUE;
 
-    for (auto Section : *SplittedCommand)
-    {
+    for (auto Section : *SplittedCommand) {
         IndexInCommandCaseSensitive++;
         Index++;
 
-        if (IsInState)
-        {
-            if (OpenBracket == 0 && Section.find('{') == string::npos)
-            {
+        if (IsInState) {
+            if (OpenBracket == 0 && Section.find('{') == string::npos) {
                 //
                 // Check if the buffer is ended or not
                 //
-                if (!Section.compare("}"))
-                {
+                if (!Section.compare("}")) {
                     //
                     // Save to remove this string from the command
                     //
@@ -616,8 +590,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check if the script is end or not
                 //
-                if (HasEnding(Section, "}"))
-                {
+                if (HasEnding(Section, "}")) {
                     //
                     // Save to remove this string from the command
                     //
@@ -642,8 +615,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find('{') != string::npos)
-            {
+            if (Section.find('{') != string::npos) {
                 //
                 // We find a { between the script
                 //
@@ -662,8 +634,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "}"
             //
-            if (Section.find('}') != string::npos)
-            {
+            if (Section.find('}') != string::npos) {
                 //
                 // We find a } between the script
                 //
@@ -678,11 +649,10 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 OpenBracket -= CountOfBrackets;
 
-                if (OpenBracket < 0)
-                {
+                if (OpenBracket < 0) {
                     OpenBracket = 0;
-                    IsEnded     = TRUE;
-                    TempStr     = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    IsEnded = TRUE;
+                    TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                     SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
                     break;
                 }
@@ -699,8 +669,7 @@ InterpretScript(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && !Section.compare("{"))
-        {
+        if (IsTextVisited && !Section.compare("{")) {
             //
             // Save to remove this string from the command
             //
@@ -710,8 +679,7 @@ InterpretScript(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
-        {
+        if (IsTextVisited && Section.rfind('{', 0) == 0) {
             //
             // Section starts with {
             //
@@ -719,8 +687,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find('{') != string::npos)
-            {
+            if (Section.find('{') != string::npos) {
                 //
                 // We find a { between the script
                 //
@@ -740,8 +707,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if it ends with }
             //
-            if (OpenBracket == 0 && HasEnding(Section, "}"))
-            {
+            if (OpenBracket == 0 && HasEnding(Section, "}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -757,8 +723,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "}"
             //
-            if (Section.find('}') != string::npos)
-            {
+            if (Section.find('}') != string::npos) {
                 //
                 // We find a } between the script
                 //
@@ -773,11 +738,10 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 OpenBracket -= CountOfBrackets;
 
-                if (OpenBracket < 0)
-                {
+                if (OpenBracket < 0) {
                     OpenBracket = 0;
-                    IsEnded     = TRUE;
-                    TempStr     = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    IsEnded = TRUE;
+                    TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                     SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
                     break;
                 }
@@ -797,8 +761,7 @@ InterpretScript(vector<string> * SplittedCommand,
         //
         // Check if it's a script
         //
-        if (!Section.compare("script"))
-        {
+        if (!Section.compare("script")) {
             //
             // Save to remove this string from the command
             //
@@ -811,38 +774,35 @@ InterpretScript(vector<string> * SplittedCommand,
         //
         // Check if it's a script with script{
         //
-        if (!Section.compare("script{"))
-        {
+        if (!Section.compare("script{")) {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
             IsTextVisited = TRUE;
-            IsInState     = TRUE;
+            IsInState = TRUE;
             continue;
         }
 
         //
         // It's a script
         //
-        if (Section.rfind("script{", 0) == 0)
-        {
+        if (Section.rfind("script{", 0) == 0) {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
-            IsTextVisited        = TRUE;
-            IsInState            = TRUE;
-            CountOfOpenBrackets  = count(Section.begin(), Section.end(), '{');
+            IsTextVisited = TRUE;
+            IsInState = TRUE;
+            CountOfOpenBrackets = count(Section.begin(), Section.end(), '{');
             CountOfCloseBrackets = count(Section.begin(), Section.end(), '}');
 
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find('{') != string::npos)
-            {
+            if (Section.find('{') != string::npos) {
                 //
                 // We find a { between the script
                 //
@@ -854,9 +814,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 OpenBracket += CountOfOpenBrackets - 1;
             }
 
-            if (CountOfOpenBrackets == CountOfCloseBrackets ||
-                (OpenBracket == 0 && HasEnding(Section, "}")))
-            {
+            if (CountOfOpenBrackets == CountOfCloseBrackets || (OpenBracket == 0 && HasEnding(Section, "}"))) {
                 //
                 // remove the last character and first character append it to the
                 // ConditionBuffer
@@ -864,12 +822,10 @@ InterpretScript(vector<string> * SplittedCommand,
                 TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
-                IsEnded     = TRUE;
+                IsEnded = TRUE;
                 OpenBracket = 0;
                 break;
-            }
-            else
-            {
+            } else {
                 //
                 // Section starts with script{
                 //
@@ -878,8 +834,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check if script contains bracket "}"
                 //
-                if (Section.find('}') != string::npos)
-                {
+                if (Section.find('}') != string::npos) {
                     //
                     // We find a } between the script
                     //
@@ -894,10 +849,9 @@ InterpretScript(vector<string> * SplittedCommand,
                     //
                     OpenBracket -= CountOfBrackets;
 
-                    if (OpenBracket < 0)
-                    {
+                    if (OpenBracket < 0) {
                         OpenBracket = 0;
-                        IsEnded     = TRUE;
+                        IsEnded = TRUE;
                     }
                 }
 
@@ -910,8 +864,7 @@ InterpretScript(vector<string> * SplittedCommand,
     // Now we have everything in script buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
-    {
+    if (SaveBuffer.size() == 0) {
         //
         // Nothing in condition buffer, return zero
         //
@@ -921,8 +874,7 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // Check if we see that all the '{' ended with '}' or not
     //
-    if (OpenBracket != 0)
-    {
+    if (OpenBracket != 0) {
         //
         // Not all open brackets close with a }
         //
@@ -932,8 +884,7 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // Check if we see '}' at the end
     //
-    if (!IsEnded)
-    {
+    if (!IsEnded) {
         //
         // Nothing in condition buffer, return zero
         //
@@ -943,23 +894,20 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // If we reach here then there is sth in script buffer
     //
-    for (auto Section : SaveBuffer)
-    {
+    for (auto Section : SaveBuffer) {
         AppendedFinalBuffer.append(Section);
         AppendedFinalBuffer.append(" ");
     }
 
-    if (AppendedFinalBuffer.rfind("file:", 0) == 0)
-    {
+    if (AppendedFinalBuffer.rfind("file:", 0) == 0) {
         //
         // It's a file script
         //
-        std::ifstream     t(AppendedFinalBuffer.erase(0, 5).c_str());
+        std::ifstream t(AppendedFinalBuffer.erase(0, 5).c_str());
         std::stringstream buffer;
         buffer << t.rdbuf();
         AppendedFinalBuffer = buffer.str();
-        if (AppendedFinalBuffer.empty())
-        {
+        if (AppendedFinalBuffer.empty()) {
             ShowMessages("err, either script file is not found or it's empty\n");
 
             //
@@ -979,11 +927,9 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // Run script engine handler
     //
-    PVOID CodeBuffer =
-        ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str(), TRUE);
+    PVOID CodeBuffer = ScriptEngineParseWrapper((char*)AppendedFinalBuffer.c_str(), TRUE);
 
-    if (CodeBuffer == NULL)
-    {
+    if (CodeBuffer == NULL) {
         //
         // There was an error
         //
@@ -993,9 +939,7 @@ InterpretScript(vector<string> * SplittedCommand,
         // return TRUE to show that this item contains an script
         //
         return TRUE;
-    }
-    else
-    {
+    } else {
         //
         // There is no syntax error
         //
@@ -1010,9 +954,9 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // Set the buffer and length
     //
-    *BufferAddress    = ScriptEngineWrapperGetHead(CodeBuffer);
-    *BufferLength     = ScriptEngineWrapperGetSize(CodeBuffer);
-    *Pointer          = ScriptEngineWrapperGetPointer(CodeBuffer);
+    *BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+    *BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
+    *Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
     *ScriptCodeBuffer = (UINT64)CodeBuffer;
 
     //
@@ -1020,14 +964,11 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     NewIndexToRemove = 0;
 
-    for (auto IndexToRemove : IndexesToRemove)
-    {
+    for (auto IndexToRemove : IndexesToRemove) {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1050,36 +991,33 @@ InterpretScript(vector<string> * SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretConditionsAndCodes(vector<string> * SplittedCommand,
-                            vector<string> * SplittedCommandCaseSensitive,
-                            BOOLEAN          IsConditionBuffer,
-                            PUINT64          BufferAddress,
-                            PUINT32          BufferLength)
+InterpretConditionsAndCodes(vector<string>* SplittedCommand,
+    vector<string>* SplittedCommandCaseSensitive,
+    BOOLEAN IsConditionBuffer,
+    PUINT64 BufferAddress,
+    PUINT32 BufferLength)
 {
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         Temp;
-    string         TempStr;
-    string         AppendedFinalBuffer;
+    BOOLEAN IsTextVisited = FALSE;
+    BOOLEAN IsInState = FALSE;
+    BOOLEAN IsEnded = FALSE;
+    string Temp;
+    string TempStr;
+    string AppendedFinalBuffer;
     vector<string> SaveBuffer;
-    vector<CHAR>   ParsedBytes;
-    vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
-    int            NewIndexToRemove = 0;
-    int            Index            = 0;
+    vector<CHAR> ParsedBytes;
+    vector<int> IndexesToRemove;
+    UCHAR* FinalBuffer;
+    int NewIndexToRemove = 0;
+    int Index = 0;
 
-    for (auto Section : *SplittedCommand)
-    {
+    for (auto Section : *SplittedCommand) {
         Index++;
 
-        if (IsInState)
-        {
+        if (IsInState) {
             //
             // Check if the buffer is ended or not
             //
-            if (!Section.compare("}"))
-            {
+            if (!Section.compare("}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1091,8 +1029,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             //
             // Check if the condition is end or not
             //
-            if (HasEnding(Section, "}"))
-            {
+            if (HasEnding(Section, "}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1123,8 +1060,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && !Section.compare("{"))
-        {
+        if (IsTextVisited && !Section.compare("{")) {
             //
             // Save to remove this string from the command
             //
@@ -1134,8 +1070,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
-        {
+        if (IsTextVisited && Section.rfind('{', 0) == 0) {
             //
             // Section starts with {
             //
@@ -1143,8 +1078,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             //
             // Check if it ends with }
             //
-            if (HasEnding(Section, "}"))
-            {
+            if (HasEnding(Section, "}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1168,10 +1102,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsConditionBuffer)
-        {
-            if (!Section.compare("condition"))
-            {
+        if (IsConditionBuffer) {
+            if (!Section.compare("condition")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1180,14 +1112,11 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                 IsTextVisited = TRUE;
                 continue;
             }
-        }
-        else
-        {
+        } else {
             //
             // It's code
             //
-            if (!Section.compare("code"))
-            {
+            if (!Section.compare("code")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1198,60 +1127,50 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             }
         }
 
-        if (IsConditionBuffer)
-        {
-            if (!Section.compare("condition{"))
-            {
+        if (IsConditionBuffer) {
+            if (!Section.compare("condition{")) {
                 //
                 // Save to remove this string from the command
                 //
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-                IsInState     = TRUE;
+                IsInState = TRUE;
                 continue;
             }
-        }
-        else
-        {
+        } else {
             //
             // It's code
             //
-            if (!Section.compare("code{"))
-            {
+            if (!Section.compare("code{")) {
                 //
                 // Save to remove this string from the command
                 //
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-                IsInState     = TRUE;
+                IsInState = TRUE;
                 continue;
             }
         }
 
-        if (IsConditionBuffer)
-        {
-            if (Section.rfind("condition{", 0) == 0)
-            {
+        if (IsConditionBuffer) {
+            if (Section.rfind("condition{", 0) == 0) {
                 //
                 // Save to remove this string from the command
                 //
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-                IsInState     = TRUE;
+                IsInState = TRUE;
 
-                if (!HasEnding(Section, "}"))
-                {
+                if (!HasEnding(Section, "}")) {
                     //
                     // Section starts with condition{
                     //
                     SaveBuffer.push_back(Section.erase(0, 10));
                     continue;
-                }
-                else
-                {
+                } else {
                     //
                     // remove the last character and first character append it to the
                     // ConditionBuffer
@@ -1263,32 +1182,26 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                     break;
                 }
             }
-        }
-        else
-        {
+        } else {
             //
             // It's a code
             //
-            if (Section.rfind("code{", 0) == 0)
-            {
+            if (Section.rfind("code{", 0) == 0) {
                 //
                 // Save to remove this string from the command
                 //
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-                IsInState     = TRUE;
+                IsInState = TRUE;
 
-                if (!HasEnding(Section, "}"))
-                {
+                if (!HasEnding(Section, "}")) {
                     //
                     // Section starts with code{
                     //
                     SaveBuffer.push_back(Section.erase(0, 5));
                     continue;
-                }
-                else
-                {
+                } else {
                     //
                     // remove the last character and first character append it to the
                     // ConditionBuffer
@@ -1307,8 +1220,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     // Now we have everything in condition buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
-    {
+    if (SaveBuffer.size() == 0) {
         //
         // Nothing in condition buffer, return zero
         //
@@ -1318,8 +1230,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     //
     // Check if we see '}' at the end
     //
-    if (!IsEnded)
-    {
+    if (!IsEnded) {
         //
         // Nothing in condition buffer, return zero
         //
@@ -1334,22 +1245,15 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     //
     // If we reach here then there is sth in condition buffer
     //
-    for (auto Section : SaveBuffer)
-    {
+    for (auto Section : SaveBuffer) {
         //
         // Check if the section is started with '0x'
         //
-        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
-            Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
-        {
+        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0) {
             Temp = Section.erase(0, 2);
-        }
-        else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
-        {
+        } else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0) {
             Temp = Section.erase(0, 1);
-        }
-        else
-        {
+        } else {
             Temp = std::move(Section);
         }
 
@@ -1361,16 +1265,14 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
         //
         // check if the buffer is aligned to 2
         //
-        if (Temp.size() % 2 != 0)
-        {
+        if (Temp.size() % 2 != 0) {
             //
             // Add a zero to the start of the buffer
             //
             Temp.insert(0, 1, '0');
         }
 
-        if (!IsHexNotation(Temp))
-        {
+        if (!IsHexNotation(Temp)) {
             ShowMessages("please enter condition code in a hex notation\n");
             return FALSE;
         }
@@ -1385,27 +1287,24 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     //
     // Convert to a contigues buffer
     //
-    FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+    FinalBuffer = (unsigned char*)malloc(ParsedBytes.size());
     std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
 
     //
     // Set the buffer and length
     //
     *BufferAddress = (UINT64)FinalBuffer;
-    *BufferLength  = ParsedBytes.size();
+    *BufferLength = ParsedBytes.size();
 
     //
     // Removing the code or condition indexes from the command
     //
     NewIndexToRemove = 0;
-    for (auto IndexToRemove : IndexesToRemove)
-    {
+    for (auto IndexToRemove : IndexesToRemove) {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1427,37 +1326,34 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> * SplittedCommand,
-                vector<string> * SplittedCommandCaseSensitive,
-                vector<string> & InputSources)
+InterpretOutput(vector<string>* SplittedCommand,
+    vector<string>* SplittedCommandCaseSensitive,
+    vector<string>& InputSources)
 {
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         AppendedFinalBuffer;
+    BOOLEAN IsTextVisited = FALSE;
+    BOOLEAN IsInState = FALSE;
+    BOOLEAN IsEnded = FALSE;
+    string AppendedFinalBuffer;
     vector<string> SaveBuffer;
-    vector<int>    IndexesToRemove;
-    string         Token;
-    string         TempStr;
-    int            NewIndexToRemove                     = 0;
-    int            Index                                = 0;
-    char           Delimiter                            = ',';
-    size_t         Pos                                  = 0;
+    vector<int> IndexesToRemove;
+    string Token;
+    string TempStr;
+    int NewIndexToRemove = 0;
+    int Index = 0;
+    char Delimiter = ',';
+    size_t Pos = 0;
     vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
-    UINT32         IndexInCommandCaseSensitive          = 0;
+    UINT32 IndexInCommandCaseSensitive = 0;
 
-    for (auto Section : *SplittedCommand)
-    {
+    for (auto Section : *SplittedCommand) {
         IndexInCommandCaseSensitive++;
         Index++;
 
-        if (IsInState)
-        {
+        if (IsInState) {
             //
             // Check if the buffer is ended or not
             //
-            if (!Section.compare("}"))
-            {
+            if (!Section.compare("}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1469,8 +1365,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             //
             // Check if the output is end or not
             //
-            if (HasEnding(Section, "}"))
-            {
+            if (HasEnding(Section, "}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1502,8 +1397,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && !Section.compare("{"))
-        {
+        if (IsTextVisited && !Section.compare("{")) {
             //
             // Save to remove this string from the command
             //
@@ -1513,8 +1407,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
-        {
+        if (IsTextVisited && Section.rfind('{', 0) == 0) {
             //
             // Section starts with {
             //
@@ -1522,8 +1415,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             //
             // Check if it ends with }
             //
-            if (HasEnding(Section, "}"))
-            {
+            if (HasEnding(Section, "}")) {
                 //
                 // Save to remove this string from the command
                 //
@@ -1547,8 +1439,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (!Section.compare("output"))
-        {
+        if (!Section.compare("output")) {
             //
             // Save to remove this string from the command
             //
@@ -1558,38 +1449,33 @@ InterpretOutput(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (!Section.compare("output{"))
-        {
+        if (!Section.compare("output{")) {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
             IsTextVisited = TRUE;
-            IsInState     = TRUE;
+            IsInState = TRUE;
             continue;
         }
 
-        if (Section.rfind("output{", 0) == 0)
-        {
+        if (Section.rfind("output{", 0) == 0) {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
             IsTextVisited = TRUE;
-            IsInState     = TRUE;
+            IsInState = TRUE;
 
-            if (!HasEnding(Section, "}"))
-            {
+            if (!HasEnding(Section, "}")) {
                 //
                 // Section starts with output{
                 //
                 SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
                 continue;
-            }
-            else
-            {
+            } else {
                 //
                 // remove the last character and first character append it to the
                 // Output
@@ -1607,8 +1493,7 @@ InterpretOutput(vector<string> * SplittedCommand,
     // Now we have everything in buffer buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
-    {
+    if (SaveBuffer.size() == 0) {
         //
         // Nothing in output buffer, return zero
         //
@@ -1618,8 +1503,7 @@ InterpretOutput(vector<string> * SplittedCommand,
     //
     // Check if we see '}' at the end
     //
-    if (!IsEnded)
-    {
+    if (!IsEnded) {
         //
         // Nothing in output buffer, return zero
         //
@@ -1629,8 +1513,7 @@ InterpretOutput(vector<string> * SplittedCommand,
     //
     // If we reach here then there is sth in condition buffer
     //
-    for (auto Section : SaveBuffer)
-    {
+    for (auto Section : SaveBuffer) {
         AppendedFinalBuffer.append(Section);
         AppendedFinalBuffer.append(" ");
     }
@@ -1638,31 +1521,25 @@ InterpretOutput(vector<string> * SplittedCommand,
     //
     // Check if we see multiple sources or it's just one single output
     //
-    if (AppendedFinalBuffer.find(Delimiter) != std::string::npos)
-    {
+    if (AppendedFinalBuffer.find(Delimiter) != std::string::npos) {
         //
         // Delimiter found !
         //
-        while ((Pos = AppendedFinalBuffer.find(Delimiter)) != string::npos)
-        {
+        while ((Pos = AppendedFinalBuffer.find(Delimiter)) != string::npos) {
             Token = AppendedFinalBuffer.substr(0, Pos);
             Trim(Token);
 
-            if (!Token.empty())
-            {
+            if (!Token.empty()) {
                 InputSources.push_back(Token);
             }
 
             AppendedFinalBuffer.erase(0, Pos + sizeof(Delimiter) / sizeof(char));
         }
 
-        if (!AppendedFinalBuffer.empty())
-        {
+        if (!AppendedFinalBuffer.empty()) {
             InputSources.push_back(AppendedFinalBuffer);
         }
-    }
-    else
-    {
+    } else {
         //
         // Delimiter not found !
         //
@@ -1673,14 +1550,11 @@ InterpretOutput(vector<string> * SplittedCommand,
     // Removing the code or condition indexes from the command
     //
     NewIndexToRemove = 0;
-    for (auto IndexToRemove : IndexesToRemove)
-    {
+    for (auto IndexToRemove : IndexesToRemove) {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1696,15 +1570,14 @@ InterpretOutput(vector<string> * SplittedCommand,
  */
 BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
-                  UINT32                         EventBufferLength)
+    UINT32 EventBufferLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
+    BOOL Status;
+    ULONG ReturnedLength;
+    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = { 0 };
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempRegResult;
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
+    if (g_IsSerialConnectedToRemoteDebuggee) {
         //
         // It's a debuggger, we should send the events buffer directly
         // from here
@@ -1713,16 +1586,13 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send the buffer from here
         //
-        TempRegResult =
-            KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength);
+        TempRegResult = KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength);
 
         //
         // Move the buffer to local buffer
         //
         memcpy(&ReturnedBuffer, TempRegResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
-    }
-    else
-    {
+    } else {
         //
         // It's either a debuggee or a local debugging instance
         //
@@ -1733,39 +1603,32 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // Send IOCTL
         //
 
-        Status =
-            DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                            IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
-                            Event,                                        // Input Buffer to driver.
-                            EventBufferLength,                            // Input buffer length
-                            &ReturnedBuffer,                              // Output Buffer from driver.
-                            sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                          // of
-                                                                          // output
-                                                                          // buffer
-                                                                          // in
-                                                                          // bytes.
-                            &ReturnedLength,                              // Bytes placed in buffer.
-                            NULL                                          // synchronous call
-            );
+        Status = DeviceIoControl(g_DeviceHandle, // Handle to device
+            IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+            Event, // Input Buffer to driver.
+            EventBufferLength, // Input buffer length
+            &ReturnedBuffer, // Output Buffer from driver.
+            sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+            &ReturnedLength, // Bytes placed in buffer.
+            NULL // synchronous call
+        );
 
-        if (!Status)
-        {
+        if (!Status) {
             ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
             return FALSE;
         }
     }
 
-    if (ReturnedBuffer.IsSuccessful && ReturnedBuffer.Error == 0)
-    {
+    if (ReturnedBuffer.IsSuccessful && ReturnedBuffer.Error == 0) {
         //
         // Check for auto-unpause mode
         //
-        if (!g_IsSerialConnectedToRemoteDebuggee &&
-            !g_IsSerialConnectedToRemoteDebugger &&
-            g_BreakPrintingOutput &&
-            g_AutoUnpause)
-        {
+        if (!g_IsSerialConnectedToRemoteDebuggee && !g_IsSerialConnectedToRemoteDebugger && g_BreakPrintingOutput && g_AutoUnpause) {
             //
             // Allow debugger to show its contents
             //
@@ -1778,21 +1641,17 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // If it's a remote debugger then we send the remote debuggee a 'g'
             //
-            if (g_IsConnectedToRemoteDebuggee)
-            {
+            if (g_IsConnectedToRemoteDebuggee) {
                 RemoteConnectionSendCommand("g", strlen("g") + 1);
             }
 
             ShowMessages("\n");
         }
-    }
-    else
-    {
+    } else {
         //
         // Show the error
         //
-        if (ReturnedBuffer.Error != 0)
-        {
+        if (ReturnedBuffer.Error != 0) {
             ShowErrorMessage(ReturnedBuffer.Error);
         }
 
@@ -1818,20 +1677,19 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  */
 BOOLEAN
 RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
-                      PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
-                      UINT32                         ActionBreakToDebuggerLength,
-                      PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
-                      UINT32                         ActionCustomCodeLength,
-                      PDEBUGGER_GENERAL_ACTION       ActionScript,
-                      UINT32                         ActionScriptLength)
+    PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
+    UINT32 ActionBreakToDebuggerLength,
+    PDEBUGGER_GENERAL_ACTION ActionCustomCode,
+    UINT32 ActionCustomCodeLength,
+    PDEBUGGER_GENERAL_ACTION ActionScript,
+    UINT32 ActionScriptLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
+    BOOL Status;
+    ULONG ReturnedLength;
+    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = { 0 };
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempAddingResult;
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
+    if (g_IsSerialConnectedToRemoteDebuggee) {
         //
         // It's action(s) in debugger mode
         //
@@ -1839,8 +1697,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send Break to debugger packet to debuggee
         //
-        if (ActionBreakToDebugger != NULL)
-        {
+        if (ActionBreakToDebugger != NULL) {
             //
             // Send the add action to event from here
             //
@@ -1857,8 +1714,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send custom code packet to debuggee
         //
-        if (ActionCustomCode != NULL)
-        {
+        if (ActionCustomCode != NULL) {
             //
             // Send the add action to event from here
             //
@@ -1875,8 +1731,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send custom code packet to debuggee
         //
-        if (ActionScript != NULL)
-        {
+        if (ActionScript != NULL) {
             //
             // Send the add action to event from here
             //
@@ -1889,9 +1744,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
         }
-    }
-    else
-    {
+    } else {
         //
         // It's either a local debugger to in vmi-mode remote conntection
         //
@@ -1905,26 +1758,24 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send Break to debugger ioctl
         //
-        if (ActionBreakToDebugger != NULL)
-        {
+        if (ActionBreakToDebugger != NULL) {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionBreakToDebugger,                        // Input Buffer to driver.
-                ActionBreakToDebuggerLength,                  // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle, // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                ActionBreakToDebugger, // Input Buffer to driver.
+                ActionBreakToDebuggerLength, // Input buffer length
+                &ReturnedBuffer, // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
                                                               // of
                                                               // output
                                                               // buffer
                                                               // in
                                                               // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                &ReturnedLength, // Bytes placed in buffer.
+                NULL // synchronous call
             );
 
-            if (!Status)
-            {
+            if (!Status) {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 return FALSE;
             }
@@ -1933,26 +1784,24 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send custom code ioctl
         //
-        if (ActionCustomCode != NULL)
-        {
+        if (ActionCustomCode != NULL) {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionCustomCode,                             // Input Buffer to driver.
-                ActionCustomCodeLength,                       // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle, // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                ActionCustomCode, // Input Buffer to driver.
+                ActionCustomCodeLength, // Input buffer length
+                &ReturnedBuffer, // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
                                                               // of
                                                               // output
                                                               // buffer
                                                               // in
                                                               // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                &ReturnedLength, // Bytes placed in buffer.
+                NULL // synchronous call
             );
 
-            if (!Status)
-            {
+            if (!Status) {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 return FALSE;
             }
@@ -1961,26 +1810,24 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send custom code ioctl
         //
-        if (ActionScript != NULL)
-        {
+        if (ActionScript != NULL) {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionScript,                                 // Input Buffer to driver.
-                ActionScriptLength,                           // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle, // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                ActionScript, // Input Buffer to driver.
+                ActionScriptLength, // Input buffer length
+                &ReturnedBuffer, // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
                                                               // of
                                                               // output
                                                               // buffer
                                                               // in
                                                               // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                &ReturnedLength, // Bytes placed in buffer.
+                NULL // synchronous call
             );
 
-            if (!Status)
-            {
+            if (!Status) {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 return FALSE;
             }
@@ -2022,32 +1869,26 @@ GetNewDebuggerEventTag()
  *
  * @return VOID
  */
-VOID
-FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
-                           PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
-                           PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
-                           PDEBUGGER_GENERAL_ACTION       ActionScript)
+VOID FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+    PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION ActionCustomCode,
+    PDEBUGGER_GENERAL_ACTION ActionScript)
 {
-    if (Event != NULL)
-    {
-        if (Event->CommandStringBuffer != NULL)
-        {
+    if (Event != NULL) {
+        if (Event->CommandStringBuffer != NULL) {
             free(Event->CommandStringBuffer);
         }
 
         free(Event);
     }
 
-    if (ActionBreakToDebugger != NULL)
-    {
+    if (ActionBreakToDebugger != NULL) {
         free(ActionBreakToDebugger);
     }
-    if (ActionCustomCode != NULL)
-    {
+    if (ActionCustomCode != NULL) {
         free(ActionCustomCode);
     }
-    if (ActionScript != NULL)
-    {
+    if (ActionScript != NULL) {
         free(ActionScript);
     }
 }
@@ -2074,68 +1915,67 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  */
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                    SplittedCommand,
-    vector<string> *                    SplittedCommandCaseSensitive,
-    VMM_EVENT_TYPE_ENUM                 EventType,
-    PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
-    PUINT32                             EventBufferLength,
-    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,
-    PUINT32                             ActionBufferLengthBreakToDebugger,
-    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillCustomCode,
-    PUINT32                             ActionBufferLengthCustomCode,
-    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillScript,
-    PUINT32                             ActionBufferLengthScript,
+    vector<string>* SplittedCommand,
+    vector<string>* SplittedCommandCaseSensitive,
+    VMM_EVENT_TYPE_ENUM EventType,
+    PDEBUGGER_GENERAL_EVENT_DETAIL* EventDetailsToFill,
+    PUINT32 EventBufferLength,
+    PDEBUGGER_GENERAL_ACTION* ActionDetailsToFillBreakToDebugger,
+    PUINT32 ActionBufferLengthBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION* ActionDetailsToFillCustomCode,
+    PUINT32 ActionBufferLengthCustomCode,
+    PDEBUGGER_GENERAL_ACTION* ActionDetailsToFillScript,
+    PUINT32 ActionBufferLengthScript,
     PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing)
 {
-    BOOLEAN                        Result                         = FALSE;
-    PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent                      = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionBreak                = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionScript               = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionCustomCode           = NULL;
-    UINT32                         LengthOfCustomCodeActionBuffer = 0;
-    UINT32                         LengthOfScriptActionBuffer     = 0;
-    UINT32                         LengthOfBreakActionBuffer      = 0;
-    UINT64                         ConditionBufferAddress;
-    UINT32                         ConditionBufferLength = 0;
-    vector<string>                 ListOfOutputSources;
-    UINT64                         CodeBufferAddress;
-    UINT32                         CodeBufferLength = 0;
-    UINT64                         ScriptBufferAddress;
-    UINT64                         ScriptCodeBuffer     = 0;
-    BOOLEAN                        HasScriptSyntaxError = 0;
-    UINT32                         ScriptBufferLength   = 0;
-    UINT32                         ScriptBufferPointer  = 0;
-    UINT32                         LengthOfEventBuffer  = 0;
-    string                         CommandString;
-    BOOLEAN                        IsAPostEvent                     = FALSE;
-    BOOLEAN                        IsAShortCircuitingEventByDefault = FALSE;
-    BOOLEAN                        HasConditionBuffer               = FALSE;
-    BOOLEAN                        HasOutputPath                    = FALSE;
-    BOOLEAN                        HasCodeBuffer                    = FALSE;
-    BOOLEAN                        HasScript                        = FALSE;
-    BOOLEAN                        IsNextCommandPid                 = FALSE;
-    BOOLEAN                        IsNextCommandCoreId              = FALSE;
-    BOOLEAN                        IsNextCommandBufferSize          = FALSE;
-    BOOLEAN                        IsNextCommandImmediateMessaging  = FALSE;
-    BOOLEAN                        IsNextCommandExecutionMode       = FALSE;
-    BOOLEAN                        IsNextCommandSc                  = FALSE;
-    BOOLEAN                        ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
-    UINT32                         CoreId;
-    UINT32                         ProcessId;
-    UINT32                         IndexOfValidSourceTags;
-    UINT32                         RequestBuffer = 0;
-    PLIST_ENTRY                    TempList;
-    BOOLEAN                        OutputSourceFound;
-    vector<int>                    IndexesToRemove;
-    vector<UINT64>                 ListOfValidSourceTags;
-    int                            NewIndexToRemove = 0;
-    int                            Index            = 0;
+    BOOLEAN Result = FALSE;
+    PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent = NULL;
+    PDEBUGGER_GENERAL_ACTION TempActionBreak = NULL;
+    PDEBUGGER_GENERAL_ACTION TempActionScript = NULL;
+    PDEBUGGER_GENERAL_ACTION TempActionCustomCode = NULL;
+    UINT32 LengthOfCustomCodeActionBuffer = 0;
+    UINT32 LengthOfScriptActionBuffer = 0;
+    UINT32 LengthOfBreakActionBuffer = 0;
+    UINT64 ConditionBufferAddress;
+    UINT32 ConditionBufferLength = 0;
+    vector<string> ListOfOutputSources;
+    UINT64 CodeBufferAddress;
+    UINT32 CodeBufferLength = 0;
+    UINT64 ScriptBufferAddress;
+    UINT64 ScriptCodeBuffer = 0;
+    BOOLEAN HasScriptSyntaxError = 0;
+    UINT32 ScriptBufferLength = 0;
+    UINT32 ScriptBufferPointer = 0;
+    UINT32 LengthOfEventBuffer = 0;
+    string CommandString;
+    BOOLEAN IsAPostEvent = FALSE;
+    BOOLEAN IsAShortCircuitingEventByDefault = FALSE;
+    BOOLEAN HasConditionBuffer = FALSE;
+    BOOLEAN HasOutputPath = FALSE;
+    BOOLEAN HasCodeBuffer = FALSE;
+    BOOLEAN HasScript = FALSE;
+    BOOLEAN IsNextCommandPid = FALSE;
+    BOOLEAN IsNextCommandCoreId = FALSE;
+    BOOLEAN IsNextCommandBufferSize = FALSE;
+    BOOLEAN IsNextCommandImmediateMessaging = FALSE;
+    BOOLEAN IsNextCommandExecutionMode = FALSE;
+    BOOLEAN IsNextCommandSc = FALSE;
+    BOOLEAN ImmediateMessagePassing = UseImmediateMessagingByDefaultOnEvents;
+    UINT32 CoreId;
+    UINT32 ProcessId;
+    UINT32 IndexOfValidSourceTags;
+    UINT32 RequestBuffer = 0;
+    PLIST_ENTRY TempList;
+    BOOLEAN OutputSourceFound;
+    vector<int> IndexesToRemove;
+    vector<UINT64> ListOfValidSourceTags;
+    int NewIndexToRemove = 0;
+    int Index = 0;
 
     //
     // Create a command string to show in the history
     //
-    for (auto Section : *SplittedCommandCaseSensitive)
-    {
+    for (auto Section : *SplittedCommandCaseSensitive) {
         CommandString.append(Section);
         CommandString.append(" ");
     }
@@ -2160,8 +2000,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a condition buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
-    {
+    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength)) {
         //
         // Indicate condition is not available
         //
@@ -2170,9 +2009,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // ShowMessages("\nNo condition!\n");
         //
-    }
-    else
-    {
+    } else {
         //
         // Indicate condition is available
         //
@@ -2202,8 +2039,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a code buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
-    {
+    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength)) {
         //
         // Indicate code is not available
         //
@@ -2211,9 +2047,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // ShowMessages("\nNo custom code!\n");
         //
-    }
-    else
-    {
+    } else {
         //
         // Indicate code is available
         //
@@ -2243,13 +2077,12 @@ InterpretGeneralEventAndActionsFields(
     // Check if there is a Script block in the command
     //
     if (!InterpretScript(SplittedCommand,
-                         SplittedCommandCaseSensitive,
-                         &HasScriptSyntaxError,
-                         &ScriptBufferAddress,
-                         &ScriptBufferLength,
-                         &ScriptBufferPointer,
-                         &ScriptCodeBuffer))
-    {
+            SplittedCommandCaseSensitive,
+            &HasScriptSyntaxError,
+            &ScriptBufferAddress,
+            &ScriptBufferLength,
+            &ScriptBufferPointer,
+            &ScriptCodeBuffer)) {
         //
         // Indicate code is not available
         //
@@ -2257,14 +2090,11 @@ InterpretGeneralEventAndActionsFields(
         //
         // ShowMessages("\nNo script!\n");
         //
-    }
-    else
-    {
+    } else {
         //
         // Check if there is a syntax error
         //
-        if (HasScriptSyntaxError)
-        {
+        if (HasScriptSyntaxError) {
             free(BufferOfCommandString);
 
             *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SCRIPT_SYNTAX_ERROR;
@@ -2280,8 +2110,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a output path in the command
     //
-    if (!InterpretOutput(SplittedCommand, SplittedCommandCaseSensitive, ListOfOutputSources))
-    {
+    if (!InterpretOutput(SplittedCommand, SplittedCommandCaseSensitive, ListOfOutputSources)) {
         //
         // Indicate output is not available
         //
@@ -2290,14 +2119,11 @@ InterpretGeneralEventAndActionsFields(
         //
         // ShowMessages("\nNo condition!\n");
         //
-    }
-    else
-    {
+    } else {
         //
         // Check for empty input
         //
-        if (ListOfOutputSources.size() == 0)
-        {
+        if (ListOfOutputSources.size() == 0) {
             //
             // No input !
             //
@@ -2311,9 +2137,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // Check whether the size exceed maximum size or not
         //
-        if (ListOfOutputSources.size() >
-            DebuggerOutputSourceMaximumRemoteSourceForSingleEvent)
-        {
+        if (ListOfOutputSources.size() > DebuggerOutputSourceMaximumRemoteSourceForSingleEvent) {
             free(BufferOfCommandString);
 
             ShowMessages(
@@ -2328,8 +2152,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // Check whether the output source initialized or not
         //
-        if (!g_OutputSourcesInitialized)
-        {
+        if (!g_OutputSourcesInitialized) {
             free(BufferOfCommandString);
 
             ShowMessages("err, the name you entered, not found. Did you use "
@@ -2341,9 +2164,8 @@ InterpretGeneralEventAndActionsFields(
         //
         // Convert output sources to the corresponding tags
         //
-        for (auto item : ListOfOutputSources)
-        {
-            TempList          = 0;
+        for (auto item : ListOfOutputSources) {
+            TempList = 0;
             OutputSourceFound = FALSE;
 
             //
@@ -2352,21 +2174,18 @@ InterpretGeneralEventAndActionsFields(
             //
             TempList = &g_OutputSources;
 
-            while (&g_OutputSources != TempList->Flink)
-            {
+            while (&g_OutputSources != TempList->Flink) {
                 TempList = TempList->Flink;
 
-                PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails =
-                    CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
+                PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
 
                 if (strcmp(CurrentOutputSourceDetails->Name,
-                           RemoveSpaces(item).c_str()) == 0)
-                {
+                        RemoveSpaces(item).c_str())
+                    == 0) {
                     //
                     // Check to see the source state, whether it is closed or not
                     //
-                    if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_CLOSED)
-                    {
+                    if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_CLOSED) {
                         free(BufferOfCommandString);
 
                         ShowMessages("err, output source already closed\n");
@@ -2392,8 +2211,7 @@ InterpretGeneralEventAndActionsFields(
                 }
             }
 
-            if (!OutputSourceFound)
-            {
+            if (!OutputSourceFound) {
                 free(BufferOfCommandString);
 
                 ShowMessages("err, the name you entered, not found. Did you use "
@@ -2444,8 +2262,7 @@ InterpretGeneralEventAndActionsFields(
 
   */
 
-    LengthOfEventBuffer =
-        sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
+    LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
 
     TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(LengthOfEventBuffer);
     RtlZeroMemory(TempEvent, LengthOfEventBuffer);
@@ -2453,8 +2270,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if buffer is availabe
     //
-    if (TempEvent == NULL)
-    {
+    if (TempEvent == NULL) {
         ShowMessages("err, allocation error\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ALLOCATION_ERROR;
         goto ReturnWithError;
@@ -2477,18 +2293,15 @@ InterpretGeneralEventAndActionsFields(
     //
     TempEvent->CoreId = DEBUGGER_EVENT_APPLY_TO_ALL_CORES;
 
-    if (g_ActiveProcessDebuggingState.IsActive)
-    {
+    if (g_ActiveProcessDebuggingState.IsActive) {
         ShowMessages("notice: as you're debugging a user-mode application, "
                      "this event will only trigger on your current debugging process "
                      "(pid:%x). If you want the event from the entire system, "
                      "add 'pid all' to the event\n",
-                     g_ActiveProcessDebuggingState.ProcessId);
+            g_ActiveProcessDebuggingState.ProcessId);
 
         TempEvent->ProcessId = g_ActiveProcessDebuggingState.ProcessId;
-    }
-    else
-    {
+    } else {
         TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
     }
 
@@ -2510,11 +2323,10 @@ InterpretGeneralEventAndActionsFields(
     //
     // Fill the buffer of condition for event
     //
-    if (HasConditionBuffer)
-    {
+    if (HasConditionBuffer) {
         memcpy((PVOID)((UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL)),
-               (PVOID)ConditionBufferAddress,
-               ConditionBufferLength);
+            (PVOID)ConditionBufferAddress,
+            ConditionBufferLength);
 
         //
         // Set the size of the buffer for event condition
@@ -2525,17 +2337,14 @@ InterpretGeneralEventAndActionsFields(
     //
     // Fill the buffer of custom code for action
     //
-    if (HasCodeBuffer)
-    {
+    if (HasCodeBuffer) {
         //
         // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
         // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
         //
-        LengthOfCustomCodeActionBuffer =
-            sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+        LengthOfCustomCodeActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
 
-        TempActionCustomCode =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
+        TempActionCustomCode = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
 
         RtlZeroMemory(TempActionCustomCode, LengthOfCustomCodeActionBuffer);
 
@@ -2567,22 +2376,19 @@ InterpretGeneralEventAndActionsFields(
     //
     // Fill the buffer of script for action
     //
-    if (HasScript)
-    {
+    if (HasScript) {
         //
         // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
         // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
         //
-        LengthOfScriptActionBuffer =
-            sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
-        TempActionScript =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
+        LengthOfScriptActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
+        TempActionScript = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
 
         RtlZeroMemory(TempActionScript, LengthOfScriptActionBuffer);
 
         memcpy((PVOID)((UINT64)TempActionScript + sizeof(DEBUGGER_GENERAL_ACTION)),
-               (PVOID)ScriptBufferAddress,
-               ScriptBufferLength);
+            (PVOID)ScriptBufferAddress,
+            ScriptBufferLength);
         //
         // Set the action Tag
         //
@@ -2596,7 +2402,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // Set the action buffer size and pointer
         //
-        TempActionScript->ScriptBufferSize    = ScriptBufferLength;
+        TempActionScript->ScriptBufferSize = ScriptBufferLength;
         TempActionScript->ScriptBufferPointer = ScriptBufferPointer;
 
         //
@@ -2614,16 +2420,14 @@ InterpretGeneralEventAndActionsFields(
     // If this action didn't contain a buffer for custom code and
     // a buffer for script then it's a break to debugger
     //
-    if (!HasCodeBuffer && !HasScript)
-    {
+    if (!HasCodeBuffer && !HasScript) {
         //
         // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
         // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
         //
         LengthOfBreakActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION);
 
-        TempActionBreak =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
+        TempActionBreak = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
 
         RtlZeroMemory(TempActionBreak, LengthOfBreakActionBuffer);
 
@@ -2646,32 +2450,24 @@ InterpretGeneralEventAndActionsFields(
     //
     // Interpret rest of the command
     //
-    for (auto Section : *SplittedCommand)
-    {
+    for (auto Section : *SplittedCommand) {
         Index++;
-        if (IsNextCommandBufferSize)
-        {
-            if (!ConvertStringToUInt32(Section, &RequestBuffer))
-            {
+        if (IsNextCommandBufferSize) {
+            if (!ConvertStringToUInt32(Section, &RequestBuffer)) {
                 ShowMessages("err, buffer size is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 goto ReturnWithError;
-            }
-            else
-            {
+            } else {
                 //
                 // Set the specific requested buffer size
                 //
-                if (TempActionBreak != NULL)
-                {
+                if (TempActionBreak != NULL) {
                     TempActionBreak->PreAllocatedBuffer = RequestBuffer;
                 }
-                if (TempActionScript != NULL)
-                {
+                if (TempActionScript != NULL) {
                     TempActionScript->PreAllocatedBuffer = RequestBuffer;
                 }
-                if (TempActionCustomCode != NULL)
-                {
+                if (TempActionCustomCode != NULL) {
                     TempActionCustomCode->PreAllocatedBuffer = RequestBuffer;
                 }
             }
@@ -2685,18 +2481,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandImmediateMessaging)
-        {
-            if (!Section.compare("yes"))
-            {
+        if (IsNextCommandImmediateMessaging) {
+            if (!Section.compare("yes")) {
                 ImmediateMessagePassing = TRUE;
-            }
-            else if (!Section.compare("no"))
-            {
+            } else if (!Section.compare("no")) {
                 ImmediateMessagePassing = FALSE;
-            }
-            else
-            {
+            } else {
                 //
                 // err, not token recognized error
                 //
@@ -2716,18 +2506,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandExecutionMode)
-        {
-            if (!Section.compare("pre"))
-            {
+        if (IsNextCommandExecutionMode) {
+            if (!Section.compare("pre")) {
                 IsAPostEvent = FALSE;
-            }
-            else if (!Section.compare("post"))
-            {
+            } else if (!Section.compare("post")) {
                 IsAPostEvent = TRUE;
-            }
-            else
-            {
+            } else {
                 //
                 // err, not token recognized error
                 //
@@ -2747,18 +2531,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandSc)
-        {
-            if (!Section.compare("on"))
-            {
+        if (IsNextCommandSc) {
+            if (!Section.compare("on")) {
                 IsAShortCircuitingEventByDefault = TRUE;
-            }
-            else if (!Section.compare("off"))
-            {
+            } else if (!Section.compare("off")) {
                 IsAShortCircuitingEventByDefault = FALSE;
-            }
-            else
-            {
+            } else {
                 //
                 // err, not token recognized error
                 //
@@ -2778,21 +2556,15 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandPid)
-        {
-            if (!Section.compare("all"))
-            {
+        if (IsNextCommandPid) {
+            if (!Section.compare("all")) {
                 TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
-            }
-            else if (!ConvertStringToUInt32(Section, &ProcessId))
-            {
+            } else if (!ConvertStringToUInt32(Section, &ProcessId)) {
                 ShowMessages("err, pid is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
                 goto ReturnWithError;
-            }
-            else
-            {
+            } else {
                 //
                 // Set the specific process id
                 //
@@ -2809,16 +2581,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandCoreId)
-        {
-            if (!ConvertStringToUInt32(Section, &CoreId))
-            {
+        if (IsNextCommandCoreId) {
+            if (!ConvertStringToUInt32(Section, &CoreId)) {
                 ShowMessages("err, core id is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 goto ReturnWithError;
-            }
-            else
-            {
+            } else {
                 //
                 // Set the specific core id
                 //
@@ -2834,8 +2602,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("pid"))
-        {
+        if (!Section.compare("pid")) {
             IsNextCommandPid = TRUE;
 
             //
@@ -2845,8 +2612,7 @@ InterpretGeneralEventAndActionsFields(
 
             continue;
         }
-        if (!Section.compare("core"))
-        {
+        if (!Section.compare("core")) {
             IsNextCommandCoreId = TRUE;
 
             //
@@ -2857,8 +2623,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("imm"))
-        {
+        if (!Section.compare("imm")) {
             //
             // the next commnad is immediate messaging indicator
             //
@@ -2872,8 +2637,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("mode"))
-        {
+        if (!Section.compare("mode")) {
             //
             // the next commnad is execution mode (pre- and post-events)
             //
@@ -2887,8 +2651,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("sc"))
-        {
+        if (!Section.compare("sc")) {
             //
             // the next commnad is the default short-circuiting state
             //
@@ -2902,8 +2665,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("buffer"))
-        {
+        if (!Section.compare("buffer")) {
             IsNextCommandBufferSize = TRUE;
 
             //
@@ -2918,48 +2680,42 @@ InterpretGeneralEventAndActionsFields(
     //
     // Additional validation
     //
-    if (IsNextCommandCoreId)
-    {
+    if (IsNextCommandCoreId) {
         ShowMessages("err, please specify a value for 'core'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandPid)
-    {
+    if (IsNextCommandPid) {
         ShowMessages("err, please specify a value for 'pid'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandBufferSize)
-    {
+    if (IsNextCommandBufferSize) {
         ShowMessages("err, please specify a value for 'buffer'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandImmediateMessaging)
-    {
+    if (IsNextCommandImmediateMessaging) {
         ShowMessages("err, please specify a value for 'imm'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandExecutionMode)
-    {
+    if (IsNextCommandExecutionMode) {
         ShowMessages("err, please specify a value for 'mode'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandSc)
-    {
+    if (IsNextCommandSc) {
         ShowMessages("err, please specify a value for 'sc'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
@@ -2969,8 +2725,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check to make sure that short-circuiting is not used in post-events
     //
-    if (IsAPostEvent && IsAShortCircuitingEventByDefault)
-    {
+    if (IsAPostEvent && IsAShortCircuitingEventByDefault) {
         ShowMessages(
             "err, using the short-circuiting mechanism with post-events "
             "doesn't make sense; it's not supported!\n");
@@ -2982,8 +2737,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // It's not possible to break to debugger in vmi-mode
     //
-    if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
-    {
+    if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL) {
         ShowMessages(
             "err, it's not possible to break to the debugger in VMI Mode. "
             "You should operate in Debugger Mode to break and get the "
@@ -2998,8 +2752,7 @@ InterpretGeneralEventAndActionsFields(
     // We do not support non-immediate message passing if the user
     // specified a special output
     //
-    if (!ImmediateMessagePassing && HasOutputPath)
-    {
+    if (!ImmediateMessagePassing && HasOutputPath) {
         ShowMessages("err, non-immediate message passing is not supported in "
                      "'output-forwarding mode'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE;
@@ -3010,16 +2763,13 @@ InterpretGeneralEventAndActionsFields(
     //
     // Set the specific requested immediate message passing
     //
-    if (TempActionBreak != NULL)
-    {
+    if (TempActionBreak != NULL) {
         TempActionBreak->ImmediateMessagePassing = ImmediateMessagePassing;
     }
-    if (TempActionScript != NULL)
-    {
+    if (TempActionScript != NULL) {
         TempActionScript->ImmediateMessagePassing = ImmediateMessagePassing;
     }
-    if (TempActionCustomCode != NULL)
-    {
+    if (TempActionCustomCode != NULL) {
         TempActionCustomCode->ImmediateMessagePassing = ImmediateMessagePassing;
     }
 
@@ -3027,8 +2777,7 @@ InterpretGeneralEventAndActionsFields(
     // Set the tags into the event list
     //
     IndexOfValidSourceTags = 0;
-    for (auto item : ListOfValidSourceTags)
-    {
+    for (auto item : ListOfValidSourceTags) {
         TempEvent->OutputSourceTags[IndexOfValidSourceTags] = item;
 
         //
@@ -3040,28 +2789,23 @@ InterpretGeneralEventAndActionsFields(
     //
     // If it has output then we should indicate it in event's object
     //
-    if (HasOutputPath)
-    {
+    if (HasOutputPath) {
         TempEvent->HasCustomOutput = TRUE;
     }
 
     //
     // Set the specific requested short-circuiting state
     //
-    if (IsAShortCircuitingEventByDefault)
-    {
+    if (IsAShortCircuitingEventByDefault) {
         TempEvent->EnableShortCircuiting = TRUE;
     }
 
     //
     // Set the specific event mode
     //
-    if (IsAPostEvent)
-    {
+    if (IsAPostEvent) {
         TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
-    }
-    else
-    {
+    } else {
         //
         // By default, event's are 'pre-event'
         //
@@ -3072,44 +2816,37 @@ InterpretGeneralEventAndActionsFields(
     // Fill the address and length of event before release
     //
     *EventDetailsToFill = TempEvent;
-    *EventBufferLength  = LengthOfEventBuffer;
+    *EventBufferLength = LengthOfEventBuffer;
 
     //
     // Fill the address and length of action before release
     //
-    if (TempActionBreak != NULL)
-    {
+    if (TempActionBreak != NULL) {
         *ActionDetailsToFillBreakToDebugger = TempActionBreak;
-        *ActionBufferLengthBreakToDebugger  = LengthOfBreakActionBuffer;
+        *ActionBufferLengthBreakToDebugger = LengthOfBreakActionBuffer;
     }
-    if (TempActionScript != NULL)
-    {
+    if (TempActionScript != NULL) {
         *ActionDetailsToFillScript = TempActionScript;
-        *ActionBufferLengthScript  = LengthOfScriptActionBuffer;
+        *ActionBufferLengthScript = LengthOfScriptActionBuffer;
     }
-    if (TempActionCustomCode != NULL)
-    {
+    if (TempActionCustomCode != NULL) {
         *ActionDetailsToFillCustomCode = TempActionCustomCode;
-        *ActionBufferLengthCustomCode  = LengthOfCustomCodeActionBuffer;
+        *ActionBufferLengthCustomCode = LengthOfCustomCodeActionBuffer;
     }
 
     //
     // Remove the command that we interpreted above from the command
     //
-    for (auto IndexToRemove : IndexesToRemove)
-    {
+    for (auto IndexToRemove : IndexesToRemove) {
         NewIndexToRemove++;
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     //
     // Check if list is initialized or not
     //
-    if (!g_EventTraceInitialized)
-    {
+    if (!g_EventTraceInitialized) {
         InitializeListHead(&g_EventTrace);
         g_EventTraceInitialized = TRUE;
     }
@@ -3130,26 +2867,21 @@ InterpretGeneralEventAndActionsFields(
 
 ReturnWithError:
 
-    if (BufferOfCommandString)
-    {
+    if (BufferOfCommandString) {
         free(BufferOfCommandString);
     }
 
-    if (TempEvent)
-    {
+    if (TempEvent) {
         free(TempEvent);
     }
 
-    if (TempActionBreak != NULL)
-    {
+    if (TempActionBreak != NULL) {
         free(TempActionBreak);
     }
-    if (TempActionScript != NULL)
-    {
+    if (TempActionScript != NULL) {
         free(TempActionScript);
     }
-    if (TempActionCustomCode != NULL)
-    {
+    if (TempActionCustomCode != NULL) {
         free(TempActionCustomCode);
     }
 
