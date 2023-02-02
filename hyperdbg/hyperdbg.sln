@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgctrl", "hprdbgctrl\hprdbgctrl.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
 	ProjectSection(ProjectDependencies) = postProject
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}
 		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
 	EndProjectSection
 EndProject
