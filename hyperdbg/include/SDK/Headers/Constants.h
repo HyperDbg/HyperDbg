@@ -48,16 +48,16 @@
 #define BUILD_MONTH_CH1                                         \
     (                                                           \
         (BUILD_MONTH_IS_JAN) ? '1' : (BUILD_MONTH_IS_FEB) ? '2' \
-                                 : (BUILD_MONTH_IS_MAR)   ? '3' \
-                                 : (BUILD_MONTH_IS_APR)   ? '4' \
-                                 : (BUILD_MONTH_IS_MAY)   ? '5' \
-                                 : (BUILD_MONTH_IS_JUN)   ? '6' \
-                                 : (BUILD_MONTH_IS_JUL)   ? '7' \
-                                 : (BUILD_MONTH_IS_AUG)   ? '8' \
-                                 : (BUILD_MONTH_IS_SEP)   ? '9' \
-                                 : (BUILD_MONTH_IS_OCT)   ? '0' \
-                                 : (BUILD_MONTH_IS_NOV)   ? '1' \
-                                 : (BUILD_MONTH_IS_DEC)   ? '2' \
+            : (BUILD_MONTH_IS_MAR)                        ? '3' \
+            : (BUILD_MONTH_IS_APR)                        ? '4' \
+            : (BUILD_MONTH_IS_MAY)                        ? '5' \
+            : (BUILD_MONTH_IS_JUN)                        ? '6' \
+            : (BUILD_MONTH_IS_JUL)                        ? '7' \
+            : (BUILD_MONTH_IS_AUG)                        ? '8' \
+            : (BUILD_MONTH_IS_SEP)                        ? '9' \
+            : (BUILD_MONTH_IS_OCT)                        ? '0' \
+            : (BUILD_MONTH_IS_NOV)                        ? '1' \
+            : (BUILD_MONTH_IS_DEC)                        ? '2' \
                                                           : /* error default */ '?')
 
 #define BUILD_DAY_CH0 ((__DATE__[4] >= '0') ? (__DATE__[4]) : '0')
@@ -78,112 +78,112 @@
 
 #if VERSION_MAJOR > 100
 
-#    define VERSION_MAJOR_INIT                    \
-        ((VERSION_MAJOR / 100) + '0'),            \
-            (((VERSION_MAJOR % 100) / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
+#define VERSION_MAJOR_INIT                    \
+    ((VERSION_MAJOR / 100) + '0'),            \
+        (((VERSION_MAJOR % 100) / 10) + '0'), \
+        ((VERSION_MAJOR % 10) + '0')
 
 #elif VERSION_MAJOR > 10
 
-#    define VERSION_MAJOR_INIT        \
-        ((VERSION_MAJOR / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
+#define VERSION_MAJOR_INIT        \
+    ((VERSION_MAJOR / 10) + '0'), \
+        ((VERSION_MAJOR % 10) + '0')
 
 #else
 
-#    define VERSION_MAJOR_INIT \
-        (VERSION_MAJOR + '0')
+#define VERSION_MAJOR_INIT \
+    (VERSION_MAJOR + '0')
 
 #endif
 
 #if VERSION_MINOR > 100
 
-#    define VERSION_MINOR_INIT                    \
-        ((VERSION_MINOR / 100) + '0'),            \
-            (((VERSION_MINOR % 100) / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
+#define VERSION_MINOR_INIT                    \
+    ((VERSION_MINOR / 100) + '0'),            \
+        (((VERSION_MINOR % 100) / 10) + '0'), \
+        ((VERSION_MINOR % 10) + '0')
 
 #elif VERSION_MINOR > 10
 
-#    define VERSION_MINOR_INIT        \
-        ((VERSION_MINOR / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
+#define VERSION_MINOR_INIT        \
+    ((VERSION_MINOR / 10) + '0'), \
+        ((VERSION_MINOR % 10) + '0')
 
 #else
 
-#    define VERSION_MINOR_INIT \
-        (VERSION_MINOR + '0')
+#define VERSION_MINOR_INIT \
+    (VERSION_MINOR + '0')
 
 #endif
 
 #if VERSION_PATCH > 100
 
-#    define VERSION_PATCH_INIT                    \
-        ((VERSION_PATCH / 100) + '0'),            \
-            (((VERSION_PATCH % 100) / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
+#define VERSION_PATCH_INIT                    \
+    ((VERSION_PATCH / 100) + '0'),            \
+        (((VERSION_PATCH % 100) / 10) + '0'), \
+        ((VERSION_PATCH % 10) + '0')
 
 #elif VERSION_PATCH > 10
 
-#    define VERSION_PATCH_INIT        \
-        ((VERSION_PATCH / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
+#define VERSION_PATCH_INIT        \
+    ((VERSION_PATCH / 10) + '0'), \
+        ((VERSION_PATCH % 10) + '0')
 
 #else
 
-#    define VERSION_PATCH_INIT \
-        (VERSION_PATCH + '0')
+#define VERSION_PATCH_INIT \
+    (VERSION_PATCH + '0')
 
 #endif
 
 #ifndef HYPERDBG_KERNEL_MODE
 
-const unsigned char BuildDateTime[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        '-',
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        '-',
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
-        ' ',
-        BUILD_HOUR_CH0,
-        BUILD_HOUR_CH1,
-        ':',
-        BUILD_MIN_CH0,
-        BUILD_MIN_CH1,
-        ':',
-        BUILD_SEC_CH0,
-        BUILD_SEC_CH1,
+const unsigned char BuildDateTime[] = {
+    BUILD_YEAR_CH0,
+    BUILD_YEAR_CH1,
+    BUILD_YEAR_CH2,
+    BUILD_YEAR_CH3,
+    '-',
+    BUILD_MONTH_CH0,
+    BUILD_MONTH_CH1,
+    '-',
+    BUILD_DAY_CH0,
+    BUILD_DAY_CH1,
+    ' ',
+    BUILD_HOUR_CH0,
+    BUILD_HOUR_CH1,
+    ':',
+    BUILD_MIN_CH0,
+    BUILD_MIN_CH1,
+    ':',
+    BUILD_SEC_CH0,
+    BUILD_SEC_CH1,
 
-        '\0'};
+    '\0'
+};
 
-const unsigned char CompleteVersion[] =
-    {
-        'v',
-        VERSION_MAJOR_INIT,
-        '.',
-        VERSION_MINOR_INIT,
-        '.',
-        VERSION_PATCH_INIT,
-        '\0'};
+const unsigned char CompleteVersion[] = {
+    'v',
+    VERSION_MAJOR_INIT,
+    '.',
+    VERSION_MINOR_INIT,
+    '.',
+    VERSION_PATCH_INIT,
+    '\0'
+};
 
-const unsigned char BuildVersion[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
+const unsigned char BuildVersion[] = {
+    BUILD_YEAR_CH0,
+    BUILD_YEAR_CH1,
+    BUILD_YEAR_CH2,
+    BUILD_YEAR_CH3,
+    BUILD_MONTH_CH0,
+    BUILD_MONTH_CH1,
+    BUILD_DAY_CH0,
+    BUILD_DAY_CH1,
 
-        '\0'};
+    '\0'
+};
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -222,23 +222,22 @@ const unsigned char BuildVersion[] =
  * User-mode buffer size + Header Structure Size + Count Of End Buffer Bytes
  *
  */
-#define MaxSerialPacketSize                               \
-    UsermodeBufferSize + sizeof(DEBUGGER_REMOTE_PACKET) + \
-        SERIAL_END_OF_BUFFER_CHARS_COUNT
+#define MaxSerialPacketSize \
+    UsermodeBufferSize + sizeof(DEBUGGER_REMOTE_PACKET) + SERIAL_END_OF_BUFFER_CHARS_COUNT
 
 /**
  * @brief Final storage size of message tracing
  *
  */
 #define LogBufferSize \
-    MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
+    MaximumPacketsCapacity*(PacketChunkSize + sizeof(BUFFER_HEADER))
 
 /**
  * @brief Final storage size of message tracing
  *
  */
 #define LogBufferSizePriority \
-    MaximumPacketsCapacityPriority *(PacketChunkSize + sizeof(BUFFER_HEADER))
+    MaximumPacketsCapacityPriority*(PacketChunkSize + sizeof(BUFFER_HEADER))
 
 /**
  * @brief limitation of Windows DbgPrint message size
@@ -311,6 +310,13 @@ const unsigned char BuildVersion[] =
  */
 #define TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER 0x00000200
 
+/**
+ * @brief The start number of VMCALL number allowed to be
+ * used by top-level drivers
+ *
+ */
+#define TOP_LEVEL_DRIVERS_VMCALL_ENDING_NUMBER TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x100
+
 //////////////////////////////////////////////////
 //             Operation Codes                  //
 //////////////////////////////////////////////////
@@ -327,15 +333,15 @@ const unsigned char BuildVersion[] =
  * user-mode
  * @details Message area >= 0x5
  */
-#define OPERATION_LOG_INFO_MESSAGE          0x1
-#define OPERATION_LOG_WARNING_MESSAGE       0x2
-#define OPERATION_LOG_ERROR_MESSAGE         0x3
+#define OPERATION_LOG_INFO_MESSAGE 0x1
+#define OPERATION_LOG_WARNING_MESSAGE 0x2
+#define OPERATION_LOG_ERROR_MESSAGE 0x3
 #define OPERATION_LOG_NON_IMMEDIATE_MESSAGE 0x4
-#define OPERATION_LOG_WITH_TAG              0x5
+#define OPERATION_LOG_WITH_TAG 0x5
 
 #define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM \
     0x6 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_USER_INPUT     0x7 | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_USER_INPUT 0x7 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT \
     0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
@@ -470,31 +476,31 @@ const unsigned char BuildVersion[] =
  * @brief EFLAGS/RFLAGS
  *
  */
-#define X86_FLAGS_CF                 (1 << 0)
-#define X86_FLAGS_PF                 (1 << 2)
-#define X86_FLAGS_AF                 (1 << 4)
-#define X86_FLAGS_ZF                 (1 << 6)
-#define X86_FLAGS_SF                 (1 << 7)
-#define X86_FLAGS_TF                 (1 << 8)
-#define X86_FLAGS_IF                 (1 << 9)
-#define X86_FLAGS_DF                 (1 << 10)
-#define X86_FLAGS_OF                 (1 << 11)
-#define X86_FLAGS_STATUS_MASK        (0xfff)
-#define X86_FLAGS_IOPL_MASK          (3 << 12)
-#define X86_FLAGS_IOPL_SHIFT         (12)
+#define X86_FLAGS_CF (1 << 0)
+#define X86_FLAGS_PF (1 << 2)
+#define X86_FLAGS_AF (1 << 4)
+#define X86_FLAGS_ZF (1 << 6)
+#define X86_FLAGS_SF (1 << 7)
+#define X86_FLAGS_TF (1 << 8)
+#define X86_FLAGS_IF (1 << 9)
+#define X86_FLAGS_DF (1 << 10)
+#define X86_FLAGS_OF (1 << 11)
+#define X86_FLAGS_STATUS_MASK (0xfff)
+#define X86_FLAGS_IOPL_MASK (3 << 12)
+#define X86_FLAGS_IOPL_SHIFT (12)
 #define X86_FLAGS_IOPL_SHIFT_2ND_BIT (13)
-#define X86_FLAGS_NT                 (1 << 14)
-#define X86_FLAGS_RF                 (1 << 16)
-#define X86_FLAGS_VM                 (1 << 17)
-#define X86_FLAGS_AC                 (1 << 18)
-#define X86_FLAGS_VIF                (1 << 19)
-#define X86_FLAGS_VIP                (1 << 20)
-#define X86_FLAGS_ID                 (1 << 21)
-#define X86_FLAGS_RESERVED_ONES      0x2
-#define X86_FLAGS_RESERVED           0xffc0802a
+#define X86_FLAGS_NT (1 << 14)
+#define X86_FLAGS_RF (1 << 16)
+#define X86_FLAGS_VM (1 << 17)
+#define X86_FLAGS_AC (1 << 18)
+#define X86_FLAGS_VIF (1 << 19)
+#define X86_FLAGS_VIP (1 << 20)
+#define X86_FLAGS_ID (1 << 21)
+#define X86_FLAGS_RESERVED_ONES 0x2
+#define X86_FLAGS_RESERVED 0xffc0802a
 
 #define X86_FLAGS_RESERVED_BITS 0xffc38028
-#define X86_FLAGS_FIXED         0x00000002
+#define X86_FLAGS_FIXED 0x00000002
 
 #define LOWORD(l) ((WORD)(l))
 #define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))

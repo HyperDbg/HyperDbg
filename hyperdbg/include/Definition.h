@@ -13,19 +13,6 @@
  */
 #pragma once
 
-//
-// IA32-doc has structures for the entire intel SDM.
-//
-
-#define USE_LIB_IA32
-#if defined(USE_LIB_IA32)
-#    pragma warning(push, 0)
-// #    pragma warning(disable : 4201) // suppress nameless struct/union warning
-#    include <ia32-doc/out/ia32.h>
-#    pragma warning(pop)
-typedef RFLAGS * PRFLAGS;
-#endif // USE_LIB_IA32
-
 //////////////////////////////////////////////////
 //                Config File                  //
 //////////////////////////////////////////////////
@@ -51,6 +38,12 @@ typedef RFLAGS * PRFLAGS;
  *
  */
 #define KERNEL_DEBUGGER_DRIVER_NAME "hprdbgkd"
+
+/**
+ * @brief name of HyperDbg's Reversing Machine driver
+ *
+ */
+#define KERNEL_REVERSING_MACHINE_DRIVER_NAME "hprdbgrm"
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -80,3 +73,15 @@ typedef RFLAGS * PRFLAGS;
  * @brief Maximum buffer to communicate between debugger and debuggee process
  */
 #define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE sizeof(DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION) * TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES
+
+//////////////////////////////////////////////////
+//				Delay Speeds                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The speed delay for showing messages from kernel-mode
+ * to user-mode in  VMI-mode, using a lower value causes the
+ * HyperDbg to show messages faster but you should keep in mind,
+ *  not to eat all of the CPU
+ */
+#define DefaultSpeedOfReadingKernelMessages 30

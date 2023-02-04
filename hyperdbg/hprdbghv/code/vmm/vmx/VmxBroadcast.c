@@ -16,8 +16,7 @@
  *
  * @return VOID
  */
-VOID
-VmxBroadcastInitialize()
+VOID VmxBroadcastInitialize()
 {
     //
     // *** Initialize NMI broadcasting mechanism ***
@@ -49,8 +48,7 @@ VmxBroadcastInitialize()
  *
  * @return VOID
  */
-VOID
-VmxBroadcastUninitialize()
+VOID VmxBroadcastUninitialize()
 {
     //
     // *** Uninitialize NMI broadcasting mechanism ***
@@ -84,8 +82,8 @@ BOOLEAN
 VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 {
     ULONG CurrentCoreIndex;
-    CurrentCoreIndex             = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCoreIndex];
+    CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE* VCpu = &g_GuestState[CurrentCoreIndex];
 
     //
     // This mechanism tries to solve the problem of receiving NMIs
@@ -106,12 +104,9 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
     // We should check whether the NMI is in vmx-root mode or not
     // if it's not in vmx-root mode then it's not related to us
     //
-    if (!VmxBroadcastNmiHandler(VCpu, TRUE))
-    {
+    if (!VmxBroadcastNmiHandler(VCpu, TRUE)) {
         return Handled;
-    }
-    else
-    {
+    } else {
         //
         // If we're here then it related to us
         // return true to show that it's handled
@@ -130,15 +125,14 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
  * @return BOOLEAN
  */
 BOOLEAN
-VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
+VmxBroadcastNmi(VIRTUAL_MACHINE_STATE* VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
 {
     ULONG CoreCount;
 
     //
     // Check if NMI broadcasting is initialized
     //
-    if (!g_NmiBroadcastingInitialized)
-    {
+    if (!g_NmiBroadcastingInitialized) {
         return FALSE;
     }
 
@@ -147,13 +141,11 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     //
     // Indicate that we're waiting for NMI
     //
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        if (i != VCpu->CoreId)
-        {
-            SpinlockInterlockedCompareExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction,
-                                               VmxBroadcastAction,
-                                               NMI_BROADCAST_ACTION_NONE);
+    for (size_t i = 0; i < CoreCount; i++) {
+        if (i != VCpu->CoreId) {
+            SpinlockInterlockedCompareExchange((volatile LONG*)&g_GuestState[i].NmiBroadcastingState.NmiBroadcastAction,
+                VmxBroadcastAction,
+                NMI_BROADCAST_ACTION_NONE);
         }
     }
 
@@ -174,19 +166,18 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
  * @return BOOLEAN Shows whether it's handled by this routine or not
  */
 BOOLEAN
-VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
+VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN IsOnVmxNmiHandler)
 {
     NMI_BROADCAST_ACTION_TYPE BroadcastAction;
-    BOOLEAN                   IsHandled = FALSE;
+    BOOLEAN IsHandled = FALSE;
 
     //
     // Check if NMI relates to us or not
     // Set NMI broadcasting action to none (clear the action)
     //
-    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
+    BroadcastAction = InterlockedExchange((volatile LONG*)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
 
-    if (BroadcastAction == NMI_BROADCAST_ACTION_NONE)
-    {
+    if (BroadcastAction == NMI_BROADCAST_ACTION_NONE) {
         IsHandled = FALSE;
         goto ReturnIsHandled;
     }
@@ -195,8 +186,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
     // *** It's relating to us ***
     //
 
-    switch (BroadcastAction)
-    {
+    switch (BroadcastAction) {
     case NMI_BROADCAST_ACTION_TEST:
 
         //

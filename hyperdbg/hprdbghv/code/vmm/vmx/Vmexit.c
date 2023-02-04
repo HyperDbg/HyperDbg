@@ -21,11 +21,11 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    ULONG                   ExitReason          = 0;
-    BOOLEAN                 Result              = FALSE;
-    BOOLEAN                 ShouldEmulateRdtscp = TRUE;
-    ULONG                   CoreId              = TRUE;
-    VIRTUAL_MACHINE_STATE * VCpu                = NULL;
+    ULONG ExitReason = 0;
+    BOOLEAN Result = FALSE;
+    BOOLEAN ShouldEmulateRdtscp = TRUE;
+    ULONG CoreId = TRUE;
+    VIRTUAL_MACHINE_STATE* VCpu = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
@@ -52,8 +52,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // Check if we're operating in transparent-mode or not
     // If yes then we start operating in transparent-mode
     //
-    if (g_TransparentMode)
-    {
+    if (g_TransparentMode) {
         ShouldEmulateRdtscp = TransparentModeStart(VCpu, ExitReason);
     }
 
@@ -84,10 +83,8 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", VCpu->ExitQualification);
     //
 
-    switch (ExitReason)
-    {
-    case VMX_EXIT_REASON_TRIPLE_FAULT:
-    {
+    switch (ExitReason) {
+    case VMX_EXIT_REASON_TRIPLE_FAULT: {
         LogError("Err, triple fault error occurred");
 
         break;
@@ -107,8 +104,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_VMWRITE:
     case VMX_EXIT_REASON_EXECUTE_VMXOFF:
     case VMX_EXIT_REASON_EXECUTE_VMXON:
-    case VMX_EXIT_REASON_EXECUTE_VMLAUNCH:
-    {
+    case VMX_EXIT_REASON_EXECUTE_VMLAUNCH: {
         //
         // cf=1 indicate vm instructions fail
         //
@@ -126,8 +122,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_INVEPT:
     case VMX_EXIT_REASON_EXECUTE_INVVPID:
     case VMX_EXIT_REASON_EXECUTE_GETSEC:
-    case VMX_EXIT_REASON_EXECUTE_INVD:
-    {
+    case VMX_EXIT_REASON_EXECUTE_INVD: {
         //
         // Handle unconditional vm-exits (inject #ud)
         //
@@ -135,8 +130,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_MOV_CR:
-    {
+    case VMX_EXIT_REASON_MOV_CR: {
         //
         // Handle vm-exit, events, dispatches and perform changes from CR access
         //
@@ -144,8 +138,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_RDMSR:
-    {
+    case VMX_EXIT_REASON_EXECUTE_RDMSR: {
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
@@ -153,8 +146,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_WRMSR:
-    {
+    case VMX_EXIT_REASON_EXECUTE_WRMSR: {
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
@@ -162,15 +154,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_CPUID:
-    {
+    case VMX_EXIT_REASON_EXECUTE_CPUID: {
         DispatchEventCpuid(VCpu);
 
         break;
     }
 
-    case VMX_EXIT_REASON_EXECUTE_IO_INSTRUCTION:
-    {
+    case VMX_EXIT_REASON_EXECUTE_IO_INSTRUCTION: {
         //
         // Dispatch and trigger the I/O instruction events
         //
@@ -178,23 +168,19 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EPT_VIOLATION:
-    {
-        if (EptHandleEptViolation(VCpu) == FALSE)
-        {
+    case VMX_EXIT_REASON_EPT_VIOLATION: {
+        if (EptHandleEptViolation(VCpu) == FALSE) {
             LogError("Err, there were errors in handling EPT violation");
         }
 
         break;
     }
-    case VMX_EXIT_REASON_EPT_MISCONFIGURATION:
-    {
+    case VMX_EXIT_REASON_EPT_MISCONFIGURATION: {
         EptHandleMisconfiguration();
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_VMCALL:
-    {
+    case VMX_EXIT_REASON_EXECUTE_VMCALL: {
         //
         // Handle vm-exits of VMCALLs
         //
@@ -202,8 +188,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
-    {
+    case VMX_EXIT_REASON_EXCEPTION_OR_NMI: {
         //
         // Handle the EXCEPTION injection/emulation
         //
@@ -211,8 +196,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
-    {
+    case VMX_EXIT_REASON_EXTERNAL_INTERRUPT: {
         //
         // Call the external-interrupt handler
         //
@@ -220,8 +204,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_INTERRUPT_WINDOW:
-    {
+    case VMX_EXIT_REASON_INTERRUPT_WINDOW: {
         //
         // Call the interrupt-window exiting handler to re-inject the previous
         // interrupts or disable the interrupt-window exiting bit
@@ -230,8 +213,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_NMI_WINDOW:
-    {
+    case VMX_EXIT_REASON_NMI_WINDOW: {
         //
         // Call the NMI-window exiting handler
         //
@@ -239,8 +221,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_MONITOR_TRAP_FLAG:
-    {
+    case VMX_EXIT_REASON_MONITOR_TRAP_FLAG: {
         //
         // General handler to monitor trap flags (MTF)
         //
@@ -248,8 +229,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_HLT:
-    {
+    case VMX_EXIT_REASON_EXECUTE_HLT: {
         //
         // We don't wanna halt
         //
@@ -268,15 +248,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // and emulate rdtsc or not
         // Note : Using !tsc command in transparent-mode is not allowed
         //
-        if (ShouldEmulateRdtscp)
-        {
+        if (ShouldEmulateRdtscp) {
             DispatchEventTsc(VCpu, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
         }
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_RDPMC:
-    {
+    case VMX_EXIT_REASON_EXECUTE_RDPMC: {
         //
         // Handle RDPMC's events, triggers and dispatches (emulate RDPMC)
         //
@@ -284,8 +262,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_MOV_DR:
-    {
+    case VMX_EXIT_REASON_MOV_DR: {
         //
         // Trigger, dispatch and handle the event
         //
@@ -293,8 +270,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_EXECUTE_XSETBV:
-    {
+    case VMX_EXIT_REASON_EXECUTE_XSETBV: {
         //
         // Handle xsetbv (unconditional vm-exit)
         //
@@ -302,8 +278,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    case VMX_EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
-    {
+    case VMX_EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED: {
         //
         // Handle the VMX preemption timer vm-exit
         //
@@ -311,8 +286,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
-    default:
-    {
+    default: {
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
 
         break;
@@ -323,8 +297,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //
-    if (!VCpu->VmxoffState.IsVmxoffExecuted && VCpu->IncrementRip)
-    {
+    if (!VCpu->VmxoffState.IsVmxoffExecuted && VCpu->IncrementRip) {
         HvResumeToNextInstruction();
     }
 
@@ -336,18 +309,15 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Check for vmxoff request
     //
-    if (VCpu->VmxoffState.IsVmxoffExecuted)
-    {
+    if (VCpu->VmxoffState.IsVmxoffExecuted) {
         Result = TRUE;
     }
 
     //
     // Restore the previous time
     //
-    if (g_TransparentMode)
-    {
-        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID)
-        {
+    if (g_TransparentMode) {
+        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID) {
             //
             // We not wanna change the global timer while RDTSC and RDTSCP
             // was the reason of vm-exit

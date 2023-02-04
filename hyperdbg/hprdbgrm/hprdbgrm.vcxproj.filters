@@ -52,5 +52,8 @@
     <ClCompile Include="code\core\Core.c">
       <Filter>code\core</Filter>
     </ClCompile>
+    <ClCompile Include="code\driver\Ioctl.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,15 +11,15 @@
 #include "pch.h"
 
 /**
- * @brief Initialize the VMM and Debugger
+ * @brief Initialize the VMM and Reversing Machine
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger()
+LoaderInitVmmAndReversingMachine()
 {
-    MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = {0};
-    VMM_CALLBACKS             VmmCallbacks        = {0};
+    MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = { 0 };
+    VMM_CALLBACKS VmmCallbacks = { 0 };
 
     //
     // Allow to server IOCTL
@@ -37,32 +37,30 @@ LoaderInitVmmAndDebugger()
     // Fill the callbacks for using hyperlog in VMM
     //
     VmmCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueueWrapper;
-    VmmCallbacks.LogCallbackSendMessageToQueue                  = LogCallbackSendMessageToQueue;
-    VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
+    VmmCallbacks.LogCallbackSendMessageToQueue = LogCallbackSendMessageToQueue;
+    VmmCallbacks.LogCallbackSendBuffer = LogCallbackSendBuffer;
 
     //
     // Fill the VMM callbacks
     //
-    // VmmCallbacks.VmmCallbackTriggerEvents                   = DebuggerTriggerEvents;
+    // VmmCallbacks.VmmCallbackTriggerEvents = DebuggerTriggerEvents;
 
     //
     // Initialize message tracer
     //
-    if (LogInitialize(&MsgTracingCallbacks))
-    {
+    if (LogInitialize(&MsgTracingCallbacks)) {
+
         //
         // Initialize Vmx
         //
-        if (VmFuncInitVmm(&VmmCallbacks))
-        {
+        if (VmFuncInitVmm(&VmmCallbacks)) {
             LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
             //
             // Initialize the debugger
             //
-            if (CoreInitRM())
-            {
-                LogDebugInfo("HyperDbg's debugger loaded successfully");
+            if (CoreInitReversingMachine()) {
+                LogDebugInfo("HyperDbg's reversing machine loaded successfully");
 
                 //
                 // Set the variable so no one else can get a handle anymore
@@ -70,19 +68,13 @@ LoaderInitVmmAndDebugger()
                 g_HandleInUse = TRUE;
 
                 return TRUE;
-            }
-            else
-            {
+            } else {
                 LogError("Err, HyperDbg's debugger was not loaded");
             }
-        }
-        else
-        {
+        } else {
             LogError("Err, HyperDbg's hypervisor was not loaded");
         }
-    }
-    else
-    {
+    } else {
         LogError("Err, HyperDbg's message tracing module was not loaded");
     }
 
@@ -99,8 +91,7 @@ LoaderInitVmmAndDebugger()
  *
  * @return VOID
  */
-VOID
-LoaderUninitializeLogTracer()
+VOID LoaderUninitializeLogTracer()
 {
     LogDebugInfo("Unloading HyperDbg's debugger...\n");
 
