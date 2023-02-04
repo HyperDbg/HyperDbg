@@ -1375,9 +1375,11 @@ VOID KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE* DbgState)
     // Change guest trap flag
     //
     if (!DbgState->DisableTrapFlagOnContinue) {
+
         Rflags.AsUInt = VmFuncGetRflags();
 
         if (Rflags.TrapFlag == FALSE) {
+
             Rflags.TrapFlag = TRUE;
 
             VmFuncSetRflags(Rflags.AsUInt);

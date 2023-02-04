@@ -22,11 +22,11 @@
 ULONG
 HvAdjustControls(ULONG Ctl, ULONG Msr)
 {
-    MSR MsrValue = {0};
+    MSR MsrValue = { 0 };
 
     MsrValue.Flags = __readmsr(Msr);
     Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
+    Ctl |= MsrValue.Fields.Low; /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 
@@ -41,11 +41,10 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
-    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
+    VMX_SEGMENT_SELECTOR SegmentSelector = { 0 };
     GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
-    if (Selector == 0x0)
-    {
+    if (Selector == 0x0) {
         SegmentSelector.Attributes.Unusable = TRUE;
     }
 
@@ -63,11 +62,10 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
  * @param VCpu The virtual processor's state
  * @return VOID
  */
-VOID
-HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
+VOID HvHandleCpuid(VIRTUAL_MACHINE_STATE* VCpu)
 {
-    INT32       CpuInfo[4];
-    ULONG       Mode = 0;
+    INT32 CpuInfo[4];
+    ULONG Mode = 0;
     PGUEST_REGS Regs = VCpu->Regs;
 
     //
@@ -81,21 +79,17 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // if we are in transparent mode then ignore the
     // cpuid modifications e.g. hyperviosr name or bit
     //
-    if (!g_TransparentMode)
-    {
+    if (!g_TransparentMode) {
         //
         // Check if this was CPUID 1h, which is the features request
         //
-        if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
-        {
+        if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS) {
             //
             // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
             // reserved for this indication
             //
             CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
-        }
-        else if (Regs->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
-        {
+        } else if (Regs->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS) {
             //
             // Return a maximum supported hypervisor CPUID leaf range and a vendor
             // ID signature as required by the spec
@@ -105,9 +99,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[1] = 'epyH'; // [HyperDbg]
             CpuInfo[2] = 'gbDr';
             CpuInfo[3] = NULL;
-        }
-        else if (Regs->rax == HYPERV_CPUID_INTERFACE)
-        {
+        } else if (Regs->rax == HYPERV_CPUID_INTERFACE) {
             //
             // Return non Hv#1 value. This indicate that our hypervisor does NOT
             // conform to the Microsoft hypervisor interface.
@@ -133,15 +125,14 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
  * @param VCpu The virtual processor's state
  * @return VOID
  */
-VOID
-HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
-                              VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification)
+VOID HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE* VCpu,
+    VMX_EXIT_QUALIFICATION_MOV_CR* CrExitQualification)
 {
-    UINT64 * RegPtr;
-    UINT64   NewCr3;
+    UINT64* RegPtr;
+    UINT64 NewCr3;
     CR3_TYPE NewCr3Reg;
 
-    RegPtr = (UINT64 *)&VCpu->Regs->rax + CrExitQualification->GeneralPurposeRegister;
+    RegPtr = (UINT64*)&VCpu->Regs->rax + CrExitQualification->GeneralPurposeRegister;
 
     //
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
@@ -160,12 +151,9 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
     }
     */
 
-    switch (CrExitQualification->AccessType)
-    {
-    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_TO_CR:
-    {
-        switch (CrExitQualification->ControlRegister)
-        {
+    switch (CrExitQualification->AccessType) {
+    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_TO_CR: {
+        switch (CrExitQualification->ControlRegister) {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
             __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
@@ -175,7 +163,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
-            NewCr3          = (*RegPtr & ~(1ULL << 63));
+            NewCr3 = (*RegPtr & ~(1ULL << 63));
             NewCr3Reg.Flags = NewCr3;
 
             //
@@ -198,9 +186,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call user debugger handler of thread intercepting mechanism
             //
-            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-                g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception != NULL)
-            {
+            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger && g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception != NULL) {
                 g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
             }
 
@@ -215,16 +201,13 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
-                       CrExitQualification->ControlRegister);
+                CrExitQualification->ControlRegister);
             break;
         }
-    }
-    break;
+    } break;
 
-    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_FROM_CR:
-    {
-        switch (CrExitQualification->ControlRegister)
-        {
+    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_FROM_CR: {
+        switch (CrExitQualification->ControlRegister) {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
             __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
@@ -245,15 +228,14 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
-                       CrExitQualification->ControlRegister);
+                CrExitQualification->ControlRegister);
             break;
         }
-    }
-    break;
+    } break;
 
     default:
         LogWarning("Unsupported operation 0x%x in handling control registers access",
-                   CrExitQualification->AccessType);
+            CrExitQualification->AccessType);
         break;
     }
 }
@@ -266,15 +248,13 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
  * @param Selector
  * @return VOID
  */
-VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
+VOID HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
-    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
+    VMX_SEGMENT_SELECTOR SegmentSelector = { 0 };
 
     GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
-    if (Selector == 0x0)
-    {
+    if (Selector == 0x0) {
         SegmentSelector.Attributes.Unusable = TRUE;
     }
 
@@ -292,11 +272,10 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
  *
  * @return VOID
  */
-VOID
-HvResumeToNextInstruction()
+VOID HvResumeToNextInstruction()
 {
-    UINT64 ResumeRIP             = NULL;
-    UINT64 CurrentRIP            = NULL;
+    UINT64 ResumeRIP = NULL;
+    UINT64 CurrentRIP = NULL;
     size_t ExitInstructionLength = 0;
 
     __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
@@ -315,7 +294,7 @@ HvResumeToNextInstruction()
  * @return VOID
  */
 inline VOID
-HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE* VCpu)
 {
     VCpu->IncrementRip = FALSE;
 }
@@ -328,7 +307,7 @@ HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 inline VOID
-HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+HvPerformRipIncrement(VIRTUAL_MACHINE_STATE* VCpu)
 {
     VCpu->IncrementRip = TRUE;
 }
@@ -339,8 +318,7 @@ HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
  * @param Set Set or unset the MTFs
  * @return VOID
  */
-VOID
-HvSetMonitorTrapFlag(BOOLEAN Set)
+VOID HvSetMonitorTrapFlag(BOOLEAN Set)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -349,12 +327,9 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     //
     __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_MONITOR_TRAP_FLAG;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_MONITOR_TRAP_FLAG;
     }
 
@@ -370,8 +345,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
  * @param Set Set or unset
  * @return VOID
  */
-VOID
-HvSetLoadDebugControls(BOOLEAN Set)
+VOID HvSetLoadDebugControls(BOOLEAN Set)
 {
     ULONG VmentryControls = 0;
 
@@ -380,12 +354,9 @@ HvSetLoadDebugControls(BOOLEAN Set)
     //
     __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
 
-    if (Set)
-    {
+    if (Set) {
         VmentryControls |= VM_ENTRY_LOAD_DEBUG_CONTROLS;
-    }
-    else
-    {
+    } else {
         VmentryControls &= ~VM_ENTRY_LOAD_DEBUG_CONTROLS;
     }
 
@@ -401,8 +372,7 @@ HvSetLoadDebugControls(BOOLEAN Set)
  * @param Set Set or unset
  * @return VOID
  */
-VOID
-HvSetSaveDebugControls(BOOLEAN Set)
+VOID HvSetSaveDebugControls(BOOLEAN Set)
 {
     ULONG VmexitControls = 0;
 
@@ -411,12 +381,9 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
 
-    if (Set)
-    {
+    if (Set) {
         VmexitControls |= VM_EXIT_SAVE_DEBUG_CONTROLS;
-    }
-    else
-    {
+    } else {
         VmexitControls &= ~VM_EXIT_SAVE_DEBUG_CONTROLS;
     }
 
@@ -431,8 +398,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
  *
  * @return VOID
  */
-VOID
-HvRestoreRegisters()
+VOID HvRestoreRegisters()
 {
     UINT64 FsBase;
     UINT64 GsBase;
@@ -477,8 +443,7 @@ HvRestoreRegisters()
  * @param Set Set or unset the vm-exits
  * @return VOID
  */
-VOID
-HvSetPmcVmexit(BOOLEAN Set)
+VOID HvSetPmcVmexit(BOOLEAN Set)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -487,12 +452,9 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_RDPMC_EXITING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_RDPMC_EXITING;
     }
 
@@ -511,8 +473,7 @@ HvSetPmcVmexit(BOOLEAN Set)
  * @param Mask Register
  * @return VOID
  */
-VOID
-HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+VOID HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
 {
     ProtectedHvSetMov2CrExiting(Set, ControlRegister, MaskRegister);
 }
@@ -526,8 +487,7 @@ HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegis
  *
  * @return VOID
  */
-VOID
-HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMov2Cr3Exiting(VCpu, Set);
 }
@@ -540,8 +500,7 @@ HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @param BitmapMask The content to write on exception bitmap
  * @return VOID
  */
-VOID
-HvWriteExceptionBitmap(UINT32 BitmapMask)
+VOID HvWriteExceptionBitmap(UINT32 BitmapMask)
 {
     //
     // Set the new value
@@ -574,8 +533,7 @@ HvReadExceptionBitmap()
  * @param Set Set or unset the Interrupt-window exiting
  * @return VOID
  */
-VOID
-HvSetInterruptWindowExiting(BOOLEAN Set)
+VOID HvSetInterruptWindowExiting(BOOLEAN Set)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -587,12 +545,9 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     // interrupt-window exiting
     //
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_INTR_PENDING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_INTR_PENDING;
     }
 
@@ -608,8 +563,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
  * @param Set Set or unset the NMI-window exiting
  * @return VOID
  */
-VOID
-HvSetNmiWindowExiting(BOOLEAN Set)
+VOID HvSetNmiWindowExiting(BOOLEAN Set)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -621,12 +575,9 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     // interrupt-window exiting
     //
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_NMI_PENDING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_NMI_PENDING;
     }
 
@@ -642,14 +593,13 @@ HvSetNmiWindowExiting(BOOLEAN Set)
  * @param VCpu The virtual processor's state
  * @return VOID
  */
-VOID
-HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
+VOID HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE* VCpu)
 {
     VMX_EXIT_QUALIFICATION_MOV_DR ExitQualification;
-    CR4                           Cr4;
-    DR7                           Dr7;
-    VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs = VCpu->Regs;
+    CR4 Cr4;
+    DR7 Dr7;
+    VMX_SEGMENT_SELECTOR Cs;
+    UINT64* GpRegs = VCpu->Regs;
 
     //
     // The implementation is derived from Hvpp
@@ -680,8 +630,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 
     Cs = GetGuestCs();
 
-    if (Cs.Attributes.DescriptorPrivilegeLevel != 0)
-    {
+    if (Cs.Attributes.DescriptorPrivilegeLevel != 0) {
         EventInjectGeneralProtection();
 
         //
@@ -706,18 +655,14 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
 
-    if (ExitQualification.DebugRegister == 4 || ExitQualification.DebugRegister == 5)
-    {
-        if (Cr4.DebuggingExtensions)
-        {
+    if (ExitQualification.DebugRegister == 4 || ExitQualification.DebugRegister == 5) {
+        if (Cr4.DebuggingExtensions) {
             //
             // re-inject #UD
             //
             EventInjectUndefinedOpcode(VCpu);
             return;
-        }
-        else
-        {
+        } else {
             ExitQualification.DebugRegister += 2;
         }
     }
@@ -743,12 +688,12 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_DR7, &Dr7);
 
-    if (Dr7.GeneralDetect)
-    {
+    if (Dr7.GeneralDetect) {
         DR6 Dr6 = {
-            .AsUInt                      = __readdr(6),
-            .BreakpointCondition         = 0,
-            .DebugRegisterAccessDetected = TRUE};
+            .AsUInt = __readdr(6),
+            .BreakpointCondition = 0,
+            .DebugRegisterAccessDetected = TRUE
+        };
 
         __writedr(6, Dr6.AsUInt);
 
@@ -772,11 +717,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     // 32 bits results in a #GP(0) exception.
     // (ref: Vol3B[17.2.6(Debug Registers and Intel 64 Processors)])
     //
-    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR &&
-        (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 ||
-         ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) &&
-        (GpRegister >> 32) != 0)
-    {
+    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR && (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 || ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) && (GpRegister >> 32) != 0) {
         EventInjectGeneralProtection();
 
         //
@@ -786,11 +727,9 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         return;
     }
 
-    switch (ExitQualification.DirectionOfAccess)
-    {
+    switch (ExitQualification.DirectionOfAccess) {
     case VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR:
-        switch (ExitQualification.DebugRegister)
-        {
+        switch (ExitQualification.DebugRegister) {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
             __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
             break;
@@ -815,8 +754,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         break;
 
     case VMX_EXIT_QUALIFICATION_DIRECTION_MOV_FROM_DR:
-        switch (ExitQualification.DebugRegister)
-        {
+        switch (ExitQualification.DebugRegister) {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
             GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
             break;
@@ -850,11 +788,10 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
  * @param Set Set or unset the NMI Exiting
  * @return VOID
  */
-VOID
-HvSetNmiExiting(BOOLEAN Set)
+VOID HvSetNmiExiting(BOOLEAN Set)
 {
     ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    ULONG VmExitControls = 0;
 
     //
     // Read the previous flags
@@ -862,13 +799,10 @@ HvSetNmiExiting(BOOLEAN Set)
     __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
     __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
-    if (Set)
-    {
+    if (Set) {
         PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
         VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
-    }
-    else
-    {
+    } else {
         PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
         VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
     }
@@ -886,8 +820,7 @@ HvSetNmiExiting(BOOLEAN Set)
  * @param Set Set or unset the VMX preemption timer
  * @return VOID
  */
-VOID
-HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
+VOID HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
 {
     ULONG PinBasedControls = 0;
 
@@ -896,12 +829,9 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
     //
     __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
 
-    if (Set)
-    {
+    if (Set) {
         PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
-    }
-    else
-    {
+    } else {
         PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
     }
 
@@ -919,8 +849,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
-VOID
-HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
+VOID HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
@@ -936,8 +865,7 @@ HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
-VOID
-HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
+VOID HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
@@ -952,8 +880,7 @@ HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
  * @param Set Set or unset the External Interrupt Exiting
  * @return VOID
  */
-VOID
-HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     //
     // This is a wrapper to perform extra checks
@@ -968,8 +895,7 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @param Set Set or unset the RDTSC/P Exiting
  * @return VOID
  */
-VOID
-HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID HvSetRdtscExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetRdtscExiting(VCpu, Set);
 }
@@ -981,8 +907,7 @@ HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @param Set Set or unset the Mov to Debug Registers Exiting
  * @return VOID
  */
-VOID
-HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMovDebugRegsExiting(VCpu, Set);
 }
@@ -1027,10 +952,9 @@ HvGetRflags()
  *
  * @return VOID
  */
-VOID
-HvSetRflags(UINT64 Rflags)
+VOID HvSetRflags(UINT64 Rflags)
 {
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, &Rflags);
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags);
 }
 
 /**
@@ -1054,10 +978,9 @@ HvGetRip()
  *
  * @return VOID
  */
-VOID
-HvSetRip(UINT64 Rip)
+VOID HvSetRip(UINT64 Rip)
 {
-    __vmx_vmwrite(VMCS_GUEST_RIP, &Rip);
+    __vmx_vmwrite(VMCS_GUEST_RIP, Rip);
 }
 
 /**
@@ -1096,10 +1019,9 @@ HvClearSteppingBits(UINT32 Interruptibility)
  *
  * @return VOID
  */
-VOID
-HvSetInterruptibilityState(UINT64 InterruptibilityState)
+VOID HvSetInterruptibilityState(UINT64 InterruptibilityState)
 {
-    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
 }
 
 /**
@@ -1109,14 +1031,12 @@ HvSetInterruptibilityState(UINT64 InterruptibilityState)
  *
  * @return VOID
  */
-VOID
-HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+VOID HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE* VCpu)
 {
     //
     // Check if there is at least an interrupt that needs to be delivered
     //
-    if (VCpu->PendingExternalInterrupts[0] != NULL)
-    {
+    if (VCpu->PendingExternalInterrupts[0] != NULL) {
         //
         // Enable Interrupt-window exiting.
         //
@@ -1131,14 +1051,12 @@ HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
  *
  * @return VOID
  */
-VOID
-HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+VOID HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE* VCpu)
 {
     //
     // Check if we should enable interrupts in this core or not
     //
-    if (VCpu->EnableExternalInterruptsOnContinue)
-    {
+    if (VCpu->EnableExternalInterruptsOnContinue) {
         //
         // Enable normal interrupts
         //
@@ -1160,8 +1078,7 @@ HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
  *
  * @return VOID
  */
-VOID
-HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
+VOID HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE* VCpu)
 {
     //
     // Change guest interrupt-state
@@ -1183,9 +1100,9 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
  * @return BOOLEAN
  */
 BOOLEAN
-HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
+HvInitVmm(VMM_CALLBACKS* VmmCallbacks)
 {
-    ULONG   ProcessorCount;
+    ULONG ProcessorCount;
     BOOLEAN Result = FALSE;
 
     //
@@ -1199,8 +1116,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     Result = GlobalGuestStateAllocateZeroedMemory();
 
-    if (!Result)
-    {
+    if (!Result) {
         return FALSE;
     }
 
@@ -1212,8 +1128,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // Set the core's id and initialize memory mapper
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
-    {
+    for (size_t i = 0; i < ProcessorCount; i++) {
         g_GuestState[i].CoreId = i;
     }
 
