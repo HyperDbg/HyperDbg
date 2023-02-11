@@ -122,6 +122,7 @@
     <ClCompile Include="code\devices\Apic.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
     <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
+    <ClCompile Include="code\hooks\memory-hook\MemoryHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
     <ClCompile Include="code\interface\Callback.c" />

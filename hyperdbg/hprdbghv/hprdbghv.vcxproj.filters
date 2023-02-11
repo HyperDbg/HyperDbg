@@ -114,6 +114,9 @@
     <Filter Include="header\components\disasm">
       <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\hooks\memory-hook">
+      <UniqueIdentifier>{f7389d27-8658-43b1-a279-77c4066b6494}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -229,6 +232,9 @@
     </ClCompile>
     <ClCompile Include="code\interface\Callback.c">
       <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\memory-hook\MemoryHook.c">
+      <Filter>code\hooks\memory-hook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

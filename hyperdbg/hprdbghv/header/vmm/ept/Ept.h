@@ -19,9 +19,9 @@
  * @brief Page attributes for internal use
  *
  */
-#define PAGE_ATTRIB_READ  0x2
+#define PAGE_ATTRIB_READ 0x2
 #define PAGE_ATTRIB_WRITE 0x4
-#define PAGE_ATTRIB_EXEC  0x8
+#define PAGE_ATTRIB_EXEC 0x8
 
 /**
  * @brief The number of 512GB PML4 entries in the page table
@@ -103,8 +103,7 @@ volatile LONG Pml1ModificationAndInvalidationLock;
  * @brief Structure for saving EPT Table
  *
  */
-typedef struct _VMM_EPT_PAGE_TABLE
-{
+typedef struct _VMM_EPT_PAGE_TABLE {
     /**
      * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
      */
@@ -131,11 +130,10 @@ typedef struct _VMM_EPT_PAGE_TABLE
  * @brief MTRR Range Descriptor
  *
  */
-typedef struct _MTRR_RANGE_DESCRIPTOR
-{
+typedef struct _MTRR_RANGE_DESCRIPTOR {
     SIZE_T PhysicalBaseAddress;
     SIZE_T PhysicalEndAddress;
-    UCHAR  MemoryType;
+    UCHAR MemoryType;
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
 /**
@@ -143,13 +141,12 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
  *
  */
 #define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
-typedef struct _EPT_STATE
-{
-    LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
+typedef struct _EPT_STATE {
+    LIST_ENTRY HookedPagesList; // A list of the details about hooked pages
     MTRR_RANGE_DESCRIPTOR MemoryRanges[EPT_MTRR_RANGE_DESCRIPTOR_MAX]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
-    ULONG                 NumberOfEnabledMemoryRanges;                 // Number of memory ranges specified in MemoryRanges
-    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
-    PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
+    ULONG NumberOfEnabledMemoryRanges; // Number of memory ranges specified in MemoryRanges
+    EPT_POINTER EptPointer; // Extended-Page-Table Pointer
+    PVMM_EPT_PAGE_TABLE EptPageTable; // Page table entries for EPT operation
 
     PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
 
@@ -159,8 +156,7 @@ typedef struct _EPT_STATE
  * @brief Split 2MB granularity to 4 KB granularity
  *
  */
-typedef struct _VMM_EPT_DYNAMIC_SPLIT
-{
+typedef struct _VMM_EPT_DYNAMIC_SPLIT {
     /**
      * @brief The 4096 byte page table entries that correspond to the split 2MB table entry
      *
@@ -172,9 +168,8 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
      * @brief The pointer to the 2MB entry in the page table which this split is servicing.
      *
      */
-    union
-    {
-        PEPT_PML2_ENTRY   Entry;
+    union {
+        PEPT_PML2_ENTRY Entry;
         PEPT_PML2_POINTER Pointer;
     };
 
@@ -200,13 +195,10 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 static VOID
 EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
 
-static PVMM_EPT_PAGE_TABLE
-EptAllocateAndCreateIdentityPageTable();
-
 static BOOLEAN
-EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
-                      _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
-                      _In_ UINT64                               GuestPhysicalAddr);
+EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE* VCpu,
+    _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
+    _In_ UINT64 GuestPhysicalAddr);
 
 // ----------------------------------------------------------------------------
 // Public Interfaces
@@ -229,6 +221,14 @@ BOOLEAN
 EptBuildMtrrMap();
 
 /**
+ * @brief Allocates page maps and create identity page table
+ *
+ * @return PVMM_EPT_PAGE_TABLE identity map page-table
+ */
+PVMM_EPT_PAGE_TABLE
+EptAllocateAndCreateIdentityPageTable();
+
+/**
  * @brief Convert 2MB pages to 4KB pages
  *
  * @param EptPageTable
@@ -238,8 +238,8 @@ EptBuildMtrrMap();
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
-                  PVOID               PreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress);
+    PVOID PreAllocatedBuffer,
+    SIZE_T PhysicalAddress);
 
 /**
  * @brief Initialize EPT Table based on Processor Index
@@ -257,7 +257,7 @@ EptLogicalProcessorInitialize();
  * @return BOOLEAN
  */
 BOOLEAN
-EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu);
+EptHandleEptViolation(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Get the PML1 Entry of a special address
@@ -275,16 +275,14 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
  * @param HookedEntry
  * @return VOID
  */
-VOID
-EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
+VOID EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
 
 /**
  * @brief Handle Ept Misconfigurations
  *
  * @return VOID
  */
-VOID
-EptHandleMisconfiguration();
+VOID EptHandleMisconfiguration();
 
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then
@@ -295,10 +293,9 @@ EptHandleMisconfiguration();
  * @param InvalidationType
  * @return VOID
  */
-VOID
-EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
-                           _In_ EPT_PML1_ENTRY                  EntryValue,
-                           _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
+VOID EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY EntryAddress,
+    _In_ EPT_PML1_ENTRY EntryValue,
+    _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
 
 /**
  * @brief Check if the breakpoint vm-exit relates to EPT hook or not
@@ -308,4 +305,4 @@ EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
  * @return BOOLEAN
  */
 BOOLEAN
-EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu);
+EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE* VCpu);

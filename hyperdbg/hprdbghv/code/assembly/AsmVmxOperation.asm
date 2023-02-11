@@ -1,6 +1,7 @@
 PUBLIC AsmEnableVmxOperation
 PUBLIC AsmVmxVmcall
 PUBLIC AsmHypervVmcall
+PUBLIC AsmVmfunc
 
 .code _text
 
@@ -124,6 +125,25 @@ AsmHypervVmcall PROC
     ret
 
 AsmHypervVmcall ENDP
+
+;------------------------------------------------------------------------
+
+;
+; It's unsafe to call this function directly, make sure the CPU supports it
+;
+; The following function assumes that,
+;	                                    ECX: EptpIndex
+;	                                    EDX: Function
+
+AsmVmfunc PROC
+
+	mov	eax, edx
+	db	0fh, 01h, 0d4h ; equals to VMFUNC
+	setna 	al
+
+	ret
+
+AsmVmfunc ENDP
 
 ;------------------------------------------------------------------------
 
