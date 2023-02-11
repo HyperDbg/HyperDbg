@@ -106,6 +106,7 @@
 #include "vmm/vmx/VmxMechanisms.h"
 #include "hooks/Hooks.h"
 #include "interface/Callback.h"
+#include "features/DirtyLogging.h"
 
 //
 // Broadcast headers

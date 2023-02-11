@@ -11,9 +11,9 @@
 #pragma once
 
 #ifdef HYPERDBG_VMM
-#    define IMPORT_EXPORT_VMM __declspec(dllexport)
+#define IMPORT_EXPORT_VMM __declspec(dllexport)
 #else
-#    define IMPORT_EXPORT_VMM __declspec(dllimport)
+#define IMPORT_EXPORT_VMM __declspec(dllimport)
 #endif
 
 //////////////////////////////////////////////////
@@ -22,9 +22,9 @@
 
 IMPORT_EXPORT_VMM NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                long long          OptionalParam3);
+    unsigned long long OptionalParam1,
+    unsigned long long OptionalParam2,
+    long long OptionalParam3);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
@@ -153,13 +153,13 @@ IMPORT_EXPORT_VMM UINT32
 VmFuncClearSteppingBits(UINT32 Interruptibility);
 
 IMPORT_EXPORT_VMM BOOLEAN
-VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
+VmFuncInitVmm(VMM_CALLBACKS* VmmCallbacks);
 
 IMPORT_EXPORT_VMM UINT32
-VmFuncVmxCompatibleStrlen(const CHAR * s);
+VmFuncVmxCompatibleStrlen(const CHAR* s);
 
 IMPORT_EXPORT_VMM UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s);
+VmFuncVmxCompatibleWcslen(const wchar_t* s);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncNmiBroadcastRequest(UINT32 CoreId);
@@ -199,7 +199,7 @@ IMPORT_EXPORT_VMM VOID
 ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption);
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS* BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask);
@@ -212,6 +212,9 @@ ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureDirtyLoggingInitializeOnAllProcessors();
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
@@ -234,12 +237,12 @@ IMPORT_EXPORT_VMM UINT64
 VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
 
 IMPORT_EXPORT_VMM UINT64
-VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
-                                           _In_ UINT32 ProcessId);
+VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID VirtualAddress,
+    _In_ UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM UINT64
-VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
-                                            _In_ CR3_TYPE TargetCr3);
+VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID VirtualAddress,
+    _In_ CR3_TYPE TargetCr3);
 
 IMPORT_EXPORT_VMM UINT64
 VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
@@ -275,7 +278,7 @@ SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
 // Exported Interfaces For Check Validity of Addresses
 //
 IMPORT_EXPORT_VMM BOOLEAN
-CheckIfAddressIsValidUsingTsx(CHAR * Address);
+CheckIfAddressIsValidUsingTsx(CHAR* Address);
 
 IMPORT_EXPORT_VMM BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
@@ -298,81 +301,81 @@ RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 //
 
 IMPORT_EXPORT_VMM PVOID
-MemoryMapperGetPteVa(_In_ PVOID        Va,
-                     _In_ PAGING_LEVEL Level);
+MemoryMapperGetPteVa(_In_ PVOID Va,
+    _In_ PAGING_LEVEL Level);
 
 IMPORT_EXPORT_VMM PVOID
-MemoryMapperGetPteVaByCr3(_In_ PVOID        Va,
-                          _In_ PAGING_LEVEL Level,
-                          _In_ CR3_TYPE     TargetCr3);
+MemoryMapperGetPteVaByCr3(_In_ PVOID Va,
+    _In_ PAGING_LEVEL Level,
+    _In_ CR3_TYPE TargetCr3);
 
 IMPORT_EXPORT_VMM PVOID
-MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
-                                          _In_ PAGING_LEVEL Level,
-                                          _In_ CR3_TYPE     TargetCr3);
+MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID Va,
+    _In_ PAGING_LEVEL Level,
+    _In_ CR3_TYPE TargetCr3);
 
 // ----------------------------------------------------------------------------
 // Reading Memory Functions
 //
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
-                           _Inout_ PVOID BufferToSaveMemory,
-                           _In_ SIZE_T   SizeToRead);
+MemoryMapperReadMemorySafe(_In_ UINT64 VaAddressToRead,
+    _Inout_ PVOID BufferToSaveMemory,
+    _In_ SIZE_T SizeToRead);
 
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64    PaAddressToRead,
-                                            _Inout_ UINT64 BufferToSaveMemory,
-                                            _In_ SIZE_T    SizeToRead);
+MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64 PaAddressToRead,
+    _Inout_ UINT64 BufferToSaveMemory,
+    _In_ SIZE_T SizeToRead);
 
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
-                                          _Inout_ PVOID BufferToSaveMemory,
-                                          _In_ SIZE_T   SizeToRead);
+MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64 VaAddressToRead,
+    _Inout_ PVOID BufferToSaveMemory,
+    _In_ SIZE_T SizeToRead);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions
 //
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
-                            _In_ PVOID     Source,
-                            _In_ SIZE_T    SizeToWrite,
-                            _In_ CR3_TYPE  TargetProcessCr3);
+    _In_ PVOID Source,
+    _In_ SIZE_T SizeToWrite,
+    _In_ CR3_TYPE TargetProcessCr3);
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperWriteMemorySafeOnTargetProcess(_Inout_ UINT64 Destination,
-                                           _In_ PVOID     Source,
-                                           _In_ SIZE_T    Size);
+    _In_ PVOID Source,
+    _In_ SIZE_T Size);
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
-                                             _In_ UINT64    Source,
-                                             _In_ SIZE_T    SizeToWrite);
+    _In_ UINT64 Source,
+    _In_ SIZE_T SizeToWrite);
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
-                              _In_ PVOID     Source,
-                              _In_ SIZE_T    SizeToWrite,
-                              _In_ UINT32    TargetProcessId);
+    _In_ PVOID Source,
+    _In_ SIZE_T SizeToWrite,
+    _In_ UINT32 TargetProcessId);
 
 // ----------------------------------------------------------------------------
 // Reserving Memory Functions
 //
 IMPORT_EXPORT_VMM UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
-                                                  _In_ BOOLEAN Allocate);
+MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32 ProcessId,
+    _In_ BOOLEAN Allocate);
 
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
-                                      _Inout_ PVOID BaseAddress);
+MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32 ProcessId,
+    _Inout_ PVOID BaseAddress);
 
 // ----------------------------------------------------------------------------
 // Miscellaneous Memory Functions
 //
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
-                                                  _In_ BOOLEAN      Set,
-                                                  _In_ PAGING_LEVEL Level,
-                                                  _In_ CR3_TYPE     TargetCr3);
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID Va,
+    _In_ BOOLEAN Set,
+    _In_ PAGING_LEVEL Level,
+    _In_ CR3_TYPE TargetCr3);
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);

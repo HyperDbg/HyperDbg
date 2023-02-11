@@ -114,8 +114,11 @@
     <Filter Include="header\components\disasm">
       <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\hooks\memory-hook">
-      <UniqueIdentifier>{f7389d27-8658-43b1-a279-77c4066b6494}</UniqueIdentifier>
+    <Filter Include="header\features">
+      <UniqueIdentifier>{336e212a-d3ac-4b5a-8e49-34682a902fbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\features">
+      <UniqueIdentifier>{7d57205a-dfa8-45af-afe5-253b9c2c9cea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -233,8 +236,8 @@
     <ClCompile Include="code\interface\Callback.c">
       <Filter>code\interface</Filter>
     </ClCompile>
-    <ClCompile Include="code\hooks\memory-hook\MemoryHook.c">
-      <Filter>code\hooks\memory-hook</Filter>
+    <ClCompile Include="code\features\DirtyLogging.c">
+      <Filter>code\features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -357,6 +360,9 @@
     </ClInclude>
     <ClInclude Include="header\interface\Callback.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\DirtyLogging.h">
+      <Filter>header\features</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

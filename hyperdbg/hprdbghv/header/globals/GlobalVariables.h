@@ -28,19 +28,19 @@ VMM_CALLBACKS g_Callbacks;
  * @brief Save the state and variables related to virtualization on each to logical core
  *
  */
-VIRTUAL_MACHINE_STATE * g_GuestState;
+VIRTUAL_MACHINE_STATE* g_GuestState;
 
 /**
  * @brief Save the state of memory mapper
  *
  */
-MEMORY_MAPPER_ADDRESSES * g_MemoryMapper;
+MEMORY_MAPPER_ADDRESSES* g_MemoryMapper;
 
 /**
  * @brief Save the state and variables related to EPT
  *
  */
-EPT_STATE * g_EptState;
+EPT_STATE* g_EptState;
 
 /**
  * @brief Support for execute-only pages (indicating that data accesses are
@@ -53,7 +53,7 @@ BOOLEAN g_ExecuteOnlySupport;
  * @brief holds the measurements from the user-mode and kernel-mode
  *
  */
-TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
+TRANSPARENCY_MEASUREMENTS* g_TransparentModeMeasurements;
 
 /**
  * @brief List header of hidden hooks detour
@@ -84,7 +84,7 @@ BOOLEAN g_IsX2Apic;
  * @brief APIC Base
  *
  */
-VOID * g_ApicBase;
+VOID* g_ApicBase;
 
 /**
  * @brief check for broadcasting NMI mechanism support and its
@@ -112,6 +112,12 @@ BOOLEAN g_RtmSupport;
 UINT32 g_VirtualAddressWidth;
 
 /**
+ * @brief The log buffer address for Page Modification Logging (PML) support
+ *
+ */
+PUINT64 g_PmlBufferAddress;
+
+/**
  * @brief Shows whether the debuggee is waiting for an
  * trap step or not
  *
@@ -122,7 +128,7 @@ BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
  * @brief Bitmap of MSRs that cause #GP
  *
  */
-UINT64 * g_MsrBitmapInvalidMsrs;
+UINT64* g_MsrBitmapInvalidMsrs;
 
 /**
  * @brief Whether the page-fault and cr3 vm-exits in vmx-root should check
