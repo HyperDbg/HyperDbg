@@ -112,12 +112,6 @@ BOOLEAN g_RtmSupport;
 UINT32 g_VirtualAddressWidth;
 
 /**
- * @brief The log buffer address for Page Modification Logging (PML) support
- *
- */
-PUINT64 g_PmlBufferAddress;
-
-/**
  * @brief Shows whether the debuggee is waiting for an
  * trap step or not
  *

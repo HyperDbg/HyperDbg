@@ -40,8 +40,7 @@ DebuggerGetLastError()
  *
  * @return VOID
  */
-VOID
-DebuggerSetLastError(UINT32 LastError)
+VOID DebuggerSetLastError(UINT32 LastError)
 {
     g_LastError = LastError;
 }
@@ -55,30 +54,27 @@ DebuggerSetLastError(UINT32 LastError)
 BOOLEAN
 DebuggerInitialize()
 {
-    ULONG                       ProcessorCount       = KeQueryActiveProcessorCount(0);
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
+    ULONG ProcessorCount = KeQueryActiveProcessorCount(0);
+    PROCESSOR_DEBUGGING_STATE* CurrentDebuggerState = NULL;
 
     //
     // Also allocate the debugging state
     //
-    if (!GlobalDebuggingStateAllocateZeroedMemory())
-    {
+    if (!GlobalDebuggingStateAllocateZeroedMemory()) {
         return FALSE;
     }
 
     //
     // Allocate buffer for saving events
     //
-    if (GlobalEventsAllocateZeroedMemory() == FALSE)
-    {
+    if (GlobalEventsAllocateZeroedMemory() == FALSE) {
         return FALSE;
     }
 
     //
     // Set the core's IDs
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
-    {
+    for (size_t i = 0; i < ProcessorCount; i++) {
         g_DbgState[i].CoreId = i;
     }
 
@@ -123,13 +119,11 @@ DebuggerInitialize()
     //
     // Initialize script engines global variables holder
     //
-    if (!g_ScriptGlobalVariables)
-    {
+    if (!g_ScriptGlobalVariables) {
         g_ScriptGlobalVariables = ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
     }
 
-    if (!g_ScriptGlobalVariables)
-    {
+    if (!g_ScriptGlobalVariables) {
         //
         // Out of resource, initialization of script engine's global varialbe holders failed
         //
@@ -144,32 +138,25 @@ DebuggerInitialize()
     //
     // Intialize the local and temp variables
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
-    {
+    for (size_t i = 0; i < ProcessorCount; i++) {
         CurrentDebuggerState = &g_DbgState[i];
 
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
-        {
-            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable =
-                ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable) {
+            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
         }
 
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
-        {
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable) {
             //
             // Out of resource, initialization of script engine's local varialbe holders failed
             //
             return FALSE;
         }
 
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
-        {
-            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable =
-                ExAllocatePoolWithTag(NonPagedPool, MAX_TEMP_COUNT * sizeof(UINT64), POOLTAG);
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable) {
+            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = ExAllocatePoolWithTag(NonPagedPool, MAX_TEMP_COUNT * sizeof(UINT64), POOLTAG);
         }
 
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
-        {
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable) {
             //
             // Out of resource, initialization of script engine's local varialbe holders failed
             //
@@ -193,8 +180,7 @@ DebuggerInitialize()
     // we'll use the functionalities of the attaching in reading modules
     // of user mode applications (other than attaching mechanism itself)
     //
-    if (!AttachingInitialize())
-    {
+    if (!AttachingInitialize()) {
         return FALSE;
     }
 
@@ -205,11 +191,10 @@ DebuggerInitialize()
  * @brief Uninitialize Debugger Structures and Routines
  *
  */
-VOID
-DebuggerUninitialize()
+VOID DebuggerUninitialize()
 {
-    ULONG                       ProcessorCount;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
+    ULONG ProcessorCount;
+    PROCESSOR_DEBUGGING_STATE* CurrentDebuggerState = NULL;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
@@ -264,25 +249,21 @@ DebuggerUninitialize()
     //
     // Free g_ScriptGlobalVariables
     //
-    if (g_ScriptGlobalVariables != NULL)
-    {
+    if (g_ScriptGlobalVariables != NULL) {
         ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
     }
 
     //
     // Free core specific local and temp variables
     //
-    for (SIZE_T i = 0; i < ProcessorCount; i++)
-    {
+    for (SIZE_T i = 0; i < ProcessorCount; i++) {
         CurrentDebuggerState = &g_DbgState[i];
 
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
-        {
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL) {
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
         }
 
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
-        {
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL) {
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
@@ -313,24 +294,23 @@ DebuggerUninitialize()
  * object address when it's successful
  */
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN             Enabled,
-                    UINT32              CoreId,
-                    UINT32              ProcessId,
-                    VMM_EVENT_TYPE_ENUM EventType,
-                    UINT64              Tag,
-                    UINT64              OptionalParam1,
-                    UINT64              OptionalParam2,
-                    UINT64              OptionalParam3,
-                    UINT64              OptionalParam4,
-                    UINT32              ConditionsBufferSize,
-                    PVOID               ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN Enabled,
+    UINT32 CoreId,
+    UINT32 ProcessId,
+    VMM_EVENT_TYPE_ENUM EventType,
+    UINT64 Tag,
+    UINT64 OptionalParam1,
+    UINT64 OptionalParam2,
+    UINT64 OptionalParam3,
+    UINT64 OptionalParam4,
+    UINT32 ConditionsBufferSize,
+    PVOID ConditionBuffer)
 {
     //
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE) {
         return NULL;
     }
 
@@ -338,8 +318,7 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     // Initialize the event structure
     //
     PDEBUGGER_EVENT Event = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT) + ConditionsBufferSize, POOLTAG);
-    if (!Event)
-    {
+    if (!Event) {
         //
         // There is a problem with allocating event
         //
@@ -347,11 +326,11 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     }
     RtlZeroMemory(Event, sizeof(DEBUGGER_EVENT) + ConditionsBufferSize);
 
-    Event->CoreId         = CoreId;
-    Event->ProcessId      = ProcessId;
-    Event->Enabled        = Enabled;
-    Event->EventType      = EventType;
-    Event->Tag            = Tag;
+    Event->CoreId = CoreId;
+    Event->ProcessId = ProcessId;
+    Event->Enabled = Enabled;
+    Event->EventType = EventType;
+    Event->Tag = Tag;
     Event->CountOfActions = 0; // currently there is no action
     Event->OptionalParam1 = OptionalParam1;
     Event->OptionalParam2 = OptionalParam2;
@@ -361,21 +340,18 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     //
     // check if this event is conditional or not
     //
-    if (ConditionBuffer != 0)
-    {
+    if (ConditionBuffer != 0) {
         //
         // It's condtional
         //
-        Event->ConditionsBufferSize   = ConditionsBufferSize;
+        Event->ConditionsBufferSize = ConditionsBufferSize;
         Event->ConditionBufferAddress = (UINT64)Event + sizeof(DEBUGGER_EVENT);
 
         //
         // copy the condtion buffer to the end of the buffer of the event
         //
         memcpy(Event->ConditionBufferAddress, ConditionBuffer, ConditionsBufferSize);
-    }
-    else
-    {
+    } else {
         //
         // It's unconditioanl
         //
@@ -407,21 +383,20 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
  * @return PDEBUGGER_EVENT_ACTION
  */
 PDEBUGGER_EVENT_ACTION
-DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
-                         DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
-                         BOOLEAN                                         SendTheResultsImmediately,
-                         PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
-                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
+DebuggerAddActionToEvent(PDEBUGGER_EVENT Event,
+    DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType,
+    BOOLEAN SendTheResultsImmediately,
+    PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode,
+    PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
 {
     PDEBUGGER_EVENT_ACTION Action;
-    SIZE_T                 Size;
+    SIZE_T Size;
 
     //
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
     //
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE) {
         return NULL;
     }
 
@@ -429,22 +404,17 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // Allocate action + allocate code for custom code
     //
 
-    if (InTheCaseOfCustomCode != NULL)
-    {
+    if (InTheCaseOfCustomCode != NULL) {
         //
         // We should allocate extra buffer for custom code
         //
         Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
-    }
-    else if (InTheCaseOfRunScript != NULL)
-    {
+    } else if (InTheCaseOfRunScript != NULL) {
         //
         // We should allocate extra buffer for script
         //
         Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
-    }
-    else
-    {
+    } else {
         //
         // We shouldn't allocate extra buffer as there is no custom code
         //
@@ -453,8 +423,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
 
     Action = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
 
-    if (Action == NULL)
-    {
+    if (Action == NULL) {
         //
         // There was an error in allocation
         //
@@ -467,14 +436,12 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // If the user needs a buffer to be passed to the debugger then
     // we should allocate it here (Requested buffer is only available for custom code types)
     //
-    if (ActionType == RUN_CUSTOM_CODE && InTheCaseOfCustomCode->OptionalRequestedBufferSize != 0)
-    {
+    if (ActionType == RUN_CUSTOM_CODE && InTheCaseOfCustomCode->OptionalRequestedBufferSize != 0) {
         //
         // Check if the optional buffer is not more that the size
         // we can send to usermode
         //
-        if (InTheCaseOfCustomCode->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
-        {
+        if (InTheCaseOfCustomCode->OptionalRequestedBufferSize >= MaximumPacketsCapacity) {
             //
             // There was an error
             //
@@ -487,8 +454,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfCustomCode->OptionalRequestedBufferSize, POOLTAG);
 
-        if (!RequestedBuffer)
-        {
+        if (!RequestedBuffer) {
             //
             // There was an error in allocation
             //
@@ -502,22 +468,20 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         // Add it to the action
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
-        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
-        Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
+        Action->RequestedBuffer.RequestBufferSize = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
+        Action->RequestedBuffer.RequstBufferAddress = RequestedBuffer;
     }
 
     //
     // If the user needs a buffer to be passed to the debugger script then
     // we should allocate it here (Requested buffer is only available for custom code types)
     //
-    if (ActionType == RUN_SCRIPT && InTheCaseOfRunScript->OptionalRequestedBufferSize != 0)
-    {
+    if (ActionType == RUN_SCRIPT && InTheCaseOfRunScript->OptionalRequestedBufferSize != 0) {
         //
         // Check if the optional buffer is not more that the size
         // we can send to usermode
         //
-        if (InTheCaseOfRunScript->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
-        {
+        if (InTheCaseOfRunScript->OptionalRequestedBufferSize >= MaximumPacketsCapacity) {
             //
             // There was an error
             //
@@ -530,8 +494,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfRunScript->OptionalRequestedBufferSize, POOLTAG);
 
-        if (!RequestedBuffer)
-        {
+        if (!RequestedBuffer) {
             //
             // There was an error in allocation
             //
@@ -545,17 +508,15 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         // Add it to the action
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
-        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfRunScript->OptionalRequestedBufferSize;
-        Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
+        Action->RequestedBuffer.RequestBufferSize = InTheCaseOfRunScript->OptionalRequestedBufferSize;
+        Action->RequestedBuffer.RequstBufferAddress = RequestedBuffer;
     }
 
-    if (ActionType == RUN_CUSTOM_CODE)
-    {
+    if (ActionType == RUN_CUSTOM_CODE) {
         //
         // Check if it's a Custom code without custom code buffer which is invalid
         //
-        if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
-        {
+        if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0) {
             //
             // There was an error
             //
@@ -567,7 +528,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         // Move the custom code buffer to the end of the action
         //
 
-        Action->CustomCodeBufferSize    = InTheCaseOfCustomCode->CustomCodeBufferSize;
+        Action->CustomCodeBufferSize = InTheCaseOfCustomCode->CustomCodeBufferSize;
         Action->CustomCodeBufferAddress = (UINT64)Action + sizeof(DEBUGGER_EVENT_ACTION);
 
         //
@@ -579,13 +540,11 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     //
     // If it's run script action type
     //
-    else if (ActionType == RUN_SCRIPT)
-    {
+    else if (ActionType == RUN_SCRIPT) {
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL)
-        {
+        if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL) {
             //
             // Invalid configuration
             //
@@ -596,7 +555,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Allocate the buffer from a non-page pool on the script
         //
-        Action->ScriptConfiguration.ScriptBuffer = (BYTE *)Action + sizeof(DEBUGGER_EVENT_ACTION);
+        Action->ScriptConfiguration.ScriptBuffer = (BYTE*)Action + sizeof(DEBUGGER_EVENT_ACTION);
 
         //
         // Copy the memory of script to our non-paged pool
@@ -606,8 +565,8 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Set other fields
         //
-        Action->ScriptConfiguration.ScriptLength                = InTheCaseOfRunScript->ScriptLength;
-        Action->ScriptConfiguration.ScriptPointer               = InTheCaseOfRunScript->ScriptPointer;
+        Action->ScriptConfiguration.ScriptLength = InTheCaseOfRunScript->ScriptLength;
+        Action->ScriptConfiguration.ScriptPointer = InTheCaseOfRunScript->ScriptPointer;
         Action->ScriptConfiguration.OptionalRequestedBufferSize = InTheCaseOfRunScript->OptionalRequestedBufferSize;
     }
 
@@ -622,8 +581,8 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // Fill other parts of the action
     //
     Action->ImmediatelySendTheResults = SendTheResultsImmediately;
-    Action->ActionType                = ActionType;
-    Action->Tag                       = Event->Tag;
+    Action->ActionType = ActionType;
+    Action->Tag = Event->Tag;
 
     //
     // Now we should add the action to the event's LIST_ENTRY of actions
@@ -649,14 +608,11 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     //
     TargetEventList = DebuggerGetEventListByEventType(Event->EventType);
 
-    if (TargetEventList != NULL)
-    {
+    if (TargetEventList != NULL) {
         InsertHeadList(TargetEventList, &(Event->EventsOfSameTypeList));
 
         return TRUE;
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
 }
@@ -675,22 +631,21 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * of handling events
  */
 VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
-                      VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
-                      PVOID                                 Context,
-                      BOOLEAN *                             PostEventRequired,
-                      GUEST_REGS *                          Regs)
+DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM EventType,
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
+    PVOID Context,
+    BOOLEAN* PostEventRequired,
+    GUEST_REGS* Regs)
 {
-    DebuggerCheckForCondition * ConditionFunc;
-    PLIST_ENTRY                 TempList  = 0;
-    PLIST_ENTRY                 TempList2 = 0;
-    PROCESSOR_DEBUGGING_STATE * DbgState  = NULL;
+    DebuggerCheckForCondition* ConditionFunc;
+    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList2 = 0;
+    PROCESSOR_DEBUGGING_STATE* DbgState = NULL;
 
     //
     // Check if triggering debugging actions are allowed or not
     //
-    if (!g_EnableDebuggerEvents)
-    {
+    if (!g_EnableDebuggerEvents) {
         //
         // Debugger is not enabled
         //
@@ -710,32 +665,28 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Find the debugger events list base on the type of the event
     //
-    TempList  = DebuggerGetEventListByEventType(EventType);
+    TempList = DebuggerGetEventListByEventType(EventType);
     TempList2 = TempList;
 
-    if (TempList == NULL)
-    {
+    if (TempList == NULL) {
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
     }
 
-    while (TempList2 != TempList->Flink)
-    {
-        TempList                     = TempList->Flink;
+    while (TempList2 != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
         //
         // check if the event is enabled or not
         //
-        if (!CurrentEvent->Enabled)
-        {
+        if (!CurrentEvent->Enabled) {
             continue;
         }
 
         //
         // Check if this event is for this core or not
         //
-        if (CurrentEvent->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES && CurrentEvent->CoreId != DbgState->CoreId)
-        {
+        if (CurrentEvent->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES && CurrentEvent->CoreId != DbgState->CoreId) {
             //
             // This event is not related to either or core or all cores
             //
@@ -745,8 +696,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check if this event is for this process or not
         //
-        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != PsGetCurrentProcessId())
-        {
+        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != PsGetCurrentProcessId()) {
             //
             // This event is not related to either our process or all processes
             //
@@ -756,8 +706,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check event type specific conditions
         //
-        switch (CurrentEvent->EventType)
-        {
+        switch (CurrentEvent->EventType) {
         case EXTERNAL_INTERRUPT_OCCURRED:
 
             //
@@ -766,8 +715,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context is the physical address
             //
-            if (Context != CurrentEvent->OptionalParam1)
-            {
+            if (Context != CurrentEvent->OptionalParam1) {
                 //
                 // The interrupt is not for this event
                 //
@@ -789,16 +737,12 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context should be checked in physical address
             //
-            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 &&
-                  ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
-            {
+            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2)) {
                 //
                 // The value is not withing our expected range
                 //
                 continue;
-            }
-            else
-            {
+            } else {
                 //
                 // Fix the context to virtual address
                 //
@@ -815,8 +759,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // the hook is triggered for the address described in
             // event, note that address in event is a virtual address
             //
-            if (Context != CurrentEvent->OptionalParam1)
-            {
+            if (Context != CurrentEvent->OptionalParam1) {
                 //
                 // Context is the virtual address
                 //
@@ -842,8 +785,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
-            {
+            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1) {
                 //
                 // Context is the physical address
                 //
@@ -852,9 +794,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 // The hook is not for this (physical) address
                 //
                 continue;
-            }
-            else
-            {
+            } else {
                 //
                 // Convert it to virtual address
                 //
@@ -869,8 +809,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if MSR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context)
-            {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context) {
                 //
                 // The msr is not what we want
                 //
@@ -884,8 +823,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if exception is what we need or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context)
-            {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context) {
                 //
                 // The exception is not what we want
                 //
@@ -900,8 +838,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if I/O port is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->OptionalParam1 != Context)
-            {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->OptionalParam1 != Context) {
                 //
                 // The port is not what we want
                 //
@@ -922,8 +859,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check syscall number
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->OptionalParam1 != Context)
-            {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->OptionalParam1 != Context) {
                 //
                 // The syscall number is not what we want
                 //
@@ -937,8 +873,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != Context)
-            {
+            if (CurrentEvent->OptionalParam1 != Context) {
                 //
                 // The CR is not what we want
                 //
@@ -954,9 +889,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check the stage of calling (pre and post event)
         //
-        if (CallingStage == VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION &&
-            CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
-        {
+        if (CallingStage == VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION && CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION) {
             //
             // Here it means that the current event is a post-event event and
             // the current stage of calling is for the pre-event events, thus
@@ -980,8 +913,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         // Check if condtion is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
-        if (CurrentEvent->ConditionsBufferSize != 0)
-        {
+        if (CurrentEvent->ConditionsBufferSize != 0) {
             //
             // Means that there is some conditions
             //
@@ -992,8 +924,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
             //
-            if (AsmDebuggerConditionCodeHandler(DbgState->Regs, Context, ConditionFunc) == 0)
-            {
+            if (AsmDebuggerConditionCodeHandler(DbgState->Regs, Context, ConditionFunc) == 0) {
                 //
                 // The condition function returns null, mean that the
                 // condition didn't met, we can ignore this event
@@ -1016,15 +947,12 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Check if the event should be ignored or not
     //
-    if (DbgState->ShortCircuitingEvent)
-    {
+    if (DbgState->ShortCircuitingEvent) {
         //
         // Event should be ignored
         //
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
-    }
-    else
-    {
+    } else {
         //
         // Event shouldn't be ignored
         //
@@ -1040,8 +968,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
  * @param Context Optional parameter
  * @return VOID
  */
-VOID
-DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Event, PVOID Context)
+VOID DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE* DbgState, PDEBUGGER_EVENT Event, PVOID Context)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1049,16 +976,14 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Eve
     // Find and run all the actions in this Event
     //
     TempList = &Event->ActionsListHead;
-    while (&Event->ActionsListHead != TempList->Flink)
-    {
-        TempList                             = TempList->Flink;
+    while (&Event->ActionsListHead != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
 
         //
         // Perform the action
         //
-        switch (CurrentAction->ActionType)
-        {
+        switch (CurrentAction->ActionType) {
         case BREAK_TO_DEBUGGER:
             DebuggerPerformBreakToDebugger(DbgState, Event->Tag, CurrentAction, Context);
             break;
@@ -1088,53 +1013,48 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Eve
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
-                         UINT64                      Tag,
-                         PDEBUGGER_EVENT_ACTION      Action,
-                         PDEBUGGEE_SCRIPT_PACKET     ScriptDetails,
-                         PVOID                       Context)
+DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE* DbgState,
+    UINT64 Tag,
+    PDEBUGGER_EVENT_ACTION Action,
+    PDEBUGGEE_SCRIPT_PACKET ScriptDetails,
+    PVOID Context)
 {
-    SYMBOL_BUFFER                CodeBuffer    = {0};
-    ACTION_BUFFER                ActionBuffer  = {0};
-    SYMBOL                       ErrorSymbol   = {0};
-    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
+    SYMBOL_BUFFER CodeBuffer = { 0 };
+    ACTION_BUFFER ActionBuffer = { 0 };
+    SYMBOL ErrorSymbol = { 0 };
+    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = { 0 };
 
-    if (Action != NULL)
-    {
+    if (Action != NULL) {
         //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = Context;
+        ActionBuffer.Context = Context;
         ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
-        ActionBuffer.CurrentAction             = Action;
-        ActionBuffer.Tag                       = Tag;
+        ActionBuffer.CurrentAction = Action;
+        ActionBuffer.Tag = Tag;
 
         //
         // Context point to the registers
         //
-        CodeBuffer.Head    = Action->ScriptConfiguration.ScriptBuffer;
-        CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
+        CodeBuffer.Head = Action->ScriptConfiguration.ScriptBuffer;
+        CodeBuffer.Size = Action->ScriptConfiguration.ScriptLength;
         CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
-    }
-    else if (ScriptDetails != NULL)
-    {
+    } else if (ScriptDetails != NULL) {
         //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = Context;
+        ActionBuffer.Context = Context;
         ActionBuffer.ImmediatelySendTheResults = TRUE;
-        ActionBuffer.CurrentAction             = NULL;
-        ActionBuffer.Tag                       = Tag;
+        ActionBuffer.CurrentAction = NULL;
+        ActionBuffer.Tag = Tag;
 
         //
         // Context point to the registers
         //
-        CodeBuffer.Head    = ((CHAR *)ScriptDetails + sizeof(DEBUGGEE_SCRIPT_PACKET));
-        CodeBuffer.Size    = ScriptDetails->ScriptBufferSize;
+        CodeBuffer.Head = ((CHAR*)ScriptDetails + sizeof(DEBUGGEE_SCRIPT_PACKET));
+        CodeBuffer.Size = ScriptDetails->ScriptBufferSize;
         CodeBuffer.Pointer = ScriptDetails->ScriptBufferPointer;
-    }
-    else
-    {
+    } else {
         //
         // The parameters are wrong !
         //
@@ -1145,22 +1065,21 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
     // Fill the variables list for this run
     //
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = DbgState->ScriptEngineCoreSpecificLocalVariable;
-    VariablesList.TempList            = DbgState->ScriptEngineCoreSpecificTempVariable;
+    VariablesList.LocalVariablesList = DbgState->ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.TempList = DbgState->ScriptEngineCoreSpecificTempVariable;
 
-    for (int i = 0; i < CodeBuffer.Pointer;)
-    {
+    for (int i = 0; i < CodeBuffer.Pointer;) {
         //
         // If has error, show error message and abort.
         //
         if (ScriptEngineExecute(DbgState->Regs,
-                                &ActionBuffer,
-                                &VariablesList,
-                                &CodeBuffer,
-                                &i,
-                                &ErrorSymbol) == TRUE)
-        {
-            CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
+                &ActionBuffer,
+                &VariablesList,
+                &CodeBuffer,
+                &i,
+                &ErrorSymbol)
+            == TRUE) {
+            CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = { 0 };
             ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
             LogInfo("Invalid returning address for operator: %s", NameOfOperator);
             break;
@@ -1179,11 +1098,9 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
  * @param Context Optional parameter
  * @return VOID
  */
-VOID
-DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
+VOID DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE* DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
 {
-    if (Action->CustomCodeBufferSize == 0)
-    {
+    if (Action->CustomCodeBufferSize == 0) {
         //
         // Sth went wrong ! the buffer size for custom code shouldn't be zero
         //
@@ -1206,15 +1123,12 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag
     //
     // Run the custom code
     //
-    if (Action->RequestedBuffer.RequestBufferSize == 0)
-    {
+    if (Action->RequestedBuffer.RequestBufferSize == 0) {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
         AsmDebuggerCustomCodeHandler(NULL, DbgState->Regs, Context, Action->CustomCodeBufferAddress);
-    }
-    else
-    {
+    } else {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
@@ -1232,27 +1146,23 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag
  *
  * @return VOID
  */
-VOID
-DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
+VOID DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE* DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = { 0 };
 
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE) {
         //
         // The guest is already in vmx-root mode
         // Halt other cores
         //
-        ContextAndTag.Tag     = Tag;
+        ContextAndTag.Tag = Tag;
         ContextAndTag.Context = Context;
 
         KdHandleBreakpointAndDebugBreakpoints(
             DbgState,
             DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
             &ContextAndTag);
-    }
-    else
-    {
+    } else {
         //
         // The guest is on vmx non-root mode
         //
@@ -1269,27 +1179,24 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag,
 PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag)
 {
-    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList = 0;
     PLIST_ENTRY TempList2 = 0;
 
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++) {
+        TempList = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
+        while (TempList2 != TempList->Flink) {
+            TempList = TempList->Flink;
             PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
             //
             // Check if we find the event or not
             //
-            if (CurrentEvent->Tag == Tag)
-            {
+            if (CurrentEvent->Tag == Tag) {
                 return CurrentEvent;
             }
         }
@@ -1312,28 +1219,25 @@ DebuggerGetEventByTag(UINT64 Tag)
 BOOLEAN
 DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
 {
-    BOOLEAN     FindAtLeastOneEvent = FALSE;
-    PLIST_ENTRY TempList            = 0;
-    PLIST_ENTRY TempList2           = 0;
+    BOOLEAN FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList2 = 0;
 
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++) {
+        TempList = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
+        while (TempList2 != TempList->Flink) {
+            TempList = TempList->Flink;
             PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
             //
             // Check if we find at least one event or not
             //
-            if (!FindAtLeastOneEvent)
-            {
+            if (!FindAtLeastOneEvent) {
                 FindAtLeastOneEvent = TRUE;
             }
 
@@ -1357,28 +1261,25 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
 BOOLEAN
 DebuggerTerminateAllEvents()
 {
-    BOOLEAN     FindAtLeastOneEvent = FALSE;
-    PLIST_ENTRY TempList            = 0;
-    PLIST_ENTRY TempList2           = 0;
+    BOOLEAN FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList2 = 0;
 
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++) {
+        TempList = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
+        while (TempList2 != TempList->Flink) {
+            TempList = TempList->Flink;
             PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
             //
             // Check if we find at least one event or not
             //
-            if (!FindAtLeastOneEvent)
-            {
+            if (!FindAtLeastOneEvent) {
                 FindAtLeastOneEvent = TRUE;
             }
 
@@ -1406,28 +1307,25 @@ DebuggerTerminateAllEvents()
 BOOLEAN
 DebuggerRemoveAllEvents()
 {
-    BOOLEAN     FindAtLeastOneEvent = FALSE;
-    PLIST_ENTRY TempList            = 0;
-    PLIST_ENTRY TempList2           = 0;
+    BOOLEAN FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList2 = 0;
 
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++) {
+        TempList = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
+        while (TempList2 != TempList->Flink) {
+            TempList = TempList->Flink;
             PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
             //
             // Check if we find at least one event or not
             //
-            if (!FindAtLeastOneEvent)
-            {
+            if (!FindAtLeastOneEvent) {
                 FindAtLeastOneEvent = TRUE;
             }
 
@@ -1451,16 +1349,15 @@ UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 {
     PLIST_ENTRY TempList = 0;
-    UINT32      Counter  = 0;
+    UINT32 Counter = 0;
 
     //
     // We have to iterate through all events of this list
     //
     TempList = TargetEventList;
 
-    while (TargetEventList != TempList->Flink)
-    {
-        TempList                     = TempList->Flink;
+    while (TargetEventList != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
         //
@@ -1485,8 +1382,7 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     //
     // Register the event
     //
-    switch (EventType)
-    {
+    switch (EventType) {
     case HIDDEN_HOOK_READ_AND_WRITE:
         ResultList = &g_Events->HiddenHookReadAndWriteEventsHead;
         break;
@@ -1570,21 +1466,18 @@ UINT32
 DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
 {
     PLIST_ENTRY TempList = 0;
-    UINT32      Counter  = 0;
+    UINT32 Counter = 0;
 
     //
     // We have to iterate through all events of this list
     //
     TempList = TargetEventList;
 
-    while (TargetEventList != TempList->Flink)
-    {
-        TempList                     = TempList->Flink;
+    while (TargetEventList != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
-        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
-            CurrentEvent->CoreId == TargetCore)
-        {
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES || CurrentEvent->CoreId == TargetCore) {
             //
             // Increase the counter
             //
@@ -1609,7 +1502,7 @@ UINT32
 DebuggerEventListCountByEventType(VMM_EVENT_TYPE_ENUM EventType, UINT32 TargetCore)
 {
     PLIST_ENTRY TempList = 0;
-    UINT32      Counter  = 0;
+    UINT32 Counter = 0;
 
     PLIST_ENTRY TargetEventList = DebuggerGetEventListByEventType(EventType);
 
@@ -1618,14 +1511,11 @@ DebuggerEventListCountByEventType(VMM_EVENT_TYPE_ENUM EventType, UINT32 TargetCo
     //
     TempList = TargetEventList;
 
-    while (TargetEventList != TempList->Flink)
-    {
-        TempList                     = TempList->Flink;
+    while (TargetEventList != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
-        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
-            CurrentEvent->CoreId == TargetCore)
-        {
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES || CurrentEvent->CoreId == TargetCore) {
             //
             // Increase the counter
             //
@@ -1647,22 +1537,19 @@ DebuggerEventListCountByEventType(VMM_EVENT_TYPE_ENUM EventType, UINT32 TargetCo
 UINT32
 DebuggerExceptionEventBitmapMask(UINT32 CoreIndex)
 {
-    PLIST_ENTRY TempList      = 0;
-    UINT32      ExceptionMask = 0;
+    PLIST_ENTRY TempList = 0;
+    UINT32 ExceptionMask = 0;
 
     //
     // We have to iterate through all events of this list
     //
     TempList = &g_Events->ExceptionOccurredEventsHead;
 
-    while (&g_Events->ExceptionOccurredEventsHead != TempList->Flink)
-    {
-        TempList                     = TempList->Flink;
+    while (&g_Events->ExceptionOccurredEventsHead != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
-        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
-            CurrentEvent->CoreId == CoreIndex)
-        {
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES || CurrentEvent->CoreId == CoreIndex) {
             ExceptionMask |= CurrentEvent->OptionalParam1;
         }
     }
@@ -1689,8 +1576,7 @@ DebuggerEnableEvent(UINT64 Tag)
     //
     // Check if tag is valid or not
     //
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         return FALSE;
     }
 
@@ -1723,8 +1609,7 @@ DebuggerQueryStateEvent(UINT64 Tag)
     //
     // Check if tag is valid or not
     //
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         return FALSE;
     }
 
@@ -1751,8 +1636,7 @@ DebuggerDisableEvent(UINT64 Tag)
     //
     // Check if tag is valid or not
     //
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         return FALSE;
     }
 
@@ -1783,8 +1667,7 @@ DebuggerIsTagValid(UINT64 Tag)
     //
     // Check if tag is valid or not
     //
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         return FALSE;
     }
 
@@ -1800,12 +1683,9 @@ DebuggerIsTagValid(UINT64 Tag)
 BOOLEAN
 DebuggerQueryDebuggerStatus()
 {
-    if (g_KernelDebuggerState || g_UserDebuggerState)
-    {
+    if (g_KernelDebuggerState || g_UserDebuggerState) {
         return TRUE;
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
 }
@@ -1824,27 +1704,24 @@ DebuggerQueryDebuggerStatus()
 BOOLEAN
 DebuggerRemoveEventFromEventList(UINT64 Tag)
 {
-    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList = 0;
     PLIST_ENTRY TempList2 = 0;
 
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++) {
+        TempList = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
+        while (TempList2 != TempList->Flink) {
+            TempList = TempList->Flink;
             PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
             //
             // Check if we find the event or not
             //
-            if (CurrentEvent->Tag == Tag)
-            {
+            if (CurrentEvent->Tag == Tag) {
                 //
                 // We have to remove the event from the list
                 //
@@ -1873,26 +1750,24 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
 BOOLEAN
 DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
 {
-    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList = 0;
     PLIST_ENTRY TempList2 = 0;
 
     //
     // Remove all actions
     //
-    TempList  = &Event->ActionsListHead;
+    TempList = &Event->ActionsListHead;
     TempList2 = TempList;
 
-    while (TempList2 != TempList->Flink)
-    {
-        TempList                             = TempList->Flink;
+    while (TempList2 != TempList->Flink) {
+        TempList = TempList->Flink;
         PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
 
         //
         // Check if it has a OptionalRequestedBuffer probably for
         // CustomCode
         //
-        if (CurrentAction->RequestedBuffer.RequestBufferSize != 0 && CurrentAction->RequestedBuffer.RequstBufferAddress != NULL)
-        {
+        if (CurrentAction->RequestedBuffer.RequestBufferSize != 0 && CurrentAction->RequestedBuffer.RequstBufferAddress != NULL) {
             //
             // There is a buffer
             //
@@ -1927,14 +1802,13 @@ BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag)
 {
     PDEBUGGER_EVENT Event;
-    PLIST_ENTRY     TempList  = 0;
-    PLIST_ENTRY     TempList2 = 0;
+    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList2 = 0;
 
     //
     // First of all, we disable event
     //
-    if (!DebuggerDisableEvent(Tag))
-    {
+    if (!DebuggerDisableEvent(Tag)) {
         //
         // Not found, tag is wrong !
         //
@@ -1952,8 +1826,7 @@ DebuggerRemoveEvent(UINT64 Tag)
     // Now we get the PDEBUGGER_EVENT so we have to remove
     // it from the event list
     //
-    if (!DebuggerRemoveEventFromEventList(Tag))
-    {
+    if (!DebuggerRemoveEventFromEventList(Tag)) {
         return FALSE;
     }
 
@@ -1990,10 +1863,10 @@ BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
     PDEBUGGER_EVENT Event;
-    UINT64          PagesBytes;
-    UINT32          TempPid;
-    UINT32          ProcessorCount;
-    BOOLEAN         ResultOfApplyingEvent = FALSE;
+    UINT64 PagesBytes;
+    UINT32 TempPid;
+    UINT32 ProcessorCount;
+    BOOLEAN ResultOfApplyingEvent = FALSE;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
@@ -2009,11 +1882,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // it is because using the short-circuiting mechanism with
     // post-events doesn't make sense; it's not supported!
     //
-    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION &&
-        EventDetails->EnableShortCircuiting == TRUE)
-    {
+    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION && EventDetails->EnableShortCircuiting == TRUE) {
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
+        ResultsToReturnUsermode->Error = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
         return FALSE;
     }
 
@@ -2021,19 +1892,17 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // Check whether the core Id is valid or not, we read cores count
     // here because we use it in later parts
     //
-    if (EventDetails->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-    {
+    if (EventDetails->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
         //
         // Check if the core number is not invalid
         //
-        if (EventDetails->CoreId >= ProcessorCount)
-        {
+        if (EventDetails->CoreId >= ProcessorCount) {
             //
             // CoreId is invalid (Set the error)
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_CORE_ID;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_CORE_ID;
             return FALSE;
         }
     }
@@ -2042,28 +1911,22 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // Check if process id is valid or not, we won't touch process id here
     // because some of the events use the exact value of DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
     //
-    if (EventDetails->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES &&
-        EventDetails->ProcessId != 0)
-    {
+    if (EventDetails->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && EventDetails->ProcessId != 0) {
         //
         // The used specified a special pid, let's check if it's valid or not
         //
-        if (!IsProcessExist(EventDetails->ProcessId))
-        {
+        if (!IsProcessExist(EventDetails->ProcessId)) {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_PROCESS_ID;
             return FALSE;
         }
     }
 
-    if (EventDetails->EventType == EXCEPTION_OCCURRED)
-    {
+    if (EventDetails->EventType == EXCEPTION_OCCURRED) {
         //
         // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES &&
-            EventDetails->OptionalParam1 >= 31)
-        {
+        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 31) {
             //
             // We don't support entries other than first 32 IDT indexes,
             // it is because we use exception bitmaps and in order to support
@@ -2071,81 +1934,65 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // exiting which is completely different
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
-    }
-    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
-    {
+    } else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED) {
         //
         // Check if the exception entry is between 32 to 255
         //
-        if (!(EventDetails->OptionalParam1 >= 32 && EventDetails->OptionalParam1 <= 0xff))
-        {
+        if (!(EventDetails->OptionalParam1 >= 32 && EventDetails->OptionalParam1 <= 0xff)) {
             //
             // The IDT Entry is either invalid or is not in the range
             // of the pin-based external interrupt exiting controls
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
             return FALSE;
         }
-    }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS ||
-             EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
-    {
+    } else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC) {
         //
         // First check if the address are valid
         //
         TempPid = EventDetails->ProcessId;
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-        {
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES) {
             TempPid = PsGetCurrentProcessId();
         }
 
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
-        {
+        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL) {
             //
             // Address is invalid (Set the error)
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
-    }
-    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ ||
-             EventDetails->EventType == HIDDEN_HOOK_WRITE)
-    {
+    } else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE || EventDetails->EventType == HIDDEN_HOOK_READ || EventDetails->EventType == HIDDEN_HOOK_WRITE) {
         //
         // First check if the address are valid
         //
         TempPid = EventDetails->ProcessId;
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-        {
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES) {
             TempPid = PsGetCurrentProcessId();
         }
 
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL ||
-            VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
-        {
+        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL || VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL) {
             //
             // Address is invalid (Set the error)
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
 
         //
         // Check if the 'to' is greater that 'from'
         //
-        if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
-        {
+        if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2) {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
     }
@@ -2159,48 +2006,44 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // We initialize event with disabled mode as it doesn't have action yet
     //
-    if (EventDetails->ConditionBufferSize != 0)
-    {
+    if (EventDetails->ConditionBufferSize != 0) {
         //
         // Conditional Event
         //
         Event = DebuggerCreateEvent(FALSE,
-                                    EventDetails->CoreId,
-                                    EventDetails->ProcessId,
-                                    EventDetails->EventType,
-                                    EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
-                                    EventDetails->ConditionBufferSize,
-                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
-    }
-    else
-    {
+            EventDetails->CoreId,
+            EventDetails->ProcessId,
+            EventDetails->EventType,
+            EventDetails->Tag,
+            EventDetails->OptionalParam1,
+            EventDetails->OptionalParam2,
+            EventDetails->OptionalParam3,
+            EventDetails->OptionalParam4,
+            EventDetails->ConditionBufferSize,
+            (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
+    } else {
         //
         // Unconditional Event
         //
         Event = DebuggerCreateEvent(FALSE,
-                                    EventDetails->CoreId,
-                                    EventDetails->ProcessId,
-                                    EventDetails->EventType,
-                                    EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
-                                    0,
-                                    NULL);
+            EventDetails->CoreId,
+            EventDetails->ProcessId,
+            EventDetails->EventType,
+            EventDetails->Tag,
+            EventDetails->OptionalParam1,
+            EventDetails->OptionalParam2,
+            EventDetails->OptionalParam3,
+            EventDetails->OptionalParam4,
+            0,
+            NULL);
     }
 
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         //
         // Set the error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
+        ResultsToReturnUsermode->Error = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
         return FALSE;
     }
 
@@ -2218,38 +2061,32 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Now we should configure the cpu to generate the events
     //
-    switch (EventDetails->EventType)
-    {
+    switch (EventDetails->EventType) {
     case HIDDEN_HOOK_READ_AND_WRITE:
     case HIDDEN_HOOK_READ:
-    case HIDDEN_HOOK_WRITE:
-    {
+    case HIDDEN_HOOK_WRITE: {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
-            EventDetails->ProcessId == 0)
-        {
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0) {
             EventDetails->ProcessId = PsGetCurrentProcessId();
         }
 
         PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
         PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
 
-        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-        {
+        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++) {
             //
             // In all the cases we should set both read/write, even if it's only
             // read we should set the write too!
             //
             ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                     EventDetails->ProcessId,
-                                                                                     TRUE,
-                                                                                     TRUE);
+                EventDetails->ProcessId,
+                TRUE,
+                TRUE);
 
-            if (!ResultOfApplyingEvent)
-            {
+            if (!ResultOfApplyingEvent) {
                 //
                 // The event is not applied, won't apply other EPT modifications
                 // as we want to remove this event
@@ -2258,15 +2095,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 //
                 // Now we should restore the previously applied events (if any)
                 //
-                for (size_t j = 0; j < i; j++)
-                {
+                for (size_t j = 0; j < i; j++) {
                     ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
                 }
 
                 break;
-            }
-            else
-            {
+            } else {
                 //
                 // We applied the hook and the pre-allocated buffers are used
                 // for this hook, as here is a safe PASSIVE_LEVEL we can force
@@ -2291,39 +2125,34 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Check if we should restore the event if it was not successful
         //
-        if (!ResultOfApplyingEvent)
-        {
+        if (!ResultOfApplyingEvent) {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturnUsermode->Error = DebuggerGetLastError();
 
             goto ClearTheEventAfterCreatingEvent;
         }
 
         break;
     }
-    case HIDDEN_HOOK_EXEC_CC:
-    {
+    case HIDDEN_HOOK_EXEC_CC: {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
-            EventDetails->ProcessId == 0)
-        {
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0) {
             EventDetails->ProcessId = PsGetCurrentProcessId();
         }
 
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
-        {
+        if (!ConfigureEptHook(EventDetails->OptionalParam1, EventDetails->ProcessId)) {
             //
             // There was an error applying this event, so we're setting
             // the event
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturnUsermode->Error = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2335,29 +2164,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case HIDDEN_HOOK_EXEC_DETOURS:
-    {
+    case HIDDEN_HOOK_EXEC_DETOURS: {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
-            EventDetails->ProcessId == 0)
-        {
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0) {
             EventDetails->ProcessId = PsGetCurrentProcessId();
         }
 
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE))
-        {
+        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE)) {
             //
             // There was an error applying this event, so we're setting
             // the event
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturnUsermode->Error = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2370,8 +2195,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case RDMSR_INSTRUCTION_EXECUTION:
-    {
+    case RDMSR_INSTRUCTION_EXECUTION: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2381,15 +2205,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2403,8 +2224,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case WRMSR_INSTRUCTION_EXECUTION:
-    {
+    case WRMSR_INSTRUCTION_EXECUTION: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2414,15 +2234,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2437,20 +2254,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         break;
     }
     case IN_INSTRUCTION_EXECUTION:
-    case OUT_INSTRUCTION_EXECUTION:
-    {
+    case OUT_INSTRUCTION_EXECUTION: {
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandIoBitmapChangeAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2464,8 +2277,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case TSC_INSTRUCTION_EXECUTION:
-    {
+    case TSC_INSTRUCTION_EXECUTION: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2475,15 +2287,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandEnableRdtscExitingAllCores();
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2492,8 +2301,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case PMC_INSTRUCTION_EXECUTION:
-    {
+    case PMC_INSTRUCTION_EXECUTION: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2503,15 +2311,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandEnableRdpmcExitingAllCores();
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2520,8 +2325,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case DEBUG_REGISTERS_ACCESSED:
-    {
+    case DEBUG_REGISTERS_ACCESSED: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2531,15 +2335,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandEnableMovDebugRegistersExitingAllCores();
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2548,8 +2349,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case CONTROL_REGISTER_MODIFIED:
-    {
+    case CONTROL_REGISTER_MODIFIED: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2565,19 +2365,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
-            DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
+            DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = { 0 };
 
             BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
             BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
@@ -2587,8 +2384,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case EXCEPTION_OCCURRED:
-    {
+    case EXCEPTION_OCCURRED: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2599,15 +2395,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Let's see if it is for all cores or just one core
         //
 
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandSetExceptionBitmapAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2621,8 +2414,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case EXTERNAL_INTERRUPT_OCCURRED:
-    {
+    case EXTERNAL_INTERRUPT_OCCURRED: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2632,15 +2424,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             ExtensionCommandSetExternalInterruptExitingAllCores();
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2654,8 +2443,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case SYSCALL_HOOK_EFER_SYSCALL:
-    {
+    case SYSCALL_HOOK_EFER_SYSCALL: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2667,27 +2455,21 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
+        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD) {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
+        } else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY) {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
 
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2703,8 +2485,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case SYSCALL_HOOK_EFER_SYSRET:
-    {
+    case SYSCALL_HOOK_EFER_SYSRET: {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
@@ -2716,27 +2497,21 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
+        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD) {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
+        } else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY) {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
 
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES) {
             //
             // All cores
             //
             DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
+        } else {
             //
             // Just one core
             //
@@ -2752,8 +2527,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case VMCALL_INSTRUCTION_EXECUTION:
-    {
+    case VMCALL_INSTRUCTION_EXECUTION: {
         //
         // Enable triggering events for VMCALLs
         // This event doesn't support custom optional
@@ -2765,8 +2539,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case CPUID_INSTRUCTION_EXECUTION:
-    {
+    case CPUID_INSTRUCTION_EXECUTION: {
         //
         // Enable triggering events for CPUIDs
         // This event doesn't support custom optional
@@ -2778,13 +2551,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    default:
-    {
+    default: {
         //
         // Set the error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+        ResultsToReturnUsermode->Error = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
         goto ClearTheEventAfterCreatingEvent;
 
         break;
@@ -2799,12 +2571,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Set the event mode (pre- post- event)
     //
-    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
-    {
+    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION) {
         Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
-    }
-    else
-    {
+    } else {
         //
         // Any other value results to be pre-event
         //
@@ -2815,7 +2584,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // Set the status
     //
     ResultsToReturnUsermode->IsSuccessful = TRUE;
-    ResultsToReturnUsermode->Error        = 0;
+    ResultsToReturnUsermode->Error = 0;
 
     //
     // Event was applied successfully
@@ -2827,8 +2596,7 @@ ClearTheEventAfterCreatingEvent:
     //
     // Remove the event as it was not successfull
     //
-    if (Event != NULL)
-    {
+    if (Event != NULL) {
         DebuggerRemoveEvent(Event->Tag);
     }
 
@@ -2856,13 +2624,12 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
     //
     PDEBUGGER_EVENT Event = DebuggerGetEventByTag(Action->EventTag);
 
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         //
         // Set the appropriate error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_TAG_NOT_EXISTS;
+        ResultsToReturnUsermode->Error = DEBUGGER_ERROR_TAG_NOT_EXISTS;
 
         //
         // Show that the
@@ -2870,18 +2637,16 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         return FALSE;
     }
 
-    if (Action->ActionType == RUN_CUSTOM_CODE)
-    {
+    if (Action->ActionType == RUN_CUSTOM_CODE) {
         //
         // Check if buffer is not invalid
         //
-        if (Action->CustomCodeBufferSize == 0)
-        {
+        if (Action->CustomCodeBufferSize == 0) {
             //
             // Set the appropriate error
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -2892,10 +2657,10 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Add action for RUN_CUSTOM_CODE
         //
-        DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
+        DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = { 0 };
 
-        CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
-        CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
+        CustomCode.CustomCodeBufferSize = Action->CustomCodeBufferSize;
+        CustomCode.CustomCodeBufferAddress = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
         CustomCode.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
 
         //
@@ -2907,19 +2672,16 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         // Enable the event
         //
         DebuggerEnableEvent(Event->Tag);
-    }
-    else if (Action->ActionType == RUN_SCRIPT)
-    {
+    } else if (Action->ActionType == RUN_SCRIPT) {
         //
         // Check if buffer is not invalid
         //
-        if (Action->ScriptBufferSize == 0)
-        {
+        if (Action->ScriptBufferSize == 0) {
             //
             // Set the appropriate error
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturnUsermode->Error = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -2930,11 +2692,11 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Add action for RUN_SCRIPT
         //
-        DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = {0};
-        UserScriptConfig.ScriptBuffer                                   = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        UserScriptConfig.ScriptLength                                   = Action->ScriptBufferSize;
-        UserScriptConfig.ScriptPointer                                  = Action->ScriptBufferPointer;
-        UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
+        DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = { 0 };
+        UserScriptConfig.ScriptBuffer = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
+        UserScriptConfig.ScriptLength = Action->ScriptBufferSize;
+        UserScriptConfig.ScriptPointer = Action->ScriptBufferPointer;
+        UserScriptConfig.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
 
         DebuggerAddActionToEvent(Event, RUN_SCRIPT, Action->ImmediateMessagePassing, NULL, &UserScriptConfig);
 
@@ -2942,9 +2704,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         // Enable the event
         //
         DebuggerEnableEvent(Event->Tag);
-    }
-    else if (Action->ActionType == BREAK_TO_DEBUGGER)
-    {
+    } else if (Action->ActionType == BREAK_TO_DEBUGGER) {
         //
         // Add action BREAK_TO_DEBUGGER to event
         //
@@ -2954,14 +2714,12 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         // Enable the event
         //
         DebuggerEnableEvent(Event->Tag);
-    }
-    else
-    {
+    } else {
         //
         // Set the appropriate error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
+        ResultsToReturnUsermode->Error = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         //
         // Show that the
@@ -2970,7 +2728,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
     }
 
     ResultsToReturnUsermode->IsSuccessful = TRUE;
-    ResultsToReturnUsermode->Error        = 0;
+    ResultsToReturnUsermode->Error = 0;
 
     return TRUE;
 }
@@ -2996,8 +2754,7 @@ DebuggerTerminateEvent(UINT64 Tag)
     //
     Event = DebuggerGetEventByTag(Tag);
 
-    if (Event == NULL)
-    {
+    if (Event == NULL) {
         //
         // event, not found
         //
@@ -3007,10 +2764,8 @@ DebuggerTerminateEvent(UINT64 Tag)
     //
     // Check the event type of our specific tag
     //
-    switch (Event->EventType)
-    {
-    case EXTERNAL_INTERRUPT_OCCURRED:
-    {
+    switch (Event->EventType) {
+    case EXTERNAL_INTERRUPT_OCCURRED: {
         //
         // Call external interrupt terminator
         //
@@ -3020,8 +2775,7 @@ DebuggerTerminateEvent(UINT64 Tag)
     }
     case HIDDEN_HOOK_READ_AND_WRITE:
     case HIDDEN_HOOK_READ:
-    case HIDDEN_HOOK_WRITE:
-    {
+    case HIDDEN_HOOK_WRITE: {
         //
         // Call read and write ept hook terminator
         //
@@ -3029,8 +2783,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case HIDDEN_HOOK_EXEC_CC:
-    {
+    case HIDDEN_HOOK_EXEC_CC: {
         //
         // Call ept hook (hidden breakpoint) terminator
         //
@@ -3038,8 +2791,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case HIDDEN_HOOK_EXEC_DETOURS:
-    {
+    case HIDDEN_HOOK_EXEC_DETOURS: {
         //
         // Call ept hook (hidden inline hook) terminator
         //
@@ -3047,8 +2799,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case RDMSR_INSTRUCTION_EXECUTION:
-    {
+    case RDMSR_INSTRUCTION_EXECUTION: {
         //
         // Call rdmsr execution event terminator
         //
@@ -3056,8 +2807,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case WRMSR_INSTRUCTION_EXECUTION:
-    {
+    case WRMSR_INSTRUCTION_EXECUTION: {
         //
         // Call wrmsr execution event terminator
         //
@@ -3065,8 +2815,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case EXCEPTION_OCCURRED:
-    {
+    case EXCEPTION_OCCURRED: {
         //
         // Call exception events terminator
         //
@@ -3074,8 +2823,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case IN_INSTRUCTION_EXECUTION:
-    {
+    case IN_INSTRUCTION_EXECUTION: {
         //
         // Call IN instruction execution event terminator
         //
@@ -3083,8 +2831,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case OUT_INSTRUCTION_EXECUTION:
-    {
+    case OUT_INSTRUCTION_EXECUTION: {
         //
         // Call OUT instruction execution event terminator
         //
@@ -3092,8 +2839,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case SYSCALL_HOOK_EFER_SYSCALL:
-    {
+    case SYSCALL_HOOK_EFER_SYSCALL: {
         //
         // Call syscall hook event terminator
         //
@@ -3101,8 +2847,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case SYSCALL_HOOK_EFER_SYSRET:
-    {
+    case SYSCALL_HOOK_EFER_SYSRET: {
         //
         // Call sysret hook event terminator
         //
@@ -3110,8 +2855,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case VMCALL_INSTRUCTION_EXECUTION:
-    {
+    case VMCALL_INSTRUCTION_EXECUTION: {
         //
         // Call vmcall instruction execution event terminator
         //
@@ -3119,8 +2863,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case TSC_INSTRUCTION_EXECUTION:
-    {
+    case TSC_INSTRUCTION_EXECUTION: {
         //
         // Call rdtsc/rdtscp instruction execution event terminator
         //
@@ -3128,8 +2871,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case PMC_INSTRUCTION_EXECUTION:
-    {
+    case PMC_INSTRUCTION_EXECUTION: {
         //
         // Call rdtsc/rdtscp instructions execution event terminator
         //
@@ -3137,8 +2879,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case DEBUG_REGISTERS_ACCESSED:
-    {
+    case DEBUG_REGISTERS_ACCESSED: {
         //
         // Call mov to debugger register event terminator
         //
@@ -3146,8 +2887,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case CPUID_INSTRUCTION_EXECUTION:
-    {
+    case CPUID_INSTRUCTION_EXECUTION: {
         //
         // Call cpuid instruction execution event terminator
         //
@@ -3155,8 +2895,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case CONTROL_REGISTER_MODIFIED:
-    {
+    case CONTROL_REGISTER_MODIFIED: {
         //
         // Call mov to control register event terminator
         //
@@ -3185,12 +2924,9 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     //
     // Check if the tag is valid or not
     //
-    if (DebuggerEventModificationRequest->Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
-    {
+    if (DebuggerEventModificationRequest->Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
         IsForAllEvents = TRUE;
-    }
-    else if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
-    {
+    } else if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag)) {
         //
         // Tag is invalid
         //
@@ -3206,44 +2942,32 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     //
     // Check if it's a ENABLE, DISABLE or CLEAR
     //
-    if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
-    {
-        if (IsForAllEvents)
-        {
+    if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
+        if (IsForAllEvents) {
             //
             // Enable all events
             //
             DebuggerEnableOrDisableAllEvents(TRUE);
-        }
-        else
-        {
+        } else {
             //
             // Enable just one event
             //
             DebuggerEnableEvent(DebuggerEventModificationRequest->Tag);
         }
-    }
-    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
-    {
-        if (IsForAllEvents)
-        {
+    } else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE) {
+        if (IsForAllEvents) {
             //
             // Disable all events
             //
             DebuggerEnableOrDisableAllEvents(FALSE);
-        }
-        else
-        {
+        } else {
             //
             // Disable just one event
             //
             DebuggerDisableEvent(DebuggerEventModificationRequest->Tag);
         }
-    }
-    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
-    {
-        if (IsForAllEvents)
-        {
+    } else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR) {
+        if (IsForAllEvents) {
             //
             // Clear all events
             //
@@ -3271,9 +2995,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             // Third, remove all events
             //
             DebuggerRemoveAllEvents();
-        }
-        else
-        {
+        } else {
             //
             // Clear just one event
             //
@@ -3302,14 +3024,11 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             //
             DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag);
         }
-    }
-    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
-    {
+    } else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
         //
         // check if tag is valid or not
         //
-        if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
-        {
+        if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag)) {
             DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_TAG_NOT_EXISTS;
             return FALSE;
         }
@@ -3317,17 +3036,12 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
         //
         // Set event state
         //
-        if (DebuggerQueryStateEvent(DebuggerEventModificationRequest->Tag))
-        {
+        if (DebuggerQueryStateEvent(DebuggerEventModificationRequest->Tag)) {
             DebuggerEventModificationRequest->IsEnabled = TRUE;
-        }
-        else
-        {
+        } else {
             DebuggerEventModificationRequest->IsEnabled = FALSE;
         }
-    }
-    else
-    {
+    } else {
         //
         // Invalid parameter specifed in TypeOfAction
         //

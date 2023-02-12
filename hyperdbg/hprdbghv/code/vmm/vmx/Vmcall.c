@@ -354,12 +354,19 @@ _Use_decl_annotations_
         break;
     }
     case VMCALL_ENABLE_DIRTY_LOGGING_MECHANISM: {
-        DirtyLoggingEnable();
-        VmcallStatus = STATUS_SUCCESS;
+
+        if (DirtyLoggingEnable(VCpu)) {
+            VmcallStatus = STATUS_SUCCESS;
+        } else {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
         break;
     }
     case VMCALL_DISABLE_DIRTY_LOGGING_MECHANISM: {
-        DirtyLoggingDisable();
+
+        DirtyLoggingDisable(VCpu);
+
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

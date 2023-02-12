@@ -15,11 +15,18 @@
 /**
  * @brief Initialize the dirty logging mechanism
  *
- * @return VOID
+ * @return BOOLEAN
  */
 BOOLEAN
 DirtyLoggingInitialize()
 {
+
+    ULONG CoreCount;
+
+    //
+    // Query count of active processors
+    //
+    CoreCount = KeQueryActiveProcessorCount(0);
 
     //
     // The explanations are copied from Intel whitepaper on PML:
@@ -50,23 +57,37 @@ DirtyLoggingInitialize()
     // the 4 - KByte aligned physical address of the page - modification log.The page modification
     // log comprises 512 64 - bit entries
     //
-    if (g_PmlBufferAddress == NULL) {
-        g_PmlBufferAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    for (size_t i = 0; i < CoreCount; i++) {
+
+        if (g_GuestState[i].PmlBufferAddress == NULL) {
+            g_GuestState[i].PmlBufferAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+        }
+
+        if (g_GuestState[i].PmlBufferAddress == NULL) {
+
+            //
+            // Allocation failed
+            //
+            for (size_t j = 0; j < CoreCount; j++) {
+
+                if (g_GuestState[j].PmlBufferAddress != NULL) {
+                    ExFreePoolWithTag(g_GuestState[j].PmlBufferAddress, POOLTAG);
+                }
+            }
+
+            return FALSE;
+        }
+
+        //
+        // Clear the log buffer
+        //
+        RtlZeroBytes(g_GuestState[i].PmlBufferAddress, PAGE_SIZE);
     }
 
-    if (g_PmlBufferAddress == NULL) {
-        return FALSE;
-    }
-
     //
-    // Clear the log buffer
+    // Broadcast VMCALL to adjust PML controls from vmx-root
     //
-    RtlZeroBytes(g_PmlBufferAddress, PAGE_SIZE);
-
-    //
-    // Call the VMCALL to adjust PML controls from vmx-root
-    //
-    AsmVmxVmcall(VMCALL_ENABLE_DIRTY_LOGGING_MECHANISM, 0, 0, 0);
+    BroadcastEnablePmlOnAllProcessors();
 
     //
     // Initialization was successful
@@ -78,20 +99,34 @@ DirtyLoggingInitialize()
  * @brief Enables the dirty logging mechanism in VMX-root mode
  * @details should be called in vmx-root mode
  *
- * @return VOID
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
  */
-VOID DirtyLoggingEnable()
+BOOLEAN
+DirtyLoggingEnable(VIRTUAL_MACHINE_STATE* VCpu)
 {
+
+    //
+    // Check if PML Address buffer is empty or not
+    //
+    if (VCpu->PmlBufferAddress == NULL) {
+        return FALSE;
+    }
+
     //
     // Write the address of the buffer
     //
-    LogInfo("PML Buffer Address = %llx", VirtualAddressToPhysicalAddress(g_PmlBufferAddress));
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, VirtualAddressToPhysicalAddress(g_PmlBufferAddress));
+    UINT64 PmlPhysAddr = VirtualAddressToPhysicalAddress(VCpu->PmlBufferAddress);
+
+    LogInfo("PML Buffer Address = %llx", PmlPhysAddr);
+
+    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
 
     //
     // Clear the PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, 0x0);
+    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
 
     //
     // If the "enable PML" VM-execution control is 1 and bit 6 of EPT pointer (EPTP)
@@ -104,16 +139,38 @@ VOID DirtyLoggingEnable()
     // Secondary processor-based VM-execution control 17 is defined as enable PML
     //
     HvSetPmlEnableFlag(TRUE);
+
+    //
+    // Initialization was successful
+    //
+    return TRUE;
 }
 
 /**
  * @brief Disables the dirty logging mechanism in VMX-root mode
  * @details should be called in vmx-root mode
  *
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
-VOID DirtyLoggingDisable()
+VOID DirtyLoggingDisable(VIRTUAL_MACHINE_STATE* VCpu)
 {
+
+    //
+    // Clear the address
+    //
+    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, NULL);
+
+    //
+    // Clear the PML index
+    //
+    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, 0x0);
+
+    //
+    // Disable PML Enable bit
+    //
+    HvSetPmlEnableFlag(FALSE);
 }
 
 /**
@@ -121,19 +178,47 @@ VOID DirtyLoggingDisable()
  *
  * @return VOID
  */
-BOOLEAN
-DirtyLoggingUninitialize()
+VOID DirtyLoggingUninitialize()
 {
+
+    ULONG CoreCount;
+
+    //
+    // Query count of active processors
+    //
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Broadcast VMCALL to disable PML controls from vmx-root
+    //
+    BroadcastDisablePmlOnAllProcessors();
+
+    //
+    // Free the allocated pool buffers
+    //
+    for (size_t i = 0; i < CoreCount; i++) {
+
+        if (g_GuestState[i].PmlBufferAddress != NULL) {
+            ExFreePoolWithTag(g_GuestState[i].PmlBufferAddress, POOLTAG);
+        }
+    }
 }
 
-VOID DirtyLoggingHandlePageModificationLog()
+/**
+ * @brief Create log from dirty log buffer
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE* VCpu)
 {
     //
     // The guest-physical address of the access is written to the page-modification log
     //
-    for (size_t i = 0; i < PAGE_SIZE / sizeof(UINT64); i++) {
+    for (size_t i = 0; i < PML_ENTITY_NUM; i++) {
 
-        LogInfo("Address : %llx", g_PmlBufferAddress[i]);
+        LogInfo("Address : %llx", VCpu->PmlBufferAddress[i]);
     }
 }
 
@@ -141,6 +226,7 @@ VOID DirtyLoggingHandlePageModificationLog()
  * @brief Handling vm-exits of PML
  *
  * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE* VCpu)
@@ -151,7 +237,7 @@ VOID DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE* VCpu)
     // *** The guest-physical address of the access is written to the page-modification log
     // and the buffer is full ***
     //
-    DirtyLoggingHandlePageModificationLog();
+    DirtyLoggingHandlePageModificationLog(VCpu);
 
     //
     // Do not increment RIP

@@ -216,6 +216,9 @@ ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_S
 IMPORT_EXPORT_VMM VOID
 ConfigureDirtyLoggingInitializeOnAllProcessors();
 
+IMPORT_EXPORT_VMM VOID
+ConfigureDirtyLoggingUninitializeOnAllProcessors();
+
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 

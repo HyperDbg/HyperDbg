@@ -28,13 +28,23 @@ VOID ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief routines for debugging threads (enable mov-to-cr3 exiting)
+ * @brief routines for initializing dirty logging mechanism
  *
  * @return VOID
  */
 VOID ConfigureDirtyLoggingInitializeOnAllProcessors()
 {
     DirtyLoggingInitialize();
+}
+
+/**
+ * @brief routines for uninitializing dirty logging mechanism
+ *
+ * @return VOID
+ */
+VOID ConfigureDirtyLoggingUninitializeOnAllProcessors()
+{
+    DirtyLoggingUninitialize();
 }
 
 /**

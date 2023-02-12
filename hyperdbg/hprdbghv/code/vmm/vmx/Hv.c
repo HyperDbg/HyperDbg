@@ -571,7 +571,7 @@ VOID HvSetPmlEnableFlag(BOOLEAN Set)
     // Read the previous flags
     //
     __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
-
+    LogInfo("pre 2nd CTRL : %x", SecondaryProcBasedVmExecControls);
     //
     // PML enable flag
     //
@@ -580,6 +580,9 @@ VOID HvSetPmlEnableFlag(BOOLEAN Set)
     } else {
         SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
     }
+
+    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+    LogInfo("post 2nd CTRL : %x", Sec);
 
     //
     // Set the new value

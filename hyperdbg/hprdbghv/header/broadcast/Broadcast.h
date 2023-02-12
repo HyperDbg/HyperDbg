@@ -15,14 +15,14 @@
 //		  Internal Broadcast Functions			//
 //////////////////////////////////////////////////
 
-VOID
-BroadcastVmxVirtualizationAllCores();
+VOID BroadcastVmxVirtualizationAllCores();
 
-VOID
-BroadcastEnableNmiExitingAllCores();
+VOID BroadcastEnableNmiExitingAllCores();
 
-VOID
-BroadcastDisableNmiExitingAllCores();
+VOID BroadcastDisableNmiExitingAllCores();
 
-VOID
-BroadcastNotifyAllToInvalidateEptAllCores();
+VOID BroadcastNotifyAllToInvalidateEptAllCores();
+
+VOID BroadcastEnablePmlOnAllProcessors();
+
+VOID BroadcastDisablePmlOnAllProcessors();
