@@ -353,6 +353,23 @@ _Use_decl_annotations_
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_ENABLE_DIRTY_LOGGING_MECHANISM: {
+
+        if (DirtyLoggingEnable(VCpu)) {
+            VmcallStatus = STATUS_SUCCESS;
+        } else {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
+    case VMCALL_DISABLE_DIRTY_LOGGING_MECHANISM: {
+
+        DirtyLoggingDisable(VCpu);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default: {
         LogError("Err, unsupported VMCALL");
         VmcallStatus = STATUS_UNSUCCESSFUL;

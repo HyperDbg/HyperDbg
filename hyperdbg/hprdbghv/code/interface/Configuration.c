@@ -17,8 +17,7 @@
  *
  * @return VOID
  */
-VOID
-ConfigureEnableMovToCr3ExitingOnAllProcessors()
+VOID ConfigureEnableMovToCr3ExitingOnAllProcessors()
 {
     //
     // Indicate that the future #PFs should or should not be checked with user debugger
@@ -29,12 +28,31 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
+ * @brief routines for initializing dirty logging mechanism
+ *
+ * @return VOID
+ */
+VOID ConfigureDirtyLoggingInitializeOnAllProcessors()
+{
+    DirtyLoggingInitialize();
+}
+
+/**
+ * @brief routines for uninitializing dirty logging mechanism
+ *
+ * @return VOID
+ */
+VOID ConfigureDirtyLoggingUninitializeOnAllProcessors()
+{
+    DirtyLoggingUninitialize();
+}
+
+/**
  * @brief routines for debugging threads (disable mov-to-cr3 exiting)
  *
  * @return VOID
  */
-VOID
-ConfigureDisableMovToCr3ExitingOnAllProcessors()
+VOID ConfigureDisableMovToCr3ExitingOnAllProcessors()
 {
     //
     // Indicate that the future #PFs should or should not be checked with user debugger
@@ -50,15 +68,11 @@ ConfigureDisableMovToCr3ExitingOnAllProcessors()
  *
  * @return VOID
  */
-VOID
-ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+VOID ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
 {
-    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-    {
+    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD) {
         g_IsUnsafeSyscallOrSysretHandling = TRUE;
-    }
-    else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-    {
+    } else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY) {
         g_IsUnsafeSyscallOrSysretHandling = FALSE;
     }
 
@@ -70,8 +84,7 @@ ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TY
  *
  * @return VOID
  */
-VOID
-ConfigureDisableEferSyscallEventsOnAllProcessors()
+VOID ConfigureDisableEferSyscallEventsOnAllProcessors()
 {
     BroadcastDisableEferSyscallEventsOnAllProcessors();
 }
@@ -141,15 +154,11 @@ ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOO
  *
  * @return VOID
  */
-VOID
-ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+VOID ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
 {
-    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-    {
+    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD) {
         g_IsUnsafeSyscallOrSysretHandling = TRUE;
-    }
-    else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-    {
+    } else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY) {
         g_IsUnsafeSyscallOrSysretHandling = FALSE;
     }
 
@@ -163,8 +172,7 @@ ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_S
  *
  * @return VOID
  */
-VOID
-ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId)
+VOID ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
 }
@@ -176,8 +184,7 @@ ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId)
  *
  * @return VOID
  */
-VOID
-ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
+VOID ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
 }
@@ -189,8 +196,7 @@ ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
  *
  * @return VOID
  */
-VOID
-ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
+VOID ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
 }
@@ -202,8 +208,7 @@ ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
  *
  * @return VOID
  */
-VOID
-ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
+VOID ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
 }
@@ -216,8 +221,7 @@ ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
  *
  * @return VOID
  */
-VOID
-ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
+VOID ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, BitMask);
 }
@@ -230,8 +234,7 @@ ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
  *
  * @return VOID
  */
-VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption)
+VOID ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS* BroadcastingOption)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
 }
@@ -244,8 +247,7 @@ ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBU
  *
  * @return VOID
  */
-VOID
-ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
+VOID ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, MsrMask);
 }
@@ -258,8 +260,7 @@ ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
  *
  * @return VOID
  */
-VOID
-ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
+VOID ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, MsrMask);
 }
@@ -272,8 +273,7 @@ ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
  *
  * @return VOID
  */
-VOID
-ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
+VOID ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, Port);
 }

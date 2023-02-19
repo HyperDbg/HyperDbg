@@ -44,8 +44,7 @@ HvAdjustControls(ULONG Ctl, ULONG Msr);
  * @param VCpu
  * @return VOID
  */
-VOID
-HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu);
+VOID HvHandleCpuid(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Fill guest selector data
@@ -55,8 +54,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu);
  * @param Selector
  * @return VOID
  */
-VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
+VOID HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
 
 /**
  * @brief Handle Guest's Control Registers Access
@@ -64,17 +62,15 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
  * @param VCpu
  * @return VOID
  */
-VOID
-HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
-                              VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification);
+VOID HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE* VCpu,
+    VMX_EXIT_QUALIFICATION_MOV_CR* CrExitQualification);
 
 /**
  * @brief Resume GUEST_RIP to next instruction
  *
  * @return VOID
  */
-VOID
-HvResumeToNextInstruction();
+VOID HvResumeToNextInstruction();
 
 /**
  * @brief Supress the incrementation of RIP
@@ -84,7 +80,7 @@ HvResumeToNextInstruction();
  * @return VOID
  */
 extern inline VOID
-HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
+HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Perform the incrementation of RIP
@@ -94,7 +90,7 @@ HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
  * @return VOID
  */
 extern inline VOID
-HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
+HvPerformRipIncrement(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Set or unset the monitor trap flags
@@ -102,8 +98,7 @@ HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetMonitorTrapFlag(BOOLEAN Set);
+VOID HvSetMonitorTrapFlag(BOOLEAN Set);
 
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
@@ -111,8 +106,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set);
  * @param Set Set or unset
  * @return VOID
  */
-VOID
-HvSetLoadDebugControls(BOOLEAN Set);
+VOID HvSetLoadDebugControls(BOOLEAN Set);
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
@@ -120,8 +114,7 @@ HvSetLoadDebugControls(BOOLEAN Set);
  * @param Set Set or unset
  * @return VOID
  */
-VOID
-HvSetSaveDebugControls(BOOLEAN Set);
+VOID HvSetSaveDebugControls(BOOLEAN Set);
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard
@@ -129,8 +122,7 @@ HvSetSaveDebugControls(BOOLEAN Set);
  *
  * @return VOID
  */
-VOID
-HvRestoreRegisters();
+VOID HvRestoreRegisters();
 
 /**
  * @brief Set vm-exit for rdpmc instructions
@@ -138,8 +130,7 @@ HvRestoreRegisters();
  * @param Set
  * @return VOID
  */
-VOID
-HvSetPmcVmexit(BOOLEAN Set);
+VOID HvSetPmcVmexit(BOOLEAN Set);
 
 /**
  * @brief Set vm-exit for mov-to-cr0/4
@@ -149,8 +140,7 @@ HvSetPmcVmexit(BOOLEAN Set);
  * @param MaskRegister
  * @return VOID
  */
-VOID
-HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister);
+VOID HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister);
 
 /**
  * @brief Set vm-exit for mov-to-cr3
@@ -158,8 +148,7 @@ HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegis
  * @param Set
  * @return VOID
  */
-VOID
-HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+VOID HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set);
 
 /**
  * @brief Write to the exception bitmap
@@ -167,8 +156,7 @@ HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
  * @param BitmapMask
  * @return VOID
  */
-VOID
-HvWriteExceptionBitmap(UINT32 BitmapMask);
+VOID HvWriteExceptionBitmap(UINT32 BitmapMask);
 
 /**
  * @brief Read the exception bitmap
@@ -184,8 +172,15 @@ HvReadExceptionBitmap();
  * @param Set
  * @return VOID
  */
-VOID
-HvSetInterruptWindowExiting(BOOLEAN Set);
+VOID HvSetInterruptWindowExiting(BOOLEAN Set);
+
+/**
+ * @brief Set Page Modification Logging Enable bit
+ *
+ * @param Set Set or unset the PML
+ * @return VOID
+ */
+VOID HvSetPmlEnableFlag(BOOLEAN Set);
 
 /**
  * @brief Set NMI-window exiting
@@ -193,8 +188,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetNmiWindowExiting(BOOLEAN Set);
+VOID HvSetNmiWindowExiting(BOOLEAN Set);
 
 /**
  * @brief Handle Mov to Debug Registers Exitings
@@ -202,8 +196,7 @@ HvSetNmiWindowExiting(BOOLEAN Set);
  * @param VCpu
  * @return VOID
  */
-VOID
-HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu);
+VOID HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Set the Mov to Debug Registers Exiting
@@ -211,8 +204,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+VOID HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set);
 
 /**
  * @brief Set the NMI Exiting
@@ -220,8 +212,7 @@ HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetNmiExiting(BOOLEAN Set);
+VOID HvSetNmiExiting(BOOLEAN Set);
 
 /**
  * @brief Set the VMX Preemptiom Timer
@@ -229,8 +220,7 @@ HvSetNmiExiting(BOOLEAN Set);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
+VOID HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
 
 /**
  * @brief Set exception bitmap in VMCS
@@ -239,8 +229,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
  * @param IdtIndex
  * @return VOID
  */
-VOID
-HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
+VOID HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex);
 
 /**
  * @brief Unset exception bitmap in VMCS
@@ -249,8 +238,7 @@ HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
  * @param IdtIndex
  * @return VOID
  */
-VOID
-HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
+VOID HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex);
 
 /**
  * @brief Set the External Interrupt Exiting
@@ -258,8 +246,7 @@ HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+VOID HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set);
 
 /**
  * @brief Set the RDTSC/P Exiting
@@ -267,8 +254,7 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
  * @param Set
  * @return VOID
  */
-VOID
-HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+VOID HvSetRdtscExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set);
 
 /**
  * @brief Read CS selector
@@ -292,8 +278,7 @@ HvGetRflags();
  *
  * @return VOID
  */
-VOID
-HvSetRflags(UINT64 Rflags);
+VOID HvSetRflags(UINT64 Rflags);
 
 /**
  * @brief Read guest's RIP
@@ -309,8 +294,7 @@ HvGetRip();
  *
  * @return VOID
  */
-VOID
-HvSetRip(UINT64 Rip);
+VOID HvSetRip(UINT64 Rip);
 
 /**
  * @brief Read guest's interruptibility state
@@ -334,8 +318,7 @@ HvClearSteppingBits(UINT32 Interruptibility);
  *
  * @return VOID
  */
-VOID
-HvSetInterruptibilityState(UINT64 InterruptibilityState);
+VOID HvSetInterruptibilityState(UINT64 InterruptibilityState);
 
 /**
  * @brief Inject pending external interrupts
@@ -344,8 +327,7 @@ HvSetInterruptibilityState(UINT64 InterruptibilityState);
  *
  * @return VOID
  */
-VOID
-HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+VOID HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Check and enable external interrupts
@@ -354,8 +336,7 @@ HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
  *
  * @return VOID
  */
-VOID
-HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+VOID HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Disable external-interrupts and interrupt window
@@ -364,8 +345,7 @@ HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
  *
  * @return VOID
  */
-VOID
-HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
+VOID HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE* VCpu);
 
 /**
  * @brief Initializes the hypervisor
@@ -374,4 +354,4 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
  * @return BOOLEAN
  */
 BOOLEAN
-HvInitVmm(VMM_CALLBACKS * VmmCallbacks);
+HvInitVmm(VMM_CALLBACKS* VmmCallbacks);

@@ -558,6 +558,39 @@ VOID HvSetInterruptWindowExiting(BOOLEAN Set)
 }
 
 /**
+ * @brief Set Page Modification Logging Enable bit
+ *
+ * @param Set Set or unset the PML
+ * @return VOID
+ */
+VOID HvSetPmlEnableFlag(BOOLEAN Set)
+{
+    ULONG SecondaryProcBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+    LogInfo("pre 2nd CTRL : %x", SecondaryProcBasedVmExecControls);
+    //
+    // PML enable flag
+    //
+    if (Set) {
+        SecondaryProcBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
+    } else {
+        SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
+    }
+
+    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+    LogInfo("post 2nd CTRL : %x", Sec);
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+}
+
+/**
  * @brief Set NMI-window exiting
  *
  * @param Set Set or unset the NMI-window exiting

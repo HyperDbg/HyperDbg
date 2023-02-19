@@ -286,6 +286,15 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
+    case VMX_EXIT_REASON_PAGE_MODIFICATION_LOG_FULL: {
+
+        //
+        // Handle page-modification log
+        //
+        DirtyLoggingHandleVmexits(VCpu);
+
+        break;
+    }
     default: {
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
 
