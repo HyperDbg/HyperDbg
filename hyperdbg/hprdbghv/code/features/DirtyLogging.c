@@ -119,7 +119,7 @@ DirtyLoggingEnable(VIRTUAL_MACHINE_STATE* VCpu)
     //
     UINT64 PmlPhysAddr = VirtualAddressToPhysicalAddress(VCpu->PmlBufferAddress);
 
-    LogInfo("PML Buffer Address = %llx", PmlPhysAddr);
+    // LogInfo("PML Buffer Address = %llx", PmlPhysAddr);
 
     __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
 
@@ -222,6 +222,64 @@ VOID DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE* VCpu)
     }
 }
 
+BOOLEAN
+DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    UINT64* PmlBuf;
+    UINT16 PmlIdx;
+    BOOLEAN IsLargePage;
+    PVOID PmlEntry;
+
+    __vmx_vmread(VMCS_GUEST_PML_INDEX, &PmlIdx);
+
+    //
+    // Do nothing if PML buffer is empty
+    //
+    if (PmlIdx == (PML_ENTITY_NUM - 1))
+        return FALSE;
+
+    //
+    // PML index always points to next available PML buffer entity
+    //
+    if (PmlIdx >= PML_ENTITY_NUM) {
+        PmlIdx = 0;
+    } else {
+        PmlIdx++;
+    }
+
+    PmlBuf = VCpu->PmlBufferAddress;
+
+    for (; PmlIdx < PML_ENTITY_NUM; PmlIdx++) {
+        UINT64 gpa;
+
+        gpa = PmlBuf[PmlIdx];
+
+        PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, gpa, &IsLargePage);
+
+        if (PmlEntry == NULL) {
+
+            //
+            // Page PML entry is not valid
+            //
+            LogInfo("Err, null page");
+            continue;
+        }
+
+        if (IsLargePage) {
+            ((PEPT_PML2_ENTRY)PmlEntry)->Dirty = FALSE;
+        } else {
+            ((PEPT_PML1_ENTRY)PmlEntry)->Dirty = FALSE;
+        }
+    }
+
+    //
+    // reset PML index
+    //
+    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
+
+    return TRUE;
+}
+
 /**
  * @brief Handling vm-exits of PML
  *
@@ -231,13 +289,22 @@ VOID DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE* VCpu)
  */
 VOID DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE* VCpu)
 {
-    LogInfo("Dirty Logging VM-exit");
 
     //
-    // *** The guest-physical address of the access is written to the page-modification log
-    // and the buffer is full ***
+    // *** The guest-physical address of the access is written
+    // to the page-modification log and the buffer is full ***
     //
-    DirtyLoggingHandlePageModificationLog(VCpu);
+
+    //
+    // Test log
+    //
+    LogInfo("Dirty Logging VM-exit");
+    // DirtyLoggingHandlePageModificationLog(VCpu);
+
+    //
+    // Flush the PML buffer
+    //
+    DirtyLoggingFlushPmlBuffer(VCpu);
 
     //
     // Do not increment RIP

@@ -264,6 +264,11 @@ VmxPerformVirtualizationOnAllCores()
         return FALSE;
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Test
+    DirtyLoggingInitialize();
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
     //
     // Broadcast to run vmx-specific task to vitualize cores
     //
@@ -547,13 +552,13 @@ _Use_decl_annotations_
 /**
  * @brief Create and Configure a Vmcs Layout
  *
- * @param CurrentGuestState
+ * @param VCpu
  * @param GuestStack
  * @return BOOLEAN
  */
 _Use_decl_annotations_
     BOOLEAN
-    VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
+    VmxSetupVmcs(VIRTUAL_MACHINE_STATE* VCpu, PVOID GuestStack)
 {
     ULONG CpuBasedVmExecControls;
     ULONG SecondaryProcBasedVmExecControls;
@@ -683,13 +688,13 @@ _Use_decl_annotations_
     //
     // Set MSR Bitmaps
     //
-    __vmx_vmwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, CurrentGuestState->MsrBitmapPhysicalAddress);
+    __vmx_vmwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, VCpu->MsrBitmapPhysicalAddress);
 
     //
     // Set I/O Bitmaps
     //
-    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_A_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressA);
-    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_B_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressB);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_A_ADDRESS, VCpu->IoBitmapPhysicalAddressA);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_B_ADDRESS, VCpu->IoBitmapPhysicalAddressB);
 
     //
     // Set up EPT
@@ -719,10 +724,15 @@ _Use_decl_annotations_
     // Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
     // needs alignment to 16
     //
-    HostRsp = (UINT64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
+    HostRsp = (UINT64)VCpu->VmmStack + VMM_STACK_SIZE - 1;
     HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
     __vmx_vmwrite(VMCS_HOST_RSP, HostRsp);
     __vmx_vmwrite(VMCS_HOST_RIP, (UINT64)AsmVmexitHandler);
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Test
+    DirtyLoggingEnable(VCpu);
+    //////////////////////////////////////////////////////////////////////////////////////////////
 
     return TRUE;
 }
