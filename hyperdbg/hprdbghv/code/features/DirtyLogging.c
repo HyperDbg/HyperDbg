@@ -39,7 +39,6 @@ DirtyLoggingInitialize()
     // When the log is full, a VM exit occurs, notifying the VMM.A VMM can monitor the number of pages modified
     //  by each thread by specifying an available set of log entries
     //
-    //
 
     //
     // The PML address and PML index fields exist only on processors that support the 1-setting of
@@ -250,11 +249,11 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
     PmlBuf = VCpu->PmlBufferAddress;
 
     for (; PmlIdx < PML_ENTITY_NUM; PmlIdx++) {
-        UINT64 gpa;
+        UINT64 AccessedPhysAddr;
 
-        gpa = PmlBuf[PmlIdx];
+        AccessedPhysAddr = PmlBuf[PmlIdx];
 
-        PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, gpa, &IsLargePage);
+        PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, AccessedPhysAddr, &IsLargePage);
 
         if (PmlEntry == NULL) {
 
