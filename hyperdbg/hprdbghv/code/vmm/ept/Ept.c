@@ -181,6 +181,69 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 }
 
 /**
+ * @brief Get the PML1 entry for this physical address if the large page
+ * is available then large page of Pml2 is returned
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PhysicalAddress Physical address that we want to get its PML1
+ * @param IsLargePage Shows whether it's a large page or not
+ *
+ * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ */
+PVOID
+EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN* IsLargePage)
+{
+    SIZE_T Directory, DirectoryPointer, PML4Entry;
+    PEPT_PML2_ENTRY PML2;
+    PEPT_PML1_ENTRY PML1;
+    PEPT_PML2_POINTER PML2Pointer;
+
+    Directory = ADDRMASK_EPT_PML2_INDEX(PhysicalAddress);
+    DirectoryPointer = ADDRMASK_EPT_PML3_INDEX(PhysicalAddress);
+    PML4Entry = ADDRMASK_EPT_PML4_INDEX(PhysicalAddress);
+
+    //
+    // Addresses above 512GB are invalid because it is > physical address bus width
+    //
+    if (PML4Entry > 0) {
+        return NULL;
+    }
+
+    PML2 = &EptPageTable->PML2[DirectoryPointer][Directory];
+
+    //
+    // Check to ensure the page is split
+    //
+    if (PML2->LargePage) {
+        *IsLargePage = TRUE;
+        return PML2;
+    }
+
+    //
+    // Conversion to get the right PageFrameNumber.
+    // These pointers occupy the same place in the table and are directly convertable.
+    //
+    PML2Pointer = (PEPT_PML2_POINTER)PML2;
+
+    //
+    // If it is, translate to the PML1 pointer
+    //
+    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((PVOID)(PML2Pointer->PageFrameNumber * PAGE_SIZE));
+
+    if (!PML1) {
+        return NULL;
+    }
+
+    //
+    // Index into PML1 for that address
+    //
+    PML1 = &PML1[ADDRMASK_EPT_PML1_INDEX(PhysicalAddress)];
+
+    *IsLargePage = FALSE;
+    return PML1;
+}
+
+/**
  * @brief Get the PML2 entry for this physical address
  *
  * @param EptPageTable The EPT Page Table
@@ -564,7 +627,8 @@ EptLogicalProcessorInitialize()
     //
     // We will write the EPTP to the VMCS later
     //
-    g_EptState->EptPointer = EPTP;
+    g_EptState->EptPointer
+        = EPTP;
 
     return TRUE;
 }
