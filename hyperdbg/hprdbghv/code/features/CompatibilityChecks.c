@@ -66,6 +66,62 @@ CompatibilityCheckGetX86VirtualAddressWidth()
 }
 
 /**
+ * @brief Check for mode-based execution
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CompatibilityCheckModeBasedExecution()
+{
+    //
+    // The PML address and PML index fields exist only on processors that support the 1-setting of
+    // the "enable PML" VM - execution control
+    //
+    ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG,
+        IA32_VMX_PROCBASED_CTLS2);
+
+    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG) {
+        //
+        // The processor support PML
+        //
+        return TRUE;
+    } else {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Check for Page Modification Logging (PML) support
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CompatibilityCheckPml()
+{
+    //
+    // The PML address and PML index fields exist only on processors that support the 1-setting of
+    // the "enable PML" VM - execution control
+    //
+    ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG, IA32_VMX_PROCBASED_CTLS2);
+
+    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG) {
+
+        //
+        // The processor support MBEC
+        //
+        return TRUE;
+    } else {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
  * @brief Checks for the compatiblity features based on current processor
  * @detail NOTE: NOT ALL OF THE CHECKS ARE PERFORMED HERE
  * @return VOID
@@ -82,4 +138,18 @@ VOID CompatibilityCheckPerformChecks()
     // Get x86 processor width for virtual address
     //
     g_CompatibilityCheck.VirtualAddressWidth = CompatibilityCheckGetX86VirtualAddressWidth();
+
+    //
+    // Check Mode-based execution compatibility
+    //
+    g_CompatibilityCheck.ModeBasedExecutionSupport = CompatibilityCheckModeBasedExecution();
+
+    //
+    // Check PML support
+    //
+    g_CompatibilityCheck.PmlSupport = CompatibilityCheckPml();
+
+    LogInfo("test, Mode based execution: %s | PML: %s",
+        g_CompatibilityCheck.ModeBasedExecutionSupport ? "true" : "false",
+        g_CompatibilityCheck.PmlSupport ? "true" : "false");
 }

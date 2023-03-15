@@ -41,12 +41,9 @@ DirtyLoggingInitialize()
     //
 
     //
-    // The PML address and PML index fields exist only on processors that support the 1-setting of
-    // the "enable PML" VM - execution control
+    // Check for the support of PML
     //
-    ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG, IA32_VMX_PROCBASED_CTLS2);
-
-    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG == 0x0) {
+    if (!g_CompatibilityCheck.PmlSupport) {
         LogWarning("err, dirty logging mechanism is not initialized as the processor doesn't support PML");
         return FALSE;
     }
