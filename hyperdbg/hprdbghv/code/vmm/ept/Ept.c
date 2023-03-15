@@ -35,10 +35,10 @@ EptCheckFeatures()
     }
 
     if (!VpidRegister.ExecuteOnlyPages) {
-        g_ExecuteOnlySupport = FALSE;
+        g_CompatibilityCheck.ExecuteOnlySupport = FALSE;
         LogDebugInfo("The processor doesn't support execute-only pages, execute hooks won't work as they're on this feature in our design");
     } else {
-        g_ExecuteOnlySupport = TRUE;
+        g_CompatibilityCheck.ExecuteOnlySupport = TRUE;
     }
 
     if (!MTRRDefType.MtrrEnable) {

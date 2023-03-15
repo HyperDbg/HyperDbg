@@ -107,6 +107,7 @@
 #include "hooks/Hooks.h"
 #include "interface/Callback.h"
 #include "features/DirtyLogging.h"
+#include "features/CompatibilityChecks.h"
 
 //
 // Broadcast headers

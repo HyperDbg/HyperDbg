@@ -19,6 +19,13 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief Different attributes and compatibility checks
+ * of the current processor
+ *
+ */
+COMPATIBILITY_CHECKS_STATUS g_CompatibilityCheck;
+
+/**
  * @brief List of callbacks
  *
  */
@@ -41,13 +48,6 @@ MEMORY_MAPPER_ADDRESSES* g_MemoryMapper;
  *
  */
 EPT_STATE* g_EptState;
-
-/**
- * @brief Support for execute-only pages (indicating that data accesses are
- *  not allowed while instruction fetches are allowed)
- *
- */
-BOOLEAN g_ExecuteOnlySupport;
 
 /**
  * @brief holds the measurements from the user-mode and kernel-mode
@@ -75,12 +75,6 @@ BOOLEAN g_IsEptHook2sDetourListInitialized;
 BOOLEAN g_TransparentMode;
 
 /**
- * @brief X2APIC or XAPIC routine
- *
- */
-BOOLEAN g_IsX2Apic;
-
-/**
  * @brief APIC Base
  *
  */
@@ -98,18 +92,6 @@ BOOLEAN g_NmiBroadcastingInitialized;
  *
  */
 PVOID g_NmiHandlerForKeDeregisterNmiCallback;
-
-/**
- * @brief check for RTM support
- *
- */
-BOOLEAN g_RtmSupport;
-
-/**
- * @brief Virtual address width for x86 processors
- *
- */
-UINT32 g_VirtualAddressWidth;
 
 /**
  * @brief Shows whether the debuggee is waiting for an

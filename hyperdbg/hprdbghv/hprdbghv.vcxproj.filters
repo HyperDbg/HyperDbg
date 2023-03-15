@@ -239,6 +239,9 @@
     <ClCompile Include="code\features\DirtyLogging.c">
       <Filter>code\features</Filter>
     </ClCompile>
+    <ClCompile Include="code\features\CompatibilityChecks.c">
+      <Filter>code\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -362,6 +365,9 @@
       <Filter>header\interface</Filter>
     </ClInclude>
     <ClInclude Include="header\features\DirtyLogging.h">
+      <Filter>header\features</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\CompatibilityChecks.h">
       <Filter>header\features</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1144,6 +1144,11 @@ HvInitVmm(VMM_CALLBACKS* VmmCallbacks)
     RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VMM_CALLBACKS));
 
     //
+    // Check and define compatibility checks and processor constraints
+    //
+    CompatibilityCheckPerformChecks();
+
+    //
     // we allocate virtual machine here because
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
@@ -1169,16 +1174,6 @@ HvInitVmm(VMM_CALLBACKS* VmmCallbacks)
     // Initialize memory mapper
     //
     MemoryMapperInitialize();
-
-    //
-    // Check if processor supports TSX (RTM)
-    //
-    g_RtmSupport = CheckCpuSupportRtm();
-
-    //
-    // Get x86 processor width for virtual address
-    //
-    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
 
     //
     // Make sure that transparent-mode is disabled
