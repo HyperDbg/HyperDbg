@@ -1049,8 +1049,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform the dispatching of user debugger command
             //
-            DbgBreakPoint();
-
             UdDispatchUsermodeCommands(DebuggerUdCommandRequest);
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_UD_COMMAND_PACKET);

@@ -381,8 +381,6 @@ UdAttachToProcess(UINT32 TargetPid,
         AttachRequest.ProcessId = TargetPid;
     }
 
-    printf("----------------------------------------------------------------------------- fuck kamyar 1\n");
-
     //
     // Send the request to the kernel
     //
@@ -403,8 +401,6 @@ UdAttachToProcess(UINT32 TargetPid,
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
-
-    printf("----------------------------------------------------------------------------- fuck kamyar 2\n");
 
     //
     // Check if attaching was successful then we can set the attached to true
@@ -428,7 +424,6 @@ UdAttachToProcess(UINT32 TargetPid,
         // Resume the suspended process
         //
         ResumeThread(ProcInfo.hThread);
-        printf("----------------------------------------------------------------------------- fuck kamyar 3\n");
 
         //
         // *** Remove the hooks ***
@@ -439,7 +434,6 @@ UdAttachToProcess(UINT32 TargetPid,
             // Send the previous request with removing hook as the action
             //
             AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS;
-            printf("----------------------------------------------------------------------------- fuck kamyar 4\n");
 
             //
             // Send the request to the kernel
@@ -456,7 +450,6 @@ UdAttachToProcess(UINT32 TargetPid,
                 &ReturnedLength, // Bytes placed in buffer.
                 NULL // synchronous call
             );
-            printf("----------------------------------------------------------------------------- fuck kamyar 5\n");
 
             if (!Status) {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());

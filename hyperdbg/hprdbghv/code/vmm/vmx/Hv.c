@@ -187,6 +187,7 @@ VOID HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE* VCpu,
             // Call user debugger handler of thread intercepting mechanism
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger && g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception != NULL) {
+
                 g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
             }
 
