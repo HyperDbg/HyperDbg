@@ -147,6 +147,8 @@ typedef struct _EPT_STATE {
     ULONG NumberOfEnabledMemoryRanges; // Number of memory ranges specified in MemoryRanges
     EPT_POINTER EptPointer; // Extended-Page-Table Pointer
     PVMM_EPT_PAGE_TABLE EptPageTable; // Page table entries for EPT operation
+    PVMM_EPT_PAGE_TABLE ModeBasedEptPageTable; // Page table entries for hooks based on mode-based execution control bits
+    EPT_POINTER ModeBasedEptPointer; // Extended-Page-Table Pointer for Mode-based execution
 
     PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
 

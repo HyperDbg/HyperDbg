@@ -186,9 +186,16 @@ VOID HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE* VCpu,
             //
             // Call user debugger handler of thread intercepting mechanism
             //
-            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger && g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception != NULL) {
+            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger) {
 
-                g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
+                InterceptionCallbackCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
+            }
+
+            //
+            // Call handler of mode-based execution hooks
+            //
+            if (g_CheckForModeBasedExecutionControl) {
+                ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
             }
 
             break;

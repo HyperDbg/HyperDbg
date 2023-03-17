@@ -124,6 +124,7 @@
     <ClCompile Include="code\features\DirtyLogging.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
     <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
+    <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
     <ClCompile Include="code\interface\Callback.c" />
@@ -182,6 +183,7 @@
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />
     <ClInclude Include="header\hooks\Hooks.h" />
+    <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\Dispatch.h" />

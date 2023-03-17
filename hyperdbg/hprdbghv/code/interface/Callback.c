@@ -25,18 +25,17 @@
  * @return BOOLEAN
  */
 BOOLEAN
-LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                        BOOLEAN      IsImmediateMessage,
-                                        BOOLEAN      ShowCurrentSystemTime,
-                                        BOOLEAN      Priority,
-                                        const char * Fmt,
-                                        ...)
+LogCallbackPrepareAndSendMessageToQueue(UINT32 OperationCode,
+    BOOLEAN IsImmediateMessage,
+    BOOLEAN ShowCurrentSystemTime,
+    BOOLEAN Priority,
+    const char* Fmt,
+    ...)
 {
     BOOLEAN Result;
     va_list ArgList;
 
-    if (g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper == NULL)
-    {
+    if (g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper == NULL) {
         //
         // Ignore sending message to queue
         //
@@ -46,11 +45,11 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
     va_start(ArgList, Fmt);
 
     Result = g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper(OperationCode,
-                                                                        IsImmediateMessage,
-                                                                        ShowCurrentSystemTime,
-                                                                        Priority,
-                                                                        Fmt,
-                                                                        ArgList);
+        IsImmediateMessage,
+        ShowCurrentSystemTime,
+        Priority,
+        Fmt,
+        ArgList);
     va_end(ArgList);
 
     return Result;
@@ -68,14 +67,13 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
  * @return BOOLEAN
  */
 BOOLEAN
-LogCallbackSendMessageToQueue(UINT32  OperationCode,
-                              BOOLEAN IsImmediateMessage,
-                              CHAR *  LogMessage,
-                              UINT32  BufferLen,
-                              BOOLEAN Priority)
+LogCallbackSendMessageToQueue(UINT32 OperationCode,
+    BOOLEAN IsImmediateMessage,
+    CHAR* LogMessage,
+    UINT32 BufferLen,
+    BOOLEAN Priority)
 {
-    if (g_Callbacks.LogCallbackSendMessageToQueue == NULL)
-    {
+    if (g_Callbacks.LogCallbackSendMessageToQueue == NULL) {
         //
         // Ignore sending message to queue
         //
@@ -83,10 +81,10 @@ LogCallbackSendMessageToQueue(UINT32  OperationCode,
     }
 
     return g_Callbacks.LogCallbackSendMessageToQueue(OperationCode,
-                                                     IsImmediateMessage,
-                                                     LogMessage,
-                                                     BufferLen,
-                                                     Priority);
+        IsImmediateMessage,
+        LogMessage,
+        BufferLen,
+        Priority);
 }
 
 /**
@@ -99,14 +97,13 @@ LogCallbackSendMessageToQueue(UINT32  OperationCode,
  * @return BOOLEAN
  */
 BOOLEAN
-LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
-                      _In_reads_bytes_(BufferLength) PVOID Buffer,
-                      _In_ UINT32                          BufferLength,
-                      _In_ BOOLEAN                         Priority)
+LogCallbackSendBuffer(_In_ UINT32 OperationCode,
+    _In_reads_bytes_(BufferLength) PVOID Buffer,
+    _In_ UINT32 BufferLength,
+    _In_ BOOLEAN Priority)
 
 {
-    if (g_Callbacks.LogCallbackSendBuffer == NULL)
-    {
+    if (g_Callbacks.LogCallbackSendBuffer == NULL) {
         //
         // Ignore sending buffer
         //
@@ -114,9 +111,9 @@ LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
     }
 
     return g_Callbacks.LogCallbackSendBuffer(OperationCode,
-                                             Buffer,
-                                             BufferLength,
-                                             Priority);
+        Buffer,
+        BufferLength,
+        Priority);
 }
 
 /**
@@ -130,14 +127,13 @@ LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
  * @return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
  */
 VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
-VmmCallbackTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
-                         VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
-                         PVOID                                 Context,
-                         BOOLEAN *                             PostEventRequired,
-                         GUEST_REGS *                          Regs)
+VmmCallbackTriggerEvents(VMM_EVENT_TYPE_ENUM EventType,
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage,
+    PVOID Context,
+    BOOLEAN* PostEventRequired,
+    GUEST_REGS* Regs)
 {
-    if (g_Callbacks.VmmCallbackTriggerEvents == NULL)
-    {
+    if (g_Callbacks.VmmCallbackTriggerEvents == NULL) {
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED;
     }
 
@@ -150,11 +146,9 @@ VmmCallbackTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
  *
  * @return VOID
  */
-VOID
-VmmCallbackSetLastError(UINT32 LastError)
+VOID VmmCallbackSetLastError(UINT32 LastError)
 {
-    if (g_Callbacks.VmmCallbackSetLastError == NULL)
-    {
+    if (g_Callbacks.VmmCallbackSetLastError == NULL) {
         //
         // Ignore setting the last error
         //
@@ -177,13 +171,12 @@ VmmCallbackSetLastError(UINT32 LastError)
  */
 BOOLEAN
 VmmCallbackVmcallHandler(UINT32 CoreId,
-                         UINT64 VmcallNumber,
-                         UINT64 OptionalParam1,
-                         UINT64 OptionalParam2,
-                         UINT64 OptionalParam3)
+    UINT64 VmcallNumber,
+    UINT64 OptionalParam1,
+    UINT64 OptionalParam2,
+    UINT64 OptionalParam3)
 {
-    if (g_Callbacks.VmmCallbackVmcallHandler == NULL)
-    {
+    if (g_Callbacks.VmmCallbackVmcallHandler == NULL) {
         //
         // Ignore handling external VMCALLs
         //
@@ -200,11 +193,9 @@ VmmCallbackVmcallHandler(UINT32 CoreId,
  *
  * @return VOID
  */
-VOID
-VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
+VOID VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
 {
-    if (g_Callbacks.VmmCallbackRegisteredMtfHandler == NULL)
-    {
+    if (g_Callbacks.VmmCallbackRegisteredMtfHandler == NULL) {
         //
         // ignore it
         //
@@ -222,11 +213,9 @@ VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
  *
  * @return VOID
  */
-VOID
-VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
+VOID VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
 {
-    if (g_Callbacks.VmmCallbackNmiBroadcastRequestHandler == NULL)
-    {
+    if (g_Callbacks.VmmCallbackNmiBroadcastRequestHandler == NULL) {
         //
         // ignore it
         //
@@ -247,13 +236,12 @@ VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
  * @return BOOLEAN
  */
 BOOLEAN
-VmmCallbackQueryTerminateProtectedResource(UINT32                               CoreId,
-                                           PROTECTED_HV_RESOURCES_TYPE          ResourceType,
-                                           PVOID                                Context,
-                                           PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VmmCallbackQueryTerminateProtectedResource(UINT32 CoreId,
+    PROTECTED_HV_RESOURCES_TYPE ResourceType,
+    PVOID Context,
+    PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    if (g_Callbacks.VmmCallbackQueryTerminateProtectedResource == NULL)
-    {
+    if (g_Callbacks.VmmCallbackQueryTerminateProtectedResource == NULL) {
         //
         // ignore it
         //
@@ -271,8 +259,7 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
 BOOLEAN
 VmmCallbackRestoreEptState()
 {
-    if (g_Callbacks.VmmCallbackRestoreEptState == NULL)
-    {
+    if (g_Callbacks.VmmCallbackRestoreEptState == NULL) {
         //
         // ignore it as it's not handled
         //
@@ -292,8 +279,7 @@ VmmCallbackRestoreEptState()
 BOOLEAN
 DebuggingCallbackHandleBreakpointException(UINT32 CoreId)
 {
-    if (g_Callbacks.DebuggingCallbackHandleBreakpointException == NULL)
-    {
+    if (g_Callbacks.DebuggingCallbackHandleBreakpointException == NULL) {
         //
         // re-inject it to not disrupt system normal execution
         //
@@ -313,8 +299,7 @@ DebuggingCallbackHandleBreakpointException(UINT32 CoreId)
 BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
 {
-    if (g_Callbacks.DebuggingCallbackHandleDebugBreakpointException == NULL)
-    {
+    if (g_Callbacks.DebuggingCallbackHandleDebugBreakpointException == NULL) {
         //
         // re-inject it to not disrupt system normal execution
         //
@@ -335,11 +320,10 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
  */
 BOOLEAN
 DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               ULONG  ErrorCode)
+    UINT64 Address,
+    ULONG ErrorCode)
 {
-    if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
-    {
+    if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL) {
         //
         // re-inject it to not disrupt system normal execution
         //
@@ -356,11 +340,9 @@ DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
  *
  * @return VOID
  */
-VOID
-InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
+VOID InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
 {
-    if (g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange == NULL)
-    {
+    if (g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange == NULL) {
         //
         // ignore it
         //
@@ -368,4 +350,24 @@ InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
     }
 
     g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange(CoreId);
+}
+
+/**
+ * @brief routine callback to handle cr3 process change
+ *
+ * @param CoreId
+ * @param NewCr3
+ *
+ * @return VOID
+ */
+VOID InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
+{
+    if (g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception == NULL) {
+        //
+        // ignore it
+        //
+        return;
+    }
+
+    g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(CoreId, NewCr3);
 }

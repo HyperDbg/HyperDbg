@@ -113,6 +113,12 @@ UINT64* g_MsrBitmapInvalidMsrs;
  */
 BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;
 
+/**
+ * @brief Enable interception of Cr3 for Mode-based Execution detection
+ *
+ */
+BOOLEAN g_CheckForModeBasedExecutionControl;
+
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //
 //////////////////////////////////////////////////

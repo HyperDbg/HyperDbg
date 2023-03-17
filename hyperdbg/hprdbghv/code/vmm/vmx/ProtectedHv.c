@@ -27,33 +27,29 @@
  *
  * @return VOID
  */
-VOID
-ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE* VCpu, UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     //
     // Ask the top-level module to reshape the mask
     //
     if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                   PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
-                                                   &CurrentMask,
-                                                   PassOver))
-    {
+            PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
+            &CurrentMask,
+            PassOver)) {
         return;
     }
 
     //
     // Check for #PF by thread interception mechanism in user debugger
     //
-    if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
-    {
+    if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger) {
         CurrentMask |= 1 << EXCEPTION_VECTOR_PAGE_FAULT;
     }
 
     //
     // Check for possible EPT Hooks (Hidden Breakpoints)
     //
-    if (EptHookGetCountOfEpthooks(FALSE) != 0)
-    {
+    if (EptHookGetCountOfEpthooks(FALSE) != 0) {
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 
@@ -71,8 +67,7 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
-VOID
-ProtectedHvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
+VOID ProtectedHvSetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -81,12 +76,9 @@ ProtectedHvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
     //
     ExceptionBitmap = HvReadExceptionBitmap();
 
-    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES)
-    {
+    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES) {
         ExceptionBitmap = 0xffffffff;
-    }
-    else
-    {
+    } else {
         ExceptionBitmap |= 1 << IdtIndex;
     }
 
@@ -104,8 +96,7 @@ ProtectedHvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
-VOID
-ProtectedHvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
+VOID ProtectedHvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE* VCpu, UINT32 IdtIndex)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -114,12 +105,9 @@ ProtectedHvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
     //
     ExceptionBitmap = HvReadExceptionBitmap();
 
-    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES)
-    {
+    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES) {
         ExceptionBitmap = 0x0;
-    }
-    else
-    {
+    } else {
         ExceptionBitmap &= ~(1 << IdtIndex);
     }
 
@@ -137,8 +125,7 @@ ProtectedHvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
  *
  * @return VOID
  */
-VOID
-ProtectedHvResetExceptionBitmapToClearEvents(VIRTUAL_MACHINE_STATE * VCpu)
+VOID ProtectedHvResetExceptionBitmapToClearEvents(VIRTUAL_MACHINE_STATE* VCpu)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -156,8 +143,7 @@ ProtectedHvResetExceptionBitmapToClearEvents(VIRTUAL_MACHINE_STATE * VCpu)
  *
  * @return VOID
  */
-VOID
-ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_MACHINE_STATE * VCpu)
+VOID ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_MACHINE_STATE* VCpu)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -187,27 +173,24 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_M
 
  * @return VOID
  */
-VOID
-ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    ULONG VmExitControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
     // because if sb wants to set it to "TRUE" then we're no need to
     // worry about it as it remains enabled
     //
-    if (Set == FALSE)
-    {
+    if (Set == FALSE) {
         //
         // Ask the top-level driver whether to terminate this operation or not
         //
         if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                       PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
-                                                       NULL,
-                                                       PassOver))
-        {
+                PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
+                NULL,
+                PassOver)) {
             return;
         }
     }
@@ -229,13 +212,10 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
     __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
-    if (Set)
-    {
+    if (Set) {
         PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
         VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
-    }
-    else
-    {
+    } else {
         PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
         VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
     }
@@ -254,8 +234,7 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
  * @param Set Set or unset the External Interrupt Exiting
  * @return VOID
  */
-VOID
-ProtectedHvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID ProtectedHvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvApplySetExternalInterruptExiting(VCpu, Set, PASSING_OVER_NONE);
 }
@@ -265,8 +244,7 @@ ProtectedHvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set
  *
  * @return VOID
  */
-VOID
-ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE_STATE * VCpu)
+VOID ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE_STATE* VCpu)
 {
     ProtectedHvApplySetExternalInterruptExiting(VCpu, FALSE, PASSING_OVER_INTERRUPT_EVENTS);
 }
@@ -282,8 +260,7 @@ ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE
 
  * @return VOID
  */
-VOID
-ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -292,24 +269,21 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     // because if sb wants to set it to "TRUE" then we're no need to
     // worry about it as it remains enabled
     //
-    if (Set == FALSE)
-    {
+    if (Set == FALSE) {
         //
         // Check the top-level driver's state
         //
         if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                       PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
-                                                       NULL,
-                                                       PassOver))
-        {
+                PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
+                NULL,
+                PassOver)) {
             return;
         }
 
         //
         // Check if transparent mode is enabled
         //
-        if (g_TransparentMode)
-        {
+        if (g_TransparentMode) {
             //
             // We should ignore it as we want this bit on transparent mode
             //
@@ -322,12 +296,9 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_RDTSC_EXITING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_RDTSC_EXITING;
     }
     //
@@ -347,8 +318,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
 
  * @return VOID
  */
-VOID
-ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -357,16 +327,14 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     // because if sb wants to set it to "TRUE" then we're no need to
     // worry about it as it remains enabled
     //
-    if (Set == FALSE)
-    {
+    if (Set == FALSE) {
         //
         // Check the top-level driver's state
         //
         if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                       PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
-                                                       NULL,
-                                                       PassOver))
-        {
+                PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
+                NULL,
+                PassOver)) {
             return;
         }
     }
@@ -376,12 +344,9 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     //
     __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_MOV_DR_EXITING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_MOV_DR_EXITING;
     }
 
@@ -401,31 +366,21 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
 
  * @return VOID
  */
-VOID
-ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+VOID ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
 {
-    if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR0)
-    {
-        if (Set)
-        {
+    if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR0) {
+        if (Set) {
             __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
             __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
-        }
-        else
-        {
+        } else {
             __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
             __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);
         }
-    }
-    else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4)
-    {
-        if (Set)
-        {
+    } else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4) {
+        if (Set) {
             __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
             __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
-        }
-        else
-        {
+        } else {
             __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
             __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, 0);
         }
@@ -444,8 +399,7 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
 
  * @return VOID
  */
-VOID
-ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
+VOID ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -454,16 +408,14 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
     // because if sb wants to set it to "TRUE" then we're no need to
     // worry about it as it remains enabled
     //
-    if (Set == FALSE)
-    {
+    if (Set == FALSE) {
         //
         // Check the state of top-level driver
         //
         if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                       PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
-                                                       NULL,
-                                                       PassOver))
-        {
+                PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
+                NULL,
+                PassOver)) {
             return;
         }
     }
@@ -482,8 +434,7 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
 
  * @return VOID
  */
-VOID
-ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     ULONG CpuBasedVmExecControls = 0;
 
@@ -492,26 +443,34 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     // because if sb wants to set it to "TRUE" then we're no need to
     // worry about it as it remains enabled
     //
-    if (Set == FALSE)
-    {
+    if (Set == FALSE) {
         //
         // Check the top-level driver's state
         //
         if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
-                                                       PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
-                                                       NULL,
-                                                       PassOver))
-        {
+                PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
+                NULL,
+                PassOver)) {
             return;
         }
 
         //
         // Check if use debugger is in intercepting phase for threads or not
         //
-        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
-        {
+        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger) {
             //
             // The user debugger needs mov2cr3s
+            //
+            return;
+        }
+
+        //
+        // Check if the mode-based execution hook is enabled or not
+        //
+        if (g_CheckForModeBasedExecutionControl) {
+
+            //
+            // The VMM needs mov2cr3s
             //
             return;
         }
@@ -522,12 +481,9 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     //
     __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
-    if (Set)
-    {
+    if (Set) {
         CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
-    }
-    else
-    {
+    } else {
         CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
     }
 
@@ -544,8 +500,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
  * @param Set Set or unset the RDTSC/P Exiting
  * @return VOID
  */
-VOID
-ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetTscVmexit(VCpu, Set, PASSING_OVER_NONE);
 }
@@ -556,8 +511,7 @@ ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  *
  * @return VOID
  */
-VOID
-ProtectedHvDisableRdtscExitingForDisablingTscCommands(VIRTUAL_MACHINE_STATE * VCpu)
+VOID ProtectedHvDisableRdtscExitingForDisablingTscCommands(VIRTUAL_MACHINE_STATE* VCpu)
 {
     ProtectedHvSetTscVmexit(VCpu, FALSE, PASSING_OVER_TSC_EVENTS);
 }
@@ -569,8 +523,7 @@ ProtectedHvDisableRdtscExitingForDisablingTscCommands(VIRTUAL_MACHINE_STATE * VC
  * @param Set Set or unset the MOV to HW Debug Regs Exiting
  * @return VOID
  */
-VOID
-ProtectedHvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID ProtectedHvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMovDebugRegsVmexit(VCpu, Set, PASSING_OVER_NONE);
 }
@@ -581,8 +534,7 @@ ProtectedHvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  *
  * @return VOID
  */
-VOID
-ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands(VIRTUAL_MACHINE_STATE * VCpu)
+VOID ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands(VIRTUAL_MACHINE_STATE* VCpu)
 {
     ProtectedHvSetMovDebugRegsVmexit(VCpu, FALSE, PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS);
 }
@@ -595,8 +547,7 @@ ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands(VIRTUAL_MACHINE_STAT
  * @param Mask Register
  * @return VOID
  */
-VOID
-ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(VIRTUAL_MACHINE_STATE * VCpu, UINT64 ControlRegister, UINT64 MaskRegister)
+VOID ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(VIRTUAL_MACHINE_STATE* VCpu, UINT64 ControlRegister, UINT64 MaskRegister)
 {
     ProtectedHvSetMovControlRegsVmexit(VCpu, FALSE, PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS, ControlRegister, MaskRegister);
 }
@@ -608,8 +559,7 @@ ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(VIRTUAL_MACHINE_ST
  * @param Set Set or unset the MOV to CR3 Exiting
  * @return VOID
  */
-VOID
-ProtectedHvSetMov2Cr3Exiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+VOID ProtectedHvSetMov2Cr3Exiting(VIRTUAL_MACHINE_STATE* VCpu, BOOLEAN Set)
 {
     ProtectedHvSetMovToCr3Vmexit(VCpu, Set, PASSING_OVER_NONE);
 }
@@ -622,8 +572,7 @@ ProtectedHvSetMov2Cr3Exiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @param Mask Register
  * @return VOID
  */
-VOID
-ProtectedHvSetMov2CrExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+VOID ProtectedHvSetMov2CrExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
 {
     ProtectedHvSetMovToCrVmexit(Set, ControlRegister, MaskRegister);
 }

@@ -948,6 +948,13 @@ VOID VmxPerformTermination()
     MmFreeContiguousMemory(g_EptState->EptPageTable);
 
     //
+    // Free Identity Page Table for MBEC hooks
+    //
+    if (g_EptState->ModeBasedEptPageTable != NULL) {
+        MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
+    }
+
+    //
     // Free EptState
     //
     ExFreePoolWithTag(g_EptState, POOLTAG);
