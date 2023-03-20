@@ -28,6 +28,26 @@ VOID ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
+ * @brief routines for initializing Mode-based execution hooks
+ *
+ * @return VOID
+ */
+VOID ConfigureModeBasedExecHookInitializeOnAllProcessors()
+{
+    ModeBasedExecHookInitialize();
+}
+
+/**
+ * @brief routines for initializing Mode-based execution hooks
+ *
+ * @return VOID
+ */
+VOID ConfigureModeBasedExecHookUninitializeOnAllProcessors()
+{
+    ModeBasedExecHookUninitialize();
+}
+
+/**
  * @brief routines for initializing dirty logging mechanism
  *
  * @return VOID

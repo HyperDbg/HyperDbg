@@ -41,11 +41,6 @@ VOID VmxBroadcastInitialize()
     // Indicate that NMI broadcasting is initialized
     //
     g_NmiBroadcastingInitialized = TRUE;
-
-    //
-    // Test should be removed
-    //
-    ModeBasedExecHookInitialize();
 }
 
 /**

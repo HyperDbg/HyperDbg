@@ -149,7 +149,10 @@ VOID CompatibilityCheckPerformChecks()
     //
     g_CompatibilityCheck.PmlSupport = CompatibilityCheckPml();
 
-    LogInfo("test, Mode based execution: %s | PML: %s",
+    //
+    // Log for testing
+    //
+    LogDebugInfo("Mode based execution: %s | PML: %s",
         g_CompatibilityCheck.ModeBasedExecutionSupport ? "true" : "false",
         g_CompatibilityCheck.PmlSupport ? "true" : "false");
 }

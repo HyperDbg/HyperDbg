@@ -201,6 +201,7 @@ typedef struct _NMI_BROADCASTING_STATE {
  */
 typedef struct _VIRTUAL_MACHINE_STATE {
     BOOLEAN IsOnVmxRootMode; // Detects whether the current logical core is on Executing on VMX Root Mode
+    BOOLEAN Test; // Used for test purposes
     BOOLEAN IncrementRip; // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
     BOOLEAN HasLaunched; // Indicate whether the core is virtualized or not
     BOOLEAN IgnoreMtfUnset; // Indicate whether the core should ignore unsetting the MTF or not

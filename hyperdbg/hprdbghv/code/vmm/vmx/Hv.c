@@ -598,6 +598,38 @@ VOID HvSetPmlEnableFlag(BOOLEAN Set)
 }
 
 /**
+ * @brief Set Mode-based Execution Control (MBEC) Enable bit
+ *
+ * @param Set Set or unset the MBEC
+ * @return VOID
+ */
+VOID HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
+{
+    ULONG SecondaryProcBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+
+    //
+    // PML enable flag
+    //
+    if (Set) {
+        SecondaryProcBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG;
+    } else {
+        SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG;
+    }
+
+    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+}
+
+/**
  * @brief Set NMI-window exiting
  *
  * @param Set Set or unset the NMI-window exiting

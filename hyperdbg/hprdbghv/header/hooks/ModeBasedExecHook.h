@@ -18,4 +18,6 @@
 BOOLEAN
 ModeBasedExecHookInitialize();
 
+VOID ModeBasedExecHookUninitialize();
+
 VOID ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, UINT64 NewCr3);

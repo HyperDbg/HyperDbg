@@ -12,6 +12,47 @@
  */
 #include "pch.h"
 
+BOOLEAN
+ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++) {
+        if (EptTable->PML4[i].PageFrameNumber != NULL) {
+            EptTable->PML4[i].UserModeExecute = TRUE;
+        } else {
+            break;
+        }
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++) {
+        if (EptTable->PML3[i].PageFrameNumber != NULL) {
+            EptTable->PML3[i].UserModeExecute = TRUE;
+        } else {
+            break;
+        }
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++) {
+
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++) {
+
+            if (EptTable->PML2[i][j].PageFrameNumber != NULL) {
+                EptTable->PML2[i][j].UserModeExecute = TRUE;
+            } else {
+                break;
+            }
+        }
+    }
+}
+
 /**
  * @brief Initialize the needed structure for hooking mode execution
  * @details should be called from vmx non-root mode
@@ -34,6 +75,11 @@ ModeBasedExecHookAllocateMbecEptPageTable()
         //
         return FALSE;
     }
+
+    //
+    // Enable all EPT user-mode execution bit
+    //
+    ModeBasedExecHookEnableUsermodeExecution(ModeBasedEptTable);
 
     //
     // Set the global address for MBEC EPT page table
@@ -152,5 +198,23 @@ VOID ModeBasedExecHookUninitialize()
  */
 VOID ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, UINT64 NewCr3)
 {
-    LogInfo("Mode-based process change: 0x%x | RIP: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+    // LogInfo("Mode-based process change: 0x%x | RIP: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+
+    //
+    // Change EPTP
+    //
+    if (!VCpu->Test) {
+
+        LogInfo("change EPT for MBEC");
+
+        //
+        // Enable MBEC on the current core
+        //
+        HvSetModeBasedExecutionEnableFlag(TRUE);
+
+        __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
+        EptInveptAllContexts();
+
+        VCpu->Test = TRUE;
+    }
 }

@@ -65,6 +65,11 @@ VOID KdInitializeKernelDebugger()
     // Indicate that the kernel debugger is active
     //
     g_KernelDebuggerState = TRUE;
+
+    //
+    // Test should be removed
+    //
+    ConfigureModeBasedExecHookInitializeOnAllProcessors();
 }
 
 /**

@@ -183,6 +183,14 @@ VOID HvSetInterruptWindowExiting(BOOLEAN Set);
 VOID HvSetPmlEnableFlag(BOOLEAN Set);
 
 /**
+ * @brief Set Mode-based Execution Control (MBEC) Enable bit
+ *
+ * @param Set Set or unset the MBEC
+ * @return VOID
+ */
+VOID HvSetModeBasedExecutionEnableFlag(BOOLEAN Set);
+
+/**
  * @brief Set NMI-window exiting
  *
  * @param Set
