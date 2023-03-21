@@ -786,8 +786,8 @@ _Use_decl_annotations_
         return TRUE;
     }
 
-    LogError("Err, unexpected EPT violation");
-
+    LogError("Err, unexpected EPT violation at RIP: %llx", VCpu->LastVmexitRip);
+    DbgBreakPoint();
     //
     // Redo the instruction that caused the exception
     //

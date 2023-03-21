@@ -19,22 +19,14 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     // Set execute access for PML4s
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++) {
-        if (EptTable->PML4[i].PageFrameNumber != NULL) {
-            EptTable->PML4[i].UserModeExecute = TRUE;
-        } else {
-            break;
-        }
+        EptTable->PML4[i].UserModeExecute = TRUE;
     }
 
     //
     // Set execute access for PML3s
     //
     for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++) {
-        if (EptTable->PML3[i].PageFrameNumber != NULL) {
-            EptTable->PML3[i].UserModeExecute = TRUE;
-        } else {
-            break;
-        }
+        EptTable->PML3[i].UserModeExecute = TRUE;
     }
 
     //
@@ -44,11 +36,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 
         for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++) {
 
-            if (EptTable->PML2[i][j].PageFrameNumber != NULL) {
-                EptTable->PML2[i][j].UserModeExecute = TRUE;
-            } else {
-                break;
-            }
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
     }
 }
@@ -110,7 +98,7 @@ ModeBasedExecHookAllocateMbecEptPageTable()
     //
     // We will write the EPTP to the VMCS later
     //
-    g_EptState->ModeBasedEptPointer = EPTP;
+    g_EptState->ModeBasedEptPointer.AsUInt = EPTP.AsUInt;
 
     return TRUE;
 }

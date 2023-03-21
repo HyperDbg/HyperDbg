@@ -1011,6 +1011,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             DebuggerCommandReservePreallocatedPools(DebuggerReservePreallocPoolRequest);
 
+            //
+            /////////////////////////////////////////////////////////////////////////////
+            //
+            ConfigureModeBasedExecHookInitializeOnAllProcessors();
+            //
+            /////////////////////////////////////////////////////////////////////////////
+            //
+
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREALLOC_COMMAND;
             Status = STATUS_SUCCESS;
 
