@@ -26,3 +26,7 @@ VOID BroadcastNotifyAllToInvalidateEptAllCores();
 VOID BroadcastEnablePmlOnAllProcessors();
 
 VOID BroadcastDisablePmlOnAllProcessors();
+
+VOID BroadcastChangeToMbecSupportedEptpOnAllProcessors();
+
+VOID BroadcastRestoreToNormalEptpOnAllProcessors();

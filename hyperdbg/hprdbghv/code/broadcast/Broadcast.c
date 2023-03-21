@@ -408,6 +408,26 @@ VOID BroadcastEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
+ * @brief routines for changing EPTP to an MBEC supported EPTP
+ *
+ * @return VOID
+ */
+VOID BroadcastChangeToMbecSupportedEptpOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineChangeToMbecSupportedEptp, 0x0);
+}
+
+/**
+ * @brief routines for restoring EPTP to normal EPTP
+ *
+ * @return VOID
+ */
+VOID BroadcastRestoreToNormalEptpOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineRestoreToNormalEptp, 0x0);
+}
+
+/**
  * @brief routines for debugging threads (disable mov-to-cr3 exiting)
  *
  * @return VOID

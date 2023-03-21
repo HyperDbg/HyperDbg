@@ -47,6 +47,10 @@ VOID DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC* Dpc, DEBUGGER_BROA
 
 VOID DpcRoutineEnableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 
+VOID DpcRoutineChangeToMbecSupportedEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
+VOID DpcRoutineRestoreToNormalEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
 VOID DpcRoutineDisableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID DpcRoutineEnableEferSyscallEvents(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

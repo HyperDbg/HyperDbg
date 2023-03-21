@@ -370,6 +370,20 @@ _Use_decl_annotations_
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP: {
+
+        ModeBasedExecHookChangeToMbecSupportedEptp(VCpu);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_RESTORE_TO_NORMAL_EPTP: {
+
+        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default: {
         LogError("Err, unsupported VMCALL");
         VmcallStatus = STATUS_UNSUCCESSFUL;

@@ -47,7 +47,7 @@ VOID KdInitializeKernelDebugger()
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    //  BroadcastEnableDbAndBpExitingAllCores();
+    BroadcastEnableDbAndBpExitingAllCores();
 
     //
     // Reset pause break requests

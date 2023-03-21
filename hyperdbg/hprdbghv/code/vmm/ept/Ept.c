@@ -784,6 +784,12 @@ _Use_decl_annotations_
         // Handled by page hook code
         //
         return TRUE;
+
+    } else if (ViolationQualification.EptExecutable && !ViolationQualification.EptExecutableForUserMode) {
+
+        if (ModeBasedExecHookHandleEptViolationVmexit(VCpu)) {
+            return TRUE;
+        }
     }
 
     LogError("Err, unexpected EPT violation at RIP: %llx", VCpu->LastVmexitRip);

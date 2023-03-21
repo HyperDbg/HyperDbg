@@ -449,6 +449,66 @@ VOID DpcRoutineEnableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID Sys
 }
 
 /**
+ * @brief Broadcast to change to MBEC supported EPTP
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID DpcRoutineChangeToMbecSupportedEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Change to a MBEC supported EPTP from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Broadcast to restore to normal EPTP
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID DpcRoutineRestoreToNormalEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Restore to normal EPTP from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_RESTORE_TO_NORMAL_EPTP, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Broadcast to disable mov-to-cr3 exitings
  *
  * @param Dpc

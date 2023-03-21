@@ -19,7 +19,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     // Set execute access for PML4s
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++) {
-        EptTable->PML4[i].UserModeExecute = TRUE;
+        EptTable->PML4[i].UserModeExecute = FALSE;
     }
 
     //
@@ -142,6 +142,11 @@ ModeBasedExecHookInitialize()
     g_CheckForModeBasedExecutionControl = TRUE;
 
     //
+    // Change EPT on all core's to a MBEC supported EPTP
+    //
+    BroadcastChangeToMbecSupportedEptpOnAllProcessors();
+
+    //
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting
     //
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
@@ -170,11 +175,88 @@ VOID ModeBasedExecHookUninitialize()
     BroadcastDisableMovToCr3ExitingOnAllProcessors();
 
     //
+    // Restore to normal EPTP
+    //
+    BroadcastRestoreToNormalEptpOnAllProcessors();
+
+    //
     // Free Identity Page Table for MBEC hooks
     //
     if (g_EptState->ModeBasedEptPageTable != NULL) {
         MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
     }
+}
+
+/**
+ * @brief Change the current EPTP to a MBEC supported EPTP
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Change EPTP
+    //
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
+
+    //
+    // Invalidate all the contexts
+    //
+    EptInveptAllContexts();
+}
+
+/**
+ * @brief restore to normal EPTP
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Change EPTP
+    //
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+
+    //
+    // Invalidate all the contexts
+    //
+    EptInveptAllContexts();
+}
+
+/**
+ * @brief Handle EPT Violations related to the MBEC hooks
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE* VCpu)
+{
+
+    //
+    // Check if this mechanism is use or not
+    //
+    if (!g_CheckForModeBasedExecutionControl) {
+        return FALSE;
+    }
+
+    //
+    // For test purposes
+    //
+    LogInfo("User-mode process (0x%x) is executed address: %llx",
+        PsGetCurrentProcessId(),
+        VCpu->LastVmexitRip);
+
+    //
+    // Disable MBEC again
+    //
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+
+    //
+    // It successfully handled by MBEC hooks
+    //
+    return TRUE;
 }
 
 /**
@@ -186,23 +268,8 @@ VOID ModeBasedExecHookUninitialize()
  */
 VOID ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, UINT64 NewCr3)
 {
-    // LogInfo("Mode-based process change: 0x%x | RIP: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
-
     //
-    // Change EPTP
+    // Enable MBEC to detect execution in user-mode
     //
-    if (!VCpu->Test) {
-
-        LogInfo("change EPT for MBEC");
-
-        //
-        // Enable MBEC on the current core
-        //
-        HvSetModeBasedExecutionEnableFlag(TRUE);
-
-        __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
-        EptInveptAllContexts();
-
-        VCpu->Test = TRUE;
-    }
+    HvSetModeBasedExecutionEnableFlag(TRUE);
 }

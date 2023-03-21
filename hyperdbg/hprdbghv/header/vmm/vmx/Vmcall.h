@@ -279,6 +279,18 @@
  */
 #define VMCALL_DISABLE_DIRTY_LOGGING_MECHANISM 0x0000002a
 
+/**
+ * @brief VMCALL to change EPTP to an MBEC-supported EPTP
+ *
+ */
+#define VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP 0x0000002b
+
+/**
+ * @brief VMCALL to restore EPTP to normal EPTP
+ *
+ */
+#define VMCALL_RESTORE_TO_NORMAL_EPTP 0x0000002c
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
