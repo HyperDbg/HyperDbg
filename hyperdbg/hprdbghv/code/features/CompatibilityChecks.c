@@ -20,8 +20,8 @@
 BOOLEAN
 CompatibilityCheckCpuSupportForRtm()
 {
-    int Regs1[4];
-    int Regs2[4];
+    int     Regs1[4];
+    int     Regs2[4];
     BOOLEAN Result;
 
     //
@@ -78,14 +78,17 @@ CompatibilityCheckModeBasedExecution()
     // the "enable PML" VM - execution control
     //
     ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG,
-        IA32_VMX_PROCBASED_CTLS2);
+                                                              IA32_VMX_PROCBASED_CTLS2);
 
-    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG) {
+    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG)
+    {
         //
         // The processor support PML
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         //
         // Not supported
         //
@@ -107,13 +110,15 @@ CompatibilityCheckPml()
     //
     ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG, IA32_VMX_PROCBASED_CTLS2);
 
-    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG) {
-
+    if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG)
+    {
         //
         // The processor support MBEC
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         //
         // Not supported
         //
@@ -126,9 +131,9 @@ CompatibilityCheckPml()
  * @detail NOTE: NOT ALL OF THE CHECKS ARE PERFORMED HERE
  * @return VOID
  */
-VOID CompatibilityCheckPerformChecks()
+VOID
+CompatibilityCheckPerformChecks()
 {
-
     //
     // Check if processor supports TSX (RTM)
     //
@@ -153,6 +158,6 @@ VOID CompatibilityCheckPerformChecks()
     // Log for testing
     //
     LogDebugInfo("Mode based execution: %s | PML: %s",
-        g_CompatibilityCheck.ModeBasedExecutionSupport ? "true" : "false",
-        g_CompatibilityCheck.PmlSupport ? "true" : "false");
+                 g_CompatibilityCheck.ModeBasedExecutionSupport ? "true" : "false",
+                 g_CompatibilityCheck.PmlSupport ? "true" : "false");
 }

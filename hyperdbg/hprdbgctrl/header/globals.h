@@ -57,8 +57,7 @@ BYTE g_EndOfBufferCheckTcp[TCP_END_OF_BUFFER_CHARS_COUNT] = {
     TCP_END_OF_BUFFER_CHAR_1,
     TCP_END_OF_BUFFER_CHAR_2,
     TCP_END_OF_BUFFER_CHAR_3,
-    TCP_END_OF_BUFFER_CHAR_4
-};
+    TCP_END_OF_BUFFER_CHAR_4};
 
 /**
  * @brief Shows whether the user is allowed to use 'load' command
@@ -87,7 +86,7 @@ BOOLEAN g_IsConnectedToRemoteDebugger = FALSE;
  * is a client
  *
  */
-SOCKET g_ClientConnectSocket = { 0 };
+SOCKET g_ClientConnectSocket = {0};
 
 /**
  * @brief The socket object of guest debuggee (not debugger)
@@ -95,13 +94,13 @@ SOCKET g_ClientConnectSocket = { 0 };
  * is a server
  *
  */
-SOCKET g_SeverSocket = { 0 };
+SOCKET g_SeverSocket = {0};
 
 /**
  * @brief Server in debuggee needs an extra socket
  *
  */
-SOCKET g_ServerListenSocket = { 0 };
+SOCKET g_ServerListenSocket = {0};
 
 /**
  * @brief In debugger (not debuggee), we save the port of server
@@ -174,8 +173,7 @@ BOOLEAN g_IsUserDebuggerInitialized = FALSE;
  */
 
 DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_UserSyncronizationObjectsHandleTable
-    [DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS]
-    = { 0 };
+    [DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS] = {0};
 
 //////////////////////////////////////////////////
 //		 Serial Debugging Variables             //
@@ -188,8 +186,7 @@ BYTE g_EndOfBufferCheckSerial[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
     SERIAL_END_OF_BUFFER_CHAR_1,
     SERIAL_END_OF_BUFFER_CHAR_2,
     SERIAL_END_OF_BUFFER_CHAR_3,
-    SERIAL_END_OF_BUFFER_CHAR_4
-};
+    SERIAL_END_OF_BUFFER_CHAR_4};
 
 /**
  * @brief In debugger (not debuggee), we save the handle
@@ -198,14 +195,13 @@ BYTE g_EndOfBufferCheckSerial[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
  */
 
 DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_KernelSyncronizationObjectsHandleTable
-    [DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS]
-    = { 0 };
+    [DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS] = {0};
 
 /**
  * @brief Current executing instructions
  *
  */
-BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE] = { 0 };
+BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE] = {0};
 
 /**
  * @brief whether the Current executing instructions is 32-bit or 64 bit
@@ -278,15 +274,14 @@ HANDLE g_DebuggeeStopCommandEventHandle = NULL;
  * @brief Holds the result of registering events from the remote debuggee
  *
  */
-DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent = { 0 };
+DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent = {0};
 
 /**
  * @brief Holds the result of adding action to events from the remote debuggee
  *
  */
 DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
-    0
-};
+    0};
 
 /**
  * @brief This is an OVERLAPPED structure for managing simultaneous
@@ -294,8 +289,8 @@ DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
  * to read and write simultaneously)
  *
  */
-OVERLAPPED g_OverlappedIoStructureForReadDebugger = { 0 };
-OVERLAPPED g_OverlappedIoStructureForWriteDebugger = { 0 };
+OVERLAPPED g_OverlappedIoStructureForReadDebugger  = {0};
+OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 
 /**
  * @brief Shows whether the queried event is enabled or disabled
@@ -324,19 +319,19 @@ CommandType g_CommandsList;
  * @brief Holder of global variables for script engine
  *
  */
-UINT64* g_ScriptGlobalVariables;
+UINT64 * g_ScriptGlobalVariables;
 
 /**
  * @brief Holder of local variables for script engine
  *
  */
-UINT64* g_ScriptLocalVariables;
+UINT64 * g_ScriptLocalVariables;
 
 /**
  * @brief Holder of temp variables for script engine
  *
  */
-UINT64* g_ScriptTempVariables;
+UINT64 * g_ScriptTempVariables;
 
 /**
  * @brief Is list of command initialized
@@ -364,7 +359,7 @@ BOOLEAN g_IsReversingMachineModulesLoaded = FALSE;
  * @brief State of active debugging thread
  *
  */
-ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState = { 0 };
+ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState = {0};
 
 /**
  * @brief This variable holds the trace and generate numbers
@@ -396,7 +391,7 @@ BOOLEAN g_EventTraceInitialized = FALSE;
  * holds for each event in the kernel
  *
  */
-LIST_ENTRY g_EventTrace = { 0 };
+LIST_ENTRY g_EventTrace = {0};
 
 /**
  * @brief it shows whether the debugger started using
@@ -413,19 +408,19 @@ BOOLEAN g_OutputSourcesInitialized = FALSE;
  * in HyperDbg
  *
  */
-LIST_ENTRY g_OutputSources = { 0 };
+LIST_ENTRY g_OutputSources = {0};
 
 /**
  * @brief Holds the location driver to install it
  *
  */
-TCHAR g_DriverLocation[MAX_PATH] = { 0 };
+TCHAR g_DriverLocation[MAX_PATH] = {0};
 
 /**
  * @brief Holds the location test-hyperdbg.exe
  *
  */
-TCHAR g_TestLocation[MAX_PATH] = { 0 };
+TCHAR g_TestLocation[MAX_PATH] = {0};
 
 /**
  * @brief The handler for ShowMessages function

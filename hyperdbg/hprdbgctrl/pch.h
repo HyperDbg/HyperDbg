@@ -27,11 +27,11 @@
 
 #define USE_LIB_IA32
 #if defined(USE_LIB_IA32)
-#pragma warning(push, 0)
+#    pragma warning(push, 0)
 // #    pragma warning(disable : 4201) // suppress nameless struct/union warning
-#include <ia32-doc/out/ia32.h>
-#pragma warning(pop)
-typedef RFLAGS* PRFLAGS;
+#    include <ia32-doc/out/ia32.h>
+#    pragma warning(pop)
+typedef RFLAGS * PRFLAGS;
 #endif // USE_LIB_IA32
 
 //
@@ -46,22 +46,22 @@ typedef RFLAGS* PRFLAGS;
 //
 typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
-#define PHNT_MODE PHNT_MODE_USER
-#define PHNT_VERSION PHNT_WIN11 // Windows 7
+#    define PHNT_MODE    PHNT_MODE_USER
+#    define PHNT_VERSION PHNT_WIN11 // Windows 7
 
-#define PHNT_PATCH_FOR_HYPERDBG TRUE
+#    define PHNT_PATCH_FOR_HYPERDBG TRUE
 
-#include <phnt/phnt_windows.h>
+#    include <phnt/phnt_windows.h>
 
-#include <phnt/phnt.h>
+#    include <phnt/phnt.h>
 
 #elif defined(USE_NATIVE_SDK_HEADERS)
 
-#include <winternl.h>
+#    include <winternl.h>
 
-#include <Windows.h>
+#    include <Windows.h>
 
-#include <winioctl.h>
+#    include <winioctl.h>
 
 #endif
 

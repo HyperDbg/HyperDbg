@@ -16,20 +16,20 @@
 // Global Variables
 //
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
-extern BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
-extern HANDLE g_SerialRemoteComPortHandle;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_IgnoreNewLoggingMessages;
-extern BOOLEAN g_SharedEventStatus;
-extern BOOLEAN g_IsRunningInstruction32Bit;
-extern ULONG g_CurrentRemoteCore;
+                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
+extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
+extern HANDLE                               g_SerialRemoteComPortHandle;
+extern BOOLEAN                              g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                              g_IsDebuggeeRunning;
+extern BOOLEAN                              g_IgnoreNewLoggingMessages;
+extern BOOLEAN                              g_SharedEventStatus;
+extern BOOLEAN                              g_IsRunningInstruction32Bit;
+extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-    g_DebuggeeResultOfAddingActionsToEvent;
+              g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64 g_ResultOfEvaluatedExpression;
 extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
 
@@ -42,72 +42,79 @@ extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
 BOOLEAN
 ListeningSerialPortInDebugger()
 {
-    PDEBUGGER_PREPARE_DEBUGGEE InitPacket;
-    PDEBUGGER_REMOTE_PACKET TheActualPacket;
-    PDEBUGGEE_KD_PAUSED_PACKET PausePacket;
-    PDEBUGGEE_MESSAGE_PACKET MessagePacket;
-    PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
-    PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
-    PDEBUGGEE_FORMATS_PACKET FormatsPacket;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
-    PDEBUGGER_UPDATE_SYMBOL_TABLE SymbolUpdatePacket;
-    PDEBUGGER_MODIFY_EVENTS EventModifyAndQueryPacket;
-    PDEBUGGEE_SYMBOL_UPDATE_RESULT SymbolReloadFinishedPacket;
+    PDEBUGGER_PREPARE_DEBUGGEE                  InitPacket;
+    PDEBUGGER_REMOTE_PACKET                     TheActualPacket;
+    PDEBUGGEE_KD_PAUSED_PACKET                  PausePacket;
+    PDEBUGGEE_MESSAGE_PACKET                    MessagePacket;
+    PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
+    PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
+    PDEBUGGEE_FORMATS_PACKET                    FormatsPacket;
+    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER       EventAndActionPacket;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE               SymbolUpdatePacket;
+    PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
+    PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
-    PDEBUGGEE_RESULT_OF_SEARCH_PACKET SearchResultsPacket;
-    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET ChangeThreadPacket;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
-    PDEBUGGER_CALLSTACK_REQUEST CallstackPacket;
-    PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFramePacket;
-    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket;
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
-    PDEBUGGER_READ_MEMORY ReadMemoryPacket;
-    PDEBUGGER_EDIT_MEMORY EditMemoryPacket;
-    PDEBUGGEE_BP_PACKET BpPacket;
-    PDEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitingPacket;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket;
-    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paPa2vaPacket;
-    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpointPacket;
-    PGUEST_REGS Regs;
-    PGUEST_EXTRA_REGISTERS ExtraRegs;
-    unsigned char* MemoryBuffer;
-    BOOLEAN ShowSignatureWhenDisconnected = FALSE;
+    PDEBUGGEE_RESULT_OF_SEARCH_PACKET           SearchResultsPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
+    PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
+    PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
+    PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
+    PGUEST_REGS                                 Regs;
+    PGUEST_EXTRA_REGISTERS                      ExtraRegs;
+    unsigned char *                             MemoryBuffer;
+    BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
 
 StartAgain:
 
-    CHAR BufferToReceive[MaxSerialPacketSize] = { 0 };
-    UINT32 LengthReceived = 0;
+    CHAR   BufferToReceive[MaxSerialPacketSize] = {0};
+    UINT32 LengthReceived                       = 0;
 
     //
     // Wait for handshake to complete or in other words
     // get the receive packet
     //
-    if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-        if (LengthReceived == 0 && BufferToReceive[0] == NULL) {
+    if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived))
+    {
+        if (LengthReceived == 0 && BufferToReceive[0] == NULL)
+        {
             //
             // The remote computer (debuggee) closed the connection
             //
             ShowMessages("\nthe remote connection is closed\n");
 
-            if (g_IsSerialConnectedToRemoteDebuggee) {
+            if (g_IsSerialConnectedToRemoteDebuggee)
+            {
                 //
                 // Remove and reset all the events
                 //
                 CommandEventsClearAllEventsAndResetTags();
 
-                if (g_IsDebuggeeRunning == FALSE) {
+                if (g_IsDebuggeeRunning == FALSE)
+                {
                     ShowSignatureWhenDisconnected = TRUE;
                 }
             }
 
             KdCloseConnection();
 
-            if (ShowSignatureWhenDisconnected) {
+            if (ShowSignatureWhenDisconnected)
+            {
                 ShowSignatureWhenDisconnected = FALSE;
                 ShowMessages("\n");
             }
             return FALSE;
-        } else {
+        }
+        else
+        {
             ShowMessages("err, invalid buffer received\n");
             goto StartAgain;
         }
@@ -116,19 +123,21 @@ StartAgain:
     //
     // Check for invalid close packets
     //
-    if (LengthReceived == 1 && BufferToReceive[0] == NULL) {
+    if (LengthReceived == 1 && BufferToReceive[0] == NULL)
+    {
         goto StartAgain;
     }
 
     TheActualPacket = (PDEBUGGER_REMOTE_PACKET)BufferToReceive;
 
-    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET) {
+    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
+    {
         //
         // Check checksum
         //
         if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
-                LengthReceived - sizeof(BYTE))
-            != TheActualPacket->Checksum) {
+                                  LengthReceived - sizeof(BYTE)) != TheActualPacket->Checksum)
+        {
             ShowMessages("\nerr, checksum is invalid\n");
             goto StartAgain;
         }
@@ -136,7 +145,8 @@ StartAgain:
         //
         // Check if the packet type is correct
         //
-        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER) {
+        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER)
+        {
             //
             // sth wrong happened, the packet is not belonging to use
             // nothing to do, just wait again
@@ -148,10 +158,11 @@ StartAgain:
         //
         // It's a HyperDbg packet
         //
-        switch (TheActualPacket->RequestedActionOfThePacket) {
+        switch (TheActualPacket->RequestedActionOfThePacket)
+        {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
-            InitPacket = (DEBUGGER_PREPARE_DEBUGGEE*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
@@ -164,13 +175,14 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM:
 
-            MessagePacket = (DEBUGGEE_MESSAGE_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            MessagePacket = (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // We check g_IgnoreNewLoggingMessages here because we want to
             // avoid messages when the debuggee is halted
             //
-            if (!g_IgnoreNewLoggingMessages) {
+            if (!g_IgnoreNewLoggingMessages)
+            {
                 ShowMessages("%s", MessagePacket->Message);
             }
 
@@ -183,7 +195,7 @@ StartAgain:
             //
             g_IgnoreNewLoggingMessages = TRUE;
 
-            PausePacket = (DEBUGGEE_KD_PAUSED_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            PausePacket = (DEBUGGEE_KD_PAUSED_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Debuggee is not running
@@ -206,27 +218,30 @@ StartAgain:
             //
             // Show additional messages before showing assembly and pausing
             //
-            switch (PausePacket->PausingReason) {
+            switch (PausePacket->PausingReason)
+            {
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
 
-                if (PausePacket->EventTag != NULL) {
+                if (PausePacket->EventTag != NULL)
+                {
                     //
                     // It's a breakpoint id
                     //
                     ShowMessages("breakpoint 0x%x hit\n",
-                        PausePacket->EventTag);
+                                 PausePacket->EventTag);
                 }
 
                 break;
 
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
 
-                if (PausePacket->EventTag != NULL) {
+                if (PausePacket->EventTag != NULL)
+                {
                     //
                     // It's an event tag
                     //
                     ShowMessages("event 0x%x triggered\n",
-                        PausePacket->EventTag - DebuggerEventTagStartSeed);
+                                 PausePacket->EventTag - DebuggerEventTagStartSeed);
                 }
 
                 break;
@@ -253,47 +268,53 @@ StartAgain:
                 break;
             }
 
-            if (PausePacket->PausingReason != DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM) {
+            if (PausePacket->PausingReason != DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
+            {
                 //
                 // Check if the instruction is received completely or not
                 //
-                if (PausePacket->ReadInstructionLen != MAXIMUM_INSTR_SIZE) {
+                if (PausePacket->ReadInstructionLen != MAXIMUM_INSTR_SIZE)
+                {
                     //
                     // We check if the disassembled buffer has greater size
                     // than what is retrieved
                     //
                     if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
-                            MAXIMUM_INSTR_SIZE,
-                            PausePacket->Is32BitAddress ? FALSE : TRUE)
-                        > PausePacket->ReadInstructionLen) {
+                                                         MAXIMUM_INSTR_SIZE,
+                                                         PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+                    {
                         ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
                     }
                 }
 
-                if (!PausePacket->Is32BitAddress) {
+                if (!PausePacket->Is32BitAddress)
+                {
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                        PausePacket->Rip,
-                        MAXIMUM_INSTR_SIZE,
-                        1,
-                        TRUE,
-                        (PRFLAGS)&PausePacket->Rflags);
-                } else {
+                                           PausePacket->Rip,
+                                           MAXIMUM_INSTR_SIZE,
+                                           1,
+                                           TRUE,
+                                           (PRFLAGS)&PausePacket->Rflags);
+                }
+                else
+                {
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
-                        PausePacket->Rip,
-                        MAXIMUM_INSTR_SIZE,
-                        1,
-                        TRUE,
-                        (PRFLAGS)&PausePacket->Rflags);
+                                           PausePacket->Rip,
+                                           MAXIMUM_INSTR_SIZE,
+                                           1,
+                                           TRUE,
+                                           (PRFLAGS)&PausePacket->Rflags);
                 }
             }
 
-            switch (PausePacket->PausingReason) {
+            switch (PausePacket->PausingReason)
+            {
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
@@ -365,12 +386,15 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE:
 
-            ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeCorePacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ChangeCorePacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 ShowMessages("current operating core changed to 0x%x\n",
-                    ChangeCorePacket->NewCore);
-            } else {
+                             ChangeCorePacket->NewCore);
+            }
+            else
+            {
                 ShowErrorMessage(ChangeCorePacket->Result);
 
                 //
@@ -383,21 +407,27 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS:
 
-            ChangeProcessPacket = (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeProcessPacket = (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeProcessPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-                if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS) {
+            if (ChangeProcessPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
+                {
                     ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                        ChangeProcessPacket->ProcessId,
-                        SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
-                        &ChangeProcessPacket->ProcessName);
-                } else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH) {
+                                 ChangeProcessPacket->ProcessId,
+                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
+                                 &ChangeProcessPacket->ProcessName);
+                }
+                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH)
+                {
                     ShowMessages(
                         "press 'g' to continue the debuggee, if the pid or the "
                         "process object address is valid then the debuggee will "
                         "be automatically paused when it attached to the target process\n");
                 }
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ChangeProcessPacket->Result);
             }
 
@@ -410,13 +440,17 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY:
 
-            SearchResultsPacket = (DEBUGGEE_RESULT_OF_SEARCH_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            SearchResultsPacket = (DEBUGGEE_RESULT_OF_SEARCH_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-                if (SearchResultsPacket->CountOfResults == 0) {
+            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                if (SearchResultsPacket->CountOfResults == 0)
+                {
                     ShowMessages("not found\n");
                 }
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(SearchResultsPacket->Result);
             }
 
@@ -429,23 +463,29 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD:
 
-            ChangeThreadPacket = (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeThreadPacket = (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-                if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS) {
+            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS)
+                {
                     ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                        ChangeThreadPacket->ThreadId,
-                        ChangeThreadPacket->ProcessId,
-                        SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
-                        SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
-                        &ChangeThreadPacket->ProcessName);
-                } else if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH) {
+                                 ChangeThreadPacket->ThreadId,
+                                 ChangeThreadPacket->ProcessId,
+                                 SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
+                                 SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
+                                 &ChangeThreadPacket->ProcessName);
+                }
+                else if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH)
+                {
                     ShowMessages(
                         "press 'g' to continue the debuggee, if the tid or the "
                         "thread object address is valid then the debuggee will "
                         "be automatically paused when it attached to the target thread\n");
                 }
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ChangeThreadPacket->Result);
             }
 
@@ -458,17 +498,20 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH:
 
-            FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (FlushPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (FlushPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // The amount of message that are deleted are the amount of
                 // vmx-root messages and vmx non-root messages
                 //
                 ShowMessages("flushing buffers was successful, total %d messages were "
                              "cleared.\n",
-                    FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot + FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
-            } else {
+                             FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot + FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
+            }
+            else
+            {
                 ShowErrorMessage(FlushPacket->KernelStatus);
             }
 
@@ -481,18 +524,21 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK:
 
-            CallstackPacket = (DEBUGGER_CALLSTACK_REQUEST*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
-            CallstackFramePacket = (DEBUGGER_SINGLE_CALLSTACK_FRAME*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_CALLSTACK_REQUEST));
+            CallstackPacket      = (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            CallstackFramePacket = (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_CALLSTACK_REQUEST));
 
-            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Show the callstack
                 //
                 CallstackShowFrames(CallstackFramePacket,
-                    CallstackPacket->FrameCount,
-                    CallstackPacket->DisplayMethod,
-                    CallstackPacket->Is32Bit);
-            } else {
+                                    CallstackPacket->FrameCount,
+                                    CallstackPacket->DisplayMethod,
+                                    CallstackPacket->Is32Bit);
+            }
+            else
+            {
                 ShowErrorMessage(CallstackPacket->KernelStatus);
             }
 
@@ -505,13 +551,16 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY:
 
-            TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Nothing to show, everything is shown from the kernel
                 //
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(TestQueryPacket->KernelStatus);
             }
 
@@ -524,17 +573,21 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT:
 
-            ScriptPacket = (DEBUGGEE_SCRIPT_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ScriptPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ScriptPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Nothing to do
                 //
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ScriptPacket->Result);
             }
 
-            if (ScriptPacket->IsFormat) {
+            if (ScriptPacket->IsFormat)
+            {
                 //
                 // Signal the event relating to receiving result of .formats command
                 //
@@ -550,7 +603,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS:
 
-            FormatsPacket = (DEBUGGEE_FORMATS_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            FormatsPacket = (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // We'll just save the result of expression to the global variables
@@ -558,13 +611,13 @@ StartAgain:
             // and let the debuggee to decide whether wants to show error or not
             //
             g_ErrorStateOfResultOfEvaluatedExpression = FormatsPacket->Result;
-            g_ResultOfEvaluatedExpression = FormatsPacket->Value;
+            g_ResultOfEvaluatedExpression             = FormatsPacket->Value;
 
             break;
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
 
-            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
@@ -580,7 +633,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
 
-            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
@@ -596,24 +649,29 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT:
 
-            EventModifyAndQueryPacket = (DEBUGGER_MODIFY_EVENTS*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EventModifyAndQueryPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Set the result of query
             //
-            if (EventModifyAndQueryPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (EventModifyAndQueryPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // There was an error
                 //
                 ShowErrorMessage(EventModifyAndQueryPacket->KernelStatus);
-            } else if (EventModifyAndQueryPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+            }
+            else if (EventModifyAndQueryPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+            {
                 //
                 // Set the global state
                 //
                 g_SharedEventStatus = EventModifyAndQueryPacket->IsEnabled;
-            } else {
+            }
+            else
+            {
                 CommandEventsHandleModifiedEvent(EventModifyAndQueryPacket->Tag,
-                    EventModifyAndQueryPacket);
+                                                 EventModifyAndQueryPacket);
             }
 
             //
@@ -626,17 +684,20 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED:
 
-            SymbolReloadFinishedPacket = (DEBUGGEE_SYMBOL_UPDATE_RESULT*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            SymbolReloadFinishedPacket = (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Show messages as the result of updating symbols
             //
-            if (SymbolReloadFinishedPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (SymbolReloadFinishedPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // There was an error
                 //
                 ShowErrorMessage(SymbolReloadFinishedPacket->KernelStatus);
-            } else {
+            }
+            else
+            {
                 //
                 // Load the symbols
                 //
@@ -652,17 +713,19 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS:
 
-            ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadRegisterPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ReadRegisterPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Show the result of reading registers like rax=0000000000018b01
                 //
-                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS) {
-                    Regs = (GUEST_REGS*)(((CHAR*)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
-                    ExtraRegs = (GUEST_EXTRA_REGISTERS*)(((CHAR*)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
+                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+                {
+                    Regs      = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
+                    ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
 
-                    RFLAGS Rflags = { 0 };
+                    RFLAGS Rflags = {0};
                     Rflags.AsUInt = ExtraRegs->RFLAGS;
 
                     ShowMessages(
@@ -708,12 +771,16 @@ StartAgain:
                         ExtraRegs->FS,
                         ExtraRegs->GS,
                         ExtraRegs->RFLAGS);
-                } else {
-                    ShowMessages("%s=%016llx\n",
-                        RegistersNames[ReadRegisterPacket->RegisterID],
-                        ReadRegisterPacket->Value);
                 }
-            } else {
+                else
+                {
+                    ShowMessages("%s=%016llx\n",
+                                 RegistersNames[ReadRegisterPacket->RegisterID],
+                                 ReadRegisterPacket->Value);
+                }
+            }
+            else
+            {
                 ShowErrorMessage(ReadRegisterPacket->KernelStatus);
             }
 
@@ -725,15 +792,17 @@ StartAgain:
             break;
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
 
-            ReadMemoryPacket = (DEBUGGER_READ_MEMORY*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ReadMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
                 //
-                MemoryBuffer = (unsigned char*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_READ_MEMORY));
+                MemoryBuffer = (unsigned char *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_READ_MEMORY));
 
-                switch (ReadMemoryPacket->Style) {
+                switch (ReadMemoryPacket->Style)
+                {
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
                     //
@@ -802,14 +871,16 @@ StartAgain:
                     // Show the 'dt' command view
                     //
                     ScriptEngineShowDataBasedOnSymbolTypesWrapper(ReadMemoryPacket->DtDetails->TypeName,
-                        ReadMemoryPacket->Address,
-                        FALSE,
-                        MemoryBuffer,
-                        ReadMemoryPacket->DtDetails->AdditionalParameters);
+                                                                  ReadMemoryPacket->Address,
+                                                                  FALSE,
+                                                                  MemoryBuffer,
+                                                                  ReadMemoryPacket->DtDetails->AdditionalParameters);
 
                     break;
                 }
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ReadMemoryPacket->KernelStatus);
             }
 
@@ -822,13 +893,16 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY:
 
-            EditMemoryPacket = (DEBUGGER_EDIT_MEMORY*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EditMemoryPacket = (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (EditMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (EditMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
                 //
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(EditMemoryPacket->KernelStatus);
             }
 
@@ -841,13 +915,16 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP:
 
-            BpPacket = (DEBUGGEE_BP_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Everything was okay, nothing to do
                 //
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(BpPacket->Result);
             }
 
@@ -860,11 +937,14 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_STATE:
 
-            ShortCircuitingPacket = (DEBUGGER_SHORT_CIRCUITING_EVENT*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ShortCircuitingPacket = (DEBUGGER_SHORT_CIRCUITING_EVENT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ShortCircuitingPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ShortCircuitingPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 ShowMessages("the event's short-circuiting state changed to %s\n", ShortCircuitingPacket->IsShortCircuiting ? "'on'" : "'off'");
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ShortCircuitingPacket->KernelStatus);
             }
 
@@ -877,14 +957,17 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE:
 
-            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Show the Page Tables result
                 //
                 CommandPteShowResults(PtePacket->VirtualAddress, PtePacket);
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(PtePacket->KernelStatus);
             }
 
@@ -897,15 +980,21 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA:
 
-            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-                if (Va2paPa2vaPacket->IsVirtual2Physical) {
+            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                if (Va2paPa2vaPacket->IsVirtual2Physical)
+                {
                     ShowMessages("%llx\n", Va2paPa2vaPacket->PhysicalAddress);
-                } else {
+                }
+                else
+                {
                     ShowMessages("%llx\n", Va2paPa2vaPacket->VirtualAddress);
                 }
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(Va2paPa2vaPacket->KernelStatus);
             }
 
@@ -918,13 +1007,16 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS:
 
-            ListOrModifyBreakpointPacket = (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            ListOrModifyBreakpointPacket = (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ListOrModifyBreakpointPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (ListOrModifyBreakpointPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // Everything was okay, nothing to do
                 //
-            } else {
+            }
+            else
+            {
                 ShowErrorMessage(ListOrModifyBreakpointPacket->Result);
             }
 
@@ -938,7 +1030,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO:
 
-            SymbolUpdatePacket = (DEBUGGER_UPDATE_SYMBOL_TABLE*)(((CHAR*)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            SymbolUpdatePacket = (DEBUGGER_UPDATE_SYMBOL_TABLE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
             //
             // Perform updates for the symbol table
             //
@@ -950,7 +1042,9 @@ StartAgain:
             ShowMessages("err, unknown packet action received from the debugger\n");
             break;
         }
-    } else {
+    }
+    else
+    {
         //
         // It's not a HyperDbg packet, it's probably a GDB packet
         //
@@ -979,19 +1073,19 @@ StartAgain:
 
     BOOL Status; /* Status */
     char SerialBuffer[MaxSerialPacketSize] = {
-        0
-    }; /* Buffer to send and receive data */
-    DWORD EventMask = 0; /* Event mask to trigger */
-    char ReadData = NULL; /* temperory Character */
-    DWORD NoBytesRead = 0; /* Bytes read by ReadFile() */
-    UINT32 Loop = 0;
+        0};                                         /* Buffer to send and receive data */
+    DWORD                   EventMask       = 0;    /* Event mask to trigger */
+    char                    ReadData        = NULL; /* temperory Character */
+    DWORD                   NoBytesRead     = 0;    /* Bytes read by ReadFile() */
+    UINT32                  Loop            = 0;
     PDEBUGGER_REMOTE_PACKET TheActualPacket = (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
 
     //
     // Setting Receive Mask
     //
     Status = SetCommMask(g_SerialRemoteComPortHandle, EV_RXCHAR);
-    if (Status == FALSE) {
+    if (Status == FALSE)
+    {
         // ShowMessages("warning, there is an error in setting CommMask\n");
 
         //
@@ -1005,7 +1099,8 @@ StartAgain:
     //
     Status = WaitCommEvent(g_SerialRemoteComPortHandle, &EventMask, NULL); /* Wait for the character to be received */
 
-    if (Status == FALSE) {
+    if (Status == FALSE)
+    {
         //
         // Can be ignored
         //
@@ -1016,13 +1111,15 @@ StartAgain:
     //
     // Read data and store in a buffer
     //
-    do {
+    do
+    {
         Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
 
         //
         // Check to make sure that we don't pass the boundaries
         //
-        if (!(MaxSerialPacketSize > Loop)) {
+        if (!(MaxSerialPacketSize > Loop))
+        {
             //
             // Invalid buffer
             //
@@ -1033,7 +1130,8 @@ StartAgain:
 
         SerialBuffer[Loop] = ReadData;
 
-        if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE*)SerialBuffer)) {
+        if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)SerialBuffer))
+        {
             break;
         }
 
@@ -1045,7 +1143,8 @@ StartAgain:
     // the debuggee might cancel the read so it returns, if it returns
     // then we should restart reading again
     //
-    if (Loop == 1 && SerialBuffer[0] == NULL) {
+    if (Loop == 1 && SerialBuffer[0] == NULL)
+    {
         //
         // Chunk data to cancel non async read
         //
@@ -1062,13 +1161,14 @@ StartAgain:
     // ShowMessages("\n");
     //
 
-    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET) {
+    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
+    {
         //
         // Check checksum
         //
         if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
-                Loop - sizeof(BYTE))
-            != TheActualPacket->Checksum) {
+                                  Loop - sizeof(BYTE)) != TheActualPacket->Checksum)
+        {
             ShowMessages("err checksum is invalid\n");
             goto StartAgain;
         }
@@ -1076,7 +1176,8 @@ StartAgain:
         //
         // Check if the packet type is correct
         //
-        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE) {
+        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE)
+        {
             //
             // sth wrong happened, the packet is not belonging to use
             // nothing to do, just wait again
@@ -1088,12 +1189,12 @@ StartAgain:
         //
         // It's a HyperDbg packet
         //
-        switch (TheActualPacket->RequestedActionOfThePacket) {
-
+        switch (TheActualPacket->RequestedActionOfThePacket)
+        {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE:
 
-            if (!DebuggerPauseDebuggee()) {
-
+            if (!DebuggerPauseDebuggee())
+            {
                 ShowMessages("err, debugger tries to pause the debuggee but the "
                              "attempt was unsuccessful\n");
             }
@@ -1115,7 +1216,9 @@ StartAgain:
 
             break;
         }
-    } else {
+    }
+    else
+    {
         //
         // It's not a HyperDbg packet, it's probably a GDB packet
         //

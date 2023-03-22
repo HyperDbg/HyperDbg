@@ -17,7 +17,8 @@
  *
  * @return VOID
  */
-VOID BroadcastVmxVirtualizationAllCores()
+VOID
+BroadcastVmxVirtualizationAllCores()
 {
     //
     // Broadcast to all cores
@@ -30,7 +31,8 @@ VOID BroadcastVmxVirtualizationAllCores()
  *
  * @return VOID
  */
-VOID BroadcastEnableDbAndBpExitingAllCores()
+VOID
+BroadcastEnableDbAndBpExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -43,7 +45,8 @@ VOID BroadcastEnableDbAndBpExitingAllCores()
  *
  * @return VOID
  */
-VOID BroadcastDisableDbAndBpExitingAllCores()
+VOID
+BroadcastDisableDbAndBpExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -56,7 +59,8 @@ VOID BroadcastDisableDbAndBpExitingAllCores()
  *
  * @return VOID
  */
-VOID BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
+VOID
+BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
 {
     //
     // Broadcast to all cores
@@ -69,7 +73,8 @@ VOID BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
  *
  * @return VOID
  */
-VOID BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
+VOID
+BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
 {
     //
     // Broadcast to all cores
@@ -82,7 +87,8 @@ VOID BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
  *
  * @return VOID
  */
-VOID BroadcastEnableNmiExitingAllCores()
+VOID
+BroadcastEnableNmiExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -95,7 +101,8 @@ VOID BroadcastEnableNmiExitingAllCores()
  *
  * @return VOID
  */
-VOID BroadcastDisableNmiExitingAllCores()
+VOID
+BroadcastDisableNmiExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -108,7 +115,8 @@ VOID BroadcastDisableNmiExitingAllCores()
  *
  * @return VOID
  */
-VOID BroadcastNotifyAllToInvalidateEptAllCores()
+VOID
+BroadcastNotifyAllToInvalidateEptAllCores()
 {
     //
     // Broadcast to all cores
@@ -120,7 +128,8 @@ VOID BroadcastNotifyAllToInvalidateEptAllCores()
  * @brief a broadcast that causes vm-exit on all execution of rdtsc/rdtscp
  * @return VOID
  */
-VOID BroadcastEnableRdtscExitingAllCores()
+VOID
+BroadcastEnableRdtscExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -132,7 +141,8 @@ VOID BroadcastEnableRdtscExitingAllCores()
  * @brief a broadcast that causes for disabling rdtsc/p exiting
  * @return VOID
  */
-VOID BroadcastDisableRdtscExitingAllCores()
+VOID
+BroadcastDisableRdtscExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -146,7 +156,8 @@ VOID BroadcastDisableRdtscExitingAllCores()
  * @param BitmapMask Bit mask of msr to put on msr bitmap
  * @return VOID
  */
-VOID BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
+VOID
+BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 {
     //
     // Broadcast to all cores
@@ -158,7 +169,8 @@ VOID BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
  * @brief routines for disable (reset) !msrread command
  * @return VOID
  */
-VOID BroadcastResetChangeAllMsrBitmapReadAllCores()
+VOID
+BroadcastResetChangeAllMsrBitmapReadAllCores()
 {
     //
     // Broadcast to all cores
@@ -171,7 +183,8 @@ VOID BroadcastResetChangeAllMsrBitmapReadAllCores()
  * @details causes vm-exit on all msr writes
  * @return VOID
  */
-VOID BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
+VOID
+BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
 {
     //
     // Broadcast to all cores
@@ -183,7 +196,8 @@ VOID BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
  * @brief routines for reset !msrwrite command which
  * @return VOID
  */
-VOID BroadcastResetAllMsrBitmapWriteAllCores()
+VOID
+BroadcastResetAllMsrBitmapWriteAllCores()
 {
     //
     // Broadcast to all cores
@@ -195,7 +209,8 @@ VOID BroadcastResetAllMsrBitmapWriteAllCores()
  * @brief routines ONLY for disabling !tsc command
  * @return VOID
  */
-VOID BroadcastDisableRdtscExitingForClearingEventsAllCores()
+VOID
+BroadcastDisableRdtscExitingForClearingEventsAllCores()
 {
     //
     // Broadcast to all cores
@@ -208,7 +223,8 @@ VOID BroadcastDisableRdtscExitingForClearingEventsAllCores()
  * @param Event
  * @return VOID
  */
-VOID BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+VOID
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores
@@ -220,7 +236,8 @@ VOID BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_B
  * @brief routines ONLY for disabling !dr command
  * @return VOID
  */
-VOID BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores()
+VOID
+BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores()
 {
     //
     // Broadcast to all cores
@@ -233,7 +250,8 @@ VOID BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores()
  * @details causes vm-exit on all execution of rdpmc
  * @return VOID
  */
-VOID BroadcastEnableRdpmcExitingAllCores()
+VOID
+BroadcastEnableRdpmcExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -245,7 +263,8 @@ VOID BroadcastEnableRdpmcExitingAllCores()
  * @brief routines for disabling !pmc
  * @return VOID
  */
-VOID BroadcastDisableRdpmcExitingAllCores()
+VOID
+BroadcastDisableRdpmcExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -260,7 +279,8 @@ VOID BroadcastDisableRdpmcExitingAllCores()
  *
  * @return VOID
  */
-VOID BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+VOID
+BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 {
     //
     // Broadcast to all cores
@@ -275,7 +295,8 @@ VOID BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
  *
  * @return VOID
  */
-VOID BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+VOID
+BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 {
     //
     // Broadcast to all cores
@@ -287,7 +308,8 @@ VOID BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
  * @brief routines for reset !exception command
  * @return VOID
  */
-VOID BroadcastResetExceptionBitmapAllCores()
+VOID
+BroadcastResetExceptionBitmapAllCores()
 {
     //
     // Broadcast to all cores
@@ -301,7 +323,8 @@ VOID BroadcastResetExceptionBitmapAllCores()
  * @param Event
  * @return VOID
  */
-VOID BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+VOID
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores
@@ -314,7 +337,8 @@ VOID BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPT
  * @param Event
  * @return VOID
  */
-VOID BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+VOID
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores
@@ -327,7 +351,8 @@ VOID BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING
  * @details causes vm-exit on all accesses to debug registers
  * @return VOID
  */
-VOID BroadcastEnableMovDebugRegistersExitingAllCores()
+VOID
+BroadcastEnableMovDebugRegistersExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -339,7 +364,8 @@ VOID BroadcastEnableMovDebugRegistersExitingAllCores()
  * @brief routines for disabling !dr
  * @return VOID
  */
-VOID BroadcastDisableMovDebugRegistersExitingAllCores()
+VOID
+BroadcastDisableMovDebugRegistersExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -352,7 +378,8 @@ VOID BroadcastDisableMovDebugRegistersExitingAllCores()
  * @details causes vm-exit when external interrupt occurs
  * @return VOID
  */
-VOID BroadcastSetExternalInterruptExitingAllCores()
+VOID
+BroadcastSetExternalInterruptExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -364,7 +391,8 @@ VOID BroadcastSetExternalInterruptExitingAllCores()
  * @brief routines for ONLY terminate !interrupt command
  * @return VOID
  */
-VOID BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
+VOID
+BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
 {
     //
     // Broadcast to all cores
@@ -377,7 +405,8 @@ VOID BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores
  * @details causes vm-exit on all i/o instructions or one port
  * @return VOID
  */
-VOID BroadcastIoBitmapChangeAllCores(UINT64 Port)
+VOID
+BroadcastIoBitmapChangeAllCores(UINT64 Port)
 {
     //
     // Broadcast to all cores
@@ -389,7 +418,8 @@ VOID BroadcastIoBitmapChangeAllCores(UINT64 Port)
  * @brief routines for reset !ioin and !ioout command
  * @return VOID
  */
-VOID BroadcastIoBitmapResetAllCores()
+VOID
+BroadcastIoBitmapResetAllCores()
 {
     //
     // Broadcast to all cores
@@ -402,7 +432,8 @@ VOID BroadcastIoBitmapResetAllCores()
  *
  * @return VOID
  */
-VOID BroadcastEnableMovToCr3ExitingOnAllProcessors()
+VOID
+BroadcastEnableMovToCr3ExitingOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
 }
@@ -412,7 +443,8 @@ VOID BroadcastEnableMovToCr3ExitingOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastChangeToMbecSupportedEptpOnAllProcessors()
+VOID
+BroadcastChangeToMbecSupportedEptpOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineChangeToMbecSupportedEptp, 0x0);
 }
@@ -422,7 +454,8 @@ VOID BroadcastChangeToMbecSupportedEptpOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastRestoreToNormalEptpOnAllProcessors()
+VOID
+BroadcastRestoreToNormalEptpOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineRestoreToNormalEptp, 0x0);
 }
@@ -432,7 +465,8 @@ VOID BroadcastRestoreToNormalEptpOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastDisableMovToCr3ExitingOnAllProcessors()
+VOID
+BroadcastDisableMovToCr3ExitingOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
 }
@@ -442,7 +476,8 @@ VOID BroadcastDisableMovToCr3ExitingOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastEnableEferSyscallEventsOnAllProcessors()
+VOID
+BroadcastEnableEferSyscallEventsOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineEnableEferSyscallEvents, 0x0);
 }
@@ -452,7 +487,8 @@ VOID BroadcastEnableEferSyscallEventsOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastDisableEferSyscallEventsOnAllProcessors()
+VOID
+BroadcastDisableEferSyscallEventsOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineDisableEferSyscallEvents, 0x0);
 }
@@ -462,7 +498,8 @@ VOID BroadcastDisableEferSyscallEventsOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastEnablePmlOnAllProcessors()
+VOID
+BroadcastEnablePmlOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineEnablePml, 0x0);
 }
@@ -472,7 +509,8 @@ VOID BroadcastEnablePmlOnAllProcessors()
  *
  * @return VOID
  */
-VOID BroadcastDisablePmlOnAllProcessors()
+VOID
+BroadcastDisablePmlOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineDisablePml, 0x0);
 }

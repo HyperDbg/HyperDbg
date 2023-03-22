@@ -42,7 +42,8 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Check if the core number is not invalid
     //
-    if (CoreNumber >= ProcessorCount) {
+    if (CoreNumber >= ProcessorCount)
+    {
         return STATUS_INVALID_PARAMETER;
     }
 
@@ -51,16 +52,17 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     Dpc = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
 
-    if (!Dpc) {
+    if (!Dpc)
+    {
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc, // Dpc
-        Routine, // DeferredRoutine
-        DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,            // Dpc
+                    Routine,        // DeferredRoutine
+                    DeferredContext // DeferredContext
     );
 
     //
@@ -84,7 +86,8 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Set the lock to be freed by the other DPC routine
     //
-    if (!SpinlockTryLock(&OneCoreLock)) {
+    if (!SpinlockTryLock(&OneCoreLock))
+    {
         //
         // We can't get the lock, probably sth goes wrong !
         //
@@ -122,7 +125,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
  * @return BOOLEAN
  */
 BOOLEAN
-DpcRoutinePerformVirtualization(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
     // Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
@@ -151,7 +154,8 @@ DpcRoutinePerformVirtualization(KDPC* Dpc, PVOID DeferredContext, PVOID SystemAr
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
@@ -178,7 +182,8 @@ VOID DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC* Dpc, PVOID DeferredC
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
@@ -205,7 +210,8 @@ VOID DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC* Dpc, PVOID Deferred
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -233,7 +239,8 @@ VOID DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC* Dpc, PVOID DeferredCo
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -261,7 +268,8 @@ VOID DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC* Dpc, PVOID DeferredCo
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -289,7 +297,8 @@ VOID DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC* Dpc, PVOID DeferredCo
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -317,7 +326,8 @@ VOID DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC* Dpc, PVOID Deferred
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC* Dpc, DEBUGGER_BROADCASTING_OPTIONS* Event, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
@@ -344,7 +354,8 @@ VOID DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC* Dpc, DEBUGGER_BROA
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -372,7 +383,8 @@ VOID DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC* Dpc, PVOID D
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -400,7 +412,8 @@ VOID DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC* Dpc, PVOID Deferre
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
@@ -427,7 +440,8 @@ VOID DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC* Dpc, PVOID DeferredContex
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -457,7 +471,8 @@ VOID DpcRoutineEnableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID Sys
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineChangeToMbecSupportedEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineChangeToMbecSupportedEptp(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -487,7 +502,8 @@ VOID DpcRoutineChangeToMbecSupportedEptp(KDPC* Dpc, PVOID DeferredContext, PVOID
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineRestoreToNormalEptp(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineRestoreToNormalEptp(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -517,7 +533,8 @@ VOID DpcRoutineRestoreToNormalEptp(KDPC* Dpc, PVOID DeferredContext, PVOID Syste
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -547,7 +564,8 @@ VOID DpcRoutineDisableMovToCr3Exiting(KDPC* Dpc, PVOID DeferredContext, PVOID Sy
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableEferSyscallEvents(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -577,7 +595,8 @@ VOID DpcRoutineEnableEferSyscallEvents(KDPC* Dpc, PVOID DeferredContext, PVOID S
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableEferSyscallEvents(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -607,7 +626,8 @@ VOID DpcRoutineDisableEferSyscallEvents(KDPC* Dpc, PVOID DeferredContext, PVOID 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnablePml(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnablePml(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -637,7 +657,8 @@ VOID DpcRoutineEnablePml(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisablePml(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisablePml(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -667,7 +688,8 @@ VOID DpcRoutineDisablePml(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -696,7 +718,8 @@ VOID DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC* Dpc, PVOID DeferredContext, P
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineResetMsrBitmapReadOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -726,7 +749,8 @@ VOID DpcRoutineResetMsrBitmapReadOnAllCores(KDPC* Dpc, PVOID DeferredContext, PV
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -755,7 +779,8 @@ VOID DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC* Dpc, PVOID DeferredContext, 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -785,7 +810,8 @@ VOID DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC* Dpc, PVOID DeferredContext, P
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableRdtscExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -815,7 +841,8 @@ VOID DpcRoutineEnableRdtscExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOI
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableRdtscExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -846,7 +873,8 @@ VOID DpcRoutineDisableRdtscExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVO
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -878,7 +906,8 @@ VOID DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC* Dpc, PVOID 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -909,7 +938,8 @@ VOID DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC* Dpc, PVOID 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC* Dpc, DEBUGGER_BROADCASTING_OPTIONS* Event, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -938,7 +968,8 @@ VOID DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC* Dpc, DEBUGG
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableRdpmcExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -968,7 +999,8 @@ VOID DpcRoutineEnableRdpmcExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOI
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableRdpmcExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -998,7 +1030,8 @@ VOID DpcRoutineDisableRdpmcExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVO
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineSetExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1027,7 +1060,8 @@ VOID DpcRoutineSetExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PV
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1057,10 +1091,11 @@ VOID DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC* Dpc,
-    PVOID DeferredContext,
-    PVOID SystemArgument1,
-    PVOID SystemArgument2)
+VOID
+DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc,
+                                                                      PVOID  DeferredContext,
+                                                                      PVOID  SystemArgument1,
+                                                                      PVOID  SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1089,7 +1124,8 @@ VOID DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC*
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1119,7 +1155,8 @@ VOID DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC* Dpc, PVOID DeferredCo
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC* Dpc, DEBUGGER_BROADCASTING_OPTIONS* Event, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1148,7 +1185,8 @@ VOID DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC* Dpc, DEBUGGER_BROAD
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC* Dpc, DEBUGGER_BROADCASTING_OPTIONS* Event, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1177,7 +1215,8 @@ VOID DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC* Dpc, DEBUGGER_BROA
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1207,7 +1246,8 @@ VOID DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC* Dpc, PVOID DeferredC
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1237,10 +1277,11 @@ VOID DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC* Dpc, PVOID Defe
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores(KDPC* Dpc,
-    PVOID DeferredContext,
-    PVOID SystemArgument1,
-    PVOID SystemArgument2)
+VOID
+DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores(KDPC * Dpc,
+                                                                                    PVOID  DeferredContext,
+                                                                                    PVOID  SystemArgument1,
+                                                                                    PVOID  SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1270,7 +1311,8 @@ VOID DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOn
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineChangeIoBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
@@ -1299,7 +1341,8 @@ VOID DpcRoutineChangeIoBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineResetIoBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1329,7 +1372,8 @@ VOID DpcRoutineResetIoBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID S
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1359,7 +1403,8 @@ VOID DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC* Dpc, PVOID Defe
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1389,7 +1434,8 @@ VOID DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC* Dpc, PVOID Def
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableNmiVmexitOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1419,7 +1465,8 @@ VOID DpcRoutineEnableNmiVmexitOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableNmiVmexitOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1449,7 +1496,8 @@ VOID DpcRoutineDisableNmiVmexitOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOI
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1484,7 +1532,8 @@ VOID DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC* Dpc, PVOID DeferredContext, 
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1519,7 +1568,8 @@ VOID DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC* Dpc, PVOID DeferredContext,
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1549,7 +1599,8 @@ VOID DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC* Dpc, PVOID Defe
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1579,16 +1630,20 @@ VOID DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC* Dpc, PVOID Def
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineInvalidateEptOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
-    if (DeferredContext == NULL) {
+    if (DeferredContext == NULL)
+    {
         //
         // We have to invalidate all contexts
         //
         AsmVmxVmcall(VMCALL_INVEPT_ALL_CONTEXTS, NULL, NULL, NULL);
-    } else {
+    }
+    else
+    {
         //
         // We have to invalidate all contexts
         //
@@ -1614,7 +1669,8 @@ VOID DpcRoutineInvalidateEptOnAllCores(KDPC* Dpc, PVOID DeferredContext, PVOID S
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineInitializeGuest(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1644,7 +1700,8 @@ VOID DpcRoutineInitializeGuest(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArg
  * @param SystemArgument2
  * @return VOID
  */
-VOID DpcRoutineTerminateGuest(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+VOID
+DpcRoutineTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
@@ -1652,7 +1709,8 @@ VOID DpcRoutineTerminateGuest(KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgu
     //
     // Terminate Vmx using vmcall
     //
-    if (!VmxTerminate()) {
+    if (!VmxTerminate())
+    {
         LogError("Err, there were an error terminating vmx");
     }
 

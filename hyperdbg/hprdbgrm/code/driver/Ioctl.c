@@ -22,9 +22,9 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION IrpStack;
+    PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEventRequest;
-    NTSTATUS Status;
+    NTSTATUS                Status;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -32,16 +32,19 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
-    if (g_AllowIOCTLFromUsermode) {
+    if (g_AllowIOCTLFromUsermode)
+    {
         IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-        switch (IrpStack->Parameters.DeviceIoControl.IoControlCode) {
+        switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
+        {
         case IOCTL_REGISTER_EVENT:
 
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REGISTER_EVENT || Irp->AssociatedIrp.SystemBuffer == NULL) {
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REGISTER_EVENT || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
@@ -54,7 +57,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             RegisterEventRequest = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
-            switch (RegisterEventRequest->Type) {
+            switch (RegisterEventRequest->Type)
+            {
             case IRP_BASED:
                 Status = LogRegisterIrpBasedNotification(DeviceObject, Irp);
                 break;
@@ -73,14 +77,17 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             Status = STATUS_NOT_IMPLEMENTED;
             break;
         }
-    } else {
+    }
+    else
+    {
         //
         // We're no longer serve IOCTL
         //
         Status = STATUS_SUCCESS;
     }
 
-    if (Status != STATUS_PENDING) {
+    if (Status != STATUS_PENDING)
+    {
         Irp->IoStatus.Status = Status;
 
         IoCompleteRequest(Irp, IO_NO_INCREMENT);

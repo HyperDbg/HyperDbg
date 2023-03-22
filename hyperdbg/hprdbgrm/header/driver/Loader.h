@@ -16,7 +16,8 @@
 //		    	 Loader Functions				//
 //////////////////////////////////////////////////
 
-VOID LoaderUninitializeLogTracer();
+VOID
+LoaderUninitializeLogTracer();
 
 BOOLEAN
 LoaderInitVmmAndReversingMachine();

@@ -64,7 +64,8 @@ __declspec(dllexport) int ReversingMachineStop();
  *
  * @param Fmt format string message
  */
-VOID ShowMessages(const char* Fmt, ...)
+VOID
+ShowMessages(const char * Fmt, ...)
 {
     va_list ArgList;
 
@@ -78,19 +79,20 @@ VOID ShowMessages(const char* Fmt, ...)
  *
  * @param Device Driver handle
  */
-void ReadIrpBasedBuffer()
+void
+ReadIrpBasedBuffer()
 {
-    BOOL Status;
-    ULONG ReturnedLength;
+    BOOL                   Status;
+    ULONG                  ReturnedLength;
     REGISTER_NOTIFY_BUFFER RegisterEvent;
-    UINT32 OperationCode;
-    DWORD ErrorNum;
-    HANDLE Handle;
-    BOOLEAN OutputSourceFound;
-    PLIST_ENTRY TempList;
+    UINT32                 OperationCode;
+    DWORD                  ErrorNum;
+    HANDLE                 Handle;
+    BOOLEAN                OutputSourceFound;
+    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
-    RegisterEvent.Type = IRP_BASED;
+    RegisterEvent.Type   = IRP_BASED;
 
     //
     // Create another handle to be used in for reading kernel messages,
@@ -109,20 +111,26 @@ void ReadIrpBasedBuffer()
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
         NULL); /// lpTemplateFile
 
-    if (Handle == INVALID_HANDLE_VALUE) {
+    if (Handle == INVALID_HANDLE_VALUE)
+    {
         ErrorNum = GetLastError();
-        if (ErrorNum == ERROR_ACCESS_DENIED) {
+        if (ErrorNum == ERROR_ACCESS_DENIED)
+        {
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
-        } else if (ErrorNum == ERROR_GEN_FAILURE) {
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
-        } else {
+        }
+        else
+        {
             ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;
-        Handle = NULL;
+        Handle         = NULL;
 
         return;
     }
@@ -130,11 +138,12 @@ void ReadIrpBasedBuffer()
     //
     // allocate buffer for transfering messages
     //
-    char* OutputBuffer = (char*)malloc(UsermodeBufferSize);
+    char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
 
-    try {
-        while (TRUE) {
-
+    try
+    {
+        while (TRUE)
+        {
             //
             // Clear the buffer
             //
@@ -143,19 +152,19 @@ void ReadIrpBasedBuffer()
             Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
 
             Status = DeviceIoControl(
-                Handle, // Handle to device
-                IOCTL_REGISTER_EVENT, // IO Control code
-                &RegisterEvent, // Input Buffer to driver.
+                Handle,                    // Handle to device
+                IOCTL_REGISTER_EVENT,      // IO Control code
+                &RegisterEvent,            // Input Buffer to driver.
                 SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
                                            // driver is x64 and has 64 bit values)
-                OutputBuffer, // Output Buffer from driver.
-                UsermodeBufferSize, // Length of output buffer in bytes.
-                &ReturnedLength, // Bytes placed in buffer.
-                NULL // synchronous call
+                OutputBuffer,              // Output Buffer from driver.
+                UsermodeBufferSize,        // Length of output buffer in bytes.
+                &ReturnedLength,           // Bytes placed in buffer.
+                NULL                       // synchronous call
             );
 
-            if (!Status) {
-
+            if (!Status)
+            {
                 //
                 // Error occured for second time, and we show the error message
                 //
@@ -174,7 +183,8 @@ void ReadIrpBasedBuffer()
             OperationCode = 0;
             memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-            switch (OperationCode) {
+            switch (OperationCode)
+            {
             case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
 
                 ShowMessages("%s", OutputBuffer + sizeof(UINT32));
@@ -212,7 +222,9 @@ void ReadIrpBasedBuffer()
                 break;
             }
         }
-    } catch (const std::exception&) {
+    }
+    catch (const std::exception &)
+    {
         ShowMessages("err, exception occured in creating handle or parsing buffer\n");
     }
     free(OutputBuffer);
@@ -220,7 +232,8 @@ void ReadIrpBasedBuffer()
     //
     // closeHandle
     //
-    if (!CloseHandle(Handle)) {
+    if (!CloseHandle(Handle))
+    {
         ShowMessages("err, closing handle 0x%x\n", GetLastError());
     };
 }
@@ -232,7 +245,7 @@ void ReadIrpBasedBuffer()
  * @return DWORD Device Handle
  */
 DWORD WINAPI
-IrpBasedBufferThread(void* data)
+IrpBasedBufferThread(void * data)
 {
     //
     // Do stuff.  This will be the first function called on the new
@@ -250,7 +263,8 @@ IrpBasedBufferThread(void* data)
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-int ReversingMachineStop()
+int
+ReversingMachineStop()
 {
     //
     // Not implemented
@@ -264,12 +278,14 @@ int ReversingMachineStop()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-int ReversingMachineStart()
+int
+ReversingMachineStart()
 {
     DWORD ErrorNum;
     DWORD ThreadId;
 
-    if (g_DeviceHandle) {
+    if (g_DeviceHandle)
+    {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
         return 1;
@@ -293,22 +309,22 @@ int ReversingMachineStart()
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
         NULL); /// lpTemplateFile
 
-    if (g_DeviceHandle == INVALID_HANDLE_VALUE) {
-
+    if (g_DeviceHandle == INVALID_HANDLE_VALUE)
+    {
         ErrorNum = GetLastError();
 
-        if (ErrorNum == ERROR_ACCESS_DENIED) {
-
+        if (ErrorNum == ERROR_ACCESS_DENIED)
+        {
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
-
-        } else if (ErrorNum == ERROR_GEN_FAILURE) {
-
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
-
-        } else {
-
+        }
+        else
+        {
             ShowMessages("err, CreateFile failed (%x)\n", ErrorNum);
         }
 

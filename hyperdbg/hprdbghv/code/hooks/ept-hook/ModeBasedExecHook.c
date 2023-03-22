@@ -18,24 +18,26 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML4s
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++) {
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
         EptTable->PML4[i].UserModeExecute = FALSE;
     }
 
     //
     // Set execute access for PML3s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++) {
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
         EptTable->PML3[i].UserModeExecute = TRUE;
     }
 
     //
     // Set execute access for PML2s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++) {
-
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++) {
-
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
     }
@@ -50,14 +52,15 @@ BOOLEAN
 ModeBasedExecHookAllocateMbecEptPageTable()
 {
     PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
-    EPT_POINTER EPTP = { 0 };
+    EPT_POINTER         EPTP = {0};
 
     //
     // Allocate another EPT page table
     //
     ModeBasedEptTable = EptAllocateAndCreateIdentityPageTable();
 
-    if (ModeBasedEptTable == NULL) {
+    if (ModeBasedEptTable == NULL)
+    {
         //
         // There was an error allocating MBEC page tables
         //
@@ -114,21 +117,24 @@ ModeBasedExecHookInitialize()
     //
     // Check if MBEC supported by this processors
     //
-    if (!g_CompatibilityCheck.ModeBasedExecutionSupport) {
+    if (!g_CompatibilityCheck.ModeBasedExecutionSupport)
+    {
         return FALSE;
     }
 
     //
     // Check if it's already initialized or not
     //
-    if (g_CheckForModeBasedExecutionControl) {
+    if (g_CheckForModeBasedExecutionControl)
+    {
         return FALSE;
     }
 
     //
     // Allocate MBEC EPT page-table
     //
-    if (!ModeBasedExecHookAllocateMbecEptPageTable()) {
+    if (!ModeBasedExecHookAllocateMbecEptPageTable())
+    {
         //
         // There was an error allocating MBEC page table for EPT tables
         //
@@ -160,9 +166,9 @@ ModeBasedExecHookInitialize()
  *
  * @return VOID
  */
-VOID ModeBasedExecHookUninitialize()
+VOID
+ModeBasedExecHookUninitialize()
 {
-
     //
     // Disable the interception of Cr3 to change the EPTP in the case of reaching to
     // the target process
@@ -182,7 +188,8 @@ VOID ModeBasedExecHookUninitialize()
     //
     // Free Identity Page Table for MBEC hooks
     //
-    if (g_EptState->ModeBasedEptPageTable != NULL) {
+    if (g_EptState->ModeBasedEptPageTable != NULL)
+    {
         MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
     }
 }
@@ -193,7 +200,8 @@ VOID ModeBasedExecHookUninitialize()
  *
  * @return VOID
  */
-VOID ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE* VCpu)
+VOID
+ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
@@ -212,7 +220,8 @@ VOID ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return VOID
  */
-VOID ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE* VCpu)
+VOID
+ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
@@ -231,13 +240,14 @@ VOID ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return BOOLEAN
  */
-BOOLEAN ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE* VCpu)
+BOOLEAN
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-
     //
     // Check if this mechanism is use or not
     //
-    if (!g_CheckForModeBasedExecutionControl) {
+    if (!g_CheckForModeBasedExecutionControl)
+    {
         return FALSE;
     }
 
@@ -245,8 +255,8 @@ BOOLEAN ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE* VCpu)
     // For test purposes
     //
     LogInfo("User-mode process (0x%x) is executed address: %llx",
-        PsGetCurrentProcessId(),
-        VCpu->LastVmexitRip);
+            PsGetCurrentProcessId(),
+            VCpu->LastVmexitRip);
 
     //
     // Disable MBEC again
@@ -266,7 +276,8 @@ BOOLEAN ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return VOID
  */
-VOID ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE* VCpu, UINT64 NewCr3)
+VOID
+ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
     //
     // Enable MBEC to detect execution in user-mode
