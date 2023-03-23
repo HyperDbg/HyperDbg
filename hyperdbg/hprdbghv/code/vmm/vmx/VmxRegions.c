@@ -15,7 +15,7 @@
  * @brief Allocates Vmxon region and set the Revision ID based on IA32_VMX_BASIC_MSR
  *
  * @param CurrentGuestState
- * @return BOOLEAN Returns true if allocation was successfull and vmxon executed without error
+ * @return BOOLEAN Returns true if allocation was successful and vmxon executed without error
  * otherwise returns false
  */
 _Use_decl_annotations_
@@ -95,7 +95,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Allocate Vmcs region and set the Revision ID based on IA32_VMX_BASIC_MSR
  *
  * @param CurrentGuestState
- * @return BOOLEAN Returns true if allocation was successfull and vmptrld executed without error
+ * @return BOOLEAN Returns true if allocation was successful and vmptrld executed without error
  * otherwise returns false
  */
 _Use_decl_annotations_
@@ -161,7 +161,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Allocate VMM Stack
  *
  * @param VCpu The virtual processor's state
- * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
  */
 BOOLEAN
 VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
@@ -187,7 +187,7 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Allocate a buffer forr Msr Bitmap
  *
  * @param VCpu The virtual processor's state
- * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
  */
 BOOLEAN
 VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
@@ -216,7 +216,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Allocate a buffer forr I/O Bitmap
  *
  * @param ProcessorID
- * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
  */
 BOOLEAN
 VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)

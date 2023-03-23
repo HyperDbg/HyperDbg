@@ -40,6 +40,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET             GetInformationProcessRequest;
+    PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST           RevServiceRequest;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET              GetInformationThreadRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
@@ -1077,14 +1078,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             DebuggerCommandReservePreallocatedPools(DebuggerReservePreallocPoolRequest);
 
-            //
-            /////////////////////////////////////////////////////////////////////////////
-            //
-            ConfigureModeBasedExecHookInitializeOnAllProcessors();
-            //
-            /////////////////////////////////////////////////////////////////////////////
-            //
-
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREALLOC_COMMAND;
             Status                    = STATUS_SUCCESS;
 
@@ -1386,6 +1379,48 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             ProcessQueryDetails(GetInformationProcessRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_REQUEST_REV_MACHINE_SERVICE:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            RevServiceRequest = (PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the service request
+            //
+            ConfigureModeBasedExecHookInitializeOnAllProcessors(RevServiceRequest);
+
+            Irp->IoStatus.Information = SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
             Status                    = STATUS_SUCCESS;
 
             //

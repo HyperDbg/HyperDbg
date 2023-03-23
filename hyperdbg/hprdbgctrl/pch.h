@@ -206,6 +206,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #include "header/objects.h"
 
+#include "header/rev-ctrl.h"
+
 #pragma comment(lib, "ntdll.lib")
 
 //

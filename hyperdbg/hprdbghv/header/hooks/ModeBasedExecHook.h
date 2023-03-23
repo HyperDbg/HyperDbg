@@ -32,3 +32,6 @@ ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);

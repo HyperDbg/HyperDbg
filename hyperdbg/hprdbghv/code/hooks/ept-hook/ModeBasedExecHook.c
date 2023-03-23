@@ -20,6 +20,9 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
+        //
+        // We only set the top-level PML4 for intercepting user-mode execution
+        //
         EptTable->PML4[i].UserModeExecute = FALSE;
     }
 
@@ -109,6 +112,7 @@ ModeBasedExecHookAllocateMbecEptPageTable()
 /**
  * @brief Initialize the needed structure for hooking mode execution
  * @details should be called from vmx non-root mode
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -283,4 +287,28 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
     // Enable MBEC to detect execution in user-mode
     //
     HvSetModeBasedExecutionEnableFlag(TRUE);
+}
+
+/**
+ * @brief Initialize the reversing machine based on service request
+ *
+ * @param RevServiceRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+{
+    //
+    // Call the function responsible for initializing Mode-based hooks
+    //
+    if (ModeBasedExecHookInitialize() == FALSE)
+    {
+        //
+        // The initialization was not successfull
+        //
+        return FALSE;
+    }
+
+    return TRUE;
 }

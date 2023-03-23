@@ -801,7 +801,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
  * @param IsVmxRoot Check vmx root pool for message or check vmx non root pool
  * @param Priority Whether the buffer has priority
  *
- * @return BOOLEAN return of this function shows whether the read was successfull or not
+ * @return BOOLEAN return of this function shows whether the read was successful or not
  * (e.g FALSE shows there's no new buffer available.)
  */
 BOOLEAN

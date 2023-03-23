@@ -274,3 +274,10 @@
  */
 #define IOCTL_QUERY_CURRENT_THREAD \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81e, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, request service from the reversing machine
+ *
+ */
+#define IOCTL_REQUEST_REV_MACHINE_SERVICE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81f, METHOD_BUFFERED, FILE_ANY_ACCESS)

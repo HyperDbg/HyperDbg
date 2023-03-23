@@ -525,7 +525,7 @@ MemoryMapperUninitialize()
  * @param MappingVa Mapping virtual address
  * @param InvalidateVpids whether invalidate based on VPIDs or not
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -612,7 +612,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
  * @param PteVaAddress PTE of target virtual address
  * @param MappingVa Mapping Virtual Address
  * @param InvalidateVpids Invalidate VPIDs or not
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1040,7 +1040,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
  * @param TargetProcessCr3 The process CR3 (might be null)
  * @param TargetProcessId The process PID (might be null)
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1148,7 +1148,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
  * @param SizeToWrite Size
  * @param TargetProcessCr3 CR3 of target process
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1175,7 +1175,7 @@ MemoryMapperWriteMemorySafe(UINT64   Destination,
  * @param SizeToWrite Size
  * @param TargetProcessId Target Process Id
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1196,7 +1196,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
  * @param Source Source Address
  * @param SizeToWrite Size
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN

@@ -30,13 +30,14 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 
 /**
  * @brief routines for initializing Mode-based execution hooks
+ * @param RevServiceRequest
  *
  * @return VOID
  */
 VOID
-ConfigureModeBasedExecHookInitializeOnAllProcessors()
+ConfigureModeBasedExecHookInitializeOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
-    ModeBasedExecHookInitialize();
+    ModeBasedExecHookReversingMachineInitialize(RevServiceRequest);
 }
 
 /**
