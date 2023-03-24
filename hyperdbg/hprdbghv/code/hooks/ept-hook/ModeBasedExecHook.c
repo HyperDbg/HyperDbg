@@ -343,53 +343,60 @@ ModeBasedExecHookUninitialize()
 }
 
 /**
- * @brief Change the current EPTP to a MBEC supported EPTP
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    //
-    // Change EPTP
-    //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
-
-    //
-    // Invalidate all the contexts
-    //
-    EptInveptAllContexts();
-}
-
-/**
  * @brief restore to normal EPTP
  * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
+ModeBasedExecHookRestoreToNormalEptp()
 {
     //
     // Change EPTP
     //
     __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+}
 
+/**
+ * @brief change to execute-only EPTP
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookChangeToExecuteOnlyEptp()
+{
     //
-    // Invalidate all the contexts
+    // Change EPTP
     //
-    EptInveptAllContexts();
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ExecuteOnlyEptPointer.AsUInt);
+}
+
+/**
+ * @brief change to MBEC enabled EPTP
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookChangeToMbecEnabledEptp()
+{
+    //
+    // Change EPTP
+    //
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
 }
 
 /**
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
+ * @param IsForUsermodeExecViolation Shows whether EPT violation was because of execution
+ * violation of user-mode codes or not
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu)
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsForUsermodeExecViolation)
 {
     //
     // Check if this mechanism is use or not
@@ -399,17 +406,34 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         return FALSE;
     }
 
-    //
-    // For test purposes
-    //
-    LogInfo("User-mode process (0x%x) is executed address: %llx",
-            PsGetCurrentProcessId(),
-            VCpu->LastVmexitRip);
+    if (IsForUsermodeExecViolation)
+    {
+        //
+        // For test purposes
+        //
+        LogInfo("User-mode process (0x%x) is executed address: %llx",
+                PsGetCurrentProcessId(),
+                VCpu->LastVmexitRip);
 
-    //
-    // Disable MBEC again
-    //
-    HvSetModeBasedExecutionEnableFlag(FALSE);
+        //
+        // Disable MBEC again
+        //
+        HvSetModeBasedExecutionEnableFlag(FALSE);
+
+        //
+        // Change EPTP to execute-only pages
+        //
+        ModeBasedExecHookChangeToExecuteOnlyEptp();
+    }
+    else
+    {
+        //
+        // For test purposes
+        //
+        LogInfo("Access log (0x%x) is executed address: %llx",
+                PsGetCurrentProcessId(),
+                VCpu->LastVmexitRip);
+    }
 
     //
     // It successfully handled by MBEC hooks
@@ -427,10 +451,13 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    //
-    // Enable MBEC to detect execution in user-mode
-    //
-    HvSetModeBasedExecutionEnableFlag(TRUE);
+    if (PsGetCurrentProcessId() == 0x25C0)
+    {
+        //
+        // Enable MBEC to detect execution in user-mode
+        //
+        HvSetModeBasedExecutionEnableFlag(TRUE);
+    }
 }
 
 /**

@@ -815,19 +815,18 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
+    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu,
+                                                  ViolationQualification.EptExecutable &&
+                                                      !ViolationQualification.EptExecutableForUserMode))
+    {
+        return TRUE;
+    }
+    else if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
     {
         //
         // Handled by page hook code
         //
         return TRUE;
-    }
-    else if (ViolationQualification.EptExecutable && !ViolationQualification.EptExecutableForUserMode)
-    {
-        if (ModeBasedExecHookHandleEptViolationVmexit(VCpu))
-        {
-            return TRUE;
-        }
     }
 
     LogError("Err, unexpected EPT violation at RIP: %llx", VCpu->LastVmexitRip);

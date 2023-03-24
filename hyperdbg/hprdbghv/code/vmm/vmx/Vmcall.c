@@ -424,7 +424,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP:
     {
-        ModeBasedExecHookChangeToMbecSupportedEptp(VCpu);
+        ModeBasedExecHookChangeToMbecEnabledEptp();
 
         VmcallStatus = STATUS_SUCCESS;
         break;

@@ -25,13 +25,16 @@ VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3);
 
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu);
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsForUsermodeExecViolation);
 
 VOID
-ModeBasedExecHookChangeToMbecSupportedEptp(VIRTUAL_MACHINE_STATE * VCpu);
+ModeBasedExecHookChangeToMbecEnabledEptp();
 
 VOID
-ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);
+ModeBasedExecHookRestoreToNormalEptp();
+
+VOID
+ModeBasedExecHookChangeToExecuteOnlyEptp();
 
 BOOLEAN
 ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
