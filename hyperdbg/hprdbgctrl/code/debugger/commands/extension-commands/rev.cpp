@@ -19,25 +19,11 @@
 VOID
 CommandRevHelp()
 {
-    ShowMessages("!rev : uses the reversing machine module in order to reconstruct the memory assumptions.\n\n");
+    ShowMessages("!rev : uses the reversing machine module in order to reconstruct the programmer/memory assumptions.\n\n");
 
-    ShowMessages("syntax : \t!rev [reconstruct] [kernel] [address Address (hex)] [size Size (hex)]\n");
-    ShowMessages("syntax : \t!rev [reconstruct] [kernel] [overall]\n");
-    ShowMessages("syntax : \t!rev [reconstruct] [user] [overall] [pid ProcessId (hex)]\n");
-    ShowMessages("syntax : \t!rev [reconstruct] [user] [overall] [path Path (string)]\n");
-    ShowMessages(
-        "syntax : \t!rev [reconstruct] [user] [pid ProcessId (hex)] [address Address (hex)] [size Size (hex)]\n");
-    ShowMessages("syntax : \t!rev [pattern] [path Path (string)]\n");
-
+    ShowMessages("syntax : \t!rev [config] [Path (string)]\n");
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !rev reconstruct kernel overall\n");
-    ShowMessages("\t\te.g : !rev reconstruct kernel address fffff8077356f010 size 1000\n");
-    ShowMessages("\t\te.g : !rev reconstruct kernel address fffff8077356f010\n");
-    ShowMessages("\t\te.g : !rev reconstruct user overall pid 1c0\n");
-    ShowMessages("\t\te.g : !rev reconstruct user overall path c:\\users\\sina\\reverse eng\\my_file.exe\n");
-    ShowMessages("\t\te.g : !rev reconstruct user pid 1c0 address 0x7ff0001000\n");
-    ShowMessages("\t\te.g : !rev reconstruct user pid 1c0 address 0x7ff0001000 size 1000\n");
-    ShowMessages("\t\te.g : !rev pattern path c:\\users\\sina\\reverse eng\\my_file.exe\n");
+    ShowMessages("\t\te.g : !rev pattern c:\\users\\sina\\reverse eng\\config.json\n");
 }
 
 /**

@@ -12,6 +12,13 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Adjust (unset) user-mode execution bit of target page-table
+ * @details should be called from vmx non-root mode
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
 BOOLEAN
 ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 {
@@ -49,6 +56,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 /**
  * @brief Initialize the needed structure for hooking mode execution
  * @details should be called from vmx non-root mode
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -110,6 +118,115 @@ ModeBasedExecHookAllocateMbecEptPageTable()
 }
 
 /**
+ * @brief Adjust execute-only bits bit of target page-table
+ * @details should be called from vmx non-root mode
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        EptTable->PML4[i].UserModeExecute = TRUE;
+
+        //
+        // Execute-only pages
+        //
+        EptTable->PML4[i].ExecuteAccess = TRUE;
+        EptTable->PML4[i].ReadAccess    = FALSE;
+        EptTable->PML4[i].WriteAccess   = FALSE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+}
+
+/**
+ * @brief Initialize the needed structure for execute-only pages
+ * @details should be called from vmx non-root mode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookAllocateExecuteOnlyEptPageTable()
+{
+    PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
+    EPT_POINTER         EPTP = {0};
+
+    //
+    // Allocate another EPT page table
+    //
+    ModeBasedEptTable = EptAllocateAndCreateIdentityPageTable();
+
+    if (ModeBasedEptTable == NULL)
+    {
+        //
+        // There was an error allocating MBEC page tables
+        //
+        return FALSE;
+    }
+
+    //
+    // Enable all execute-only bit
+    //
+    ModeBasedExecHookEnableExecuteOnlyPages(ModeBasedEptTable);
+
+    //
+    // Set the global address for execute only EPT page table
+    //
+    g_EptState->ExecuteOnlyEptPageTable = ModeBasedEptTable;
+
+    //
+    // For performance, we let the processor know it can cache the EPT
+    //
+    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
+
+    //
+    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
+    //
+    EPTP.EnableAccessAndDirtyFlags = TRUE;
+
+    //
+    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
+    // see Section 28.2.2
+    //
+    EPTP.PageWalkLength = 3;
+
+    //
+    // The physical page number of the page table we will be using
+    //
+    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&ModeBasedEptTable->PML4) / PAGE_SIZE;
+
+    //
+    // We will write the EPTP to the VMCS later
+    //
+    g_EptState->ExecuteOnlyEptPointer.AsUInt = EPTP.AsUInt;
+
+    return TRUE;
+}
+
+/**
  * @brief Initialize the needed structure for hooking mode execution
  * @details should be called from vmx non-root mode
  *
@@ -122,6 +239,14 @@ ModeBasedExecHookInitialize()
     // Check if MBEC supported by this processors
     //
     if (!g_CompatibilityCheck.ModeBasedExecutionSupport)
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if execute-only feature is supported on this processor or not
+    //
+    if (!g_CompatibilityCheck.ExecuteOnlySupport)
     {
         return FALSE;
     }
@@ -141,6 +266,17 @@ ModeBasedExecHookInitialize()
     {
         //
         // There was an error allocating MBEC page table for EPT tables
+        //
+        return FALSE;
+    }
+
+    //
+    // Allocate execute-only EPT page-table
+    //
+    if (!ModeBasedExecHookAllocateExecuteOnlyEptPageTable())
+    {
+        //
+        // There was an error allocating execute-only page table for EPT tables
         //
         return FALSE;
     }
@@ -195,6 +331,14 @@ ModeBasedExecHookUninitialize()
     if (g_EptState->ModeBasedEptPageTable != NULL)
     {
         MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
+    }
+
+    //
+    // Free Identity Page Table for execute-only hooks
+    //
+    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
+    {
+        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
     }
 }
 

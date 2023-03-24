@@ -995,6 +995,14 @@ VmxPerformTermination()
     }
 
     //
+    // Free Identity Page Table for execute-only hooks
+    //
+    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
+    {
+        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
+    }
+
+    //
     // Free EptState
     //
     ExFreePoolWithTag(g_EptState, POOLTAG);
