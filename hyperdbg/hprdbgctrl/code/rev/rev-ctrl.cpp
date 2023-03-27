@@ -57,7 +57,7 @@ RevRequestService(REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST * RevRequest)
     //
     if (RevRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
-        ShowMessages("the reversing machine service request was successful!");
+        ShowMessages("the reversing machine service request was successful!\n");
     }
     else
     {

@@ -423,7 +423,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN 
         //
         // Change EPTP to execute-only pages
         //
-        ModeBasedExecHookChangeToExecuteOnlyEptp();
+        // ModeBasedExecHookChangeToExecuteOnlyEptp();
     }
     else
     {
@@ -458,6 +458,13 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
         //
         HvSetModeBasedExecutionEnableFlag(TRUE);
     }
+    else
+    {
+        //
+        // In case, the process is changed, we've disable the MBEC
+        //
+        HvSetModeBasedExecutionEnableFlag(FALSE);
+    }
 }
 
 /**
@@ -480,6 +487,11 @@ ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMOR
         //
         return FALSE;
     }
+
+    //
+    // Set the error/success code
+    //
+    RevServiceRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }
