@@ -15,7 +15,7 @@
 // Global Variables
 //
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
-extern BOOLEAN g_IsUserDebuggerInitialized;
+extern BOOLEAN                  g_IsUserDebuggerInitialized;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
@@ -24,16 +24,19 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
  *
  * @return VOID
  */
-VOID UdInitializeUserDebugger()
+VOID
+UdInitializeUserDebugger()
 
 {
-    if (!g_IsUserDebuggerInitialized) {
+    if (!g_IsUserDebuggerInitialized)
+    {
         //
         // Initialize the handle table
         //
-        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++) {
+        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        {
             g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
-            g_UserSyncronizationObjectsHandleTable[i].EventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
+            g_UserSyncronizationObjectsHandleTable[i].EventHandle      = CreateEvent(NULL, FALSE, FALSE, NULL);
         }
 
         //
@@ -48,10 +51,12 @@ VOID UdInitializeUserDebugger()
  *
  * @return VOID
  */
-VOID UdUninitializeUserDebugger()
+VOID
+UdUninitializeUserDebugger()
 
 {
-    if (g_IsUserDebuggerInitialized) {
+    if (g_IsUserDebuggerInitialized)
+    {
         //
         // Remove the active process
         //
@@ -60,9 +65,12 @@ VOID UdUninitializeUserDebugger()
         //
         // Initialize the handle table
         //
-        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++) {
-            if (g_UserSyncronizationObjectsHandleTable[i].EventHandle != NULL) {
-                if (g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState) {
+        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        {
+            if (g_UserSyncronizationObjectsHandleTable[i].EventHandle != NULL)
+            {
+                if (g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState)
+                {
                     DbgReceivedUserResponse(i);
                 }
 
@@ -87,15 +95,16 @@ VOID UdUninitializeUserDebugger()
  *
  * @return VOID
  */
-VOID UdSetActiveDebuggingProcess(UINT64 DebuggingId,
-    UINT32 ProcessId,
-    UINT32 ThreadId,
-    BOOLEAN Is32Bit,
-    BOOLEAN IsPaused)
+VOID
+UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT32  ProcessId,
+                            UINT32  ThreadId,
+                            BOOLEAN Is32Bit,
+                            BOOLEAN IsPaused)
 {
-    g_ActiveProcessDebuggingState.ProcessId = ProcessId;
-    g_ActiveProcessDebuggingState.ThreadId = ThreadId;
-    g_ActiveProcessDebuggingState.Is32Bit = Is32Bit;
+    g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
+    g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
+    g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
     g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
 
     //
@@ -115,7 +124,8 @@ VOID UdSetActiveDebuggingProcess(UINT64 DebuggingId,
  *
  * @return VOID
  */
-VOID UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
+VOID
+UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
 {
     //
     // Activate the debugging
@@ -129,20 +139,21 @@ VOID UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
  *
  * @return VOID
  */
-VOID UdPrintError()
+VOID
+UdPrintError()
 {
-    DWORD ErrNum;
-    TCHAR SysMsg[256];
-    TCHAR* p;
+    DWORD   ErrNum;
+    TCHAR   SysMsg[256];
+    TCHAR * p;
 
     ErrNum = GetLastError();
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        ErrNum,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-        SysMsg,
-        256,
-        NULL);
+                  NULL,
+                  ErrNum,
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+                  SysMsg,
+                  256,
+                  NULL);
 
     //
     // Trim the end of the line and terminate it with a null
@@ -150,7 +161,8 @@ VOID UdPrintError()
     p = SysMsg;
     while ((*p > 31) || (*p == 9))
         ++p;
-    do {
+    do
+    {
         *p-- = 0;
     } while ((p >= SysMsg) && ((*p == '.') || (*p < 33)));
 
@@ -166,9 +178,10 @@ VOID UdPrintError()
  * @param OwnerPID
  * @return BOOL if there was an error then returns false, otherwise return true
  */
-BOOL UdListProcessThreads(DWORD OwnerPID)
+BOOL
+UdListProcessThreads(DWORD OwnerPID)
 {
-    HANDLE ThreadSnap = INVALID_HANDLE_VALUE;
+    HANDLE        ThreadSnap = INVALID_HANDLE_VALUE;
     THREADENTRY32 Te32;
 
     //
@@ -186,8 +199,9 @@ BOOL UdListProcessThreads(DWORD OwnerPID)
     //
     // Retrieve information about the first thread and exit if unsuccessful
     //
-    if (!Thread32First(ThreadSnap, &Te32)) {
-        UdPrintError(); // Show cause of failure
+    if (!Thread32First(ThreadSnap, &Te32))
+    {
+        UdPrintError();          // Show cause of failure
         CloseHandle(ThreadSnap); // Must clean up the snapshot object!
         return FALSE;
     }
@@ -197,8 +211,10 @@ BOOL UdListProcessThreads(DWORD OwnerPID)
     // Now walk the thread list of the system, and display information
     // about each thread associated with the specified process
     //
-    do {
-        if (Te32.th32OwnerProcessID == OwnerPID) {
+    do
+    {
+        if (Te32.th32OwnerProcessID == OwnerPID)
+        {
             ShowMessages("\n     Thread Id\t= 0x%08X", Te32.th32ThreadID);
             // ShowMessages("\n     base priority  = %x", Te32.tpBasePri);
             // ShowMessages("\n     delta priority = %x", Te32.tpDeltaPri);
@@ -225,9 +241,9 @@ BOOL UdListProcessThreads(DWORD OwnerPID)
 BOOLEAN
 UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
 {
-    HANDLE ThreadSnap = INVALID_HANDLE_VALUE;
+    HANDLE        ThreadSnap = INVALID_HANDLE_VALUE;
     THREADENTRY32 Te32;
-    BOOLEAN Result = FALSE;
+    BOOLEAN       Result = FALSE;
 
     //
     // Take a snapshot of all running threads
@@ -244,8 +260,9 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
     //
     // Retrieve information about the first thread and exit if unsuccessful
     //
-    if (!Thread32First(ThreadSnap, &Te32)) {
-        UdPrintError(); // Show cause of failure
+    if (!Thread32First(ThreadSnap, &Te32))
+    {
+        UdPrintError();          // Show cause of failure
         CloseHandle(ThreadSnap); // Must clean up the snapshot object!
         return FALSE;
     }
@@ -254,9 +271,12 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
     // Now walk the thread list of the system, and display information
     // about each thread associated with the specified process
     //
-    do {
-        if (Te32.th32OwnerProcessID == Pid) {
-            if (Te32.th32ThreadID == Tid) {
+    do
+    {
+        if (Te32.th32OwnerProcessID == Pid)
+        {
+            if (Te32.th32ThreadID == Tid)
+            {
                 //
                 // The thread found in target process
                 //
@@ -282,10 +302,10 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
  * @return BOOLEAN
  */
 BOOLEAN
-UdCreateSuspendedProcess(const WCHAR* FileName, WCHAR* CommandLine, PPROCESS_INFORMATION ProcessInformation)
+UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
-    BOOL CreateProcessResult;
+    BOOL         CreateProcessResult;
 
     memset(&StartupInfo, 0, sizeof(StartupInfo));
     StartupInfo.cb = sizeof(STARTUPINFOA);
@@ -294,17 +314,18 @@ UdCreateSuspendedProcess(const WCHAR* FileName, WCHAR* CommandLine, PPROCESS_INF
     // Create process suspended
     //
     CreateProcessResult = CreateProcessW(FileName,
-        CommandLine,
-        NULL,
-        NULL,
-        FALSE,
-        CREATE_SUSPENDED,
-        NULL,
-        NULL,
-        &StartupInfo,
-        ProcessInformation);
+                                         CommandLine,
+                                         NULL,
+                                         NULL,
+                                         FALSE,
+                                         CREATE_SUSPENDED,
+                                         NULL,
+                                         NULL,
+                                         &StartupInfo,
+                                         ProcessInformation);
 
-    if (!CreateProcessResult) {
+    if (!CreateProcessResult)
+    {
         ShowMessages("err, start process failed (%x)", GetLastError());
         return FALSE;
     }
@@ -322,14 +343,14 @@ UdCreateSuspendedProcess(const WCHAR* FileName, WCHAR* CommandLine, PPROCESS_INF
  * @return BOOLEAN
  */
 BOOLEAN
-UdAttachToProcess(UINT32 TargetPid,
-    const WCHAR* TargetFileAddress,
-    WCHAR* CommandLine)
+UdAttachToProcess(UINT32        TargetPid,
+                  const WCHAR * TargetFileAddress,
+                  WCHAR *       CommandLine)
 {
-    BOOLEAN Status;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = { 0 };
-    PROCESS_INFORMATION ProcInfo = { 0 };
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
+    PROCESS_INFORMATION                      ProcInfo      = {0};
 
     //
     // Check to initialize the user-debugger
@@ -344,9 +365,12 @@ UdAttachToProcess(UINT32 TargetPid,
     //
     // Check whether it's starting a new process or not
     //
-    if (TargetFileAddress == NULL) {
+    if (TargetFileAddress == NULL)
+    {
         AttachRequest.IsStartingNewProcess = FALSE;
-    } else {
+    }
+    else
+    {
         AttachRequest.IsStartingNewProcess = TRUE;
     }
 
@@ -355,11 +379,13 @@ UdAttachToProcess(UINT32 TargetPid,
     //
     AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH;
 
-    if (AttachRequest.IsStartingNewProcess) {
+    if (AttachRequest.IsStartingNewProcess)
+    {
         //
         // Check if file exists or not
         //
-        if (!IsFileExistW(TargetFileAddress)) {
+        if (!IsFileExistW(TargetFileAddress))
+        {
             ShowMessages("err, unable to start, file not found\n");
             return FALSE;
         }
@@ -373,8 +399,10 @@ UdAttachToProcess(UINT32 TargetPid,
         // Set the process id and thread id
         //
         AttachRequest.ProcessId = ProcInfo.dwProcessId;
-        AttachRequest.ThreadId = ProcInfo.dwThreadId;
-    } else {
+        AttachRequest.ThreadId  = ProcInfo.dwThreadId;
+    }
+    else
+    {
         //
         // Set the process id
         //
@@ -385,19 +413,20 @@ UdAttachToProcess(UINT32 TargetPid,
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &AttachRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &AttachRequest,                                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &AttachRequest, // Output Buffer from driver.
+        &AttachRequest,                                  // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -405,8 +434,10 @@ UdAttachToProcess(UINT32 TargetPid,
     //
     // Check if attaching was successful then we can set the attached to true
     //
-    if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-        if (!AttachRequest.IsStartingNewProcess) {
+    if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        if (!AttachRequest.IsStartingNewProcess)
+        {
             //
             // it's a .attach command, no need for further action
             //
@@ -429,7 +460,8 @@ UdAttachToProcess(UINT32 TargetPid,
         // *** Remove the hooks ***
         //
 
-        while (TRUE) {
+        while (TRUE)
+        {
             //
             // Send the previous request with removing hook as the action
             //
@@ -439,19 +471,20 @@ UdAttachToProcess(UINT32 TargetPid,
             // Send the request to the kernel
             //
             Status = DeviceIoControl(
-                g_DeviceHandle, // Handle to device
-                IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                                // code
-                &AttachRequest, // Input Buffer to driver.
+                g_DeviceHandle,                                  // Handle to device
+                IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                                 // code
+                &AttachRequest,                                  // Input Buffer to driver.
                 SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-                &AttachRequest, // Output Buffer from driver.
+                &AttachRequest,                                  // Output Buffer from driver.
                 SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                                  // buffer in bytes.
-                &ReturnedLength, // Bytes placed in buffer.
-                NULL // synchronous call
+                &ReturnedLength,                                 // Bytes placed in buffer.
+                NULL                                             // synchronous call
             );
 
-            if (!Status) {
+            if (!Status)
+            {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 return FALSE;
             }
@@ -460,12 +493,15 @@ UdAttachToProcess(UINT32 TargetPid,
             // Check whether the result of removing hooks was successful or we should
             // re-send the request
             //
-            if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+            if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
                 //
                 // The hook is remove successfuly
                 //
                 break;
-            } else if (AttachRequest.Result == DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED) {
+            }
+            else if (AttachRequest.Result == DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED)
+            {
                 //
                 // Wait for a while until the Windows call the entrypoint
                 //
@@ -473,7 +509,9 @@ UdAttachToProcess(UINT32 TargetPid,
 
                 Sleep(1000);
                 continue;
-            } else {
+            }
+            else
+            {
                 //
                 // An error happend, we should not continue
                 //
@@ -486,7 +524,9 @@ UdAttachToProcess(UINT32 TargetPid,
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(AttachRequest.Result);
         return FALSE;
     }
@@ -506,9 +546,9 @@ UdAttachToProcess(UINT32 TargetPid,
 BOOLEAN
 UdKillProcess(UINT32 TargetPid)
 {
-    BOOLEAN Status;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest = { 0 };
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest = {0};
 
     //
     // Check if debugger is loaded or not
@@ -529,19 +569,20 @@ UdKillProcess(UINT32 TargetPid)
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &KillRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &KillRequest,                                    // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &KillRequest, // Output Buffer from driver.
+        &KillRequest,                                    // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -549,7 +590,8 @@ UdKillProcess(UINT32 TargetPid)
     //
     // Check if killing was successful or not
     //
-    if (KillRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+    if (KillRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
         //
         // Remove the current active debugging process (thread)
         //
@@ -559,7 +601,9 @@ UdKillProcess(UINT32 TargetPid)
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(KillRequest.Result);
         return FALSE;
     }
@@ -578,9 +622,9 @@ UdKillProcess(UINT32 TargetPid)
 BOOLEAN
 UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
 {
-    BOOLEAN Status;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = { 0 };
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //
     // Check if debugger is loaded or not
@@ -607,19 +651,20 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &DetachRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &DetachRequest,                                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &DetachRequest, // Output Buffer from driver.
+        &DetachRequest,                                  // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -627,7 +672,8 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     //
     // Check if detaching was successful or not
     //
-    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
         //
         // Remove the current active debugging process (thread)
         //
@@ -637,7 +683,9 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(DetachRequest.Result);
         return FALSE;
     }
@@ -653,9 +701,9 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
 BOOLEAN
 UdPauseProcess(UINT64 ProcessDebuggingToken)
 {
-    BOOLEAN Status;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = { 0 };
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = {0};
 
     //
     // Check if debugger is loaded or not
@@ -676,19 +724,20 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &PauseRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &PauseRequest,                                   // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &PauseRequest, // Output Buffer from driver.
+        &PauseRequest,                                   // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -696,12 +745,15 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     //
     // Check if killing was successful or not
     //
-    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
         //
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(PauseRequest.Result);
         return FALSE;
     }
@@ -720,17 +772,18 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
  *
  * @return VOID
  */
-VOID UdSendCommand(UINT64 ProcessDetailToken,
-    UINT32 ThreadId,
-    DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
-    BOOLEAN ApplyToAllPausedThreads,
-    UINT64 OptionalParam1,
-    UINT64 OptionalParam2,
-    UINT64 OptionalParam3,
-    UINT64 OptionalParam4)
+VOID
+UdSendCommand(UINT64                          ProcessDetailToken,
+              UINT32                          ThreadId,
+              DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              BOOLEAN                         ApplyToAllPausedThreads,
+              UINT64                          OptionalParam1,
+              UINT64                          OptionalParam2,
+              UINT64                          OptionalParam3,
+              UINT64                          OptionalParam4)
 {
-    BOOL Status;
-    ULONG ReturnedLength;
+    BOOL                       Status;
+    ULONG                      ReturnedLength;
     DEBUGGER_UD_COMMAND_PACKET CommandPacket;
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
@@ -744,28 +797,29 @@ VOID UdSendCommand(UINT64 ProcessDetailToken,
     // Set to the details
     //
     CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
-    CommandPacket.ApplyToAllPausedThreads = ApplyToAllPausedThreads;
-    CommandPacket.TargetThreadId = ThreadId;
-    CommandPacket.UdAction.ActionType = ActionType;
-    CommandPacket.UdAction.OptionalParam1 = OptionalParam1;
-    CommandPacket.UdAction.OptionalParam2 = OptionalParam2;
-    CommandPacket.UdAction.OptionalParam3 = OptionalParam3;
-    CommandPacket.UdAction.OptionalParam4 = OptionalParam4;
+    CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
+    CommandPacket.TargetThreadId              = ThreadId;
+    CommandPacket.UdAction.ActionType         = ActionType;
+    CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
+    CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
+    CommandPacket.UdAction.OptionalParam3     = OptionalParam3;
+    CommandPacket.UdAction.OptionalParam4     = OptionalParam4;
 
     //
     // Send IOCTL
     //
-    Status = DeviceIoControl(g_DeviceHandle, // Handle to device
-        IOCTL_SEND_USER_DEBUGGER_COMMANDS, // IO Control code
-        &CommandPacket, // Input Buffer to driver.
-        sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
-        &CommandPacket, // Output Buffer from driver.
-        sizeof(DEBUGGER_UD_COMMAND_PACKET), // Length of output buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+    Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                             IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control code
+                             &CommandPacket,                     // Input Buffer to driver.
+                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
+                             &CommandPacket,                     // Output Buffer from driver.
+                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Length of output buffer in bytes.
+                             &ReturnedLength,                    // Bytes placed in buffer.
+                             NULL                                // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return;
     }
@@ -777,19 +831,20 @@ VOID UdSendCommand(UINT64 ProcessDetailToken,
  *
  * @return VOID
  */
-VOID UdContinueDebuggee(UINT64 ProcessDetailToken)
+VOID
+UdContinueDebuggee(UINT64 ProcessDetailToken)
 {
     //
     // Send the 'continue' command
     //
     UdSendCommand(ProcessDetailToken,
-        NULL,
-        DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
-        TRUE,
-        NULL,
-        NULL,
-        NULL,
-        NULL);
+                  NULL,
+                  DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
+                  TRUE,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL);
 }
 
 /**
@@ -800,27 +855,27 @@ VOID UdContinueDebuggee(UINT64 ProcessDetailToken)
  *
  * @return VOID
  */
-VOID UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+VOID
+UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
     //
     // Wait until the result of user-input received
     //
     g_UserSyncronizationObjectsHandleTable
         [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-            .IsOnWaitingState
-        = TRUE;
+            .IsOnWaitingState = TRUE;
 
     //
     // Send the 'continue' command
     //
     UdSendCommand(ProcessDetailToken,
-        TargetThreadId,
-        DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
-        FALSE,
-        StepType,
-        NULL,
-        NULL,
-        NULL);
+                  TargetThreadId,
+                  DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+                  FALSE,
+                  StepType,
+                  NULL,
+                  NULL,
+                  NULL);
 
     WaitForSingleObject(
         g_UserSyncronizationObjectsHandleTable
@@ -840,9 +895,9 @@ VOID UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId
 BOOLEAN
 UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
 {
-    BOOLEAN Status;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest = { 0 };
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest = {0};
 
     //
     // Check if debugger is loaded or not
@@ -857,9 +912,12 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     //
     // Set the process id or thread id
     //
-    if (IsTid) {
+    if (IsTid)
+    {
         SwitchRequest.ThreadId = TargetPidOrTid;
-    } else {
+    }
+    else
+    {
         SwitchRequest.ProcessId = TargetPidOrTid;
     }
 
@@ -867,19 +925,20 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &SwitchRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &SwitchRequest,                                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &SwitchRequest, // Output Buffer from driver.
+        &SwitchRequest,                                  // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -887,21 +946,24 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     //
     // Check if killing was successful or not
     //
-    if (SwitchRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
+    if (SwitchRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
         //
         // Set the current active debugging process (thread)
         //
         UdSetActiveDebuggingProcess(SwitchRequest.Token,
-            SwitchRequest.ProcessId,
-            SwitchRequest.ThreadId,
-            SwitchRequest.Is32Bit,
-            SwitchRequest.IsPaused);
+                                    SwitchRequest.ProcessId,
+                                    SwitchRequest.ThreadId,
+                                    SwitchRequest.Is32Bit,
+                                    SwitchRequest.IsPaused);
 
         //
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(SwitchRequest.Result);
         return FALSE;
     }
@@ -915,12 +977,12 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
 BOOLEAN
 UdShowListActiveDebuggingProcessesAndThreads()
 {
-    BOOLEAN Status;
-    BOOLEAN CheckCurrentProcessOrThread;
-    ULONG ReturnedLength;
-    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS QueryCountOfActiveThreadsRequest = { 0 };
-    USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS* AddressOfThreadsAndProcessDetails = NULL;
-    UINT32 SizeOfBufferForThreadsAndProcessDetails = NULL;
+    BOOLEAN                                              Status;
+    BOOLEAN                                              CheckCurrentProcessOrThread;
+    ULONG                                                ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS             QueryCountOfActiveThreadsRequest        = {0};
+    USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS * AddressOfThreadsAndProcessDetails       = NULL;
+    UINT32                                               SizeOfBufferForThreadsAndProcessDetails = NULL;
 
     //
     // Check if debugger is loaded or not
@@ -930,7 +992,8 @@ UdShowListActiveDebuggingProcessesAndThreads()
     //
     // Check if user debugger is active or not
     //
-    if (!g_IsUserDebuggerInitialized) {
+    if (!g_IsUserDebuggerInitialized)
+    {
         ShowMessages("user debugger is not initialized. Did you use the '.attach' or the '.start' "
                      "command before?\n");
         return FALSE;
@@ -945,19 +1008,20 @@ UdShowListActiveDebuggingProcessesAndThreads()
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                        // code
-        &QueryCountOfActiveThreadsRequest, // Input Buffer to driver.
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &QueryCountOfActiveThreadsRequest,               // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &QueryCountOfActiveThreadsRequest, // Output Buffer from driver.
+        &QueryCountOfActiveThreadsRequest,               // Output Buffer from driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
                                                          // buffer in bytes.
-        &ReturnedLength, // Bytes placed in buffer.
-        NULL // synchronous call
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
     );
 
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
@@ -965,10 +1029,14 @@ UdShowListActiveDebuggingProcessesAndThreads()
     //
     // Query was successful
     //
-    if (QueryCountOfActiveThreadsRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL) {
-        if (QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses == 0) {
+    if (QueryCountOfActiveThreadsRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        if (QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses == 0)
+        {
             ShowMessages("no active debugging threads!\n");
-        } else {
+        }
+        else
+        {
             //
             // *** We should send another IOCTL and get the list of threads ***
             //
@@ -978,7 +1046,7 @@ UdShowListActiveDebuggingProcessesAndThreads()
             //
             SizeOfBufferForThreadsAndProcessDetails = QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses * SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
 
-            AddressOfThreadsAndProcessDetails = (USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS*)
+            AddressOfThreadsAndProcessDetails = (USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS *)
                 malloc(SizeOfBufferForThreadsAndProcessDetails);
 
             RtlZeroMemory(AddressOfThreadsAndProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
@@ -987,18 +1055,19 @@ UdShowListActiveDebuggingProcessesAndThreads()
             // Send the request to the kernel
             //
             Status = DeviceIoControl(
-                g_DeviceHandle, // Handle to device
+                g_DeviceHandle,                                   // Handle to device
                 IOCTL_GET_DETAIL_OF_ACTIVE_THREADS_AND_PROCESSES, // IO Control
                                                                   // code
-                NULL, // Input Buffer to driver.
-                0, // Input buffer length.
-                AddressOfThreadsAndProcessDetails, // Output Buffer from driver.
-                SizeOfBufferForThreadsAndProcessDetails, // Length of output buffer in bytes.
-                &ReturnedLength, // Bytes placed in buffer.
-                NULL // synchronous call
+                NULL,                                             // Input Buffer to driver.
+                0,                                                // Input buffer length.
+                AddressOfThreadsAndProcessDetails,                // Output Buffer from driver.
+                SizeOfBufferForThreadsAndProcessDetails,          // Length of output buffer in bytes.
+                &ReturnedLength,                                  // Bytes placed in buffer.
+                NULL                                              // synchronous call
             );
 
-            if (!Status) {
+            if (!Status)
+            {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 return FALSE;
             }
@@ -1006,26 +1075,32 @@ UdShowListActiveDebuggingProcessesAndThreads()
             //
             // Show list of active processes and threads
             //
-            for (size_t i = 0; i < QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses; i++) {
-                if (AddressOfThreadsAndProcessDetails[i].IsProcess) {
+            for (size_t i = 0; i < QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses; i++)
+            {
+                if (AddressOfThreadsAndProcessDetails[i].IsProcess)
+                {
                     CheckCurrentProcessOrThread = FALSE;
 
-                    if (g_ActiveProcessDebuggingState.IsActive && AddressOfThreadsAndProcessDetails[i].ProcessId == g_ActiveProcessDebuggingState.ProcessId) {
+                    if (g_ActiveProcessDebuggingState.IsActive && AddressOfThreadsAndProcessDetails[i].ProcessId == g_ActiveProcessDebuggingState.ProcessId)
+                    {
                         CheckCurrentProcessOrThread = TRUE;
                     }
 
                     ShowMessages("%s%04x (process)\n",
-                        CheckCurrentProcessOrThread ? "*" : "",
-                        AddressOfThreadsAndProcessDetails[i].ProcessId);
-                } else {
+                                 CheckCurrentProcessOrThread ? "*" : "",
+                                 AddressOfThreadsAndProcessDetails[i].ProcessId);
+                }
+                else
+                {
                     CheckCurrentProcessOrThread = FALSE;
 
-                    if (g_ActiveProcessDebuggingState.IsActive && AddressOfThreadsAndProcessDetails[i].ThreadId == g_ActiveProcessDebuggingState.ThreadId) {
+                    if (g_ActiveProcessDebuggingState.IsActive && AddressOfThreadsAndProcessDetails[i].ThreadId == g_ActiveProcessDebuggingState.ThreadId)
+                    {
                         CheckCurrentProcessOrThread = TRUE;
                     }
                     ShowMessages("\t%s %04x (thread)\n",
-                        CheckCurrentProcessOrThread ? "->" : "  ",
-                        AddressOfThreadsAndProcessDetails[i].ThreadId);
+                                 CheckCurrentProcessOrThread ? "->" : "  ",
+                                 AddressOfThreadsAndProcessDetails[i].ThreadId);
                 }
             }
         }
@@ -1034,7 +1109,9 @@ UdShowListActiveDebuggingProcessesAndThreads()
         // The operation of attaching was successful
         //
         return TRUE;
-    } else {
+    }
+    else
+    {
         ShowErrorMessage(QueryCountOfActiveThreadsRequest.Result);
         return FALSE;
     }

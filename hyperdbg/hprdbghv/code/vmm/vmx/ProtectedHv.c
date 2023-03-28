@@ -515,6 +515,17 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
             //
             return;
         }
+
+        //
+        // Check if the mode-based execution hook is enabled or not
+        //
+        if (g_CheckForModeBasedExecutionControl)
+        {
+            //
+            // The VMM needs mov2cr3s
+            //
+            return;
+        }
     }
 
     //

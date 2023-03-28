@@ -137,7 +137,6 @@
     <ClInclude Include="header\assembly\Assembly.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
-    <ClInclude Include="header\debugger\allocations\Allocations.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
     <ClInclude Include="header\debugger\commands\Callstack.h" />

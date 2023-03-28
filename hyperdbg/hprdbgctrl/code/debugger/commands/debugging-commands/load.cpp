@@ -14,8 +14,8 @@
 //
 // Global Variables
 //
-extern HANDLE g_IsDriverLoadedSuccessfully;
-extern HANDLE g_DeviceHandle;
+extern HANDLE  g_IsDriverLoadedSuccessfully;
+extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsReversingMachineModulesLoaded;
@@ -25,7 +25,8 @@ extern BOOLEAN g_IsReversingMachineModulesLoaded;
  *
  * @return VOID
  */
-VOID CommandLoadHelp()
+VOID
+CommandLoadHelp()
 {
     ShowMessages("load : installs the drivers and load the modules.\n\n");
 
@@ -43,20 +44,22 @@ VOID CommandLoadHelp()
 BOOLEAN
 CommandLoadReversingMachineModule()
 {
-    BOOL Status;
+    BOOL   Status;
     HANDLE hToken;
 
     //
     // Enable Debug privilege
     //
     Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
         return FALSE;
     }
 
     Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    if (!Status) {
+    if (!Status)
+    {
         CloseHandle(hToken);
         return FALSE;
     }
@@ -64,13 +67,13 @@ CommandLoadReversingMachineModule()
     //
     // Install RM driver
     //
-    if (HyperDbgInstallReversingMachineDriver() == 1) {
-
+    if (HyperDbgInstallReversingMachineDriver() == 1)
+    {
         return FALSE;
     }
 
-    if (HyperDbgLoadReversingMachine() == 1) {
-
+    if (HyperDbgLoadReversingMachine() == 1)
+    {
         //
         // No need to handle anymore
         //
@@ -95,20 +98,22 @@ CommandLoadReversingMachineModule()
 BOOLEAN
 CommandLoadVmmModule()
 {
-    BOOL Status;
+    BOOL   Status;
     HANDLE hToken;
 
     //
     // Enable Debug privilege
     //
     Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
         return FALSE;
     }
 
     Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    if (!Status) {
+    if (!Status)
+    {
         CloseHandle(hToken);
         return FALSE;
     }
@@ -116,7 +121,8 @@ CommandLoadVmmModule()
     //
     // Install vmm driver
     //
-    if (HyperDbgInstallVmmDriver() == 1) {
+    if (HyperDbgInstallVmmDriver() == 1)
+    {
         return FALSE;
     }
 
@@ -125,7 +131,8 @@ CommandLoadVmmModule()
     //
     g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    if (HyperDbgLoadVmm() == 1) {
+    if (HyperDbgLoadVmm() == 1)
+    {
         //
         // No need to handle anymore
         //
@@ -166,15 +173,18 @@ CommandLoadVmmModule()
  * @param Command
  * @return VOID
  */
-VOID CommandLoad(vector<string> SplittedCommand, string Command)
+VOID
+CommandLoad(vector<string> SplittedCommand, string Command)
 {
-    if (SplittedCommand.size() != 2) {
+    if (SplittedCommand.size() != 2)
+    {
         ShowMessages("incorrect use of 'load'\n\n");
         CommandLoadHelp();
         return;
     }
 
-    if (!g_IsConnectedToHyperDbgLocally) {
+    if (!g_IsConnectedToHyperDbgLocally)
+    {
         ShowMessages("you're not connected to any instance of HyperDbg, did you "
                      "use '.connect'? \n");
         return;
@@ -183,11 +193,13 @@ VOID CommandLoad(vector<string> SplittedCommand, string Command)
     //
     // Check for the module
     //
-    if (!SplittedCommand.at(1).compare("vmm")) {
+    if (!SplittedCommand.at(1).compare("vmm"))
+    {
         //
         // Check to make sure that the driver is not already loaded
         //
-        if (g_DeviceHandle) {
+        if (g_DeviceHandle)
+        {
             ShowMessages("handle of the driver found, if you use 'load' before, please "
                          "first unload it then call 'unload'\n");
             return;
@@ -198,7 +210,8 @@ VOID CommandLoad(vector<string> SplittedCommand, string Command)
         //
         ShowMessages("loading the vmm driver\n");
 
-        if (!CommandLoadVmmModule()) {
+        if (!CommandLoadVmmModule())
+        {
             ShowMessages("failed to install or load the driver\n");
             return;
         }
@@ -211,14 +224,14 @@ VOID CommandLoad(vector<string> SplittedCommand, string Command)
         // symbols
         //
         SymbolLocalReload(GetCurrentProcessId());
-
-    } else if (!SplittedCommand.at(1).compare("rev")) {
-
+    }
+    else if (!SplittedCommand.at(1).compare("rev"))
+    {
         //
         // Check to make sure that the driver is not already loaded
         //
-        if (g_DeviceHandle || g_IsDebuggerModulesLoaded) {
-
+        if (g_DeviceHandle || g_IsDebuggerModulesLoaded)
+        {
             ShowMessages("handle of the driver found, if you use 'load' before, please "
                          "first unload it then call 'unload'\n");
             return;
@@ -229,12 +242,14 @@ VOID CommandLoad(vector<string> SplittedCommand, string Command)
         //
         ShowMessages("loading the reversing machine's driver\n");
 
-        if (!CommandLoadReversingMachineModule()) {
+        if (!CommandLoadReversingMachineModule())
+        {
             ShowMessages("failed to install or load the driver\n");
             return;
         }
-
-    } else {
+    }
+    else
+    {
         //
         // Module not found
         //

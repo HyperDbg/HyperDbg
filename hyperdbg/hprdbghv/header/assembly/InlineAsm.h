@@ -38,9 +38,9 @@ extern void inline AsmRestoreToVmxOffState();
  * @return NTSTATUS
  */
 extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber,
-    unsigned long long OptionalParam1,
-    unsigned long long OptionalParam2,
-    long long OptionalParam3);
+                                    unsigned long long OptionalParam1,
+                                    unsigned long long OptionalParam2,
+                                    long long          OptionalParam3);
 
 /**
  * @brief Hyper-v vmcall handler
@@ -109,7 +109,7 @@ extern void inline AsmSaveVmxOffState();
  * @param Descriptors
  * @return unsigned char
  */
-extern unsigned char inline AsmInvept(unsigned long Type, void* Descriptors);
+extern unsigned char inline AsmInvept(unsigned long Type, void * Descriptors);
 
 /**
  * @brief INVVPID wrapper
@@ -118,7 +118,7 @@ extern unsigned char inline AsmInvept(unsigned long Type, void* Descriptors);
  * @param Descriptors
  * @return unsigned char
  */
-extern unsigned char inline AsmInvvpid(unsigned long Type, void* Descriptors);
+extern unsigned char inline AsmInvvpid(unsigned long Type, void * Descriptors);
 
 //
 // ====================  Get segment registers ====================
@@ -259,7 +259,7 @@ extern void inline AsmStiInstruction();
  * @param GdtLimit
  */
 extern void
-AsmReloadGdtr(void* GdtBase, unsigned long GdtLimit);
+AsmReloadGdtr(void * GdtBase, unsigned long GdtLimit);
 
 /**
  * @brief Reload new IDTR
@@ -268,7 +268,7 @@ AsmReloadGdtr(void* GdtBase, unsigned long GdtLimit);
  * @param GdtLimit
  */
 extern void
-AsmReloadIdtr(void* GdtBase, unsigned long GdtLimit);
+AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
 
 //
 // ====================  Hook Functions ====================
@@ -293,6 +293,6 @@ AsmGeneralDetourHook(void);
  */
 extern unsigned long long
 AsmTestWrapperWithTestTags(unsigned long long Param1,
-    unsigned long long Param2,
-    unsigned long long Param3,
-    unsigned long long Param4);
+                           unsigned long long Param2,
+                           unsigned long long Param3,
+                           unsigned long long Param4);

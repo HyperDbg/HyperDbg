@@ -20,8 +20,8 @@
  * @return BOOLEAN Returns true if it was successfull
  */
 _Use_decl_annotations_
-    BOOLEAN
-    BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
+BOOLEAN
+BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
     KIRQL OldIrql;
 
@@ -45,7 +45,8 @@ _Use_decl_annotations_
  * @param addr
  * @return int
  */
-int TestBit(int nth, unsigned long* addr)
+int
+TestBit(int nth, unsigned long * addr)
 {
     return (BITMAP_ENTRY(nth, addr) >> BITMAP_SHIFT(nth)) & 1;
 }
@@ -56,7 +57,8 @@ int TestBit(int nth, unsigned long* addr)
  * @param nth
  * @param addr
  */
-void ClearBit(int nth, unsigned long* addr)
+void
+ClearBit(int nth, unsigned long * addr)
 {
     BITMAP_ENTRY(nth, addr) &= ~(1UL << BITMAP_SHIFT(nth));
 }
@@ -67,7 +69,8 @@ void ClearBit(int nth, unsigned long* addr)
  * @param nth
  * @param addr
  */
-void SetBit(int nth, unsigned long* addr)
+void
+SetBit(int nth, unsigned long * addr)
 {
     BITMAP_ENTRY(nth, addr) |= (1UL << BITMAP_SHIFT(nth));
 }
@@ -79,8 +82,8 @@ void SetBit(int nth, unsigned long* addr)
  * @return UINT64 Returns the physical address
  */
 _Use_decl_annotations_
-    UINT64
-    VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
+UINT64
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }
@@ -94,13 +97,14 @@ _Use_decl_annotations_
  * @return CR3_TYPE The cr3 of the target process
  */
 _Use_decl_annotations_
-    CR3_TYPE
-    GetCr3FromProcessId(UINT32 ProcessId)
+CR3_TYPE
+GetCr3FromProcessId(UINT32 ProcessId)
 {
     PEPROCESS TargetEprocess;
-    CR3_TYPE ProcessCr3 = { 0 };
+    CR3_TYPE  ProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS) {
+    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    {
         //
         // There was an error, probably the process id was not found
         //
@@ -111,8 +115,8 @@ _Use_decl_annotations_
     // Due to KVA Shadowing, we need to switch to a different directory table base
     // if the PCID indicates this is a user mode directory table base.
     //
-    NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(TargetEprocess);
-    ProcessCr3.Flags = CurrentProcess->DirectoryTableBase;
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
+    ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
 
     ObDereferenceObject(TargetEprocess);
 
@@ -129,14 +133,15 @@ _Use_decl_annotations_
  * used by RestoreToPreviousProcess function
  */
 _Use_decl_annotations_
-    CR3_TYPE
-    SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
 {
-    UINT64 GuestCr3;
+    UINT64    GuestCr3;
     PEPROCESS TargetEprocess;
-    CR3_TYPE CurrentProcessCr3 = { 0 };
+    CR3_TYPE  CurrentProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS) {
+    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    {
         //
         // There was an error, probably the process id was not found
         //
@@ -147,8 +152,8 @@ _Use_decl_annotations_
     // Due to KVA Shadowing, we need to switch to a different directory table base
     // if the PCID indicates this is a user mode directory table base.
     //
-    NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(TargetEprocess);
-    GuestCr3 = CurrentProcess->DirectoryTableBase;
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
+    GuestCr3                     = CurrentProcess->DirectoryTableBase;
 
     //
     // Read the current cr3
@@ -177,7 +182,7 @@ CR3_TYPE
 SwitchOnMemoryLayoutOfTargetProcess()
 {
     CR3_TYPE GuestCr3;
-    CR3_TYPE CurrentProcessCr3 = { 0 };
+    CR3_TYPE CurrentProcessCr3 = {0};
 
     GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
@@ -202,10 +207,10 @@ SwitchOnMemoryLayoutOfTargetProcess()
  * used by RestoreToPreviousProcess function
  */
 _Use_decl_annotations_
-    CR3_TYPE
-    SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
 {
-    CR3_TYPE CurrentProcessCr3 = { 0 };
+    CR3_TYPE CurrentProcessCr3 = {0};
 
     //
     // Read the current cr3
@@ -229,12 +234,12 @@ _Use_decl_annotations_
  * @return BOOLEAN
  */
 _Use_decl_annotations_
-    BOOLEAN
-    GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
+BOOLEAN
+GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
 {
-    SEGMENT_DESCRIPTOR_32* DescriptorTable32;
-    SEGMENT_DESCRIPTOR_32* Descriptor32;
-    SEGMENT_SELECTOR SegSelector = { .AsUInt = Selector };
+    SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
+    SEGMENT_DESCRIPTOR_32 * Descriptor32;
+    SEGMENT_SELECTOR        SegSelector = {.AsUInt = Selector};
 
     if (!SegmentSelector)
         return FALSE;
@@ -245,34 +250,38 @@ _Use_decl_annotations_
     //
     // Ignore LDT
     //
-    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT)) {
+    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT))
+    {
         return FALSE;
     }
 
-    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32*)(GdtBase);
-    Descriptor32 = &DescriptorTable32[SegSelector.Index];
+    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32 *)(GdtBase);
+    Descriptor32      = &DescriptorTable32[SegSelector.Index];
 
     SegmentSelector->Selector = Selector;
-    SegmentSelector->Limit = __segmentlimit(Selector);
-    SegmentSelector->Base = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
+    SegmentSelector->Limit    = __segmentlimit(Selector);
+    SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
 
     SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
 
-    if (SegSelector.Table == 0 && SegSelector.Index == 0) {
+    if (SegSelector.Table == 0 && SegSelector.Index == 0)
+    {
         SegmentSelector->Attributes.Unusable = TRUE;
     }
 
-    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) || (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE)) {
+    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) || (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE))
+    {
         //
         // this is a TSS or callgate etc, save the base high part
         //
 
         UINT64 SegmentLimitHigh;
-        SegmentLimitHigh = (*(UINT64*)((PUCHAR)Descriptor32 + 8));
+        SegmentLimitHigh      = (*(UINT64 *)((PUCHAR)Descriptor32 + 8));
         SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (SegmentLimitHigh << 32);
     }
 
-    if (SegmentSelector->Attributes.Granularity) {
+    if (SegmentSelector->Attributes.Granularity)
+    {
         //
         // 4096-bit granularity is enabled for this segment, scale the limit
         //
@@ -290,8 +299,8 @@ _Use_decl_annotations_
  * @return VOID
  */
 _Use_decl_annotations_
-    VOID
-    RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
+VOID
+RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 {
     //
     // Restore the original cr3
@@ -310,11 +319,11 @@ _Use_decl_annotations_
  * @return UINT64 Returns the virtual address
  */
 _Use_decl_annotations_
-    UINT64
-    PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId)
+UINT64
+PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId)
 {
-    CR3_TYPE CurrentProcessCr3;
-    UINT64 VirtualAddress;
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
     PHYSICAL_ADDRESS PhysicalAddr;
 
     //
@@ -325,7 +334,8 @@ _Use_decl_annotations_
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL) {
+    if (CurrentProcessCr3.Flags == NULL)
+    {
         //
         // Pid is invalid
         //
@@ -336,7 +346,7 @@ _Use_decl_annotations_
     // Read the virtual address based on new cr3
     //
     PhysicalAddr.QuadPart = PhysicalAddress;
-    VirtualAddress = MmGetVirtualForPhysical(PhysicalAddr);
+    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -357,11 +367,11 @@ _Use_decl_annotations_
  * @return UINT64 Returns the virtual address
  */
 _Use_decl_annotations_
-    UINT64
-    PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
+UINT64
+PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
 {
-    CR3_TYPE CurrentProcessCr3;
-    UINT64 VirtualAddress;
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
     PHYSICAL_ADDRESS PhysicalAddr;
 
     //
@@ -372,7 +382,8 @@ _Use_decl_annotations_
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL) {
+    if (CurrentProcessCr3.Flags == NULL)
+    {
         //
         // Pid is invalid
         //
@@ -383,7 +394,7 @@ _Use_decl_annotations_
     // Read the virtual address based on new cr3
     //
     PhysicalAddr.QuadPart = PhysicalAddress;
-    VirtualAddress = MmGetVirtualForPhysical(PhysicalAddr);
+    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -403,8 +414,8 @@ _Use_decl_annotations_
  * @return UINT64 Returns the virtual address
  */
 _Use_decl_annotations_
-    UINT64
-    PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
+UINT64
+PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 {
     CR3_TYPE GuestCr3;
 
@@ -429,8 +440,8 @@ GetRunningCr3OnTargetProcess()
     // Due to KVA Shadowing, we need to switch to a different directory table base
     // if the PCID indicates this is a user mode directory table base.
     //
-    NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(PsGetCurrentProcess());
-    GuestCr3.Flags = CurrentProcess->DirectoryTableBase;
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
     return GuestCr3;
 }
@@ -446,11 +457,11 @@ GetRunningCr3OnTargetProcess()
  * @return UINT64 Returns the physical address
  */
 _Use_decl_annotations_
-    UINT64
-    VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId)
+UINT64
+VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId)
 {
     CR3_TYPE CurrentProcessCr3;
-    UINT64 PhysicalAddress;
+    UINT64   PhysicalAddress;
 
     //
     // Switch to new process's memory layout
@@ -460,7 +471,8 @@ _Use_decl_annotations_
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL) {
+    if (CurrentProcessCr3.Flags == NULL)
+    {
         //
         // Pid is invalid
         //
@@ -489,11 +501,11 @@ _Use_decl_annotations_
  * @return UINT64 Returns the physical address
  */
 _Use_decl_annotations_
-    UINT64
-    VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
+UINT64
+VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 {
     CR3_TYPE CurrentProcessCr3;
-    UINT64 PhysicalAddress;
+    UINT64   PhysicalAddress;
 
     //
     // Switch to new process's memory layout
@@ -503,7 +515,8 @@ _Use_decl_annotations_
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL) {
+    if (CurrentProcessCr3.Flags == NULL)
+    {
         //
         // Pid is invalid
         //
@@ -531,12 +544,12 @@ _Use_decl_annotations_
  * @return UINT64 Returns the physical address
  */
 _Use_decl_annotations_
-    UINT64
-    VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
+UINT64
+VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
 {
     CR3_TYPE CurrentCr3;
     CR3_TYPE GuestCr3;
-    UINT64 PhysicalAddress;
+    UINT64   PhysicalAddress;
 
     GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
@@ -548,7 +561,8 @@ _Use_decl_annotations_
     //
     // Validate if process id is valid
     //
-    if (CurrentCr3.Flags == NULL) {
+    if (CurrentCr3.Flags == NULL)
+    {
         //
         // Pid is invalid
         //
@@ -575,8 +589,8 @@ _Use_decl_annotations_
  * @return UINT64 Returns the virtual address
  */
 _Use_decl_annotations_
-    UINT64
-    PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
+UINT64
+PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 {
     PHYSICAL_ADDRESS PhysicalAddr;
     PhysicalAddr.QuadPart = PhysicalAddress;
@@ -595,7 +609,7 @@ FindSystemDirectoryTableBase()
     //
     // Return CR3 of the system process.
     //
-    NT_KPROCESS* SystemProcess = (NT_KPROCESS*)(PsInitialSystemProcess);
+    NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
     return SystemProcess->DirectoryTableBase;
 }
 
@@ -614,7 +628,7 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
     // We can't use PsLookupProcessByProcessId as in pageable and not
     // work on vmx-root
     //
-    Result = (CHAR*)PsGetProcessImageFileName(Eprocess);
+    Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
 
     return Result;
 }
@@ -627,7 +641,7 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
  * @return BOOLEAN Returns true if it starts with and false if not strats with
  */
 BOOLEAN
-StartsWith(const char* pre, const char* str)
+StartsWith(const char * pre, const char * str)
 {
     size_t lenpre = strlen(pre),
            lenstr = strlen(str);
@@ -644,24 +658,27 @@ StartsWith(const char* pre, const char* str)
  * @return BOOLEAN Returns true if the address is valid; otherwise, false
  */
 BOOLEAN
-CheckIfAddressIsValidUsingTsx(CHAR* Address)
+CheckIfAddressIsValidUsingTsx(CHAR * Address)
 {
-    UINT32 Status = 0;
+    UINT32  Status = 0;
     BOOLEAN Result = FALSE;
-    CHAR TempContent;
+    CHAR    TempContent;
 
-    if ((Status = _xbegin()) == _XBEGIN_STARTED) {
+    if ((Status = _xbegin()) == _XBEGIN_STARTED)
+    {
         //
         // Try to read the memory
         //
-        TempContent = *(CHAR*)Address;
+        TempContent = *(CHAR *)Address;
         _xend();
 
         //
         // No error, address is valid
         //
         Result = TRUE;
-    } else {
+    }
+    else
+    {
         //
         // Address is not valid, it aborts the tsx rtm
         //
@@ -679,7 +696,8 @@ CheckIfAddressIsValidUsingTsx(CHAR* Address)
  * @param int * CpuInfo
  * @return VOID
  */
-VOID GetCpuid(UINT32 Func, UINT32 SubFunc, int* CpuInfo)
+VOID
+GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 {
     __cpuidex(CpuInfo, Func, SubFunc);
 }
@@ -721,7 +739,8 @@ CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Check to see if the address in a canonical address
     //
-    if ((Addr > MaxVirtualAddrLowHalf) && (Addr < MinVirtualAddressHighHalf)) {
+    if ((Addr > MaxVirtualAddrLowHalf) && (Addr < MinVirtualAddressHighHalf))
+    {
         *IsKernelAddress = FALSE;
         return FALSE;
     }
@@ -729,9 +748,12 @@ CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Set whether it's a kernel address or not
     //
-    if (MinVirtualAddressHighHalf < Addr) {
+    if (MinVirtualAddressHighHalf < Addr)
+    {
         *IsKernelAddress = TRUE;
-    } else {
+    }
+    else
+    {
         *IsKernelAddress = FALSE;
     }
 
@@ -749,15 +771,16 @@ BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 {
     CR3_TYPE GuestCr3;
-    UINT64 OriginalCr3;
-    BOOLEAN IsKernelAddress;
-    BOOLEAN Result = FALSE;
+    UINT64   OriginalCr3;
+    BOOLEAN  IsKernelAddress;
+    BOOLEAN  Result = FALSE;
 
     //
     // First, we check if the address is canonical based
     // on Intel processor's virtual address width
     //
-    if (!CheckCanonicalVirtualAddress(TargetAddress, &IsKernelAddress)) {
+    if (!CheckCanonicalVirtualAddress(TargetAddress, &IsKernelAddress))
+    {
         //
         // No need for further check, address is invalid
         //
@@ -817,22 +840,26 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     //
     // Check if memory is safe and present
     //
-    UINT64 AddressToCheck = (CHAR*)TargetAddress + Size - ((CHAR*)PAGE_ALIGN(TargetAddress));
+    UINT64 AddressToCheck = (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
 
-    if (AddressToCheck > PAGE_SIZE) {
+    if (AddressToCheck > PAGE_SIZE)
+    {
         //
         // Address should be accessed in more than one page
         //
         UINT64 ReadSize = AddressToCheck;
 
-        while (Size != 0) {
+        while (Size != 0)
+        {
             ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
 
-            if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE) {
+            if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+            {
                 ReadSize = Size;
             }
 
-            if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3)) {
+            if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+            {
                 //
                 // Address is not valid
                 //
@@ -851,11 +878,14 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Apply the changes to the next addresses (if any)
             //
-            Size = Size - ReadSize;
+            Size          = Size - ReadSize;
             TargetAddress = TargetAddress + ReadSize;
         }
-    } else {
-        if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3)) {
+    }
+    else
+    {
+        if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+        {
             //
             // Address is not valid
             //
@@ -889,11 +919,11 @@ Return:
  * string
  */
 UINT32
-VmxCompatibleStrlen(const CHAR* S)
+VmxCompatibleStrlen(const CHAR * S)
 {
-    CHAR Temp = NULL;
-    UINT32 Count = 0;
-    UINT64 AlignedAddress;
+    CHAR     Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
 
@@ -913,7 +943,8 @@ VmxCompatibleStrlen(const CHAR* S)
     //
     // First check
     //
-    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(CHAR))) {
+    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(CHAR)))
+    {
         //
         // Error
         //
@@ -925,16 +956,20 @@ VmxCompatibleStrlen(const CHAR* S)
         return 0;
     }
 
-    while (TRUE) {
+    while (TRUE)
+    {
         /*
         Temp = *S;
         */
         MemoryMapperReadMemorySafe(S, &Temp, sizeof(CHAR));
 
-        if (Temp != '\0') {
+        if (Temp != '\0')
+        {
             Count++;
             S++;
-        } else {
+        }
+        else
+        {
             //
             // Move back to original cr3
             //
@@ -942,8 +977,10 @@ VmxCompatibleStrlen(const CHAR* S)
             return Count;
         }
 
-        if (!((UINT64)S & (PAGE_SIZE - 1))) {
-            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(CHAR))) {
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(CHAR)))
+            {
                 //
                 // Error
                 //
@@ -971,11 +1008,11 @@ VmxCompatibleStrlen(const CHAR* S)
  * string
  */
 UINT32
-VmxCompatibleWcslen(const wchar_t* S)
+VmxCompatibleWcslen(const wchar_t * S)
 {
-    wchar_t Temp = NULL;
-    UINT32 Count = 0;
-    UINT64 AlignedAddress;
+    wchar_t  Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
 
@@ -997,7 +1034,8 @@ VmxCompatibleWcslen(const wchar_t* S)
     //
     // First check
     //
-    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(wchar_t))) {
+    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(wchar_t)))
+    {
         //
         // Error
         //
@@ -1009,16 +1047,20 @@ VmxCompatibleWcslen(const wchar_t* S)
         return 0;
     }
 
-    while (TRUE) {
+    while (TRUE)
+    {
         /*
         Temp = *S;
         */
         MemoryMapperReadMemorySafe(S, &Temp, sizeof(wchar_t));
 
-        if (Temp != '\0\0') {
+        if (Temp != '\0\0')
+        {
             Count++;
             S++;
-        } else {
+        }
+        else
+        {
             //
             // Move back to original cr3
             //
@@ -1026,8 +1068,10 @@ VmxCompatibleWcslen(const wchar_t* S)
             return Count;
         }
 
-        if (!((UINT64)S & (PAGE_SIZE - 1))) {
-            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(wchar_t))) {
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(wchar_t)))
+            {
                 //
                 // Error
                 //
@@ -1052,23 +1096,28 @@ VmxCompatibleWcslen(const wchar_t* S)
  *
  * @return UINT64 Allocated buffer for MSR Bitmap
  */
-UINT64*
+UINT64 *
 AllocateInvalidMsrBimap()
 {
-    UINT64* InvalidMsrBitmap;
+    UINT64 * InvalidMsrBitmap;
 
     InvalidMsrBitmap = ExAllocatePoolWithTag(NonPagedPool, 0x1000 / 0x8, POOLTAG);
 
-    if (InvalidMsrBitmap == NULL) {
+    if (InvalidMsrBitmap == NULL)
+    {
         return NULL;
     }
 
     RtlZeroMemory(InvalidMsrBitmap, 0x1000 / 0x8);
 
-    for (size_t i = 0; i < 0x1000; ++i) {
-        __try {
+    for (size_t i = 0; i < 0x1000; ++i)
+    {
+        __try
+        {
             __readmsr(i);
-        } __except (EXCEPTION_EXECUTE_HANDLER) {
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
             SetBit(i, InvalidMsrBitmap);
         }
     }

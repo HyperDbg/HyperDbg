@@ -823,4 +823,7 @@ InitializeCommandsDictionary()
     g_CommandsList["structure"] = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
 
     g_CommandsList[".pe"] = {&CommandPe, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
+
+    g_CommandsList["!rev"] = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+    g_CommandsList["rev"]  = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
 }

@@ -94,3 +94,6 @@ DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
 
 VOID
 InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId);
+
+VOID
+InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3);

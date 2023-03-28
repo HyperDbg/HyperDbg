@@ -242,6 +242,9 @@
     <ClCompile Include="code\features\CompatibilityChecks.c">
       <Filter>code\features</Filter>
     </ClCompile>
+    <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c">
+      <Filter>code\hooks\ept-hook</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -369,6 +372,9 @@
     </ClInclude>
     <ClInclude Include="header\features\CompatibilityChecks.h">
       <Filter>header\features</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\ModeBasedExecHook.h">
+      <Filter>header\hooks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

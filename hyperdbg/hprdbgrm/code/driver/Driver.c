@@ -21,13 +21,13 @@
  */
 NTSTATUS
 DriverEntry(
-    PDRIVER_OBJECT DriverObject,
+    PDRIVER_OBJECT  DriverObject,
     PUNICODE_STRING RegistryPath)
 {
-    NTSTATUS Ntstatus = STATUS_SUCCESS;
-    UINT64 Index = 0;
-    PDEVICE_OBJECT DeviceObject = NULL;
-    UNICODE_STRING DriverName = RTL_CONSTANT_STRING(L"\\Device\\HyperDbgReversingMachineDevice");
+    NTSTATUS       Ntstatus      = STATUS_SUCCESS;
+    UINT64         Index         = 0;
+    PDEVICE_OBJECT DeviceObject  = NULL;
+    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperDbgReversingMachineDevice");
     UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperDbgReversingMachineDevice");
 
     UNREFERENCED_PARAMETER(RegistryPath);
@@ -43,14 +43,15 @@ DriverEntry(
     // Creating the device for interaction with user-mode
     //
     Ntstatus = IoCreateDevice(DriverObject,
-        0,
-        &DriverName,
-        FILE_DEVICE_UNKNOWN,
-        FILE_DEVICE_SECURE_OPEN,
-        FALSE,
-        &DeviceObject);
+                              0,
+                              &DriverName,
+                              FILE_DEVICE_UNKNOWN,
+                              FILE_DEVICE_SECURE_OPEN,
+                              FALSE,
+                              &DeviceObject);
 
-    if (Ntstatus == STATUS_SUCCESS) {
+    if (Ntstatus == STATUS_SUCCESS)
+    {
         for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
             DriverObject->MajorFunction[Index] = DrvUnsupported;
 
@@ -59,10 +60,10 @@ DriverEntry(
         //
         DbgPrint("Setting device major functions");
 
-        DriverObject->MajorFunction[IRP_MJ_CLOSE] = DrvClose;
-        DriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
-        DriverObject->MajorFunction[IRP_MJ_READ] = DrvRead;
-        DriverObject->MajorFunction[IRP_MJ_WRITE] = DrvWrite;
+        DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
+        DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
+        DriverObject->MajorFunction[IRP_MJ_READ]           = DrvRead;
+        DriverObject->MajorFunction[IRP_MJ_WRITE]          = DrvWrite;
         DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvDispatchIoControl;
 
         DriverObject->DriverUnload = DrvUnload;
@@ -89,7 +90,8 @@ DriverEntry(
  * @param DriverObject
  * @return VOID
  */
-VOID DrvUnload(PDRIVER_OBJECT DriverObject)
+VOID
+DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
@@ -120,10 +122,11 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // The caller must have the SeDebugPrivilege.
     //
 
-    LUID DebugPrivilege = { SE_DEBUG_PRIVILEGE, 0 };
+    LUID DebugPrivilege = {SE_DEBUG_PRIVILEGE, 0};
 
-    if (!SeSinglePrivilegeCheck(DebugPrivilege, Irp->RequestorMode)) {
-        Irp->IoStatus.Status = STATUS_ACCESS_DENIED;
+    if (!SeSinglePrivilegeCheck(DebugPrivilege, Irp->RequestorMode))
+    {
+        Irp->IoStatus.Status      = STATUS_ACCESS_DENIED;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -136,11 +139,12 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // and new application won't allowed to create a new
     // handle unless the IRP_MJ_CLOSE called.
     //
-    if (g_HandleInUse) {
+    if (g_HandleInUse)
+    {
         //
         // A driver got the handle before
         //
-        Irp->IoStatus.Status = STATUS_SUCCESS;
+        Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -150,17 +154,20 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Initialize the vmm and the reversing machine
     //
-    if (LoaderInitVmmAndReversingMachine()) {
-        Irp->IoStatus.Status = STATUS_SUCCESS;
+    if (LoaderInitVmmAndReversingMachine())
+    {
+        Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
         return STATUS_SUCCESS;
-    } else {
+    }
+    else
+    {
         //
         // There was a problem, so not loaded
         //
-        Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+        Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -183,7 +190,7 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     DbgPrint("This function is not used");
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -205,7 +212,7 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     DbgPrint("This function is not used");
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -229,7 +236,7 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     g_HandleInUse = FALSE;
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -251,7 +258,7 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     DbgPrint("This function is not supported");
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 

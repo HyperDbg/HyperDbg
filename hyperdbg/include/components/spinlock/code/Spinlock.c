@@ -35,7 +35,7 @@ static unsigned MaxWait = 65536;
  * @brief Tries to get the lock otherwise returns
  *
  * @param LONG Lock variable
- * @return BOOLEAN If it was successfull on getting the lock
+ * @return BOOLEAN If it was successful on getting the lock
  */
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock)

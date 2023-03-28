@@ -16,19 +16,19 @@ using namespace std;
 //
 // Global Variables
 //
-extern HANDLE g_DeviceHandle;
-extern HANDLE g_IsDriverLoadedSuccessfully;
-extern BOOLEAN g_IsVmxOffProcessStart;
-extern Callback g_MessageHandler;
-extern TCHAR g_DriverLocation[MAX_PATH];
+extern HANDLE     g_DeviceHandle;
+extern HANDLE     g_IsDriverLoadedSuccessfully;
+extern BOOLEAN    g_IsVmxOffProcessStart;
+extern Callback   g_MessageHandler;
+extern TCHAR      g_DriverLocation[MAX_PATH];
 extern LIST_ENTRY g_EventTrace;
-extern BOOLEAN g_LogOpened;
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsConnectedToRemoteDebugger;
-extern BOOLEAN g_OutputSourcesInitialized;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
-extern BOOLEAN g_IsReversingMachineModulesLoaded;
+extern BOOLEAN    g_LogOpened;
+extern BOOLEAN    g_BreakPrintingOutput;
+extern BOOLEAN    g_IsConnectedToRemoteDebugger;
+extern BOOLEAN    g_OutputSourcesInitialized;
+extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN    g_IsDebuggerModulesLoaded;
+extern BOOLEAN    g_IsReversingMachineModulesLoaded;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -37,7 +37,8 @@ extern LIST_ENTRY g_OutputSources;
  *
  * @param handler Function that handles the messages
  */
-VOID HyperDbgSetTextMessageCallback(Callback handler)
+VOID
+HyperDbgSetTextMessageCallback(Callback handler)
 {
     g_MessageHandler = handler;
 }
@@ -47,17 +48,20 @@ VOID HyperDbgSetTextMessageCallback(Callback handler)
  *
  * @param Fmt format string message
  */
-VOID ShowMessages(const char* Fmt, ...)
+VOID
+ShowMessages(const char * Fmt, ...)
 {
     va_list ArgList;
     va_list Args;
-    char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = { 0 };
+    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
 
-    if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger) {
+    if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
+    {
         va_start(Args, Fmt);
         vprintf(Fmt, Args);
         va_end(Args);
-        if (!g_LogOpened) {
+        if (!g_LogOpened)
+        {
             return;
         }
     }
@@ -66,25 +70,31 @@ VOID ShowMessages(const char* Fmt, ...)
     int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
     va_end(ArgList);
 
-    if (sprintfresult != -1) {
-        if (g_IsConnectedToRemoteDebugger) {
+    if (sprintfresult != -1)
+    {
+        if (g_IsConnectedToRemoteDebugger)
+        {
             //
             // vsprintf_s and vswprintf_s return the number of characters written,
             // not including the terminating null character, or a negative value
             // if an output error occurs.
             //
             RemoteConnectionSendResultsToHost(TempMessage, sprintfresult);
-        } else if (g_IsSerialConnectedToRemoteDebugger) {
+        }
+        else if (g_IsSerialConnectedToRemoteDebugger)
+        {
             KdSendUsermodePrints(TempMessage, sprintfresult);
         }
 
-        if (g_LogOpened) {
+        if (g_LogOpened)
+        {
             //
             // .logopen command executed
             //
             LogopenSaveToFile(TempMessage);
         }
-        if (g_MessageHandler != NULL) {
+        if (g_MessageHandler != NULL)
+        {
             //
             // There is another handler
             //
@@ -98,19 +108,20 @@ VOID ShowMessages(const char* Fmt, ...)
  *
  * @param Device Driver handle
  */
-void ReadIrpBasedBuffer()
+void
+ReadIrpBasedBuffer()
 {
-    BOOL Status;
-    ULONG ReturnedLength;
+    BOOL                   Status;
+    ULONG                  ReturnedLength;
     REGISTER_NOTIFY_BUFFER RegisterEvent;
-    UINT32 OperationCode;
-    DWORD ErrorNum;
-    HANDLE Handle;
-    BOOLEAN OutputSourceFound;
-    PLIST_ENTRY TempList;
+    UINT32                 OperationCode;
+    DWORD                  ErrorNum;
+    HANDLE                 Handle;
+    BOOLEAN                OutputSourceFound;
+    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
-    RegisterEvent.Type = IRP_BASED;
+    RegisterEvent.Type   = IRP_BASED;
 
     //
     // Create another handle to be used in for reading kernel messages,
@@ -129,27 +140,27 @@ void ReadIrpBasedBuffer()
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
         NULL); /// lpTemplateFile
 
-    if (Handle == INVALID_HANDLE_VALUE) {
-
+    if (Handle == INVALID_HANDLE_VALUE)
+    {
         ErrorNum = GetLastError();
 
-        if (ErrorNum == ERROR_ACCESS_DENIED) {
-
+        if (ErrorNum == ERROR_ACCESS_DENIED)
+        {
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
-
-        } else if (ErrorNum == ERROR_GEN_FAILURE) {
-
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
-
-        } else {
-
+        }
+        else
+        {
             ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;
-        Handle = NULL;
+        Handle         = NULL;
 
         return;
     }
@@ -157,11 +168,14 @@ void ReadIrpBasedBuffer()
     //
     // allocate buffer for transfering messages
     //
-    char* OutputBuffer = (char*)malloc(UsermodeBufferSize);
+    char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
 
-    try {
-        while (TRUE) {
-            if (!g_IsVmxOffProcessStart) {
+    try
+    {
+        while (TRUE)
+        {
+            if (!g_IsVmxOffProcessStart)
+            {
                 //
                 // Clear the buffer
                 //
@@ -170,18 +184,19 @@ void ReadIrpBasedBuffer()
                 Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
 
                 Status = DeviceIoControl(
-                    Handle, // Handle to device
-                    IOCTL_REGISTER_EVENT, // IO Control code
-                    &RegisterEvent, // Input Buffer to driver.
+                    Handle,                    // Handle to device
+                    IOCTL_REGISTER_EVENT,      // IO Control code
+                    &RegisterEvent,            // Input Buffer to driver.
                     SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
                                                // driver is x64 and has 64 bit values)
-                    OutputBuffer, // Output Buffer from driver.
-                    UsermodeBufferSize, // Length of output buffer in bytes.
-                    &ReturnedLength, // Bytes placed in buffer.
-                    NULL // synchronous call
+                    OutputBuffer,              // Output Buffer from driver.
+                    UsermodeBufferSize,        // Length of output buffer in bytes.
+                    &ReturnedLength,           // Bytes placed in buffer.
+                    NULL                       // synchronous call
                 );
 
-                if (!Status) {
+                if (!Status)
+                {
                     //
                     // Error occured for second time, and we show the error message
                     //
@@ -205,10 +220,12 @@ void ReadIrpBasedBuffer()
         ShowMessages("Operation Code : 0x%x \n", OperationCode);
                 */
 
-                switch (OperationCode) {
+                switch (OperationCode)
+                {
                 case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
 
-                    if (g_BreakPrintingOutput) {
+                    if (g_BreakPrintingOutput)
+                    {
                         //
                         // means that the user asserts a CTRL+C or CTRL+BREAK Signal
                         // we shouldn't show or save anything in this case
@@ -221,7 +238,8 @@ void ReadIrpBasedBuffer()
                     break;
                 case OPERATION_LOG_INFO_MESSAGE:
 
-                    if (g_BreakPrintingOutput) {
+                    if (g_BreakPrintingOutput)
+                    {
                         //
                         // means that the user asserts a CTRL+C or CTRL+BREAK Signal
                         // we shouldn't show or save anything in this case
@@ -233,7 +251,8 @@ void ReadIrpBasedBuffer()
 
                     break;
                 case OPERATION_LOG_ERROR_MESSAGE:
-                    if (g_BreakPrintingOutput) {
+                    if (g_BreakPrintingOutput)
+                    {
                         //
                         // means that the user asserts a CTRL+C or CTRL+BREAK Signal
                         // we shouldn't show or save anything in this case
@@ -246,7 +265,8 @@ void ReadIrpBasedBuffer()
                     break;
                 case OPERATION_LOG_WARNING_MESSAGE:
 
-                    if (g_BreakPrintingOutput) {
+                    if (g_BreakPrintingOutput)
+                    {
                         //
                         // means that the user asserts a CTRL+C or CTRL+BREAK Signal
                         // we shouldn't show or save anything in this case
@@ -266,7 +286,7 @@ void ReadIrpBasedBuffer()
 
                 case OPERATION_DEBUGGEE_USER_INPUT:
 
-                    KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET*)(OutputBuffer + sizeof(UINT32)));
+                    KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET *)(OutputBuffer + sizeof(UINT32)));
 
                     break;
 
@@ -315,7 +335,7 @@ void ReadIrpBasedBuffer()
                     // Pause debugger after getting the results
                     //
                     KdReloadSymbolsInDebuggee(TRUE,
-                        ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
+                                              ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
 
                     break;
 
@@ -331,7 +351,8 @@ void ReadIrpBasedBuffer()
 
                 default:
 
-                    if (g_BreakPrintingOutput) {
+                    if (g_BreakPrintingOutput)
+                    {
                         //
                         // means that the user asserts a CTRL+C or CTRL+BREAK Signal
                         // we shouldn't show or save anything in this case
@@ -347,14 +368,16 @@ void ReadIrpBasedBuffer()
                     //
                     // Check if there are available output sources
                     //
-                    if (g_OutputSourcesInitialized) {
+                    if (g_OutputSourcesInitialized)
+                    {
                         //
                         // Now, we should check whether the following flag matches
                         // with an output or not, also this is not where we want to
                         // check output resources
                         //
                         TempList = &g_EventTrace;
-                        while (&g_EventTrace != TempList->Blink) {
+                        while (&g_EventTrace != TempList->Blink)
+                        {
                             TempList = TempList->Blink;
 
                             PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
@@ -362,7 +385,8 @@ void ReadIrpBasedBuffer()
                                 DEBUGGER_GENERAL_EVENT_DETAIL,
                                 CommandsEventList);
 
-                            if (EventDetail->HasCustomOutput) {
+                            if (EventDetail->HasCustomOutput)
+                            {
                                 //
                                 // Output source found
                                 //
@@ -374,7 +398,8 @@ void ReadIrpBasedBuffer()
                                 if (!ForwardingPerformEventForwarding(
                                         EventDetail,
                                         OutputBuffer + sizeof(UINT32),
-                                        ReturnedLength - sizeof(UINT32) + 1)) {
+                                        ReturnedLength - sizeof(UINT32) + 1))
+                                {
                                     ShowMessages("err, there was an error transferring the "
                                                  "message to the remote sources\n");
                                 }
@@ -387,13 +412,16 @@ void ReadIrpBasedBuffer()
                     //
                     // Show the message if the source not found
                     //
-                    if (!OutputSourceFound) {
+                    if (!OutputSourceFound)
+                    {
                         ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     }
 
                     break;
                 }
-            } else {
+            }
+            else
+            {
                 //
                 // the thread should not work anymore
                 //
@@ -402,14 +430,17 @@ void ReadIrpBasedBuffer()
                 //
                 // closeHandle
                 //
-                if (!CloseHandle(Handle)) {
+                if (!CloseHandle(Handle))
+                {
                     ShowMessages("err, closing handle 0x%x\n", GetLastError());
                 }
 
                 return;
             }
         }
-    } catch (const std::exception&) {
+    }
+    catch (const std::exception &)
+    {
         ShowMessages("err, exception occured in creating handle or parsing buffer\n");
     }
 
@@ -418,7 +449,8 @@ void ReadIrpBasedBuffer()
     //
     // closeHandle
     //
-    if (!CloseHandle(Handle)) {
+    if (!CloseHandle(Handle))
+    {
         ShowMessages("err, closing handle 0x%x\n", GetLastError());
     };
 }
@@ -430,7 +462,7 @@ void ReadIrpBasedBuffer()
  * @return DWORD Device Handle
  */
 DWORD WINAPI
-IrpBasedBufferThread(void* data)
+IrpBasedBufferThread(void * data)
 {
     //
     // Do stuff.  This will be the first function called on the new
@@ -456,11 +488,13 @@ HyperDbgInstallVmmDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation))) {
+    if (!SetupDriverName(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
+    {
         return 1;
     }
 
-    if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL)) {
+    if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    {
         ShowMessages("unable to install VMM driver\n");
 
         //
@@ -488,11 +522,13 @@ HyperDbgInstallReversingMachineDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation))) {
+    if (!SetupDriverName(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
+    {
         return 1;
     }
 
-    if (!ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL)) {
+    if (!ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    {
         ShowMessages("unable to install reversing machine's driver\n");
 
         //
@@ -512,14 +548,18 @@ HyperDbgInstallReversingMachineDriver()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-int HyperDbgStopDriver(LPCTSTR DriverName)
+int
+HyperDbgStopDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded
     //
-    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP)) {
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
+    {
         return 0;
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
@@ -554,14 +594,18 @@ HyperDbgStopReversingMachineDriver()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-int HyperDbgUninstallDriver(LPCTSTR DriverName)
+int
+HyperDbgUninstallDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded.  Ignore any errors
     //
-    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE)) {
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE))
+    {
         return 0;
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
@@ -600,10 +644,11 @@ HPRDBGCTRL_API int
 HyperDbgLoadVmm()
 {
     string CpuID;
-    DWORD ErrorNum;
-    DWORD ThreadId;
+    DWORD  ErrorNum;
+    DWORD  ThreadId;
 
-    if (g_DeviceHandle) {
+    if (g_DeviceHandle)
+    {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
         return 1;
@@ -613,17 +658,23 @@ HyperDbgLoadVmm()
 
     ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
 
-    if (CpuID == "GenuineIntel") {
+    if (CpuID == "GenuineIntel")
+    {
         ShowMessages("virtualization technology is vt-x\n");
-    } else {
+    }
+    else
+    {
         ShowMessages("this program is not designed to run in a non-VT-x "
                      "environemnt !\n");
         return 1;
     }
 
-    if (VmxSupportDetection()) {
+    if (VmxSupportDetection())
+    {
         ShowMessages("vmx operation is supported by your processor\n");
-    } else {
+    }
+    else
+    {
         ShowMessages("vmx operation is not supported by your processor\n");
         return 1;
     }
@@ -646,15 +697,21 @@ HyperDbgLoadVmm()
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
         NULL); /// lpTemplateFile
 
-    if (g_DeviceHandle == INVALID_HANDLE_VALUE) {
+    if (g_DeviceHandle == INVALID_HANDLE_VALUE)
+    {
         ErrorNum = GetLastError();
-        if (ErrorNum == ERROR_ACCESS_DENIED) {
+        if (ErrorNum == ERROR_ACCESS_DENIED)
+        {
             ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
-        } else if (ErrorNum == ERROR_GEN_FAILURE) {
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
             ShowMessages("err, a device attached to the system is not functioning\n"
                          "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
-        } else {
+        }
+        else
+        {
             ShowMessages("err, CreateFile failed (%x)\n", ErrorNum);
         }
 
@@ -691,7 +748,8 @@ HyperDbgLoadReversingMachine()
 {
     string CpuID;
 
-    if (g_DeviceHandle || g_IsReversingMachineModulesLoaded) {
+    if (g_DeviceHandle || g_IsReversingMachineModulesLoaded)
+    {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
         return 1;
@@ -701,17 +759,23 @@ HyperDbgLoadReversingMachine()
 
     ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
 
-    if (CpuID == "GenuineIntel") {
+    if (CpuID == "GenuineIntel")
+    {
         ShowMessages("virtualization technology is vt-x\n");
-    } else {
+    }
+    else
+    {
         ShowMessages("this program is not designed to run in a non-VT-x "
                      "environemnt !\n");
         return 1;
     }
 
-    if (VmxSupportDetection()) {
+    if (VmxSupportDetection())
+    {
         ShowMessages("vmx operation is supported by your processor\n");
-    } else {
+    }
+    else
+    {
         ShowMessages("vmx operation is not supported by your processor\n");
         return 1;
     }
@@ -747,21 +811,22 @@ HyperDbgUnloadVmm()
     //
     // Send IOCTL to mark complete all IRP Pending
     //
-    Status = DeviceIoControl(g_DeviceHandle, // Handle to device
-        IOCTL_TERMINATE_VMX, // IO Control code
-        NULL, // Input Buffer to driver.
-        0, // Length of input buffer in bytes. (x 2 is bcuz
-           // as the driver is x64 and has 64 bit values)
-        NULL, // Output Buffer from driver.
-        0, // Length of output buffer in bytes.
-        NULL, // Bytes placed in buffer.
-        NULL // synchronous call
+    Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
+                             IOCTL_TERMINATE_VMX, // IO Control code
+                             NULL,                // Input Buffer to driver.
+                             0,                   // Length of input buffer in bytes. (x 2 is bcuz
+                                                  // as the driver is x64 and has 64 bit values)
+                             NULL,                // Output Buffer from driver.
+                             0,                   // Length of output buffer in bytes.
+                             NULL,                // Bytes placed in buffer.
+                             NULL                 // synchronous call
     );
 
     //
     // wait to make sure we don't use an invalid handle in another Ioctl
     //
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return 1;
     }
@@ -770,23 +835,24 @@ HyperDbgUnloadVmm()
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(
-        g_DeviceHandle, // Handle to device
+        g_DeviceHandle,                                      // Handle to device
         IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO
                                                              // Control
                                                              // code
-        NULL, // Input Buffer to driver.
-        0, // Length of input buffer in bytes. (x 2 is bcuz as the
-           // driver is x64 and has 64 bit values)
-        NULL, // Output Buffer from driver.
-        0, // Length of output buffer in bytes.
-        NULL, // Bytes placed in buffer.
-        NULL // synchronous call
+        NULL,                                                // Input Buffer to driver.
+        0,                                                   // Length of input buffer in bytes. (x 2 is bcuz as the
+                                                             // driver is x64 and has 64 bit values)
+        NULL,                                                // Output Buffer from driver.
+        0,                                                   // Length of output buffer in bytes.
+        NULL,                                                // Bytes placed in buffer.
+        NULL                                                 // synchronous call
     );
 
     //
     // wait to make sure we don't use an invalid handle in another Ioctl
     //
-    if (!Status) {
+    if (!Status)
+    {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return 1;
     }
@@ -801,7 +867,8 @@ HyperDbgUnloadVmm()
     //
     // Send IRP_MJ_CLOSE to driver to terminate Vmxs
     //
-    if (!CloseHandle(g_DeviceHandle)) {
+    if (!CloseHandle(g_DeviceHandle))
+    {
         ShowMessages("err, closing handle 0x%x\n", GetLastError());
         return 1;
     };

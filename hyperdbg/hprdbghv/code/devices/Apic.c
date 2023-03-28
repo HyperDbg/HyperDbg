@@ -18,10 +18,11 @@
  *
  * @return VOID
  */
-VOID XApicIcrWrite(UINT32 Low, UINT32 High)
+VOID
+XApicIcrWrite(UINT32 Low, UINT32 High)
 {
-    *(UINT32*)((uintptr_t)g_ApicBase + ICROffset + 0x10) = High;
-    *(UINT32*)((uintptr_t)g_ApicBase + ICROffset) = Low;
+    *(UINT32 *)((uintptr_t)g_ApicBase + ICROffset + 0x10) = High;
+    *(UINT32 *)((uintptr_t)g_ApicBase + ICROffset)        = Low;
 }
 
 /**
@@ -31,7 +32,8 @@ VOID XApicIcrWrite(UINT32 Low, UINT32 High)
  *
  * @return VOID
  */
-VOID X2ApicIcrWrite(UINT32 Low, UINT32 High)
+VOID
+X2ApicIcrWrite(UINT32 Low, UINT32 High)
 {
     __writemsr(X2_MSR_BASE + TO_X2(ICROffset), ((UINT64)High << 32) | Low);
 }
@@ -41,11 +43,15 @@ VOID X2ApicIcrWrite(UINT32 Low, UINT32 High)
  *
  * @return VOID
  */
-VOID ApicTriggerGenericNmi()
+VOID
+ApicTriggerGenericNmi()
 {
-    if (g_CompatibilityCheck.IsX2Apic) {
+    if (g_CompatibilityCheck.IsX2Apic)
+    {
         X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
-    } else {
+    }
+    else
+    {
         XApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
     }
 }
@@ -58,19 +64,22 @@ VOID ApicTriggerGenericNmi()
 BOOLEAN
 ApicInitialize()
 {
-    UINT64 ApicBaseMSR;
+    UINT64           ApicBaseMSR;
     PHYSICAL_ADDRESS PaApicBase;
 
     ApicBaseMSR = __readmsr(0x1B);
     if (!(ApicBaseMSR & (1 << 11)))
         return FALSE;
 
-    if (ApicBaseMSR & (1 << 10)) {
+    if (ApicBaseMSR & (1 << 10))
+    {
         g_CompatibilityCheck.IsX2Apic = TRUE;
         return FALSE;
-    } else {
+    }
+    else
+    {
         PaApicBase.QuadPart = ApicBaseMSR & 0xFFFFFF000;
-        g_ApicBase = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
+        g_ApicBase          = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
 
         if (!g_ApicBase)
             return FALSE;
@@ -85,7 +94,8 @@ ApicInitialize()
  *
  * @return VOID
  */
-VOID ApicUninitialize()
+VOID
+ApicUninitialize()
 {
     //
     // Unmap I/O Base
@@ -100,14 +110,18 @@ VOID ApicUninitialize()
  * @param Vector
  * @return VOID
  */
-VOID ApicSelfIpi(UINT32 Vector)
+VOID
+ApicSelfIpi(UINT32 Vector)
 {
     //
     // Check and apply self-IPI to x2APIC and xAPIC
     //
-    if (g_CompatibilityCheck.IsX2Apic) {
+    if (g_CompatibilityCheck.IsX2Apic)
+    {
         X2ApicIcrWrite(APIC_DEST_SELF | APIC_DEST_PHYSICAL | APIC_DM_FIXED | Vector, 0);
-    } else {
+    }
+    else
+    {
         XApicIcrWrite(APIC_DEST_SELF | APIC_DEST_PHYSICAL | APIC_DM_FIXED | Vector, 0);
     }
 }

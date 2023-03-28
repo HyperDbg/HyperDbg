@@ -20,7 +20,6 @@
 BOOLEAN
 DirtyLoggingInitialize()
 {
-
     ULONG CoreCount;
 
     //
@@ -43,7 +42,8 @@ DirtyLoggingInitialize()
     //
     // Check for the support of PML
     //
-    if (!g_CompatibilityCheck.PmlSupport) {
+    if (!g_CompatibilityCheck.PmlSupport)
+    {
         LogWarning("err, dirty logging mechanism is not initialized as the processor doesn't support PML");
         return FALSE;
     }
@@ -53,20 +53,22 @@ DirtyLoggingInitialize()
     // the 4 - KByte aligned physical address of the page - modification log.The page modification
     // log comprises 512 64 - bit entries
     //
-    for (size_t i = 0; i < CoreCount; i++) {
-
-        if (g_GuestState[i].PmlBufferAddress == NULL) {
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].PmlBufferAddress == NULL)
+        {
             g_GuestState[i].PmlBufferAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
         }
 
-        if (g_GuestState[i].PmlBufferAddress == NULL) {
-
+        if (g_GuestState[i].PmlBufferAddress == NULL)
+        {
             //
             // Allocation failed
             //
-            for (size_t j = 0; j < CoreCount; j++) {
-
-                if (g_GuestState[j].PmlBufferAddress != NULL) {
+            for (size_t j = 0; j < CoreCount; j++)
+            {
+                if (g_GuestState[j].PmlBufferAddress != NULL)
+                {
                     ExFreePoolWithTag(g_GuestState[j].PmlBufferAddress, POOLTAG);
                 }
             }
@@ -100,13 +102,13 @@ DirtyLoggingInitialize()
  * @return BOOLEAN
  */
 BOOLEAN
-DirtyLoggingEnable(VIRTUAL_MACHINE_STATE* VCpu)
+DirtyLoggingEnable(VIRTUAL_MACHINE_STATE * VCpu)
 {
-
     //
     // Check if PML Address buffer is empty or not
     //
-    if (VCpu->PmlBufferAddress == NULL) {
+    if (VCpu->PmlBufferAddress == NULL)
+    {
         return FALSE;
     }
 
@@ -150,9 +152,9 @@ DirtyLoggingEnable(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return VOID
  */
-VOID DirtyLoggingDisable(VIRTUAL_MACHINE_STATE* VCpu)
+VOID
+DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
 {
-
     //
     // Clear the address
     //
@@ -174,9 +176,9 @@ VOID DirtyLoggingDisable(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return VOID
  */
-VOID DirtyLoggingUninitialize()
+VOID
+DirtyLoggingUninitialize()
 {
-
     ULONG CoreCount;
 
     //
@@ -192,9 +194,10 @@ VOID DirtyLoggingUninitialize()
     //
     // Free the allocated pool buffers
     //
-    for (size_t i = 0; i < CoreCount; i++) {
-
-        if (g_GuestState[i].PmlBufferAddress != NULL) {
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].PmlBufferAddress != NULL)
+        {
             ExFreePoolWithTag(g_GuestState[i].PmlBufferAddress, POOLTAG);
         }
     }
@@ -207,24 +210,25 @@ VOID DirtyLoggingUninitialize()
  *
  * @return VOID
  */
-VOID DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE* VCpu)
+VOID
+DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // The guest-physical address of the access is written to the page-modification log
     //
-    for (size_t i = 0; i < PML_ENTITY_NUM; i++) {
-
+    for (size_t i = 0; i < PML_ENTITY_NUM; i++)
+    {
         LogInfo("Address : %llx", VCpu->PmlBufferAddress[i]);
     }
 }
 
 BOOLEAN
-DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
+DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT64* PmlBuf;
-    UINT16 PmlIdx;
-    BOOLEAN IsLargePage;
-    PVOID PmlEntry;
+    UINT64 * PmlBuf;
+    UINT16   PmlIdx;
+    BOOLEAN  IsLargePage;
+    PVOID    PmlEntry;
 
     __vmx_vmread(VMCS_GUEST_PML_INDEX, &PmlIdx);
 
@@ -237,23 +241,27 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
     //
     // PML index always points to next available PML buffer entity
     //
-    if (PmlIdx >= PML_ENTITY_NUM) {
+    if (PmlIdx >= PML_ENTITY_NUM)
+    {
         PmlIdx = 0;
-    } else {
+    }
+    else
+    {
         PmlIdx++;
     }
 
     PmlBuf = VCpu->PmlBufferAddress;
 
-    for (; PmlIdx < PML_ENTITY_NUM; PmlIdx++) {
+    for (; PmlIdx < PML_ENTITY_NUM; PmlIdx++)
+    {
         UINT64 AccessedPhysAddr;
 
         AccessedPhysAddr = PmlBuf[PmlIdx];
 
         PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, AccessedPhysAddr, &IsLargePage);
 
-        if (PmlEntry == NULL) {
-
+        if (PmlEntry == NULL)
+        {
             //
             // Page PML entry is not valid
             //
@@ -261,9 +269,12 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
             continue;
         }
 
-        if (IsLargePage) {
+        if (IsLargePage)
+        {
             ((PEPT_PML2_ENTRY)PmlEntry)->Dirty = FALSE;
-        } else {
+        }
+        else
+        {
             ((PEPT_PML1_ENTRY)PmlEntry)->Dirty = FALSE;
         }
     }
@@ -283,9 +294,9 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE* VCpu)
  *
  * @return VOID
  */
-VOID DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE* VCpu)
+VOID
+DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE * VCpu)
 {
-
     //
     // *** The guest-physical address of the access is written
     // to the page-modification log and the buffer is full ***

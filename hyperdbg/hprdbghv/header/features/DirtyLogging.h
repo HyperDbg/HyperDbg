@@ -25,10 +25,13 @@ BOOLEAN
 DirtyLoggingInitialize();
 
 BOOLEAN
-DirtyLoggingEnable(VIRTUAL_MACHINE_STATE* VCpu);
+DirtyLoggingEnable(VIRTUAL_MACHINE_STATE * VCpu);
 
-VOID DirtyLoggingDisable(VIRTUAL_MACHINE_STATE* VCpu);
+VOID
+DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu);
 
-VOID DirtyLoggingUninitialize();
+VOID
+DirtyLoggingUninitialize();
 
-VOID DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE* VCpu);
+VOID
+DirtyLoggingHandleVmexits(VIRTUAL_MACHINE_STATE * VCpu);

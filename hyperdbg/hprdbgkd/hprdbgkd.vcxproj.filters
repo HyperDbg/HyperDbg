@@ -37,9 +37,6 @@
     <Filter Include="header\debugger\core">
       <UniqueIdentifier>{9f94f25f-ef8a-412c-a064-a62c58ac23f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\debugger\allocations">
-      <UniqueIdentifier>{472f768a-7134-4236-8c4d-927c07671c4d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\debugger\commands">
       <UniqueIdentifier>{68893ab3-e9cb-4647-8380-0b8041bf4705}</UniqueIdentifier>
     </Filter>
@@ -226,9 +223,6 @@
     </ClInclude>
     <ClInclude Include="header\debugger\core\DebuggerVmcalls.h">
       <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\allocations\Allocations.h">
-      <Filter>header\debugger\allocations</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h">
       <Filter>header\debugger\commands</Filter>

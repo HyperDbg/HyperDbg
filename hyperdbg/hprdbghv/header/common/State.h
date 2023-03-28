@@ -15,11 +15,11 @@
 //				      typedefs         			 //
 //////////////////////////////////////////////////
 
-typedef EPT_PML4E EPT_PML4_POINTER, *PEPT_PML4_POINTER;
-typedef EPT_PDPTE EPT_PML3_POINTER, *PEPT_PML3_POINTER;
+typedef EPT_PML4E   EPT_PML4_POINTER, *PEPT_PML4_POINTER;
+typedef EPT_PDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
 typedef EPT_PDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
-typedef EPT_PDE EPT_PML2_POINTER, *PEPT_PML2_POINTER;
-typedef EPT_PTE EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
+typedef EPT_PDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
+typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 
 //////////////////////////////////////////////////
 //				    Constants					//
@@ -45,7 +45,8 @@ typedef EPT_PTE EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
  * @brief Types of actions for NMI broadcasting
  *
  */
-typedef enum _NMI_BROADCAST_ACTION_TYPE {
+typedef enum _NMI_BROADCAST_ACTION_TYPE
+{
     NMI_BROADCAST_ACTION_NONE = 0,
     NMI_BROADCAST_ACTION_TEST,
     NMI_BROADCAST_ACTION_REQUEST,
@@ -60,11 +61,12 @@ typedef enum _NMI_BROADCAST_ACTION_TYPE {
  * @brief The status of transparency of each core after and before VMX
  *
  */
-typedef struct _VM_EXIT_TRANSPARENCY {
+typedef struct _VM_EXIT_TRANSPARENCY
+{
     UINT64 PreviousTimeStampCounter;
 
-    HANDLE ThreadId;
-    UINT64 RevealedTimeStampCounterByRdtsc;
+    HANDLE  ThreadId;
+    UINT64  RevealedTimeStampCounterByRdtsc;
     BOOLEAN CpuidAfterRdtscDetected;
 
 } VM_EXIT_TRANSPARENCY, *PVM_EXIT_TRANSPARENCY;
@@ -73,10 +75,11 @@ typedef struct _VM_EXIT_TRANSPARENCY {
  * @brief Save the state of core in the case of VMXOFF
  *
  */
-typedef struct _VMX_VMXOFF_STATE {
+typedef struct _VMX_VMXOFF_STATE
+{
     BOOLEAN IsVmxoffExecuted; // Shows whether the VMXOFF executed or not
-    UINT64 GuestRip; // Rip address of guest to return
-    UINT64 GuestRsp; // Rsp address of guest to return
+    UINT64  GuestRip;         // Rip address of guest to return
+    UINT64  GuestRsp;         // Rsp address of guest to return
 
 } VMX_VMXOFF_STATE, *PVMX_VMXOFF_STATE;
 
@@ -84,7 +87,8 @@ typedef struct _VMX_VMXOFF_STATE {
  * @brief Structure to save the state of each hooked pages
  *
  */
-typedef struct _EPT_HOOKED_PAGE_DETAIL {
+typedef struct _EPT_HOOKED_PAGE_DETAIL
+{
     DECLSPEC_ALIGN(PAGE_SIZE)
     CHAR FakePageContents[PAGE_SIZE];
 
@@ -190,7 +194,8 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL {
  * @brief The status of NMI broadcasting in VMX
  *
  */
-typedef struct _NMI_BROADCASTING_STATE {
+typedef struct _NMI_BROADCASTING_STATE
+{
     volatile NMI_BROADCAST_ACTION_TYPE NmiBroadcastAction; // The broadcast action for NMI
 
 } NMI_BROADCASTING_STATE, *PNMI_BROADCASTING_STATE;
@@ -199,43 +204,48 @@ typedef struct _NMI_BROADCASTING_STATE {
  * @brief The status of each core after and before VMX
  *
  */
-typedef struct _VIRTUAL_MACHINE_STATE {
-    BOOLEAN IsOnVmxRootMode; // Detects whether the current logical core is on Executing on VMX Root Mode
-    BOOLEAN IncrementRip; // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
-    BOOLEAN HasLaunched; // Indicate whether the core is virtualized or not
-    BOOLEAN IgnoreMtfUnset; // Indicate whether the core should ignore unsetting the MTF or not
-    BOOLEAN WaitForImmediateVmexit; // Whether the current core is waiting for an immediate vm-exit or not
-    BOOLEAN EnableExternalInterruptsOnContinue; // Whether to enable external interrupts on the continue  or not
-    BOOLEAN EnableExternalInterruptsOnContinueMtf; // Whether to enable external interrupts on the continue state of MTF or not
-    BOOLEAN RegisterBreakOnMtf; // Registered Break in the case of MTFs (used in instrumentation step-in)
-    BOOLEAN IgnoreOneMtf; // Ignore (mark as handled) for one MTF
-    PUINT64 PmlBufferAddress; // Address of buffer used for dirty logging
-    GUEST_REGS* Regs; // The virtual processor's general-purpose registers
-    UINT32 CoreId; // The core's unique identifier
-    ULONG ExitReason; // The core's exit reason
-    UINT32 ExitQualification; // The core's exit qualification
-    UINT64 LastVmexitRip; // RIP in the current VM-exit
-    UINT64 VmxonRegionPhysicalAddress; // Vmxon region physical address
-    UINT64 VmxonRegionVirtualAddress; // VMXON region virtual address
-    UINT64 VmcsRegionPhysicalAddress; // VMCS region physical address
-    UINT64 VmcsRegionVirtualAddress; // VMCS region virtual address
-    UINT64 VmmStack; // Stack for VMM in VM-Exit State
-    UINT64 MsrBitmapVirtualAddress; // Msr Bitmap Virtual Address
-    UINT64 MsrBitmapPhysicalAddress; // Msr Bitmap Physical Address
-    UINT64 IoBitmapVirtualAddressA; // I/O Bitmap Virtual Address (A)
-    UINT64 IoBitmapPhysicalAddressA; // I/O Bitmap Physical Address (A)
-    UINT64 IoBitmapVirtualAddressB; // I/O Bitmap Virtual Address (B)
-    UINT64 IoBitmapPhysicalAddressB; // I/O Bitmap Physical Address (B)
-    UINT32 PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
-                                                                          // blocking and waits for interrupt-window exiting
-                                                                          // From hvpp :
-                                                                          // Pending interrupt queue (FIFO).
-                                                                          // Make storage for up-to 64 pending interrupts.
-                                                                          // In practice I haven't seen more than 2 pending interrupts.
+typedef struct _VIRTUAL_MACHINE_STATE
+{
+    BOOLEAN      IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
+    BOOLEAN      IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
+    BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
+    BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
+    BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
+    BOOLEAN      EnableExternalInterruptsOnContinue;                            // Whether to enable external interrupts on the continue  or not
+    BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
+    BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
+    BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
+    BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
+    BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is not in a normal EPTP (mainly used in MBEC hooks)
+    PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
+    BOOLEAN      Test;                                                          // Used for test purposes
+    UINT64       TestNumber;                                                    // Used for test purposes (Number)
+    GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
+    UINT32       CoreId;                                                        // The core's unique identifier
+    ULONG        ExitReason;                                                    // The core's exit reason
+    UINT32       ExitQualification;                                             // The core's exit qualification
+    UINT64       LastVmexitRip;                                                 // RIP in the current VM-exit
+    UINT64       VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
+    UINT64       VmxonRegionVirtualAddress;                                     // VMXON region virtual address
+    UINT64       VmcsRegionPhysicalAddress;                                     // VMCS region physical address
+    UINT64       VmcsRegionVirtualAddress;                                      // VMCS region virtual address
+    UINT64       VmmStack;                                                      // Stack for VMM in VM-Exit State
+    UINT64       MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
+    UINT64       MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
+    UINT64       IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)
+    UINT64       IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
+    UINT64       IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
+    UINT64       IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
+    UINT32       PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
+                                                                                // blocking and waits for interrupt-window exiting
+                                                                                // From hvpp :
+                                                                                // Pending interrupt queue (FIFO).
+                                                                                // Make storage for up-to 64 pending interrupts.
+                                                                                // In practice I haven't seen more than 2 pending interrupts.
 
-    VMX_VMXOFF_STATE VmxoffState; // Shows the vmxoff state of the guest
-    NMI_BROADCASTING_STATE NmiBroadcastingState; // Shows the state of NMI broadcasting
-    VM_EXIT_TRANSPARENCY TransparencyState; // The state of the debugger in transparent-mode
+    VMX_VMXOFF_STATE        VmxoffState;            // Shows the vmxoff state of the guest
+    NMI_BROADCASTING_STATE  NmiBroadcastingState;   // Shows the state of NMI broadcasting
+    VM_EXIT_TRANSPARENCY    TransparencyState;      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

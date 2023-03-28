@@ -57,41 +57,9 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         IsMtfHandled = TRUE;
 
         //
-        // Check for user-mode attaching mechanisms
-        //
-        VmmCallbackRestoreEptState();
-
-        //
         // Restore the previous state
         //
         EptHandleMonitorTrapFlag(VCpu->MtfEptHookRestorePoint);
-
-        //
-        // Check to trigger the post event (for events relating the !monitor command
-        // and the emulation hardware debug registers)
-        //
-        if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
-        {
-            //
-            // Check whether this is a "write" monitor hook or not
-            //
-            if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
-            {
-                //
-                // This is a "write" hook
-                //
-                DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
-                                                                   &VCpu->MtfEptHookRestorePoint->LastContextState);
-            }
-            else
-            {
-                //
-                // This is a "read" hook
-                //
-                DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
-                                                                  &VCpu->MtfEptHookRestorePoint->LastContextState);
-            }
-        }
 
         //
         // Set it to NULL
@@ -99,29 +67,35 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         VCpu->MtfEptHookRestorePoint = NULL;
 
         //
-        // Check if we should enable interrupts in this core or not,
-        // we have another same check in SWITCHING CORES too
+        // Check for reenabling external interrupts
         //
-        if (VCpu->EnableExternalInterruptsOnContinueMtf)
-        {
-            //
-            // Enable normal interrupts
-            //
-            HvSetExternalInterruptExiting(VCpu, FALSE);
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+    }
 
-            //
-            // Check if there is at least an interrupt that needs to be delivered
-            //
-            if (VCpu->PendingExternalInterrupts[0] != NULL)
-            {
-                //
-                // Enable Interrupt-window exiting.
-                //
-                HvSetInterruptWindowExiting(TRUE);
-            }
+    //
+    // Check for MBEC Hooks
+    //
+    if (VCpu->RestoreNonReadableWriteEptp)
+    {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
 
-            VCpu->EnableExternalInterruptsOnContinueMtf = FALSE;
-        }
+        //
+        // Restore non-readable/writeable EPTP
+        //
+        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+
+        //
+        // Check for reenabling external interrupts
+        //
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+        //
+        // Unset the indicator to avoid further handling
+        //
+        VCpu->RestoreNonReadableWriteEptp = FALSE;
     }
 
     //

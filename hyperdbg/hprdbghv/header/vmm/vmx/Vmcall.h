@@ -279,6 +279,18 @@
  */
 #define VMCALL_DISABLE_DIRTY_LOGGING_MECHANISM 0x0000002a
 
+/**
+ * @brief VMCALL to change EPTP to an MBEC-supported EPTP
+ *
+ */
+#define VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP 0x0000002b
+
+/**
+ * @brief VMCALL to restore EPTP to normal EPTP
+ *
+ */
+#define VMCALL_RESTORE_TO_NORMAL_EPTP 0x0000002c
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
@@ -297,7 +309,7 @@ VmxHypervVmcallHandler(_Inout_ PGUEST_REGS GuestRegs);
  * @return NTSTATUS
  */
 NTSTATUS
-VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE* VCpu);
+VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Main handler for VMCALLs
@@ -310,11 +322,11 @@ VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE* VCpu);
  * @return NTSTATUS
  */
 NTSTATUS
-VmxVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE* VCpu,
-    _In_ UINT64 VmcallNumber,
-    _In_ UINT64 OptionalParam1,
-    _In_ UINT64 OptionalParam2,
-    _In_ UINT64 OptionalParam3);
+VmxVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
+                 _In_ UINT64                     VmcallNumber,
+                 _In_ UINT64                     OptionalParam1,
+                 _In_ UINT64                     OptionalParam2,
+                 _In_ UINT64                     OptionalParam3);
 
 /**
  * @brief Test function which shows a message to test a successful VMCALL
@@ -326,5 +338,5 @@ VmxVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE* VCpu,
  */
 NTSTATUS
 VmcallTest(_In_ UINT64 Param1,
-    _In_ UINT64 Param2,
-    _In_ UINT64 Param3);
+           _In_ UINT64 Param2,
+           _In_ UINT64 Param3);

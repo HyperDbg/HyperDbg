@@ -63,6 +63,61 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 /* ==============================================================================================
  */
 
+/**
+ * @brief different modes of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_USER_MODE,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_KERNEL_MODE,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE;
+
+/**
+ * @brief different types of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_RECONSTRUCT,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_PATTERN,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE;
+
+/**
+ * @brief different forms of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_OVERALL,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_ADDRESS_BASED,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM;
+
+#define SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST \
+    sizeof(REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST)
+
+/**
+ * @brief requests for !rev command
+ *
+ */
+typedef struct _REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST
+{
+    UINT64                                    VirtualAddress;
+    UINT32                                    ProcessId;
+    UINT32                                    Size;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE Mode;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE Type;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM Form;
+    UINT32                                    KernelStatus;
+
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, *PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_DT_COMMAND_OPTIONS \
     sizeof(DEBUGGER_DT_COMMAND_OPTIONS)
 

@@ -234,7 +234,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
  * @param Size Size of each chunk
  * @param Count Count of chunks
  * @param Intention The Intention of the buffer (buffer tag)
- * @return BOOLEAN If the allocation was successfull it returns true and if it was
+ * @return BOOLEAN If the allocation was successful it returns true and if it was
  * unsuccessful then it returns false
  */
 BOOLEAN

@@ -18,8 +18,8 @@
 BOOLEAN
 LoaderInitVmmAndReversingMachine()
 {
-    MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = { 0 };
-    VMM_CALLBACKS VmmCallbacks = { 0 };
+    MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = {0};
+    VMM_CALLBACKS             VmmCallbacks        = {0};
 
     //
     // Allow to server IOCTL
@@ -37,8 +37,8 @@ LoaderInitVmmAndReversingMachine()
     // Fill the callbacks for using hyperlog in VMM
     //
     VmmCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueueWrapper;
-    VmmCallbacks.LogCallbackSendMessageToQueue = LogCallbackSendMessageToQueue;
-    VmmCallbacks.LogCallbackSendBuffer = LogCallbackSendBuffer;
+    VmmCallbacks.LogCallbackSendMessageToQueue                  = LogCallbackSendMessageToQueue;
+    VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
 
     //
     // Fill the VMM callbacks
@@ -48,18 +48,20 @@ LoaderInitVmmAndReversingMachine()
     //
     // Initialize message tracer
     //
-    if (LogInitialize(&MsgTracingCallbacks)) {
-
+    if (LogInitialize(&MsgTracingCallbacks))
+    {
         //
         // Initialize Vmx
         //
-        if (VmFuncInitVmm(&VmmCallbacks)) {
+        if (VmFuncInitVmm(&VmmCallbacks))
+        {
             LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
             //
             // Initialize the debugger
             //
-            if (CoreInitReversingMachine()) {
+            if (CoreInitReversingMachine())
+            {
                 LogDebugInfo("HyperDbg's reversing machine loaded successfully");
 
                 //
@@ -68,13 +70,19 @@ LoaderInitVmmAndReversingMachine()
                 g_HandleInUse = TRUE;
 
                 return TRUE;
-            } else {
+            }
+            else
+            {
                 LogError("Err, HyperDbg's debugger was not loaded");
             }
-        } else {
+        }
+        else
+        {
             LogError("Err, HyperDbg's hypervisor was not loaded");
         }
-    } else {
+    }
+    else
+    {
         LogError("Err, HyperDbg's message tracing module was not loaded");
     }
 
@@ -91,7 +99,8 @@ LoaderInitVmmAndReversingMachine()
  *
  * @return VOID
  */
-VOID LoaderUninitializeLogTracer()
+VOID
+LoaderUninitializeLogTracer()
 {
     LogDebugInfo("Unloading HyperDbg's debugger...\n");
 

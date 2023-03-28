@@ -375,6 +375,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
+#define DEBUGGER_COMMAND_REV_ATTRIBUTES NULL
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -613,3 +615,6 @@ CommandK(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandPe(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandRev(vector<string> SplittedCommand, string Command);

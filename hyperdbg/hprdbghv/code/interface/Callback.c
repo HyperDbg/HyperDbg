@@ -369,3 +369,25 @@ InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
 
     g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange(CoreId);
 }
+
+/**
+ * @brief routine callback to handle cr3 process change
+ *
+ * @param CoreId
+ * @param NewCr3
+ *
+ * @return VOID
+ */
+VOID
+InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
+{
+    if (g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception == NULL)
+    {
+        //
+        // ignore it
+        //
+        return;
+    }
+
+    g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(CoreId, NewCr3);
+}
