@@ -132,14 +132,13 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
-        EptTable->PML4[i].UserModeExecute = TRUE;
-
         //
         // Execute-only pages
         //
-        EptTable->PML4[i].ExecuteAccess = TRUE;
-        EptTable->PML4[i].ReadAccess    = FALSE;
-        EptTable->PML4[i].WriteAccess   = FALSE;
+        EptTable->PML4[i].ExecuteAccess   = TRUE;
+        EptTable->PML4[i].UserModeExecute = TRUE;
+        EptTable->PML4[i].ReadAccess      = FALSE;
+        EptTable->PML4[i].WriteAccess     = FALSE;
     }
 
     //
@@ -147,7 +146,10 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
+        EptTable->PML3[i].ExecuteAccess   = TRUE;
         EptTable->PML3[i].UserModeExecute = TRUE;
+        EptTable->PML3[i].ReadAccess      = FALSE;
+        EptTable->PML3[i].WriteAccess     = FALSE;
     }
 
     //
@@ -157,7 +159,10 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     {
         for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
+            EptTable->PML2[i][j].ExecuteAccess   = TRUE;
             EptTable->PML2[i][j].UserModeExecute = TRUE;
+            EptTable->PML2[i][j].ReadAccess      = FALSE;
+            EptTable->PML2[i][j].WriteAccess     = FALSE;
         }
     }
 }
@@ -349,12 +354,17 @@ ModeBasedExecHookUninitialize()
  * @return VOID
  */
 VOID
-ModeBasedExecHookRestoreToNormalEptp()
+ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
     //
     __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+
+    //
+    // It's on normal EPTP
+    //
+    VCpu->NotNormalEptp = FALSE;
 }
 
 /**
@@ -364,12 +374,17 @@ ModeBasedExecHookRestoreToNormalEptp()
  * @return VOID
  */
 VOID
-ModeBasedExecHookChangeToExecuteOnlyEptp()
+ModeBasedExecHookChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
     //
     __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ExecuteOnlyEptPointer.AsUInt);
+
+    //
+    // It's not on normal EPTP
+    //
+    VCpu->NotNormalEptp = TRUE;
 }
 
 /**
@@ -379,24 +394,28 @@ ModeBasedExecHookChangeToExecuteOnlyEptp()
  * @return VOID
  */
 VOID
-ModeBasedExecHookChangeToMbecEnabledEptp()
+ModeBasedExecHookChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
     //
     __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedEptPointer.AsUInt);
+
+    //
+    // It's not on normal EPTP
+    //
+    VCpu->NotNormalEptp = TRUE;
 }
 
 /**
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
- * @param IsForUsermodeExecViolation Shows whether EPT violation was because of execution
- * violation of user-mode codes or not
+ * @param ViolationQualification
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsForUsermodeExecViolation)
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification)
 {
     //
     // Check if this mechanism is use or not
@@ -406,7 +425,31 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN 
         return FALSE;
     }
 
-    if (IsForUsermodeExecViolation)
+    if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
+    {
+        //
+        // For test purposes
+        //
+        LogInfo("Access log (0x%x) is executed address: %llx",
+                PsGetCurrentProcessId(),
+                VCpu->LastVmexitRip);
+
+        //
+        // Change to all enable EPTP
+        //
+        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+        //
+        // Set MTF and adjust external interrupts
+        //
+        HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+        //
+        // Set the indicator to handle MTF
+        //
+        VCpu->RestoreNonReadableWriteEptp = TRUE;
+    }
+    else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
         //
         // For test purposes
@@ -423,16 +466,14 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN 
         //
         // Change EPTP to execute-only pages
         //
-        // ModeBasedExecHookChangeToExecuteOnlyEptp();
+        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
     }
     else
     {
         //
-        // For test purposes
+        // Unexpected violation
         //
-        LogInfo("Access log (0x%x) is executed address: %llx",
-                PsGetCurrentProcessId(),
-                VCpu->LastVmexitRip);
+        return FALSE;
     }
 
     //
@@ -451,8 +492,10 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN 
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 0x25C0)
+    if (PsGetCurrentProcessId() == 0x25C0 && VCpu->TestNumber == 0)
     {
+        VCpu->TestNumber++;
+
         //
         // Enable MBEC to detect execution in user-mode
         //
@@ -464,6 +507,18 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
         // In case, the process is changed, we've disable the MBEC
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
+
+        //
+        // As we need to make other processes to normally behave, so
+        // we restore the EPTP to normal EPTP if it's not
+        //
+        if (VCpu->NotNormalEptp)
+        {
+            //
+            // This function itself sets the flag to FALSE
+            //
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+        }
     }
 }
 

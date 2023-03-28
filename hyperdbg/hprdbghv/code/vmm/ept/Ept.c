@@ -733,31 +733,15 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     VCpu->MtfEptHookRestorePoint = HookedEntry;
 
                     //
-                    // We have to set Monitor trap flag and give it the HookedEntry to work with
-                    //
-                    HvSetMonitorTrapFlag(TRUE);
-
-                    //
                     // The following codes are added because we realized if the execution takes long then
                     // the execution might be switched to another routines, thus, MTF might conclude on
                     // another routine and we might (and will) trigger the same instruction soon
                     //
 
                     //
-                    // Change guest interrupt-state
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
                     //
-                    HvSetExternalInterruptExiting(VCpu, TRUE);
-
-                    //
-                    // Do not vm-exit on interrupt windows
-                    //
-                    HvSetInterruptWindowExiting(FALSE);
-
-                    //
-                    // Indicate that we should enable external interrupts and configure external interrupt
-                    // window exiting somewhere at MTF
-                    //
-                    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+                    HvEnableMtfAndChangeExternalInterruptState(VCpu);
                 }
             }
 
@@ -815,9 +799,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu,
-                                                  ViolationQualification.EptExecutable &&
-                                                      !ViolationQualification.EptExecutableForUserMode))
+    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu, &ViolationQualification))
     {
         return TRUE;
     }
@@ -840,16 +822,48 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
  *
- * @param HookedEntry
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
+EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    //
+    // Check for user-mode attaching mechanisms
+    //
+    VmmCallbackRestoreEptState();
+
     //
     // restore the hooked state
     //
-    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->ChangedEntry, InveptSingleContext);
+    EptSetPML1AndInvalidateTLB(VCpu->MtfEptHookRestorePoint->EntryAddress, VCpu->MtfEptHookRestorePoint->ChangedEntry, InveptSingleContext);
+
+    //
+    // Check to trigger the post event (for events relating the !monitor command
+    // and the emulation hardware debug registers)
+    //
+    if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
+    {
+        //
+        // Check whether this is a "write" monitor hook or not
+        //
+        if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
+        {
+            //
+            // This is a "write" hook
+            //
+            DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
+                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+        else
+        {
+            //
+            // This is a "read" hook
+            //
+            DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
+                                                              &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+    }
 }
 
 /**
@@ -976,11 +990,6 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     VCpu->MtfEptHookRestorePoint = HookedEntry;
 
                     //
-                    // We have to set Monitor trap flag and give it the HookedEntry to work with
-                    //
-                    HvSetMonitorTrapFlag(TRUE);
-
-                    //
                     // The following codes are added because we realized if the execution takes long then
                     // the execution might be switched to another routines, thus, MTF might conclude on
                     // another routine and we might (and will) trigger the same instruction soon
@@ -997,20 +1006,9 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     //
 
                     //
-                    // Change guest interrupt-state
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
                     //
-                    HvSetExternalInterruptExiting(VCpu, TRUE);
-
-                    //
-                    // Do not vm-exit on interrupt windows
-                    //
-                    HvSetInterruptWindowExiting(FALSE);
-
-                    //
-                    // Indicate that we should enable external interruts and configure external interrupt
-                    // window exiting somewhere at MTF
-                    //
-                    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+                    HvEnableMtfAndChangeExternalInterruptState(VCpu);
 
                     //
                     // Indicate that we handled the ept violation

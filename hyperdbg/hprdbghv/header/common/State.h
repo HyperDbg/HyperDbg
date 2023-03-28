@@ -207,7 +207,6 @@ typedef struct _NMI_BROADCASTING_STATE
 typedef struct _VIRTUAL_MACHINE_STATE
 {
     BOOLEAN      IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
-    BOOLEAN      Test;                                                          // Used for test purposes
     BOOLEAN      IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
     BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
@@ -216,7 +215,11 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
     BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
     BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
+    BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
+    BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is not in a normal EPTP (mainly used in MBEC hooks)
     PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
+    BOOLEAN      Test;                                                          // Used for test purposes
+    UINT64       TestNumber;                                                    // Used for test purposes (Number)
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
     ULONG        ExitReason;                                                    // The core's exit reason

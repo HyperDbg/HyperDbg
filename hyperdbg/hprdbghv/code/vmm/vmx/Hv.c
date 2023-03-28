@@ -1038,6 +1038,42 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 }
 
 /**
+ * @brief Checks to enable and reinject previous interrupts
+ *
+ * @param VCpu The virtual processor's state
+ * @param Set Set or unset the External Interrupt Exiting
+ * @return VOID
+ */
+VOID
+HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if we should enable interrupts in this core or not,
+    // we have another same check in SWITCHING CORES too
+    //
+    if (VCpu->EnableExternalInterruptsOnContinueMtf)
+    {
+        //
+        // Enable normal interrupts
+        //
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Enable Interrupt-window exiting.
+            //
+            HvSetInterruptWindowExiting(TRUE);
+        }
+
+        VCpu->EnableExternalInterruptsOnContinueMtf = FALSE;
+    }
+}
+
+/**
  * @brief Set the RDTSC/P Exiting
  *
  * @param VCpu The virtual processor's state
@@ -1312,4 +1348,41 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     // Initializes VMX
     //
     return VmxInitialize();
+}
+
+/**
+ * @brief Enables MTF and adjust external interrupt state
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // We have to set Monitor trap flag and give it the HookedEntry to work with
+    //
+    HvSetMonitorTrapFlag(TRUE);
+
+    //
+    // The following codes are added because we realized if the execution takes long then
+    // the execution might be switched to another routines, thus, MTF might conclude on
+    // another routine and we might (and will) trigger the same instruction soon
+    //
+
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    //
+    // Indicate that we should enable external interrupts and configure external interrupt
+    // window exiting somewhere at MTF
+    //
+    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
 }

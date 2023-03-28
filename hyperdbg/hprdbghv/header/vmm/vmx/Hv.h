@@ -280,6 +280,16 @@ VOID
 HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
+ * @brief Checks to enable and reinject previous interrupts
+ *
+ * @param VCpu The virtual processor's state
+ * @param Set Set or unset the External Interrupt Exiting
+ * @return VOID
+ */
+VOID
+HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
  * @brief Set the RDTSC/P Exiting
  *
  * @param Set
@@ -393,3 +403,11 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu);
  */
 BOOLEAN
 HvInitVmm(VMM_CALLBACKS * VmmCallbacks);
+
+/**
+ * @brief Enables MTF and adjust external interrupt state
+ *
+ * @return VOID
+ */
+VOID
+HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu);
