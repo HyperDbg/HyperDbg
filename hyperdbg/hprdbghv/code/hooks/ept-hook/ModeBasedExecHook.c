@@ -430,24 +430,46 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
         //
         // For test purposes
         //
-        LogInfo("Access log (0x%x) is executed address: %llx",
-                PsGetCurrentProcessId(),
-                VCpu->LastVmexitRip);
+        if (VCpu->LastVmexitRip & 0xff00000000000000)
+        {
+            //
+            // We're not gonna trace kernel-mode at this stage
+            //
+            LogInfo("Went to the kernel and the (0x%x) is executed address: %llx",
+                    PsGetCurrentProcessId(),
+                    VCpu->LastVmexitRip);
 
-        //
-        // Change to all enable EPTP
-        //
-        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+            //
+            // Disable MBEC again
+            //
+            HvSetModeBasedExecutionEnableFlag(FALSE);
 
-        //
-        // Set MTF and adjust external interrupts
-        //
-        HvEnableMtfAndChangeExternalInterruptState(VCpu);
+            //
+            // If we're not in normal EPT then switch  to it
+            //
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+        }
+        else
+        {
+            LogInfo("Access log (0x%x) is executed address: %llx",
+                    PsGetCurrentProcessId(),
+                    VCpu->LastVmexitRip);
 
-        //
-        // Set the indicator to handle MTF
-        //
-        VCpu->RestoreNonReadableWriteEptp = TRUE;
+            //
+            // Change to all enable EPTP
+            //
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
+            // Set MTF and adjust external interrupts
+            //
+            HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+            //
+            // Set the indicator to handle MTF
+            //
+            VCpu->RestoreNonReadableWriteEptp = TRUE;
+        }
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
@@ -492,9 +514,9 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 0x25C0 && VCpu->TestNumber == 0)
+    if (PsGetCurrentProcessId() == 0x25C0 && VCpu->TestNumber <= 10)
     {
-        VCpu->TestNumber++;
+        VCpu->TestNumber = VCpu->TestNumber + 1;
 
         //
         // Enable MBEC to detect execution in user-mode
