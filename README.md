@@ -100,20 +100,6 @@ You can read about the internal design of HyperDbg and its features in the [docu
 ## Scripts
 You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automate your debugging journey. **HyperDbg** has a powerful, fast, and entirely kernel-side implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language).
 
-## Credits
-- All of the <a href="https://github.com/HyperDbg/HyperDbg/graphs/contributors">contributors</a>  
-- Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
-- MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
-- Website by Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
-- Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
-- Michael Schwarz (<a href="https://twitter.com/misc0110">@misc0110</a>)
-- Soroush Meghdadizanjani (<a href="https://twitter.com/meSoroush">@meSoroush</a>)
-- Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
-- Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
-- Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
-- Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
-- Process Hacker Team (<a href="https://twitter.com/processhacker">@ProcessHacker</a>) for <a href="https://github.com/processhacker/phnt">phnt</a>  
-
 ## Contributing
 Contributing to HyperDbg is super appreciated. We have made a list of potential [tasks](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md#things-to-work-on) that you might be interested in contributing towards.
 
