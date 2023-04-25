@@ -15,3 +15,5 @@ The list provided comprises individuals who made significant contributions to th
 - Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
 - Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
 - Process Hacker Team (<a href="https://twitter.com/processhacker">@ProcessHacker</a>) for <a href="https://github.com/processhacker/phnt">phnt</a>  
+- Ddkwork (<a href="https://github.com/ddkwork">@ddkwork</a>)
+

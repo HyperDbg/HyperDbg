@@ -50,11 +50,6 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Query constant to show detail of halting of core
- */
-#define TEST_QUERY_HALTING_CORE_STATUS 1
-
-/**
  * @brief Test cases file name
  */
 #define TEST_CASE_FILE_NAME "test-cases.txt"

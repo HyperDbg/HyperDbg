@@ -249,13 +249,24 @@ typedef struct _DEBUGGER_FLUSH_LOGGING_BUFFERS
     sizeof(DEBUGGER_TEST_QUERY_BUFFER)
 
 /**
+ * @brief test query used for test purposed
+ *
+ */
+typedef enum _DEBUGGER_TEST_QUERY_STATE
+{
+    TEST_QUERY_HALTING_CORE_STATUS     = 1, // Query constant to show detail of halting of core
+    TEST_QUERY_PREALLOCATED_POOL_STATE = 2, // Query pre-allocated pool state
+
+} DEBUGGER_TEST_QUERY_STATE;
+
+/**
  * @brief request for test query buffers
  *
  */
 typedef struct _DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER
 {
-    UINT32 RequestIndex;
-    UINT32 KernelStatus;
+    DEBUGGER_TEST_QUERY_STATE RequestType;
+    UINT32                    KernelStatus;
 
 } DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER, *PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER;
 

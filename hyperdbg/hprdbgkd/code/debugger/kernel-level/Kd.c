@@ -1821,15 +1821,20 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
     while (TRUE)
     {
-        BOOLEAN                 EscapeFromTheLoop               = FALSE;
-        CHAR *                  RecvBuffer[MaxSerialPacketSize] = {0};
-        UINT32                  RecvBufferLength                = 0;
-        PDEBUGGER_REMOTE_PACKET TheActualPacket                 = (PDEBUGGER_REMOTE_PACKET)RecvBuffer;
+        BOOLEAN                 EscapeFromTheLoop = FALSE;
+        CHAR *                  RecvBuffer        = &DbgState->KdRecvBuffer[0];
+        UINT32                  RecvBufferLength  = 0;
+        PDEBUGGER_REMOTE_PACKET TheActualPacket   = (PDEBUGGER_REMOTE_PACKET)RecvBuffer;
+
+        //
+        // Zero the receiving buffer
+        //
+        RtlZeroMemory(RecvBuffer, MaxSerialPacketSize);
 
         //
         // Receive the buffer in polling mode
         //
-        if (!SerialConnectionRecvBuffer(&RecvBuffer, &RecvBufferLength))
+        if (!SerialConnectionRecvBuffer(RecvBuffer, &RecvBufferLength))
         {
             //
             // Invalid buffer
@@ -2086,15 +2091,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Dispatch the request
                 //
-
-                switch (TestQueryPacket->RequestIndex)
+                switch (TestQueryPacket->RequestType)
                 {
                 case TEST_QUERY_HALTING_CORE_STATUS:
 
                     //
-                    // Query the state of the system
+                    // Query state of the system
                     //
                     KdQuerySystemState();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_QUERY_PREALLOCATED_POOL_STATE:
+
+                    //
+                    // Query state of pre-allocated pools
+                    //
+                    PoolManagerShowPreAllocatedPools();
 
                     TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -2105,7 +2120,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     // Query index not found
                     //
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+                    TestQueryPacket->KernelStatus = DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED;
 
                     break;
                 }

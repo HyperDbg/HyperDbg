@@ -414,15 +414,15 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
 /**
  * @brief Send a test query request to the debuggee
  *
- * @param Option
+ * @param Type
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex)
+KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
 {
     DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
 
-    TestQueryPacket.RequestIndex = RequestIndex;
+    TestQueryPacket.RequestType = Type;
 
     //
     // Send 'test query' command as query packet

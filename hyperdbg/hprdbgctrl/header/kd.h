@@ -116,7 +116,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
                                 BOOLEAN                           Is32Bit);
 
 BOOLEAN
-KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
+KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type);
 
 BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);

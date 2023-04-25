@@ -110,6 +110,8 @@ PoolManagerUninitialize()
     UINT64      Address  = 0;
     ListTemp             = &g_ListOfAllocatedPoolsHead;
 
+    SpinlockLock(&LockForReadingPool);
+
     while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
     {
         ListTemp = ListTemp->Flink;
@@ -137,6 +139,8 @@ PoolManagerUninitialize()
         //
         ExFreePoolWithTag(PoolTable, POOLTAG);
     }
+
+    SpinlockUnlock(&LockForReadingPool);
 
     PlmgrFreeRequestNewAllocation();
 }
@@ -186,6 +190,36 @@ PoolManagerFreePool(UINT64 AddressToFree)
 }
 
 /**
+ * @brief Shows list of pre-allocated pools available (used for debugging purposes)
+ *
+ * @return VOID
+ */
+VOID
+PoolManagerShowPreAllocatedPools()
+{
+    PLIST_ENTRY ListTemp = 0;
+    UINT64      Address  = 0;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
+
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+    {
+        ListTemp = ListTemp->Flink;
+
+        //
+        // Get the head of the record
+        //
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+
+        LogInfo("Pool details, Pool intention: %x | Pool address: %llx | Pool state: %s | Should be freed: %s | Already freed: %s\n",
+                PoolTable->Intention,
+                PoolTable->Address,
+                PoolTable->IsBusy ? "used" : "free",
+                PoolTable->ShouldBeFreed ? "true" : "false",
+                PoolTable->AlreadyFreed ? "true" : "false");
+    }
+}
+
+/**
  * @brief This function should be called from vmx-root in order to get a pool from the list
  * @details If RequestNewPool is TRUE then Size is used, otherwise Size is useless
  * Note : Most of the times this function called from vmx root but not all the time
@@ -199,18 +233,31 @@ PoolManagerFreePool(UINT64 AddressToFree)
 UINT64
 PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
 {
-    UINT64 Address = 0;
+    PLIST_ENTRY ListTemp = 0;
+    UINT64      Address  = 0;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
 
-    ScopedSpinlock(
-        LockForReadingPool,
-        LIST_FOR_EACH_LINK(g_ListOfAllocatedPoolsHead, POOL_TABLE, PoolsList, PoolTable) {
-            if (PoolTable->Intention == Intention && PoolTable->IsBusy == FALSE)
-            {
-                PoolTable->IsBusy = TRUE;
-                Address           = PoolTable->Address;
-                break;
-            }
-        });
+    SpinlockLock(&LockForReadingPool);
+
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+    {
+        ListTemp = ListTemp->Flink;
+
+        //
+        // Get the head of the record
+        //
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+
+        if (PoolTable != NULL && PoolTable->Intention == Intention && PoolTable->IsBusy == FALSE)
+        {
+            PoolTable->IsBusy = TRUE;
+            Address           = PoolTable->Address;
+
+            break;
+        }
+    }
+
+    SpinlockUnlock(&LockForReadingPool);
 
     //
     // Check if we need additional pools e.g another pool or the pool
@@ -242,7 +289,9 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 {
     for (size_t i = 0; i < Count; i++)
     {
-        POOL_TABLE * SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
+        POOL_TABLE * SinglePool = NULL;
+
+        SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
 
         if (!SinglePool)
         {
@@ -259,6 +308,8 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 
         if (!SinglePool->Address)
         {
+            ExFreePoolWithTag(SinglePool, POOLTAG);
+
             LogError("Err, insufficient memory");
             return FALSE;
         }
@@ -276,6 +327,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
     }
+
     return TRUE;
 }
 
@@ -303,6 +355,9 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
         return FALSE;
     }
 
+    //
+    // Make sure paging works properly
+    //
     PAGED_CODE();
 
     //

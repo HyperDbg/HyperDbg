@@ -284,6 +284,27 @@ CommandTestQueryState()
 }
 
 /**
+ * @brief test command for query the state of pre-allocated pools
+ *
+ * @return VOID
+ */
+VOID
+CommandTestQueryPreAllocPoolsState()
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the query to the debuggee
+    //
+    KdSendTestQueryPacketToDebuggee(TEST_QUERY_PREALLOCATED_POOL_STATE);
+}
+
+/**
  * @brief test command handler
  *
  * @param SplittedCommand
@@ -306,6 +327,13 @@ CommandTest(vector<string> SplittedCommand, string Command)
         // Query the state of debuggee in debugger mode
         //
         CommandTestQueryState();
+    }
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("pool"))
+    {
+        //
+        // Query the state of pre-allocated pools in debugger mode
+        //
+        CommandTestQueryPreAllocPoolsState();
     }
     else
     {

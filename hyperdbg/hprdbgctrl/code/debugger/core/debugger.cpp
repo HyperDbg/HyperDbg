@@ -359,6 +359,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN:
+        ShowMessages("err, using short-circuiting event with post events is not possible (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED:
+        ShowMessages("err, unknown test query is received to the debugger (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

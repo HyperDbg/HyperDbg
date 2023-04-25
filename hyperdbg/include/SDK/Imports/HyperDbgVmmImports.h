@@ -412,6 +412,9 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 IMPORT_EXPORT_VMM BOOLEAN
 PoolManagerFreePool(UINT64 AddressToFree);
 
+IMPORT_EXPORT_VMM VOID
+PoolManagerShowPreAllocatedPools();
+
 //////////////////////////////////////////////////
 //          VMX Registers Modification  		//
 //////////////////////////////////////////////////
