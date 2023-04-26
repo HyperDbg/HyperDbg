@@ -223,7 +223,7 @@ const unsigned char BuildVersion[] = {
  * @details the maximum packet size for sending over serial
  *
  */
-#define MaxSerialPacketSize 10 * NORMAL_PAGE_SIZE
+#define MaxSerialPacketSize 1 * NORMAL_PAGE_SIZE
 
 /**
  * @brief Final storage size of message tracing
