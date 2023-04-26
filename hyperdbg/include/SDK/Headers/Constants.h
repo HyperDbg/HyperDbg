@@ -201,9 +201,14 @@ const unsigned char BuildVersion[] = {
 #define MaximumPacketsCapacityPriority 10
 
 /**
+ * @brief Size of normal OS (processor) pages
+ */
+#define NORMAL_PAGE_SIZE 4096 // PAGE_SIZE
+
+/**
  * @brief Size of each packet
  */
-#define PacketChunkSize 4096 // PAGE_SIZE
+#define PacketChunkSize NORMAL_PAGE_SIZE
 
 /**
  * @brief size of user-mode buffer
@@ -216,11 +221,9 @@ const unsigned char BuildVersion[] = {
 /**
  * @brief size of buffer for serial
  * @details the maximum packet size for sending over serial
- * User-mode buffer size + Header Structure Size + Count Of End Buffer Bytes
  *
  */
-#define MaxSerialPacketSize \
-    UsermodeBufferSize + sizeof(DEBUGGER_REMOTE_PACKET) + SERIAL_END_OF_BUFFER_CHARS_COUNT
+#define MaxSerialPacketSize 10 * NORMAL_PAGE_SIZE
 
 /**
  * @brief Final storage size of message tracing

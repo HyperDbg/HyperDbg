@@ -1195,7 +1195,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            BOOLEAN *                      HasError)
 {
     //
-    // The printf function
+    // *** The printf function ***
     //
 
     char    FinalBuffer[PacketChunkSize]              = {0};
