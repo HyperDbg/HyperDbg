@@ -867,17 +867,54 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
                                                const char * Fmt,
                                                va_list      ArgList)
 {
+    int     SprintfResult;
     size_t  WrittenSize;
     BOOLEAN IsVmxRootMode;
-    int     SprintfResult;
-    char    LogMessage[PacketChunkSize];
-    char    TempMessage[PacketChunkSize];
+    BOOLEAN Result         = FALSE; // by default, we assume error happens
+    char *  LogMessage     = NULL;
+    char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
 
     //
     // Set Vmx State
     //
     IsVmxRootMode = LogCheckVmxOperation();
+
+    //
+    // Set the buffer here, we avoid use stack (local variables) because stack might growth
+    // and be problematic
+    //
+    if (IsVmxRootMode)
+    {
+        LogMessage  = &VmxLogMessage[0];
+        TempMessage = &VmxTempMessage[0];
+    }
+    else
+    {
+        //
+        // To avoid buffer collision and buffer re-writing in VMX non-root, allocate pool
+        //
+        LogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
+
+        if (LogMessage == NULL)
+        {
+            //
+            // Insufficient space
+            //
+            return FALSE;
+        }
+
+        TempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
+
+        if (TempMessage == NULL)
+        {
+            //
+            // Insufficient space
+            //
+            ExFreePoolWithTag(LogMessage, POOLTAG);
+            return FALSE;
+        }
+    }
 
     if (ShowCurrentSystemTime)
     {
@@ -900,7 +937,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
             //
             // Probably the buffer is large that we can't store it
             //
-            return FALSE;
+            goto FreeBufferAndReturn;
         }
 
         //
@@ -942,7 +979,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
             //
             // Probably the buffer is large that we can't store it
             //
-            return FALSE;
+            goto FreeBufferAndReturn;
         }
     }
     else
@@ -966,7 +1003,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
             //
             // Probably the buffer is large that we can't store it
             //
-            return FALSE;
+            goto FreeBufferAndReturn;
         }
     }
 
@@ -981,13 +1018,23 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // nothing to write
         //
-        return FALSE;
+        goto FreeBufferAndReturn;
     }
 
     //
     // Send the prepared buffer (with no priority)
     //
-    return LogCallbackSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
+    Result = LogCallbackSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
+
+FreeBufferAndReturn:
+
+    if (!IsVmxRootMode)
+    {
+        ExFreePoolWithTag(LogMessage, POOLTAG);
+        ExFreePoolWithTag(TempMessage, POOLTAG);
+    }
+
+    return Result;
 }
 
 /**
