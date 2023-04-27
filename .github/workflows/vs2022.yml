@@ -46,9 +46,6 @@ jobs:
         PLATFORM: [x64]
 
     steps:
-    - name: Useful default vars
-      run: |
-        echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
@@ -57,6 +54,10 @@ jobs:
 
     - name: Checkout submodules recursively
       run: git submodule update --init --recursive --remote
+    
+    - name: Useful default vars
+      run: |
+        echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
     
     - name: Setup WDK version 22H2
       run: |
@@ -69,7 +70,7 @@ jobs:
       
     - name: Build third-party dependencies (Release Mode)
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration="Release MT" /p:Platform=${{matrix.PLATFORM}} /target:zydis /target:zycore /p:OutDir=$GITHUB_WORKSPACE/${{env.ZYDIS_BIN_DIR}} $GITHUB_WORKSPACE/${{env.ZYDIS_SOLUTION_PATH}}
+      run: msbuild /m /p:Configuration="Release MT" /p:Platform=${{matrix.PLATFORM}} /target:zydis /target:zycore /p:OutDir=$GITHUB_WORKSPACE/hyperdbg/libraries/zydis/ $GITHUB_WORKSPACE/hyperdbg/dependencies/zydis/msvc/Zydis.sln
 
     - name: Build Hyperdbg solution
       working-directory: ${{env.GITHUB_WORKSPACE}}
