@@ -33,9 +33,9 @@ env:
   BUILD_BIN_DIR: ./hyperdbg/build/bin/
 
   # Zydis library
-  ZYDIS_REPO_PATH: ./hyperdbg/dependencies/zydis/
-  ZYDIS_SOLUTION_PATH: ./hyperdbg/dependencies/zydis/msvc/Zydis.sln
-  ZYDIS_BIN_DIR: ./hyperdbg/libraries/zydis
+  ZYDIS_REPO_PATH: ${{env.GITHUB_WORKSPACE}}/hyperdbg/dependencies/zydis/
+  ZYDIS_SOLUTION_PATH: ${{env.GITHUB_WORKSPACE}}/hyperdbg/dependencies/zydis/msvc/Zydis.sln
+  ZYDIS_BIN_DIR: ${{env.GITHUB_WORKSPACE}}/hyperdbg/libraries/zydis
 
 jobs:
   win-amd64-build:
@@ -52,6 +52,9 @@ jobs:
         fetch-depth: 0
         submodules: recursive
 
+    - name: Checkout submodules recursively
+      run: git submodule update --init --recursive --remote
+    
     - name: Setup WDK version 22H2
       run: |
         $wdkSetupPath = "$Env:TEMP\wdksetup.exe"
@@ -64,7 +67,6 @@ jobs:
     - name: Build third-party dependencies (Release Mode)
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration="Release MT" /p:Platform=${{matrix.PLATFORM}} /target:zydis /target:zycore /p:OutDir=${{env.ZYDIS_BIN_DIR}} ${{env.ZYDIS_SOLUTION_PATH}}
-
 
     - name: Build Hyperdbg solution
       working-directory: ${{env.GITHUB_WORKSPACE}}
