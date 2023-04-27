@@ -58,7 +58,8 @@ jobs:
     - name: Useful default vars
       run: |
         echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-    
+        echo "github.workspace: ${{ github.workspace }}"
+        
     - name: Setup WDK version 22H2
       run: |
         $wdkSetupPath = "$Env:TEMP\wdksetup.exe"
@@ -70,7 +71,7 @@ jobs:
       
     - name: Build third-party dependencies (Release Mode)
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration="Release MT" /p:Platform=${{matrix.PLATFORM}} /target:zydis /target:zycore /p:OutDir=$GITHUB_WORKSPACE/hyperdbg/libraries/zydis/ $GITHUB_WORKSPACE/hyperdbg/dependencies/zydis/msvc/Zydis.sln
+      run: msbuild /m /p:Configuration="Release MT" /p:Platform=${{matrix.PLATFORM}} /target:zydis /target:zycore /p:OutDir=${{ github.workspace }}/hyperdbg/libraries/zydis/ ${{ github.workspace }}/hyperdbg/dependencies/zydis/msvc/Zydis.sln
 
     - name: Build Hyperdbg solution
       working-directory: ${{env.GITHUB_WORKSPACE}}
