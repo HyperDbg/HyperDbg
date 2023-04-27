@@ -533,7 +533,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
     // Find the current process id and name
     //
     CurrentProcessId   = PsGetCurrentProcessId();
-    CurrentProcessName = CommonGetProcessNameFromEprocess(PsGetCurrentProcess());
+    CurrentProcessName = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
 
     //
     // Check for process id and process name, if not match then we don't emulate it
@@ -562,7 +562,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
             //
             // This entry is a process name
             //
-            if (CurrentProcessName != NULL && StartsWith(CurrentProcessName, ProcessDetails->ProcessName))
+            if (CurrentProcessName != NULL && CommonIsStringStartsWith(CurrentProcessName, ProcessDetails->ProcessName))
             {
                 //
                 // Let the transparency handler to handle it

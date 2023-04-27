@@ -49,7 +49,7 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(QWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(QWORD)))
     {
         //
         // Instead of indicating an error, just return false
@@ -86,7 +86,7 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
     {
         //
         // Instead of indicating an error, just return false
@@ -123,7 +123,7 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
     {
         //
         // Instead of indicating an error, just return false
@@ -159,7 +159,7 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    if (CheckMemoryAccessSafety(Address, Length))
+    if (CheckAccessValidityAndSafety(Address, Length))
     {
         return TRUE;
     }
@@ -168,7 +168,7 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (CheckMemoryAccessSafety(Address, Length))
+    if (CheckAccessValidityAndSafety(Address, Length))
     {
         return TRUE;
     }
@@ -198,7 +198,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -207,7 +207,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (!CheckMemoryAccessSafety(Source, Num))
+    if (!CheckAccessValidityAndSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
@@ -225,7 +225,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -234,7 +234,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (!CheckMemoryAccessSafety(Source, Num))
+    if (!CheckAccessValidityAndSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
@@ -407,7 +407,7 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -436,7 +436,7 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -466,7 +466,7 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -537,7 +537,7 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Target, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Target, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -567,7 +567,7 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -595,7 +595,7 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -623,7 +623,7 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -656,7 +656,7 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Destination, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Destination, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -921,7 +921,7 @@ CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring)
     //
     // At least two chars (wchar_t is 4 byte)
     //
-    if (CheckMemoryAccessSafety(StrAddr, IsWstring ? 4 : 2))
+    if (CheckAccessValidityAndSafety(StrAddr, IsWstring ? 4 : 2))
     {
         return TRUE;
     }

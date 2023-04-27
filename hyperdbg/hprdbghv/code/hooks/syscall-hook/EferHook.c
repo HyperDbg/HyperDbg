@@ -264,7 +264,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Get the guest's running process's cr3
         //
-        GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+        GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
         //
         // No, longer needs to be checked because we're sticking to system process

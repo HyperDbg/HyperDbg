@@ -871,7 +871,7 @@ ConvertStringVectorToCharPointerArray(const std::string & s)
  * @return VOID
  */
 VOID
-GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 {
     __cpuidex(CpuInfo, Func, SubFunc);
 }
@@ -886,7 +886,7 @@ Getx86VirtualAddressWidth()
 {
     int Regs[4];
 
-    GetCpuid(CPUID_ADDR_WIDTH, 0, Regs);
+    CommonCpuidInstruction(CPUID_ADDR_WIDTH, 0, Regs);
 
     //
     // Extracting bit 15:8 from eax register
@@ -918,8 +918,8 @@ CheckCpuSupportRtm()
     // MSR_IA32_TSX_CTRL support.
     //
 
-    GetCpuid(0, 0, Regs1);
-    GetCpuid(7, 0, Regs2);
+    CommonCpuidInstruction(0, 0, Regs1);
+    CommonCpuidInstruction(7, 0, Regs2);
 
     //
     // Check RTM and MPX extensions in order to filter out TSX on Haswell CPUs
@@ -941,7 +941,7 @@ CheckCpuSupportRtm()
  * @return BOOLEAN
  */
 BOOLEAN
-CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
+CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
 {
     UINT64 Addr = (UINT64)VAddr;
     UINT64 MaxVirtualAddrLowHalf, MinVirtualAddressHighHalf;
@@ -997,7 +997,7 @@ CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
  * @return BOOLEAN Returns true if the address is valid; otherwise, false
  */
 BOOLEAN
-CheckIfAddressIsValidUsingTsx(UINT64 Address)
+CheckAddressValidityUsingTsx(UINT64 Address)
 {
     UINT32  Status = 0;
     BOOLEAN Result = FALSE;
@@ -1035,7 +1035,7 @@ CheckIfAddressIsValidUsingTsx(UINT64 Address)
  * @return BOOLEAN
  */
 BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
+CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
 {
     BOOLEAN IsKernelAddress;
     BOOLEAN Result = FALSE;
@@ -1044,7 +1044,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     // First, we check if the address is canonical based
     // on Intel processor's virtual address width
     //
-    if (!CheckCanonicalVirtualAddress(TargetAddress, &IsKernelAddress))
+    if (!CheckAddressCanonicality(TargetAddress, &IsKernelAddress))
     {
         //
         // No need for further check, address is invalid
@@ -1088,7 +1088,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
                     ReadSize = Size;
                 }
 
-                if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
+                if (!CheckAddressValidityUsingTsx(TargetAddress))
                 {
                     //
                     // Address is not valid
@@ -1112,7 +1112,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         }
         else
         {
-            if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
+            if (!CheckAddressValidityUsingTsx(TargetAddress))
             {
                 //
                 // Address is not valid

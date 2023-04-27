@@ -169,7 +169,7 @@ BOOLEAN
 IsEmptyString(char * Text);
 
 VOID
-GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
 
 BOOLEAN
 CheckCpuSupportRtm();
@@ -178,4 +178,4 @@ UINT32
 Getx86VirtualAddressWidth();
 
 BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);

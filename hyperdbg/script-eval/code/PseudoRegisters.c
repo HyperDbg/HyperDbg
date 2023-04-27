@@ -112,7 +112,7 @@ ScriptEnginePseudoRegGetPname()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return CommonGetProcessNameFromEprocess(PsGetCurrentProcess());
+    return CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

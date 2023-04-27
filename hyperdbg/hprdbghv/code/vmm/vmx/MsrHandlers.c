@@ -205,7 +205,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         case IA32_SYSENTER_EIP:
         case IA32_SYSENTER_ESP:
 
-            if (!CheckCanonicalVirtualAddress(Msr.Flags, &UnusedIsKernel))
+            if (!CheckAddressCanonicality(Msr.Flags, &UnusedIsKernel))
             {
                 //
                 // Address is not canonical, inject #GP

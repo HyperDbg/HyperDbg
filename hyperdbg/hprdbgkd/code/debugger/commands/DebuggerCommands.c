@@ -80,7 +80,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         // Check whether the virtual memory is available in the current
         // memory layout and also is present in the RAM
         //
-        if (!CheckMemoryAccessSafety(Address, Size))
+        if (!CheckAccessValidityAndSafety(Address, Size))
         {
             ReadMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
@@ -447,8 +447,8 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         // Check whether the virtual memory is available in the current
         // memory layout and also is present in the RAM
         //
-        if (!CheckMemoryAccessSafety(EditMemRequest->Address,
-                                     EditMemRequest->ByteSize * EditMemRequest->CountOf64Chunks))
+        if (!CheckAccessValidityAndSafety(EditMemRequest->Address,
+                                          EditMemRequest->ByteSize * EditMemRequest->CountOf64Chunks))
         {
             EditMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
@@ -580,7 +580,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
             //
             // Switch to target process memory layout
             //
-            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
         }
         else
         {
@@ -845,7 +845,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             //
             // Switch to new process's memory layout
             //
-            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
         }
         else
         {

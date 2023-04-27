@@ -73,7 +73,7 @@ CommonGetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
  * @return PCHAR Returns a pointer to the process name
  */
 PCHAR
-CommonGetProcessNameFromEprocess(PEPROCESS Eprocess)
+CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
 {
     PCHAR Result = 0;
 

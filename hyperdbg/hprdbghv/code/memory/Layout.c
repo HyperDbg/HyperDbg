@@ -1,7 +1,7 @@
 /**
  * @file Layout.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Functions for switching memory layouts
+ * @brief Functions for working with memory layouts
  *
  * @version 0.2
  * @date 2023-04-27
@@ -12,28 +12,26 @@
 #include "pch.h"
 
 /**
- * @brief Switch to another process's cr3
+ * @brief Converts pid to kernel cr3
  *
- * @details this function should NOT be called from vmx-root mode
+ * @details this function should NOT be called from vmx-root
  *
  * @param ProcessId ProcessId to switch
- * @return CR3_TYPE The cr3 of current process which can be
- * used by SwitchToPreviousProcess function
+ * @return CR3_TYPE The cr3 of the target process
  */
 _Use_decl_annotations_
 CR3_TYPE
-SwitchToProcessMemoryLayout(UINT32 ProcessId)
+LayoutGetCr3ByProcessId(UINT32 ProcessId)
 {
-    UINT64    GuestCr3;
     PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
+    CR3_TYPE  ProcessCr3 = {0};
 
     if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
         //
-        return CurrentProcessCr3;
+        return ProcessCr3;
     }
 
     //
@@ -41,91 +39,44 @@ SwitchToProcessMemoryLayout(UINT32 ProcessId)
     // if the PCID indicates this is a user mode directory table base.
     //
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
-    GuestCr3                     = CurrentProcess->DirectoryTableBase;
-
-    //
-    // Read the current cr3
-    //
-    CurrentProcessCr3.Flags = __readcr3();
-
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(GuestCr3);
+    ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
 
     ObDereferenceObject(TargetEprocess);
 
-    return CurrentProcessCr3;
+    return ProcessCr3;
 }
 
 /**
- * @brief Switch to guest's running process's cr3
+ * @brief Get cr3 of the target running process
  *
- * @details this function can be called from vmx-root mode
- *
- * @return CR3_TYPE The cr3 of current process which can be
- * used by SwitchToPreviousProcess function
+ * @return CR3_TYPE Returns the cr3 of running process
  */
 CR3_TYPE
-SwitchToCurrentProcessMemoryLayout()
+LayoutGetCurrentProcessCr3()
 {
     CR3_TYPE GuestCr3;
-    CR3_TYPE CurrentProcessCr3 = {0};
-
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
-    // Read the current cr3
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
     //
-    CurrentProcessCr3.Flags = __readcr3();
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(GuestCr3.Flags);
-
-    return CurrentProcessCr3;
+    return GuestCr3;
 }
 
 /**
- * @brief Switch to another process's cr3
+ * @brief Find cr3 of system process
  *
- * @param TargetCr3 cr3 to switch
- * @return CR3_TYPE The cr3 of current process which can be
- * used by SwitchToPreviousProcess function
+ * @return UINT64 Returns cr3 of System process (pid=4)
  */
-_Use_decl_annotations_
-CR3_TYPE
-SwitchToProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
-{
-    CR3_TYPE CurrentProcessCr3 = {0};
-
-    //
-    // Read the current cr3
-    //
-    CurrentProcessCr3.Flags = __readcr3();
-
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(TargetCr3.Flags);
-
-    return CurrentProcessCr3;
-}
-
-/**
- * @brief Switch to previous process's cr3
- *
- * @param PreviousProcess Cr3 of previous process which
- * is returned by SwitchToProcessMemoryLayout
- * @return VOID
- */
-_Use_decl_annotations_
-VOID
-SwitchToPreviousProcess(CR3_TYPE PreviousProcess)
+UINT64
+LayoutGetSystemDirectoryTableBase()
 {
     //
-    // Restore the original cr3
+    // Return CR3 of the system process.
     //
-    __writecr3(PreviousProcess.Flags);
+    NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
+    return SystemProcess->DirectoryTableBase;
 }

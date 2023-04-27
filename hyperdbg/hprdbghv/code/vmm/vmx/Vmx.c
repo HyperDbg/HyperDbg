@@ -177,7 +177,7 @@ VmxInitialize()
     //
     // Create a bitmap of the MSRs that cause #GP
     //
-    g_MsrBitmapInvalidMsrs = AllocateInvalidMsrBimap();
+    g_MsrBitmapInvalidMsrs = VmxAllocateInvalidMsrBimap();
 
     if (g_MsrBitmapInvalidMsrs == NULL)
     {
@@ -689,7 +689,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     // of the DPC interrupt we execute in We have to save Cr3, for VMCS_HOST_CR3
     //
 
-    __vmx_vmwrite(VMCS_HOST_CR3, FindSystemDirectoryTableBase());
+    __vmx_vmwrite(VMCS_HOST_CR3, LayoutGetSystemDirectoryTableBase());
 
     __vmx_vmwrite(VMCS_GUEST_GDTR_BASE, AsmGetGdtBase());
     __vmx_vmwrite(VMCS_GUEST_IDTR_BASE, AsmGetIdtBase());
@@ -703,7 +703,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
     __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
-    GetSegmentDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
+    VmxGetSegmentDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
     __vmx_vmwrite(VMCS_HOST_TR_BASE, SegmentSelector.Base);
 
     __vmx_vmwrite(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
@@ -1023,4 +1023,250 @@ VmxPerformTermination()
     GlobalGuestStateFreeMemory();
 
     LogDebugInfo("VMX operation turned off successfully");
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible strlen
+ * @param S
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
+ * string
+ */
+UINT32
+VmxCompatibleStrlen(const CHAR * S)
+{
+    CHAR     Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(CHAR)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(CHAR));
+
+        if (Temp != '\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0;
+            }
+        }
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible wcslen
+ * @param S
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
+ * string
+ */
+UINT32
+VmxCompatibleWcslen(const wchar_t * S)
+{
+    wchar_t  Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(wchar_t)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(wchar_t));
+
+        if (Temp != '\0\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(wchar_t)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0;
+            }
+        }
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief Get Segment Descriptor
+ *
+ * @param SegmentSelector
+ * @param Selector
+ * @param GdtBase
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
+{
+    SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
+    SEGMENT_DESCRIPTOR_32 * Descriptor32;
+    SEGMENT_SELECTOR        SegSelector = {.AsUInt = Selector};
+
+    if (!SegmentSelector)
+        return FALSE;
+
+#define SELECTOR_TABLE_LDT 0x1
+#define SELECTOR_TABLE_GDT 0x0
+
+    //
+    // Ignore LDT
+    //
+    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT))
+    {
+        return FALSE;
+    }
+
+    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32 *)(GdtBase);
+    Descriptor32      = &DescriptorTable32[SegSelector.Index];
+
+    SegmentSelector->Selector = Selector;
+    SegmentSelector->Limit    = __segmentlimit(Selector);
+    SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
+
+    SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
+
+    if (SegSelector.Table == 0 && SegSelector.Index == 0)
+    {
+        SegmentSelector->Attributes.Unusable = TRUE;
+    }
+
+    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) || (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE))
+    {
+        //
+        // this is a TSS or callgate etc, save the base high part
+        //
+
+        UINT64 SegmentLimitHigh;
+        SegmentLimitHigh      = (*(UINT64 *)((PUCHAR)Descriptor32 + 8));
+        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (SegmentLimitHigh << 32);
+    }
+
+    if (SegmentSelector->Attributes.Granularity)
+    {
+        //
+        // 4096-bit granularity is enabled for this segment, scale the limit
+        //
+        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
+    }
+
+    return TRUE;
 }

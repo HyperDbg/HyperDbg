@@ -223,7 +223,7 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT
     //
     // Find the current process's running cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     OriginalCr3 = __readcr3();
     __writecr3(GuestCr3.Flags);

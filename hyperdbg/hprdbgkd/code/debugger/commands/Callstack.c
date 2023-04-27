@@ -64,7 +64,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
         //
         CurrentStackAddress = StackBaseAddress + (i * AddressMode);
 
-        if (!CheckMemoryAccessSafety(CurrentStackAddress, AddressMode))
+        if (!CheckAccessValidityAndSafety(CurrentStackAddress, AddressMode))
         {
             AddressToSaveFrames[i].IsStackAddressValid = FALSE;
 
@@ -97,7 +97,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
         //
         // Check if value is a valid address
         //
-        if (CheckMemoryAccessSafety(Value, MAXIMUM_CALL_INSTR_SIZE))
+        if (CheckAccessValidityAndSafety(Value, MAXIMUM_CALL_INSTR_SIZE))
         {
             //
             // It's a valid address

@@ -432,7 +432,7 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
             // any page-fault
             //
 
-            if (!CheckMemoryAccessSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
+            if (!CheckAccessValidityAndSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
             {
                 // LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
 

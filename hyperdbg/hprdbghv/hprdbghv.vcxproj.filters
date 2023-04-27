@@ -254,6 +254,12 @@
     <ClCompile Include="code\memory\Layout.c">
       <Filter>code\memory</Filter>
     </ClCompile>
+    <ClCompile Include="code\memory\AddressCheck.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\SwitchLayout.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -393,6 +399,12 @@
     </ClInclude>
     <ClInclude Include="header\common\Bitwise.h">
       <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\AddressCheck.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\SwitchLayout.h">
+      <Filter>header\memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

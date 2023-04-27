@@ -1,7 +1,7 @@
 /**
  * @file Layout.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Header files for switching memory layouts
+ * @brief Header files for working with memory layouts
  * @details
  * @version 0.2
  * @date 2023-04-27
@@ -14,3 +14,9 @@
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
+
+CR3_TYPE
+LayoutGetCr3ByProcessId(_In_ UINT32 ProcessId);
+
+UINT64
+LayoutGetSystemDirectoryTableBase();

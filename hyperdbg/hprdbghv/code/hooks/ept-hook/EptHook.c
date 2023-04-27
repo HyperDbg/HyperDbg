@@ -447,7 +447,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
     //
     BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
 
-    if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, GetCr3FromProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
+    if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, LayoutGetCr3ByProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
     {
         LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
@@ -1126,7 +1126,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
         //
         UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
         {
             //
             // Test log
@@ -1159,7 +1159,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     {
         if (EptHookPerformPageHook2(TargetAddress,
                                     HookFunction,
-                                    GetCr3FromProcessId(ProcessId),
+                                    LayoutGetCr3ByProcessId(ProcessId),
                                     SetHookForRead,
                                     SetHookForWrite,
                                     SetHookForExec) == TRUE)

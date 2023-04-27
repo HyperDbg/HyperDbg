@@ -132,11 +132,13 @@
     <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
+    <ClCompile Include="code\memory\AddressCheck.c" />
     <ClCompile Include="code\memory\Conversion.c" />
     <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
+    <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\platform\CrossApi.c" />
     <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
@@ -191,10 +193,12 @@
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
+    <ClInclude Include="header\memory\AddressCheck.h" />
     <ClInclude Include="header\memory\Conversion.h" />
     <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
+    <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\platform\CrossApi.h" />
     <ClInclude Include="header\platform\Environment.h" />
     <ClInclude Include="header\transparency\Transparency.h" />

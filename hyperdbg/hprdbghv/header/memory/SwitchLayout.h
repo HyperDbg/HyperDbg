@@ -1,7 +1,7 @@
 /**
- * @file Conversion.h
+ * @file SwitchLayout.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Header files for memory conversions
+ * @brief Header files for switching memory layouts
  * @details
  * @version 0.2
  * @date 2023-04-27

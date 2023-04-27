@@ -138,6 +138,25 @@ NTSTATUS(*NtCreateFileOrig)
     ULONG              EaLength);
 
 //////////////////////////////////////////////////
+//		     Syscall Hooks Functions			//
+//////////////////////////////////////////////////
+
+VOID
+SyscallHookTest();
+
+VOID
+SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
+
+BOOLEAN
+SyscallHookHandleUD(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+SyscallHookEmulateSYSRET(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+//////////////////////////////////////////////////
 //		    	 Hidden Hooks Test				//
 //////////////////////////////////////////////////
 
@@ -146,6 +165,12 @@ PVOID(*ExAllocatePoolWithTagOrig)
     POOL_TYPE PoolType,
     SIZE_T    NumberOfBytes,
     ULONG     Tag);
+
+/**
+ * @brief Maximum number of supported execution trampoline
+ *
+ */
+#define MAX_EXEC_TRAMPOLINE_SIZE 100
 
 // ----------------------------------------------------------------------
 

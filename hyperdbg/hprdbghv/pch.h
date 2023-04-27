@@ -92,6 +92,8 @@
 #include "vmm/ept/Vpid.h"
 #include "memory/Conversion.h"
 #include "memory/Layout.h"
+#include "memory/SwitchLayout.h"
+#include "memory/AddressCheck.h"
 #include "common/Bitwise.h"
 #include "common/Common.h"
 #include "components/spinlock/header/Spinlock.h"

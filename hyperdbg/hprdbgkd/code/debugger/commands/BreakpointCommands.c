@@ -162,7 +162,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // Convert breakpoint to physical address
@@ -374,7 +374,7 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckMemoryAccessSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
     {
         return FALSE;
     }
@@ -416,7 +416,7 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckMemoryAccessSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
     {
         //
         // Double check if we can access it by physical address
@@ -560,7 +560,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // *** Validate arguments ***
@@ -569,7 +569,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckMemoryAccessSafety(BpDescriptorArg->Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
     {
         BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
         return FALSE;

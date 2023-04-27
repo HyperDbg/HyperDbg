@@ -302,7 +302,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
 
@@ -901,7 +901,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // Move to new cr3
@@ -946,7 +946,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // Move to new cr3

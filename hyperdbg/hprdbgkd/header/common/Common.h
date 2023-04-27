@@ -94,7 +94,7 @@ BOOLEAN
 CommonIsProcessExist(UINT32 ProcId);
 
 PCHAR
-CommonGetProcessNameFromEprocess(PEPROCESS Eprocess);
+CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess);
 
 BOOLEAN
 CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);

@@ -36,8 +36,8 @@ CompatibilityCheckCpuSupportForRtm()
     // MSR_IA32_TSX_CTRL support.
     //
 
-    GetCpuid(0, 0, Regs1);
-    GetCpuid(7, 0, Regs2);
+    CommonCpuidInstruction(0, 0, Regs1);
+    CommonCpuidInstruction(7, 0, Regs2);
 
     //
     // Check RTM and MPX extensions in order to filter out TSX on Haswell CPUs
@@ -57,7 +57,7 @@ CompatibilityCheckGetX86VirtualAddressWidth()
 {
     int Regs[4];
 
-    GetCpuid(CPUID_ADDR_WIDTH, 0, Regs);
+    CommonCpuidInstruction(CPUID_ADDR_WIDTH, 0, Regs);
 
     //
     // Extracting bit 15:8 from eax register

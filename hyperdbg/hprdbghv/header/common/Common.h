@@ -319,56 +319,10 @@ BOOLEAN
 CommonAffinityBroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
 BOOLEAN
-StartsWith(const char * pre, const char * str);
+CommonIsStringStartsWith(const char * pre, const char * str);
 
 VOID
-GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
-
-UINT64 *
-AllocateInvalidMsrBimap();
-
-BOOLEAN
-IsGuestOnUsermode32Bit();
-
-BOOLEAN
-CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress);
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
 
 PCHAR
-CommonGetProcessNameFromEprocess(PEPROCESS eprocess);
-
-UINT64
-FindSystemDirectoryTableBase();
-
-CR3_TYPE
-GetCr3FromProcessId(_In_ UINT32 ProcessId);
-
-//////////////////////////////////////////////////
-//			         Functions  				//
-//////////////////////////////////////////////////
-
-#define MAX_EXEC_TRAMPOLINE_SIZE 100
-
-VOID
-SyscallHookTest();
-
-VOID
-SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);
-
-BOOLEAN
-SyscallHookHandleUD(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-SyscallHookEmulateSYSRET(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-SyscallHookEmulateSYSCALL(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-_Success_(return)
-BOOLEAN
-GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
-
-UINT32
-VmxCompatibleStrlen(const CHAR * S);
-
-UINT32
-VmxCompatibleWcslen(const wchar_t * S);
+CommonGetProcessNameFromProcessControlBlock(PEPROCESS eprocess);

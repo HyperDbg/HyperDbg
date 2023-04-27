@@ -290,16 +290,16 @@ SwitchToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 // Exported Interfaces For Check Validity of Addresses
 //
 IMPORT_EXPORT_VMM BOOLEAN
-CheckIfAddressIsValidUsingTsx(CHAR * Address);
+CheckAddressValidityUsingTsx(CHAR * Address);
 
 IMPORT_EXPORT_VMM BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
 
 // ----------------------------------------------------------------------------
-// Exported Interfaces For Miscellaneous Functions
+// Exported Interfaces For Layout Functions
 //
 IMPORT_EXPORT_VMM CR3_TYPE
-GetRunningCr3OnTargetProcess();
+LayoutGetCurrentProcessCr3();
 
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//

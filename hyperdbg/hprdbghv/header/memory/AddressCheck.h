@@ -1,7 +1,7 @@
 /**
- * @file Conversion.h
+ * @file AddressCheck.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Header files for memory conversions
+ * @brief Header files for address checks
  * @details
  * @version 0.2
  * @date 2023-04-27
@@ -16,5 +16,8 @@
 //////////////////////////////////////////////////
 
 //
-// Function are globally defined in SDK
+// Some functions are globally defined in SDK
 //
+
+BOOLEAN
+CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress);

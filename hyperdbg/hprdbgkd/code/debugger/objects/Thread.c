@@ -76,7 +76,7 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
     //
     if (EThread != NULL)
     {
-        if (CheckMemoryAccessSafety(EThread, sizeof(BYTE)))
+        if (CheckAccessValidityAndSafety(EThread, sizeof(BYTE)))
         {
             g_ThreadSwitch.Thread = EThread;
         }
@@ -195,7 +195,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Check if the process's thread list head is valid or not
     //
-    if (!CheckMemoryAccessSafety(ThreadListHead, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(ThreadListHead, sizeof(BYTE)))
     {
         return FALSE;
     }
@@ -217,7 +217,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         Log("PROCESS\t%llx\tIMAGE\t%s\n",
             ThreadListSymbolInfo->Process,
-            CommonGetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
+            CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process));
     }
 
     //
@@ -280,7 +280,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             SavingEntries[EnumerationCount - 1].Ethread  = Thread;
 
             RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
-                          CommonGetProcessNameFromEprocess(ThreadListSymbolInfo->Process),
+                          CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process),
                           15);
 
             break;
@@ -332,7 +332,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         TidRequest->ThreadId  = PsGetCurrentThreadId();
         TidRequest->Process   = PsGetCurrentProcess();
         TidRequest->Thread    = PsGetCurrentThread();
-        MemoryMapperReadMemorySafe(CommonGetProcessNameFromEprocess(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
+        MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -676,7 +676,7 @@ ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThre
     GetInformationThreadRequest->ThreadId  = PsGetCurrentThreadId();
 
     RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
-                  CommonGetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
                   15);
 
     GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

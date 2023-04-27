@@ -93,7 +93,7 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
     //
     if (EProcess != NULL)
     {
-        if (CheckMemoryAccessSafety(EProcess, sizeof(BYTE)))
+        if (CheckAccessValidityAndSafety(EProcess, sizeof(BYTE)))
         {
             g_ProcessSwitch.Process = EProcess;
         }
@@ -274,7 +274,7 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
     //
     // Check if address is valid
     //
-    if (CheckMemoryAccessSafety(ActiveProcessHead, sizeof(BYTE)))
+    if (CheckAccessValidityAndSafety(ActiveProcessHead, sizeof(BYTE)))
     {
         //
         // Show processes list, we read everything from the view of system
@@ -393,7 +393,7 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
     //
     // Check if address is valid
     //
-    if (CheckMemoryAccessSafety(ActiveProcessHead, sizeof(BYTE)))
+    if (CheckAccessValidityAndSafety(ActiveProcessHead, sizeof(BYTE)))
     {
         //
         // Show processes list, we read everything from the view of system
@@ -528,7 +528,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         PidRequest->ProcessId = PsGetCurrentProcessId();
         PidRequest->Process   = PsGetCurrentProcess();
-        MemoryMapperReadMemorySafe(CommonGetProcessNameFromEprocess(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
+        MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -672,7 +672,7 @@ ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationPr
     GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
     GetInformationProcessRequest->Process   = PsGetCurrentProcess();
     RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
-                  CommonGetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
                   15);
 
     GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
