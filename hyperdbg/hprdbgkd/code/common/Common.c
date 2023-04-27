@@ -21,7 +21,7 @@
  * exists and false if it the process doesn't exist
  */
 BOOLEAN
-IsProcessExist(UINT32 ProcId)
+CommonIsProcessExist(UINT32 ProcId)
 {
     PEPROCESS TargetEprocess;
     CR3_TYPE  CurrentProcessCr3 = {0};
@@ -50,7 +50,7 @@ IsProcessExist(UINT32 ProcId)
  */
 _Use_decl_annotations_
 NTSTATUS
-GetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
+CommonGetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
 {
     NTSTATUS Status;
     Status = STATUS_SUCCESS;
@@ -73,7 +73,7 @@ GetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
  * @return PCHAR Returns a pointer to the process name
  */
 PCHAR
-GetProcessNameFromEprocess(PEPROCESS Eprocess)
+CommonGetProcessNameFromEprocess(PEPROCESS Eprocess)
 {
     PCHAR Result = 0;
 
@@ -96,7 +96,7 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
  * @return NTSTATUS
  */
 NTSTATUS
-UndocumentedNtOpenProcess(
+CommonUndocumentedNtOpenProcess(
     PHANDLE         ProcessHandle,
     ACCESS_MASK     DesiredAccess,
     HANDLE          ProcessId,
@@ -155,7 +155,7 @@ UndocumentedNtOpenProcess(
  */
 _Use_decl_annotations_
 BOOLEAN
-KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
+CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 {
     NTSTATUS  Status        = STATUS_SUCCESS;
     HANDLE    ProcessHandle = NULL;
@@ -170,7 +170,7 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     {
     case PROCESS_KILL_METHOD_1:
 
-        Status = GetHandleFromProcess(ProcessId, &ProcessHandle);
+        Status = CommonGetHandleFromProcess(ProcessId, &ProcessHandle);
 
         if (!NT_SUCCESS(Status) || ProcessHandle == NULL)
         {
@@ -191,7 +191,7 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 
     case PROCESS_KILL_METHOD_2:
 
-        UndocumentedNtOpenProcess(
+        CommonUndocumentedNtOpenProcess(
             &ProcessHandle,
             PROCESS_ALL_ACCESS,
             ProcessId,

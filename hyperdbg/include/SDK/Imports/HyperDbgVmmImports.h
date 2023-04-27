@@ -275,13 +275,16 @@ PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
 // Exported Interfaces For Layout Switching Functions
 //
 IMPORT_EXPORT_VMM CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
+SwitchToProcessMemoryLayout(_In_ UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM CR3_TYPE
-SwitchOnMemoryLayoutOfTargetProcess();
+SwitchToCurrentProcessMemoryLayout();
 
 IMPORT_EXPORT_VMM CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
+SwitchToProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
+
+IMPORT_EXPORT_VMM VOID
+SwitchToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 
 // ----------------------------------------------------------------------------
 // Exported Interfaces For Check Validity of Addresses
@@ -297,9 +300,6 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 //
 IMPORT_EXPORT_VMM CR3_TYPE
 GetRunningCr3OnTargetProcess();
-
-IMPORT_EXPORT_VMM VOID
-RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//

@@ -112,7 +112,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
             //
             // Check if pid is valid
             //
-            if (!IsProcessExist(AddressDetails->ProcessId))
+            if (!CommonIsProcessExist(AddressDetails->ProcessId))
             {
                 //
                 // Process id is invalid
@@ -186,7 +186,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
         //
         // Switch on running process's cr3
         //
-        RestoreCr3.Flags = SwitchOnMemoryLayoutOfTargetProcess().Flags;
+        RestoreCr3.Flags = SwitchToCurrentProcessMemoryLayout().Flags;
     }
     else
     {
@@ -199,7 +199,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
             //
             // Check if pid is valid
             //
-            if (!IsProcessExist(PteDetails->ProcessId))
+            if (!CommonIsProcessExist(PteDetails->ProcessId))
             {
                 //
                 // Process id is invalid
@@ -211,7 +211,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
             //
             // Switch to new process's memory layout
             //
-            RestoreCr3.Flags = SwitchOnAnotherProcessMemoryLayout(PteDetails->ProcessId).Flags;
+            RestoreCr3.Flags = SwitchToProcessMemoryLayout(PteDetails->ProcessId).Flags;
         }
 
         //
@@ -278,7 +278,7 @@ RestoreTheState:
     //
     if (RestoreCr3.Flags != NULL)
     {
-        RestoreToPreviousProcess(RestoreCr3);
+        SwitchToPreviousProcess(RestoreCr3);
     }
 
     return Result;

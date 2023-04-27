@@ -223,7 +223,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     //
     // Switch to target process
     //
-    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
+    Cr3OfCurrentProcess = SwitchToProcessMemoryLayoutByCr3(ProcessCr3);
 
     //
     // Copy the content to the fake page
@@ -240,7 +240,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
     //
     // Restore to original process
     //
-    RestoreToPreviousProcess(Cr3OfCurrentProcess);
+    SwitchToPreviousProcess(Cr3OfCurrentProcess);
 
     //
     // Save the modified entry
@@ -700,7 +700,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
 
     // Switch to target process
     //
-    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
+    Cr3OfCurrentProcess = SwitchToProcessMemoryLayoutByCr3(ProcessCr3);
 
     //
     // The following line can't be used in user mode addresses
@@ -711,7 +711,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     //
     // Restore to original process
     //
-    RestoreToPreviousProcess(Cr3OfCurrentProcess);
+    SwitchToPreviousProcess(Cr3OfCurrentProcess);
 
     //
     // Add the absolute jump back to the original function
@@ -964,7 +964,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         //
         // Switch to target process
         //
-        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
+        Cr3OfCurrentProcess = SwitchToProcessMemoryLayoutByCr3(ProcessCr3);
 
         //
         // Copy the content to the fake page
@@ -976,7 +976,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         //
         // Restore to original process
         //
-        RestoreToPreviousProcess(Cr3OfCurrentProcess);
+        SwitchToPreviousProcess(Cr3OfCurrentProcess);
 
         //
         // Compute new offset of target offset into a safe bufferr

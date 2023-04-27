@@ -580,13 +580,13 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
             //
             // Switch to target process memory layout
             //
-            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
         }
         else
         {
             if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
             {
-                CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+                CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
             }
         }
 
@@ -761,7 +761,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         //
         if (IsDebuggeePaused || SearchMemRequest->ProcessId != PsGetCurrentProcessId())
         {
-            RestoreToPreviousProcess(CurrentProcessCr3);
+            SwitchToPreviousProcess(CurrentProcessCr3);
         }
     }
     else if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_MEMORY)
@@ -845,14 +845,14 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             //
             // Switch to new process's memory layout
             //
-            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+            CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
         }
         else
         {
             //
             // Switch to new process's memory layout
             //
-            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+            CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
         }
 
         //
@@ -896,7 +896,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         // Restore the original process
         //
-        RestoreToPreviousProcess(CurrentProcessCr3);
+        SwitchToPreviousProcess(CurrentProcessCr3);
 
         //
         // All of the address chunk was valid
@@ -991,7 +991,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Check if process id is valid or not
     //
-    if (SearchMemRequest->ProcessId != PsGetCurrentProcessId() && !IsProcessExist(SearchMemRequest->ProcessId))
+    if (SearchMemRequest->ProcessId != PsGetCurrentProcessId() && !CommonIsProcessExist(SearchMemRequest->ProcessId))
     {
         return STATUS_INVALID_PARAMETER;
     }

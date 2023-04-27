@@ -528,7 +528,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         PidRequest->ProcessId = PsGetCurrentProcessId();
         PidRequest->Process   = PsGetCurrentProcess();
-        MemoryMapperReadMemorySafe(GetProcessNameFromEprocess(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
+        MemoryMapperReadMemorySafe(CommonGetProcessNameFromEprocess(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -672,7 +672,7 @@ ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationPr
     GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
     GetInformationProcessRequest->Process   = PsGetCurrentProcess();
     RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
-                  GetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromEprocess(PsGetCurrentProcess()),
                   15);
 
     GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

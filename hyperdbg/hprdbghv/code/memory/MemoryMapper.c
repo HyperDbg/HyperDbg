@@ -98,7 +98,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
     // be a kernel cr3 (not KPTI user cr3) as the functions to translate
     // physical address to virtual address is not mapped on the user cr3
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetCr3);
 
     //
     // Call the wrapper
@@ -108,7 +108,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return PageEntry;
 }
@@ -304,7 +304,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
 
     //
     // Find the page table entry
@@ -323,7 +323,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return Result;
 }
@@ -1401,7 +1401,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
 
     //
     // Read the previous entry in order to modify it
@@ -1451,7 +1451,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 }
 
 /**

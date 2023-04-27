@@ -217,7 +217,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         Log("PROCESS\t%llx\tIMAGE\t%s\n",
             ThreadListSymbolInfo->Process,
-            GetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
+            CommonGetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
     }
 
     //
@@ -280,7 +280,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             SavingEntries[EnumerationCount - 1].Ethread  = Thread;
 
             RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
-                          GetProcessNameFromEprocess(ThreadListSymbolInfo->Process),
+                          CommonGetProcessNameFromEprocess(ThreadListSymbolInfo->Process),
                           15);
 
             break;
@@ -332,7 +332,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         TidRequest->ThreadId  = PsGetCurrentThreadId();
         TidRequest->Process   = PsGetCurrentProcess();
         TidRequest->Thread    = PsGetCurrentThread();
-        MemoryMapperReadMemorySafe(GetProcessNameFromEprocess(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
+        MemoryMapperReadMemorySafe(CommonGetProcessNameFromEprocess(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -676,7 +676,7 @@ ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThre
     GetInformationThreadRequest->ThreadId  = PsGetCurrentThreadId();
 
     RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
-                  GetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromEprocess(PsGetCurrentProcess()),
                   15);
 
     GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

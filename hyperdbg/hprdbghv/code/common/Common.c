@@ -21,7 +21,7 @@
  */
 _Use_decl_annotations_
 BOOLEAN
-BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
+CommonAffinityBroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
     KIRQL OldIrql;
 
@@ -36,43 +36,6 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
     KeRevertToUserAffinityThread();
 
     return TRUE;
-}
-
-/**
- * @brief Check whether the bit is set or not
- *
- * @param nth
- * @param addr
- * @return int
- */
-int
-TestBit(int nth, unsigned long * addr)
-{
-    return (BITMAP_ENTRY(nth, addr) >> BITMAP_SHIFT(nth)) & 1;
-}
-
-/**
- * @brief unset the bit
- *
- * @param nth
- * @param addr
- */
-void
-ClearBit(int nth, unsigned long * addr)
-{
-    BITMAP_ENTRY(nth, addr) &= ~(1UL << BITMAP_SHIFT(nth));
-}
-
-/**
- * @brief set the bit
- *
- * @param nth
- * @param addr
- */
-void
-SetBit(int nth, unsigned long * addr)
-{
-    BITMAP_ENTRY(nth, addr) |= (1UL << BITMAP_SHIFT(nth));
 }
 
 /**
@@ -121,108 +84,6 @@ GetCr3FromProcessId(UINT32 ProcessId)
     ObDereferenceObject(TargetEprocess);
 
     return ProcessCr3;
-}
-
-/**
- * @brief Switch to another process's cr3
- *
- * @details this function should NOT be called from vmx-root mode
- *
- * @param ProcessId ProcessId to switch
- * @return CR3_TYPE The cr3 of current process which can be
- * used by RestoreToPreviousProcess function
- */
-_Use_decl_annotations_
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
-{
-    UINT64    GuestCr3;
-    PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
-
-    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
-    {
-        //
-        // There was an error, probably the process id was not found
-        //
-        return CurrentProcessCr3;
-    }
-
-    //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
-    GuestCr3                     = CurrentProcess->DirectoryTableBase;
-
-    //
-    // Read the current cr3
-    //
-    CurrentProcessCr3.Flags = __readcr3();
-
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(GuestCr3);
-
-    ObDereferenceObject(TargetEprocess);
-
-    return CurrentProcessCr3;
-}
-
-/**
- * @brief Switch to guest's running process's cr3
- *
- * @details this function can be called from vmx-root mode
- *
- * @return CR3_TYPE The cr3 of current process which can be
- * used by RestoreToPreviousProcess function
- */
-CR3_TYPE
-SwitchOnMemoryLayoutOfTargetProcess()
-{
-    CR3_TYPE GuestCr3;
-    CR3_TYPE CurrentProcessCr3 = {0};
-
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
-
-    //
-    // Read the current cr3
-    //
-    CurrentProcessCr3.Flags = __readcr3();
-
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(GuestCr3.Flags);
-
-    return CurrentProcessCr3;
-}
-
-/**
- * @brief Switch to another process's cr3
- *
- * @param TargetCr3 cr3 to switch
- * @return CR3_TYPE The cr3 of current process which can be
- * used by RestoreToPreviousProcess function
- */
-_Use_decl_annotations_
-CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
-{
-    CR3_TYPE CurrentProcessCr3 = {0};
-
-    //
-    // Read the current cr3
-    //
-    CurrentProcessCr3.Flags = __readcr3();
-
-    //
-    // Change to a new cr3 (of target process)
-    //
-    __writecr3(TargetCr3.Flags);
-
-    return CurrentProcessCr3;
 }
 
 /**
@@ -292,23 +153,6 @@ GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR Segm
 }
 
 /**
- * @brief Switch to previous process's cr3
- *
- * @param PreviousProcess Cr3 of previous process which
- * is returned by SwitchOnAnotherProcessMemoryLayout
- * @return VOID
- */
-_Use_decl_annotations_
-VOID
-RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
-{
-    //
-    // Restore the original cr3
-    //
-    __writecr3(PreviousProcess.Flags);
-}
-
-/**
  * @brief Converts Physical Address to Virtual Address based
  * on a specific process id
  *
@@ -329,7 +173,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayout(ProcessId);
 
     //
     // Validate if process id is valid
@@ -351,7 +195,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return VirtualAddress;
 }
@@ -377,7 +221,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetCr3);
 
     //
     // Validate if process id is valid
@@ -399,7 +243,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return VirtualAddress;
 }
@@ -466,7 +310,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayout(ProcessId);
 
     //
     // Validate if process id is valid
@@ -487,7 +331,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return PhysicalAddress;
 }
@@ -510,7 +354,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetCr3);
 
     //
     // Validate if process id is valid
@@ -531,7 +375,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return PhysicalAddress;
 }
@@ -556,7 +400,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     //
     // Switch to new process's memory layout
     //
-    CurrentCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+    CurrentCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
 
     //
     // Validate if process id is valid
@@ -577,7 +421,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentCr3);
+    SwitchToPreviousProcess(CurrentCr3);
 
     return PhysicalAddress;
 }
@@ -620,7 +464,7 @@ FindSystemDirectoryTableBase()
  * @return PCHAR Returns a pointer to the process name
  */
 PCHAR
-GetProcessNameFromEprocess(PEPROCESS Eprocess)
+CommonGetProcessNameFromEprocess(PEPROCESS Eprocess)
 {
     PCHAR Result = 0;
 

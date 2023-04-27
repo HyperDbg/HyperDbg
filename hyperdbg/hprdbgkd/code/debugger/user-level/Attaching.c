@@ -1104,7 +1104,7 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     //
     // Check if we can kill it using the first method
     //
-    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_1);
+    WasKilled = CommonKillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_1);
 
     if (WasKilled)
     {
@@ -1114,7 +1114,7 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     //
     // Check if we can kill it using the second method
     //
-    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_2);
+    WasKilled = CommonKillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_2);
 
     if (WasKilled)
     {
@@ -1124,7 +1124,7 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     //
     // Check if we can kill it using the third method
     //
-    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_3);
+    WasKilled = CommonKillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_3);
 
     if (WasKilled)
     {

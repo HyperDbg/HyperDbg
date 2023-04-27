@@ -2039,7 +2039,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // The used specified a special pid, let's check if it's valid or not
         //
-        if (!IsProcessExist(EventDetails->ProcessId))
+        if (!CommonIsProcessExist(EventDetails->ProcessId))
         {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
             ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_PROCESS_ID;

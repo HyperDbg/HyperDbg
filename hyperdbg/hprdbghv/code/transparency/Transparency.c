@@ -533,7 +533,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
     // Find the current process id and name
     //
     CurrentProcessId   = PsGetCurrentProcessId();
-    CurrentProcessName = GetProcessNameFromEprocess(PsGetCurrentProcess());
+    CurrentProcessName = CommonGetProcessNameFromEprocess(PsGetCurrentProcess());
 
     //
     // Check for process id and process name, if not match then we don't emulate it

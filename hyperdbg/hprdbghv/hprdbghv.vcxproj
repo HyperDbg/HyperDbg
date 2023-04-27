@@ -117,6 +117,7 @@
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\common\Bitwise.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
     <ClCompile Include="code\devices\Apic.c" />
@@ -131,6 +132,8 @@
     <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
+    <ClCompile Include="code\memory\Conversion.c" />
+    <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
@@ -172,6 +175,7 @@
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\common\Bitwise.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\common\Msr.h" />
@@ -187,6 +191,8 @@
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
+    <ClInclude Include="header\memory\Conversion.h" />
+    <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\platform\CrossApi.h" />

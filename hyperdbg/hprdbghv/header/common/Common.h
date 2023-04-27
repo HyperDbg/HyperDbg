@@ -309,23 +309,14 @@ PsGetProcessImageFileName(IN PEPROCESS Process);
 //
 
 static NTSTATUS
-GetHandleFromProcess(_In_ UINT32 ProcessId, _Out_ PHANDLE Handle);
+CommonGetHandleFromProcess(_In_ UINT32 ProcessId, _Out_ PHANDLE Handle);
 
 // ----------------------------------------------------------------------------
 // Public Interfaces
 //
 
-int
-TestBit(int nth, unsigned long * addr);
-
-void
-ClearBit(int nth, unsigned long * addr);
-
-void
-SetBit(int nth, unsigned long * addr);
-
 BOOLEAN
-BroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
+CommonAffinityBroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
 BOOLEAN
 StartsWith(const char * pre, const char * str);
@@ -343,7 +334,7 @@ BOOLEAN
 CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress);
 
 PCHAR
-GetProcessNameFromEprocess(PEPROCESS eprocess);
+CommonGetProcessNameFromEprocess(PEPROCESS eprocess);
 
 UINT64
 FindSystemDirectoryTableBase();

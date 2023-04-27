@@ -91,10 +91,10 @@ typedef enum _PROCESS_KILL_METHODS
 //////////////////////////////////////////////////
 
 BOOLEAN
-IsProcessExist(UINT32 ProcId);
+CommonIsProcessExist(UINT32 ProcId);
 
 PCHAR
-GetProcessNameFromEprocess(PEPROCESS Eprocess);
+CommonGetProcessNameFromEprocess(PEPROCESS Eprocess);
 
 BOOLEAN
-KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
+CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
