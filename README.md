@@ -38,7 +38,7 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
 
-**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://arxiv.org/pdf/2207.05676)** [[arXiv](https://arxiv.org/abs/2207.05676)]
+**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://dl.acm.org/doi/abs/10.1145/3548606.3560649)** [[arXiv](https://arxiv.org/abs/2207.05676)]
 
 ```
 @inproceedings{karvandi2022hyperdbg,
