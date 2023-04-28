@@ -30,6 +30,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // Here's the best place to see if there is any allocation pending
     // to be allcated as we're in PASSIVE_LEVEL
     //
+    // DO NOT CHANGE CALLING OF THE FOLLOWING FUNCTION
+    //
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
     if (g_AllowIOCTLFromUsermode)
