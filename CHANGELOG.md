@@ -20,6 +20,7 @@ The second (2nd) of the HyperDbg Debugger.
 - New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The "**settings**" command now preserves the configurations in the config file
 - The communication buffer is now separated from the hyperlogger buffer chunks and the buffer size is increased X10 times ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size)) 
+- Zydis submodule is updated to version 4 ([link](https://github.com/zyantific/zydis/releases/tag/v4.0.0)) 
 
 ### Removed
 - **enable_event** script engine function
