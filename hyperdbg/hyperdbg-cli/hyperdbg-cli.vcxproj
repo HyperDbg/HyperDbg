@@ -77,8 +77,25 @@
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\hprdbgrev.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"
+copy "$(OutDir)hyperlog.lib" "$(OutDir)SDK\Libraries\hyperlog.lib"
+copy "$(OutDir)hprdbghv.lib" "$(OutDir)SDK\Libraries\hprdbghv.lib"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\HPRDBGCTRL.dll"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\hprdbgrev.dll"
+copy "$(OutDir)pdbex.dll" "$(OutDir)SDK\Libraries\pdbex.dll"
+copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\Libraries\kdserial.dll"
+copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
+copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
+copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
+copy "$(OutDir)hprdbghv.dll" "$(OutDir)SDK\Libraries\hprdbghv.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -104,6 +121,27 @@
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\hprdbgrev.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"
+copy "$(OutDir)hyperlog.lib" "$(OutDir)SDK\Libraries\hyperlog.lib"
+copy "$(OutDir)hprdbghv.lib" "$(OutDir)SDK\Libraries\hprdbghv.lib"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\HPRDBGCTRL.dll"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\hprdbgrev.dll"
+copy "$(OutDir)pdbex.dll" "$(OutDir)SDK\Libraries\pdbex.dll"
+copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\Libraries\kdserial.dll"
+copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
+copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
+copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
+copy "$(OutDir)hprdbghv.dll" "$(OutDir)SDK\Libraries\hprdbghv.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hyperdbg-cli.cpp" />

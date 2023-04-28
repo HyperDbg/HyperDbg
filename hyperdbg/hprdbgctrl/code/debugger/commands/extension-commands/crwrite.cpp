@@ -126,7 +126,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
                 CommandCrwriteHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-                return;   
+                return;
             }
             else
             {
@@ -152,14 +152,14 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
         CommandCrwriteHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;    
+        return;
     }
 
     //
     // Set the target control register
     //
     Event->OptionalParam1 = TargetRegister;
-    
+
     //
     // Set the mask to filter control register bits
     //

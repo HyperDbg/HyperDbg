@@ -342,10 +342,18 @@ BOOLEAN g_IsCommandListInitialized = FALSE;
 /**
  * @brief this variable is used to indicate that modules
  * are loaded so we make sure to later use a trace of
- * loading in 'unload' command
+ * loading in 'unload' command (used in Debugger VMM)
  *
  */
 BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
+
+/**
+ * @brief this variable is used to indicate that modules
+ * are loaded so we make sure to later use a trace of
+ * loading in 'unload' command (used in reversing machine)
+ *
+ */
+BOOLEAN g_IsReversingMachineModulesLoaded = FALSE;
 
 /**
  * @brief State of active debugging thread
@@ -433,6 +441,7 @@ BOOLEAN g_IsVmxOffProcessStart;
  * @brief Holds the global handle of device which is used
  * to send the request to the kernel by IOCTL, this
  * handle is not used for IRP Pending of message tracing
+ * this handle is used in KD VMM
  *
  */
 HANDLE g_DeviceHandle;

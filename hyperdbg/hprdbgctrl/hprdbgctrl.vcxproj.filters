@@ -66,6 +66,9 @@
     <Filter Include="code\script-eval">
       <UniqueIdentifier>{9a547a24-cf46-4d53-a723-9fcbd29db4d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\rev">
+      <UniqueIdentifier>{4d49c742-e10d-4d2b-9178-e65c665c99a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -129,6 +132,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\objects.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\rev-ctrl.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -471,6 +477,12 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\crwrite.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\extension-commands\rev.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\rev\rev-ctrl.cpp">
+      <Filter>code\rev</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

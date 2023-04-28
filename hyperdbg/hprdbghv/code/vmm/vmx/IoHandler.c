@@ -14,19 +14,20 @@
 /**
  * @brief VM-Exit handler for I/O Instructions (in/out)
  *
- * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler
+ * @param VCpu The virtual processor's state
  * @param IoQualification The I/O Qualification that indicates the instruction
  * @param Flags Guest's RFLAGs
  *
  * @return VOID
  */
 VOID
-IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
+IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
-    UINT16 Port  = 0;
-    UINT32 Count = 0;
-    UINT32 Size  = 0;
-    UINT64 GpReg = 0;
+    UINT16      Port      = 0;
+    UINT32      Count     = 0;
+    UINT32      Size      = 0;
+    UINT64      GpReg     = 0;
+    PGUEST_REGS GuestRegs = VCpu->Regs;
 
     //
     // VMWare tools uses port  (port 0x5658/0x5659) as I/O backdoor
@@ -222,7 +223,7 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT
     //
     // Find the current process's running cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     OriginalCr3 = __readcr3();
     __writecr3(GuestCr3.Flags);
@@ -252,22 +253,21 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT
 /**
  * @brief Set bits in I/O Bitmap
  *
+ * @param VCpu The virtual processor's state
  * @param Port Port
- * @param ProcessorID Processor ID
+ *
  * @return BOOLEAN Returns true if the I/O Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
+IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
 {
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
-
     if (Port <= 0x7FFF)
     {
-        SetBit(Port, CurrentVmState->IoBitmapVirtualAddressA);
+        SetBit(Port, VCpu->IoBitmapVirtualAddressA);
     }
     else if ((0x8000 <= Port) && (Port <= 0xFFFF))
     {
-        SetBit(Port - 0x8000, CurrentVmState->IoBitmapVirtualAddressB);
+        SetBit(Port - 0x8000, VCpu->IoBitmapVirtualAddressB);
     }
     else
     {
@@ -280,45 +280,44 @@ IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
 /**
  * @brief Change I/O Bitmap
  * @details should be called in vmx-root mode
+ *
+ * @param VCpu The virtual processor's state
  * @param IoPort Port
  * @return VOID
  */
 VOID
-IoHandlePerformIoBitmapChange(UINT64 Port)
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
 {
-    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
-
     if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(CurrentVmState->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-        memset(CurrentVmState->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+        memset(VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset(VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
     }
     else
     {
         //
         // Means only one i/o bitmap is target
         //
-        IoHandleSetIoBitmap(Port, CoreIndex);
+        IoHandleSetIoBitmap(VCpu, Port);
     }
 }
 
 /**
  * @brief Reset I/O Bitmap
  * @details should be called in vmx-root mode
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID
-IoHandlePerformIoBitmapReset()
+IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(CurrentVmState->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
-    memset(CurrentVmState->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+    memset(VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset(VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }

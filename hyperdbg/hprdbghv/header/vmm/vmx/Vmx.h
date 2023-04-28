@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,19 +17,19 @@
 
 /**
  * @brief VMCS Region Size
- * 
+ *
  */
 #define VMCS_SIZE 4096
 
 /**
  * @brief VMXON Region Size
- * 
+ *
  */
 #define VMXON_SIZE 4096
 
 /**
  * @brief PIN-Based Execution
- * 
+ *
  */
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000008
@@ -39,7 +39,7 @@
 
 /**
  * @brief CPU-Based Controls
- * 
+ *
  */
 #define CPU_BASED_VIRTUAL_INTR_PENDING        0x00000004
 #define CPU_BASED_USE_TSC_OFFSETING           0x00000008
@@ -65,7 +65,7 @@
 
 /**
  * @brief Secondary CPU-Based Controls
- * 
+ *
  */
 #define CPU_BASED_CTL2_ENABLE_EPT                 0x2
 #define CPU_BASED_CTL2_RDTSCP                     0x8
@@ -78,7 +78,7 @@
 
 /**
  * @brief VM-exit Control Bits
- * 
+ *
  */
 #define VM_EXIT_SAVE_DEBUG_CONTROLS        0x00000004
 #define VM_EXIT_HOST_ADDR_SPACE_SIZE       0x00000200
@@ -92,7 +92,7 @@
 
 /**
  * @brief VM-entry Control Bits
- * 
+ *
  */
 #define VM_ENTRY_LOAD_DEBUG_CONTROLS        0x00000004
 #define VM_ENTRY_IA32E_MODE                 0x00000200
@@ -104,7 +104,7 @@
 
 /**
  * @brief CPUID RCX(s) - Based on Hyper-V
- * 
+ *
  */
 #define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define HYPERV_CPUID_INTERFACE                0x40000001
@@ -118,7 +118,7 @@
 
 /**
  * @brief GUEST_INTERRUPTIBILITY_INFO flags
- * 
+ *
  */
 #define GUEST_INTR_STATE_STI          0x00000001
 #define GUEST_INTR_STATE_MOV_SS       0x00000002
@@ -128,31 +128,23 @@
 
 /**
  * @brief Interrupt shadow states
- * 
+ *
  */
 #define SHADOW_INT_MOV_SS 0x01
 #define SHADOW_INT_STI    0x02
 
 /**
  * @brief Stack Size
- * 
+ *
  */
 #define VMM_STACK_SIZE 0x8000
 
-/**
- * @brief Pending External Interrups Buffer Capacity
- * 
- */
-#define PENDING_INTERRUPTS_BUFFER_CAPACITY 64
-
-#define IS_VALID_DEBUG_REGISTER(DebugRegister)                   \
-    (((DebugRegister <= VMX_EXIT_QUALIFICATION_REGISTER_DR0) &&  \
-      (DebugRegister <= VMX_EXIT_QUALIFICATION_REGISTER_DR7)) && \
-     (DebugRegister != 0x00000004 && DebugRegister != 0x00000005))
+#define IS_VALID_DEBUG_REGISTER(DebugRegister) \
+    (((DebugRegister <= VMX_EXIT_QUALIFICATION_REGISTER_DR0) && (DebugRegister <= VMX_EXIT_QUALIFICATION_REGISTER_DR7)) && (DebugRegister != 0x00000004 && DebugRegister != 0x00000005))
 
 /**
  * @brief Hypercalls for Hyper-V
- * 
+ *
  */
 typedef union _HYPERCALL_INPUT_VALUE
 {
@@ -174,7 +166,7 @@ typedef union _HYPERCALL_INPUT_VALUE
 
 /**
  * @brief Hyper-V Hypercalls
- * 
+ *
  */
 enum HYPERCALL_CODE
 {
@@ -300,67 +292,13 @@ enum HYPERCALL_CODE
 
 /**
  * @brief MOV to debug registers states
- * 
+ *
  */
 typedef enum MOV_TO_DEBUG_REG
 {
     AccessToDebugRegister   = 0,
     AccessFromDebugRegister = 1,
 };
-
-//////////////////////////////////////////////////
-//			 Structures & Unions				//
-//////////////////////////////////////////////////
-
-/**
- * @brief Save the state of core in the case of VMXOFF
- * 
- */
-typedef struct _VMX_VMXOFF_STATE
-{
-    BOOLEAN IsVmxoffExecuted; // Shows whether the VMXOFF executed or not
-    UINT64  GuestRip;         // Rip address of guest to return
-    UINT64  GuestRsp;         // Rsp address of guest to return
-
-} VMX_VMXOFF_STATE, *PVMX_VMXOFF_STATE;
-
-/**
- * @brief The status of each core after and before VMX
- * 
- */
-typedef struct _VIRTUAL_MACHINE_STATE
-{
-    BOOLEAN IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
-    BOOLEAN IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
-    BOOLEAN HasLaunched;                                                   // Indicate whether the core is virtualized or not
-    BOOLEAN IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
-    BOOLEAN WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
-    PKDPC   KdDpcObject;                                                   // DPC object to be used in kernel debugger
-    UINT64  LastVmexitRip;                                                 // RIP in the current VM-exit
-    UINT64  VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
-    UINT64  VmxonRegionVirtualAddress;                                     // VMXON region virtual address
-    UINT64  VmcsRegionPhysicalAddress;                                     // VMCS region physical address
-    UINT64  VmcsRegionVirtualAddress;                                      // VMCS region virtual address
-    UINT64  VmmStack;                                                      // Stack for VMM in VM-Exit State
-    UINT64  MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
-    UINT64  MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
-    UINT64  IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)
-    UINT64  IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
-    UINT64  IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
-    UINT64  IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
-    UINT32  PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
-                                                                           // blocking and waits for interrupt-window exiting
-                                                                           // From hvpp :
-                                                                           // Pending interrupt queue (FIFO).
-                                                                           // Make storage for up-to 64 pending interrupts.
-                                                                           // In practice I haven't seen more than 2 pending interrupts.
-
-    PROCESSOR_DEBUGGING_STATE DebuggingState;         // Holds the debugging state of the processor (used by HyperDbg to execute commands)
-    VMX_VMXOFF_STATE          VmxoffState;            // Shows the vmxoff state of the guest
-    VM_EXIT_TRANSPARENCY      TransparencyState;      // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    MEMORY_MAPPER_ADDRESSES   MemoryMapper;           // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
-} VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -383,26 +321,29 @@ VmxPerformTermination();
 
 _Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
 
 _Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateVmmStack(_In_ INT ProcessorID);
+VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateMsrBitmap(_In_ INT ProcessorID);
+VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxAllocateIoBitmaps(_In_ INT ProcessorID);
+VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+UINT64 *
+VmxAllocateInvalidMsrBimap();
 
 VOID
-VmxHandleXsetbv(UINT32 Reg, UINT64 Value);
+VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-VmxHandleVmxPreemptionTimerVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs);
+VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 VmxVmptrst();
@@ -411,7 +352,7 @@ VOID
 VmxVmresume();
 
 VOID
-VmxVmxoff();
+VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore();
@@ -420,10 +361,10 @@ VOID
 VmxFixCr4AndCr0Bits();
 
 BOOLEAN
-VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
-VmxClearVmcsState(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxClearVmcsState(_In_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxCheckIsOnVmxRoot();
@@ -432,10 +373,26 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
-VmxSetupVmcs(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState, _In_ PVOID GuestStack);
+VmxSetupVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu, _In_ PVOID GuestStack);
 
 UINT64
 VmxReturnStackPointerForVmxoff();
 
 UINT64
 VmxReturnInstructionPointerForVmxoff();
+
+BOOLEAN
+VmxGetCurrentExecutionMode();
+
+BOOLEAN
+VmxGetCurrentLaunchState();
+
+_Success_(return)
+BOOLEAN
+VmxGetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
+
+UINT32
+VmxCompatibleStrlen(const CHAR * S);
+
+UINT32
+VmxCompatibleWcslen(const wchar_t * S);

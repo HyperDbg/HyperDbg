@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2021-12-16
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////
 
 VOID
-VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex);
+VmxMechanismCreateImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs);
+VmxMechanismHandleImmediateVmexit(VIRTUAL_MACHINE_STATE * VCpu);

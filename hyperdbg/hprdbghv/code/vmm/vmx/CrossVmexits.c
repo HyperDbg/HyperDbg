@@ -1,44 +1,41 @@
 /**
  * @file CrossVmexits.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions for passing vm-exits in vmx root 
+ * @brief The functions for passing vm-exits in vmx root
  * @details
  * @version 0.1
  * @date 2020-06-14
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Handling XSETBV Instruction vm-exits
- * 
- * @param Reg 
- * @param Value 
- * @return VOID 
+ *
+ * @param VCpu
+ * @return VOID
  */
 VOID
-VmxHandleXsetbv(UINT32 Reg, UINT64 Value)
+VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    _xsetbv(Reg, Value);
+    _xsetbv(VCpu->Regs->rcx & 0xffffffff, VCpu->Regs->rdx << 32 | VCpu->Regs->rax);
 }
 
 /**
  * @brief Handling VMX Preemption Timer vm-exits
- * 
- * @param CurrentCoreIndex 
- * @param GuestRegs 
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
  */
 VOID
-VmxHandleVmxPreemptionTimerVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs)
+VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UNREFERENCED_PARAMETER(GuestRegs);
     LogError("Why vm-exit for VMX preemption timer happened?");
 
     //
     // Not increase the RIP by default
     //
-    g_GuestState[CurrentCoreIndex].IncrementRip = FALSE;
+    HvSuppressRipIncrement(VCpu);
 }

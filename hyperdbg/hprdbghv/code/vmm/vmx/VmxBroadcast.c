@@ -5,11 +5,73 @@
  * @details
  * @version 0.1
  * @date 2021-12-31
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
+
+/**
+ * @brief Initialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastInitialize()
+{
+    //
+    // *** Initialize NMI broadcasting mechanism ***
+    //
+
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    BroadcastEnableNmiExitingAllCores();
+
+    //
+    // Indicate that NMI broadcasting is initialized
+    //
+    g_NmiBroadcastingInitialized = TRUE;
+}
+
+/**
+ * @brief Uninitialize the VMX Broadcast mechansim
+ *
+ * @return VOID
+ */
+VOID
+VmxBroadcastUninitialize()
+{
+    //
+    // *** Uninitialize NMI broadcasting mechanism ***
+    //
+    g_NmiBroadcastingInitialized = FALSE;
+
+    //
+    // De-register NMI handler
+    //
+    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    BroadcastDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
+}
 
 /**
  * @brief Handles NMIs in kernel-mode
@@ -22,8 +84,8 @@ BOOLEAN
 VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 {
     ULONG CurrentCoreIndex;
-
-    CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    CurrentCoreIndex             = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCoreIndex];
 
     //
     // This mechanism tries to solve the problem of receiving NMIs
@@ -44,7 +106,7 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
     // We should check whether the NMI is in vmx-root mode or not
     // if it's not in vmx-root mode then it's not related to us
     //
-    if (!VmxBroadcastNmiHandler(CurrentCoreIndex, NULL, TRUE))
+    if (!VmxBroadcastNmiHandler(VCpu, TRUE))
     {
         return Handled;
     }
@@ -62,13 +124,13 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
  * @brief Broadcast NMI in vmx-root mode
  * @details caller to this function should take actions to the current core
  * the NMI won't be triggered for the current core
- * 
- * @param CurrentCoreIndex
+ *
+ * @param VCpu The virtual processor's state
  * @param VmxBroadcastAction
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
-VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
+VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
 {
     ULONG CoreCount;
 
@@ -83,18 +145,13 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // make sure, nobody is in the middle of sending anything
-    //
-    SpinlockLock(&DebuggerResponseLock);
-
-    //
     // Indicate that we're waiting for NMI
     //
     for (size_t i = 0; i < CoreCount; i++)
     {
-        if (i != CurrentCoreIndex)
+        if (i != VCpu->CoreId)
         {
-            SpinlockInterlockedCompareExchange((volatile LONG *)&g_GuestState[i].DebuggingState.NmiBroadcastAction,
+            SpinlockInterlockedCompareExchange((volatile LONG *)&g_GuestState[i].NmiBroadcastingState.NmiBroadcastAction,
                                                VmxBroadcastAction,
                                                NMI_BROADCAST_ACTION_NONE);
         }
@@ -105,90 +162,28 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
     //
     ApicTriggerGenericNmi();
 
-    SpinlockUnlock(&DebuggerResponseLock);
-
     return TRUE;
 }
 
 /**
- * @brief Handle broadcast NMIs for halting cores in vmx-root mode
- * 
- * @param CurrentCoreIndex
- * @param GuestRegs
- * @param IsOnVmxNmiHandler
- *
- * @return VOID 
- */
-VOID
-VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
-{
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCoreIndex];
-
-    //
-    // We use it as a global flag (for both vmx-root and vmx non-root), because
-    // generally it doesn't have any use case in vmx-root (IsOnVmxNmiHandler == FALSE)
-    // but in some cases, we might set the MTF but another vm-exit receives before
-    // MTF and in that place if it tries to trigger and event, then the MTF is not
-    // handled and the core is not locked properly, just waits to get the handle
-    // of the "DebuggerHandleBreakpointLock", so we check this flag there
-    //
-    CurrentVmState->DebuggingState.WaitingToBeLocked = TRUE;
-
-    if (IsOnVmxNmiHandler)
-    {
-        //
-        // Indicate that it's called from NMI handle, and it relates to
-        // halting the debuggee
-        //
-        CurrentVmState->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
-
-        //
-        // If the core was in the middle of spinning on the spinlock
-        // of getting the debug lock, this mechansim is not needed,
-        // but if the core is not spinning there or the core is processing
-        // a random vm-exit, then we inject an immediate vm-exit after vm-entry
-        // or inject a DPC
-        // this is used for two reasons.
-        //
-        //      1. first, we will get the registers (context) to halt the core
-        //      2. second, it guarantees that if the NMI arrives within any
-        //         instruction in vmx-root mode, then we injected an immediate
-        //         vm-exit and we won't miss any cpu cycle in the guest
-        //
-        // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
-        // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
-        HvSetMonitorTrapFlag(TRUE);
-    }
-    else
-    {
-        //
-        // Handle core break
-        //
-        KdHandleNmi(CurrentCoreIndex, GuestRegs);
-    }
-}
-
-/**
  * @brief Handle broadcast NMIs in vmx-root mode
- * 
- * @param CurrentCoreIndex
- * @param GuestRegisters
+ *
+ * @param VCpu The virtual processor's state
  * @param IsOnVmxNmiHandler
  *
- * @return BOOLEAN Shows whether it's handled by this routine or not 
+ * @return BOOLEAN Shows whether it's handled by this routine or not
  */
 BOOLEAN
-VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
+VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
 {
-    NMI_BROADCAST_ACTION_TYPE   BroadcastAction;
-    BOOLEAN                     IsHandled            = FALSE;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentCoreIndex].DebuggingState;
+    NMI_BROADCAST_ACTION_TYPE BroadcastAction;
+    BOOLEAN                   IsHandled = FALSE;
 
     //
     // Check if NMI relates to us or not
     // Set NMI broadcasting action to none (clear the action)
     //
-    BroadcastAction = InterlockedExchange((volatile LONG *)&CurrentDebuggerState->NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
+    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
 
     if (BroadcastAction == NMI_BROADCAST_ACTION_NONE)
     {
@@ -210,13 +205,14 @@ VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN I
         IsHandled = TRUE;
 
         break;
-    case NMI_BROADCAST_ACTION_KD_HALT_CORE:
+
+    case NMI_BROADCAST_ACTION_REQUEST:
 
         //
         // Handle NMI of halt the other cores
         //
         IsHandled = TRUE;
-        VmxBroadcastHandleKdDebugBreaks(CurrentCoreIndex, GuestRegs, IsOnVmxNmiHandler);
+        VmmCallbackNmiBroadcastRequestHandler(VCpu->CoreId, IsOnVmxNmiHandler);
 
         break;
 

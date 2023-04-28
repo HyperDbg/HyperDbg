@@ -42,7 +42,7 @@ BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
+    VmxGetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {
@@ -60,20 +60,21 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 /**
  * @brief Handle Cpuid Vmexits
  *
- * @param RegistersState Guest's gp registers
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-HvHandleCpuid(PGUEST_REGS RegistersState)
+HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    INT32 CpuInfo[4];
-    ULONG Mode = 0;
+    INT32       CpuInfo[4];
+    ULONG       Mode = 0;
+    PGUEST_REGS Regs = VCpu->Regs;
 
     //
     // Otherwise, issue the CPUID to the logical processor based on the indexes
     // on the VP's GPRs.
     //
-    __cpuidex(CpuInfo, (INT32)RegistersState->rax, (INT32)RegistersState->rcx);
+    __cpuidex(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
 
     //
     // check whether we are in transparent mode or not
@@ -85,7 +86,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
         //
         // Check if this was CPUID 1h, which is the features request
         //
-        if (RegistersState->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+        if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
         {
             //
             // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
@@ -93,7 +94,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             //
             CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
         }
-        else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
+        else if (Regs->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
         {
             //
             // Return a maximum supported hypervisor CPUID leaf range and a vendor
@@ -105,7 +106,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             CpuInfo[2] = 'gbDr';
             CpuInfo[3] = NULL;
         }
-        else if (RegistersState->rax == HYPERV_CPUID_INTERFACE)
+        else if (Regs->rax == HYPERV_CPUID_INTERFACE)
         {
             //
             // Return non Hv#1 value. This indicate that our hypervisor does NOT
@@ -120,30 +121,27 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     //
     // Copy the values from the logical processor registers into the VP GPRs
     //
-    RegistersState->rax = CpuInfo[0];
-    RegistersState->rbx = CpuInfo[1];
-    RegistersState->rcx = CpuInfo[2];
-    RegistersState->rdx = CpuInfo[3];
+    Regs->rax = CpuInfo[0];
+    Regs->rbx = CpuInfo[1];
+    Regs->rcx = CpuInfo[2];
+    Regs->rdx = CpuInfo[3];
 }
 
 /**
  * @brief Handles Guest Access to control registers
  *
- * @param GuestState Guest's gp registers
- * @param ProcessorIndex Index of processor
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS                     GuestState,
-                              UINT32                          ProcessorIndex,
+HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
                               VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification)
 {
-    UINT64 *                RegPtr;
-    UINT64                  NewCr3;
-    CR3_TYPE                NewCr3Reg;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
+    UINT64 * RegPtr;
+    UINT64   NewCr3;
+    CR3_TYPE NewCr3Reg;
 
-    RegPtr = (UINT64 *)&GuestState->rax + CrExitQualification->GeneralPurposeRegister;
+    RegPtr = (UINT64 *)&VCpu->Regs->rax + CrExitQualification->GeneralPurposeRegister;
 
     //
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
@@ -195,17 +193,22 @@ HvHandleControlRegisterAccess(PGUEST_REGS                     GuestState,
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            if (CurrentVmState->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
-            {
-                ProcessHandleProcessChange(ProcessorIndex, GuestState);
-            }
+            InterceptionCallbackTriggerCr3ProcessChange(VCpu->CoreId);
 
             //
             // Call user debugger handler of thread intercepting mechanism
             //
             if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
             {
-                AttachingHandleCr3VmexitsForThreadInterception(ProcessorIndex, NewCr3Reg);
+                InterceptionCallbackCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
+            }
+
+            //
+            // Call handler of mode-based execution hooks
+            //
+            if (g_CheckForModeBasedExecutionControl)
+            {
+                ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
             }
 
             break;
@@ -275,7 +278,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
-    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
+    VmxGetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {
@@ -309,6 +312,32 @@ HvResumeToNextInstruction()
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
     __vmx_vmwrite(VMCS_GUEST_RIP, ResumeRIP);
+}
+
+/**
+ * @brief Supress the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+inline VOID
+HvSuppressRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->IncrementRip = FALSE;
+}
+
+/**
+ * @brief Perform the incrementation of RIP
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+inline VOID
+HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->IncrementRip = TRUE;
 }
 
 /**
@@ -499,13 +528,15 @@ HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegis
  * @brief Set vm-exit for mov-to-cr3
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the vm-exits
+ *
  * @return VOID
  */
 VOID
-HvSetMovToCr3Vmexit(BOOLEAN Set)
+HvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMov2Cr3Exiting(Set);
+    ProtectedHvSetMov2Cr3Exiting(VCpu, Set);
 }
 
 /**
@@ -579,6 +610,78 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 }
 
 /**
+ * @brief Set Page Modification Logging Enable bit
+ *
+ * @param Set Set or unset the PML
+ * @return VOID
+ */
+VOID
+HvSetPmlEnableFlag(BOOLEAN Set)
+{
+    ULONG SecondaryProcBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+
+    //
+    // PML enable flag
+    //
+    if (Set)
+    {
+        SecondaryProcBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
+    }
+    else
+    {
+        SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
+    }
+
+    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+}
+
+/**
+ * @brief Set Mode-based Execution Control (MBEC) Enable bit
+ *
+ * @param Set Set or unset the MBEC
+ * @return VOID
+ */
+VOID
+HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
+{
+    ULONG SecondaryProcBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+
+    //
+    // PML enable flag
+    //
+    if (Set)
+    {
+        SecondaryProcBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG;
+    }
+    else
+    {
+        SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG;
+    }
+
+    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+}
+
+/**
  * @brief Set NMI-window exiting
  *
  * @param Set Set or unset the NMI-window exiting
@@ -615,19 +718,18 @@ HvSetNmiWindowExiting(BOOLEAN Set)
 /**
  * @brief Handle Mov to Debug Registers Exitings
  *
- * @param ProcessorIndex Index of processor
- * @param Regs Registers of guest
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
+HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMX_EXIT_QUALIFICATION_MOV_DR ExitQualification;
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs         = Regs;
-    VIRTUAL_MACHINE_STATE *       CurrentVmState = &g_GuestState[ProcessorIndex];
+    UINT64 *                      GpRegs = VCpu->Regs;
+
     //
     // The implementation is derived from Hvpp
     //
@@ -664,7 +766,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        HvSuppressRipIncrement(VCpu);
         return;
     }
 
@@ -690,7 +792,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
             //
             // re-inject #UD
             //
-            EventInjectUndefinedOpcode(ProcessorIndex);
+            EventInjectUndefinedOpcode(VCpu);
             return;
         }
         else
@@ -738,7 +840,8 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        HvSuppressRipIncrement(VCpu);
+
         return;
     }
 
@@ -748,17 +851,14 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     // 32 bits results in a #GP(0) exception.
     // (ref: Vol3B[17.2.6(Debug Registers and Intel 64 Processors)])
     //
-    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR &&
-        (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 ||
-         ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) &&
-        (GpRegister >> 32) != 0)
+    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR && (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 || ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) && (GpRegister >> 32) != 0)
     {
         EventInjectGeneralProtection();
 
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        HvSuppressRipIncrement(VCpu);
         return;
     }
 
@@ -891,69 +991,398 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
  * @brief Set exception bitmap in VMCS
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
 VOID
-HvSetExceptionBitmap(UINT32 IdtIndex)
+HvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvSetExceptionBitmap(IdtIndex);
+    ProtectedHvSetExceptionBitmap(VCpu, IdtIndex);
 }
 
 /**
  * @brief Unset exception bitmap in VMCS
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param IdtIndex Interrupt Descriptor Table index of exception
  * @return VOID
  */
 VOID
-HvUnsetExceptionBitmap(UINT32 IdtIndex)
+HvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvUnsetExceptionBitmap(IdtIndex);
+    ProtectedHvUnsetExceptionBitmap(VCpu, IdtIndex);
 }
 
 /**
  * @brief Set the External Interrupt Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the External Interrupt Exiting
  * @return VOID
  */
 VOID
-HvSetExternalInterruptExiting(BOOLEAN Set)
+HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     //
     // This is a wrapper to perform extra checks
     //
-    ProtectedHvSetExternalInterruptExiting(Set);
+    ProtectedHvSetExternalInterruptExiting(VCpu, Set);
+}
+
+/**
+ * @brief Checks to enable and reinject previous interrupts
+ *
+ * @param VCpu The virtual processor's state
+ * @param Set Set or unset the External Interrupt Exiting
+ * @return VOID
+ */
+VOID
+HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if we should enable interrupts in this core or not,
+    // we have another same check in SWITCHING CORES too
+    //
+    if (VCpu->EnableExternalInterruptsOnContinueMtf)
+    {
+        //
+        // Enable normal interrupts
+        //
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Enable Interrupt-window exiting.
+            //
+            HvSetInterruptWindowExiting(TRUE);
+        }
+
+        VCpu->EnableExternalInterruptsOnContinueMtf = FALSE;
+    }
 }
 
 /**
  * @brief Set the RDTSC/P Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the RDTSC/P Exiting
  * @return VOID
  */
 VOID
-HvSetRdtscExiting(BOOLEAN Set)
+HvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetRdtscExiting(Set);
+    ProtectedHvSetRdtscExiting(VCpu, Set);
 }
 
 /**
  * @brief Set or unset the Mov to Debug Registers Exiting
  *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the Mov to Debug Registers Exiting
  * @return VOID
  */
 VOID
-HvSetMovDebugRegsExiting(BOOLEAN Set)
+HvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMovDebugRegsExiting(Set);
+    ProtectedHvSetMovDebugRegsExiting(VCpu, Set);
+}
+
+/**
+ * @brief Read CS selector
+ *
+ * @return UINT16
+ */
+UINT16
+HvGetCsSelector()
+{
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
+
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+
+    return CsSel & 0xffff;
+}
+
+/**
+ * @brief Read guest's RFLAGS
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRflags()
+{
+    UINT64 Rflags = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+
+    return Rflags;
+}
+
+/**
+ * @brief Set guest's RFLAGS
+ * @param Rflags
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflags(UINT64 Rflags)
+{
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags);
+}
+
+/**
+ * @brief Read guest's RIP
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetRip()
+{
+    UINT64 Rip = NULL;
+
+    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+
+    return Rip;
+}
+
+/**
+ * @brief Set guest's RIP
+ * @param Rip
+ *
+ * @return VOID
+ */
+VOID
+HvSetRip(UINT64 Rip)
+{
+    __vmx_vmwrite(VMCS_GUEST_RIP, Rip);
+}
+
+/**
+ * @brief Read guest's interruptibility state
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetInterruptibilityState()
+{
+    UINT64 InterruptibilityState = NULL;
+
+    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+
+    return InterruptibilityState;
+}
+
+/**
+ * @brief Clear STI and MOV SS bits
+ *
+ * @return UINT32
+ */
+UINT32
+HvClearSteppingBits(UINT32 Interruptibility)
+{
+    UINT32 InterruptibilityState = Interruptibility;
+
+    InterruptibilityState &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
+
+    return InterruptibilityState;
+}
+
+/**
+ * @brief Set guest's interruptibility state
+ * @param InterruptibilityState
+ *
+ * @return VOID
+ */
+VOID
+HvSetInterruptibilityState(UINT64 InterruptibilityState)
+{
+    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
+}
+
+/**
+ * @brief Inject pending external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if there is at least an interrupt that needs to be delivered
+    //
+    if (VCpu->PendingExternalInterrupts[0] != NULL)
+    {
+        //
+        // Enable Interrupt-window exiting.
+        //
+        HvSetInterruptWindowExiting(TRUE);
+    }
+}
+
+/**
+ * @brief Check and enable external interrupts
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Check if we should enable interrupts in this core or not
+    //
+    if (VCpu->EnableExternalInterruptsOnContinue)
+    {
+        //
+        // Enable normal interrupts
+        //
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        HvInjectPendingExternalInterrupts(VCpu);
+
+        VCpu->EnableExternalInterruptsOnContinue = FALSE;
+    }
+}
+
+/**
+ * @brief Disable external-interrupts and interrupt window
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    VCpu->EnableExternalInterruptsOnContinue = TRUE;
+}
+
+/**
+ * @brief Initializes the hypervisor
+ * @param VmmCallbacks
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
+{
+    ULONG   ProcessorCount;
+    BOOLEAN Result = FALSE;
+
+    //
+    // Save the callbacks
+    //
+    RtlCopyMemory(&g_Callbacks, VmmCallbacks, sizeof(VMM_CALLBACKS));
+
+    //
+    // Check and define compatibility checks and processor constraints
+    //
+    CompatibilityCheckPerformChecks();
+
+    //
+    // we allocate virtual machine here because
+    // we want to use its state (vmx-root or vmx non-root) in logs
+    //
+    Result = GlobalGuestStateAllocateZeroedMemory();
+
+    if (!Result)
+    {
+        return FALSE;
+    }
+
+    //
+    // We have a zeroed guest state
+    //
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Set the core's id and initialize memory mapper
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        g_GuestState[i].CoreId = i;
+    }
+
+    //
+    // Initialize memory mapper
+    //
+    MemoryMapperInitialize();
+
+    //
+    // Make sure that transparent-mode is disabled
+    //
+    g_TransparentMode = FALSE;
+
+    //
+    // Initializes VMX
+    //
+    return VmxInitialize();
+}
+
+/**
+ * @brief Enables MTF and adjust external interrupt state
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // We have to set Monitor trap flag and give it the HookedEntry to work with
+    //
+    HvSetMonitorTrapFlag(TRUE);
+
+    //
+    // The following codes are added because we realized if the execution takes long then
+    // the execution might be switched to another routines, thus, MTF might conclude on
+    // another routine and we might (and will) trigger the same instruction soon
+    //
+
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    //
+    // Indicate that we should enable external interrupts and configure external interrupt
+    // window exiting somewhere at MTF
+    //
+    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
 }

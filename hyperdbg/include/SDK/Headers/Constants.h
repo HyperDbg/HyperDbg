@@ -138,52 +138,49 @@
 
 #ifndef HYPERDBG_KERNEL_MODE
 
-const unsigned char BuildDateTime[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        '-',
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        '-',
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
-        ' ',
-        BUILD_HOUR_CH0,
-        BUILD_HOUR_CH1,
-        ':',
-        BUILD_MIN_CH0,
-        BUILD_MIN_CH1,
-        ':',
-        BUILD_SEC_CH0,
-        BUILD_SEC_CH1,
+const unsigned char BuildDateTime[] = {
+    BUILD_YEAR_CH0,
+    BUILD_YEAR_CH1,
+    BUILD_YEAR_CH2,
+    BUILD_YEAR_CH3,
+    '-',
+    BUILD_MONTH_CH0,
+    BUILD_MONTH_CH1,
+    '-',
+    BUILD_DAY_CH0,
+    BUILD_DAY_CH1,
+    ' ',
+    BUILD_HOUR_CH0,
+    BUILD_HOUR_CH1,
+    ':',
+    BUILD_MIN_CH0,
+    BUILD_MIN_CH1,
+    ':',
+    BUILD_SEC_CH0,
+    BUILD_SEC_CH1,
 
-        '\0'};
+    '\0'};
 
-const unsigned char CompleteVersion[] =
-    {
-        'v',
-        VERSION_MAJOR_INIT,
-        '.',
-        VERSION_MINOR_INIT,
-        '.',
-        VERSION_PATCH_INIT,
-        '\0'};
+const unsigned char CompleteVersion[] = {
+    'v',
+    VERSION_MAJOR_INIT,
+    '.',
+    VERSION_MINOR_INIT,
+    '.',
+    VERSION_PATCH_INIT,
+    '\0'};
 
-const unsigned char BuildVersion[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
+const unsigned char BuildVersion[] = {
+    BUILD_YEAR_CH0,
+    BUILD_YEAR_CH1,
+    BUILD_YEAR_CH2,
+    BUILD_YEAR_CH3,
+    BUILD_MONTH_CH0,
+    BUILD_MONTH_CH1,
+    BUILD_DAY_CH0,
+    BUILD_DAY_CH1,
 
-        '\0'};
+    '\0'};
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -204,9 +201,14 @@ const unsigned char BuildVersion[] =
 #define MaximumPacketsCapacityPriority 10
 
 /**
+ * @brief Size of normal OS (processor) pages
+ */
+#define NORMAL_PAGE_SIZE 4096 // PAGE_SIZE
+
+/**
  * @brief Size of each packet
  */
-#define PacketChunkSize 4096 // PAGE_SIZE
+#define PacketChunkSize NORMAL_PAGE_SIZE
 
 /**
  * @brief size of user-mode buffer
@@ -219,12 +221,9 @@ const unsigned char BuildVersion[] =
 /**
  * @brief size of buffer for serial
  * @details the maximum packet size for sending over serial
- * User-mode buffer size + Header Structure Size + Count Of End Buffer Bytes
  *
  */
-#define MaxSerialPacketSize                               \
-    UsermodeBufferSize + sizeof(DEBUGGER_REMOTE_PACKET) + \
-        SERIAL_END_OF_BUFFER_CHARS_COUNT
+#define MaxSerialPacketSize 10 * NORMAL_PAGE_SIZE
 
 /**
  * @brief Final storage size of message tracing
@@ -301,6 +300,24 @@ const unsigned char BuildVersion[] =
 #define COMMUNICATION_BUFFER_SIZE PacketChunkSize + 0x100
 
 //////////////////////////////////////////////////
+//             VMCALL Numbers                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The start number of VMCALL number allowed to be
+ * used by top-level drivers
+ *
+ */
+#define TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER 0x00000200
+
+/**
+ * @brief The start number of VMCALL number allowed to be
+ * used by top-level drivers
+ *
+ */
+#define TOP_LEVEL_DRIVERS_VMCALL_ENDING_NUMBER TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x100
+
+//////////////////////////////////////////////////
 //             Operation Codes                  //
 //////////////////////////////////////////////////
 
@@ -348,6 +365,16 @@ const unsigned char BuildVersion[] =
  * breakpoint
  */
 #define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+
+//////////////////////////////////////////////////
+//          Pool tags used in HyperDbg          //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Pool tag
+ *
+ */
+#define POOLTAG 0x48444247 // [H]yper[DBG] (HDBG)
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //

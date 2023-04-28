@@ -48,7 +48,7 @@ public:
     HKeyHolder() :
         m_Key(nullptr) { }
 
-    HKeyHolder(const HKeyHolder &) = delete;
+    HKeyHolder(const HKeyHolder &)             = delete;
     HKeyHolder & operator=(const HKeyHolder &) = delete;
 
     ~HKeyHolder()
@@ -98,6 +98,9 @@ BOOLEAN
 KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
 BOOLEAN
+KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled);
+
+BOOLEAN
 KdSendEventQueryAndModifyPacketToDebuggee(
     UINT64                      Tag,
     DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction,
@@ -113,7 +116,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
                                 BOOLEAN                           Is32Bit);
 
 BOOLEAN
-KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
+KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type);
 
 BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);

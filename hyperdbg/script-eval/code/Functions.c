@@ -49,7 +49,7 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(QWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(QWORD)))
     {
         //
         // Instead of indicating an error, just return false
@@ -86,7 +86,7 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
     {
         //
         // Instead of indicating an error, just return false
@@ -123,7 +123,7 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
     {
         //
         // Instead of indicating an error, just return false
@@ -159,7 +159,7 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    if (CheckMemoryAccessSafety(Address, Length))
+    if (CheckAccessValidityAndSafety(Address, Length))
     {
         return TRUE;
     }
@@ -168,7 +168,7 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (CheckMemoryAccessSafety(Address, Length))
+    if (CheckAccessValidityAndSafety(Address, Length))
     {
         return TRUE;
     }
@@ -198,7 +198,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -207,7 +207,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (!CheckMemoryAccessSafety(Source, Num))
+    if (!CheckAccessValidityAndSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
@@ -225,7 +225,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -234,7 +234,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (!CheckMemoryAccessSafety(Source, Num))
+    if (!CheckAccessValidityAndSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
@@ -407,7 +407,7 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -436,7 +436,7 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -466,7 +466,7 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -492,7 +492,7 @@ ScriptEngineFunctionStrlen(const char * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleStrlen(Address);
+    Result = VmFuncVmxCompatibleStrlen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -514,7 +514,7 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Result = VmxrootCompatibleWcslen(Address);
+    Result = VmFuncVmxCompatibleWcslen(Address);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -537,7 +537,7 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Target, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Target, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -567,7 +567,7 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -595,7 +595,7 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -623,7 +623,7 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -656,7 +656,7 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Destination, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety(Destination, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -749,7 +749,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
         DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
         UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
-        if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+        if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
         {
             //
             // The guest is already in vmx-root mode
@@ -758,9 +758,8 @@ ScriptEngineFunctionPause(UINT64      Tag,
             ContextAndTag.Tag     = Tag;
             ContextAndTag.Context = Context;
 
-            KdHandleBreakpointAndDebugBreakpoints(
+            KdHandleBreakpointAndDebugBreakpointsCallback(
                 CurrentProcessorIndex,
-                GuestRegs,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &ContextAndTag);
         }
@@ -770,7 +769,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
         }
     }
     else
@@ -812,16 +811,24 @@ ScriptEngineFunctionFlush()
  * @return VOID
  */
 VOID
-ScriptEngineFunctionEventIgnore()
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, it's not possible to ignore events in user-mode\n");
+    ShowMessages("err, it's not possible to short-circuit events in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex                                   = KeGetCurrentProcessorNumber();
-    g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreEvent = TRUE;
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    if (State == 0)
+    {
+        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = TRUE;
+    }
+    else
+    {
+        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = FALSE;
+    }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -886,11 +893,11 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (IsWstring)
     {
-        return VmxrootCompatibleWcslen((const wchar_t *)StrAddr);
+        return VmFuncVmxCompatibleWcslen((const wchar_t *)StrAddr);
     }
     else
     {
-        return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+        return VmFuncVmxCompatibleStrlen((const CHAR *)StrAddr);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -914,7 +921,7 @@ CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring)
     //
     // At least two chars (wchar_t is 4 byte)
     //
-    if (CheckMemoryAccessSafety(StrAddr, IsWstring ? 4 : 2))
+    if (CheckAccessValidityAndSafety(StrAddr, IsWstring ? 4 : 2))
     {
         return TRUE;
     }
@@ -1188,7 +1195,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            BOOLEAN *                      HasError)
 {
     //
-    // The printf function
+    // *** The printf function ***
     //
 
     char    FinalBuffer[PacketChunkSize]              = {0};

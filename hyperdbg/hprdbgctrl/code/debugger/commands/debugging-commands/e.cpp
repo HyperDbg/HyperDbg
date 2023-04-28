@@ -138,6 +138,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
             continue;
         }
+
         if (NextIsProcId)
         {
             //
@@ -375,7 +376,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (EditMemoryRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (EditMemoryRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
         // Was successful, nothing to do

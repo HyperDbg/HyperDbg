@@ -12,7 +12,7 @@
  */
 #include "pch.h"
 
-//using namespace std;
+// using namespace std;
 
 //
 // Global Variables
@@ -230,7 +230,7 @@ CommandR(std::vector<std::string> SplittedCommand, std::string Command)
     if (Command.find('=', 0) == string::npos)
     {
         //
-        //erase '=' from the string now we have just the name of register
+        // erase '=' from the string now we have just the name of register
         //
         Command.erase(0, 1);
         ReplaceAll(Command, "@", "");
@@ -242,7 +242,7 @@ CommandR(std::vector<std::string> SplittedCommand, std::string Command)
         else
         {
             //
-            //set the Reg to -1(invalid register)
+            // set the Reg to -1(invalid register)
             //
             RegKind = (REGS_ENUM)-1;
         }

@@ -112,7 +112,7 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (PreallocRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (PreallocRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ShowMessages("the requested pools are allocated and reserved\n");
     }

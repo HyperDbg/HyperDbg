@@ -214,6 +214,42 @@ KdSendSwitchCorePacketToDebuggee(UINT32 NewCore)
 }
 
 /**
+ * @brief Sends a short-circuiting event request to debuggee
+ * @param IsEnabled
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled)
+{
+    DEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitEventPacket = {0};
+
+    //
+    // Fill the structure of the packet
+    //
+    ShortCircuitEventPacket.IsShortCircuiting = IsEnabled;
+
+    //
+    // Send modify and query event packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SET_SHORT_CIRCUITING_STATE,
+            (CHAR *)&ShortCircuitEventPacket,
+            sizeof(DEBUGGER_SHORT_CIRCUITING_EVENT)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of setting short-circuiting event state is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a query or request to enable/disable/clear for event
  * @details if IsQueryState is TRUE then TypeOfAction is ignored
  * @param Tag
@@ -378,15 +414,15 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
 /**
  * @brief Send a test query request to the debuggee
  *
- * @param Option
+ * @param Type
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex)
+KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
 {
     DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
 
-    TestQueryPacket.RequestIndex = RequestIndex;
+    TestQueryPacket.RequestType = Type;
 
     //
     // Send 'test query' command as query packet
@@ -1332,7 +1368,8 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     //
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
-        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d)",
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
+                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
                      Length + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                      MaxSerialPacketSize);
         return FALSE;
@@ -1501,7 +1538,8 @@ KdCommandPacketAndBufferToDebuggee(
     if (sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT >
         MaxSerialPacketSize)
     {
-        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d)",
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
+                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
                      sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                      MaxSerialPacketSize);
 
@@ -2052,7 +2090,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             return FALSE;
         }
 
-        if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             //
             // Ignore handling CTRL+C breaks
@@ -2267,7 +2305,7 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     }
 
     if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult !=
-        DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
 
@@ -2313,7 +2351,7 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
     //
     // Set the status
     //
-    SymReload.KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    SymReload.KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Send the finished request packet

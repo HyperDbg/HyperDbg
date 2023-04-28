@@ -2,21 +2,21 @@
  * @file CrossApi.c
  * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
  * @brief Implementation of cross APIs for different platforms
- * @details 
+ * @details
  * @version 0.1
  * @date 2022-01-17
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Allocate a contiguous zeroed memory
- * 
- * @param NumberOfBytes 
+ *
+ * @param NumberOfBytes
  * @return PVOID
-*/
+ */
 PVOID
 CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes)
 {

@@ -5,15 +5,15 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Check whether VMX Feature is supported or not
- * 
+ *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
  */
 BOOLEAN
@@ -68,14 +68,53 @@ VmxCheckVmxSupport()
 }
 
 /**
+ * @brief Check current execution mode (vmx-root and non-root)
+ *
+ * @return BOOLEAN Returns true if the execution is on vmx-root, otherwise false
+ */
+BOOLEAN
+VmxGetCurrentExecutionMode()
+{
+    if (g_GuestState)
+    {
+        ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+        VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+
+        return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
+    }
+    else
+    {
+        //
+        // The structure for guest state is not initialized, thus, we're in VMX non-root
+        //
+        return VmxExecutionModeNonRoot;
+    }
+}
+
+/**
+ * @brief Check if the VMX is launched or not
+ *
+ * @return BOOLEAN Returns true if it's launched, otherwise false
+ */
+BOOLEAN
+VmxGetCurrentLaunchState()
+{
+    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+
+    return CurrentVmState->HasLaunched;
+}
+
+/**
  * @brief Initialize Vmx operation
- * 
+ *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */
 BOOLEAN
 VmxInitialize()
 {
     ULONG LogicalProcessorsCount;
+
     //
     // ****** Start Virtualizing Current System ******
     //
@@ -99,10 +138,12 @@ VmxInitialize()
         // *** Launching VM for Test (in the all logical processor) ***
         //
 
+        VIRTUAL_MACHINE_STATE * GuestState = &g_GuestState[ProcessorID];
+
         //
-        //Allocating VMM Stack
+        // Allocating VMM Stack
         //
-        if (!VmxAllocateVmmStack(ProcessorID))
+        if (!VmxAllocateVmmStack(GuestState))
         {
             //
             // Some error in allocating Vmm Stack
@@ -113,7 +154,7 @@ VmxInitialize()
         //
         // Allocating MSR Bit
         //
-        if (!VmxAllocateMsrBitmap(ProcessorID))
+        if (!VmxAllocateMsrBitmap(GuestState))
         {
             //
             // Some error in allocating Msr Bitmaps
@@ -124,7 +165,7 @@ VmxInitialize()
         //
         // Allocating I/O Bit
         //
-        if (!VmxAllocateIoBitmaps(ProcessorID))
+        if (!VmxAllocateIoBitmaps(GuestState))
         {
             //
             // Some error in allocating I/O Bitmaps
@@ -136,7 +177,7 @@ VmxInitialize()
     //
     // Create a bitmap of the MSRs that cause #GP
     //
-    g_MsrBitmapInvalidMsrs = AllocateInvalidMsrBimap();
+    g_MsrBitmapInvalidMsrs = VmxAllocateInvalidMsrBimap();
 
     if (g_MsrBitmapInvalidMsrs == NULL)
     {
@@ -164,7 +205,7 @@ VmxInitialize()
 
 /**
  * @brief Initialize essential VMX Operation tasks
- * 
+ *
  * @return BOOLEAN Returns true if vmx is successfully initialized
  */
 BOOLEAN
@@ -258,14 +299,14 @@ VmxPerformVirtualizationOnAllCores()
 
 /**
  * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
     ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState         = &g_GuestState[CurrentProcessorNumber];
+    VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
 
@@ -281,12 +322,12 @@ VmxPerformVirtualizationOnSpecificCore()
 
     LogDebugInfo("VMX-Operation enabled successfully");
 
-    if (!VmxAllocateVmxonRegion(CurrentVmState))
+    if (!VmxAllocateVmxonRegion(VCpu))
     {
         LogError("Err, allocating memory for vmxon region was not successfull");
         return FALSE;
     }
-    if (!VmxAllocateVmcsRegion(CurrentVmState))
+    if (!VmxAllocateVmcsRegion(VCpu))
     {
         LogError("Err, allocating memory for vmcs region was not successfull");
         return FALSE;
@@ -297,9 +338,9 @@ VmxPerformVirtualizationOnSpecificCore()
 
 /**
  * @brief Fix values for cr0 and cr4 bits
- * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change 
+ * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change
  * (https://revers.engineering/day-2-entering-vmx-operation/)
- * 
+ *
  * @return VOID
  */
 VOID
@@ -333,7 +374,7 @@ VmxFixCr4AndCr0Bits()
 /**
  * @brief It can deterministically check whether the caller is on vmx-root mode
  * or not
- * 
+ *
  * @return BOOLEAN Returns true if current operation mode is vmx-root and false
  * if current operation mode is vmx non-root
  */
@@ -361,7 +402,7 @@ VmxCheckIsOnVmxRoot()
 
 /**
  * @brief Initialize VMX Operation
- * 
+ *
  * @param GuestStack Guest stack for the this core (VMCS_GUEST_RSP)
  * @return BOOLEAN This function won't return true as when Vmlaunch is executed the
    rest of the function never executes but returning FALSE is an indication of error
@@ -369,16 +410,16 @@ VmxCheckIsOnVmxRoot()
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
-    UINT64                  ErrorCode      = 0;
-    ULONG                   ProcessorID    = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+    UINT64                  ErrorCode   = 0;
+    ULONG                   ProcessorID = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
     //
-    if (!VmxClearVmcsState(CurrentVmState))
+    if (!VmxClearVmcsState(VCpu))
     {
         LogError("Err, failed to clear vmcs");
         return FALSE;
@@ -387,7 +428,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Load VMCS (Set the Current VMCS)
     //
-    if (!VmxLoadVmcs(CurrentVmState))
+    if (!VmxLoadVmcs(VCpu))
     {
         LogError("Err, failed to load vmcs");
         return FALSE;
@@ -395,7 +436,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     LogDebugInfo("Setting up VMCS for current logical core");
 
-    VmxSetupVmcs(CurrentVmState, GuestStack);
+    VmxSetupVmcs(VCpu, GuestStack);
 
     LogDebugInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
 
@@ -403,7 +444,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     // Setting the state to indicate current core is currently virtualized
     //
 
-    CurrentVmState->HasLaunched = TRUE;
+    VCpu->HasLaunched = TRUE;
 
     __vmx_vmlaunch();
 
@@ -414,7 +455,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // If failed, then indicate that current core is not currently virtualized
     //
-    CurrentVmState->HasLaunched = FALSE;
+    VCpu->HasLaunched = FALSE;
 
     //
     // Read error code firstly
@@ -434,7 +475,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
 /**
  * @brief Broadcast to terminate VMX on all logical cores
- * 
+ *
  * @return BOOLEAN Returns true if vmxoff successfully executed in vmcall or otherwise
  * returns false
  */
@@ -443,7 +484,7 @@ VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
     ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState   = &g_GuestState[CurrentCoreIndex];
+    VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
 
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
@@ -457,12 +498,12 @@ VmxTerminate()
         //
         // Free the destination memory
         //
-        MmFreeContiguousMemory(CurrentVmState->VmxonRegionVirtualAddress);
-        MmFreeContiguousMemory(CurrentVmState->VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(CurrentVmState->VmmStack, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressB, POOLTAG);
+        MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
+        MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
+        ExFreePoolWithTag(VCpu->VmmStack, POOLTAG);
+        ExFreePoolWithTag(VCpu->MsrBitmapVirtualAddress, POOLTAG);
+        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressA, POOLTAG);
+        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressB, POOLTAG);
 
         return TRUE;
     }
@@ -472,8 +513,8 @@ VmxTerminate()
 
 /**
  * @brief Implementation of VMPTRST instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmptrst()
@@ -487,21 +528,21 @@ VmxVmptrst()
 
 /**
  * @brief Clearing Vmcs status using vmclear instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param VCpu
  * @return BOOLEAN If vmclear execution was successful it returns true
  * otherwise and if there was error with vmclear then it returns false
  */
 _Use_decl_annotations_
 BOOLEAN
-VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT8 VmclearStatus;
 
     //
     // Clear the state of the VMCS to inactive
     //
-    VmclearStatus = __vmx_vmclear(&CurrentGuestState->VmcsRegionPhysicalAddress);
+    VmclearStatus = __vmx_vmclear(&VCpu->VmcsRegionPhysicalAddress);
 
     LogDebugInfo("VMCS VMCLEAR status : 0x%x", VmclearStatus);
 
@@ -519,18 +560,18 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Implementation of VMPTRLD instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param VCpu
  * @return BOOLEAN If vmptrld was unsuccessful then it returns false otherwise
  * it returns false
  */
 _Use_decl_annotations_
 BOOLEAN
-VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxLoadVmcs(VIRTUAL_MACHINE_STATE * VCpu)
 {
     int VmptrldStatus;
 
-    VmptrldStatus = __vmx_vmptrld(&CurrentGuestState->VmcsRegionPhysicalAddress);
+    VmptrldStatus = __vmx_vmptrld(&VCpu->VmcsRegionPhysicalAddress);
     if (VmptrldStatus)
     {
         LogDebugInfo("VMCS failed to load, status : 0x%x", VmptrldStatus);
@@ -541,14 +582,14 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Create and Configure a Vmcs Layout
- * 
- * @param CurrentGuestState 
- * @param GuestStack 
- * @return BOOLEAN 
+ *
+ * @param VCpu
+ * @param GuestStack
+ * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
-VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
+VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 {
     ULONG                   CpuBasedVmExecControls;
     ULONG                   SecondaryProcBasedVmExecControls;
@@ -615,9 +656,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
                  VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
 
-    SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP |
-                                                            CPU_BASED_CTL2_ENABLE_EPT | CPU_BASED_CTL2_ENABLE_INVPCID |
-                                                            CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_VPID,
+    SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_EPT | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_VPID,
                                                         IA32_VMX_PROCBASED_CTLS2);
 
     __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
@@ -650,7 +689,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     // of the DPC interrupt we execute in We have to save Cr3, for VMCS_HOST_CR3
     //
 
-    __vmx_vmwrite(VMCS_HOST_CR3, FindSystemDirectoryTableBase());
+    __vmx_vmwrite(VMCS_HOST_CR3, LayoutGetSystemDirectoryTableBase());
 
     __vmx_vmwrite(VMCS_GUEST_GDTR_BASE, AsmGetGdtBase());
     __vmx_vmwrite(VMCS_GUEST_IDTR_BASE, AsmGetIdtBase());
@@ -664,7 +703,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
     __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
-    GetSegmentDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
+    VmxGetSegmentDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
     __vmx_vmwrite(VMCS_HOST_TR_BASE, SegmentSelector.Base);
 
     __vmx_vmwrite(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
@@ -680,13 +719,13 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     // Set MSR Bitmaps
     //
-    __vmx_vmwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, CurrentGuestState->MsrBitmapPhysicalAddress);
+    __vmx_vmwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, VCpu->MsrBitmapPhysicalAddress);
 
     //
     // Set I/O Bitmaps
     //
-    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_A_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressA);
-    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_B_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressB);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_A_ADDRESS, VCpu->IoBitmapPhysicalAddressA);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_B_ADDRESS, VCpu->IoBitmapPhysicalAddressB);
 
     //
     // Set up EPT
@@ -703,12 +742,12 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(VIRTUAL_PROCESSOR_ID, VPID_TAG);
 
     //
-    //setup guest rsp
+    // setup guest rsp
     //
     __vmx_vmwrite(VMCS_GUEST_RSP, (UINT64)GuestStack);
 
     //
-    //setup guest rip
+    // setup guest rip
     //
     __vmx_vmwrite(VMCS_GUEST_RIP, (UINT64)AsmVmxRestoreState);
 
@@ -716,7 +755,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     // Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
     // needs alignment to 16
     //
-    HostRsp = (UINT64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
+    HostRsp = (UINT64)VCpu->VmmStack + VMM_STACK_SIZE - 1;
     HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
     __vmx_vmwrite(VMCS_HOST_RSP, HostRsp);
     __vmx_vmwrite(VMCS_HOST_RIP, (UINT64)AsmVmexitHandler);
@@ -725,9 +764,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 }
 
 /**
- * @brief Resume vm using VMRESUME instruction
- * 
- * @return VOID 
+ * @brief Resume VM using VMRESUME instruction
+ *
+ * @return VOID
  */
 VOID
 VmxVmresume()
@@ -751,21 +790,72 @@ VmxVmresume()
 }
 
 /**
+ * @brief VMFUNC instruction
+ * @details Should be executed in VMX NON-root
+ *
+ * @param EptpIndex
+ * @param Function
+ *
+ * @return UINT64
+ */
+UINT64
+VmxVmfunc(UINT32 EptpIndex, UINT32 Function)
+{
+    //
+    // *** To be executed in VMX non-root ***
+    //
+
+    //
+    // Description from : https://users.cs.utah.edu/~aburtsev/lls-sem/index.php?n=Main.VMFUNCNotes
+    //
+    // VMFUNC is a new Intel primitive that allows to change an EPT page table underneath a VT-x VM without exiting into the hypervisor
+    // Effectively, it's a page table switch in hardware and thus it allows one to build a fast context switch
+    //
+
+    //
+    // Each VT-x virtual machine is configured with a Virtual Machine Control Structure (VMCS)
+    //  This is a page of memory in which the VMM writes configuration data for things like how interrupts are handled,
+    //  initial control register values during guest entry, and a whole bunch of other things
+    //
+    // One of those other things is a pointer to a page of candidate EPT pointers. These are pointers to different EPT
+    //  page table hierarchies, each one giving a possibly different physical -> machine mapping. The VMM sets up this page
+    //  of EPT pointers and has to also turn on a couple other settings in the VMCS to fully enable EPT switching via VMFUNC
+    //
+    // In non-root operation (inside a VM) code running in any privilege level can switch EPT hierarchies through the following
+    //  steps:
+    //
+    // Storing 0 in %rax (EPT switching is VMFUNC 0)
+    // Storing the index into the candidate EPT table in %rcx
+    // Invoking the VMFUNC instruction
+    // The processor will switch EPTs. Invoking VMFUNC will not cause a VM Exit
+    //
+    // All of this is detailed in the Intel SDM Volume 3, 25.5.5.3 "EPT Switching"
+    //
+    // It is worth noting that this will not change/save values in control registers (e.g. %cr3), general purpose registers,
+    //  and so on. It's up to the code and VMM to set things up so it all works gracefully
+    //
+
+    //
+    // Are TLBs flushed ? No, unless VPIDs are not being used(which I, Charlie, would say is rare)
+    // See Intel SDM Volume 3, 25.5.5.3 "EPT Switching" and 28.3.3.1 "Operations that Invalidate Cached Mappings"
+    //
+
+    return AsmVmfunc(EptpIndex, Function);
+}
+
+/**
  * @brief Prepare and execute Vmxoff instruction
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-VmxVmxoff()
+VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ULONG  CurrentProcessorIndex = 0;
     UINT64 GuestRSP              = 0; // Save a pointer to guest rsp for times that we want to return to previous guest stateS
     UINT64 GuestRIP              = 0; // Save a pointer to guest rip for times that we want to return to previous guest state
     UINT64 GuestCr3              = 0;
     UINT64 ExitInstructionLength = 0;
-
-    CurrentProcessorIndex                  = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentProcessorIndex];
 
     //
     // According to SimpleVisor :
@@ -796,13 +886,13 @@ VmxVmxoff()
     //
     // Set the previous register states
     //
-    CurrentVmState->VmxoffState.GuestRip = GuestRIP;
-    CurrentVmState->VmxoffState.GuestRsp = GuestRSP;
+    VCpu->VmxoffState.GuestRip = GuestRIP;
+    VCpu->VmxoffState.GuestRsp = GuestRSP;
 
     //
     // Notify the Vmexit handler that VMX already turned off
     //
-    CurrentVmState->VmxoffState.IsVmxoffExecuted = TRUE;
+    VCpu->VmxoffState.IsVmxoffExecuted = TRUE;
 
     //
     // Restore the previous FS, GS , GDTR and IDTR register as patchguard might find the modified
@@ -813,7 +903,7 @@ VmxVmxoff()
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
     // See sections 24.1 and 24.11 of the SDM.
     //
-    VmxClearVmcsState(CurrentVmState);
+    VmxClearVmcsState(VCpu);
 
     //
     // Execute Vmxoff
@@ -823,7 +913,7 @@ VmxVmxoff()
     //
     // Indicate the current core is not currently virtualized
     //
-    CurrentVmState->HasLaunched = FALSE;
+    VCpu->HasLaunched = FALSE;
 
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
@@ -833,7 +923,7 @@ VmxVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the stack pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -844,7 +934,7 @@ VmxReturnStackPointerForVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the instruction pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -855,8 +945,8 @@ VmxReturnInstructionPointerForVmxoff()
 
 /**
  * @brief Terminate Vmx on all logical cores
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxPerformTermination()
@@ -897,6 +987,22 @@ VmxPerformTermination()
     MmFreeContiguousMemory(g_EptState->EptPageTable);
 
     //
+    // Free Identity Page Table for MBEC hooks
+    //
+    if (g_EptState->ModeBasedEptPageTable != NULL)
+    {
+        MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
+    }
+
+    //
+    // Free Identity Page Table for execute-only hooks
+    //
+    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
+    {
+        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
+    }
+
+    //
     // Free EptState
     //
     ExFreePoolWithTag(g_EptState, POOLTAG);
@@ -906,5 +1012,261 @@ VmxPerformTermination()
     //
     PoolManagerUninitialize();
 
+    //
+    // Uninitialize memory mapper
+    //
+    MemoryMapperUninitialize();
+
+    //
+    // Free g_GuestState
+    //
+    GlobalGuestStateFreeMemory();
+
     LogDebugInfo("VMX operation turned off successfully");
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible strlen
+ * @param S
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
+ * string
+ */
+UINT32
+VmxCompatibleStrlen(const CHAR * S)
+{
+    CHAR     Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(CHAR)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(CHAR));
+
+        if (Temp != '\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0;
+            }
+        }
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible wcslen
+ * @param S
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
+ * string
+ */
+UINT32
+VmxCompatibleWcslen(const wchar_t * S)
+{
+    wchar_t  Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(wchar_t)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(wchar_t));
+
+        if (Temp != '\0\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(wchar_t)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0;
+            }
+        }
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief Get Segment Descriptor
+ *
+ * @param SegmentSelector
+ * @param Selector
+ * @param GdtBase
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
+{
+    SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
+    SEGMENT_DESCRIPTOR_32 * Descriptor32;
+    SEGMENT_SELECTOR        SegSelector = {.AsUInt = Selector};
+
+    if (!SegmentSelector)
+        return FALSE;
+
+#define SELECTOR_TABLE_LDT 0x1
+#define SELECTOR_TABLE_GDT 0x0
+
+    //
+    // Ignore LDT
+    //
+    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT))
+    {
+        return FALSE;
+    }
+
+    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32 *)(GdtBase);
+    Descriptor32      = &DescriptorTable32[SegSelector.Index];
+
+    SegmentSelector->Selector = Selector;
+    SegmentSelector->Limit    = __segmentlimit(Selector);
+    SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
+
+    SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
+
+    if (SegSelector.Table == 0 && SegSelector.Index == 0)
+    {
+        SegmentSelector->Attributes.Unusable = TRUE;
+    }
+
+    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) || (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE))
+    {
+        //
+        // this is a TSS or callgate etc, save the base high part
+        //
+
+        UINT64 SegmentLimitHigh;
+        SegmentLimitHigh      = (*(UINT64 *)((PUCHAR)Descriptor32 + 8));
+        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (SegmentLimitHigh << 32);
+    }
+
+    if (SegmentSelector->Attributes.Granularity)
+    {
+        //
+        // 4096-bit granularity is enabled for this segment, scale the limit
+        //
+        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
+    }
+
+    return TRUE;
 }

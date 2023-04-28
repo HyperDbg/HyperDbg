@@ -12,18 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				Delay Speeds                    //
-//////////////////////////////////////////////////
-
-/**
- * @brief The speed delay for showing messages from kernel-mode
- * to user-mode in  VMI-mode, using a lower value causes the
- * HyperDbg to show messages faster but you should keep in mind,
- *  not to eat all of the CPU
- */
-#define DefaultSpeedOfReadingKernelMessages 30
-
-//////////////////////////////////////////////////
 //		Debugger Synchronization Objects        //
 //////////////////////////////////////////////////
 
@@ -65,6 +53,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT                 0x15
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT              0x16
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT                          0x17
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE        0x18
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -86,6 +75,7 @@ typedef enum _DEBUGGER_EVENT_PARSING_ERROR_CAUSE
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR                                 = 7,
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE                 = 8,
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE = 9,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_USING_SHORT_CIRCUITING_IN_POST_EVENTS        = 10,
 
 } DEBUGGER_EVENT_PARSING_ERROR_CAUSE,
     *PDEBUGGER_EVENT_PARSING_ERROR_CAUSE;
@@ -172,7 +162,7 @@ BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                    SplittedCommand,
     vector<string> *                    SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
     PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,

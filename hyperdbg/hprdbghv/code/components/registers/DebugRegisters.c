@@ -3,17 +3,17 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of debug registers functions
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
- * @brief Configure hardware debug register for access, write and 
+ * @brief Configure hardware debug register for access, write and
  * fetch breakpoints
  * @details if apply to vmcs is true then should be called at vmx-root mode
  * keep in mind that it applies only on one core
@@ -22,7 +22,7 @@
  * target core, vmcalls VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS and
  * VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designd for this purpose
  * should be called on vmx-root mode if the ApplyToVmcs is TRUE
- * 
+ *
  * @param DebugRegNum Debug register that want to apply to it (can be between
  * 0 to 3 as current processors support only 4 locations on hardware debug
  * register)
@@ -34,7 +34,7 @@
  * it's either not supported or not correct configuration
  */
 BOOLEAN
-DebugRegistersSet(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
+SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
     DR7 Dr7 = {0};
 

@@ -18,10 +18,10 @@
 
 /**
  * @brief Implementation of poi keyword
- * 
- * @param Address 
- * @param HasError 
- * @return UINT64 
+ *
+ * @param Address
+ * @param HasError
+ * @return UINT64
  */
 UINT64
 ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
@@ -30,7 +30,7 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
@@ -52,10 +52,10 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of hi keyword
- * 
- * @param Address 
- * @param HasError 
- * @return WORD 
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
  */
 WORD
 ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
@@ -64,7 +64,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
@@ -86,10 +86,10 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of low keyword
- * 
- * @param Address 
- * @param HasError 
- * @return WORD 
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
  */
 WORD
 ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
@@ -98,7 +98,7 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
@@ -120,10 +120,10 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of db keyword
- * 
- * @param Address 
- * @param HasError 
- * @return BYTE 
+ *
+ * @param Address
+ * @param HasError
+ * @return BYTE
  */
 BYTE
 ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
@@ -132,7 +132,7 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
     {
         *HasError = TRUE;
 
@@ -154,10 +154,10 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of dd keyword
- * 
- * @param Address 
- * @param HasError 
- * @return WORD 
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
  */
 WORD
 ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
@@ -166,7 +166,7 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(WORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(WORD)))
     {
         *HasError = TRUE;
 
@@ -188,10 +188,10 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of dw keyword
- * 
- * @param Address 
- * @param HasError 
- * @return DWORD 
+ *
+ * @param Address
+ * @param HasError
+ * @return DWORD
  */
 DWORD
 ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
@@ -200,7 +200,7 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
     {
         *HasError = TRUE;
 
@@ -222,10 +222,10 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 
 /**
  * @brief Implementation of dq keyword
- * 
- * @param Address 
- * @param HasError 
- * @return QWORD 
+ *
+ * @param Address
+ * @param HasError
+ * @return QWORD
  */
 QWORD
 ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
@@ -234,7 +234,7 @@ ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
     {
         *HasError = TRUE;
 

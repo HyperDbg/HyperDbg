@@ -601,7 +601,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         //
         // Check if counting modules was successful or not
         //
-        if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             ModulesCount = ModuleCountRequest.ModulesCount;
 
@@ -650,7 +650,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             // Show modules list
             //
-            if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Se the modules buffer

@@ -359,6 +359,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN:
+        ShowMessages("err, using short-circuiting event with post events is not possible (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED:
+        ShowMessages("err, unknown test query is received to the debugger (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -393,8 +403,7 @@ DebuggerGetNtoskrnlBase()
 
     for (int i = 0; i < Modules->NumberOfModules; i++)
     {
-        if (!strcmp((const char *)Modules->Modules[i].FullPathName +
-                        Modules->Modules[i].OffsetToFileName,
+        if (!strcmp((const char *)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
                     "ntoskrnl.exe"))
         {
             NtoskrnlBase = (UINT64)Modules->Modules[i].ImageBase;
@@ -423,18 +432,17 @@ DebuggerPauseDebuggee()
     //
     // Send a pause IOCTL
     //
-    StatusIoctl =
-        DeviceIoControl(g_DeviceHandle,                        // Handle to device
-                        IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
-                        &PauseRequest,                         // Input Buffer to driver.
-                        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
-                                                               // length
-                        &PauseRequest,                         // Output Buffer from driver.
-                        SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
-                                                               // buffer in bytes.
-                        &ReturnedLength,                       // Bytes placed in buffer.
-                        NULL                                   // synchronous call
-        );
+    StatusIoctl = DeviceIoControl(g_DeviceHandle,                        // Handle to device
+                                  IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
+                                  &PauseRequest,                         // Input Buffer to driver.
+                                  SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
+                                                                         // length
+                                  &PauseRequest,                         // Output Buffer from driver.
+                                  SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
+                                                                         // buffer in bytes.
+                                  &ReturnedLength,                       // Bytes placed in buffer.
+                                  NULL                                   // synchronous call
+    );
 
     if (!StatusIoctl)
     {
@@ -442,7 +450,7 @@ DebuggerPauseDebuggee()
         return FALSE;
     }
 
-    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
         // Nothing to show, the request was successfully processed
@@ -534,8 +542,7 @@ IsTagExist(UINT64 Tag)
 
         CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
-        if (CommandDetail->Tag == Tag ||
-            Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
+        if (CommandDetail->Tag == Tag || Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
         {
             return TRUE;
         }
@@ -854,8 +861,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 OpenBracket += CountOfOpenBrackets - 1;
             }
 
-            if (CountOfOpenBrackets == CountOfCloseBrackets ||
-                (OpenBracket == 0 && HasEnding(Section, "}")))
+            if (CountOfOpenBrackets == CountOfCloseBrackets || (OpenBracket == 0 && HasEnding(Section, "}")))
             {
                 //
                 // remove the last character and first character append it to the
@@ -979,8 +985,7 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     // Run script engine handler
     //
-    PVOID CodeBuffer =
-        ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str(), TRUE);
+    PVOID CodeBuffer = ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str(), TRUE);
 
     if (CodeBuffer == NULL)
     {
@@ -1024,10 +1029,8 @@ InterpretScript(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1339,8 +1342,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
         //
         // Check if the section is started with '0x'
         //
-        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
-            Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
         {
             Temp = Section.erase(0, 2);
         }
@@ -1402,10 +1404,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1677,10 +1677,8 @@ InterpretOutput(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1713,8 +1711,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Send the buffer from here
         //
-        TempRegResult =
-            KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength);
+        TempRegResult = KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength);
 
         //
         // Move the buffer to local buffer
@@ -1733,21 +1730,20 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // Send IOCTL
         //
 
-        Status =
-            DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                            IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
-                            Event,                                        // Input Buffer to driver.
-                            EventBufferLength,                            // Input buffer length
-                            &ReturnedBuffer,                              // Output Buffer from driver.
-                            sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                          // of
-                                                                          // output
-                                                                          // buffer
-                                                                          // in
-                                                                          // bytes.
-                            &ReturnedLength,                              // Bytes placed in buffer.
-                            NULL                                          // synchronous call
-            );
+        Status = DeviceIoControl(g_DeviceHandle,                               // Handle to device
+                                 IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
+                                 Event,                                        // Input Buffer to driver.
+                                 EventBufferLength,                            // Input buffer length
+                                 &ReturnedBuffer,                              // Output Buffer from driver.
+                                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                               // of
+                                                                               // output
+                                                                               // buffer
+                                                                               // in
+                                                                               // bytes.
+                                 &ReturnedLength,                              // Bytes placed in buffer.
+                                 NULL                                          // synchronous call
+        );
 
         if (!Status)
         {
@@ -1761,10 +1757,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Check for auto-unpause mode
         //
-        if (!g_IsSerialConnectedToRemoteDebuggee &&
-            !g_IsSerialConnectedToRemoteDebugger &&
-            g_BreakPrintingOutput &&
-            g_AutoUnpause)
+        if (!g_IsSerialConnectedToRemoteDebuggee && !g_IsSerialConnectedToRemoteDebugger && g_BreakPrintingOutput && g_AutoUnpause)
         {
             //
             // Allow debugger to show its contents
@@ -2076,7 +2069,7 @@ BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                    SplittedCommand,
     vector<string> *                    SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
     PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,
@@ -2107,15 +2100,19 @@ InterpretGeneralEventAndActionsFields(
     UINT32                         ScriptBufferPointer  = 0;
     UINT32                         LengthOfEventBuffer  = 0;
     string                         CommandString;
-    BOOLEAN                        HasConditionBuffer              = FALSE;
-    BOOLEAN                        HasOutputPath                   = FALSE;
-    BOOLEAN                        HasCodeBuffer                   = FALSE;
-    BOOLEAN                        HasScript                       = FALSE;
-    BOOLEAN                        IsNextCommandPid                = FALSE;
-    BOOLEAN                        IsNextCommandCoreId             = FALSE;
-    BOOLEAN                        IsNextCommandBufferSize         = FALSE;
-    BOOLEAN                        IsNextCommandImmediateMessaging = FALSE;
-    BOOLEAN                        ImmediateMessagePassing         = UseImmediateMessagingByDefaultOnEvents;
+    BOOLEAN                        IsAPostEvent                     = FALSE;
+    BOOLEAN                        IsAShortCircuitingEventByDefault = FALSE;
+    BOOLEAN                        HasConditionBuffer               = FALSE;
+    BOOLEAN                        HasOutputPath                    = FALSE;
+    BOOLEAN                        HasCodeBuffer                    = FALSE;
+    BOOLEAN                        HasScript                        = FALSE;
+    BOOLEAN                        IsNextCommandPid                 = FALSE;
+    BOOLEAN                        IsNextCommandCoreId              = FALSE;
+    BOOLEAN                        IsNextCommandBufferSize          = FALSE;
+    BOOLEAN                        IsNextCommandImmediateMessaging  = FALSE;
+    BOOLEAN                        IsNextCommandExecutionMode       = FALSE;
+    BOOLEAN                        IsNextCommandSc                  = FALSE;
+    BOOLEAN                        ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
     UINT32                         CoreId;
     UINT32                         ProcessId;
     UINT32                         IndexOfValidSourceTags;
@@ -2139,7 +2136,6 @@ InterpretGeneralEventAndActionsFields(
     //
     // Compute the size of buffer + 1 null for the end of buffer
     //
-
     UINT64 BufferOfCommandStringLength = CommandString.size() + 1;
 
     //
@@ -2308,8 +2304,7 @@ InterpretGeneralEventAndActionsFields(
         //
         // Check whether the size exceed maximum size or not
         //
-        if (ListOfOutputSources.size() >
-            DebuggerOutputSourceMaximumRemoteSourceForSingleEvent)
+        if (ListOfOutputSources.size() > DebuggerOutputSourceMaximumRemoteSourceForSingleEvent)
         {
             free(BufferOfCommandString);
 
@@ -2353,8 +2348,7 @@ InterpretGeneralEventAndActionsFields(
             {
                 TempList = TempList->Flink;
 
-                PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails =
-                    CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
+                PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
 
                 if (strcmp(CurrentOutputSourceDetails->Name,
                            RemoveSpaces(item).c_str()) == 0)
@@ -2441,8 +2435,7 @@ InterpretGeneralEventAndActionsFields(
 
   */
 
-    LengthOfEventBuffer =
-        sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
+    LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
 
     TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(LengthOfEventBuffer);
     RtlZeroMemory(TempEvent, LengthOfEventBuffer);
@@ -2528,11 +2521,9 @@ InterpretGeneralEventAndActionsFields(
         // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
         // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
         //
-        LengthOfCustomCodeActionBuffer =
-            sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+        LengthOfCustomCodeActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
 
-        TempActionCustomCode =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
+        TempActionCustomCode = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
 
         RtlZeroMemory(TempActionCustomCode, LengthOfCustomCodeActionBuffer);
 
@@ -2570,10 +2561,8 @@ InterpretGeneralEventAndActionsFields(
         // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
         // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
         //
-        LengthOfScriptActionBuffer =
-            sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
-        TempActionScript =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
+        LengthOfScriptActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
+        TempActionScript           = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
 
         RtlZeroMemory(TempActionScript, LengthOfScriptActionBuffer);
 
@@ -2619,8 +2608,7 @@ InterpretGeneralEventAndActionsFields(
         //
         LengthOfBreakActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION);
 
-        TempActionBreak =
-            (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
+        TempActionBreak = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
 
         RtlZeroMemory(TempActionBreak, LengthOfBreakActionBuffer);
 
@@ -2704,6 +2692,68 @@ InterpretGeneralEventAndActionsFields(
             }
 
             IsNextCommandImmediateMessaging = FALSE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
+        if (IsNextCommandExecutionMode)
+        {
+            if (!Section.compare("pre"))
+            {
+                IsAPostEvent = FALSE;
+            }
+            else if (!Section.compare("post"))
+            {
+                IsAPostEvent = TRUE;
+            }
+            else
+            {
+                //
+                // err, not token recognized error
+                //
+
+                ShowMessages("err, the specified execution mode is invalid; you can either choose 'pre' or 'post'\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+                goto ReturnWithError;
+            }
+
+            IsNextCommandExecutionMode = FALSE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
+        if (IsNextCommandSc)
+        {
+            if (!Section.compare("on"))
+            {
+                IsAShortCircuitingEventByDefault = TRUE;
+            }
+            else if (!Section.compare("off"))
+            {
+                IsAShortCircuitingEventByDefault = FALSE;
+            }
+            else
+            {
+                //
+                // err, not token recognized error
+                //
+
+                ShowMessages("err, the specified short-circuiting state is invalid; you can either choose 'on' or 'off'\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+                goto ReturnWithError;
+            }
+
+            IsNextCommandSc = FALSE;
 
             //
             // Add index to remove it from the command
@@ -2807,6 +2857,36 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
+        if (!Section.compare("mode"))
+        {
+            //
+            // the next commnad is execution mode (pre- and post-events)
+            //
+            IsNextCommandExecutionMode = TRUE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
+        if (!Section.compare("sc"))
+        {
+            //
+            // the next commnad is the default short-circuiting state
+            //
+            IsNextCommandSc = TRUE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
         if (!Section.compare("buffer"))
         {
             IsNextCommandBufferSize = TRUE;
@@ -2843,6 +2923,43 @@ InterpretGeneralEventAndActionsFields(
     {
         ShowMessages("err, please specify a value for 'buffer'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandImmediateMessaging)
+    {
+        ShowMessages("err, please specify a value for 'imm'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandExecutionMode)
+    {
+        ShowMessages("err, please specify a value for 'mode'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandSc)
+    {
+        ShowMessages("err, please specify a value for 'sc'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    //
+    // Check to make sure that short-circuiting is not used in post-events
+    //
+    if (IsAPostEvent && IsAShortCircuitingEventByDefault)
+    {
+        ShowMessages(
+            "err, using the short-circuiting mechanism with post-events "
+            "doesn't make sense; it's not supported!\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_USING_SHORT_CIRCUITING_IN_POST_EVENTS;
 
         goto ReturnWithError;
     }
@@ -2914,6 +3031,29 @@ InterpretGeneralEventAndActionsFields(
     }
 
     //
+    // Set the specific requested short-circuiting state
+    //
+    if (IsAShortCircuitingEventByDefault)
+    {
+        TempEvent->EnableShortCircuiting = TRUE;
+    }
+
+    //
+    // Set the specific event mode
+    //
+    if (IsAPostEvent)
+    {
+        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+    }
+    else
+    {
+        //
+        // By default, event's are 'pre-event'
+        //
+        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
+    }
+
+    //
     // Fill the address and length of event before release
     //
     *EventDetailsToFill = TempEvent;
@@ -2944,10 +3084,8 @@ InterpretGeneralEventAndActionsFields(
     for (auto IndexToRemove : IndexesToRemove)
     {
         NewIndexToRemove++;
-        SplittedCommand->erase(SplittedCommand->begin() +
-                               (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
-                                            (IndexToRemove - NewIndexToRemove));
+        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     //

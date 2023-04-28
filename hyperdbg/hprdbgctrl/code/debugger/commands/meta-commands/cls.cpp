@@ -26,7 +26,7 @@ CommandClearScreenHelp()
 
 /**
  * @brief .cls command handler
- * 
+ *
  * @param SplittedCommand
  * @param Command
  * @return VOID

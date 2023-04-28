@@ -16,7 +16,7 @@
  * @param Ptr
  * @param Size
  * @param SecAddress
- * 
+ *
  * @return VOID
  */
 VOID
@@ -68,7 +68,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
  * @param AddressOfFile
  * @param SectionToShow
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -308,7 +308,11 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                      "Address of Entry Point : ",
                      OpHeader32.AddressOfEntryPoint);
         ShowMessages("\n%-36s%#llx", "Base Address of the Image : ", OpHeader32.ImageBase);
-        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader32.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader32.Subsystem == 2 ? "Windows GUI" : OpHeader32.Subsystem == 3 ? "Windows CLI" : OpHeader32.Subsystem == 3 ? "Windows CLI" : OpHeader32.Subsystem == 9 ? "Windows CE GUI" : "Unknown");
+        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader32.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader32.Subsystem == 2 ? "Windows GUI"
+                                                                                                                         : OpHeader32.Subsystem == 3   ? "Windows CLI"
+                                                                                                                         : OpHeader32.Subsystem == 3   ? "Windows CLI"
+                                                                                                                         : OpHeader32.Subsystem == 9   ? "Windows CE GUI"
+                                                                                                                                                       : "Unknown");
         ShowMessages("\n%-36s%s", "Given file is a : ", OpHeader32.Magic == 0x20b ? "PE32+(64)" : "PE32");
         ShowMessages("\n%-36s%d", "Size of code segment(.text) : ", OpHeader32.SizeOfCode);
         ShowMessages("\n%-36s%#x",
@@ -337,7 +341,11 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                      "Address of Entry Point : ",
                      OpHeader64.AddressOfEntryPoint);
         ShowMessages("\n%-36s%#llx", "Base Address of the Image : ", OpHeader64.ImageBase);
-        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader64.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader64.Subsystem == 2 ? "Windows GUI" : OpHeader64.Subsystem == 3 ? "Windows CLI" : OpHeader64.Subsystem == 3 ? "Windows CLI" : OpHeader64.Subsystem == 9 ? "Windows CE GUI" : "Unknown");
+        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader64.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader64.Subsystem == 2 ? "Windows GUI"
+                                                                                                                         : OpHeader64.Subsystem == 3   ? "Windows CLI"
+                                                                                                                         : OpHeader64.Subsystem == 3   ? "Windows CLI"
+                                                                                                                         : OpHeader64.Subsystem == 9   ? "Windows CE GUI"
+                                                                                                                                                       : "Unknown");
         ShowMessages("\n%-36s%s", "Given file is a : ", OpHeader64.Magic == 0x20b ? "PE32+(64)" : "PE32");
         ShowMessages("\n%-36s%d", "Size of code segment(.text) : ", OpHeader64.SizeOfCode);
         ShowMessages("\n%-36s%#x",
@@ -468,7 +476,7 @@ Finished:
  * @brief Detect whether PE is a 32-bit PE or 64-bit PE
  * @param AddressOfFile
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN

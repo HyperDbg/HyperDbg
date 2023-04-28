@@ -17,29 +17,8 @@
     <Filter Include="header\vmm\vmx">
       <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\misc">
-      <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\devices">
       <UniqueIdentifier>{3c7b33d6-6147-4c8a-a742-aeff2b63b575}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger">
-      <UniqueIdentifier>{b6e16086-58f5-4809-9406-acafa11e0713}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\commands">
-      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\communication">
-      <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\features">
-      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\tests">
-      <UniqueIdentifier>{c36ade71-0389-4c2f-b18e-ba18e6fe7e69}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\transparency">
-      <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
     </Filter>
     <Filter Include="code">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
@@ -51,65 +30,14 @@
     <Filter Include="code\common">
       <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\debugger">
-      <UniqueIdentifier>{8467f2ec-c840-4b3b-acb5-edafd20e4199}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\commands">
-      <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\communication">
-      <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\features">
-      <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\features\hooks">
-      <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\features\hooks\syscall-hook">
-      <UniqueIdentifier>{8e38c4c7-4c0a-4b0d-94ec-1068c8ebbefc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\features\hooks\ept-hook">
-      <UniqueIdentifier>{fec47462-c7ab-4843-8ba4-a7f68e208c49}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\script-engine">
-      <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\tests">
-      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\transparency">
-      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\devices">
       <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\driver">
-      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\core">
-      <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\broadcast">
-      <UniqueIdentifier>{68d807bf-813f-45d5-b903-971d5ab878dd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\core">
-      <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\broadcast">
-      <UniqueIdentifier>{59bfe97a-e2be-4016-acb0-2068ec6b50e1}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\memory">
       <UniqueIdentifier>{27a88a32-b649-4563-8ac5-c48288479627}</UniqueIdentifier>
     </Filter>
     <Filter Include="header\memory">
       <UniqueIdentifier>{7d72077e-4c3d-471b-8465-c235fc9b9488}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\objects">
-      <UniqueIdentifier>{a45b1913-fee5-41fc-924b-6777b68ada6f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\objects">
-      <UniqueIdentifier>{250da7cd-f78f-498e-b176-7079b17c3954}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\components">
       <UniqueIdentifier>{f54cce1c-42c4-4de5-b281-605d86f54d24}</UniqueIdentifier>
@@ -119,21 +47,6 @@
     </Filter>
     <Filter Include="header\components">
       <UniqueIdentifier>{6d4d41d1-afae-48ce-9a7b-a9e9160e647a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\components\registers">
-      <UniqueIdentifier>{035d2800-79f5-4650-808a-f320d57db543}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\user-level">
-      <UniqueIdentifier>{76189d50-b694-4f11-9a1c-cff46ff1461c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\user-level">
-      <UniqueIdentifier>{0893d263-f8ac-4e3f-a5db-963308e7f004}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\kernel-level">
-      <UniqueIdentifier>{76f9b368-3760-4a40-b403-d99fc0e5edbd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\debugger\kernel-level">
-      <UniqueIdentifier>{775b4982-b0fa-40e7-8875-f176a39a0fa2}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\vmm">
       <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
@@ -153,34 +66,67 @@
     <Filter Include="code\globals">
       <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\debugger\script-engine">
-      <UniqueIdentifier>{5b6684f0-db1b-4920-987c-d5dfd8cdc0c1}</UniqueIdentifier>
+    <Filter Include="code\interface">
+      <UniqueIdentifier>{20741da2-52c0-4c6c-ab4f-d8a29bae81e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\script-eval">
-      <UniqueIdentifier>{59005a75-5137-42a4-867a-ccf06fae2f9f}</UniqueIdentifier>
+    <Filter Include="code\transparency">
+      <UniqueIdentifier>{33ddc8db-b65a-4ebd-a214-1b8060bf6ab0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\devices\globals">
+    <Filter Include="header\transparency">
+      <UniqueIdentifier>{3646ca74-c21f-4d7d-8e93-51ec5fae9d0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\interface">
+      <UniqueIdentifier>{bd4cf053-c1f6-40df-984d-37f9f50b85ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\hooks">
+      <UniqueIdentifier>{9ee6fedc-6246-4954-95e3-bd0496205437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\hooks">
+      <UniqueIdentifier>{99e17324-753e-41fe-923d-c6038e8bf91a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\hooks\ept-hook">
+      <UniqueIdentifier>{e3632fff-6811-445c-a3b1-43faf02b5eae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\hooks\syscall-hook">
+      <UniqueIdentifier>{293a7e14-23fc-4526-bdf7-6ba3beca6077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\broadcast">
+      <UniqueIdentifier>{39d36642-070d-46ba-a979-47eab170264c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\broadcast">
+      <UniqueIdentifier>{16a14404-8d63-4ea1-89df-609d3b4f13fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\globals">
       <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\spinlock">
+      <UniqueIdentifier>{91f41500-46a9-4c4d-ad6b-3697f1ba5639}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\spinlock">
+      <UniqueIdentifier>{3850bccc-e309-4094-8ba9-625b5f59a1e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\macros">
+      <UniqueIdentifier>{3341e414-60a5-4c8c-9dee-59addb1b6bca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\assembly">
+      <UniqueIdentifier>{b4e447d1-4548-43ad-8e5d-f9e0aaf64076}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\disasm">
+      <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\features">
+      <UniqueIdentifier>{336e212a-d3ac-4b5a-8e49-34682a902fbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\features">
+      <UniqueIdentifier>{7d57205a-dfa8-45af-afe5-253b9c2c9cea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
       <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="code\common\Logging.c">
-      <Filter>code\common</Filter>
-    </ClCompile>
-    <ClCompile Include="code\common\Spinlock.c">
-      <Filter>code\common</Filter>
-    </ClCompile>
     <ClCompile Include="code\devices\Apic.c">
       <Filter>code\devices</Filter>
-    </ClCompile>
-    <ClCompile Include="code\driver\Driver.c">
-      <Filter>code\driver</Filter>
-    </ClCompile>
-    <ClCompile Include="code\driver\Ioctl.c">
-      <Filter>code\driver</Filter>
     </ClCompile>
     <ClCompile Include="code\vmm\ept\Ept.c">
       <Filter>code\vmm\ept</Filter>
@@ -224,51 +170,6 @@
     <ClCompile Include="code\vmm\vmx\VmxRegions.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\commands\BreakpointCommands.c">
-      <Filter>code\debugger\commands</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\commands\DebuggerCommands.c">
-      <Filter>code\debugger\commands</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\commands\ExtensionCommands.c">
-      <Filter>code\debugger\commands</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\communication\SerialConnection.c">
-      <Filter>code\debugger\communication</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c">
-      <Filter>code\debugger\features\hooks\ept-hook</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c">
-      <Filter>code\debugger\features\hooks\syscall-hook</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c">
-      <Filter>code\debugger\features\hooks\syscall-hook</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c">
-      <Filter>code\debugger\script-engine</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\tests\KernelTests.c">
-      <Filter>code\debugger\tests</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\transparency\Transparency.c">
-      <Filter>code\debugger\transparency</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\Debugger.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\DebuggerEvents.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\Termination.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\broadcast\Broadcast.c">
-      <Filter>code\debugger\broadcast</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c">
-      <Filter>code\debugger\broadcast</Filter>
-    </ClCompile>
     <ClCompile Include="code\memory\MemoryManager.c">
       <Filter>code\memory</Filter>
     </ClCompile>
@@ -277,12 +178,6 @@
     </ClCompile>
     <ClCompile Include="code\memory\PoolManager.c">
       <Filter>code\memory</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\objects\Process.c">
-      <Filter>code\debugger\objects</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\objects\Thread.c">
-      <Filter>code\debugger\objects</Filter>
     </ClCompile>
     <ClCompile Include="code\components\registers\DebugRegisters.c">
       <Filter>code\components\registers</Filter>
@@ -299,53 +194,71 @@
     <ClCompile Include="code\vmm\vmx\Hv.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\user-level\UserAccess.c">
-      <Filter>code\debugger\user-level</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\user-level\Attaching.c">
-      <Filter>code\debugger\user-level</Filter>
-    </ClCompile>
     <ClCompile Include="code\vmm\vmx\VmxBroadcast.c">
       <Filter>code\vmm\vmx</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\kernel-level\Kd.c">
-      <Filter>code\debugger\kernel-level</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\user-level\Ud.c">
-      <Filter>code\debugger\user-level</Filter>
     </ClCompile>
     <ClCompile Include="code\platform\CrossApi.c">
       <Filter>code\platform</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\user-level\ThreadHolder.c">
-      <Filter>code\debugger\user-level</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\commands\Callstack.c">
-      <Filter>code\debugger\commands</Filter>
-    </ClCompile>
     <ClCompile Include="code\globals\GlobalVariableManagement.c">
       <Filter>code\globals</Filter>
     </ClCompile>
-    <ClCompile Include="pch.c">
-      <Filter>code</Filter>
+    <ClCompile Include="code\interface\Dispatch.c">
+      <Filter>code\interface</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
-      <Filter>code\script-eval</Filter>
+    <ClCompile Include="code\interface\Export.c">
+      <Filter>code\interface</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\code\PseudoRegisters.c">
-      <Filter>code\script-eval</Filter>
+    <ClCompile Include="code\transparency\Transparency.c">
+      <Filter>code\transparency</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\code\Keywords.c">
-      <Filter>code\script-eval</Filter>
+    <ClCompile Include="code\hooks\ept-hook\EptHook.c">
+      <Filter>code\hooks\ept-hook</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\code\Functions.c">
-      <Filter>code\script-eval</Filter>
+    <ClCompile Include="code\hooks\syscall-hook\EferHook.c">
+      <Filter>code\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\code\Regs.c">
-      <Filter>code\script-eval</Filter>
+    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c">
+      <Filter>code\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\core\Dispatch.c">
-      <Filter>code\debugger\core</Filter>
+    <ClCompile Include="code\broadcast\Broadcast.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\broadcast\DpcRoutines.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+      <Filter>code\components\spinlock</Filter>
+    </ClCompile>
+    <ClCompile Include="code\interface\Configuration.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\interface\Callback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\features\DirtyLogging.c">
+      <Filter>code\features</Filter>
+    </ClCompile>
+    <ClCompile Include="code\features\CompatibilityChecks.c">
+      <Filter>code\features</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c">
+      <Filter>code\hooks\ept-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="code\common\Bitwise.c">
+      <Filter>code\common</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\Conversion.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\Layout.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\AddressCheck.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\SwitchLayout.c">
+      <Filter>code\memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -358,20 +271,11 @@
     <ClInclude Include="header\common\Dpc.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\LengthDisassemblerEngine.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\common\Logging.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
     <ClInclude Include="header\common\Msr.h">
       <Filter>header\common</Filter>
     </ClInclude>
     <ClInclude Include="header\common\Trace.h">
       <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\misc\InlineAsm.h">
-      <Filter>header\misc</Filter>
     </ClInclude>
     <ClInclude Include="header\devices\Apic.h">
       <Filter>header\devices</Filter>
@@ -397,9 +301,6 @@
     <ClInclude Include="header\vmm\vmx\IoHandler.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="header\vmm\vmx\ManageRegs.h">
-      <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
     <ClInclude Include="header\vmm\vmx\Mtf.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
@@ -409,56 +310,11 @@
     <ClInclude Include="header\vmm\vmx\Vmx.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\commands\BreakpointCommands.h">
-      <Filter>header\debugger\commands</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\commands\DebuggerCommands.h">
-      <Filter>header\debugger\commands</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\commands\ExtensionCommands.h">
-      <Filter>header\debugger\commands</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\communication\SerialConnection.h">
-      <Filter>header\debugger\communication</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\features\Hooks.h">
-      <Filter>header\debugger\features</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\tests\KernelTests.h">
-      <Filter>header\debugger\tests</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\transparency\Transparency.h">
-      <Filter>header\debugger\transparency</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\broadcast\Broadcast.h">
-      <Filter>header\debugger\broadcast</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h">
-      <Filter>header\debugger\broadcast</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Debugger.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\DebuggerEvents.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Termination.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
     <ClInclude Include="header\memory\MemoryMapper.h">
       <Filter>header\memory</Filter>
     </ClInclude>
     <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\objects\Process.h">
-      <Filter>header\debugger\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\objects\Thread.h">
-      <Filter>header\debugger\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="header\components\registers\DebugRegisters.h">
-      <Filter>header\components\registers</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">
       <Filter>header\vmm\vmx</Filter>
@@ -472,20 +328,8 @@
     <ClInclude Include="header\vmm\vmx\ProtectedHv.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\user-level\UserAccess.h">
-      <Filter>header\debugger\user-level</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\user-level\Attaching.h">
-      <Filter>header\debugger\user-level</Filter>
-    </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h">
       <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\kernel-level\Kd.h">
-      <Filter>header\debugger\kernel-level</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\user-level\Ud.h">
-      <Filter>header\debugger\user-level</Filter>
     </ClInclude>
     <ClInclude Include="header\platform\CrossApi.h">
       <Filter>header\platform</Filter>
@@ -493,42 +337,84 @@
     <ClInclude Include="header\platform\Environment.h">
       <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\user-level\ThreadHolder.h">
-      <Filter>header\debugger\user-level</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\commands\Callstack.h">
-      <Filter>header\debugger\commands</Filter>
-    </ClInclude>
     <ClInclude Include="header\globals\GlobalVariableManagement.h">
-      <Filter>header\devices\globals</Filter>
+      <Filter>header\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariables.h">
-      <Filter>header\devices\globals</Filter>
-    </ClInclude>
-    <ClInclude Include="header\platform\MetaMacros.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h">
-      <Filter>header\debugger\script-engine</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Dispatch.h">
-      <Filter>header\debugger\core</Filter>
+      <Filter>header\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\HypervTlfs.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\State.h">
+      <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\transparency\Transparency.h">
+      <Filter>header\transparency</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Dispatch.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\Hooks.h">
+      <Filter>header\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="header\broadcast\Broadcast.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\broadcast\DpcRoutines.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header\components\spinlock</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\macros\MetaMacros.h">
+      <Filter>header\macros</Filter>
+    </ClInclude>
+    <ClInclude Include="header\assembly\InlineAsm.h">
+      <Filter>header\assembly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h">
+      <Filter>header\components\disasm</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Configuration.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\Callback.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\DirtyLogging.h">
+      <Filter>header\features</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\CompatibilityChecks.h">
+      <Filter>header\features</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\ModeBasedExecHook.h">
+      <Filter>header\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\Conversion.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\Layout.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\Bitwise.h">
+      <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\AddressCheck.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\SwitchLayout.h">
+      <Filter>header\memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">
       <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="code\assembly\AsmDebugger.asm">
+    <MASM Include="code\assembly\AsmHooks.asm">
       <Filter>code\assembly</Filter>
     </MASM>
     <MASM Include="code\assembly\AsmEpt.asm">
-      <Filter>code\assembly</Filter>
-    </MASM>
-    <MASM Include="code\assembly\AsmKernelSideTests.asm">
       <Filter>code\assembly</Filter>
     </MASM>
     <MASM Include="code\assembly\AsmSegmentRegs.asm">

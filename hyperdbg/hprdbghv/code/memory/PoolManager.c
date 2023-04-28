@@ -4,12 +4,12 @@
  * @brief The pool manager used in vmx root
  * @details As we cannot allocate pools in vmx root, we need a pool
  * manager to manage the pools
- * 
+ *
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
@@ -34,7 +34,8 @@ PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
     return TRUE;
 }
 
-VOID PlmgrFreeRequestNewAllocation(VOID)
+VOID
+PlmgrFreeRequestNewAllocation(VOID)
 {
     ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
 }
@@ -45,8 +46,8 @@ VOID PlmgrFreeRequestNewAllocation(VOID)
 
 /**
  * @brief Initializes the pool manager
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 PoolManagerInitialize()
@@ -87,13 +88,6 @@ PoolManagerInitialize()
     PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
 
     //
-    // Request pages for breakpoint detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
-                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
-                                 BREAKPOINT_DEFINITION_STRUCTURE);
-
-    //
     // Nothing to deallocate
     //
     g_IsNewRequestForDeAllocation = FALSE;
@@ -106,8 +100,8 @@ PoolManagerInitialize()
 
 /**
  * @brief Uninitialize the pool manager (free the buffers, etc.)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 PoolManagerUninitialize()
@@ -115,6 +109,8 @@ PoolManagerUninitialize()
     PLIST_ENTRY ListTemp = 0;
     UINT64      Address  = 0;
     ListTemp             = &g_ListOfAllocatedPoolsHead;
+
+    SpinlockLock(&LockForReadingPool);
 
     while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
     {
@@ -144,15 +140,17 @@ PoolManagerUninitialize()
         ExFreePoolWithTag(PoolTable, POOLTAG);
     }
 
+    SpinlockUnlock(&LockForReadingPool);
+
     PlmgrFreeRequestNewAllocation();
 }
 
 /**
  * @brief This function set a pool flag to be freed, and it will be freed
  * on the next IOCTL when it's safe to remove
- * 
+ *
  * @param AddressToFree The pool address that was previously obtained from the pool manager
- * @return BOOLEAN If the address was already in the list of allocated pools by pool 
+ * @return BOOLEAN If the address was already in the list of allocated pools by pool
  * manager then it returns TRUE; otherwise, FALSE
  */
 BOOLEAN
@@ -192,10 +190,40 @@ PoolManagerFreePool(UINT64 AddressToFree)
 }
 
 /**
+ * @brief Shows list of pre-allocated pools available (used for debugging purposes)
+ *
+ * @return VOID
+ */
+VOID
+PoolManagerShowPreAllocatedPools()
+{
+    PLIST_ENTRY ListTemp = 0;
+    UINT64      Address  = 0;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
+
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+    {
+        ListTemp = ListTemp->Flink;
+
+        //
+        // Get the head of the record
+        //
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+
+        LogInfo("Pool details, Pool intention: %x | Pool address: %llx | Pool state: %s | Should be freed: %s | Already freed: %s\n",
+                PoolTable->Intention,
+                PoolTable->Address,
+                PoolTable->IsBusy ? "used" : "free",
+                PoolTable->ShouldBeFreed ? "true" : "false",
+                PoolTable->AlreadyFreed ? "true" : "false");
+    }
+}
+
+/**
  * @brief This function should be called from vmx-root in order to get a pool from the list
  * @details If RequestNewPool is TRUE then Size is used, otherwise Size is useless
  * Note : Most of the times this function called from vmx root but not all the time
- * 
+ *
  * @param Intention The intention why we need this pool for (buffer tag)
  * @param RequestNewPool Create a request to allocate a new pool with the same size, next time
  * that it's safe to allocate (this way we never ran out of pools for this "Intention")
@@ -236,11 +264,11 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 /**
  * @brief Allocate the new pools and add them to pool table
  * @details This function doesn't need lock as it just calls once from PASSIVE_LEVEL
- * 
+ *
  * @param Size Size of each chunk
  * @param Count Count of chunks
  * @param Intention The Intention of the buffer (buffer tag)
- * @return BOOLEAN If the allocation was successfull it returns true and if it was
+ * @return BOOLEAN If the allocation was successful it returns true and if it was
  * unsuccessful then it returns false
  */
 BOOLEAN
@@ -248,7 +276,9 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 {
     for (size_t i = 0; i < Count; i++)
     {
-        POOL_TABLE * SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
+        POOL_TABLE * SinglePool = NULL;
+
+        SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
 
         if (!SinglePool)
         {
@@ -265,6 +295,8 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 
         if (!SinglePool->Address)
         {
+            ExFreePoolWithTag(SinglePool, POOLTAG);
+
             LogError("Err, insufficient memory");
             return FALSE;
         }
@@ -282,12 +314,13 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
     }
+
     return TRUE;
 }
 
 /**
  * @brief This function performs allocations from VMX non-root based on g_RequestNewAllocation
- * 
+ *
  * @return BOOLEAN If the the pool manager allocates buffer or there was no buffer to allocate
  * then it returns true, if there was any error then it returns false
  */
@@ -301,7 +334,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     // let's make sure we're on vmx non-root and also we have new allocation
     //
-    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    if (VmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // allocation's can't be done from vmx root
@@ -309,6 +342,9 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
         return FALSE;
     }
 
+    //
+    // Make sure paging works properly
+    //
     PAGED_CODE();
 
     //
@@ -396,8 +432,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
 
 /**
  * @brief Request to allocate new buffers
- * 
- * @param Size Request new buffer to allocate 
+ *
+ * @param Size Request new buffer to allocate
  * @param Count Count of chunks
  * @param Intention The intention of chunks (buffer tag)
  * @return BOOLEAN If the request is save it returns true otherwise it returns false

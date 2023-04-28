@@ -2,40 +2,40 @@
  * @file spinlock.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This is the implementation for custom spinlock.
- * 
- * @details This implementation is derived from Hvpp by Petr Benes 
+ *
+ * @details This implementation is derived from Hvpp by Petr Benes
  *      - https://github.com/wbenny/hvpp
  * Based on my benchmarks, this simple implementation beats other (often
  * more complex) spinlock implementations - such as queue spinlocks, ticket
  * spinlocks, MCS locks.  The only difference between this implementation
  * and completely naive spinlock is the "backoff".
- * 
+ *
  * Also, benefit of this implementation is that we can use it with
  * STL lock guards, e.g.: std::lock_guard.
- * 
+ *
  * Look here for more information:
  *      - https://locklessinc.com/articles/locks/
  *      - https://github.com/cyfdecyf/spinlock
- * 
+ *
  * @version 0.1
  * @date 2022-05-19
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief The maximum wait before PAUSE
- * 
+ *
  */
 static unsigned MaxWait = 65536;
 
 /**
  * @brief Tries to get the lock otherwise returns
- * 
+ *
  * @param LONG Lock variable
- * @return BOOLEAN If it was successfull on getting the lock
+ * @return BOOLEAN If it was successful on getting the lock
  */
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock)
@@ -45,7 +45,7 @@ SpinlockTryLock(volatile LONG * Lock)
 
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
- * 
+ *
  * @param LONG Lock variable
  */
 void
@@ -78,7 +78,7 @@ SpinlockLock(volatile LONG * Lock)
 
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
- * 
+ *
  * @param LONG Lock variable
  * @param LONG MaxWait Maximum wait (pause) count
  */
@@ -112,7 +112,7 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
 
 /**
  * @brief Release the lock
- * 
+ *
  * @param LONG Lock variable
  */
 void

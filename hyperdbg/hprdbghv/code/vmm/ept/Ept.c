@@ -38,12 +38,12 @@ EptCheckFeatures()
 
     if (!VpidRegister.ExecuteOnlyPages)
     {
-        g_ExecuteOnlySupport = FALSE;
+        g_CompatibilityCheck.ExecuteOnlySupport = FALSE;
         LogDebugInfo("The processor doesn't support execute-only pages, execute hooks won't work as they're on this feature in our design");
     }
     else
     {
-        g_ExecuteOnlySupport = TRUE;
+        g_CompatibilityCheck.ExecuteOnlySupport = TRUE;
     }
 
     if (!MTRRDefType.MtrrEnable)
@@ -193,6 +193,72 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 }
 
 /**
+ * @brief Get the PML1 entry for this physical address if the large page
+ * is available then large page of Pml2 is returned
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PhysicalAddress Physical address that we want to get its PML1
+ * @param IsLargePage Shows whether it's a large page or not
+ *
+ * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ */
+PVOID
+EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage)
+{
+    SIZE_T            Directory, DirectoryPointer, PML4Entry;
+    PEPT_PML2_ENTRY   PML2;
+    PEPT_PML1_ENTRY   PML1;
+    PEPT_PML2_POINTER PML2Pointer;
+
+    Directory        = ADDRMASK_EPT_PML2_INDEX(PhysicalAddress);
+    DirectoryPointer = ADDRMASK_EPT_PML3_INDEX(PhysicalAddress);
+    PML4Entry        = ADDRMASK_EPT_PML4_INDEX(PhysicalAddress);
+
+    //
+    // Addresses above 512GB are invalid because it is > physical address bus width
+    //
+    if (PML4Entry > 0)
+    {
+        return NULL;
+    }
+
+    PML2 = &EptPageTable->PML2[DirectoryPointer][Directory];
+
+    //
+    // Check to ensure the page is split
+    //
+    if (PML2->LargePage)
+    {
+        *IsLargePage = TRUE;
+        return PML2;
+    }
+
+    //
+    // Conversion to get the right PageFrameNumber.
+    // These pointers occupy the same place in the table and are directly convertable.
+    //
+    PML2Pointer = (PEPT_PML2_POINTER)PML2;
+
+    //
+    // If it is, translate to the PML1 pointer
+    //
+    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((PVOID)(PML2Pointer->PageFrameNumber * PAGE_SIZE));
+
+    if (!PML1)
+    {
+        return NULL;
+    }
+
+    //
+    // Index into PML1 for that address
+    //
+    PML1 = &PML1[ADDRMASK_EPT_PML1_INDEX(PhysicalAddress)];
+
+    *IsLargePage = FALSE;
+    return PML1;
+}
+
+/**
  * @brief Get the PML2 entry for this physical address
  *
  * @param EptPageTable The EPT Page Table
@@ -227,14 +293,12 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param EptPageTable The EPT Page Table
  * @param PreAllocatedBuffer The address of pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
- * @param CoreIndex The index of core
- * @return BOOLEAN Returns true if it was successfull or false if there was an error
+ * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   PVOID               PreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress,
-                  ULONG               CoreIndex)
+                  SIZE_T              PhysicalAddress)
 {
     PVMM_EPT_DYNAMIC_SPLIT NewSplit;
     EPT_PML1_ENTRY         EntryTemplate;
@@ -576,9 +640,9 @@ EptLogicalProcessorInitialize()
     EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
 
     //
-    // We are not utilizing the 'access' and 'dirty' flag features
+    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
     //
-    EPTP.EnableAccessAndDirtyFlags = FALSE;
+    EPTP.EnableAccessAndDirtyFlags = TRUE;
 
     //
     // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
@@ -607,22 +671,20 @@ EptLogicalProcessorInitialize()
  * If the memory access attempt was execute and the page was marked not executable, the page is swapped with
  * the hooked page.
  *
- * @param ViolationQualification The violation qualification in vm-exit
+ * @param VCpu The virtual processor's state * @param ViolationQualification The violation qualification in vm-exit
  * @param GuestPhysicalAddr The GUEST_PHYSICAL_ADDRESS that caused this EPT violation
  * @return BOOLEAN Returns true if it was successful or false if the violation was not due to a page hook
  */
 _Use_decl_annotations_
 BOOLEAN
-EptHandlePageHookExit(PGUEST_REGS                          Regs,
+EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN                 ResultOfHandlingHook;
-    BOOLEAN                 IsHandled                    = FALSE;
-    BOOLEAN                 IgnoreReadOrWrite            = FALSE;
-    BOOLEAN                 IsTriggeringPostEventAllowed = FALSE;
-    ULONG                   CurrentCore                  = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState               = &g_GuestState[CurrentCore];
+    BOOLEAN ResultOfHandlingHook;
+    BOOLEAN IsHandled                    = FALSE;
+    BOOLEAN IgnoreReadOrWrite            = FALSE;
+    BOOLEAN IsTriggeringPostEventAllowed = FALSE;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -638,7 +700,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            ResultOfHandlingHook = EptHookHandleHookedPage(Regs,
+            ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,
                                                            HookedEntry,
                                                            ViolationQualification,
                                                            GuestPhysicalAddr,
@@ -668,12 +730,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                     //
-                    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
-
-                    //
-                    // We have to set Monitor trap flag and give it the HookedEntry to work with
-                    //
-                    HvSetMonitorTrapFlag(TRUE);
+                    VCpu->MtfEptHookRestorePoint = HookedEntry;
 
                     //
                     // The following codes are added because we realized if the execution takes long then
@@ -682,20 +739,9 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                     //
 
                     //
-                    // Change guest interrupt-state
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
                     //
-                    HvSetExternalInterruptExiting(TRUE);
-
-                    //
-                    // Do not vm-exit on interrupt windows
-                    //
-                    HvSetInterruptWindowExiting(FALSE);
-
-                    //
-                    // Indicate that we should enable external interrupts and configure external interrupt
-                    // window exiting somewhere at MTF
-                    //
-                    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    HvEnableMtfAndChangeExternalInterruptState(VCpu);
                 }
             }
 
@@ -719,14 +765,14 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
         //
         // Do not redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        HvSuppressRipIncrement(VCpu);
     }
     else
     {
         //
         // Redo the instruction
         //
-        CurrentVmState->IncrementRip = FALSE;
+        HvSuppressRipIncrement(VCpu);
     }
 
     return IsHandled;
@@ -737,25 +783,27 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
  * @details Violations are thrown whenever an operation is performed on an EPT entry
  * that does not provide permissions to access that page
  *
- * @param Regs Guest registers
- * @param ExitQualification Exit qualification of the vm-exit
- * @param GuestPhysicalAddr Physical address that caused this EPT violation
+ * @param VCpu The virtual processor's state
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
 _Use_decl_annotations_
 BOOLEAN
-EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification)
+EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT64                               GuestPhysicalAddr;
-    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = ExitQualification};
+    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = VCpu->ExitQualification};
 
     //
     // Reading guest physical address
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
+    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu, &ViolationQualification))
+    {
+        return TRUE;
+    }
+    else if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
     {
         //
         // Handled by page hook code
@@ -763,8 +811,8 @@ EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification)
         return TRUE;
     }
 
-    LogError("Err, unexpected EPT violation");
-
+    LogError("Err, unexpected EPT violation at RIP: %llx", VCpu->LastVmexitRip);
+    DbgBreakPoint();
     //
     // Redo the instruction that caused the exception
     //
@@ -774,16 +822,48 @@ EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification)
 /**
  * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
  *
- * @param HookedEntry
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
+EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    //
+    // Check for user-mode attaching mechanisms
+    //
+    VmmCallbackRestoreEptState();
+
     //
     // restore the hooked state
     //
-    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->ChangedEntry, InveptSingleContext);
+    EptSetPML1AndInvalidateTLB(VCpu->MtfEptHookRestorePoint->EntryAddress, VCpu->MtfEptHookRestorePoint->ChangedEntry, InveptSingleContext);
+
+    //
+    // Check to trigger the post event (for events relating the !monitor command
+    // and the emulation hardware debug registers)
+    //
+    if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
+    {
+        //
+        // Check whether this is a "write" monitor hook or not
+        //
+        if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
+        {
+            //
+            // This is a "write" hook
+            //
+            DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
+                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+        else
+        {
+            //
+            // This is a "read" hook
+            //
+            DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
+                                                              &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+    }
 }
 
 /**
@@ -853,4 +933,127 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     // release the lock
     //
     SpinlockUnlock(&Pml1ModificationAndInvalidationLock);
+}
+
+/**
+ * @brief Perform checking and handling if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ * @param GuestRip
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRip)
+{
+    PLIST_ENTRY TempList           = 0;
+    BOOLEAN     IsHandledByEptHook = FALSE;
+
+    //
+    // ***** Check breakpoint for !epthook *****
+    //
+
+    //
+    // Check whether the breakpoint was due to a !epthook command or not
+    //
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        if (HookedEntry->IsExecutionHook)
+        {
+            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            {
+                if (HookedEntry->BreakpointAddresses[i] == GuestRip)
+                {
+                    //
+                    // We found an address that matches the details, let's trigger the event
+                    //
+
+                    //
+                    // As the context to event trigger, we send the rip
+                    // of where triggered this event
+                    //
+                    DispatchEventHiddenHookExecCc(VCpu, GuestRip);
+
+                    //
+                    // Restore to its original entry for one instruction
+                    //
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+
+                    //
+                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                    //
+                    VCpu->MtfEptHookRestorePoint = HookedEntry;
+
+                    //
+                    // The following codes are added because we realized if the execution takes long then
+                    // the execution might be switched to another routines, thus, MTF might conclude on
+                    // another routine and we might (and will) trigger the same instruction soon
+                    //
+                    // The following code is not necessary on local debugging (VMI Mode), however, I don't
+                    // know why? just things are not reasonable here for me
+                    // another weird thing that I observed is the fact if you don't touch the routine related
+                    // to the I/O in and out instructions in VMWare then it works perfectly, just touching I/O
+                    // for serial is problematic, it might be a VMWare nested-virtualization bug, however, the
+                    // below approached proved to be work on both Debug Mode and WMI Mode
+                    // If you remove the below codes then when epthook is triggered then the execution stucks
+                    // on the same instruction on where the hooks is triggered, so 'p' and 't' commands for
+                    // steppings won't work
+                    //
+
+                    //
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
+                    //
+                    HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+                    //
+                    // Indicate that we handled the ept violation
+                    //
+                    IsHandledByEptHook = TRUE;
+
+                    //
+                    // Get out of the loop
+                    //
+                    break;
+                }
+            }
+        }
+    }
+
+    return IsHandledByEptHook;
+}
+
+/**
+ * @brief Check if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT64  GuestRip           = NULL;
+    BOOLEAN IsHandledByEptHook = FALSE;
+
+    //
+    // Reading guest's RIP
+    //
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+
+    //
+    // Don't increment rip by default
+    //
+    HvSuppressRipIncrement(VCpu);
+
+    //
+    // Check if it relates to !epthook or not
+    //
+    IsHandledByEptHook = EptCheckAndHandleEptHookBreakpoints(VCpu, GuestRip);
+
+    return IsHandledByEptHook;
 }

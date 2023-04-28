@@ -63,6 +63,61 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 /* ==============================================================================================
  */
 
+/**
+ * @brief different modes of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_USER_MODE,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_KERNEL_MODE,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE;
+
+/**
+ * @brief different types of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_RECONSTRUCT,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_PATTERN,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE;
+
+/**
+ * @brief different forms of reconstruct requests
+ *
+ */
+typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM
+{
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_UNKNOWN = 0,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_OVERALL,
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_ADDRESS_BASED,
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM;
+
+#define SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST \
+    sizeof(REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST)
+
+/**
+ * @brief requests for !rev command
+ *
+ */
+typedef struct _REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST
+{
+    UINT64                                    VirtualAddress;
+    UINT32                                    ProcessId;
+    UINT32                                    Size;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE Mode;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE Type;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM Form;
+    UINT32                                    KernelStatus;
+
+} REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, *PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_DT_COMMAND_OPTIONS \
     sizeof(DEBUGGER_DT_COMMAND_OPTIONS)
 
@@ -194,13 +249,24 @@ typedef struct _DEBUGGER_FLUSH_LOGGING_BUFFERS
     sizeof(DEBUGGER_TEST_QUERY_BUFFER)
 
 /**
+ * @brief test query used for test purposed
+ *
+ */
+typedef enum _DEBUGGER_TEST_QUERY_STATE
+{
+    TEST_QUERY_HALTING_CORE_STATUS     = 1, // Query constant to show detail of halting of core
+    TEST_QUERY_PREALLOCATED_POOL_STATE = 2, // Query pre-allocated pool state
+
+} DEBUGGER_TEST_QUERY_STATE;
+
+/**
  * @brief request for test query buffers
  *
  */
 typedef struct _DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER
 {
-    UINT32 RequestIndex;
-    UINT32 KernelStatus;
+    DEBUGGER_TEST_QUERY_STATE RequestType;
+    UINT32                    KernelStatus;
 
 } DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER, *PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER;
 
@@ -448,7 +514,7 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
                                  // shows the length of xxx
 
-    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFULL ,
+    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
@@ -941,27 +1007,6 @@ typedef struct _DEBUGGEE_BP_PACKET
     UINT32 Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
-
-/**
- * @brief The structure of storing breakpoints
- *
- */
-typedef struct _DEBUGGEE_BP_DESCRIPTOR
-{
-    UINT64     BreakpointId;
-    LIST_ENTRY BreakpointsList;
-    BOOLEAN    Enabled;
-    UINT64     Address;
-    UINT64     PhysAddress;
-    UINT32     Pid;
-    UINT32     Tid;
-    UINT32     Core;
-    UINT16     InstructionLength;
-    BYTE       PreviousByte;
-    BOOLEAN    SetRflagsIFBitOnMtf;
-    BOOLEAN    AvoidReApplyBreakpoint;
-
-} DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
 /**
  * @brief breakpoint modification types

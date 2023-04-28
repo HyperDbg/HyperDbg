@@ -1,13 +1,13 @@
 /**
  * @file Events.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection 
+ * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -23,58 +23,8 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Exceptions enum
- * 
- */
-typedef enum _EXCEPTION_VECTORS
-{
-    EXCEPTION_VECTOR_DIVIDE_ERROR,
-    EXCEPTION_VECTOR_DEBUG_BREAKPOINT,
-    EXCEPTION_VECTOR_NMI,
-    EXCEPTION_VECTOR_BREAKPOINT,
-    EXCEPTION_VECTOR_OVERFLOW,
-    EXCEPTION_VECTOR_BOUND_RANGE_EXCEEDED,
-    EXCEPTION_VECTOR_UNDEFINED_OPCODE,
-    EXCEPTION_VECTOR_NO_MATH_COPROCESSOR,
-    EXCEPTION_VECTOR_DOUBLE_FAULT,
-    EXCEPTION_VECTOR_RESERVED0,
-    EXCEPTION_VECTOR_INVALID_TASK_SEGMENT_SELECTOR,
-    EXCEPTION_VECTOR_SEGMENT_NOT_PRESENT,
-    EXCEPTION_VECTOR_STACK_SEGMENT_FAULT,
-    EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT,
-    EXCEPTION_VECTOR_PAGE_FAULT,
-    EXCEPTION_VECTOR_RESERVED1,
-    EXCEPTION_VECTOR_MATH_FAULT,
-    EXCEPTION_VECTOR_ALIGNMENT_CHECK,
-    EXCEPTION_VECTOR_MACHINE_CHECK,
-    EXCEPTION_VECTOR_SIMD_FLOATING_POINT_NUMERIC_ERROR,
-    EXCEPTION_VECTOR_VIRTUAL_EXCEPTION,
-    EXCEPTION_VECTOR_RESERVED2,
-    EXCEPTION_VECTOR_RESERVED3,
-    EXCEPTION_VECTOR_RESERVED4,
-    EXCEPTION_VECTOR_RESERVED5,
-    EXCEPTION_VECTOR_RESERVED6,
-    EXCEPTION_VECTOR_RESERVED7,
-    EXCEPTION_VECTOR_RESERVED8,
-    EXCEPTION_VECTOR_RESERVED9,
-    EXCEPTION_VECTOR_RESERVED10,
-    EXCEPTION_VECTOR_RESERVED11,
-    EXCEPTION_VECTOR_RESERVED12,
-
-    //
-    // NT (Windows) specific exception vectors.
-    //
-    APC_INTERRUPT   = 31,
-    DPC_INTERRUPT   = 47,
-    CLOCK_INTERRUPT = 209,
-    IPI_INTERRUPT   = 225,
-    PMI_INTERRUPT   = 254,
-
-} EXCEPTION_VECTORS;
-
-/**
  * @brief Type of interrupts
- * 
+ *
  */
 typedef enum _INTERRUPT_TYPE
 {
@@ -94,7 +44,7 @@ typedef enum _INTERRUPT_TYPE
 
 /**
  * @brief Interrupt injection and event format
- * 
+ *
  */
 typedef union _INTERRUPT_INFO
 {
@@ -102,7 +52,7 @@ typedef union _INTERRUPT_INFO
     {
         UINT32 Vector : 8;
         /* 0=Ext Int, 1=Rsvd, 2=NMI, 3=Exception, 4=Soft INT,
-		 * 5=Priv Soft Trap, 6=Unpriv Soft Trap, 7=Other */
+         * 5=Priv Soft Trap, 6=Unpriv Soft Trap, 7=Other */
         UINT32 InterruptType : 3;
         UINT32 DeliverCode : 1; /* 0=Do not deliver, 1=Deliver */
         UINT32 Reserved : 19;
@@ -113,7 +63,7 @@ typedef union _INTERRUPT_INFO
 
 /**
  * @brief Event information
- * 
+ *
  */
 typedef struct _EVENT_INFORMATION
 {
@@ -127,6 +77,9 @@ typedef struct _EVENT_INFORMATION
 //////////////////////////////////////////////////
 
 VOID
+EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
+
+VOID
 EventInjectBreakpoint();
 
 VOID
@@ -136,10 +89,13 @@ VOID
 EventInjectGeneralProtection();
 
 VOID
-EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex);
+EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 EventInjectPageFault(UINT64 PageFaultAddress);
 
 VOID
 EventInjectDebugBreakpoint();
+
+VOID
+EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address);

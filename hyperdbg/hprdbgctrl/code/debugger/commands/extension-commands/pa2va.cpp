@@ -190,7 +190,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
             return;
         }
 
-        if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             //
             // Show the results

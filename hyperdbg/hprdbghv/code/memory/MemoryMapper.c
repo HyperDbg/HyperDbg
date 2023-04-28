@@ -52,10 +52,10 @@ MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
  *
  * @param Va Virtual Address
  * @param Level PMLx
- * @return PPAGE_ENTRY virtual address of PTE
+ * @return PVOID virtual address of PTE
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
 {
     CR3_TYPE Cr3;
@@ -81,10 +81,10 @@ MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
  * @param Va Virtual Address
  * @param Level PMLx
  * @param TargetCr3 kernel cr3 of target process
- * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ * @return PVOID virtual address of PTE based on cr3
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     PPAGE_ENTRY PageEntry         = NULL;
@@ -98,7 +98,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
     // be a kernel cr3 (not KPTI user cr3) as the functions to translate
     // physical address to virtual address is not mapped on the user cr3
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetCr3);
 
     //
     // Call the wrapper
@@ -108,7 +108,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return PageEntry;
 }
@@ -123,10 +123,10 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
  * @param Va Virtual Address
  * @param Level PMLx
  * @param TargetCr3 kernel cr3 of target process
- * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ * @return PVOID virtual address of PTE based on cr3
  */
 _Use_decl_annotations_
-PPAGE_ENTRY
+PVOID
 MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     CR3_TYPE Cr3;
@@ -302,9 +302,9 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
 
     //
     // Find the page table entry
@@ -323,7 +323,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 
     return Result;
 }
@@ -426,28 +426,53 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
 VOID
 MemoryMapperInitialize()
 {
-    UINT64                  TempPte;
-    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
-    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
+    UINT64 TempPte;
+    ULONG  ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Reserve the address for all cores (read pte and va)
+    // *** Reserve the address for all cores (read pte and va) ***
+    //
+
+    if (g_MemoryMapper != NULL)
+    {
+        //
+        // It's already initialized
+        //
+        return;
+    }
+
+    //
+    // Allocate the memory buffer structure
+    //
+    g_MemoryMapper = ExAllocatePoolWithTag(NonPagedPool, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount, POOLTAG);
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(g_MemoryMapper, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
+
+    //
+    // Set the core's id and initialize memory mapper
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
-        CurrentVmState = &g_GuestState[i];
+        //
+        // *** Initialize memory mapper for each core ***
+        //
 
         //
         // Initial and reserve for read operations
         //
-        CurrentVmState->MemoryMapper.VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead = TempPte;
+        g_MemoryMapper[i].VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].PteVirtualAddressForRead = TempPte;
 
         //
         // Initial and reserve for write operations
         //
-        CurrentVmState->MemoryMapper.VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite = TempPte;
+        g_MemoryMapper[i].VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].PteVirtualAddressForWrite = TempPte;
     }
 }
 
@@ -461,32 +486,34 @@ MemoryMapperInitialize()
 VOID
 MemoryMapperUninitialize()
 {
-    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
-    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
+    ULONG ProcessorCount = KeQueryActiveProcessorCount(0);
 
     for (size_t i = 0; i < ProcessorCount; i++)
     {
-        CurrentVmState = &g_GuestState[i];
-
         //
         // Unmap and free the reserved buffer
         //
-        if (CurrentVmState->MemoryMapper.VirualAddressForRead != NULL)
+        if (g_MemoryMapper[i].VirualAddressForRead != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(CurrentVmState->MemoryMapper.VirualAddressForRead);
+            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForRead);
         }
 
-        if (CurrentVmState->MemoryMapper.VirualAddressForWrite != NULL)
+        if (g_MemoryMapper[i].VirualAddressForWrite != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(CurrentVmState->MemoryMapper.VirualAddressForWrite);
+            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForWrite);
         }
 
-        CurrentVmState->MemoryMapper.VirualAddressForRead     = NULL;
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead = NULL;
+        g_MemoryMapper[i].VirualAddressForRead     = NULL;
+        g_MemoryMapper[i].PteVirtualAddressForRead = NULL;
 
-        CurrentVmState->MemoryMapper.VirualAddressForWrite     = NULL;
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite = NULL;
+        g_MemoryMapper[i].VirualAddressForWrite     = NULL;
+        g_MemoryMapper[i].PteVirtualAddressForWrite = NULL;
     }
+
+    //
+    // Set the g_MemoryMapper to null
+    //
+    g_MemoryMapper = NULL;
 }
 
 /**
@@ -498,7 +525,7 @@ MemoryMapperUninitialize()
  * @param MappingVa Mapping virtual address
  * @param InvalidateVpids whether invalidate based on VPIDs or not
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -585,7 +612,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
  * @param PteVaAddress PTE of target virtual address
  * @param MappingVa Mapping Virtual Address
  * @param InvalidateVpids Invalidate VPIDs or not
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -718,16 +745,15 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     UINT64                                 BufferToSaveMemory,
     SIZE_T                                 SizeToRead)
 {
-    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64                  AddressToCheck;
-    PHYSICAL_ADDRESS        PhysicalAddress;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64           AddressToCheck;
+    PHYSICAL_ADDRESS PhysicalAddress;
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (CurrentVmState->MemoryMapper.VirualAddressForRead == NULL ||
-        CurrentVmState->MemoryMapper.PteVirtualAddressForRead == NULL)
+    if (g_MemoryMapper[ProcessorIndex].VirualAddressForRead == NULL ||
+        g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead == NULL)
     {
         //
         // Not initialized
@@ -773,9 +799,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                     PhysicalAddress,
                     BufferToSaveMemory,
                     ReadSize,
-                    CurrentVmState->MemoryMapper.PteVirtualAddressForRead,
-                    CurrentVmState->MemoryMapper.VirualAddressForRead,
-                    CurrentVmState->IsOnVmxRootMode))
+                    g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
+                    g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
+                    FALSE))
             {
                 return FALSE;
             }
@@ -802,9 +828,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             PhysicalAddress,
             BufferToSaveMemory,
             SizeToRead,
-            CurrentVmState->MemoryMapper.PteVirtualAddressForRead,
-            CurrentVmState->MemoryMapper.VirualAddressForRead,
-            CurrentVmState->IsOnVmxRootMode);
+            g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
+            g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
+            FALSE);
     }
 }
 
@@ -875,7 +901,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // Move to new cr3
@@ -920,7 +946,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
     //
     // Move to new cr3
@@ -1014,7 +1040,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
  * @param TargetProcessCr3 The process CR3 (might be null)
  * @param TargetProcessId The process PID (might be null)
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1025,16 +1051,15 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                    PCR3_TYPE                              TargetProcessCr3,
                                    UINT32                                 TargetProcessId)
 {
-    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64                  AddressToCheck;
-    PHYSICAL_ADDRESS        PhysicalAddress;
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64           AddressToCheck;
+    PHYSICAL_ADDRESS PhysicalAddress;
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (CurrentVmState->MemoryMapper.VirualAddressForWrite == NULL ||
-        CurrentVmState->MemoryMapper.PteVirtualAddressForWrite == NULL)
+    if (g_MemoryMapper[ProcessorIndex].VirualAddressForWrite == NULL ||
+        g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite == NULL)
     {
         //
         // Not initialized
@@ -1080,9 +1105,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                     Source,
                     PhysicalAddress,
                     WriteSize,
-                    CurrentVmState->MemoryMapper.PteVirtualAddressForWrite,
-                    CurrentVmState->MemoryMapper.VirualAddressForWrite,
-                    CurrentVmState->IsOnVmxRootMode))
+                    g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
+                    g_MemoryMapper[ProcessorIndex].VirualAddressForWrite,
+                    FALSE))
             {
                 return FALSE;
             }
@@ -1107,9 +1132,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
             Source,
             PhysicalAddress,
             SizeToWrite,
-            CurrentVmState->MemoryMapper.PteVirtualAddressForWrite,
-            CurrentVmState->MemoryMapper.VirualAddressForWrite,
-            CurrentVmState->IsOnVmxRootMode);
+            g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
+            g_MemoryMapper[ProcessorIndex].VirualAddressForWrite,
+            FALSE);
     }
 }
 
@@ -1123,7 +1148,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
  * @param SizeToWrite Size
  * @param TargetProcessCr3 CR3 of target process
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1150,7 +1175,7 @@ MemoryMapperWriteMemorySafe(UINT64   Destination,
  * @param SizeToWrite Size
  * @param TargetProcessId Target Process Id
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1171,7 +1196,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
  * @param Source Source Address
  * @param SizeToWrite Size
  *
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -1376,7 +1401,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
 
     //
     // Read the previous entry in order to modify it
@@ -1426,7 +1451,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     //
     // Restore the original process
     //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    SwitchToPreviousProcess(CurrentProcessCr3);
 }
 
 /**

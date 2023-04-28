@@ -2,12 +2,12 @@
  * @file IoHandler.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The I/O Handler for vm-exit headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-06-06
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -21,7 +21,7 @@
 
 /**
  * @brief IN Instruction or OUT Instruction
- * 
+ *
  */
 typedef enum
 {
@@ -31,7 +31,7 @@ typedef enum
 
 /**
  * @brief Immediate value or in DX
- * 
+ *
  */
 typedef enum
 {
@@ -168,13 +168,13 @@ IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
 //////////////////////////////////////////////////
 
 VOID
-IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
+IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
 IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
-IoHandlePerformIoBitmapChange(UINT64 Port);
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port);
 
 VOID
-IoHandlePerformIoBitmapReset();
+IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu);

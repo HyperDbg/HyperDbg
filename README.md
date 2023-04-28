@@ -38,13 +38,14 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
 
-**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://arxiv.org/pdf/2207.05676)** [[arXiv](https://arxiv.org/abs/2207.05676)] [[preprints](https://www.preprints.org/manuscript/202205.0416/v1)]
+**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://arxiv.org/pdf/2207.05676)** [[arXiv](https://arxiv.org/abs/2207.05676)]
 
 ```
-@article{karvandi2022hyperdbg,
+@inproceedings{karvandi2022hyperdbg,
   title={HyperDbg: Reinventing Hardware-Assisted Debugging},
-  author={Karvandi, Mohammad Sina and Gholamrezaei, MohammadHossein and Monfared, Saleh Khalaj and Medi, Suorush and Abbassi, Behrooz and Amini, Ali and Mortazavi, Reza and Gorgin, Saeid and Rahmati, Dara and Schwarz, Michael},
-  journal={arXiv preprint arXiv:2207.05676},
+  author={Karvandi, Mohammad Sina and Gholamrezaei, MohammadHosein and Khalaj Monfared, Saleh and Meghdadizanjani, Soroush and Abbassi, Behrooz and Amini, Ali and Mortazavi, Reza and Gorgin, Saeid and Rahmati, Dara and Schwarz, Michael},
+  booktitle={Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security},
+  pages={1709--1723},
   year={2022}
 }
 ```
@@ -98,20 +99,6 @@ You can read about the internal design of HyperDbg and its features in the [docu
 
 ## Scripts
 You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automate your debugging journey. **HyperDbg** has a powerful, fast, and entirely kernel-side implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language).
-
-## Credits
-- All of the <a href="https://github.com/HyperDbg/HyperDbg/graphs/contributors">contributors</a>  
-- Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
-- MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
-- Website by Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
-- Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
-- Michael Schwarz (<a href="https://twitter.com/misc0110">@misc0110</a>)
-- Soroush Meghdadizanjani (<a href="https://twitter.com/meSoroush">@meSoroush</a>)
-- Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
-- Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
-- Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
-- Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
-- Process Hacker Team (<a href="https://twitter.com/processhacker">@ProcessHacker</a>) for <a href="https://github.com/processhacker/phnt">phnt</a>  
 
 ## Contributing
 Contributing to HyperDbg is super appreciated. We have made a list of potential [tasks](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md#things-to-work-on) that you might be interested in contributing towards.

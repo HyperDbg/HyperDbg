@@ -32,7 +32,7 @@ CommandPauseHelp()
 }
 
 /**
- * @brief request to pause 
+ * @brief request to pause
  *
  * @return VOID
  */

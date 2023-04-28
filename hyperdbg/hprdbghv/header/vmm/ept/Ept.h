@@ -12,12 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				Debugger Config                 //
-//////////////////////////////////////////////////
-
-#define MaximumHiddenBreakpointsOnPage 40
-
-//////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
 
@@ -102,20 +96,6 @@
 volatile LONG Pml1ModificationAndInvalidationLock;
 
 //////////////////////////////////////////////////
-//				Unions & Structs    			//
-//////////////////////////////////////////////////
-
-//////////////////////////////////////////////////
-//				      typedefs         			 //
-//////////////////////////////////////////////////
-
-typedef EPT_PML4E   EPT_PML4_POINTER, *PEPT_PML4_POINTER;
-typedef EPT_PDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
-typedef EPT_PDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
-typedef EPT_PDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
-typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
-
-//////////////////////////////////////////////////
 //			     Structs Cont.                	//
 //////////////////////////////////////////////////
 
@@ -168,8 +148,12 @@ typedef struct _EPT_STATE
     LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
     MTRR_RANGE_DESCRIPTOR MemoryRanges[EPT_MTRR_RANGE_DESCRIPTOR_MAX]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
     ULONG                 NumberOfEnabledMemoryRanges;                 // Number of memory ranges specified in MemoryRanges
-    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
     PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
+    PVMM_EPT_PAGE_TABLE   ModeBasedEptPageTable;                       // Page table entries for hooks based on mode-based execution control bits
+    PVMM_EPT_PAGE_TABLE   ExecuteOnlyEptPageTable;                     // Page table entries for execute-only control bits
+    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
+    EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
+    EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
 
     PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
 
@@ -206,127 +190,6 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
 
-/**
- * @brief Temporary $context used in some EPT hook commands
- *
- */
-typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
-{
-    UINT64 PhysicalAddress;
-    UINT64 VirtualAddress;
-} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
-
-/**
- * @brief Structure to save the state of each hooked pages
- *
- */
-typedef struct _EPT_HOOKED_PAGE_DETAIL
-{
-    DECLSPEC_ALIGN(PAGE_SIZE)
-    CHAR FakePageContents[PAGE_SIZE];
-
-    /**
-     * @brief Linked list entires for each page hook.
-     */
-    LIST_ENTRY PageHookList;
-
-    /**
-     * @brief The virtual address from the caller prespective view (cr3)
-     */
-    UINT64 VirtualAddress;
-
-    /**
-     * @brief The virtual address of it's enty on g_EptHook2sDetourListHead
-     * this way we can de-allocate the list whenever the hook is finished
-     */
-    UINT64 AddressOfEptHook2sDetourListEntry;
-
-    /**
-     * @brief The base address of the page. Used to find this structure in the list of page hooks
-     * when a hook is hit.
-     */
-    SIZE_T PhysicalBaseAddress;
-
-    /**
-     * @brief The base address of the page with fake contents. Used to swap page with fake contents
-     * when a hook is hit.
-     */
-    SIZE_T PhysicalBaseAddressOfFakePageContents;
-
-    /*
-     * @brief The page entry in the page tables that this page is targetting.
-     */
-    PEPT_PML1_ENTRY EntryAddress;
-
-    /**
-     * @brief The original page entry. Will be copied back when the hook is removed
-     * from the page.
-     */
-    EPT_PML1_ENTRY OriginalEntry;
-
-    /**
-     * @brief The original page entry. Will be copied back when the hook is remove from the page.
-     */
-    EPT_PML1_ENTRY ChangedEntry;
-
-    /**
-     * @brief The buffer of the trampoline function which is used in the inline hook.
-     */
-    PCHAR Trampoline;
-
-    /**
-     * @brief This field shows whether the hook contains a hidden hook for execution or not
-     */
-    BOOLEAN IsExecutionHook;
-
-    /**
-     * @brief If TRUE shows that this is the information about
-     * a hidden breakpoint command (not a monitor or hidden detours)
-     */
-    BOOLEAN IsHiddenBreakpoint;
-
-    /**
-     * @brief If TRUE, this hook relates to the write violation of the events
-     */
-    BOOLEAN IsMonitorToWriteOnPages;
-
-    /**
-     * @brief Temporary context for the post event monitors
-     * It shows the context of the last address that triggered the hook
-     * Note: Only used for read/write trigger events
-     */
-    EPT_HOOKS_TEMPORARY_CONTEXT LastContextState;
-
-    /**
-     * @brief This field shows whether the hook should call the post event trigger
-     * after restoring the state or not
-     */
-    BOOLEAN IsPostEventTriggerAllowed;
-
-    /**
-     * @brief Address of hooked pages (multiple breakpoints on a single page)
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    UINT64 BreakpointAddresses[MaximumHiddenBreakpointsOnPage];
-
-    /**
-     * @brief Character that was previously used in BreakpointAddresses
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    CHAR PreviousBytesOnBreakpointAddresses[MaximumHiddenBreakpointsOnPage];
-
-    /**
-     * @brief Count of breakpoints (multiple breakpoints on a single page)
-     * this is only used in hidden breakpoints (not hidden detours)
-     */
-    UINT64 CountOfBreakpoints;
-
-} EPT_HOOKED_PAGE_DETAIL, *PEPT_HOOKED_PAGE_DETAIL;
-
-//////////////////////////////////////////////////
-//                    Enums		    			//
-//////////////////////////////////////////////////
-
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
@@ -341,11 +204,8 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 static VOID
 EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
 
-static PVMM_EPT_PAGE_TABLE
-EptAllocateAndCreateIdentityPageTable();
-
 static BOOLEAN
-EptHandlePageHookExit(_Inout_ PGUEST_REGS                       Regs,
+EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
                       _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       _In_ UINT64                               GuestPhysicalAddr);
 
@@ -370,19 +230,25 @@ BOOLEAN
 EptBuildMtrrMap();
 
 /**
+ * @brief Allocates page maps and create identity page table
+ *
+ * @return PVMM_EPT_PAGE_TABLE identity map page-table
+ */
+PVMM_EPT_PAGE_TABLE
+EptAllocateAndCreateIdentityPageTable();
+
+/**
  * @brief Convert 2MB pages to 4KB pages
  *
  * @param EptPageTable
  * @param PreAllocatedBuffer
  * @param PhysicalAddress
- * @param CoreIndex
  * @return BOOLEAN
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   PVOID               PreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress,
-                  ULONG               CoreIndex);
+                  SIZE_T              PhysicalAddress);
 
 /**
  * @brief Initialize EPT Table based on Processor Index
@@ -395,14 +261,12 @@ EptLogicalProcessorInitialize();
 /**
  * @brief Handle EPT Violation
  *
- * @param Regs
- * @param ExitQualification
+ * @param VCpu The virtual processor's state
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHandleEptViolation(_Inout_ PGUEST_REGS Regs,
-                      _In_ ULONG          ExitQualification);
+EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Get the PML1 Entry of a special address
@@ -415,13 +279,26 @@ PEPT_PML1_ENTRY
 EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 
 /**
+ * @brief Get the PML1 entry for this physical address if the large page
+ * is available then large page of Pml2 is returned
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PhysicalAddress Physical address that we want to get its PML1
+ * @param IsLargePage Shows whether it's a large page or not
+ *
+ * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ */
+PVOID
+EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage);
+
+/**
  * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
  *
- * @param HookedEntry
+ * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
+EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Handle Ept Misconfigurations
@@ -444,3 +321,13 @@ VOID
 EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
                            _In_ EPT_PML1_ENTRY                  EntryValue,
                            _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
+
+/**
+ * @brief Check if the breakpoint vm-exit relates to EPT hook or not
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu);

@@ -64,6 +64,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
@@ -135,8 +136,7 @@ StartAgain:
         // Check checksum
         //
         if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
-                                  LengthReceived - sizeof(BYTE)) !=
-            TheActualPacket->Checksum)
+                                  LengthReceived - sizeof(BYTE)) != TheActualPacket->Checksum)
         {
             ShowMessages("\nerr, checksum is invalid\n");
             goto StartAgain;
@@ -145,8 +145,7 @@ StartAgain:
         //
         // Check if the packet type is correct
         //
-        if (TheActualPacket->TypeOfThePacket !=
-            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER)
+        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER)
         {
             //
             // sth wrong happened, the packet is not belonging to use
@@ -163,9 +162,7 @@ StartAgain:
         {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
-            InitPacket =
-                (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) +
-                                              sizeof(DEBUGGER_REMOTE_PACKET));
+            InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
@@ -178,9 +175,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM:
 
-            MessagePacket =
-                (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) +
-                                            sizeof(DEBUGGER_REMOTE_PACKET));
+            MessagePacket = (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // We check g_IgnoreNewLoggingMessages here because we want to
@@ -200,8 +195,7 @@ StartAgain:
             //
             g_IgnoreNewLoggingMessages = TRUE;
 
-            PausePacket = (DEBUGGEE_KD_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
-                                                        sizeof(DEBUGGER_REMOTE_PACKET));
+            PausePacket = (DEBUGGEE_KD_PAUSED_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Debuggee is not running
@@ -274,8 +268,7 @@ StartAgain:
                 break;
             }
 
-            if (PausePacket->PausingReason !=
-                DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
+            if (PausePacket->PausingReason != DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
             {
                 //
                 // Check if the instruction is received completely or not
@@ -393,11 +386,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE:
 
-            ChangeCorePacket =
-                (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
-                                                sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeCorePacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ChangeCorePacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 ShowMessages("current operating core changed to 0x%x\n",
                              ChangeCorePacket->NewCore);
@@ -416,11 +407,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS:
 
-            ChangeProcessPacket =
-                (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
-                                                               sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeProcessPacket = (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeProcessPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ChangeProcessPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
                 {
@@ -451,11 +440,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY:
 
-            SearchResultsPacket =
-                (DEBUGGEE_RESULT_OF_SEARCH_PACKET *)(((CHAR *)TheActualPacket) +
-                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+            SearchResultsPacket = (DEBUGGEE_RESULT_OF_SEARCH_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 if (SearchResultsPacket->CountOfResults == 0)
                 {
@@ -476,11 +463,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD:
 
-            ChangeThreadPacket =
-                (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) +
-                                                              sizeof(DEBUGGER_REMOTE_PACKET));
+            ChangeThreadPacket = (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS)
                 {
@@ -513,11 +498,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH:
 
-            FlushPacket =
-                (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
-                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+            FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (FlushPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (FlushPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // The amount of message that are deleted are the amount of
@@ -525,8 +508,7 @@ StartAgain:
                 //
                 ShowMessages("flushing buffers was successful, total %d messages were "
                              "cleared.\n",
-                             FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot +
-                                 FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
+                             FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot + FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
             }
             else
             {
@@ -542,15 +524,10 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK:
 
-            CallstackPacket =
-                (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) +
-                                               sizeof(DEBUGGER_REMOTE_PACKET));
-            CallstackFramePacket =
-                (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) +
-                                                    sizeof(DEBUGGER_REMOTE_PACKET) +
-                                                    sizeof(DEBUGGER_CALLSTACK_REQUEST));
+            CallstackPacket      = (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            CallstackFramePacket = (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_CALLSTACK_REQUEST));
 
-            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Show the callstack
@@ -574,11 +551,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY:
 
-            TestQueryPacket =
-                (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) +
-                                                        sizeof(DEBUGGER_REMOTE_PACKET));
+            TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Nothing to show, everything is shown from the kernel
@@ -598,10 +573,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT:
 
-            ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) +
-                                                      sizeof(DEBUGGER_REMOTE_PACKET));
+            ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ScriptPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ScriptPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Nothing to do
@@ -629,9 +603,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS:
 
-            FormatsPacket =
-                (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) +
-                                            sizeof(DEBUGGER_REMOTE_PACKET));
+            FormatsPacket = (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // We'll just save the result of expression to the global variables
@@ -645,10 +617,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
 
-            EventAndActionPacket =
-                (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
-                                                         sizeof(
-                                                             DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
@@ -664,10 +633,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
 
-            EventAndActionPacket =
-                (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
-                                                         sizeof(
-                                                             DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
@@ -683,23 +649,19 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT:
 
-            EventModifyAndQueryPacket =
-                (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) +
-                                           sizeof(DEBUGGER_REMOTE_PACKET));
+            EventModifyAndQueryPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Set the result of query
             //
-            if (EventModifyAndQueryPacket->KernelStatus !=
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (EventModifyAndQueryPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // There was an error
                 //
                 ShowErrorMessage(EventModifyAndQueryPacket->KernelStatus);
             }
-            else if (EventModifyAndQueryPacket->TypeOfAction ==
-                     DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+            else if (EventModifyAndQueryPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
             {
                 //
                 // Set the global state
@@ -722,15 +684,12 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED:
 
-            SymbolReloadFinishedPacket =
-                (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) +
-                                                  sizeof(DEBUGGER_REMOTE_PACKET));
+            SymbolReloadFinishedPacket = (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Show messages as the result of updating symbols
             //
-            if (SymbolReloadFinishedPacket->KernelStatus !=
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (SymbolReloadFinishedPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // There was an error
@@ -754,24 +713,17 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS:
 
-            ReadRegisterPacket =
-                (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) +
-                                                       sizeof(
-                                                           DEBUGGER_REMOTE_PACKET));
+            ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadRegisterPacket->KernelStatus ==
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ReadRegisterPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Show the result of reading registers like rax=0000000000018b01
                 //
                 if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
                 {
-                    Regs      = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) +
-                                          sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
-                    ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)ReadRegisterPacket) +
-                                                          sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) +
-                                                          sizeof(GUEST_REGS));
+                    Regs      = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
+                    ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
 
                     RFLAGS Rflags = {0};
                     Rflags.AsUInt = ExtraRegs->RFLAGS;
@@ -840,19 +792,14 @@ StartAgain:
             break;
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
 
-            ReadMemoryPacket =
-                (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) +
-                                         sizeof(DEBUGGER_REMOTE_PACKET));
+            ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadMemoryPacket->KernelStatus ==
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ReadMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
                 //
-                MemoryBuffer = (unsigned char *)(((CHAR *)TheActualPacket) +
-                                                 sizeof(DEBUGGER_REMOTE_PACKET) +
-                                                 sizeof(DEBUGGER_READ_MEMORY));
+                MemoryBuffer = (unsigned char *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_READ_MEMORY));
 
                 switch (ReadMemoryPacket->Style)
                 {
@@ -946,12 +893,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY:
 
-            EditMemoryPacket =
-                (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) +
-                                         sizeof(DEBUGGER_REMOTE_PACKET));
+            EditMemoryPacket = (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (EditMemoryPacket->KernelStatus ==
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (EditMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
@@ -971,10 +915,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP:
 
-            BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) +
-                                              sizeof(DEBUGGER_REMOTE_PACKET));
+            BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Everything was okay, nothing to do
@@ -992,12 +935,31 @@ StartAgain:
 
             break;
 
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_STATE:
+
+            ShortCircuitingPacket = (DEBUGGER_SHORT_CIRCUITING_EVENT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (ShortCircuitingPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                ShowMessages("the event's short-circuiting state changed to %s\n", ShortCircuitingPacket->IsShortCircuiting ? "'on'" : "'off'");
+            }
+            else
+            {
+                ShowErrorMessage(ShortCircuitingPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of changing the short circuiting state
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE:
 
-            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) +
-                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Show the Page Tables result
@@ -1018,10 +980,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA:
 
-            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) +
-                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 if (Va2paPa2vaPacket->IsVirtual2Physical)
                 {
@@ -1046,12 +1007,9 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS:
 
-            ListOrModifyBreakpointPacket =
-                (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) +
-                                                      sizeof(DEBUGGER_REMOTE_PACKET));
+            ListOrModifyBreakpointPacket = (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ListOrModifyBreakpointPacket->Result ==
-                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            if (ListOrModifyBreakpointPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Everything was okay, nothing to do
@@ -1072,10 +1030,7 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO:
 
-            SymbolUpdatePacket =
-                (DEBUGGER_UPDATE_SYMBOL_TABLE *)(((CHAR *)TheActualPacket) +
-                                                 sizeof(
-                                                     DEBUGGER_REMOTE_PACKET));
+            SymbolUpdatePacket = (DEBUGGER_UPDATE_SYMBOL_TABLE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
             //
             // Perform updates for the symbol table
             //
@@ -1118,13 +1073,12 @@ StartAgain:
 
     BOOL Status; /* Status */
     char SerialBuffer[MaxSerialPacketSize] = {
-        0};                                     /* Buffer to send and receive data */
-    DWORD                   EventMask   = 0;    /* Event mask to trigger */
-    char                    ReadData    = NULL; /* temperory Character */
-    DWORD                   NoBytesRead = 0;    /* Bytes read by ReadFile() */
-    UINT32                  Loop        = 0;
-    PDEBUGGER_REMOTE_PACKET TheActualPacket =
-        (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
+        0};                                         /* Buffer to send and receive data */
+    DWORD                   EventMask       = 0;    /* Event mask to trigger */
+    char                    ReadData        = NULL; /* temperory Character */
+    DWORD                   NoBytesRead     = 0;    /* Bytes read by ReadFile() */
+    UINT32                  Loop            = 0;
+    PDEBUGGER_REMOTE_PACKET TheActualPacket = (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
 
     //
     // Setting Receive Mask
@@ -1213,8 +1167,7 @@ StartAgain:
         // Check checksum
         //
         if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
-                                  Loop - sizeof(BYTE)) !=
-            TheActualPacket->Checksum)
+                                  Loop - sizeof(BYTE)) != TheActualPacket->Checksum)
         {
             ShowMessages("err checksum is invalid\n");
             goto StartAgain;
@@ -1223,8 +1176,7 @@ StartAgain:
         //
         // Check if the packet type is correct
         //
-        if (TheActualPacket->TypeOfThePacket !=
-            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE)
+        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE)
         {
             //
             // sth wrong happened, the packet is not belonging to use
@@ -1246,17 +1198,22 @@ StartAgain:
                 ShowMessages("err, debugger tries to pause the debuggee but the "
                              "attempt was unsuccessful\n");
             }
+
             break;
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET:
+
             //
             // Not read anymore
             //
             return TRUE;
+
             break;
 
         default:
+
             ShowMessages("err, unknown packet action received from the debugger\n");
+
             break;
         }
     }

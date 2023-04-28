@@ -178,7 +178,7 @@ VOID
 ScriptEngineFunctionFlush();
 
 VOID
-ScriptEngineFunctionEventIgnore();
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State);
 
 VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);

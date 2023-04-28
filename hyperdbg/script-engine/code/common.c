@@ -1,7 +1,7 @@
 /**
  * @file common.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
- * 
+ *
  * @details Common routines
  * @version 0.1
  * @date 2020-10-22
@@ -384,11 +384,11 @@ Top(PTOKEN_LIST TokenList)
 }
 
 /**
-* @brief Checks whether input char belongs to hexadecimal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief Checks whether input char belongs to hexadecimal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsHex(char c)
 {
@@ -399,11 +399,11 @@ IsHex(char c)
 }
 
 /**
-* @brief Checks whether input char belongs to decimal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief Checks whether input char belongs to decimal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsDecimal(char c)
 {
@@ -414,11 +414,11 @@ IsDecimal(char c)
 }
 
 /**
-* @brief Checks whether input char belongs to alphabet set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief Checks whether input char belongs to alphabet set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsLetter(char c)
 {
@@ -431,11 +431,11 @@ IsLetter(char c)
 }
 
 /**
-* @brief Checks whether input char belongs to binary digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief Checks whether input char belongs to binary digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsBinary(char c)
 {
@@ -448,11 +448,11 @@ IsBinary(char c)
 }
 
 /**
-* @brief Checks whether input char belongs to octal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief Checks whether input char belongs to octal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsOctal(char c)
 {
@@ -464,9 +464,9 @@ IsOctal(char c)
 
 /**
  * @brief Allocates a new temporary variable and returns it
- * 
- * @param Error 
- * @return PTOKEN 
+ *
+ * @param Error
+ * @return PTOKEN
  */
 PTOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
@@ -496,8 +496,8 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 
 /**
  * @brief Frees the memory allocated by Temp
- * 
- * @param Temp 
+ *
+ * @param Temp
  */
 void
 FreeTemp(PTOKEN Temp)
@@ -511,7 +511,7 @@ FreeTemp(PTOKEN Temp)
 
 /**
  * @brief Resets the temporary variables map
- * 
+ *
  */
 void
 CleanTempList(void)
@@ -524,9 +524,9 @@ CleanTempList(void)
 
 /**
  * @brief Checks whether this Token type is OneOpFunc1
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType1Func(PTOKEN Operator)
@@ -544,9 +544,9 @@ IsType1Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is OneOpFunc2
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType2Func(PTOKEN Operator)
@@ -564,9 +564,9 @@ IsType2Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is OperatorsTwoOperandList
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsTwoOperandOperator(PTOKEN Operator)
@@ -584,9 +584,9 @@ IsTwoOperandOperator(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is OperatorsOneOperandList
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsOneOperandOperator(PTOKEN Operator)
@@ -604,9 +604,9 @@ IsOneOperandOperator(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is VarArgFunc1
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType4Func(PTOKEN Operator)
@@ -624,9 +624,9 @@ IsType4Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is ZeroOpFunc1
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType5Func(PTOKEN Operator)
@@ -644,9 +644,9 @@ IsType5Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is TwoOpFunc1
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType6Func(PTOKEN Operator)
@@ -664,9 +664,9 @@ IsType6Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is TwoOpFunc2
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType7Func(PTOKEN Operator)
@@ -684,9 +684,9 @@ IsType7Func(PTOKEN Operator)
 
 /**
  * @brief Checks whether this Token type is ThreeOpFunc1
- * 
- * @param Operator 
- * @return char 
+ *
+ * @param Operator
+ * @return char
  */
 char
 IsType8Func(PTOKEN Operator)
@@ -705,9 +705,9 @@ IsType8Func(PTOKEN Operator)
 /**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
- * 
- * @param Token 
- * @return char 
+ *
+ * @param Token
+ * @return char
  */
 char
 IsNoneTerminal(PTOKEN Token)
@@ -721,9 +721,9 @@ IsNoneTerminal(PTOKEN Token)
 /**
  * @brief Checks whether this Token is semantic rule
  * SemanticRule token starts with '@'
- * 
- * @param Token 
- * @return char 
+ *
+ * @param Token
+ * @return char
  */
 char
 IsSemanticRule(PTOKEN Token)
@@ -736,9 +736,9 @@ IsSemanticRule(PTOKEN Token)
 
 /**
  * @brief Gets the Non Terminal Id object
- * 
- * @param Token 
- * @return int 
+ *
+ * @param Token
+ * @return int
  */
 int
 GetNonTerminalId(PTOKEN Token)
@@ -753,9 +753,9 @@ GetNonTerminalId(PTOKEN Token)
 
 /**
  * @brief Gets the Terminal Id object
- * 
- * @param Token 
- * @return int 
+ *
+ * @param Token
+ * @return int
  */
 int
 GetTerminalId(PTOKEN Token)
@@ -835,9 +835,9 @@ GetTerminalId(PTOKEN Token)
 
 /**
  * @brief Gets the Non Terminal Id object
- * 
- * @param Token 
- * @return int 
+ *
+ * @param Token
+ * @return int
  */
 int
 LalrGetNonTerminalId(PTOKEN Token)
@@ -852,9 +852,9 @@ LalrGetNonTerminalId(PTOKEN Token)
 
 /**
  * @brief Gets the Terminal Id object
- * 
- * @param Token 
- * @return int 
+ *
+ * @param Token
+ * @return int
  */
 int
 LalrGetTerminalId(PTOKEN Token)
@@ -934,10 +934,10 @@ LalrGetTerminalId(PTOKEN Token)
 
 /**
  * @brief Checks wether the value and type of Token1 and Token2 are the same
- * 
- * @param Token1 
- * @param Token2 
- * @return char 
+ *
+ * @param Token1
+ * @param Token2
+ * @return char
  */
 char
 IsEqual(const PTOKEN Token1, const PTOKEN Token2)
@@ -979,9 +979,9 @@ IsEqual(const PTOKEN Token1, const PTOKEN Token2)
 
 /**
  * @brief Set the Type object
- * 
- * @param Val 
- * @param Type 
+ *
+ * @param Val
+ * @param Type
  */
 void
 SetType(unsigned long long * Val, unsigned char Type)
@@ -990,10 +990,10 @@ SetType(unsigned long long * Val, unsigned char Type)
 }
 
 /**
- * @brief Converts an decimal string to a integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts an decimal string to a integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 DecimalToInt(char * str)
@@ -1011,10 +1011,10 @@ DecimalToInt(char * str)
 }
 
 /**
- * @brief Converts an decimal string to a signed integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts an decimal string to a signed integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 DecimalToSignedInt(char * str)
@@ -1045,10 +1045,10 @@ DecimalToSignedInt(char * str)
 }
 
 /**
- * @brief Converts an hexadecimal string to integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts an hexadecimal string to integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 HexToInt(char * str)
@@ -1078,10 +1078,10 @@ HexToInt(char * str)
 }
 
 /**
- * @brief Converts an octal string to integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts an octal string to integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 OctalToInt(char * str)
@@ -1100,10 +1100,10 @@ OctalToInt(char * str)
 }
 
 /**
- * @brief Converts a binary string to integer 
- * 
- * @param str 
- * @return unsigned long long int 
+ * @brief Converts a binary string to integer
+ *
+ * @param str
+ * @return unsigned long long int
  */
 unsigned long long int
 BinaryToInt(char * str)

@@ -2,88 +2,43 @@
  * @file ProtectedHv.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief File for protected hypervisor resources
- * @details Protected Hypervisor Routines are those resource that 
+ * @details Protected Hypervisor Routines are those resource that
  * are used in different parts of the debugger or hypervisor,
  * these resources need extra checks to avoid integrity problems
- * 
+ *
  * @version 0.1
  * @date 2021-10-04
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
- * @brief Add extra mask to this resource and write it 
- * @details As exception bitmap is a protected resource, this 
- * routine makes sure that modifying exception bitmap won't 
+ * @brief Add extra mask to this resource and write it
+ * @details As exception bitmap is a protected resource, this
+ * routine makes sure that modifying exception bitmap won't
  * break the debugger's integrity
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param CurrentMask The mask that debugger wants to write
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for exceptions
- * 
- * @return VOID  
+ *
+ * @return VOID
  */
-UINT32
-ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+VOID
+ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    UINT32 CurrentCoreId = 0;
-
-    CurrentCoreId = KeGetCurrentProcessorNumber();
-
     //
-    // Check if the integrity check is because of clearing
-    // events or not, if it's for clearing events, the debugger
-    // will automatically set
+    // Ask the top-level module to reshape the mask
     //
-    if (!(PassOver & PASSING_OVER_EXCEPTION_EVENTS))
+    if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                   PROTECTED_HV_RESOURCES_EXCEPTION_BITMAP,
+                                                   &CurrentMask,
+                                                   PassOver))
     {
-        //
-        // we have to check for !exception events and apply the mask
-        //
-        CurrentMask |= DebuggerExceptionEventBitmapMask(CurrentCoreId);
-    }
-
-    //
-    // Check if it's because of disabling !syscall or !sysret commands
-    // or not, if it's because of clearing #UD in these events then we
-    // can ignore the checking for this command, otherwise, we have to
-    // check it
-    //
-    if (!(PassOver & PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK))
-    {
-        //
-        // Check if the debugger has events relating to syscall or sysret,
-        // if no, we can safely ignore #UDs, otherwise, #UDs should be
-        // activated
-        //
-        if (DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSyscallEventsHead, CurrentCoreId) != 0 ||
-            DebuggerEventListCountByCore(&g_Events->SyscallHooksEferSysretEventsHead, CurrentCoreId) != 0)
-        {
-            //
-            // #UDs should be activated
-            //
-            CurrentMask |= 1 << EXCEPTION_VECTOR_UNDEFINED_OPCODE;
-        }
-    }
-
-    //
-    // Check for kernel or user debugger presence
-    //
-    if (g_KernelDebuggerState || g_UserDebuggerState)
-    {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
-    }
-
-    //
-    // Check for intercepting #DB by threads tracer
-    //
-    if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-    {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+        return;
     }
 
     //
@@ -109,14 +64,15 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
 }
 
 /**
- * @brief Set exception bitmap in VMCS 
+ * @brief Set exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
-ProtectedHvSetExceptionBitmap(UINT32 IdtIndex)
+ProtectedHvSetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -137,18 +93,19 @@ ProtectedHvSetExceptionBitmap(UINT32 IdtIndex)
     //
     // Set the new value
     //
-    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE);
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VCpu, ExceptionBitmap, PASSING_OVER_NONE);
 }
 
 /**
- * @brief Unset exception bitmap in VMCS 
+ * @brief Unset exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param VCpu The virtual processor's state
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
-ProtectedHvUnsetExceptionBitmap(UINT32 IdtIndex)
+ProtectedHvUnsetExceptionBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 IdtIndex)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -169,36 +126,38 @@ ProtectedHvUnsetExceptionBitmap(UINT32 IdtIndex)
     //
     // Set the new value
     //
-    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE);
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VCpu, ExceptionBitmap, PASSING_OVER_NONE);
 }
 
 /**
- * @brief Reset exception bitmap in VMCS because of clearing 
+ * @brief Reset exception bitmap in VMCS because of clearing
  * !exception commands
  * @details Should be called in vmx-root
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-ProtectedHvResetExceptionBitmapToClearEvents()
+ProtectedHvResetExceptionBitmapToClearEvents(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT32 ExceptionBitmap = 0;
 
     //
     // Set the new value
     //
-    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_EXCEPTION_EVENTS);
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VCpu, ExceptionBitmap, PASSING_OVER_EXCEPTION_EVENTS);
 }
 
 /**
- * @brief Reset exception bitmap in VMCS because of clearing 
+ * @brief Reset exception bitmap in VMCS because of clearing
  * !exception commands
  * @details Should be called in vmx-root
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands()
+ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT32 ExceptionBitmap = 0;
 
@@ -215,24 +174,24 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands()
     //
     // Set the new value
     //
-    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK);
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VCpu, ExceptionBitmap, PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK);
 }
 
 /**
  * @brief Set the External Interrupt Exiting
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the External Interrupt Exiting
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for interrupts
 
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG  PinBasedControls = 0;
-    ULONG  VmExitControls   = 0;
-    UINT32 CurrentCoreId    = 0;
+    ULONG PinBasedControls = 0;
+    ULONG VmExitControls   = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -242,33 +201,12 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Ask the top-level driver whether to terminate this operation or not
         //
-        if (!(PassOver & PASSING_OVER_INTERRUPT_EVENTS))
-        {
-            CurrentCoreId = KeGetCurrentProcessorNumber();
-
-            //
-            // we have to check for !interrupt events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->ExternalInterruptOccurredEventsHead, CurrentCoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !interrupt is enabled for this core
-                //
-
-                return;
-            }
-        }
-
-        //
-        // Check if it should remain active for thread or process changing or not
-        //
-        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
-            g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_EXTERNAL_INTERRUPT_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
             return;
         }
@@ -311,42 +249,43 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
 
 /**
  * @brief Set the External Interrupt Exiting
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the External Interrupt Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetExternalInterruptExiting(BOOLEAN Set)
+ProtectedHvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvApplySetExternalInterruptExiting(Set, PASSING_OVER_NONE);
+    ProtectedHvApplySetExternalInterruptExiting(VCpu, Set, PASSING_OVER_NONE);
 }
 
 /**
  * @brief Clear events of !interrupt
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
-ProtectedHvExternalInterruptExitingForDisablingInterruptCommands()
+ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ProtectedHvApplySetExternalInterruptExiting(FALSE, PASSING_OVER_INTERRUPT_EVENTS);
+    ProtectedHvApplySetExternalInterruptExiting(VCpu, FALSE, PASSING_OVER_INTERRUPT_EVENTS);
 }
 
 /**
- * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp) 
+ * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp)
  * @details Should be called in vmx-root
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for tsc
 
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG  CpuBasedVmExecControls = 0;
-    UINT32 CurrentCoreId          = 0;
+    ULONG CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -356,26 +295,14 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the top-level driver's state
         //
-        if (!(PassOver & PASSING_OVER_TSC_EVENTS))
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_RDTSC_RDTSCP_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            CurrentCoreId = KeGetCurrentProcessorNumber();
-
-            //
-            // we have to check for !tsc events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->TscInstructionExecutionEventsHead, CurrentCoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !tsc is enabled for this core
-                //
-
-                return;
-            }
+            return;
         }
 
         //
@@ -410,20 +337,20 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
 }
 
 /**
- * @brief Set vm-exit for mov to debug registers 
+ * @brief Set vm-exit for mov to debug registers
  * @details Should be called in vmx-root
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for dr
 
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     ULONG CpuBasedVmExecControls = 0;
-    ULONG CurrentCoreId          = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -433,36 +360,13 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the top-level driver's state
         //
-        if (!(PassOver & PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS))
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_TO_DEBUG_REGISTER_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            CurrentCoreId = KeGetCurrentProcessorNumber();
-
-            //
-            // we have to check for !dr events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->DebugRegistersAccessedEventsHead, CurrentCoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !dr is enabled for this core
-                //
-
-                return;
-            }
-        }
-
-        //
-        // Check if thread switching is enabled or not
-        //
-        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-        {
-            //
-            // We should ignore it as we want this to switch to new thread
-            //
             return;
         }
     }
@@ -494,7 +398,7 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
  * @param Set or unset the vm-exits
  * @param ControlRegister
  * @param MaskRegister
- 
+
  * @return VOID
  */
 VOID
@@ -510,7 +414,7 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
         else
         {
             __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);     
+            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);
         }
     }
     else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4)
@@ -532,6 +436,7 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
  * @brief Set vm-exit for mov to control registers
  * @details Should be called in vmx-root
  *
+ * @param VCpu The virtual processor's state
  * @param Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * @param Control Register
@@ -540,10 +445,9 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
  * @return VOID
  */
 VOID
-ProtectedHvSetMovControlRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
+ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
 {
     ULONG CpuBasedVmExecControls = 0;
-    ULONG CurrentCoreId          = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -553,45 +457,34 @@ ProtectedHvSetMovControlRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_O
     if (Set == FALSE)
     {
         //
-        // Check if the integrity check is because of clearing
-        // events or not, if it's for clearing events, the debugger
-        // will automatically set
+        // Check the state of top-level driver
         //
-        if (!(PassOver & PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS))
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_CONTROL_REGISTER_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            CurrentCoreId = KeGetCurrentProcessorNumber();
-
-            //
-            // we have to check for !dr events and decide whether to
-            // ignore this event or not
-            //
-            if (DebuggerEventListCountByCore(&g_Events->ControlRegisterModifiedEventsHead, CurrentCoreId) != 0)
-            {
-                //
-                // We should ignore this unset, because !dr is enabled for this core
-                //
-
-                return;
-            }
+            return;
         }
     }
+
     ProtectedHvSetMovToCrVmexit(Set, ControlRegister, MaskRegister);
 }
 
 /**
  * @brief Set vm-exit for mov to cr3 register
  * @details Should be called in vmx-root
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for dr
 
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CurrentCoreId          = 0;
     ULONG CpuBasedVmExecControls = 0;
 
     //
@@ -602,13 +495,13 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
     if (Set == FALSE)
     {
         //
-        // Check if process switching is enabled or not
+        // Check the top-level driver's state
         //
-        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
+                                                       NULL,
+                                                       PassOver))
         {
-            //
-            // We should ignore it as we want this to switch to new process
-            //
             return;
         }
 
@@ -619,6 +512,17 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
         {
             //
             // The user debugger needs mov2cr3s
+            //
+            return;
+        }
+
+        //
+        // Check if the mode-based execution hook is enabled or not
+        //
+        if (g_CheckForModeBasedExecutionControl)
+        {
+            //
+            // The VMM needs mov2cr3s
             //
             return;
         }
@@ -646,73 +550,79 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
 
 /**
  * @brief Set the RDTSC/P Exiting
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the RDTSC/P Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetRdtscExiting(BOOLEAN Set)
+ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetTscVmexit(Set, PASSING_OVER_NONE);
+    ProtectedHvSetTscVmexit(VCpu, Set, PASSING_OVER_NONE);
 }
 
 /**
  * @brief Clear events of !tsc
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-ProtectedHvDisableRdtscExitingForDisablingTscCommands()
+ProtectedHvDisableRdtscExitingForDisablingTscCommands(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ProtectedHvSetTscVmexit(FALSE, PASSING_OVER_TSC_EVENTS);
+    ProtectedHvSetTscVmexit(VCpu, FALSE, PASSING_OVER_TSC_EVENTS);
 }
 
 /**
  * @brief Set MOV to HW Debug Regs Exiting
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the MOV to HW Debug Regs Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set)
+ProtectedHvSetMovDebugRegsExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMovDebugRegsVmexit(Set, PASSING_OVER_NONE);
+    ProtectedHvSetMovDebugRegsVmexit(VCpu, Set, PASSING_OVER_NONE);
 }
 
 /**
  * @brief Clear events of !dr
- * 
- * @return VOID 
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
  */
 VOID
-ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
+ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ProtectedHvSetMovDebugRegsVmexit(FALSE, PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS);
+    ProtectedHvSetMovDebugRegsVmexit(VCpu, FALSE, PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS);
 }
 
 /**
  * @brief Clear events of !crwrite
  *
+ * @param VCpu The virtual processor's state
  * @param Control Register
  * @param Mask Register
  * @return VOID
  */
 VOID
-ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(UINT64 ControlRegister, UINT64 MaskRegister)
+ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(VIRTUAL_MACHINE_STATE * VCpu, UINT64 ControlRegister, UINT64 MaskRegister)
 {
-    ProtectedHvSetMovControlRegsVmexit(FALSE, PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS, ControlRegister, MaskRegister);
+    ProtectedHvSetMovControlRegsVmexit(VCpu, FALSE, PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS, ControlRegister, MaskRegister);
 }
 
 /**
  * @brief Set MOV to CR3 Exiting
- * 
+ *
+ * @param VCpu The virtual processor's state
  * @param Set Set or unset the MOV to CR3 Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
-ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set)
+ProtectedHvSetMov2Cr3Exiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    ProtectedHvSetMovToCr3Vmexit(Set, PASSING_OVER_NONE);
+    ProtectedHvSetMovToCr3Vmexit(VCpu, Set, PASSING_OVER_NONE);
 }
 
 /**

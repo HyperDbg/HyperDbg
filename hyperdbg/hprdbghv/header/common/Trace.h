@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 
 #pragma once
@@ -18,7 +18,7 @@
 
 #define WPP_CONTROL_GUIDS                                          \
     WPP_DEFINE_CONTROL_GUID(                                       \
-        HyperdbgLogger,                                            \
+        HyperDbgLogger,                                            \
         (2AE39766, AE4B, 46AB, AFC4, 002DB8109721),                \
         WPP_DEFINE_BIT(HVFS_LOG)         /* bit  0 = 0x00000001 */ \
         WPP_DEFINE_BIT(HVFS_LOG_INFO)    /* bit  1 = 0x00000002 */ \
@@ -78,7 +78,7 @@
 //
 //
 //begin_wpp config
-//USEPREFIX (TRACE_RETURN, "%!STDPREFIX!");
+// USEPREFIX (TRACE_RETURN, "%!STDPREFIX!");
 //FUNC TRACE_RETURN{FLAG=FLAG_ONE}(EXP);
 //USESUFFIX (TRACE_RETURN, "Function Return=%!STATUS!",EXP);
 //end_wpp

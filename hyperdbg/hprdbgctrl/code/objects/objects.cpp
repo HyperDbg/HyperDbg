@@ -61,7 +61,7 @@ ObjectShowProcessesOrThreadDetails(BOOLEAN IsProcess)
         //
         // Query was successful
         //
-        if (GetInformationProcess.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (GetInformationProcess.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
                          GetInformationProcess.ProcessId,
@@ -107,7 +107,7 @@ ObjectShowProcessesOrThreadDetails(BOOLEAN IsProcess)
         //
         // Query was successful
         //
-        if (GetInformationThread.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (GetInformationThread.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
                          GetInformationThread.ThreadId,
@@ -220,7 +220,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
     //
     // Query was successful
     //
-    if (QueryCountOfActiveThreadsOrProcessesRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (QueryCountOfActiveThreadsOrProcessesRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         if (QueryCountOfActiveThreadsOrProcessesRequest.Count == 0)
         {

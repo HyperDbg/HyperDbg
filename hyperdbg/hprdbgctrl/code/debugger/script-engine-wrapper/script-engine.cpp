@@ -84,7 +84,7 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
         //
         // Check whether there was an error in evaluation or not
         //
-        if (g_ErrorStateOfResultOfEvaluatedExpression == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (g_ErrorStateOfResultOfEvaluatedExpression == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             //
             // Everything was fine, return the result of the evaluated

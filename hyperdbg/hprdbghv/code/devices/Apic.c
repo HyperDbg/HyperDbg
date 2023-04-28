@@ -15,8 +15,8 @@
  * @brief Trigger NMI on XAPIC
  * @param Low
  * @param High
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 XApicIcrWrite(UINT32 Low, UINT32 High)
@@ -29,8 +29,8 @@ XApicIcrWrite(UINT32 Low, UINT32 High)
  * @brief Trigger NMI on X2APIC
  * @param Low
  * @param High
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 X2ApicIcrWrite(UINT32 Low, UINT32 High)
@@ -40,13 +40,13 @@ X2ApicIcrWrite(UINT32 Low, UINT32 High)
 
 /**
  * @brief Trigger NMI on X2APIC or APIC based on Current system
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ApicTriggerGenericNmi()
 {
-    if (g_IsX2Apic)
+    if (g_CompatibilityCheck.IsX2Apic)
     {
         X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
     }
@@ -58,8 +58,8 @@ ApicTriggerGenericNmi()
 
 /**
  * @brief Initialize APIC
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ApicInitialize()
@@ -73,7 +73,7 @@ ApicInitialize()
 
     if (ApicBaseMSR & (1 << 10))
     {
-        g_IsX2Apic = TRUE;
+        g_CompatibilityCheck.IsX2Apic = TRUE;
         return FALSE;
     }
     else
@@ -84,15 +84,15 @@ ApicInitialize()
         if (!g_ApicBase)
             return FALSE;
 
-        g_IsX2Apic = FALSE;
+        g_CompatibilityCheck.IsX2Apic = FALSE;
     }
     return TRUE;
 }
 
 /**
  * @brief Uninitialize APIC
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ApicUninitialize()
@@ -106,9 +106,9 @@ ApicUninitialize()
 
 /**
  * @brief Self IPI the current core
- * 
+ *
  * @param Vector
- * @return VOID 
+ * @return VOID
  */
 VOID
 ApicSelfIpi(UINT32 Vector)
@@ -116,7 +116,7 @@ ApicSelfIpi(UINT32 Vector)
     //
     // Check and apply self-IPI to x2APIC and xAPIC
     //
-    if (g_IsX2Apic)
+    if (g_CompatibilityCheck.IsX2Apic)
     {
         X2ApicIcrWrite(APIC_DEST_SELF | APIC_DEST_PHYSICAL | APIC_DM_FIXED | Vector, 0);
     }

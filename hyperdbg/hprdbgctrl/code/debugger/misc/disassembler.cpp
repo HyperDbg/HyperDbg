@@ -26,7 +26,6 @@ all
  * @brief   Demonstrates basic hooking functionality of the `ZydisFormatter`
  * class by implementing a custom symbol-resolver.
  */
-
 #define NDEBUG
 
 #include "pch.h"
@@ -51,12 +50,12 @@ extern BOOLEAN                                      g_AddressConversion;
 typedef struct ZydisSymbol_
 {
     /**
-   * @brief The symbol address.
-   */
+     * @brief The symbol address.
+     */
     ZyanU64 address;
     /**
-   * @brief The symbol name.
-   */
+     * @brief The symbol name.
+     */
     const char * name;
 } ZydisSymbol;
 
@@ -160,10 +159,11 @@ DisassembleBuffer(ZydisDecoder * decoder,
         (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
     ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
 
+    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
     ZydisDecodedInstruction instruction;
     char                    buffer[256];
-    while (ZYAN_SUCCESS(
-        ZydisDecoderDecodeBuffer(decoder, data, length, &instruction)))
+
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(decoder, data, length, &instruction, operands)))
     {
         //
         // Apply addressconversion of settings here
@@ -188,7 +188,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
         // We have to pass a `runtime_address` different to
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
-        ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0], sizeof(buffer), runtime_address);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), runtime_address, ZYAN_NULL);
 
         //
         // Show the memory for this instruction
@@ -217,7 +217,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
         {
             //
             // Get the result of conditional jump, we re-format the instruction
-            // here because the user might have changed the configuration of zydis
+            // here because the user might have changed the configuration of Zydis
             // using the "settings" command so it's better to re-format with default
             // configuration
             //
@@ -246,7 +246,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
         else
         {
             //
-            // Show regualr instruction
+            // Show regular instruction
             //
             ShowMessages(" %s\n", &buffer[0]);
         }
@@ -273,7 +273,7 @@ ZydisTest()
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        fputs("Invalid zydis version\n", ZYAN_STDERR);
+        fputs("Invalid Zydis version\n", ZYAN_STDERR);
         return EXIT_FAILURE;
     }
 
@@ -308,7 +308,7 @@ ZydisTest()
     };
 
     ZydisDecoder decoder;
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
 
     DisassembleBuffer(&decoder, 0x007FFFFFFF400000, &data[0], sizeof(data), 0xffffffff, TRUE, FALSE, NULL);
 
@@ -340,12 +340,12 @@ HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        fputs("Invalid zydis version\n", ZYAN_STDERR);
+        fputs("Invalid Zydis version\n", ZYAN_STDERR);
         return EXIT_FAILURE;
     }
 
     ZydisDecoder decoder;
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
 
     //
     // Disassembling buffer
@@ -380,12 +380,12 @@ HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        fputs("Invalid zydis version\n", ZYAN_STDERR);
+        fputs("Invalid Zydis version\n", ZYAN_STDERR);
         return EXIT_FAILURE;
     }
 
     ZydisDecoder decoder;
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
 
     //
     // Disassembling buffer
@@ -402,7 +402,7 @@ HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
  *
  * @param BufferToDisassemble Current Bytes of assembly
  * @param BuffLength Length of buffer
- * @param Rflags The kernel's currnet RFLAG
+ * @param Rflags The kernel's current RFLAG
  * @param Isx86_64 Whether it's an x86 or x64
  *
  * @return DEBUGGER_NEXT_INSTRUCTION_FINDER_STATUS
@@ -415,6 +415,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
+    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
@@ -423,17 +424,17 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        ShowMessages("invalid zydis version\n");
+        ShowMessages("invalid Zydis version\n");
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
 
     if (Isx86_64)
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
     }
     else
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
     }
 
     ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
@@ -445,18 +446,17 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
     // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that
     // formats the absolute addresses
     //
-    default_print_address_absolute =
-        (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+    default_print_address_absolute = (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
     ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
 
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble, BuffLength, &instruction)))
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, BufferToDisassemble, BuffLength, &instruction, operands)))
     {
         //
         // We have to pass a `runtime_address` different to
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
 
-        ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
         switch (instruction.mnemonic)
         {
@@ -718,7 +718,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 
             //
             // Actually this instruction are rarely used
-            // but if we want to suport these instructions then we
+            // but if we want to support these instructions then we
             // should read ecx and cx each time in the debuggee,
             // so it's better to just ignore it as a non-conditional
             // jump
@@ -739,7 +739,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 }
 
 /**
- * @brief Check whether the current instructio is a 'call' or not
+ * @brief Check whether the current instruction is a 'call' or not
  *
  * @param BufferToDisassemble Current Bytes of assembly
  * @param BuffLength Length of buffer
@@ -757,6 +757,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
+    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
@@ -776,11 +777,11 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
 
     if (Isx86_64)
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
     }
     else
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
     }
 
     ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
@@ -796,14 +797,14 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
         (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
     ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
 
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble, BuffLength, &instruction)))
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, BufferToDisassemble, BuffLength, &instruction, operands)))
     {
         //
         // We have to pass a `runtime_address` different to
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
 
-        ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
         if (instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_CALL)
         {
@@ -834,7 +835,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
 }
 
 /**
- * @brief Length Disassbler engine based on Zydis
+ * @brief Length Disassembler engine based on Zydis
  *
  * @param BufferToDisassemble Current Bytes of assembly
  * @param BuffLength Length of buffer
@@ -851,6 +852,7 @@ HyperDbgLengthDisassemblerEngine(
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
+    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
@@ -859,17 +861,17 @@ HyperDbgLengthDisassemblerEngine(
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        ShowMessages("invalid zydis version\n");
+        ShowMessages("invalid Zydis version\n");
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
 
     if (Isx86_64)
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
     }
     else
     {
-        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
     }
 
     ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
@@ -885,13 +887,13 @@ HyperDbgLengthDisassemblerEngine(
         (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
     ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
 
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble, BuffLength, &instruction)))
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, BufferToDisassemble, BuffLength, &instruction, operands)))
     {
         //
         // We have to pass a `runtime_address` different to
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
-        ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
         //
         // Return len of buffer

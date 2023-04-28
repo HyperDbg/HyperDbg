@@ -5,10 +5,10 @@ VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cli\hyperdbg-cli.vcxproj", "{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}"
 	ProjectSection(ProjectDependencies) = postProject
-		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
-		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
 		{2D988267-CC53-41E3-936A-48CEF9049DF5} = {2D988267-CC53-41E3-936A-48CEF9049DF5}
 		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
+		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
+		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
 		{C3DC85E1-0559-4B58-9792-DE421472DFE9} = {C3DC85E1-0559-4B58-9792-DE421472DFE9}
 	EndProjectSection
 EndProject
@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgctrl", "hprdbgctrl\hprdbgctrl.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
 	ProjectSection(ProjectDependencies) = postProject
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}
 		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
 	EndProjectSection
 EndProject
@@ -56,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D
 		include\SDK\Headers\BasicTypes.h = include\SDK\Headers\BasicTypes.h
 		include\SDK\Headers\Connection.h = include\SDK\Headers\Connection.h
 		include\SDK\Headers\Constants.h = include\SDK\Headers\Constants.h
-		include\SDK\Headers\Datatypes.h = include\SDK\Headers\Datatypes.h
+		include\SDK\Headers\DataTypes.h = include\SDK\Headers\DataTypes.h
 		include\SDK\Headers\ErrorCodes.h = include\SDK\Headers\ErrorCodes.h
 		include\SDK\Headers\Events.h = include\SDK\Headers\Events.h
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
@@ -85,14 +86,59 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Imports", "Imports", "{B3D9DA75-8FBD-4A2C-826A-B50406396EC4}"
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\Imports\HyperDbgCtrlImports.h = include\SDK\Imports\HyperDbgCtrlImports.h
+		include\SDK\Imports\HyperDbgHyperLogImports.h = include\SDK\Imports\HyperDbgHyperLogImports.h
+		include\SDK\Imports\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\HyperDbgHyperLogIntrinsics.h
+		include\SDK\Imports\HyperDbgRevImports.h = include\SDK\Imports\HyperDbgRevImports.h
 		include\SDK\Imports\HyperDbgScriptImports.h = include\SDK\Imports\HyperDbgScriptImports.h
 		include\SDK\Imports\HyperDbgSymImports.h = include\SDK\Imports\HyperDbgSymImports.h
+		include\SDK\Imports\HyperDbgVmmImports.h = include\SDK\Imports\HyperDbgVmmImports.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}"
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\Examples\example.py = include\SDK\Examples\example.py
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgkd", "hprdbgkd\hprdbgkd.vcxproj", "{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D} = {AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}
+		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperlog", "hyperlog\hyperlog.vcxproj", "{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{13E49D84-7EA0-43A2-9B60-4B408A4C7602}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Modules\HyperLog.h = include\SDK\Modules\HyperLog.h
+		include\SDK\Modules\VMM.h = include\SDK\Modules\VMM.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "macros", "macros", "{359218DB-0EBA-4889-8713-732FACAEF18D}"
+	ProjectSection(SolutionItems) = preProject
+		include\macros\MetaMacros.h = include\macros\MetaMacros.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "components", "components", "{DF15E9D4-976B-4E1D-B68F-9B67F93654BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "spinlock", "spinlock", "{66E41242-266A-44B1-803F-616E9FBD761F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{30E86BBD-BE38-4FB6-9F54-EA7DA3A30D2E}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\spinlock\code\Spinlock.c = include\components\spinlock\code\Spinlock.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{D7284E54-A479-4790-9387-65BDAC2257E1}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\spinlock\header\Spinlock.h = include\components\spinlock\header\Spinlock.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgrm", "hprdbgrm\hprdbgrm.vcxproj", "{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D} = {AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}
+		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgrev", "hprdbgrev\hprdbgrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -128,10 +174,32 @@ Global
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.debug|x64.Build.0 = debug|x64
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.release|x64.ActiveCfg = release|x64
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.release|x64.Build.0 = release|x64
-		{06FB1AF7-647C-4BA4-860A-4533763440F9}.debug|x64.ActiveCfg = Debug|x64
-		{06FB1AF7-647C-4BA4-860A-4533763440F9}.debug|x64.Build.0 = Debug|x64
-		{06FB1AF7-647C-4BA4-860A-4533763440F9}.release|x64.ActiveCfg = Release|x64
-		{06FB1AF7-647C-4BA4-860A-4533763440F9}.release|x64.Build.0 = Release|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.debug|x64.ActiveCfg = debug|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.debug|x64.Build.0 = debug|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.release|x64.ActiveCfg = release|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.release|x64.Build.0 = release|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.debug|x64.ActiveCfg = debug|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.debug|x64.Build.0 = debug|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.debug|x64.Deploy.0 = debug|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.release|x64.ActiveCfg = release|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.release|x64.Build.0 = release|x64
+		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}.release|x64.Deploy.0 = release|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.debug|x64.ActiveCfg = debug|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.debug|x64.Build.0 = debug|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.debug|x64.Deploy.0 = debug|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x64.ActiveCfg = release|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x64.Build.0 = release|x64
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x64.Deploy.0 = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x64.ActiveCfg = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x64.Build.0 = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x64.Deploy.0 = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.ActiveCfg = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.Build.0 = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.Deploy.0 = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x64.ActiveCfg = debug|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x64.Build.0 = debug|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x64.ActiveCfg = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x64.Build.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,6 +211,12 @@ Global
 		{952986BC-7B3D-4F50-BC69-4D11FA52D9C5} = {2CC2975A-9B33-400D-840F-9A71BB312928}
 		{B3D9DA75-8FBD-4A2C-826A-B50406396EC4} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
 		{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
+		{13E49D84-7EA0-43A2-9B60-4B408A4C7602} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
+		{359218DB-0EBA-4889-8713-732FACAEF18D} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{DF15E9D4-976B-4E1D-B68F-9B67F93654BF} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{66E41242-266A-44B1-803F-616E9FBD761F} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{30E86BBD-BE38-4FB6-9F54-EA7DA3A30D2E} = {66E41242-266A-44B1-803F-616E9FBD761F}
+		{D7284E54-A479-4790-9387-65BDAC2257E1} = {66E41242-266A-44B1-803F-616E9FBD761F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

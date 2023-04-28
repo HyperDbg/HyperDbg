@@ -28,6 +28,7 @@ extern BOOLEAN    g_IsConnectedToRemoteDebugger;
 extern BOOLEAN    g_OutputSourcesInitialized;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN    g_IsDebuggerModulesLoaded;
+extern BOOLEAN    g_IsReversingMachineModulesLoaded;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -37,7 +38,7 @@ extern LIST_ENTRY g_OutputSources;
  * @param handler Function that handles the messages
  */
 VOID
-HyperdbgSetTextMessageCallback(Callback handler)
+HyperDbgSetTextMessageCallback(Callback handler)
 {
     g_MessageHandler = handler;
 }
@@ -54,8 +55,7 @@ ShowMessages(const char * Fmt, ...)
     va_list Args;
     char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
 
-    if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger &&
-        !g_IsSerialConnectedToRemoteDebugger)
+    if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
     {
         va_start(Args, Fmt);
         vprintf(Fmt, Args);
@@ -103,8 +103,6 @@ ShowMessages(const char * Fmt, ...)
     }
 }
 
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking
-
 /**
  * @brief Read kernel buffers using IRP Pending
  *
@@ -134,7 +132,7 @@ ReadIrpBasedBuffer()
     // if you know why this problem happens, then contact me !
     //
     Handle = CreateFileA(
-        "\\\\.\\HyperdbgHypervisorDevice",
+        "\\\\.\\HyperDbgDebuggerDevice",
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
@@ -145,6 +143,7 @@ ReadIrpBasedBuffer()
     if (Handle == INVALID_HANDLE_VALUE)
     {
         ErrorNum = GetLastError();
+
         if (ErrorNum == ERROR_ACCESS_DENIED)
         {
             ShowMessages("err, access denied\nare you sure you have administrator "
@@ -185,16 +184,15 @@ ReadIrpBasedBuffer()
                 Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
 
                 Status = DeviceIoControl(
-                    Handle,               // Handle to device
-                    IOCTL_REGISTER_EVENT, // IO Control code
-                    &RegisterEvent,       // Input Buffer to driver.
-                    SIZEOF_REGISTER_EVENT *
-                        2,              // Length of input buffer in bytes. (x 2 is bcuz as the
-                                        // driver is x64 and has 64 bit values)
-                    OutputBuffer,       // Output Buffer from driver.
-                    UsermodeBufferSize, // Length of output buffer in bytes.
-                    &ReturnedLength,    // Bytes placed in buffer.
-                    NULL                // synchronous call
+                    Handle,                    // Handle to device
+                    IOCTL_REGISTER_EVENT,      // IO Control code
+                    &RegisterEvent,            // Input Buffer to driver.
+                    SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
+                                               // driver is x64 and has 64 bit values)
+                    OutputBuffer,              // Output Buffer from driver.
+                    UsermodeBufferSize,        // Length of output buffer in bytes.
+                    &ReturnedLength,           // Bytes placed in buffer.
+                    NULL                       // synchronous call
                 );
 
                 if (!Status)
@@ -435,7 +433,7 @@ ReadIrpBasedBuffer()
                 if (!CloseHandle(Handle))
                 {
                     ShowMessages("err, closing handle 0x%x\n", GetLastError());
-                };
+                }
 
                 return;
             }
@@ -443,8 +441,9 @@ ReadIrpBasedBuffer()
     }
     catch (const std::exception &)
     {
-        ShowMessages(" Exception !\n");
+        ShowMessages("err, exception occured in creating handle or parsing buffer\n");
     }
+
     free(OutputBuffer);
 
     //
@@ -463,7 +462,7 @@ ReadIrpBasedBuffer()
  * @return DWORD Device Handle
  */
 DWORD WINAPI
-ThreadFunc(void * data)
+IrpBasedBufferThread(void * data)
 {
     //
     // Do stuff.  This will be the first function called on the new
@@ -474,7 +473,6 @@ ThreadFunc(void * data)
 
     return 0;
 }
-#endif
 
 /**
  * @brief Install VMM driver
@@ -490,19 +488,53 @@ HyperDbgInstallVmmDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation)))
+    if (!SetupDriverName(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
     {
         return 1;
     }
 
-    if (!ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
-        ShowMessages("unable to install driver\n");
+        ShowMessages("unable to install VMM driver\n");
 
         //
         // Error - remove driver
         //
-        ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Install Reversing Machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgInstallReversingMachineDriver()
+{
+    //
+    // The driver is not started yet so let us the install driver
+    // First setup full path to driver name
+    //
+
+    if (!SetupDriverName(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
+    {
+        return 1;
+    }
+
+    if (!ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    {
+        ShowMessages("unable to install reversing machine's driver\n");
+
+        //
+        // Error - remove driver
+        //
+        ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
         return 1;
     }
@@ -517,13 +549,12 @@ HyperDbgInstallVmmDriver()
  * was error
  */
 int
-HyperdbgStopDriver(LPCTSTR DriverName)
+HyperDbgStopDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded
     //
-    if (g_DriverLocation[0] != (TCHAR)0 &&
-        ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
     {
         return 0;
     }
@@ -542,7 +573,19 @@ HyperdbgStopDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgStopVmmDriver()
 {
-    return HyperdbgStopDriver(VMM_DRIVER_NAME);
+    return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
+}
+
+/**
+ * @brief Stop reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgStopReversingMachineDriver()
+{
+    return HyperDbgStopDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
 }
 
 /**
@@ -552,13 +595,12 @@ HyperDbgStopVmmDriver()
  * was error
  */
 int
-HyperdbgUninstallDriver(LPCTSTR DriverName)
+HyperDbgUninstallDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded.  Ignore any errors
     //
-    if (g_DriverLocation[0] != (TCHAR)0 &&
-        ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE))
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE))
     {
         return 0;
     }
@@ -577,11 +619,23 @@ HyperdbgUninstallDriver(LPCTSTR DriverName)
 HPRDBGCTRL_API int
 HyperDbgUninstallVmmDriver()
 {
-    return HyperdbgUninstallDriver(VMM_DRIVER_NAME);
+    return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
 }
 
 /**
- * @brief Load the driver
+ * @brief Remove the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgUninstallReversingMachineDriver()
+{
+    return HyperDbgUninstallDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
+}
+
+/**
+ * @brief Load the VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
@@ -591,7 +645,6 @@ HyperDbgLoadVmm()
 {
     string CpuID;
     DWORD  ErrorNum;
-    HANDLE hProcess;
     DWORD  ThreadId;
 
     if (g_DeviceHandle)
@@ -636,7 +689,7 @@ HyperDbgLoadVmm()
     // Init entering vmx
     //
     g_DeviceHandle = CreateFileA(
-        "\\\\.\\HyperdbgHypervisorDevice",
+        "\\\\.\\HyperDbgDebuggerDevice",
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
@@ -672,7 +725,7 @@ HyperDbgLoadVmm()
     InitializeListHead(&g_EventTrace);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
-    HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
+    HANDLE Thread = CreateThread(NULL, 0, IrpBasedBufferThread, NULL, 0, &ThreadId);
 
     // if (Thread)
     // {
@@ -680,6 +733,57 @@ HyperDbgLoadVmm()
     // }
 
 #endif
+
+    return 0;
+}
+
+/**
+ * @brief Load the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgLoadReversingMachine()
+{
+    string CpuID;
+
+    if (g_DeviceHandle || g_IsReversingMachineModulesLoaded)
+    {
+        ShowMessages("handle of the driver found, if you use 'load' before, please "
+                     "unload it using 'unload'\n");
+        return 1;
+    }
+
+    CpuID = ReadVendorString();
+
+    ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
+
+    if (CpuID == "GenuineIntel")
+    {
+        ShowMessages("virtualization technology is vt-x\n");
+    }
+    else
+    {
+        ShowMessages("this program is not designed to run in a non-VT-x "
+                     "environemnt !\n");
+        return 1;
+    }
+
+    if (VmxSupportDetection())
+    {
+        ShowMessages("vmx operation is supported by your processor\n");
+    }
+    else
+    {
+        ShowMessages("vmx operation is not supported by your processor\n");
+        return 1;
+    }
+
+    //
+    // Call hprdbgrev start function
+    //
+    ReversingMachineStart();
 
     return 0;
 }
@@ -786,6 +890,31 @@ HyperDbgUnloadVmm()
     SymbolDeleteSymTable();
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgUnloadReversingMachine()
+{
+    BOOL Status;
+
+    AssertShowMessageReturnStmt(g_IsReversingMachineModulesLoaded, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    ShowMessages("start terminating...\n");
+
+    //
+    // Call the unloader of the hprdbgrev module
+    //
+    ReversingMachineStop();
+
+    ShowMessages("you're not on reversing machine's hypervisor anymore!\n");
 
     return 0;
 }

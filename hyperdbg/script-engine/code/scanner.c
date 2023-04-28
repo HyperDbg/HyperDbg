@@ -1,7 +1,7 @@
 /**
  * @file scanner.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
- * 
+ *
  * @details Script Engine Scanner
  * @version 0.1
  * @date 2020-10-22
@@ -13,10 +13,10 @@
 
 /**
  * @brief reads a token from the input string
- * 
- * @param c 
- * @param str 
- * @return PTOKEN 
+ *
+ * @param c
+ * @param str
+ * @return PTOKEN
  */
 PTOKEN
 GetToken(char * c, char * str)
@@ -731,10 +731,10 @@ GetToken(char * c, char * str)
 
 /**
  * @brief Perform scanning the script engine
- * 
- * @param str 
- * @param c 
- * @return PTOKEN 
+ *
+ * @param str
+ * @param c
+ * @return PTOKEN
  */
 PTOKEN
 Scan(char * str, char * c)
@@ -797,11 +797,11 @@ Scan(char * str, char * c)
 }
 
 /**
-* @brief returns last character of string 
-* 
-* @param str 
-* @return last character 
-*/
+ * @brief returns last character of string
+ *
+ * @param str
+ * @return last character
+ */
 char
 sgetc(char * str)
 {
@@ -820,9 +820,9 @@ sgetc(char * str)
 
 /**
  * @brief Check whether a string is a keyword or not
- * 
- * @param str 
- * @return char 
+ *
+ * @param str
+ * @return char
  */
 char
 IsKeyword(char * str)
@@ -849,9 +849,9 @@ IsKeyword(char * str)
 
 /**
  * @brief Check if string is register or not
- * 
- * @param str 
- * @return char 
+ *
+ * @param str
+ * @return char
  */
 char
 IsRegister(char * str)
@@ -863,9 +863,9 @@ IsRegister(char * str)
 
 /**
  * @brief eck if string is Id or not
- * 
- * @param str 
- * @return char 
+ *
+ * @param str
+ * @return char
  */
 char
 IsId(char * str)

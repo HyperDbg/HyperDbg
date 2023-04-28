@@ -26,7 +26,7 @@
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <DriverType>KMDF</DriverType>
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
     <SpectreMitigation>false</SpectreMitigation>
@@ -36,7 +36,7 @@
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <DriverType>KMDF</DriverType>
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
     <SpectreMitigation>false</SpectreMitigation>
@@ -68,17 +68,20 @@
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <WppEnabled>true</WppEnabled>
+      <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <ExternalWarningLevel>Level4</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
-      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
+      <NoEntryPoint>true</NoEntryPoint>
     </Link>
     <DriverSign>
       <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
@@ -86,16 +89,18 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <Link>
-      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
+      <NoEntryPoint>true</NoEntryPoint>
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <WppEnabled>true</WppEnabled>
+      <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -109,47 +114,33 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\script-eval\code\Functions.c" />
-    <ClCompile Include="..\script-eval\code\Keywords.c" />
-    <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
-    <ClCompile Include="..\script-eval\code\Regs.c" />
-    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="code\broadcast\Broadcast.c" />
+    <ClCompile Include="code\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\common\Bitwise.c" />
     <ClCompile Include="code\common\Common.c" />
-    <ClCompile Include="code\common\Logging.c" />
-    <ClCompile Include="code\common\Spinlock.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
-    <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
-    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
-    <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
-    <ClCompile Include="code\debugger\commands\Callstack.c" />
-    <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
-    <ClCompile Include="code\debugger\commands\ExtensionCommands.c" />
-    <ClCompile Include="code\debugger\communication\SerialConnection.c" />
-    <ClCompile Include="code\debugger\core\Debugger.c" />
-    <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
-    <ClCompile Include="code\debugger\core\Dispatch.c" />
-    <ClCompile Include="code\debugger\core\Termination.c" />
-    <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c" />
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c" />
-    <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c" />
-    <ClCompile Include="code\debugger\kernel-level\Kd.c" />
-    <ClCompile Include="code\debugger\objects\Process.c" />
-    <ClCompile Include="code\debugger\objects\Thread.c" />
-    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
-    <ClCompile Include="code\debugger\tests\KernelTests.c" />
-    <ClCompile Include="code\debugger\transparency\Transparency.c" />
-    <ClCompile Include="code\debugger\user-level\Attaching.c" />
-    <ClCompile Include="code\debugger\user-level\ThreadHolder.c" />
-    <ClCompile Include="code\debugger\user-level\Ud.c" />
-    <ClCompile Include="code\debugger\user-level\UserAccess.c" />
     <ClCompile Include="code\devices\Apic.c" />
-    <ClCompile Include="code\driver\Driver.c" />
-    <ClCompile Include="code\driver\Ioctl.c" />
+    <ClCompile Include="code\features\CompatibilityChecks.c" />
+    <ClCompile Include="code\features\DirtyLogging.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
+    <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
+    <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
+    <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
+    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="code\interface\Callback.c" />
+    <ClCompile Include="code\interface\Configuration.c" />
+    <ClCompile Include="code\interface\Dispatch.c" />
+    <ClCompile Include="code\interface\Export.c" />
+    <ClCompile Include="code\memory\AddressCheck.c" />
+    <ClCompile Include="code\memory\Conversion.c" />
+    <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
+    <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\platform\CrossApi.c" />
+    <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
@@ -169,59 +160,48 @@
     <ClCompile Include="code\vmm\vmx\VmxBroadcast.c" />
     <ClCompile Include="code\vmm\vmx\VmxMechanisms.c" />
     <ClCompile Include="code\vmm\vmx\VmxRegions.c" />
-    <ClCompile Include="pch.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm" />
-    <MASM Include="code\assembly\AsmDebugger.asm" />
+    <MASM Include="code\assembly\AsmHooks.asm" />
     <MASM Include="code\assembly\AsmEpt.asm" />
-    <MASM Include="code\assembly\AsmKernelSideTests.asm" />
     <MASM Include="code\assembly\AsmSegmentRegs.asm" />
     <MASM Include="code\assembly\AsmVmexitHandler.asm" />
     <MASM Include="code\assembly\AsmVmxContextState.asm" />
     <MASM Include="code\assembly\AsmVmxOperation.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h" />
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
+    <ClInclude Include="..\include\macros\MetaMacros.h" />
+    <ClInclude Include="header\assembly\InlineAsm.h" />
+    <ClInclude Include="header\broadcast\Broadcast.h" />
+    <ClInclude Include="header\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\common\Bitwise.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
-    <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
-    <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
+    <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
-    <ClInclude Include="header\components\registers\DebugRegisters.h" />
-    <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
-    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
-    <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
-    <ClInclude Include="header\debugger\commands\Callstack.h" />
-    <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
-    <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
-    <ClInclude Include="header\debugger\communication\SerialConnection.h" />
-    <ClInclude Include="header\debugger\core\Debugger.h" />
-    <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
-    <ClInclude Include="header\debugger\core\Dispatch.h" />
-    <ClInclude Include="header\debugger\core\Termination.h" />
-    <ClInclude Include="header\debugger\features\Hooks.h" />
-    <ClInclude Include="header\debugger\kernel-level\Kd.h" />
-    <ClInclude Include="header\debugger\objects\Process.h" />
-    <ClInclude Include="header\debugger\objects\Thread.h" />
-    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
-    <ClInclude Include="header\debugger\tests\KernelTests.h" />
-    <ClInclude Include="header\debugger\transparency\Transparency.h" />
-    <ClInclude Include="header\debugger\user-level\Attaching.h" />
-    <ClInclude Include="header\debugger\user-level\ThreadHolder.h" />
-    <ClInclude Include="header\debugger\user-level\Ud.h" />
-    <ClInclude Include="header\debugger\user-level\UserAccess.h" />
     <ClInclude Include="header\devices\Apic.h" />
+    <ClInclude Include="header\features\CompatibilityChecks.h" />
+    <ClInclude Include="header\features\DirtyLogging.h" />
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />
+    <ClInclude Include="header\hooks\Hooks.h" />
+    <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
+    <ClInclude Include="header\interface\Callback.h" />
+    <ClInclude Include="header\interface\Configuration.h" />
+    <ClInclude Include="header\interface\Dispatch.h" />
+    <ClInclude Include="header\memory\AddressCheck.h" />
+    <ClInclude Include="header\memory\Conversion.h" />
+    <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
-    <ClInclude Include="header\misc\InlineAsm.h" />
+    <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\platform\CrossApi.h" />
     <ClInclude Include="header\platform\Environment.h" />
+    <ClInclude Include="header\transparency\Transparency.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />
@@ -231,7 +211,6 @@
     <ClInclude Include="header\vmm\vmx\HypervTlfs.h" />
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
-    <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
     <ClInclude Include="header\vmm\vmx\MsrHandlers.h" />
     <ClInclude Include="header\vmm\vmx\Mtf.h" />
     <ClInclude Include="header\vmm\vmx\ProtectedHv.h" />
@@ -239,7 +218,6 @@
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h" />
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h" />
-    <ClInclude Include="header\platform\MetaMacros.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

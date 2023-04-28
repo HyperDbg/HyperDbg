@@ -369,9 +369,10 @@ HyperDbgShowSignature()
  * return false
  */
 bool
-HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
+HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
 {
-    UINT32 CurrentCommandLen = 0;
+    UINT32      CurrentCommandLen = 0;
+    std::string CurrentCommandStr(CurrentCommand);
 
     if (Reset)
     {
@@ -380,11 +381,11 @@ HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
         g_InterpreterCountOfOpenCurlyBrackets      = 0;
     }
 
-    CurrentCommandLen = CurrentCommand.length();
+    CurrentCommandLen = CurrentCommandStr.length();
 
     for (size_t i = 0; i < CurrentCommandLen; i++)
     {
-        switch (CurrentCommand.at(i))
+        switch (CurrentCommandStr.at(i))
         {
         case '"':
 
@@ -822,4 +823,7 @@ InitializeCommandsDictionary()
     g_CommandsList["structure"] = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
 
     g_CommandsList[".pe"] = {&CommandPe, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
+
+    g_CommandsList["!rev"] = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+    g_CommandsList["rev"]  = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
 }
