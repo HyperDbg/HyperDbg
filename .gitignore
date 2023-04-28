@@ -368,10 +368,10 @@ MigrationBackup/
 # Exceptions
 !/hyperdbg/libraries/*
 !/hyperdbg/libraries/pdbex/*
-!/hyperdbg/libraries/zydis/*
 !/hyperdbg/libraries/DIA/*
 !/hyperdbg/libraries/DIA/x84/*
 !/hyperdbg/libraries/DIA/x64/*
+#!/hyperdbg/libraries/zydis/*
 
 # KdSerial Libraries
 !/hyperdbg/libraries/kdserial/*
