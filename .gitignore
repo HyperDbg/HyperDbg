@@ -365,6 +365,9 @@ MigrationBackup/
 # HyperDbg script engine test cases
 /hyperdbg/hyperdbg-cli/script-test-cases/*
 
+# Ignore local zydis builds
+/hyperdbg/libraries/zydis/*.lib
+
 # Exceptions
 !/hyperdbg/libraries/*
 !/hyperdbg/libraries/pdbex/*
