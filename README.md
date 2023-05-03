@@ -38,7 +38,7 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
 
-**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://dl.acm.org/doi/abs/10.1145/3548606.3560649)** [[arXiv](https://arxiv.org/abs/2207.05676)]
+**1. [HyperDbg: Reinventing Hardware-Assisted Debugging (CCS'22)](https://dl.acm.org/doi/abs/10.1145/3548606.3560649)** [[arXiv](https://arxiv.org/abs/2207.05676)]
 
 ```
 @inproceedings{karvandi2022hyperdbg,
@@ -50,7 +50,7 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
-You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, and [this article](https://research.hyperdbg.org/debugger/transparency.html) about our efforts on vm-exit transparency. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo.
+You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/debugger/transparency.html) about our efforts on vm-exit transparency, and [this article](https://research.hyperdbg.org/debugger/chasing-bugs.html) about chasing bugs within hypervisors. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
 
 ## Unique Features
 ### First Release (v0.1.0.0)
@@ -86,7 +86,7 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Various Custom Scripts [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
 
 ### Second Release (v0.2.0.0)
-(not released yet !)
+* HyperDbg Software Development Kit (SDK) [<a href="https://docs.hyperdbg.org/using-hyperdbg/sdk" target="_blank">link</a>]
 
 ## How does it work?
 

@@ -4,20 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0.0] - 2022-xx-xx
+## [0.3.0.0] - 2023-XX-XX
+The third (3rd) of the HyperDbg Debugger.
+
+### Added
+- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+- New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+
+## [0.2.0.0] - 2023-05-03
 The second (2nd) of the HyperDbg Debugger.
 
 ### Added
-- HyperDbg Software Development Kit (DK) is now available 
+- HyperDbg Software Development Kit (SDK) is now available 
 - **flush()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
 - **memcpy()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcpy))
-- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
 ### Changed
+- Global code refactor and fixing bugs!
 - Compiling HyperDbg by using the latest Windows 11 WDK
 - **enable_event** function name changed to **event_enable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_enable))
 - **disable_event** function name changed to **event_disable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_disable))
-- New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The "**settings**" command now preserves the configurations in the config file
 - The communication buffer is now separated from the hyperlogger buffer chunks and the buffer size is increased X10 times ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size)) 
 - Zydis submodule is updated to version 4 ([link](https://github.com/zyantific/zydis/releases/tag/v4.0.0)) 
@@ -27,7 +33,7 @@ The second (2nd) of the HyperDbg Debugger.
 - **disable_event** script engine function
 
 ## [0.1.0.0] - 2022-05-31
-This is the fist (1st) release of HyperDbg Debugger.
+This is the first (1st) release of HyperDbg Debugger.
 
 ### Added
 - \# (comment in batch scripts)
