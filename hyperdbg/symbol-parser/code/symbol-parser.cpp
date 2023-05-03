@@ -704,6 +704,12 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         std::string ObjectName(FunctionOrVariableName);
         FinalModuleName = ModuleName + "!" + FunctionOrVariableName;
     }
+    else
+    {
+        std::string ModuleName(FunctionOrVariableName);
+        FinalModuleName = ModuleName;
+
+    }
 
     if (SymFromName(GetCurrentProcess(), FinalModuleName.c_str(), Symbol))
     {
