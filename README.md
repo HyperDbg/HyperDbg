@@ -13,7 +13,7 @@
 
 HyperDbg Debugger is an open-source, community-driven, hypervisor-assisted, user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing, and reversing.
 
-Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases.
+Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases, and join **[Telegram](https://t.me/HyperDbg)** group to connect with the community of developers and debugging enthusiasts and get your questions about **HyperDbg** answered!
 
 ## Description
 
