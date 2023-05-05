@@ -238,8 +238,8 @@ NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName)
     //
     // Connect to the server pipe using CreateFile()
     //
-    hPipe = CreateFileA(PipeName,      // pipe name
-                        GENERIC_READ | // read and write access
+    hPipe = CreateFileA(PipeName,             // pipe name
+                        GENERIC_READ |        // read and write access
                             GENERIC_WRITE,
                         0,                    // no sharing
                         NULL,                 // default security attributes

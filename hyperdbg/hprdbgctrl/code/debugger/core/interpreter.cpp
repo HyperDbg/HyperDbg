@@ -826,4 +826,7 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!rev"] = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
     g_CommandsList["rev"]  = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+
+    g_CommandsList["!track"] = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+    g_CommandsList["track"]  = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
 }

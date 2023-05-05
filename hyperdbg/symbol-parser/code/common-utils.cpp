@@ -40,7 +40,7 @@ IsDirExists(const std::string & DirPath)
     if (Ftyp & FILE_ATTRIBUTE_DIRECTORY)
         return TRUE; // this is a directory!
 
-    return FALSE; // this is not a directory!
+    return FALSE;    // this is not a directory!
 }
 
 /**

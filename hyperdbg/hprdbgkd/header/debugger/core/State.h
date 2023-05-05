@@ -110,6 +110,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
     BOOLEAN                                    WaitForStepTrap;
+    BOOLEAN                                    IgnoreDisasmInNextPacket;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;

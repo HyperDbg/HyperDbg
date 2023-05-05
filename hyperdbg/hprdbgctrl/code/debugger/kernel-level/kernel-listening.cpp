@@ -268,7 +268,7 @@ StartAgain:
                 break;
             }
 
-            if (PausePacket->PausingReason != DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
+            if (!PausePacket->IgnoreDisassembling)
             {
                 //
                 // Check if the instruction is received completely or not
@@ -329,6 +329,23 @@ StartAgain:
 
                 break;
 
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED:
+
+                //
+                // Handle the tracking of 'ret' and 'call' instructions
+                //
+                CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
+                                                       MAXIMUM_INSTR_SIZE,
+                                                       PausePacket->Is32BitAddress,
+                                                       PausePacket->Rip);
+
+                //
+                // Unpause the debugger to get commands
+                //
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+
+                break;
+
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
 
                 //
@@ -339,7 +356,7 @@ StartAgain:
 
                 break;
 
-            case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
+            case DEBUGGEE_PAUSING_REASON_PAUSE:
 
                 //
                 // Nothing
@@ -1071,7 +1088,7 @@ ListeningSerialPortInDebuggee()
 {
 StartAgain:
 
-    BOOL Status; /* Status */
+    BOOL Status;                                    /* Status */
     char SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
     DWORD                   EventMask       = 0;    /* Event mask to trigger */

@@ -49,11 +49,11 @@ parseModRM(UINT8 ** b, const BOOLEAN addressPrefix)
         if (**b < 0xC0 && (**b & 0b111) == 0b100 && !addressPrefix)
             hasSIB = TRUE, (*b)++;
 
-        if (modrm >= 0x40 && modrm <= 0x7F) // disp8 (ModR/M)
+        if (modrm >= 0x40 && modrm <= 0x7F)                                                       // disp8 (ModR/M)
             (*b)++;
         else if ((modrm <= 0x3F && (modrm & 0b111) == 0b101) || (modrm >= 0x80 && modrm <= 0xBF)) // disp16,32 (ModR/M)
             *b += (addressPrefix) ? 2 : 4;
-        else if (hasSIB && (**b & 0b111) == 0b101) // disp8,32 (SIB)
+        else if (hasSIB && (**b & 0b111) == 0b101)                                                // disp8,32 (SIB)
             *b += (modrm & 0b01000000) ? 1 : 4;
     }
     else if (addressPrefix && modrm == 0x26)
@@ -89,9 +89,9 @@ ldisasm(const void * const address, const BOOLEAN x86_64_mode)
 
             parseModRM(&b, addressPrefix);
         }
-        else // 2 bytes
+        else                                                                                                                                 // 2 bytes
         {
-            if (LDISASM_R == 8) // disp32
+            if (LDISASM_R == 8)                                                                                                              // disp32
                 offset += 4;
             else if ((LDISASM_R == 7 && LDISASM_C < 4) || *b == 0xA4 || *b == 0xC2 || (*b > 0xC3 && *b <= 0xC6) || *b == 0xBA || *b == 0xAC) // imm8
                 offset++;
@@ -106,11 +106,11 @@ ldisasm(const void * const address, const BOOLEAN x86_64_mode)
         // Check for immediate field
         if ((LDISASM_R == 0xE && LDISASM_C < 8) || (LDISASM_R == 0xB && LDISASM_C < 8) || LDISASM_R == 7 || (LDISASM_R < 4 && (LDISASM_C == 4 || LDISASM_C == 0xC)) || (*b == 0xF6 && !(*(b + 1) & 48)) || findByte(op1imm8, sizeof(op1imm8), *b)) // imm8
             offset++;
-        else if (*b == 0xC2 || *b == 0xCA) // imm16
+        else if (*b == 0xC2 || *b == 0xCA)                                                                                                                                                                                                         // imm16
             offset += 2;
-        else if (*b == 0xC8) // imm16 + imm8
+        else if (*b == 0xC8)                                                                                                                                                                                                                       // imm16 + imm8
             offset += 3;
-        else if ((LDISASM_R < 4 && (LDISASM_C == 5 || LDISASM_C == 0xD)) || (LDISASM_R == 0xB && LDISASM_C >= 8) || (*b == 0xF7 && !(*(b + 1) & 48)) || findByte(op1imm32, sizeof(op1imm32), *b)) // imm32,16
+        else if ((LDISASM_R < 4 && (LDISASM_C == 5 || LDISASM_C == 0xD)) || (LDISASM_R == 0xB && LDISASM_C >= 8) || (*b == 0xF7 && !(*(b + 1) & 48)) || findByte(op1imm32, sizeof(op1imm32), *b))                                                  // imm32,16
             offset += (rexW) ? 8 : (operandPrefix ? 2 : 4);
         else if (LDISASM_R == 0xA && LDISASM_C < 4)
             offset += (rexW) ? 8 : (addressPrefix ? 2 : 4);

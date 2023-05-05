@@ -243,9 +243,9 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                                 // Make storage for up-to 64 pending interrupts.
                                                                                 // In practice I haven't seen more than 2 pending interrupts.
 
-    VMX_VMXOFF_STATE        VmxoffState;            // Shows the vmxoff state of the guest
-    NMI_BROADCASTING_STATE  NmiBroadcastingState;   // Shows the state of NMI broadcasting
-    VM_EXIT_TRANSPARENCY    TransparencyState;      // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    VMX_VMXOFF_STATE        VmxoffState;                                        // Shows the vmxoff state of the guest
+    NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
+    VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
+    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

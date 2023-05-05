@@ -1103,7 +1103,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         HypervisorTraceLevelMessage(
             TRACE_LEVEL_INFORMATION, // ETW Level defined in evntrace.h
             HVFS_LOG_INFO,
-            "%s", // Flag defined in WPP_CONTROL_GUIDS
+            "%s",                    // Flag defined in WPP_CONTROL_GUIDS
             LogMessage);
     }
     else if (OperationCode == OPERATION_LOG_WARNING_MESSAGE)
@@ -1111,7 +1111,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         HypervisorTraceLevelMessage(
             TRACE_LEVEL_WARNING, // ETW Level defined in evntrace.h
             HVFS_LOG_WARNING,
-            "%s", // Flag defined in WPP_CONTROL_GUIDS
+            "%s",                // Flag defined in WPP_CONTROL_GUIDS
             LogMessage);
     }
     else if (OperationCode == OPERATION_LOG_ERROR_MESSAGE)
@@ -1119,7 +1119,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         HypervisorTraceLevelMessage(
             TRACE_LEVEL_ERROR, // ETW Level defined in evntrace.h
             HVFS_LOG_ERROR,
-            "%s", // Flag defined in WPP_CONTROL_GUIDS
+            "%s",              // Flag defined in WPP_CONTROL_GUIDS
             LogMessage);
     }
     else
@@ -1127,7 +1127,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         HypervisorTraceLevelMessage(
             TRACE_LEVEL_NONE, // ETW Level defined in evntrace.h
             HVFS_LOG,
-            "%s", // Flag defined in WPP_CONTROL_GUIDS
+            "%s",             // Flag defined in WPP_CONTROL_GUIDS
             LogMessage);
     }
 

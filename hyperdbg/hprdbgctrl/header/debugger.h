@@ -232,3 +232,9 @@ CommandPauseRequest();
 
 VOID
 CommandGRequest();
+
+VOID
+CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
+                                       UINT64          BuffLength,
+                                       BOOLEAN         Isx86_64,
+                                       UINT64          RipAddress);

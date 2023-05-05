@@ -1117,11 +1117,12 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
                                                             TRUE))
     {
         //
-        // Handle the step
+        // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
+        // as a tracking mechanism, so we'll change the reason for that)
         //
         ContextAndTag.Context = LastVmexitRip;
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                              DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                               &ContextAndTag);
     }
 }
@@ -1890,10 +1891,13 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 SteppingPacket = (DEBUGGEE_STEP_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN)
+                switch (SteppingPacket->StepType)
                 {
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN:
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN_FOR_TRACKING:
+
                     //
-                    // Guaranteed step in (i command)
+                    // Guaranteed step in (i command) or used for tracking (creating call tree)
                     //
 
                     //
@@ -1906,13 +1910,39 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdContinueDebuggeeJustCurrentCore(DbgState);
 
+                    if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN_FOR_TRACKING)
+                    {
+                        DbgState->IgnoreDisasmInNextPacket = TRUE;
+                    }
+
                     //
                     // No need to wait for new commands
                     //
                     EscapeFromTheLoop = TRUE;
-                }
-                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN)
-                {
+
+                    break;
+
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
+
+                    //
+                    // Step-over (p command)
+                    //
+                    KdRegularStepOver(DbgState, SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength);
+
+                    //
+                    // Unlock other cores
+                    //
+                    KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+
+                    //
+                    // Continue to the debuggee
+                    //
+                    EscapeFromTheLoop = TRUE;
+
+                    break;
+
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN:
+
                     //
                     // Step in (t command)
                     //
@@ -1931,23 +1961,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     // Continue to the debuggee
                     //
                     EscapeFromTheLoop = TRUE;
-                }
-                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
-                {
-                    //
-                    // Step-over (p command)
-                    //
-                    KdRegularStepOver(DbgState, SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength);
 
-                    //
-                    // Unlock other cores
-                    //
-                    KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                    break;
 
-                    //
-                    // Continue to the debuggee
-                    //
-                    EscapeFromTheLoop = TRUE;
+                default:
+                    break;
                 }
 
                 break;
@@ -2670,6 +2688,12 @@ StartAgain:
         //
         PausePacket.Rip            = LastVmexitRip;
         PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
+
+        //
+        // Set disassembly state
+        //
+        PausePacket.IgnoreDisassembling    = DbgState->IgnoreDisasmInNextPacket;
+        DbgState->IgnoreDisasmInNextPacket = FALSE;
 
         //
         // Set rflags for finding the results of conditional jumps
