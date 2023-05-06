@@ -336,7 +336,7 @@ StartAgain:
                 //
                 CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
                                                        MAXIMUM_INSTR_SIZE,
-                                                       PausePacket->Is32BitAddress,
+                                                       PausePacket->Is32BitAddress ? FALSE : TRUE,
                                                        PausePacket->Rip);
 
                 //

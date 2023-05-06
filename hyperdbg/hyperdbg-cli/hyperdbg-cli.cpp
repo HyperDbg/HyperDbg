@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file hyperdbg-cli.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main HyperDbg Cli source coede
@@ -35,6 +35,11 @@ main(int argc, char * argv[])
     bool   ExitFromDebugger = false;
     string PreviousCommand;
     bool   Reset = false;
+
+    //
+    // Set console output code page to UTF-8
+    //
+    SetConsoleOutputCP(CP_UTF8);
 
     printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");

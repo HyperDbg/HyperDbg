@@ -102,7 +102,8 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
     unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
+    UINT64          CurrentRip,
+    UINT32          BuffLength,
     BOOLEAN         Isx86_64,
     PBOOLEAN        IsRet);
 

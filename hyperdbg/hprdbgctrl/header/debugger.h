@@ -235,6 +235,13 @@ CommandGRequest();
 
 VOID
 CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
-                                       UINT64          BuffLength,
+                                       UINT32          BuffLength,
                                        BOOLEAN         Isx86_64,
                                        UINT64          RipAddress);
+
+VOID
+CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbols,
+                                           UINT64       ComputedAbsoluteAddress);
+
+VOID
+CommandTrackHandleReceivedRetInstructions(UINT64 CurrentRip);

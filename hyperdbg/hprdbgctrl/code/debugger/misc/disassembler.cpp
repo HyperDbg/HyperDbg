@@ -456,7 +456,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
 
-        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
+        // ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
         switch (instruction.mnemonic)
         {
@@ -893,7 +893,7 @@ HyperDbgLengthDisassemblerEngine(
         // We have to pass a `runtime_address` different to
         // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
         //
-        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
+        // ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
         //
         // Return len of buffer
@@ -908,9 +908,64 @@ HyperDbgLengthDisassemblerEngine(
 }
 
 /**
+ * @brief Print addresses
+ *
+ * @param formatter
+ * @param buffer
+ * @param context
+ * @return ZyanStatus
+ */
+static ZyanStatus
+ZydisFormatterPrintAddressAbsoluteForTrackingInstructions(const ZydisFormatter *  formatter,
+                                                          ZydisFormatterBuffer *  buffer,
+                                                          ZydisFormatterContext * context)
+{
+    ZyanU64                                                address;
+    std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION>::iterator Iterate;
+
+    ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
+
+    //
+    // Apply addressconversion of settings here
+    //
+    if (g_AddressConversion)
+    {
+        //
+        // Check to find the symbol of address
+        //
+        Iterate = g_DisassemblerSymbolMap.find(address);
+
+        if (Iterate != g_DisassemblerSymbolMap.end())
+        {
+            ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
+            ZyanString * string;
+            ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
+
+            //
+            // Call the tracker callback (with function name)
+            //
+            CommandTrackHandleReceivedCallInstructions(Iterate->second.ObjectName.c_str(), Iterate->first);
+
+            return ZyanStringAppendFormat(string,
+                                          "<%s (%s)>",
+                                          Iterate->second.ObjectName.c_str(),
+                                          SeparateTo64BitValue(Iterate->first).c_str());
+        }
+    }
+
+    //
+    // Call the tracker callback (without function name)
+    //
+    CommandTrackHandleReceivedCallInstructions(NULL, address);
+
+    return default_print_address_absolute(formatter, buffer, context);
+}
+
+/**
  * @brief Check whether the current instruction is a 'call' or 'ret' or not
  *
  * @param BufferToDisassemble Current Bytes of assembly
+ * @param CurrentRip Address of current RIP
  * @param BuffLength Length of buffer
  * @param Isx86_64 Whether it's an x86 or x64
  * @param IsRet Whether it's a 'ret' or not
@@ -920,14 +975,14 @@ HyperDbgLengthDisassemblerEngine(
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
     unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
+    UINT64          CurrentRip,
+    UINT32          BuffLength,
     BOOLEAN         Isx86_64,
     PBOOLEAN        IsRet)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
     char                    buffer[256];
@@ -939,7 +994,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
 
-    if (Isx86_64)
+    if (!Isx86_64)
     {
         ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
     }
@@ -958,28 +1013,28 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
     // formats the absolute addresses
     //
     default_print_address_absolute =
-        (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+        (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsoluteForTrackingInstructions;
     ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
 
     while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, BufferToDisassemble, BuffLength, &instruction, operands)))
     {
-        //
-        // We have to pass a `runtime_address` different to
-        // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
-        //
-
-        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
-
         if (instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_CALL)
         {
             //
-            // It's a call
+            // It's a 'call' instruction
             //
 
             //
             // Log call
             //
             // ShowMessages("call length : 0x%x\n", instruction.length);
+
+            //
+            // We have to pass a `runtime_address` different to
+            // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+            //
+
+            ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
 
             *IsRet = FALSE;
 
@@ -988,13 +1043,18 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
         else if (instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_RET)
         {
             //
-            // It's a ret
+            // It's a 'ret' instruction
             //
 
             //
             // Log ret
             //
             // ShowMessages("ret length : 0x%x\n", instruction.length);
+
+            //
+            // Call the tracker callback
+            //
+            CommandTrackHandleReceivedRetInstructions(CurrentRip);
 
             *IsRet = TRUE;
 
