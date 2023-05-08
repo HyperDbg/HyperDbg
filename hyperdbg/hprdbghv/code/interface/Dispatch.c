@@ -788,7 +788,11 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     // Windows fires a clk interrupt on core 0 and fires IPI on other cores
     // to change a thread
     //
-    if ((VCpu->CoreId == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
+    // It seems that clock interrupt is not applied to all cores,
+    // (https://twitter.com/Intel80x86/status/1655461171280105472?s=20)
+    // So, we no longer check for clock interrupts only in core 0
+    //
+    if ((/* VCpu->CoreId == 0 && */ InterruptExit.Vector == CLOCK_INTERRUPT) ||
         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT))
     {
         if (g_Callbacks.DebuggerCheckProcessOrThreadChange != NULL)
