@@ -1030,6 +1030,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     if (DbgState->ShortCircuitingEvent)
     {
         //
+        // Reset the the event ignorance (short-circuit) mechanism
+        //
+        DbgState->ShortCircuitingEvent = FALSE;
+
+        //
         // Event should be ignored
         //
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;

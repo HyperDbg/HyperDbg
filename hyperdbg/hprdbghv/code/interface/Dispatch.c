@@ -138,9 +138,9 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     if (g_TriggerEventForCpuids)
     {
         //
-        // Adjusting the core context (save eax for the debugger)
+        // Adjusting the core context (save EAX for the debugger)
         //
-        Context = VCpu->Regs->rax;
+        Context = VCpu->Regs->rax & 0xffffffff;
 
         //
         // Triggering the pre-event
