@@ -929,6 +929,21 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
+        case CPUID_INSTRUCTION_EXECUTION:
+
+            //
+            // check if CPUID is what we want or not
+            //
+            if (CurrentEvent->OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->OptionalParam2 != Context)
+            {
+                //
+                // The CPUID is not what we want (and the user didn't intend to get all CPUIDs)
+                //
+                continue;
+            }
+
+            break;
+
         case CONTROL_REGISTER_MODIFIED:
 
             //

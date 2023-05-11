@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0.0] - 2023-XX-XX
 The third (3rd) of the HyperDbg Debugger.
 
+### Changed
+- The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
