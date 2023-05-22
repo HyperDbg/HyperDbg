@@ -89,7 +89,7 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * HyperDbg Software Development Kit (SDK) [<a href="https://docs.hyperdbg.org/using-hyperdbg/sdk" target="_blank">link</a>]
 
 ### Third Release (v0.3.0.0)
-* Tracking records for function calls and return addresses [<a href="https://docs.hyperdbg.org/commands/extension-commands/track" target="_blank">link</a>]
+* Tracking records of function calls and return addresses [<a href="https://docs.hyperdbg.org/commands/extension-commands/track" target="_blank">link</a>]
 
 ## How does it work?
 
