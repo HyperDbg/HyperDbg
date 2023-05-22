@@ -13,6 +13,7 @@ The third (3rd) of the HyperDbg Debugger.
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 
 ## [0.2.0.0] - 2023-05-03
 The second (2nd) of the HyperDbg Debugger.

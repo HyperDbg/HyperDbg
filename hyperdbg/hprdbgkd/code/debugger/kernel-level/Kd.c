@@ -2133,6 +2133,28 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
+                case TEST_BREAKPOINT_TURN_OFF_BPS:
+
+                    //
+                    // Turn off the breakpoint interception
+                    //
+                    g_InterceptBreakpoints = TRUE;
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_ON_BPS:
+
+                    //
+                    // Turn off the breakpoint interception
+                    //
+                    g_InterceptBreakpoints = FALSE;
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
                 default:
 
                     //

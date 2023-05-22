@@ -312,7 +312,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
     //
 
-    if (g_KernelDebuggerState)
+    if (g_KernelDebuggerState && !g_InterceptBreakpoints)
     {
         //
         // Kernel debugger is attached, let's halt everything

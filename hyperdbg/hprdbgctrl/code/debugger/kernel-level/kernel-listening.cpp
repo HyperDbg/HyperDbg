@@ -572,9 +572,15 @@ StartAgain:
 
             if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                //
-                // Nothing to show, everything is shown from the kernel
-                //
+                if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_OFF_BPS)
+                {
+                    ShowMessages("breakpoint interception is deactivated\n"
+                                 "from now, the breakpoints will be re-injected into the guest debuggee\n");
+                }
+                else if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_ON_BPS)
+                {
+                    ShowMessages("breakpoint interception is activated\n");
+                }
             }
             else
             {
