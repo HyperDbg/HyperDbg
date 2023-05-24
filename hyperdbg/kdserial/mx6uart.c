@@ -53,20 +53,20 @@ Abstract:
 
 typedef struct _MX6_UART_REGISTERS
 {
-    ULONG Rxd; // 0x00: UART Receiver Register
+    ULONG Rxd;   // 0x00: UART Receiver Register
     ULONG reserved1[15];
-    ULONG Txd; // 0x40: UART Transmitter Register
+    ULONG Txd;   // 0x40: UART Transmitter Register
     ULONG reserved2[15];
-    ULONG Ucr1; // 0x80: UART Control Register 1
-    ULONG Ucr2; // 0x84: UART Control Register 2
-    ULONG Ucr3; // 0x88: UART Control Register 3
-    ULONG Ucr4; // 0x8C: UART Control Register 4
-    ULONG Ufcr; // 0x90: UART FIFO Control Register
-    ULONG Usr1; // 0x94: UART Status Register 1
-    ULONG Usr2; // 0x98: UART Status Register 2
-    ULONG Uesc; // 0x9C: UART Escape Character Register
-    ULONG Utim; // 0xA0: UART Escape Timer Register
-    ULONG Ubir; // 0xA4: UART BRM Incremental Register
+    ULONG Ucr1;  // 0x80: UART Control Register 1
+    ULONG Ucr2;  // 0x84: UART Control Register 2
+    ULONG Ucr3;  // 0x88: UART Control Register 3
+    ULONG Ucr4;  // 0x8C: UART Control Register 4
+    ULONG Ufcr;  // 0x90: UART FIFO Control Register
+    ULONG Usr1;  // 0x94: UART Status Register 1
+    ULONG Usr2;  // 0x98: UART Status Register 2
+    ULONG Uesc;  // 0x9C: UART Escape Character Register
+    ULONG Utim;  // 0xA0: UART Escape Timer Register
+    ULONG Ubir;  // 0xA4: UART BRM Incremental Register
     ULONG reserved3;
     ULONG Ubrc;  // 0xAC: UART Baud Rate Count Register
     ULONG Onems; // 0xB0: UART One Millisecond Register

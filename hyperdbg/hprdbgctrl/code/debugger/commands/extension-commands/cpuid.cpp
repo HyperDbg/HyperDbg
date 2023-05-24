@@ -22,13 +22,14 @@ CommandCpuidHelp()
     ShowMessages("!cpuid : monitors execution of a special cpuid index or all "
                  "cpuids instructions.\n\n");
 
-    ShowMessages("syntax : \t!cpuid [pid ProcessId (hex)] [core CoreId (hex)] "
+    ShowMessages("syntax : \t!cpuid [Eax (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !cpuid\n");
+    ShowMessages("\t\te.g : !cpuid 1\n");
     ShowMessages("\t\te.g : !cpuid pid 400\n");
     ShowMessages("\t\te.g : !cpuid core 2 pid 400\n");
 }
@@ -47,7 +48,9 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
+    BOOLEAN                            GetEax                = FALSE;
     UINT32                             EventLength;
+    UINT64                             SpecialTarget               = 0;
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
@@ -76,15 +79,59 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check for size
+    // Interpret command specific details (if any), of CPUID EAX index
     //
-    if (SplittedCommand.size() > 1)
+    for (auto Section : SplittedCommand)
     {
-        ShowMessages("incorrect use of '!cpuid'\n");
-        CommandCpuidHelp();
+        if (!Section.compare("!cpuid"))
+        {
+            continue;
+        }
+        else if (!GetEax)
+        {
+            //
+            // It's probably an msr
+            //
+            if (!ConvertStringToUInt64(Section, &SpecialTarget))
+            {
+                //
+                // Unkonwn parameter
+                //
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                CommandCpuidHelp();
 
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+                return;
+            }
+            else
+            {
+                //
+                // An special EAX is set
+                //
+                GetEax = TRUE;
+            }
+        }
+        else
+        {
+            //
+            // Unkonwn parameter
+            //
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            CommandCpuidHelp();
+
+            FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+            return;
+        }
+    }
+
+    //
+    // Set the target EAX (if not specific then it means all msrs)
+    //
+    Event->OptionalParam1 = GetEax;
+
+    if (GetEax)
+    {
+        Event->OptionalParam2 = SpecialTarget;
     }
 
     //

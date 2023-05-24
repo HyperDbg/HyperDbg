@@ -87,8 +87,8 @@ typedef struct _DEBUGGER_EVENT_ACTION
     ScriptConfiguration; // If it's run script
 
     DEBUGGER_EVENT_REQUEST_BUFFER
-    RequestedBuffer; // if it's a custom code and needs a buffer then we use
-                     // this structs
+    RequestedBuffer;                // if it's a custom code and needs a buffer then we use
+                                    // this structs
 
     UINT32 CustomCodeBufferSize;    // if null, means it's not custom code type
     PVOID  CustomCodeBufferAddress; // address of custom code if any
@@ -112,22 +112,22 @@ typedef struct _DEBUGGER_EVENT
                                 // 0xffffffff means that we have to apply it to all cores
 
     UINT32
-    ProcessId; // determines the pid to apply this event to, if it's
-               // 0xffffffff means that we have to apply it to all processes
+    ProcessId;                                       // determines the pid to apply this event to, if it's
+                                                     // 0xffffffff means that we have to apply it to all processes
 
-    LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
-    UINT32     CountOfActions;  // The total count of actions
+    LIST_ENTRY ActionsListHead;                      // Each entry is in DEBUGGER_EVENT_ACTION struct
+    UINT32     CountOfActions;                       // The total count of actions
 
-    BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
-                                   // is enabled or not for this event
+    BOOLEAN EnableShortCircuiting;                   // indicates whether the short-circuiting event
+                                                     // is enabled or not for this event
 
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
     // of the event (whether it's a pre- or post- event)
 
-    UINT64 OptionalParam1; // Optional parameter to be used differently by events
-    UINT64 OptionalParam2; // Optional parameter to be used differently by events
-    UINT64 OptionalParam3; // Optional parameter to be used differently by events
-    UINT64 OptionalParam4; // Optional parameter to be used differently by events
+    UINT64 OptionalParam1;         // Optional parameter to be used differently by events
+    UINT64 OptionalParam2;         // Optional parameter to be used differently by events
+    UINT64 OptionalParam3;         // Optional parameter to be used differently by events
+    UINT64 OptionalParam4;         // Optional parameter to be used differently by events
 
     UINT32 ConditionsBufferSize;   // if null, means uncoditional
     PVOID  ConditionBufferAddress; // Address of the condition buffer (most of the

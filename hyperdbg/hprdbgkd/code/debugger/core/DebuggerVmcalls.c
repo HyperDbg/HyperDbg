@@ -30,15 +30,16 @@ DebuggerVmcallHandler(UINT32 CoreId,
                       UINT64 OptionalParam2,
                       UINT64 OptionalParam3)
 {
-    BOOLEAN Result = FALSE;
+    BOOLEAN                     Result   = FALSE;
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
     switch (VmcallNumber)
     {
     case DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpointsCallback(CoreId,
-                                                      DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
-                                                      NULL);
+        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+                                              NULL);
         Result = TRUE;
         break;
     }
@@ -46,7 +47,6 @@ DebuggerVmcallHandler(UINT32 CoreId,
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
         PGUEST_REGS                      TempReg              = NULL;
-        PROCESSOR_DEBUGGING_STATE *      DbgState             = &g_DbgState[CoreId];
 
         TriggeredEventDetail.Context = OptionalParam1;
         TriggeredEventDetail.Tag     = OptionalParam2;
@@ -60,9 +60,9 @@ DebuggerVmcallHandler(UINT32 CoreId,
         //
         DbgState->Regs = OptionalParam3;
 
-        KdHandleBreakpointAndDebugBreakpointsCallback(CoreId,
-                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-                                                      &TriggeredEventDetail);
+        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+                                              &TriggeredEventDetail);
 
         //
         // Restore the register
@@ -111,9 +111,11 @@ DebuggerVmcallHandler(UINT32 CoreId,
         //
         if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
         {
-            KdHandleBreakpointAndDebugBreakpointsCallback(CoreId,
-                                                          DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
-                                                          NULL);
+            DbgState->IgnoreDisasmInNextPacket = TRUE;
+
+            KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                  DEBUGGEE_PAUSING_REASON_PAUSE,
+                                                  NULL);
         }
 
         Result = TRUE;

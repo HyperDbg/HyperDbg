@@ -156,7 +156,8 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
 typedef struct _DEBUGGEE_KD_PAUSED_PACKET
 {
     UINT64                  Rip;
-    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
+    BOOLEAN                 Is32BitAddress;      // if true shows that the address should be interpreted in 32-bit mode
+    BOOLEAN                 IgnoreDisassembling; // if check if diassembling should be ignored or not
     DEBUGGEE_PAUSING_REASON PausingReason;
     ULONG                   CurrentCore;
     UINT64                  EventTag;

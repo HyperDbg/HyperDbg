@@ -268,7 +268,7 @@ StartAgain:
                 break;
             }
 
-            if (PausePacket->PausingReason != DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
+            if (!PausePacket->IgnoreDisassembling)
             {
                 //
                 // Check if the instruction is received completely or not
@@ -329,6 +329,23 @@ StartAgain:
 
                 break;
 
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED:
+
+                //
+                // Handle the tracking of 'ret' and 'call' instructions
+                //
+                CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
+                                                       MAXIMUM_INSTR_SIZE,
+                                                       PausePacket->Is32BitAddress ? FALSE : TRUE,
+                                                       PausePacket->Rip);
+
+                //
+                // Unpause the debugger to get commands
+                //
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+
+                break;
+
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
 
                 //
@@ -339,7 +356,7 @@ StartAgain:
 
                 break;
 
-            case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
+            case DEBUGGEE_PAUSING_REASON_PAUSE:
 
                 //
                 // Nothing
@@ -555,9 +572,15 @@ StartAgain:
 
             if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                //
-                // Nothing to show, everything is shown from the kernel
-                //
+                if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_OFF_BPS)
+                {
+                    ShowMessages("breakpoint interception is deactivated\n"
+                                 "from now, the breakpoints will be re-injected into the guest debuggee\n");
+                }
+                else if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_ON_BPS)
+                {
+                    ShowMessages("breakpoint interception is activated\n");
+                }
             }
             else
             {
@@ -1071,7 +1094,7 @@ ListeningSerialPortInDebuggee()
 {
 StartAgain:
 
-    BOOL Status; /* Status */
+    BOOL Status;                                    /* Status */
     char SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
     DWORD                   EventMask       = 0;    /* Event mask to trigger */

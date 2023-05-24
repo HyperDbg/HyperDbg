@@ -29,35 +29,35 @@ Revision History:
 #define COM4_PORT 0x02E8
 
 #define COM_DAT 0x00
-#define COM_IEN 0x01 // interrupt enable register
-#define COM_FCR 0x02 // fifo control register
-#define COM_LCR 0x03 // line control register
-#define COM_MCR 0x04 // modem control register
-#define COM_LSR 0x05 // line status register
-#define COM_MSR 0x06 // modem status register
-#define COM_SCR 0x07 // scratch register
-#define COM_DLL 0x00 // divisor latch least sig
-#define COM_DLM 0x01 // divisor latch most sig
+#define COM_IEN 0x01           // interrupt enable register
+#define COM_FCR 0x02           // fifo control register
+#define COM_LCR 0x03           // line control register
+#define COM_MCR 0x04           // modem control register
+#define COM_LSR 0x05           // line status register
+#define COM_MSR 0x06           // modem status register
+#define COM_SCR 0x07           // scratch register
+#define COM_DLL 0x00           // divisor latch least sig
+#define COM_DLM 0x01           // divisor latch most sig
 
-#define COM_BI 0x10 // Break detect
-#define COM_FE 0x08 // Framing error
-#define COM_PE 0x04 // Parity error
-#define COM_OE 0x02 // Overrun error
+#define COM_BI 0x10            // Break detect
+#define COM_FE 0x08            // Framing error
+#define COM_PE 0x04            // Parity error
+#define COM_OE 0x02            // Overrun error
 
-#define LC_DLAB 0x80 // LCR divisor latch access bit
+#define LC_DLAB 0x80           // LCR divisor latch access bit
 
-#define CLOCK_RATE 115200 // Hardware base clock frequency
+#define CLOCK_RATE 115200      // Hardware base clock frequency
 
-#define MC_DTRRTS   0x03 // Control bits to assert DTR and RTS
-#define MS_DSRCTSCD 0xB0 // Status bits for DSR, CTS and CD
-#define MS_CD       0x80 // MSR bit to indicate carrier detect
+#define MC_DTRRTS   0x03       // Control bits to assert DTR and RTS
+#define MS_DSRCTSCD 0xB0       // Status bits for DSR, CTS and CD
+#define MS_CD       0x80       // MSR bit to indicate carrier detect
 
 #define FC_ENABLE         0x01 // FCR control bit to enable the FIFO
 #define FC_CLEAR_RECEIVE  0x02 // FCR control bit to clear receive FIFO
 #define FC_CLEAR_TRANSMIT 0x04 // FCR control bit to clear transmit FIFO
 
-#define COM_OUTRDY 0x20 // LSR bit to indicate transmitter is empty
-#define COM_DATRDY 0x01 // LSR bit to indicate data is available
+#define COM_OUTRDY 0x20        // LSR bit to indicate transmitter is empty
+#define COM_DATRDY 0x01        // LSR bit to indicate data is available
 
 #define BD_150    150
 #define BD_300    300

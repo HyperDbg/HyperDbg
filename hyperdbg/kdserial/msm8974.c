@@ -158,7 +158,7 @@ Abstract:
 #define UART_DM_IMR_TXLEV     0x001 // TX Level or below met
 #define UART_DM_IMR_NONE      0x000 // No interrupt
 
-#define UART_DM_MR1_DEFAULT 0 // No RFR or CTS
+#define UART_DM_MR1_DEFAULT 0       // No RFR or CTS
 #define UART_DM_MR2_DEFAULT (UART_DM_MR2_8BPC | \
                              UART_DM_MR2_1SB |  \
                              UART_DM_MR2_NOPAR)

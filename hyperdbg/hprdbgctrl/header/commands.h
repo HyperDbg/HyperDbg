@@ -99,6 +99,14 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
     BOOLEAN         Isx86_64,
     PUINT32         CallLength);
 
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
+    unsigned char * BufferToDisassemble,
+    UINT64          CurrentRip,
+    UINT32          BuffLength,
+    BOOLEAN         Isx86_64,
+    PBOOLEAN        IsRet);
+
 VOID
 HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
                                  UINT64                       Address,
@@ -377,6 +385,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_REV_ATTRIBUTES NULL
 
+#define DEBUGGER_COMMAND_TRACK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -618,3 +628,6 @@ CommandPe(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandRev(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandTrack(vector<string> SplittedCommand, string Command);

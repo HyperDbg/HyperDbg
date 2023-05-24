@@ -155,7 +155,7 @@ typedef struct _EPT_STATE
     EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
 
-    PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
+    PVMM_EPT_PAGE_TABLE SecondaryEptPageTable;                         // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
 
 } EPT_STATE, *PEPT_STATE;
 

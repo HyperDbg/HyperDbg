@@ -260,3 +260,6 @@ CommandPeHelp();
 
 VOID
 CommandRevHelp();
+
+VOID
+CommandTrackHelp();

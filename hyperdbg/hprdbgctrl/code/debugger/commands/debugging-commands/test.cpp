@@ -32,6 +32,8 @@ CommandTestHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
+    ShowMessages("\t\te.g : test breakpoint on\n");
+    ShowMessages("\t\te.g : test breakpoint off\n");
 }
 
 /**
@@ -305,6 +307,34 @@ CommandTestQueryPreAllocPoolsState()
 }
 
 /**
+ * @brief test command for turning on/off the breakpoints
+ * @param State
+ * @return VOID
+ */
+VOID
+CommandTestSetBreakpointState(BOOLEAN State)
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the breakpoint settings to the debuggee
+    //
+    if (State)
+    {
+        KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_BPS);
+    }
+    else
+    {
+        KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS);
+    }
+}
+
+/**
  * @brief test command handler
  *
  * @param SplittedCommand
@@ -334,6 +364,25 @@ CommandTest(vector<string> SplittedCommand, string Command)
         // Query the state of pre-allocated pools in debugger mode
         //
         CommandTestQueryPreAllocPoolsState();
+    }
+    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("breakpoint"))
+    {
+        //
+        // Change breakpoint state
+        //
+        if (!SplittedCommand.at(2).compare("on"))
+        {
+            CommandTestSetBreakpointState(TRUE);
+        }
+        else if (!SplittedCommand.at(2).compare("off"))
+        {
+            CommandTestSetBreakpointState(FALSE);
+        }
+        else
+        {
+            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplittedCommand.at(2).c_str());
+            return;
+        }
     }
     else
     {

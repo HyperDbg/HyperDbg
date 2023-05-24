@@ -66,7 +66,7 @@ typedef struct _PAGE_ENTRY
         PML4E_64     Pml4;
         PDPTE_1GB_64 PdptLarge; // 1GB
         PDPTE_64     Pdpt;
-        PDE_2MB_64   PdLarge; // 2MB
+        PDE_2MB_64   PdLarge;   // 2MB
         PDE_64       Pd;
         PTE_64       Pt;
 
@@ -101,8 +101,8 @@ typedef struct _PAGE_ENTRY
  */
 typedef struct _MEMORY_MAPPER_ADDRESSES
 {
-    UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
-    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
+    UINT64 PteVirtualAddressForRead;  // The virtual address of PTE for read operations
+    UINT64 VirualAddressForRead;      // The actual kernel virtual address to read
 
     UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
     UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write

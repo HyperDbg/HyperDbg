@@ -19,10 +19,10 @@ Abstract:
 
 // ---------------------------------------------------------------- Definitions
 
-#define AUX_MU_IO_REG   0x40 // Data register
-#define AUX_MU_IER_REG  0x44 // Interrupt Enable register
-#define AUX_MU_LCR_REG  0x4C // Line Control register
-#define AUX_MU_STAT_REG 0x64 // Line status register
+#define AUX_MU_IO_REG   0x40       // Data register
+#define AUX_MU_IER_REG  0x44       // Interrupt Enable register
+#define AUX_MU_LCR_REG  0x4C       // Line Control register
+#define AUX_MU_STAT_REG 0x64       // Line status register
 
 #define AUX_MU_IER_TXE  0x00000001 // TX FIFO empty interrupt
 #define AUX_MU_IER_RXNE 0x00000002 // RX FIFO not empty interrupt

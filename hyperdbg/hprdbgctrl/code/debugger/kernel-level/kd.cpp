@@ -2462,8 +2462,8 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     // Send IOCTL
     //
     Status =
-        DeviceIoControl(g_DeviceHandle,                // Handle to device
-                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+        DeviceIoControl(g_DeviceHandle,                               // Handle to device
+                        IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
                         EventRegBuffer,
                         Length                                        // Input Buffer to driver.
                         ,                                             // Input buffer length

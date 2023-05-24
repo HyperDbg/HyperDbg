@@ -821,7 +821,7 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
 
     UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
-    if (State == 0)
+    if (State != 0)
     {
         g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = TRUE;
     }

@@ -86,9 +86,9 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
                         BufferToSendAsIoctlSize,      // Input buffer length
                         ResultsBuffer,                // Output Buffer from driver.
                         MaximumSearchResults *
-                            sizeof(UINT64), // Length of output buffer in bytes.
-                        NULL,               // Bytes placed in buffer.
-                        NULL                // synchronous call
+                            sizeof(UINT64),           // Length of output buffer in bytes.
+                        NULL,                         // Bytes placed in buffer.
+                        NULL                          // synchronous call
         );
 
     if (!Status)

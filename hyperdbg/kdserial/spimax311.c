@@ -36,7 +36,7 @@ Abstract:
 #define CTRLR0_FRF_NATIONAL_SEMICONDUCTORS_MICROWIRE (2 << 4)
 #define CTRLR0_DFS                                   15 // Data frame size mask in bits
 
-#define SSIENR_SSI_EN 1 // 1=Enabled
+#define SSIENR_SSI_EN 1                                 // 1=Enabled
 
 //
 // SPI baud rate.
