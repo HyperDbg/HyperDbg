@@ -17,27 +17,23 @@
  * @brief Check whether the desired PhysicalAddress is already in the g_EptState->HookedPagesList hooks or not
  *
  * @param PhysicalBaseAddress
- * @param HookedEntry A pointer to corresponding hook entry in the g_EptState->HookedPagesList
  *
- * @return TRUE if the address was already hooked, or FALSE
+ * @return PEPT_HOOKED_PAGE_DETAIL  if the address was already hooked, or FALSE
  */
 _Must_inspect_result_
 _Success_(return == TRUE)
-static BOOLEAN
-EptHookFindByPhysAddress(_In_ UINT64                        PhysicalBaseAddress,
-                         _Out_opt_ EPT_HOOKED_PAGE_DETAIL * HookedEntry)
+static EPT_HOOKED_PAGE_DETAIL *
+EptHookFindByPhysAddress(_In_ UINT64 PhysicalBaseAddress)
 {
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, CurrEntity)
     {
         if (CurrEntity->PhysicalBaseAddress == PhysicalBaseAddress)
         {
-            HookedEntry = CurrEntity;
-            return TRUE;
+            return CurrEntity;
         }
     }
 
-    HookedEntry = NULL;
-    return FALSE;
+    return NULL;
 }
 
 static UINT64
@@ -370,19 +366,19 @@ BOOLEAN
 EptHookPerformPageHook(PVOID    TargetAddress,
                        CR3_TYPE ProcessCr3)
 {
-    EPT_PML1_ENTRY          ChangedEntry;
-    INVEPT_DESCRIPTOR       Descriptor;
-    SIZE_T                  PhysicalBaseAddress;
-    PVOID                   VirtualTarget;
-    PVOID                   TargetBuffer;
-    UINT64                  TargetAddressInFakePageContent;
-    UINT64                  PageOffset;
-    PEPT_PML1_ENTRY         TargetPage;
-    PEPT_HOOKED_PAGE_DETAIL HookedPage;
-
-    CR3_TYPE Cr3OfCurrentProcess;
-    BYTE     OriginalByte;
-    BOOLEAN  HookedEntryFound = FALSE;
+    EPT_PML1_ENTRY           ChangedEntry;
+    INVEPT_DESCRIPTOR        Descriptor;
+    SIZE_T                   PhysicalBaseAddress;
+    PVOID                    VirtualTarget;
+    PVOID                    TargetBuffer;
+    UINT64                   TargetAddressInFakePageContent;
+    UINT64                   PageOffset;
+    PEPT_PML1_ENTRY          TargetPage;
+    PEPT_HOOKED_PAGE_DETAIL  HookedPage;
+    CR3_TYPE                 Cr3OfCurrentProcess;
+    BYTE                     OriginalByte;
+    BOOLEAN                  HookedEntryFound = FALSE;
+    EPT_HOOKED_PAGE_DETAIL * HookedEntry      = NULL;
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -412,9 +408,9 @@ EptHookPerformPageHook(PVOID    TargetAddress,
     // try to see if we can find the address
     //
 
-    EPT_HOOKED_PAGE_DETAIL * HookedEntry = {0};
+    HookedEntry = EptHookFindByPhysAddress(PhysicalBaseAddress);
 
-    if (EptHookFindByPhysAddress(PhysicalBaseAddress, HookedEntry) == TRUE && HookedEntry != NULL)
+    if (HookedEntry != NULL)
     {
         return EptHookUpdateHookPage(TargetAddress, HookedEntry);
     }
@@ -477,6 +473,8 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 BOOLEAN
 EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
 {
+    EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
+
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
     //
@@ -485,9 +483,9 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
         return FALSE;
     }
 
-    EPT_HOOKED_PAGE_DETAIL * HookedEntry = {0};
+    HookedEntry = EptHookFindByPhysAddress(PAGE_ALIGN(PhysicalAddress));
 
-    if (EptHookFindByPhysAddress(PAGE_ALIGN(PhysicalAddress), HookedEntry) == TRUE && HookedEntry != NULL)
+    if (HookedEntry != NULL)
     {
         //
         // Undo the hook on the EPT table
@@ -1517,7 +1515,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
     }
 
     //
-    // If we reach here, sth went
+    // If we reach here, sth went wrong
     //
     return FALSE;
 }
@@ -1573,6 +1571,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
             //
             // It's a hidden breakpoint
             //
+
             return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity, VirtualAddress);
         }
         else
