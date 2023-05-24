@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.3.0.0] - 2023-XX-XX
-The third (3rd) of the HyperDbg Debugger.
+The third (3rd) release of the HyperDbg Debugger.
 
 ### Changed
 - The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
@@ -16,8 +16,16 @@ The third (3rd) of the HyperDbg Debugger.
 - The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
 
+## [0.2.1.0] - 2023-05-24
+The patch for fixing bugs of the second (2nd) release of HyperDbg Debugger.
+
+### Changed
+- Fixing bugs!
+- The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+- The problem with removing EPT hooks (!monitor and !epthook) is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/e2ea08ac35834ff869512c3c450004bc50a06390))
+
 ## [0.2.0.0] - 2023-05-03
-The second (2nd) of the HyperDbg Debugger.
+The second (2nd) release of the HyperDbg Debugger.
 
 ### Added
 - HyperDbg Software Development Kit (SDK) is now available 
