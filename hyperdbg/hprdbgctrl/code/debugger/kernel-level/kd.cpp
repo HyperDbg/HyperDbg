@@ -1987,7 +1987,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             // Unable to create handle
             //
-            ShowMessages("is virtual machine running?\n");
+            ShowMessages("is the  virtual machine running?\n");
             return FALSE;
         }
     }

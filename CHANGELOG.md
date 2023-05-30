@@ -9,6 +9,7 @@ The third (3rd) release of the HyperDbg Debugger.
 
 ### Changed
 - The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+- The problem with callstack command (k) is fixed
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
