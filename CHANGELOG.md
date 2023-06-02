@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0.0] - 2023-XX-XX
 The third (3rd) release of the HyperDbg Debugger.
 
-### Changed
-- The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
-
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
+
+## [0.2.2.0] - 2023-06-02
+The patch for fixing bugs of HyperDbg Debugger.
+
+### Changed
+- The problem with the callstack command (k) is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/4194880a2e5578a4bb9055e2ac3e2fdb564e3d82))
 
 ## [0.2.1.0] - 2023-05-24
 The patch for fixing bugs of the second (2nd) release of HyperDbg Debugger.

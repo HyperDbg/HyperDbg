@@ -2074,7 +2074,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 if (CallstackPacket->BaseAddress == NULL)
                 {
-                    CallstackPacket->BaseAddress = DbgState->Regs;
+                    CallstackPacket->BaseAddress = DbgState->Regs->rsp;
                 }
 
                 //
