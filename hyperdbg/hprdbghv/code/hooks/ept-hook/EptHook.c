@@ -1236,11 +1236,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
         //
-        // Test
-        //
-
-        //
-        // LogInfo("Guest RIP : 0x%llx tries to write on the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        // LogInfo("Guest RIP : 0x%llx tries to write on the page at : 0x%llx", GuestRip, ExactAccessedAddress);
         //
 
         //
@@ -1251,11 +1247,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
         //
-        // Test
-        //
-
-        //
-        // LogInfo("Guest RIP : 0x%llx tries to read the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        // LogInfo("Guest RIP : 0x%llx tries to read the page at : 0x%llx", GuestRip, ExactAccessedAddress);
         //
 
         //

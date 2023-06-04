@@ -67,7 +67,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;$(SolutionDir)dependencies\zydis\include;$(SolutionDir)dependencies\zydis\dependencies\zycore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -80,7 +80,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
     </Link>
     <DriverSign>
@@ -97,7 +97,7 @@
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;$(SolutionDir)dependencies\zydis\include;$(SolutionDir)dependencies\zydis\dependencies\zycore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>false</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -121,6 +121,7 @@
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
     <ClCompile Include="code\devices\Apic.c" />
+    <ClCompile Include="code\disassembler\ZydisKernel.c" />
     <ClCompile Include="code\features\CompatibilityChecks.c" />
     <ClCompile Include="code\features\DirtyLogging.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
@@ -171,6 +172,37 @@
     <MASM Include="code\assembly\AsmVmxOperation.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Allocator.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\ArgParse.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Atomic.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Bitset.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Comparison.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Defines.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Format.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\LibC.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\List.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Object.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Status.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\String.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Types.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Vector.h" />
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Zycore.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Decoder.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\DecoderTypes.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Defines.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Disassembler.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Encoder.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Formatter.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\FormatterBuffer.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\MetaInfo.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Mnemonic.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Register.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Segment.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\SharedTypes.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\ShortString.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
     <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
