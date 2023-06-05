@@ -74,25 +74,29 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <ExternalWarningLevel>Level4</ExternalWarningLevel>
+      <PreprocessorDefinitions>ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD;ZYAN_NO_LIBC;ZYDIS_NO_LIBC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
     </Link>
     <DriverSign>
       <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
     </DriverSign>
+    <PreBuildEvent>
+      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release Kernel" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/kernel/ </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <Link>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
     </Link>
     <ClCompile>
@@ -105,10 +109,14 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD;ZYAN_NO_LIBC;ZYDIS_NO_LIBC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <DriverSign>
       <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
     </DriverSign>
+    <PreBuildEvent>
+      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release Kernel" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/kernel/ </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
