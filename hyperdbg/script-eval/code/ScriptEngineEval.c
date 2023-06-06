@@ -1208,6 +1208,45 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
+    case FUNC_DISASSEMBLE_LEN:
+    case FUNC_DISASSEMBLE_LEN64:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, FALSE);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_DISASSEMBLE_LEN32:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, TRUE);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
     case FUNC_WCSLEN:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

@@ -499,6 +499,29 @@ ScriptEngineFunctionStrlen(const char * Address)
 }
 
 /**
+ * @brief Implementation of disassemble_len function
+ *
+ * @param Address
+ * @param Is32Bit
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionDisassembleLen(const char * Address, BOOLEAN Is32Bit)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = HyperDbgLengthDisassemblerEngine((unsigned char *)Address, MAXIMUM_INSTR_SIZE, Is32Bit ? FALSE : TRUE);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(Address, Is32Bit);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
  * @brief Implementation of wcslen function
  *
  * @param Address

@@ -56,7 +56,8 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         ShowMessages("The user-mode debugger is still in the beta version and not stable. "
                      "We decided to exclude it from this release and release it in future versions. "
                      "If you want to test the user-mode debugger in VMI Mode, you should build "
-                     "HyperDbg with special instructions. \nPlease follow the steps here: "
+                     "HyperDbg with special instructions.(It's not recommended to use it) \n"
+                     "Please follow the steps here: "
                      "https://docs.hyperdbg.org/getting-started/build-and-install \n");
         return;
     }
