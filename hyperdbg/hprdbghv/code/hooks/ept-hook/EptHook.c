@@ -616,7 +616,7 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
 }
 
 /**
- * @brief Hook ins
+ * @brief Hook instructions
  *
  * @param Hook The details of hooked pages
  * @param ProcessCr3 The target Process CR3
@@ -653,10 +653,11 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
 
     //
     // Determine the number of instructions necessary to overwrite using Length Disassembler Engine
+    // EPTHOOK2 only supports 64-bit kernel (32-bit LDE is not supported)
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 19;
-         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions), TRUE))
+         SizeOfHookedInstructions += DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions, FALSE))
     {
         //
         // Get the full size of instructions necessary to copy

@@ -111,9 +111,6 @@
     <Filter Include="header\assembly">
       <UniqueIdentifier>{b4e447d1-4548-43ad-8e5d-f9e0aaf64076}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\components\disasm">
-      <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\features">
       <UniqueIdentifier>{336e212a-d3ac-4b5a-8e49-34682a902fbc}</UniqueIdentifier>
     </Filter>
@@ -390,9 +387,6 @@
     </ClInclude>
     <ClInclude Include="header\assembly\InlineAsm.h">
       <Filter>header\assembly</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h">
-      <Filter>header\components\disasm</Filter>
     </ClInclude>
     <ClInclude Include="header\interface\Configuration.h">
       <Filter>header\interface</Filter>

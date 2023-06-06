@@ -71,11 +71,6 @@
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
-// Disassembler Engine
-//
-#include "components/disasm/LengthDisassemblerEngine.h"
-
-//
 // VMX and Capabilities
 //
 #include "transparency/Transparency.h"
