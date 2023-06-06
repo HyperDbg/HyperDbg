@@ -556,6 +556,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     UINT32                  ProcessorCount;
     CR3_TYPE                GuestCr3;
+    BOOLEAN                 IsAddress32Bit = FALSE;
 
     //
     // Find the current process cr3
@@ -641,9 +642,28 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     BreakpointDescriptor->Tid          = BpDescriptorArg->Tid;
 
     //
+    // Check whether address is 32-bit or 64-bit
+    //
+    if (BpDescriptorArg->Address & 0xff00000000000000)
+    {
+        //
+        // This is a kernel-base address and as the kernel is 64-bit, we assume it's a 64-bit address
+        //
+        IsAddress32Bit = FALSE;
+    }
+    else
+    {
+        //
+        // The address is not a kernel address, thus, we check whether the debuggee is running on user-mode
+        // or not
+        //
+        IsAddress32Bit = KdIsGuestOnUsermode32Bit();
+    }
+
+    //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = ldisasm(BpDescriptorArg->Address, TRUE);
+    BreakpointDescriptor->InstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(BpDescriptorArg->Address, IsAddress32Bit);
 
     //
     // Breakpoints are enabled by default

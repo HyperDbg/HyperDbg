@@ -204,53 +204,6 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
 }
 
 /**
- * @brief VM-Exit handler for I/O Instructions (in/out) and show the disassembly code
- *
- * @param GuestRip Guest's IP
- * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler
- * @param IoQualification The I/O Qualification that indicates the instruction
- * @param Flags Guest's RFLAGs
- *
- * @return VOID
- */
-VOID
-IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
-{
-    CR3_TYPE GuestCr3;
-    UINT64   OriginalCr3;
-    size_t   InstructionLength;
-
-    //
-    // Find the current process's running cr3
-    //
-    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
-
-    OriginalCr3 = __readcr3();
-    __writecr3(GuestCr3.Flags);
-
-    //
-    // Read the memory
-    //
-
-    //
-    // Maximum instructions length in AMD64 (16) + Size Of Intruction (4) + RAX (8) + RDX (8)
-    //
-    CHAR * InstructionBuffer[16] = {0};
-    MemoryMapperReadMemorySafe(GuestRip, InstructionBuffer, 16);
-    __writecr3(OriginalCr3);
-
-    //
-    // Detect length of the instruction
-    //
-    InstructionLength = ldisasm(((UINT64)InstructionBuffer), TRUE);
-
-    //
-    // Handle the I/O Instruction
-    //
-    IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
-}
-
-/**
  * @brief Set bits in I/O Bitmap
  *
  * @param VCpu The virtual processor's state

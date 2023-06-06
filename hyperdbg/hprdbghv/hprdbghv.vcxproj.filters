@@ -111,14 +111,23 @@
     <Filter Include="header\assembly">
       <UniqueIdentifier>{b4e447d1-4548-43ad-8e5d-f9e0aaf64076}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\components\disasm">
-      <UniqueIdentifier>{691dce88-5684-4e9a-97cf-1e97c552c51b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\features">
       <UniqueIdentifier>{336e212a-d3ac-4b5a-8e49-34682a902fbc}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\features">
       <UniqueIdentifier>{7d57205a-dfa8-45af-afe5-253b9c2c9cea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\disassembler">
+      <UniqueIdentifier>{f74dfb9e-5b98-4734-8de3-4525e050be27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\disassembler">
+      <UniqueIdentifier>{71986cfc-6f8b-424c-ad92-4b1bda917eff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\disassembler\zydis">
+      <UniqueIdentifier>{41510958-220b-4afb-b0b9-655b24f289bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\disassembler\zycore">
+      <UniqueIdentifier>{e92a39db-1b51-4463-b12f-d9d86b4e6781}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -260,6 +269,12 @@
     <ClCompile Include="code\memory\SwitchLayout.c">
       <Filter>code\memory</Filter>
     </ClCompile>
+    <ClCompile Include="code\disassembler\ZydisKernel.c">
+      <Filter>code\disassembler</Filter>
+    </ClCompile>
+    <ClCompile Include="code\disassembler\Disassembler.c">
+      <Filter>code\disassembler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -373,9 +388,6 @@
     <ClInclude Include="header\assembly\InlineAsm.h">
       <Filter>header\assembly</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\components\disasm\LengthDisassemblerEngine.h">
-      <Filter>header\components\disasm</Filter>
-    </ClInclude>
     <ClInclude Include="header\interface\Configuration.h">
       <Filter>header\interface</Filter>
     </ClInclude>
@@ -405,6 +417,102 @@
     </ClInclude>
     <ClInclude Include="header\memory\SwitchLayout.h">
       <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Decoder.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\DecoderTypes.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Defines.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Disassembler.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Encoder.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Formatter.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\FormatterBuffer.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\MetaInfo.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Mnemonic.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Register.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Segment.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\SharedTypes.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\ShortString.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h">
+      <Filter>header\disassembler\zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Allocator.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\ArgParse.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Atomic.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Bitset.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Comparison.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Defines.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Format.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\LibC.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\List.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Object.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Status.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\String.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Types.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Vector.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Zycore.h">
+      <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="header\disassembler\Disassembler.h">
+      <Filter>header\disassembler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

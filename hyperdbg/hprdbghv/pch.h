@@ -15,7 +15,7 @@
 
 #define _NO_CRT_STDIO_INLINE
 
-#pragma warning(disable : 4201) // suppress nameless struct/union warning
+#pragma warning(disable : 4201) // Suppress nameless struct/union warning
 
 //
 // Windows defined functions
@@ -71,11 +71,6 @@
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
 //
-// Disassembler Engine
-//
-#include "components/disasm/LengthDisassemblerEngine.h"
-
-//
 // VMX and Capabilities
 //
 #include "transparency/Transparency.h"
@@ -114,6 +109,12 @@
 #include "interface/Callback.h"
 #include "features/DirtyLogging.h"
 #include "features/CompatibilityChecks.h"
+
+//
+// Disassembler Header
+//
+#include "Zydis/Zydis.h"
+#include "disassembler/Disassembler.h"
 
 //
 // Broadcast headers

@@ -765,7 +765,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         //
         // Do not redo the instruction
         //
-        HvSuppressRipIncrement(VCpu);
+        HvPerformRipIncrement(VCpu);
     }
     else
     {
