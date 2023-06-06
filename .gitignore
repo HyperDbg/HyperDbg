@@ -366,7 +366,8 @@ MigrationBackup/
 /hyperdbg/hyperdbg-cli/script-test-cases/*
 
 # Ignore local zydis builds
-/hyperdbg/libraries/zydis/*.lib
+#/hyperdbg/libraries/zydis/user/*.lib
+#/hyperdbg/libraries/zydis/kernel/*.lib
 
 # Exceptions
 !/hyperdbg/libraries/*
@@ -374,7 +375,6 @@ MigrationBackup/
 !/hyperdbg/libraries/DIA/*
 !/hyperdbg/libraries/DIA/x84/*
 !/hyperdbg/libraries/DIA/x64/*
-#!/hyperdbg/libraries/zydis/*
 
 # KdSerial Libraries
 !/hyperdbg/libraries/kdserial/*

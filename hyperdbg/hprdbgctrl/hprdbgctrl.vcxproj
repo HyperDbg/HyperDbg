@@ -75,7 +75,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbgrev.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbgrev.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -83,7 +83,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/</Command>
+      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/user/</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -107,7 +107,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbgrev.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbgrev.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -115,7 +115,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/</Command>
+      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/user/</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
