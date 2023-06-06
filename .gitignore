@@ -366,8 +366,9 @@ MigrationBackup/
 /hyperdbg/hyperdbg-cli/script-test-cases/*
 
 # Ignore local zydis builds
-#/hyperdbg/libraries/zydis/user/*.lib
-#/hyperdbg/libraries/zydis/kernel/*.lib
+/hyperdbg/libraries/zydis/*.lib
+/hyperdbg/libraries/zydis/user/*.lib
+/hyperdbg/libraries/zydis/kernel/*.lib
 
 # Exceptions
 !/hyperdbg/libraries/*
