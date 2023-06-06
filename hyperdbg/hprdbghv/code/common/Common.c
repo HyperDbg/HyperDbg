@@ -86,3 +86,55 @@ CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 {
     __cpuidex(CpuInfo, Func, SubFunc);
 }
+
+/**
+ * @brief determines if the guest was in 32-bit user-mode or 64-bit (long mode)
+ * @details this function should be called from vmx-root
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommonIsGuestOnUsermode32Bit()
+{
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
+
+    //
+    // Read guest's cs selector
+    //
+    CsSel = HvGetCsSelector();
+
+    if (CsSel == KGDT64_R0_CODE)
+    {
+        //
+        // 64-bit kernel-mode
+        //
+        return FALSE;
+    }
+    else if ((CsSel & ~3) == KGDT64_R3_CODE)
+    {
+        //
+        // 64-bit user-mode
+        //
+        return FALSE;
+    }
+    else if ((CsSel & ~3) == KGDT64_R3_CMCODE)
+    {
+        //
+        // 32-bit user-mode
+        //
+        return TRUE;
+    }
+    else
+    {
+        LogError("Err, unknown value for cs, cannot determine wow64 mode");
+    }
+
+    //
+    // By default, 64-bit
+    //
+    return FALSE;
+}

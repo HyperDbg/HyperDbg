@@ -685,6 +685,8 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     BOOLEAN IsHandled                    = FALSE;
     BOOLEAN IgnoreReadOrWrite            = FALSE;
     BOOLEAN IsTriggeringPostEventAllowed = FALSE;
+    UINT64  CurrentRip;
+    UINT32  CurrentInstructionLength;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -763,14 +765,28 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     if (IgnoreReadOrWrite)
     {
         //
-        // Do not redo the instruction
+        // Do not redo the instruction (EPT hooks won't affect the VMCS_VMEXIT_INSTRUCTION_LENGTH),
+        // thus, we use custom length diassembler engine to ignore the instruction at target address
         //
-        HvPerformRipIncrement(VCpu);
+
+        // HvPerformRipIncrement(VCpu); // invalid because EPT Violation won't affect VMCS_VMEXIT_INSTRUCTION_LENGTH
+        HvSuppressRipIncrement(VCpu); // Just to make sure nothing is added to the address
+
+        //
+        // Get the RIP here as the RIP might be changed by the user and thus is not valid to be read
+        // from the VCpu
+        //
+        CurrentRip               = HvGetRip();
+        CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
+
+        CurrentRip = CurrentRip + CurrentInstructionLength;
+
+        HvSetRip(CurrentRip);
     }
     else
     {
         //
-        // Redo the instruction
+        // Redo the instruction (it's also not necessary as the EPT Violation won't affect VMCS_VMEXIT_INSTRUCTION_LENGTH)
         //
         HvSuppressRipIncrement(VCpu);
     }
