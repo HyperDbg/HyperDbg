@@ -275,6 +275,9 @@
     <ClCompile Include="code\disassembler\ZydisKernel.c">
       <Filter>code\disassembler</Filter>
     </ClCompile>
+    <ClCompile Include="code\disassembler\Disassembler.c">
+      <Filter>code\disassembler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -513,6 +516,9 @@
     </ClInclude>
     <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Zycore.h">
       <Filter>header\disassembler\zycore</Filter>
+    </ClInclude>
+    <ClInclude Include="header\disassembler\Disassembler.h">
+      <Filter>header\disassembler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

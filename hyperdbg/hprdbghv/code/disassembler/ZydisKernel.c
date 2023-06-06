@@ -36,7 +36,6 @@
 #include <ntimage.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "Zydis/Zydis.h"
 
 /* ============================================================================================== */
 /* Forward declarations                                                                           */
@@ -80,6 +79,7 @@ Print(
     const int n = _vsnprintf_s(message, sizeof(message), sizeof(message) - 1, Format, argList);
     message[n]  = '\0';
     vDbgPrintExWithPrefix("[ZYDIS] ", DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, message, argList);
+
     va_end(argList);
 }
 

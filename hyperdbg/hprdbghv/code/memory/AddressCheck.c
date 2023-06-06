@@ -259,3 +259,51 @@ RestoreCr3:
 Return:
     return Result;
 }
+
+/**
+ * @brief This function returns the maximum instruction length that can be read from this address
+ * @param Address
+ *
+ * @return UINT32
+ */
+UINT32
+CheckAddressMaximumInstructionLength(PVOID Address)
+{
+    UINT64 SizeOfSafeBufferToRead = 0;
+
+    //
+    // Compute the amount of buffer we can read without problem
+    //
+    SizeOfSafeBufferToRead = (UINT64)Address & 0xfff;
+    SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
+
+    if (SizeOfSafeBufferToRead >= PAGE_SIZE)
+    {
+        SizeOfSafeBufferToRead = SizeOfSafeBufferToRead - PAGE_SIZE;
+
+        //
+        // When we reached here, we're sure the instruction is on the boundary of a
+        // page table, so we have the maximum instruction length to read, but just
+        // to make sure that the instruction is not continued into two pages, we'll
+        // check the validity of the next page
+        //
+        if (CheckAccessValidityAndSafety((UINT64)Address + PAGE_SIZE, sizeof(CHAR)))
+        {
+            //
+            // Address is safe to be read from the next page, so we just extend it
+            // to the MAXIMUM_INSTR_SIZE
+            //
+            SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE;
+        }
+        else
+        {
+            SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE - SizeOfSafeBufferToRead;
+        }
+    }
+    else
+    {
+        SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE;
+    }
+
+    return (UINT32)SizeOfSafeBufferToRead;
+}

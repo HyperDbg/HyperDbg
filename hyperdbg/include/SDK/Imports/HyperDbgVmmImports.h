@@ -295,6 +295,9 @@ CheckAddressValidityUsingTsx(CHAR * Address);
 IMPORT_EXPORT_VMM BOOLEAN
 CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
 
+IMPORT_EXPORT_VMM UINT32
+CheckAddressMaximumInstructionLength(PVOID Address);
+
 // ----------------------------------------------------------------------------
 // Exported Interfaces For Layout Functions
 //
@@ -340,6 +343,15 @@ IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
                                           _Inout_ PVOID BufferToSaveMemory,
                                           _In_ SIZE_T   SizeToRead);
+
+// ----------------------------------------------------------------------------
+// Disassembler Functions
+//
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions

@@ -2667,10 +2667,9 @@ KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     DEBUGGEE_KD_PAUSED_PACKET PausePacket;
-    ULONG                     ExitInstructionLength  = 0;
-    UINT64                    SizeOfSafeBufferToRead = 0;
-    RFLAGS                    Rflags                 = {0};
-    UINT64                    LastVmexitRip          = 0;
+    ULONG                     ExitInstructionLength = 0;
+    RFLAGS                    Rflags                = {0};
+    UINT64                    LastVmexitRip         = 0;
 
     //
     // Perform Pre-halt tasks
@@ -2732,7 +2731,7 @@ StartAgain:
         }
 
         //
-        // Read the instruction len
+        // Read the instruction len hint
         //
         if (DbgState->InstructionLengthHint != 0)
         {
@@ -2741,30 +2740,14 @@ StartAgain:
         else
         {
             //
-            // Reading instruction length (VMCS_VMEXIT_INSTRUCTION_LENGTH) proved to provide wrong results,
+            // Reading instruction length (VMCS_VMEXIT_INSTRUCTION_LENGTH) won't work for anything that is not instruction exiting,
             // so we won't use it anymore
             //
 
             //
-            // Compute the amount of buffer we can read without problem
-            //
-            SizeOfSafeBufferToRead = LastVmexitRip & 0xfff;
-            SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
-
-            if (SizeOfSafeBufferToRead >= PAGE_SIZE)
-            {
-                SizeOfSafeBufferToRead = SizeOfSafeBufferToRead - PAGE_SIZE;
-                SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE - SizeOfSafeBufferToRead;
-            }
-            else
-            {
-                SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE;
-            }
-
-            //
             // Set the length to notify debuggee
             //
-            ExitInstructionLength = SizeOfSafeBufferToRead;
+            ExitInstructionLength = CheckAddressMaximumInstructionLength(LastVmexitRip);
         }
 
         //

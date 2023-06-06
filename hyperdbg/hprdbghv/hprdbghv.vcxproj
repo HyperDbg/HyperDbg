@@ -129,6 +129,7 @@
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\components\registers\DebugRegisters.c" />
     <ClCompile Include="code\devices\Apic.c" />
+    <ClCompile Include="code\disassembler\Disassembler.c" />
     <ClCompile Include="code\disassembler\ZydisKernel.c" />
     <ClCompile Include="code\features\CompatibilityChecks.c" />
     <ClCompile Include="code\features\DirtyLogging.c" />
@@ -224,6 +225,7 @@
     <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
     <ClInclude Include="header\devices\Apic.h" />
+    <ClInclude Include="header\disassembler\Disassembler.h" />
     <ClInclude Include="header\features\CompatibilityChecks.h" />
     <ClInclude Include="header\features\DirtyLogging.h" />
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
