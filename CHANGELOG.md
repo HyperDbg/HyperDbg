@@ -14,7 +14,7 @@ New release of the HyperDbg Debugger.
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
 
 ### Changed
-- The old Length Disassembler Engine is replaced by Zydis
+- The old Length Disassembler Engine is replaced by Zydis ([link](https://github.com/HyperDbg/HyperDbg/pull/234))
 
 ## [0.2.2.0] - 2023-06-02
 The patch for fixing bugs of HyperDbg Debugger.
