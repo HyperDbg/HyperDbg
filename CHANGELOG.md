@@ -9,11 +9,12 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
-- New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- New pseudo-registers (**$tag**, **$id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
 - **disassemble_len(Address)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len))
 - **disassemble_len32(Address)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len32))
+- **event_sc(DisableOrEnable)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_sc))
 
 ### Changed
 - The old Length Disassembler Engine is replaced by Zydis ([link](https://github.com/HyperDbg/HyperDbg/pull/234))

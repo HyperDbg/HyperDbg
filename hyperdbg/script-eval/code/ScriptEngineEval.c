@@ -55,9 +55,9 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         }
     case PSEUDO_REGISTER_CONTEXT:
         return ActionBuffer->Context;
-    case PSEUDO_REGISTER_EVENT_TAG:
+    case PSEUDO_REGISTER_TAG:
         return ScriptEnginePseudoRegGetEventTag(ActionBuffer);
-    case PSEUDO_REGISTER_EVENT_ID:
+    case PSEUDO_REGISTER_ID:
         return ScriptEnginePseudoRegGetEventId(ActionBuffer);
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
