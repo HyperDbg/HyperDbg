@@ -22,7 +22,7 @@ CommandInterruptHelp()
     ShowMessages("!interrupt : monitors the external interrupt (IDT >= 32).\n\n");
 
     ShowMessages("syntax : \t[IdtIndex (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\nnote : The index should be greater than 0x20 (32) and less "
