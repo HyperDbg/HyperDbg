@@ -55,9 +55,9 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         }
     case PSEUDO_REGISTER_CONTEXT:
         return ActionBuffer->Context;
-    case PSEUDO_REGISTER_EVENT_TAG:
+    case PSEUDO_REGISTER_TAG:
         return ScriptEnginePseudoRegGetEventTag(ActionBuffer);
-    case PSEUDO_REGISTER_EVENT_ID:
+    case PSEUDO_REGISTER_ID:
         return ScriptEnginePseudoRegGetEventId(ActionBuffer);
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1203,6 +1203,45 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionStrlen((const char *)SrcVal0);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_DISASSEMBLE_LEN:
+    case FUNC_DISASSEMBLE_LEN64:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, FALSE);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_DISASSEMBLE_LEN32:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, TRUE);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 

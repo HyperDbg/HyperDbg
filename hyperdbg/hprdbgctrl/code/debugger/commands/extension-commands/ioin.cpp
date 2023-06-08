@@ -23,7 +23,7 @@ CommandIoinHelp()
                  "instructions.\n\n");
 
     ShowMessages("syntax : \t!ioin [Port (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
-                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
                  "[condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\n");

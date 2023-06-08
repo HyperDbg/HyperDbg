@@ -131,6 +131,9 @@ UINT64
 ScriptEngineFunctionStrlen(const char * Address);
 
 UINT64
+ScriptEngineFunctionDisassembleLen(const char * Address, BOOLEAN Is32Bit);
+
+UINT64
 ScriptEngineFunctionWcslen(const wchar_t * Address);
 
 long long

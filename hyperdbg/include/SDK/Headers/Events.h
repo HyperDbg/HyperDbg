@@ -279,7 +279,7 @@ typedef enum _PROTECTED_HV_RESOURCES_TYPE
 /**
  * @brief Each command is like the following struct, it also used for
  * tracing works in user mode and sending it to the kernl mode
- * @details THIS IS NOT WHAT HYPERDBG SAVES FOR EVENTS IN KERNEL MODE
+ * @details THIS IS NOT WHAT HYPERDBG SAVES FOR EVENTS IN KERNEL-MODE
  */
 typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 {

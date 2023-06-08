@@ -440,6 +440,10 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
                     VCpu->LastVmexitRip);
 
             //
+            // Show disasm
+            //
+
+            //
             // Disable MBEC again
             //
             HvSetModeBasedExecutionEnableFlag(FALSE);
@@ -451,9 +455,12 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
         }
         else
         {
-            LogInfo("Access log (0x%x) is executed address: %llx",
-                    PsGetCurrentProcessId(),
-                    VCpu->LastVmexitRip);
+            // LogInfo("Access log (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+
+            //
+            // Show the disassembly of current instruction
+            //
+            DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
             //
             // Change to all enable EPTP
@@ -514,7 +521,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 0x25C0 && VCpu->TestNumber <= 10)
+    if (PsGetCurrentProcessId() == 7880 && VCpu->TestNumber <= 10)
     {
         VCpu->TestNumber = VCpu->TestNumber + 1;
 

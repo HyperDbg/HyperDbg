@@ -321,8 +321,11 @@ CommonAffinityBroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogica
 BOOLEAN
 CommonIsStringStartsWith(const char * pre, const char * str);
 
-VOID
-CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+BOOLEAN
+CommonIsGuestOnUsermode32Bit();
 
 PCHAR
 CommonGetProcessNameFromProcessControlBlock(PEPROCESS eprocess);
+
+VOID
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
