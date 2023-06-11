@@ -108,6 +108,10 @@ BOOLEAN inline LogSendImmediateMessage(CHAR * OptionalBuffer,
 BOOLEAN
 LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
 {
+    ULONG CoreCount = 0;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
     //
     // Initialize buffers for trace message and data messages
     //(we have two buffers one for vmx root and one for vmx non-root)
@@ -123,6 +127,33 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     // Zeroing the memory
     //
     RtlZeroMemory(MessageBufferInformation, sizeof(LOG_BUFFER_INFORMATION) * 2);
+
+    //
+    // Allocate VmxTempMessage and VmxLogMessage
+    //
+    VmxTempMessage = NULL;
+    VmxTempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+
+    if (!VmxTempMessage)
+    {
+        ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+        MessageBufferInformation = NULL;
+        return FALSE; // STATUS_INSUFFICIENT_RESOURCES
+    }
+
+    VmxLogMessage = NULL;
+    VmxLogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+
+    if (!VmxLogMessage)
+    {
+        ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+        MessageBufferInformation = NULL;
+
+        ExFreePoolWithTag(VmxTempMessage, POOLTAG);
+        VmxTempMessage = NULL;
+
+        return FALSE; // STATUS_INSUFFICIENT_RESOURCES
+    }
 
     //
     // Initialize the lock for Vmx-root mode (HIGH_IRQL Spinlock)
@@ -874,6 +905,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     char *  LogMessage     = NULL;
     char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
+    ULONG   CoreId         = KeGetCurrentProcessorNumber();
 
     //
     // Set Vmx State
@@ -886,8 +918,8 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     //
     if (IsVmxRootMode)
     {
-        LogMessage  = &VmxLogMessage[0];
-        TempMessage = &VmxTempMessage[0];
+        LogMessage  = &VmxLogMessage[CoreId * PacketChunkSize];
+        TempMessage = &VmxTempMessage[CoreId * PacketChunkSize];
     }
     else
     {
@@ -969,7 +1001,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // Append time with previous message
         //
-        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, KeGetCurrentProcessorNumberEx(0), IsVmxRootMode ? "yes" : "no", TempMessage);
+        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CoreId, IsVmxRootMode ? "yes" : "no", TempMessage);
 
         //
         // Check if the buffer passed the limit

@@ -208,7 +208,8 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_CheckForModeBasedExecutionControl)
             {
-                ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
+                LogInfo("Teeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeessssssssst");
+                // ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
             }
 
             break;

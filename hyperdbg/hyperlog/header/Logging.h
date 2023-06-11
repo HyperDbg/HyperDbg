@@ -20,13 +20,13 @@
  * @brief VMX buffer for logging messages
  *
  */
-char VmxLogMessage[PacketChunkSize];
+char * VmxLogMessage;
 
 /**
  * @brief VMX temporary buffer for logging messages
  *
  */
-char VmxTempMessage[PacketChunkSize];
+char * VmxTempMessage;
 
 //////////////////////////////////////////////////
 //					Structures					//
