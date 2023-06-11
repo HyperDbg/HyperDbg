@@ -440,10 +440,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
                     VCpu->LastVmexitRip);
 
             //
-            // Show disasm
-            //
-
-            //
             // Disable MBEC again
             //
             HvSetModeBasedExecutionEnableFlag(FALSE);
@@ -452,6 +448,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
             // If we're not in normal EPT then switch  to it
             //
             ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
+            // Supress the RIP increment
+            //
+            HvSuppressRipIncrement(VCpu);
         }
         else
         {
@@ -466,6 +467,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
             // Change to all enable EPTP
             //
             ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
+            // Supress the RIP increment
+            //
+            HvSuppressRipIncrement(VCpu);
 
             //
             // Set MTF and adjust external interrupts
@@ -493,9 +499,14 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
         HvSetModeBasedExecutionEnableFlag(FALSE);
 
         //
+        // Supress the RIP increment
+        //
+        HvSuppressRipIncrement(VCpu);
+
+        //
         // Change EPTP to execute-only pages
         //
-        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        // ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
     }
     else
     {
@@ -521,10 +532,8 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 7880 && VCpu->TestNumber <= 10)
+    if (PsGetCurrentProcessId() == 7880)
     {
-        VCpu->TestNumber = VCpu->TestNumber + 1;
-
         //
         // Enable MBEC to detect execution in user-mode
         //

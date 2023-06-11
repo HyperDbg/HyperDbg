@@ -20,7 +20,7 @@ BOOLEAN
 DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLEAN Is32Bit);
 
 BOOLEAN
-DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, BOOLEAN Is32Bit);
+DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, BOOLEAN Is32Bit);
 
 UINT32
 DisassemblerShowOneInstructionInVmxRootMode(PVOID Address, BOOLEAN Is32Bit);
