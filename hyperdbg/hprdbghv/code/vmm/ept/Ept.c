@@ -200,7 +200,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param PhysicalAddress Physical address that we want to get its PML1
  * @param IsLargePage Shows whether it's a large page or not
  *
- * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ * @return PVOID Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
  */
 PVOID
 EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage)

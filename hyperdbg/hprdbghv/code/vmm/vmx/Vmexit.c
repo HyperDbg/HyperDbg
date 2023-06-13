@@ -77,6 +77,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &VCpu->ExitQualification);
 
+    if (VCpu->Test)
+    {
+        LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
+    }
+
     //
     // Debugging purpose
     //
@@ -338,11 +343,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
 
     //
-    // Set indicator of Vmx non root mode to false
-    //
-    VCpu->IsOnVmxRootMode = FALSE;
-
-    //
     // Check for vmxoff request
     //
     if (VCpu->VmxoffState.IsVmxoffExecuted)
@@ -364,6 +364,16 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
         }
     }
+
+    if (VCpu->Test)
+    {
+        LogInfo("Exiting VM_EXIT_REASON : 0x%x", ExitReason);
+    }
+
+    //
+    // Set indicator of Vmx non root mode to false
+    //
+    VCpu->IsOnVmxRootMode = FALSE;
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE
