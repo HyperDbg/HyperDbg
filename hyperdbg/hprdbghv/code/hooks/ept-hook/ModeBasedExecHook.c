@@ -21,12 +21,13 @@
  *
  * @param Va Virtual Address
  * @param Level PMLx
- * @param TargetCr3 kernel cr3 of target process
+ * @param TargetCr3 user/kernel cr3 of target process
+ * @param KernelCr3 kernel cr3 of target process
  * @return PVOID virtual address of PTE based on cr3
  */
 _Use_decl_annotations_
 BOOLEAN
-ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
+ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
 {
     CR3_TYPE Cr3;
     UINT64   TempCr3;
@@ -34,7 +35,13 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
     PUINT64  PdptVa;
     PUINT64  PdVa;
     PUINT64  PtVa;
-    BOOLEAN  IsLargePage = FALSE;
+    BOOLEAN  IsLargePage       = FALSE;
+    CR3_TYPE CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(KernelCr3);
 
     Cr3.Flags = TargetCr3.Flags;
 
@@ -42,6 +49,26 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
     // Cr3 should be shifted 12 to the left because it's PFN
     //
     TempCr3 = Cr3.Fields.PageFrameNumber << 12;
+
+    PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Cr3.Fields.PageFrameNumber << 12, &IsLargePage);
+
+    if (EptPmlEntry4 != NULL)
+    {
+        if (IsLargePage)
+        {
+            ((PEPT_PML2_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+            ((PEPT_PML2_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+        }
+        else
+        {
+            ((PEPT_PML1_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+            ((PEPT_PML1_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+        }
+    }
+    else
+    {
+        LogInfo("null address");
+    }
 
     //
     // we need VA of Cr3, not PA
@@ -53,21 +80,26 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
     //
     if (Cr3Va == NULL)
     {
+        //
+        // Restore the original process
+        //
+        SwitchToPreviousProcess(CurrentProcessCr3);
+
         return FALSE;
     }
 
     for (size_t i = 0; i < 512; i++)
     {
+        // LogInfo("Address of Cr3Va: %llx", Cr3Va);
+
         PPAGE_ENTRY Pml4e = &Cr3Va[i];
 
         if (Pml4e->Fields.Present)
         {
-            LogInfo("PML4[%d] = %llx", i, Pml4e->Fields.PageFrameNumber);
-
-            PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
+            // LogInfo("PML4[%d] = %llx", i, Pml4e->Fields.PageFrameNumber);
 
             IsLargePage        = FALSE;
-            PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, PdptVa, &IsLargePage);
+            PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
 
             if (EptPmlEntry4 != NULL)
             {
@@ -82,6 +114,12 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
                     ((PEPT_PML1_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
                 }
             }
+            else
+            {
+                LogInfo("null address");
+            }
+
+            PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
 
             //
             // Check for invalid address
@@ -90,21 +128,16 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
             {
                 for (size_t j = 0; j < 512; j++)
                 {
+                    // LogInfo("Address of PdptVa: %llx", PdptVa);
+
                     PPAGE_ENTRY Pdpte = &PdptVa[j];
 
                     if (Pdpte->Fields.Present)
                     {
-                        LogInfo("PML3[%d] = %llx", j, Pdpte->Fields.PageFrameNumber);
-
-                        if (Pdpte->Fields.LargePage)
-                        {
-                            continue;
-                        }
-
-                        PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
+                        // LogInfo("PML3[%d] = %llx", j, Pdpte->Fields.PageFrameNumber);
 
                         IsLargePage        = FALSE;
-                        PVOID EptPmlEntry3 = EptGetPml1OrPml2Entry(EptTable, PdVa, &IsLargePage);
+                        PVOID EptPmlEntry3 = EptGetPml1OrPml2Entry(EptTable, Pdpte->Fields.PageFrameNumber << 12, &IsLargePage);
 
                         if (EptPmlEntry3 != NULL)
                         {
@@ -119,6 +152,17 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
                                 ((PEPT_PML1_ENTRY)EptPmlEntry3)->WriteAccess = TRUE;
                             }
                         }
+                        else
+                        {
+                            LogInfo("null address");
+                        }
+
+                        if (Pdpte->Fields.LargePage)
+                        {
+                            continue;
+                        }
+
+                        PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
 
                         //
                         // Check for invalid address
@@ -127,21 +171,21 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
                         {
                             for (size_t k = 0; k < 512; k++)
                             {
+                                // LogInfo("Address of PdVa: %llx", PdVa);
+
+                                if (PdVa == 0xfffffffffffffe00)
+                                {
+                                    continue;
+                                }
+
                                 PPAGE_ENTRY Pde = &PdVa[k];
 
                                 if (Pde->Fields.Present)
                                 {
-                                    LogInfo("PML2[%d] = %llx", k, Pde->Fields.PageFrameNumber);
-
-                                    if (Pde->Fields.LargePage)
-                                    {
-                                        continue;
-                                    }
-
-                                    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
+                                    // LogInfo("PML2[%d] = %llx", k, Pde->Fields.PageFrameNumber);
 
                                     IsLargePage        = FALSE;
-                                    PVOID EptPmlEntry2 = EptGetPml1OrPml2Entry(EptTable, PtVa, &IsLargePage);
+                                    PVOID EptPmlEntry2 = EptGetPml1OrPml2Entry(EptTable, Pde->Fields.PageFrameNumber << 12, &IsLargePage);
 
                                     if (EptPmlEntry2 != NULL)
                                     {
@@ -156,6 +200,17 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
                                             ((PEPT_PML1_ENTRY)EptPmlEntry2)->WriteAccess = TRUE;
                                         }
                                     }
+                                    else
+                                    {
+                                        LogInfo("null address");
+                                    }
+
+                                    if (Pde->Fields.LargePage)
+                                    {
+                                        continue;
+                                    }
+
+                                    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
 
                                     //
                                     // Check for invalid address
@@ -164,12 +219,14 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
                                     {
                                         for (size_t l = 0; l < 512; l++)
                                         {
+                                            // LogInfo("Address of PtVa: %llx", PtVa);
+
                                             PPAGE_ENTRY Pt = &PtVa[l];
 
-                                            if (Pt->Fields.Present)
+                                            /* if (Pt->Fields.Present)
                                             {
-                                                LogInfo("PML1[%d] = %llx", l, Pt->Fields.PageFrameNumber);
-                                            }
+                                                // LogInfo("PML1[%d] = %llx", l, Pt->Fields.PageFrameNumber);
+                                            }*/
                                         }
                                     }
                                 }
@@ -180,6 +237,13 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3)
             }
         }
     }
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -621,16 +685,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
-        CR3_TYPE GuestCr3 = {0};
-
-        GuestCr3.Flags = GetGuestCr3();
-
-        // ModeBasedExecTest(g_EptState->ExecuteOnlyEptPageTable, GuestCr3);
-
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
         //
         // For test purposes
         //
@@ -681,6 +735,19 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
     if (PsGetCurrentProcessId() == 11600 /* && VCpu->Test == FALSE*/)
     {
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        CR3_TYPE GuestCr3 = {0};
+
+        GuestCr3.Flags = GetGuestCr3();
+        LogInfo("Start manipulating page table");
+
+        ModeBasedExecTest(g_EptState->ExecuteOnlyEptPageTable, GuestCr3, LayoutGetCurrentProcessCr3());
+        EptInveptAllContexts();
+        LogInfo("End manipulating page table");
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
         //
         // Enable MBEC to detect execution in user-mode
         //
