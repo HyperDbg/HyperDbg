@@ -363,34 +363,30 @@ ModeBasedExecHookAllocateMbecEptPageTable()
 BOOLEAN
 ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
 {
-    //
-    // Set execute access for PML4s
-    //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
-    {
-        //
-        // We only set the top-level PML4 for intercepting user-mode execution
-        //
-        EptTable->PML4[i].UserModeExecute = TRUE;
-    }
+    INT64  RemainingSize  = 0;
+    UINT64 CurrentAddress = 0;
 
-    //
-    // Set execute access for PML3s
-    //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
-        EptTable->PML3[i].UserModeExecute = TRUE;
-    }
-
-    //
-    // Set execute access for PML2s
-    //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
-    {
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
         {
-            EptTable->PML2[i][j].UserModeExecute = TRUE;
-            EptTable->PML2[i][j].WriteAccess     = FALSE;
+            RemainingSize  = (INT64)PhysicalRamRegions[i].RamSize;
+            CurrentAddress = PhysicalRamRegions[i].RamPhysicalAddress;
+
+            while (RemainingSize > 0)
+            {
+                //
+                // Get the target entry in EPT table (every entry is 2-MB granularity)
+                //
+                PEPT_PML2_ENTRY EptEntry = EptGetPml2Entry(EptTable, CurrentAddress);
+                EptEntry->WriteAccess    = FALSE;
+
+                //
+                // Move to the new address
+                //
+                CurrentAddress += SIZE_2_MB;
+                RemainingSize -= SIZE_2_MB;
+            }
         }
     }
 }
@@ -639,11 +635,14 @@ ModeBasedExecHookChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
+ * @param GuestPhysicalAddr
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification)
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
+                                          VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
+                                          UINT64                                 GuestPhysicalAddr)
 {
     //
     // Check if this mechanism is use or not
@@ -652,6 +651,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
     {
         return FALSE;
     }
+
+    LogInfo("Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+            GuestPhysicalAddr,
+            PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+            VCpu->LastVmexitRip);
 
     if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
     {
@@ -735,19 +739,6 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
     if (PsGetCurrentProcessId() == 11600 /* && VCpu->Test == FALSE*/)
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
-        CR3_TYPE GuestCr3 = {0};
-
-        GuestCr3.Flags = GetGuestCr3();
-        LogInfo("Start manipulating page table");
-
-        ModeBasedExecTest(g_EptState->ExecuteOnlyEptPageTable, GuestCr3, LayoutGetCurrentProcessCr3());
-        EptInveptAllContexts();
-        LogInfo("End manipulating page table");
-
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
         //
         // Enable MBEC to detect execution in user-mode
         //
@@ -775,6 +766,44 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 }
 
 /**
+ * @brief Read the RAM regions (physical address)
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookReadRamPhysicalRegions()
+{
+    PHYSICAL_ADDRESS       Address;
+    LONGLONG               Size;
+    UINT32                 Count                = 0;
+    PPHYSICAL_MEMORY_RANGE PhysicalMemoryRanges = NULL;
+
+    //
+    // Read the RAM regions (BIOS) gives these details to Windows
+    //
+    PhysicalMemoryRanges = MmGetPhysicalMemoryRanges();
+
+    do
+    {
+        Address.QuadPart = PhysicalMemoryRanges[Count].BaseAddress.QuadPart;
+        Size             = PhysicalMemoryRanges[Count].NumberOfBytes.QuadPart;
+
+        if (!Address.QuadPart && !Size)
+        {
+            break;
+        }
+
+        // LogInfo("RAM Range, from: %llx to %llx", Address.QuadPart, Address.QuadPart + Size);
+
+        PhysicalRamRegions[Count].RamPhysicalAddress = Address.QuadPart;
+        PhysicalRamRegions[Count].RamSize            = Size;
+
+    } while (++Count < MAX_PHYSICAL_RAM_RANGE_COUNT);
+
+    ExFreePool(PhysicalMemoryRanges);
+}
+
+/**
  * @brief Initialize the reversing machine based on service request
  *
  * @param RevServiceRequest
@@ -784,6 +813,11 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 BOOLEAN
 ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
+    //
+    // Read the RAM regions
+    //
+    ModeBasedExecHookReadRamPhysicalRegions();
+
     //
     // Call the function responsible for initializing Mode-based hooks
     //

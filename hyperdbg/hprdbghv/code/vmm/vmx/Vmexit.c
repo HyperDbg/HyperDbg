@@ -368,6 +368,8 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     if (VCpu->Test)
     {
         LogInfo("Exiting VM_EXIT_REASON : 0x%x", ExitReason);
+        SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
+        DbgBreakPoint();
     }
 
     //
