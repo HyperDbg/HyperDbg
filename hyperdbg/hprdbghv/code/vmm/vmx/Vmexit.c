@@ -79,7 +79,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
     if (VCpu->Test)
     {
-        LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
+        // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
     }
 
     //
@@ -367,9 +367,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
     if (VCpu->Test)
     {
-        LogInfo("Exiting VM_EXIT_REASON : 0x%x", ExitReason);
-        SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
-        DbgBreakPoint();
+        // LogInfo("Exiting VM_EXIT_REASON : 0x%x", ExitReason);
+        //  SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
+        //  DbgBreakPoint();
     }
 
     //

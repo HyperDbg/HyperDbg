@@ -277,7 +277,8 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // the interrupt into the guest
     //
     if (VCpu->EnableExternalInterruptsOnContinue ||
-        VCpu->EnableExternalInterruptsOnContinueMtf)
+        VCpu->EnableExternalInterruptsOnContinueMtf ||
+        VCpu->ModeBasedHookIgnoreInterruptAndExceptions)
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
@@ -297,6 +298,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         HvSuppressRipIncrement(VCpu);
     }
+
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
         __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
@@ -320,7 +322,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         {
             //
             // We can't inject interrupt because the guest's state is not interruptible
-            // we have to queue it an re-inject it when the interrupt window is opened !
+            // we have to queue it an re-inject it when the interrupt window is opened!
             //
             IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VCpu, InterruptExit);
 

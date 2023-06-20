@@ -218,6 +218,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
     BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is not in a normal EPTP (mainly used in MBEC hooks)
     PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
+    BOOLEAN      ModeBasedHookIgnoreInterruptAndExceptions;                     // Used for tracking interrupts and exceptions
     BOOLEAN      Test;                                                          // Used for test purposes
     UINT64       TestNumber;                                                    // Used for test purposes (Number)
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers

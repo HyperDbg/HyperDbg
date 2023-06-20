@@ -652,7 +652,8 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         return FALSE;
     }
 
-    LogInfo("Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+    LogInfo("Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+            PsGetCurrentThreadId(),
             GuestPhysicalAddr,
             PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
             VCpu->LastVmexitRip);
@@ -660,6 +661,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
     if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
     {
         // LogInfo("Access log (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+
         //
         // Show the disassembly of current instruction
         //
@@ -675,12 +677,15 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         HvSuppressRipIncrement(VCpu);
 
-        VCpu->Test = TRUE;
-
         //
         // Set MTF and adjust external interrupts
         //
         // HvEnableMtfAndChangeExternalInterruptState(VCpu);
+        HvSetExternalInterruptExiting(VCpu, FALSE);
+        HvSetInterruptWindowExiting(TRUE);
+
+        // HvWriteExceptionBitmap(0xffffffff);
+        VCpu->ModeBasedHookIgnoreInterruptAndExceptions = FALSE;
 
         //
         // Set the indicator to handle MTF
@@ -697,6 +702,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
                 VCpu->LastVmexitRip);
 
         //
+        // Show the disassembly of current instruction
+        //
+        DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
+        //
         // Disable MBEC again
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
@@ -706,10 +716,20 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         HvSuppressRipIncrement(VCpu);
 
+        /////////////////////////////////////////////////////////////////
+
+        HvSetExternalInterruptExiting(VCpu, TRUE);
+        // HvWriteExceptionBitmap(0xffffffff);
+
+        VCpu->Test                                      = TRUE;
+        VCpu->ModeBasedHookIgnoreInterruptAndExceptions = TRUE;
+
         //
         // Change EPTP to execute-only pages
         //
         ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+
+        /////////////////////////////////////////////////////////////////
     }
     else
     {
@@ -737,7 +757,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 11600 /* && VCpu->Test == FALSE*/)
+    if (PsGetCurrentProcessId() == 10344 /* && VCpu->Test == FALSE*/)
     {
         //
         // Enable MBEC to detect execution in user-mode
