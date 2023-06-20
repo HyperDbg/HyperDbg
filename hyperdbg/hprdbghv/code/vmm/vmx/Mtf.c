@@ -82,16 +82,24 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         IsMtfHandled = TRUE;
 
-        //
-        // Restore non-readable/writeable EPTP
-        //
-        // ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
-        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+        if (VCpu->TestNumber != 1000)
+        {
+            //
+            // Restore non-readable/writeable EPTP
+            //
+            ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+            VCpu->TestNumber++;
+        }
+        else
+        {
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
 
-        //
-        // Check for reenabling external interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+            //
+            // Check for reenabling external interrupts
+            //
+            HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+            VCpu->Test = TRUE;
+        }
 
         //
         // Unset the indicator to avoid further handling

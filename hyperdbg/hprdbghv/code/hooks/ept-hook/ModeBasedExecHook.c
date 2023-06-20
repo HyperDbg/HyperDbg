@@ -665,7 +665,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
                 PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
                 VCpu->LastVmexitRip);
                 */
-
         DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
         //
@@ -737,7 +736,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 
         //  HvWriteExceptionBitmap(0xffffffff);
 
-        VCpu->Test = TRUE;
+        // VCpu->Test = TRUE;
         // VCpu->ModeBasedHookIgnoreInterruptAndExceptions = TRUE;
 
         //
@@ -773,7 +772,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 10344 /* && VCpu->Test == FALSE*/)
+    if (PsGetCurrentProcessId() == 10344 && VCpu->Test == FALSE)
     {
         //
         // Enable MBEC to detect execution in user-mode
