@@ -77,11 +77,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &VCpu->ExitQualification);
 
-    if (VCpu->Test)
-    {
-        // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
-    }
-
     //
     // Debugging purpose
     //
@@ -363,13 +358,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
             //
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
         }
-    }
-
-    if (VCpu->Test)
-    {
-        // LogInfo("Exiting VM_EXIT_REASON : 0x%x", ExitReason);
-        //  SwitchToProcessMemoryLayoutByCr3(LayoutGetCurrentProcessCr3());
-        //  DbgBreakPoint();
     }
 
     //

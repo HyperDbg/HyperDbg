@@ -277,8 +277,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     // the interrupt into the guest
     //
     if (VCpu->EnableExternalInterruptsOnContinue ||
-        VCpu->EnableExternalInterruptsOnContinueMtf ||
-        VCpu->ModeBasedHookIgnoreInterruptAndExceptions)
+        VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
