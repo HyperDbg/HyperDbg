@@ -652,12 +652,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         return FALSE;
     }
 
-    LogInfo("Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
-            PsGetCurrentThreadId(),
-            GuestPhysicalAddr,
-            PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
-            VCpu->LastVmexitRip);
-
     if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
     {
         // LogInfo("Access log (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
@@ -665,6 +659,13 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         // Show the disassembly of current instruction
         //
+        /* LogInfo("Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+                PsGetCurrentThreadId(),
+                GuestPhysicalAddr,
+                PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+                VCpu->LastVmexitRip);
+                */
+
         DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
         //
@@ -680,26 +681,26 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         // Set MTF and adjust external interrupts
         //
-        // HvEnableMtfAndChangeExternalInterruptState(VCpu);
-        HvSetExternalInterruptExiting(VCpu, FALSE);
-        HvSetInterruptWindowExiting(TRUE);
+        // HvSetExternalInterruptExiting(VCpu, FALSE);
+        // HvSetInterruptWindowExiting(TRUE);
 
         // HvWriteExceptionBitmap(0xffffffff);
-        VCpu->ModeBasedHookIgnoreInterruptAndExceptions = FALSE;
+        // VCpu->ModeBasedHookIgnoreInterruptAndExceptions = FALSE;
+        HvEnableMtfAndChangeExternalInterruptState(VCpu);
 
         //
         // Set the indicator to handle MTF
         //
-        // VCpu->RestoreNonReadableWriteEptp = TRUE;
+        VCpu->RestoreNonReadableWriteEptp = TRUE;
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
         //
         // For test purposes
         //
-        LogInfo("User-mode process (0x%x) is executed address: %llx",
+        /* LogInfo("User-mode process (0x%x) is executed address: %llx",
                 PsGetCurrentProcessId(),
-                VCpu->LastVmexitRip);
+                VCpu->LastVmexitRip); */
 
         //
         // Show the disassembly of current instruction
@@ -718,11 +719,26 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 
         /////////////////////////////////////////////////////////////////
 
+        //
+        // Change guest interrupt-state
+        //
         HvSetExternalInterruptExiting(VCpu, TRUE);
-        // HvWriteExceptionBitmap(0xffffffff);
 
-        VCpu->Test                                      = TRUE;
-        VCpu->ModeBasedHookIgnoreInterruptAndExceptions = TRUE;
+        //
+        // Do not vm-exit on interrupt windows
+        //
+        HvSetInterruptWindowExiting(FALSE);
+
+        //
+        // Indicate that we should enable external interrupts and configure external interrupt
+        // window exiting somewhere at MTF
+        //
+        VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+
+        //  HvWriteExceptionBitmap(0xffffffff);
+
+        VCpu->Test = TRUE;
+        // VCpu->ModeBasedHookIgnoreInterruptAndExceptions = TRUE;
 
         //
         // Change EPTP to execute-only pages

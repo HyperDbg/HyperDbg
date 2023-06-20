@@ -85,7 +85,8 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Restore non-readable/writeable EPTP
         //
-        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        // ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        ModeBasedExecHookRestoreToNormalEptp(VCpu);
 
         //
         // Check for reenabling external interrupts
