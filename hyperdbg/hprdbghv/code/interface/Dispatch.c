@@ -678,6 +678,16 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
         return;
     }
 
+    ///////////////////////////////////////////////////////////////////////
+    LogInfo("Process id: %x , Exception vector : %x, guest RIP: %llx\n", PsGetCurrentProcessId(), InterruptExit.Vector, VCpu->LastVmexitRip);
+    HvWriteExceptionBitmap(0x0);
+
+    //
+    // Change EPTP to execute-only pages
+    //
+    ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+    ///////////////////////////////////////////////////////////////////////
+
     //
     // *** When we reached here it means that this is not a NMI cause by guest,
     // probably an event ***

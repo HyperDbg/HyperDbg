@@ -691,10 +691,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
             // Set MTF
             // Note that external interrupts are previously masked
             //
-
             HvEnableMtfAndChangeExternalInterruptState(VCpu);
-            // HvWriteExceptionBitmap(0xffffffff);
 
+            //
+            // Disassemble instructions
+            //
             DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
             //
@@ -729,7 +730,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         // Prevent external-interrupts
         //
         HvPreventExternalInterrupts(VCpu);
-        //  HvWriteExceptionBitmap(0xffffffff);
+
+        //
+        // Mask all exceptions
+        //
+        HvWriteExceptionBitmap(EXCEPTION_BITMAP_MASK_ALL);
 
         //
         // Change EPTP to execute-only pages
@@ -759,7 +764,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 VOID
 ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    if (VCpu->TestNumber != 1000)
+    if (VCpu->TestNumber != 1000000)
     {
         //
         // Restore non-readable/writeable EPTP
@@ -818,6 +823,11 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
             // This function itself sets the flag to FALSE
             //
             ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
+            // Change exception bitmap
+            //
+            HvWriteExceptionBitmap(0x0);
         }
     }
 }
