@@ -683,6 +683,11 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     HvWriteExceptionBitmap(0x0);
 
     //
+    // Enable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(TRUE);
+
+    //
     // Change EPTP to execute-only pages
     //
     ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);

@@ -256,6 +256,46 @@ ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE Ker
  * @return BOOLEAN
  */
 BOOLEAN
+ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        //
+        // We only set the top-level PML4 for intercepting user-mode execution
+        //
+        EptTable->PML4[i].UserModeExecute = FALSE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+}
+
+/**
+ * @brief Enables user-mode execution bit of target page-table
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
 ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 {
     //
@@ -315,9 +355,9 @@ ModeBasedExecHookAllocateMbecEptPageTable()
     }
 
     //
-    // Enable all EPT user-mode execution bit
+    // Disable EPT user-mode execution bit for the target EPTP
     //
-    ModeBasedExecHookEnableUsermodeExecution(ModeBasedEptTable);
+    ModeBasedExecHookDisableUsermodeExecution(ModeBasedEptTable);
 
     //
     // Set the global address for MBEC EPT page table
@@ -365,6 +405,44 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
 {
     INT64  RemainingSize  = 0;
     UINT64 CurrentAddress = 0;
+
+    //
+    // *** allow execution of user-mode pages in execute only EPTP ***
+    //
+
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        //
+        // We only set the top-level PML4 for intercepting user-mode execution
+        //
+        EptTable->PML4[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+
+    //
+    // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
+    //
 
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
@@ -509,6 +587,17 @@ ModeBasedExecHookInitialize()
         //
         return FALSE;
     }
+
+    //
+    // Enable EPT user-mode execution bit for the target EPTP
+    //
+    ModeBasedExecHookEnableUsermodeExecution(g_EptState->EptPageTable);
+
+    //
+    // Invalidate ALL context on all cores (not necessary here because we will change
+    // it later but let's respect memory primitives)
+    //
+    BroadcastNotifyAllToInvalidateEptAllCores();
 
     //
     // Enable the interception of Cr3 to change the EPTP in the case of reaching to
@@ -679,6 +768,16 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
             // Check for reenabling external interrupts
             //
             HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+            //
+            // Enable the user-mode execution interception
+            //
+            HvSetModeBasedExecutionEnableFlag(TRUE);
+
+            //
+            // Mask all exceptions
+            //
+            HvWriteExceptionBitmap(0x0);
         }
         else
         {
@@ -692,6 +791,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
             // Change to all enable EPTP
             //
             ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
+            // Disable the user-mode execution interception
+            //
+            HvSetModeBasedExecutionEnableFlag(FALSE);
 
             //
             // Disassemble instructions
@@ -710,16 +814,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         // For test purposes
         //
         // LogInfo("User-mode process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
-
-        //
-        // Show the disassembly of current instruction
-        //
-        DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
-        //
-        // Disable MBEC again
-        //
-        HvSetModeBasedExecutionEnableFlag(FALSE);
 
         //
         // Supress the RIP increment
