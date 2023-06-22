@@ -664,11 +664,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //         VCpu->LastVmexitRip);
 
         //
-        // Change to all enable EPTP
-        //
-        ModeBasedExecHookRestoreToNormalEptp(VCpu);
-
-        //
         // Supress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
@@ -678,7 +673,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         if (VCpu->LastVmexitRip & 0xff00000000000000)
         {
-            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+            ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
 
             //
             // Check for reenabling external interrupts
@@ -692,6 +687,11 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
             // Note that external interrupts are previously masked
             //
             HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+            //
+            // Change to all enable EPTP
+            //
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
 
             //
             // Disassemble instructions
