@@ -782,15 +782,15 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         else
         {
             //
+            // Change to all enable EPTP
+            //
+            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+            //
             // Set MTF
             // Note that external interrupts are previously masked
             //
             HvEnableMtfAndChangeExternalInterruptState(VCpu);
-
-            //
-            // Change to all enable EPTP
-            //
-            ModeBasedExecHookRestoreToNormalEptp(VCpu);
 
             //
             // Disable the user-mode execution interception
@@ -903,25 +903,26 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
     else
     {
         //
-        // In case, the process is changed, we've disable the MBEC
-        //
-        HvSetModeBasedExecutionEnableFlag(FALSE);
-
-        //
         // As we need to make other processes to normally behave, so
         // we restore the EPTP to normal EPTP if it's not
         //
         if (VCpu->NotNormalEptp)
         {
             //
+            // In case, the process is changed, we've disable the MBEC
+            //
+            HvSetModeBasedExecutionEnableFlag(FALSE);
+
+            //
             // This function itself sets the flag to FALSE
             //
-            ModeBasedExecHookRestoreToNormalEptp(VCpu);
+            // ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+            // VCpu->NotNormalEptp = FALSE;
 
             //
             // Change exception bitmap
             //
-            HvWriteExceptionBitmap(0x0);
+            // HvWriteExceptionBitmap(0x0);
         }
     }
 }
