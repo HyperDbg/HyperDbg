@@ -688,9 +688,15 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     HvSetModeBasedExecutionEnableFlag(TRUE);
 
     //
+    // Enable interrupts
+    //
+    HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+    //
     // Change EPTP to execute-only pages
     //
     ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+
     ///////////////////////////////////////////////////////////////////////
 
     //
