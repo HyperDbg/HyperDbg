@@ -70,3 +70,6 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
 
 BOOLEAN
 ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
+
+VOID
+ModeBasedExecHookRestoreNormalStateInTargetProcess(VIRTUAL_MACHINE_STATE * VCpu);

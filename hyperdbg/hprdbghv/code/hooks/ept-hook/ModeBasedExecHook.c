@@ -762,22 +762,10 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
         //
         if (VCpu->LastVmexitRip & 0xff00000000000000)
         {
-            ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
-
             //
-            // Check for reenabling external interrupts
+            // Restore to normal state for current process
             //
-            HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
-            //
-            // Enable the user-mode execution interception
-            //
-            HvSetModeBasedExecutionEnableFlag(TRUE);
-
-            //
-            // Mask all exceptions
-            //
-            HvWriteExceptionBitmap(0x0);
+            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
         }
         else
         {
@@ -861,9 +849,23 @@ ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
     if (VCpu->TestNumber != 1000000)
     {
         //
-        // Restore non-readable/writeable EPTP
+        // Check for re-enabling external interrupts
         //
-        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Restore to normal state for current process
+            //
+            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
+        }
+        else
+        {
+            //
+            // Restore non-readable/writeable EPTP
+            //
+            ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        }
+
         VCpu->TestNumber++;
     }
     else
@@ -874,13 +876,44 @@ ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
         // Check for reenabling external interrupts
         //
         HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
         VCpu->Test = TRUE;
     }
 
     //
     // Unset the indicator to avoid further handling
     //
-    VCpu->RestoreNonReadableWriteEptp = FALSE;
+    VCpu->RestoreNonReadableWriteEptp = TRUE;
+}
+
+/**
+ * @brief Restore to the normal state for the current process
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookRestoreNormalStateInTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change to the MBEC Enabled EPTP
+    //
+    ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+
+    //
+    // Check for reenabling external interrupts
+    //
+    HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+    //
+    // Enable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(TRUE);
+
+    //
+    // Mask all exceptions
+    //
+    HvWriteExceptionBitmap(0x0);
 }
 
 /**
@@ -906,6 +939,7 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
         // In case, the process is changed, we've disable the MBEC
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
+
         HvWriteExceptionBitmap(0x0);
 
         //

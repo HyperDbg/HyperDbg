@@ -680,22 +680,11 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
 
     ///////////////////////////////////////////////////////////////////////
     LogInfo("Process id: %x , Exception vector : %x, guest RIP: %llx\n", PsGetCurrentProcessId(), InterruptExit.Vector, VCpu->LastVmexitRip);
-    HvWriteExceptionBitmap(0x0);
 
     //
-    // Enable the user-mode execution interception
+    // Return to normal state of current process (as we want to re-inject the exception)
     //
-    HvSetModeBasedExecutionEnableFlag(TRUE);
-
-    //
-    // Enable interrupts
-    //
-    HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
-    //
-    // Change EPTP to execute-only pages
-    //
-    ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+    ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
 
     ///////////////////////////////////////////////////////////////////////
 
