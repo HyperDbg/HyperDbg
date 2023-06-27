@@ -232,6 +232,9 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
 
 IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
 //////////////////////////////////////////////////

@@ -279,7 +279,31 @@ VmmCallbackRestoreEptState()
         return FALSE;
     }
 
-    g_Callbacks.VmmCallbackRestoreEptState();
+    return g_Callbacks.VmmCallbackRestoreEptState();
+}
+
+/**
+ * @brief routine callback to handle unhandled EPT violations
+ * @param CoreId
+ * @param ViolationQualification
+ * @param GuestPhysicalAddr
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmmCallbackUnhandledEptViolation(UINT32 CoreId,
+                                 UINT64 ViolationQualification,
+                                 UINT64 GuestPhysicalAddr)
+{
+    if (g_Callbacks.VmmCallbackCheckUnhandledEptViolations == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.VmmCallbackCheckUnhandledEptViolations(CoreId, ViolationQualification, GuestPhysicalAddr);
 }
 
 /**

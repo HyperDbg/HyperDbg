@@ -1739,3 +1739,58 @@ EptHookAllocateExtraHookingPages(UINT32 Count)
                                  Count,
                                  TRACKING_HOOKED_PAGES);
 }
+
+/**
+ * @brief Change PML EPT state for execution (execute)
+ * @detail should be called from VMX-root
+ *
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset)
+{
+    PVOID   PmlEntry    = NULL;
+    BOOLEAN IsLargePage = FALSE;
+
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+
+    if (PmlEntry)
+    {
+        if (IsLargePage)
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ExecuteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ExecuteAccess = TRUE;
+            }
+        }
+        else
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ExecuteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ExecuteAccess = TRUE;
+            }
+        }
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // Invalidate the EPTP (single-context)
+    //
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+    return TRUE;
+}

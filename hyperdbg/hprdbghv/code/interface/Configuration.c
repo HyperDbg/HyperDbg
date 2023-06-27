@@ -179,6 +179,21 @@ ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOO
 }
 
 /**
+ * @brief Change PML EPT state for execution (execute)
+ * @detail should be called from VMX-root
+ *
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureEptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset)
+{
+    return EptHookModifyInstructionFetchState(PhysicalAddress, IsUnset);
+}
+
+/**
  * @brief routines for enabling EFER syscall hooks on a single core
  *
  * @param TargetCoreId The target core's ID (to just run on this core)

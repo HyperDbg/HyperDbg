@@ -668,27 +668,6 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Also, avoid exception when we're running on a register form MTF (instrumentation step-in)
-    //
-    if (VCpu->RegisterBreakOnMtf)
-    {
-        //
-        // We ignore it because an MTF should handle it as it's an instrumentation step-in
-        //
-        return;
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    LogInfo("Process id: %x , Exception vector : %x, guest RIP: %llx\n", PsGetCurrentProcessId(), InterruptExit.Vector, VCpu->LastVmexitRip);
-
-    //
-    // Return to normal state of current process (as we want to re-inject the exception)
-    //
-    ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
-
-    ///////////////////////////////////////////////////////////////////////
-
-    //
     // *** When we reached here it means that this is not a NMI cause by guest,
     // probably an event ***
     //

@@ -89,7 +89,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState);
+AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();
@@ -102,3 +102,8 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId);
 
 BOOLEAN
 AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize);
+
+BOOLEAN
+AttachingCheckUnhandledEptViolation(UINT32 CoreId,
+                                    UINT64 ViolationQualification,
+                                    UINT64 GuestPhysicalAddr);

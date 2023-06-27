@@ -91,6 +91,12 @@ typedef VOID (*VMM_CALLBACK_REGISTERED_MTF_HANDLER)(UINT32 CoreId);
 typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)();
 
 /**
+ * @brief Check for unhandled EPT violations
+ *
+ */
+typedef BOOLEAN (*VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION)(UINT32 CoreId, UINT64 ViolationQualification, UINT64 GuestPhysicalAddr);
+
+/**
  * @brief Handle cr3 process change callbacks
  *
  */
@@ -183,6 +189,7 @@ typedef struct _VMM_CALLBACKS
     VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER      VmmCallbackNmiBroadcastRequestHandler;      // Fixed
     VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource; // Fixed
     VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;                 // Fixed
+    VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION      VmmCallbackCheckUnhandledEptViolations;     // Fixed
 
     //
     // Debugging callbacks

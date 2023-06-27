@@ -64,6 +64,11 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
 BOOLEAN
 VmmCallbackRestoreEptState();
 
+BOOLEAN
+VmmCallbackUnhandledEptViolation(UINT32 CoreId,
+                                 UINT64 ViolationQualification,
+                                 UINT64 GuestPhysicalAddr);
+
 VOID
 VmmCallbackSetLastError(UINT32 LastError);
 

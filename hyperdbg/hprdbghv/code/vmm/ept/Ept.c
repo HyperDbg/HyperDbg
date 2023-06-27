@@ -827,6 +827,13 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
         //
         return TRUE;
     }
+    else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr))
+    {
+        //
+        // Check whether this violation is meaningful for the application or not
+        //
+        return TRUE;
+    }
 
     LogError("Err, unexpected EPT violation at RIP: %llx", VCpu->LastVmexitRip);
     DbgBreakPoint();
@@ -845,11 +852,6 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    //
-    // Check for user-mode attaching mechanisms
-    //
-    VmmCallbackRestoreEptState();
-
     //
     // restore the hooked state
     //
@@ -881,6 +883,12 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
         }
     }
+
+    //
+    // Check for user-mode attaching mechanisms and callback
+    // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
+    //
+    VmmCallbackRestoreEptState();
 }
 
 /**

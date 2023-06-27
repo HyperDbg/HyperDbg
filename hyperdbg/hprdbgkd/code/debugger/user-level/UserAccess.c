@@ -868,15 +868,12 @@ UserAccessCheckForLoadedModuleDetails()
         ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
         ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
-        //
-        // Set debug register to get the entrypoint of user-mode processs
-        //
-        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                          BREAK_ON_INSTRUCTION_FETCH,
-                          FALSE,
-                          Entrypoint);
-
         // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+
+        //
+        // Disable instruction fetch for the target address
+        //
+        ConfigureEptHookModifyInstructionFetchState(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint)), TRUE);
 
         return TRUE;
     }

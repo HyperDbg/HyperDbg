@@ -327,3 +327,15 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
  */
 VOID
 EptHookAllocateExtraHookingPages(UINT32 Count);
+
+/**
+ * @brief Change PML EPT state for execution (execute)
+ * @detail should be called from VMX-root
+ *
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset);
