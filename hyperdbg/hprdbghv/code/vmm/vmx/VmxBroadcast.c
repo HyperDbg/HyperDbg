@@ -211,8 +211,29 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         //
         // Handle NMI of halt the other cores
         //
-        IsHandled = TRUE;
         VmmCallbackNmiBroadcastRequestHandler(VCpu->CoreId, IsOnVmxNmiHandler);
+        IsHandled = TRUE;
+
+        break;
+
+    case NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_SINGLE_CONTEXT:
+
+        //
+        // Invalidate EPT cache (single-context)
+        //
+        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+        IsHandled = TRUE;
+
+        break;
+
+    case NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS:
+
+        //
+        // Invalidate EPT cache (all contexts)
+        //
+        EptInveptAllContexts();
+        IsHandled = TRUE;
 
         break;
 

@@ -15,8 +15,23 @@
 //					Definitions					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Reserved MSR low range
+ *
+ */
 #define RESERVED_MSR_RANGE_LOW 0x40000000
-#define RESERVED_MSR_RANGE_HI  0x4000109F
+
+/**
+ * @brief Reserved MSR high range
+ *
+ */
+#define RESERVED_MSR_RANGE_HI 0x4000109F
+
+/**
+ * @brief Exception bitmap for masking all exceptions/faults/traps
+ *
+ */
+#define EXCEPTION_BITMAP_MASK_ALL 0xffffffff
 
 //////////////////////////////////////////////////
 //					Enums						//

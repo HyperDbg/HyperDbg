@@ -129,6 +129,12 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncInvalidateEptSingleContext();
+
+IMPORT_EXPORT_VMM VOID
+VmFuncInvalidateEptAllContexts();
+
+IMPORT_EXPORT_VMM VOID
 VmFuncUninitVmm();
 
 IMPORT_EXPORT_VMM UINT16
@@ -163,6 +169,12 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncNmiBroadcastRequest(UINT32 CoreId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncNmiBroadcastInvalidateEptSingleContext(UINT32 CoreId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
@@ -230,6 +242,9 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);

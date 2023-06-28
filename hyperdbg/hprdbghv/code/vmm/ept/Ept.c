@@ -200,7 +200,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param PhysicalAddress Physical address that we want to get its PML1
  * @param IsLargePage Shows whether it's a large page or not
  *
- * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ * @return PVOID Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
  */
 PVOID
 EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage)
@@ -293,6 +293,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param EptPageTable The EPT Page Table
  * @param PreAllocatedBuffer The address of pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
+ *
  * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
@@ -815,7 +816,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu, &ViolationQualification))
+    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu, &ViolationQualification, GuestPhysicalAddr))
     {
         return TRUE;
     }
@@ -823,6 +824,13 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     {
         //
         // Handled by page hook code
+        //
+        return TRUE;
+    }
+    else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr))
+    {
+        //
+        // Check whether this violation is meaningful for the application or not
         //
         return TRUE;
     }
@@ -844,11 +852,6 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    //
-    // Check for user-mode attaching mechanisms
-    //
-    VmmCallbackRestoreEptState();
-
     //
     // restore the hooked state
     //
@@ -880,6 +883,12 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
         }
     }
+
+    //
+    // Check for user-mode attaching mechanisms and callback
+    // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
+    //
+    VmmCallbackRestoreEptState(VCpu->CoreId);
 }
 
 /**

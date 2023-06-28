@@ -827,15 +827,18 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
 
 /**
  * @brief Checks whether the loaded module is available or not
+ * @param CoreId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessCheckForLoadedModuleDetails()
+UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    UINT64                              BaseAddress = NULL;
-    UINT64                              Entrypoint  = NULL;
+    UINT64                              BaseAddress        = NULL;
+    UINT64                              Entrypoint         = NULL;
+    UINT64                              TargetPhysicalAddr = NULL;
+    PROCESSOR_DEBUGGING_STATE *         DbgState           = &g_DbgState[CoreId];
 
     //
     // Check if the callback needs to be handled or not
@@ -868,15 +871,22 @@ UserAccessCheckForLoadedModuleDetails()
         ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
         ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
-        //
-        // Set debug register to get the entrypoint of user-mode processs
-        //
-        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                          BREAK_ON_INSTRUCTION_FETCH,
-                          FALSE,
-                          Entrypoint);
-
         // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+
+        TargetPhysicalAddr = VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint);
+
+        if (!ProcessDebuggingDetail->EntrypointExecutionBitConfigured &&
+            TargetPhysicalAddr != NULL)
+        {
+            //
+            // Disable instruction fetch for the target address
+            //
+            ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                        PAGE_ALIGN(TargetPhysicalAddr),
+                                                        TRUE);
+
+            ProcessDebuggingDetail->EntrypointExecutionBitConfigured = TRUE;
+        }
 
         return TRUE;
     }

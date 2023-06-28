@@ -376,13 +376,13 @@ AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64
 }
 
 /**
- * @brief Handle debug register event (#DB) for attaching to user-mode process
+ * @brief Handle instruction fetch prevention of attaching to user-mode process
  *
  * @param DbgState The state of the debugger on the current core
  * @return VOID
  */
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
+AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
 
@@ -442,17 +442,16 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
                 g_IsWaitingForReturnAndRunFromPageFault = TRUE;
 
                 VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId, ProcessDebuggingDetail->EntrypointOfMainModule);
-
-                //
-                // Re-apply the hw debug reg breakpoint
-                //
-                SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                                  BREAK_ON_INSTRUCTION_FETCH,
-                                  FALSE,
-                                  ProcessDebuggingDetail->EntrypointOfMainModule);
             }
             else
             {
+                //
+                // Allowing execution of target page
+                //
+                ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                            PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)),
+                                                            FALSE);
+
                 //
                 // Address is valid, probably the module is previously loaded
                 // or another process with same image is currently running
@@ -469,6 +468,13 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
             g_IsWaitingForReturnAndRunFromPageFault = FALSE;
 
             //
+            // Allowing execution of target page
+            //
+            ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                        PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)),
+                                                        FALSE);
+
+            //
             // We reached here as a result of setting the second hardware debug breakpoint
             // and after injecting a page-fault
             //
@@ -482,17 +488,6 @@ AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState)
         // it to the entrypoint
         //
         ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsInStartingPhase();
-
-        if (ProcessDebuggingDetail != NULL)
-        {
-            //
-            // Re-apply the hw debug reg breakpoint
-            //
-            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                              BREAK_ON_INSTRUCTION_FETCH,
-                              FALSE,
-                              ProcessDebuggingDetail->EntrypointOfMainModule);
-        }
     }
 }
 
@@ -986,6 +981,48 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
     VmFuncSetExceptionBitmap(CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
 
     return TRUE;
+}
+
+/**
+ * @brief handling unhandled EPT violations
+ * @param CoreId
+ * @param ViolationQualification
+ * @param GuestPhysicalAddr
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingCheckUnhandledEptViolation(UINT32 CoreId,
+                                    UINT64 ViolationQualification,
+                                    UINT64 GuestPhysicalAddr)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    if (g_UserDebuggerState == TRUE &&
+        (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+    {
+        //
+        // Handle for user-mode attaching mechanism
+        //
+        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
+
+        //
+        // Supress incrementing the instruction
+        //
+        VmFuncSuppressRipIncrement(DbgState->CoreId);
+
+        //
+        // It's handled here
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not handled here
+        //
+        return FALSE;
+    }
 }
 
 /**

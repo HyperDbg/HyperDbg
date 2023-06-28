@@ -13,8 +13,284 @@
 #include "pch.h"
 
 /**
+ * @brief This function gets virtual address and returns its PTE of the virtual address
+ * based on the specific cr3 but without switching to the target address
+ * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
+ * addresses so the kernel functions to translate addresses should be mapped; thus,
+ * don't pass a KPTI meltdown user cr3 to this function
+ *
+ * @param Va Virtual Address
+ * @param Level PMLx
+ * @param TargetCr3 user/kernel cr3 of target process
+ * @param KernelCr3 kernel cr3 of target process
+ * @return PVOID virtual address of PTE based on cr3
+ */
+_Use_decl_annotations_
+BOOLEAN
+ModeBasedExecTest(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
+{
+    CR3_TYPE Cr3;
+    UINT64   TempCr3;
+    PUINT64  Cr3Va;
+    PUINT64  PdptVa;
+    PUINT64  PdVa;
+    PUINT64  PtVa;
+    BOOLEAN  IsLargePage       = FALSE;
+    CR3_TYPE CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(KernelCr3);
+
+    Cr3.Flags = TargetCr3.Flags;
+
+    //
+    // Cr3 should be shifted 12 to the left because it's PFN
+    //
+    TempCr3 = Cr3.Fields.PageFrameNumber << 12;
+
+    PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Cr3.Fields.PageFrameNumber << 12, &IsLargePage);
+
+    if (EptPmlEntry4 != NULL)
+    {
+        if (IsLargePage)
+        {
+            ((PEPT_PML2_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+            ((PEPT_PML2_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+        }
+        else
+        {
+            ((PEPT_PML1_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+            ((PEPT_PML1_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+        }
+    }
+    else
+    {
+        LogInfo("null address");
+    }
+
+    //
+    // we need VA of Cr3, not PA
+    //
+    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
+
+    //
+    // Check for invalid address
+    //
+    if (Cr3Va == NULL)
+    {
+        //
+        // Restore the original process
+        //
+        SwitchToPreviousProcess(CurrentProcessCr3);
+
+        return FALSE;
+    }
+
+    for (size_t i = 0; i < 512; i++)
+    {
+        // LogInfo("Address of Cr3Va: %llx", Cr3Va);
+
+        PPAGE_ENTRY Pml4e = &Cr3Va[i];
+
+        if (Pml4e->Fields.Present)
+        {
+            // LogInfo("PML4[%d] = %llx", i, Pml4e->Fields.PageFrameNumber);
+
+            IsLargePage        = FALSE;
+            PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
+
+            if (EptPmlEntry4 != NULL)
+            {
+                if (IsLargePage)
+                {
+                    ((PEPT_PML2_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+                    ((PEPT_PML2_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+                }
+                else
+                {
+                    ((PEPT_PML1_ENTRY)EptPmlEntry4)->ReadAccess  = TRUE;
+                    ((PEPT_PML1_ENTRY)EptPmlEntry4)->WriteAccess = TRUE;
+                }
+            }
+            else
+            {
+                LogInfo("null address");
+            }
+
+            PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
+
+            //
+            // Check for invalid address
+            //
+            if (PdptVa != NULL)
+            {
+                for (size_t j = 0; j < 512; j++)
+                {
+                    // LogInfo("Address of PdptVa: %llx", PdptVa);
+
+                    PPAGE_ENTRY Pdpte = &PdptVa[j];
+
+                    if (Pdpte->Fields.Present)
+                    {
+                        // LogInfo("PML3[%d] = %llx", j, Pdpte->Fields.PageFrameNumber);
+
+                        IsLargePage        = FALSE;
+                        PVOID EptPmlEntry3 = EptGetPml1OrPml2Entry(EptTable, Pdpte->Fields.PageFrameNumber << 12, &IsLargePage);
+
+                        if (EptPmlEntry3 != NULL)
+                        {
+                            if (IsLargePage)
+                            {
+                                ((PEPT_PML2_ENTRY)EptPmlEntry3)->ReadAccess  = TRUE;
+                                ((PEPT_PML2_ENTRY)EptPmlEntry3)->WriteAccess = TRUE;
+                            }
+                            else
+                            {
+                                ((PEPT_PML1_ENTRY)EptPmlEntry3)->ReadAccess  = TRUE;
+                                ((PEPT_PML1_ENTRY)EptPmlEntry3)->WriteAccess = TRUE;
+                            }
+                        }
+                        else
+                        {
+                            LogInfo("null address");
+                        }
+
+                        if (Pdpte->Fields.LargePage)
+                        {
+                            continue;
+                        }
+
+                        PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
+
+                        //
+                        // Check for invalid address
+                        //
+                        if (PdVa != NULL)
+                        {
+                            for (size_t k = 0; k < 512; k++)
+                            {
+                                // LogInfo("Address of PdVa: %llx", PdVa);
+
+                                if (PdVa == 0xfffffffffffffe00)
+                                {
+                                    continue;
+                                }
+
+                                PPAGE_ENTRY Pde = &PdVa[k];
+
+                                if (Pde->Fields.Present)
+                                {
+                                    // LogInfo("PML2[%d] = %llx", k, Pde->Fields.PageFrameNumber);
+
+                                    IsLargePage        = FALSE;
+                                    PVOID EptPmlEntry2 = EptGetPml1OrPml2Entry(EptTable, Pde->Fields.PageFrameNumber << 12, &IsLargePage);
+
+                                    if (EptPmlEntry2 != NULL)
+                                    {
+                                        if (IsLargePage)
+                                        {
+                                            ((PEPT_PML2_ENTRY)EptPmlEntry2)->ReadAccess  = TRUE;
+                                            ((PEPT_PML2_ENTRY)EptPmlEntry2)->WriteAccess = TRUE;
+                                        }
+                                        else
+                                        {
+                                            ((PEPT_PML1_ENTRY)EptPmlEntry2)->ReadAccess  = TRUE;
+                                            ((PEPT_PML1_ENTRY)EptPmlEntry2)->WriteAccess = TRUE;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        LogInfo("null address");
+                                    }
+
+                                    if (Pde->Fields.LargePage)
+                                    {
+                                        continue;
+                                    }
+
+                                    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
+
+                                    //
+                                    // Check for invalid address
+                                    //
+                                    if (PtVa != NULL)
+                                    {
+                                        for (size_t l = 0; l < 512; l++)
+                                        {
+                                            // LogInfo("Address of PtVa: %llx", PtVa);
+
+                                            PPAGE_ENTRY Pt = &PtVa[l];
+
+                                            /* if (Pt->Fields.Present)
+                                            {
+                                                // LogInfo("PML1[%d] = %llx", l, Pt->Fields.PageFrameNumber);
+                                            }*/
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
  * @brief Adjust (unset) user-mode execution bit of target page-table
  * @details should be called from vmx non-root mode
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        //
+        // We only set the top-level PML4 for intercepting user-mode execution
+        //
+        EptTable->PML4[i].UserModeExecute = FALSE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+}
+
+/**
+ * @brief Enables user-mode execution bit of target page-table
  * @param EptTable
  *
  * @return BOOLEAN
@@ -79,9 +355,9 @@ ModeBasedExecHookAllocateMbecEptPageTable()
     }
 
     //
-    // Enable all EPT user-mode execution bit
+    // Disable EPT user-mode execution bit for the target EPTP
     //
-    ModeBasedExecHookEnableUsermodeExecution(ModeBasedEptTable);
+    ModeBasedExecHookDisableUsermodeExecution(ModeBasedEptTable);
 
     //
     // Set the global address for MBEC EPT page table
@@ -127,18 +403,22 @@ ModeBasedExecHookAllocateMbecEptPageTable()
 BOOLEAN
 ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
 {
+    INT64  RemainingSize  = 0;
+    UINT64 CurrentAddress = 0;
+
+    //
+    // *** allow execution of user-mode pages in execute only EPTP ***
+    //
+
     //
     // Set execute access for PML4s
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
         //
-        // Execute-only pages
+        // We only set the top-level PML4 for intercepting user-mode execution
         //
-        EptTable->PML4[i].ExecuteAccess   = TRUE;
         EptTable->PML4[i].UserModeExecute = TRUE;
-        EptTable->PML4[i].ReadAccess      = FALSE;
-        EptTable->PML4[i].WriteAccess     = FALSE;
     }
 
     //
@@ -146,10 +426,7 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
-        EptTable->PML3[i].ExecuteAccess   = TRUE;
         EptTable->PML3[i].UserModeExecute = TRUE;
-        EptTable->PML3[i].ReadAccess      = FALSE;
-        EptTable->PML3[i].WriteAccess     = FALSE;
     }
 
     //
@@ -159,10 +436,35 @@ ModeBasedExecHookEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     {
         for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
-            EptTable->PML2[i][j].ExecuteAccess   = TRUE;
             EptTable->PML2[i][j].UserModeExecute = TRUE;
-            EptTable->PML2[i][j].ReadAccess      = FALSE;
-            EptTable->PML2[i][j].WriteAccess     = FALSE;
+        }
+    }
+
+    //
+    // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
+    //
+
+    for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
+    {
+        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
+        {
+            RemainingSize  = (INT64)PhysicalRamRegions[i].RamSize;
+            CurrentAddress = PhysicalRamRegions[i].RamPhysicalAddress;
+
+            while (RemainingSize > 0)
+            {
+                //
+                // Get the target entry in EPT table (every entry is 2-MB granularity)
+                //
+                PEPT_PML2_ENTRY EptEntry = EptGetPml2Entry(EptTable, CurrentAddress);
+                EptEntry->WriteAccess    = FALSE;
+
+                //
+                // Move to the new address
+                //
+                CurrentAddress += SIZE_2_MB;
+                RemainingSize -= SIZE_2_MB;
+            }
         }
     }
 }
@@ -208,9 +510,9 @@ ModeBasedExecHookAllocateExecuteOnlyEptPageTable()
     EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
 
     //
-    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
+    // We won't utilize the 'access' and 'dirty' flags
     //
-    EPTP.EnableAccessAndDirtyFlags = TRUE;
+    EPTP.EnableAccessAndDirtyFlags = FALSE;
 
     //
     // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
@@ -285,6 +587,17 @@ ModeBasedExecHookInitialize()
         //
         return FALSE;
     }
+
+    //
+    // Enable EPT user-mode execution bit for the target EPTP
+    //
+    ModeBasedExecHookEnableUsermodeExecution(g_EptState->EptPageTable);
+
+    //
+    // Invalidate ALL context on all cores (not necessary here because we will change
+    // it later but let's respect memory primitives)
+    //
+    BroadcastNotifyAllToInvalidateEptAllCores();
 
     //
     // Enable the interception of Cr3 to change the EPTP in the case of reaching to
@@ -411,11 +724,14 @@ ModeBasedExecHookChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
+ * @param GuestPhysicalAddr
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification)
+ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
+                                          VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
+                                          UINT64                                 GuestPhysicalAddr)
 {
     //
     // Check if this mechanism is use or not
@@ -428,55 +744,51 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
     if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
     {
         //
-        // For test purposes
+        // Show the disassembly of current instruction
+        //
+        // LogInfo("Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+        //         PsGetCurrentThreadId(),
+        //         GuestPhysicalAddr,
+        //         PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+        //         VCpu->LastVmexitRip);
+
+        //
+        // Supress the RIP increment
+        //
+        HvSuppressRipIncrement(VCpu);
+
+        //
+        // Check whether the current RIP instruction is in kernel-mode or user-mode
         //
         if (VCpu->LastVmexitRip & 0xff00000000000000)
         {
             //
-            // We're not gonna trace kernel-mode at this stage
+            // Restore to normal state for current process
             //
-            LogInfo("Went to the kernel and the (0x%x) is executed address: %llx",
-                    PsGetCurrentProcessId(),
-                    VCpu->LastVmexitRip);
-
-            //
-            // Disable MBEC again
-            //
-            HvSetModeBasedExecutionEnableFlag(FALSE);
-
-            //
-            // If we're not in normal EPT then switch  to it
-            //
-            ModeBasedExecHookRestoreToNormalEptp(VCpu);
-
-            //
-            // Supress the RIP increment
-            //
-            HvSuppressRipIncrement(VCpu);
+            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
         }
         else
         {
-            // LogInfo("Access log (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
-
-            //
-            // Show the disassembly of current instruction
-            //
-            DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
             //
             // Change to all enable EPTP
             //
             ModeBasedExecHookRestoreToNormalEptp(VCpu);
 
             //
-            // Supress the RIP increment
-            //
-            HvSuppressRipIncrement(VCpu);
-
-            //
-            // Set MTF and adjust external interrupts
+            // Set MTF
+            // Note that external interrupts are previously masked
             //
             HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+            //
+            // Disable the user-mode execution interception
+            //
+            HvSetModeBasedExecutionEnableFlag(FALSE);
+
+            //
+            // Disassemble instructions
+            //
+            DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
             //
             // Set the indicator to handle MTF
@@ -489,14 +801,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
         //
         // For test purposes
         //
-        LogInfo("User-mode process (0x%x) is executed address: %llx",
-                PsGetCurrentProcessId(),
-                VCpu->LastVmexitRip);
-
-        //
-        // Disable MBEC again
-        //
-        HvSetModeBasedExecutionEnableFlag(FALSE);
+        // LogInfo("User-mode process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
@@ -504,9 +809,19 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
         HvSuppressRipIncrement(VCpu);
 
         //
+        // Prevent external-interrupts
+        //
+        HvPreventExternalInterrupts(VCpu);
+
+        //
+        // Mask all exceptions
+        //
+        HvWriteExceptionBitmap(EXCEPTION_BITMAP_MASK_ALL);
+
+        //
         // Change EPTP to execute-only pages
         //
-        // ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
     }
     else
     {
@@ -523,6 +838,85 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
 }
 
 /**
+ * @brief Callback for handling VM-exits for MTF in the case of MBEC hooks
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    if (VCpu->TestNumber != 1000000)
+    {
+        //
+        // Check for re-enabling external interrupts
+        //
+        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Restore to normal state for current process
+            //
+            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
+        }
+        else
+        {
+            //
+            // Restore non-readable/writeable EPTP
+            //
+            ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
+        }
+
+        VCpu->TestNumber++;
+    }
+    else
+    {
+        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+
+        //
+        // Check for reenabling external interrupts
+        //
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+        VCpu->Test = TRUE;
+    }
+
+    //
+    // Unset the indicator to avoid further handling
+    //
+    VCpu->RestoreNonReadableWriteEptp = TRUE;
+}
+
+/**
+ * @brief Restore to the normal state for the current process
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookRestoreNormalStateInTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change to the MBEC Enabled EPTP
+    //
+    ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+
+    //
+    // Check for reenabling external interrupts
+    //
+    HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+    //
+    // Enable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(TRUE);
+
+    //
+    // Mask all exceptions
+    //
+    HvWriteExceptionBitmap(0x0);
+}
+
+/**
  * @brief Handle MOV to CR3 vm-exits for hooking mode execution
  * @param VCpu The virtual processor's state
  * @param NewCr3 New cr3
@@ -532,7 +926,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT
 VOID
 ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 {
-    if (PsGetCurrentProcessId() == 7880)
+    if (PsGetCurrentProcessId() == 10344 && VCpu->Test == FALSE)
     {
         //
         // Enable MBEC to detect execution in user-mode
@@ -546,18 +940,51 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
 
+        HvWriteExceptionBitmap(0x0);
+
         //
-        // As we need to make other processes to normally behave, so
-        // we restore the EPTP to normal EPTP if it's not
+        // Enable interrupts
         //
-        if (VCpu->NotNormalEptp)
-        {
-            //
-            // This function itself sets the flag to FALSE
-            //
-            ModeBasedExecHookRestoreToNormalEptp(VCpu);
-        }
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
     }
+}
+
+/**
+ * @brief Read the RAM regions (physical address)
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookReadRamPhysicalRegions()
+{
+    PHYSICAL_ADDRESS       Address;
+    LONGLONG               Size;
+    UINT32                 Count                = 0;
+    PPHYSICAL_MEMORY_RANGE PhysicalMemoryRanges = NULL;
+
+    //
+    // Read the RAM regions (BIOS) gives these details to Windows
+    //
+    PhysicalMemoryRanges = MmGetPhysicalMemoryRanges();
+
+    do
+    {
+        Address.QuadPart = PhysicalMemoryRanges[Count].BaseAddress.QuadPart;
+        Size             = PhysicalMemoryRanges[Count].NumberOfBytes.QuadPart;
+
+        if (!Address.QuadPart && !Size)
+        {
+            break;
+        }
+
+        // LogInfo("RAM Range, from: %llx to %llx", Address.QuadPart, Address.QuadPart + Size);
+
+        PhysicalRamRegions[Count].RamPhysicalAddress = Address.QuadPart;
+        PhysicalRamRegions[Count].RamSize            = Size;
+
+    } while (++Count < MAX_PHYSICAL_RAM_RANGE_COUNT);
+
+    ExFreePool(PhysicalMemoryRanges);
 }
 
 /**
@@ -570,6 +997,11 @@ ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
 BOOLEAN
 ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
+    //
+    // Read the RAM regions
+    //
+    ModeBasedExecHookReadRamPhysicalRegions();
+
     //
     // Call the function responsible for initializing Mode-based hooks
     //

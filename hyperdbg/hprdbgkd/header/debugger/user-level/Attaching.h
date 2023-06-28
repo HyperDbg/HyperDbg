@@ -49,6 +49,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 {
     UINT64     Token;
     BOOLEAN    Enabled;
+    BOOLEAN    EntrypointExecutionBitConfigured;
     PVOID      PebAddressToMonitor;
     UINT32     ActiveThreadId; // active thread
     GUEST_REGS Registers;      // active thread
@@ -89,7 +90,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState);
+AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();
@@ -102,3 +103,8 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId);
 
 BOOLEAN
 AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize);
+
+BOOLEAN
+AttachingCheckUnhandledEptViolation(UINT32 CoreId,
+                                    UINT64 ViolationQualification,
+                                    UINT64 GuestPhysicalAddr);

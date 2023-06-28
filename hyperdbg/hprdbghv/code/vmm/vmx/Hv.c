@@ -1386,3 +1386,29 @@ HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu)
     //
     VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
 }
+
+/**
+ * @brief Adjust external interrupt state
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvPreventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    //
+    // Indicate that we should enable external interrupts and configure external interrupt
+    // window exiting somewhere at MTF
+    //
+    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+}

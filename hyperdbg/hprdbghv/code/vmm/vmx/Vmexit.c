@@ -90,6 +90,18 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     {
         LogError("Err, triple fault error occurred");
 
+        LogInfo("Target RIP: %llx\n", VCpu->LastVmexitRip);
+        CHAR Instruction[MAXIMUM_INSTR_SIZE] = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip, Instruction, MAXIMUM_INSTR_SIZE);
+
+        for (size_t i = 0; i < MAXIMUM_INSTR_SIZE; i++)
+        {
+            Log("%x ", Instruction[i]);
+        }
+
+        DbgBreakPoint();
+
         break;
     }
         //
@@ -338,11 +350,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
 
     //
-    // Set indicator of Vmx non root mode to false
-    //
-    VCpu->IsOnVmxRootMode = FALSE;
-
-    //
     // Check for vmxoff request
     //
     if (VCpu->VmxoffState.IsVmxoffExecuted)
@@ -364,6 +371,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
         }
     }
+
+    //
+    // Set indicator of Vmx non root mode to false
+    //
+    VCpu->IsOnVmxRootMode = FALSE;
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE

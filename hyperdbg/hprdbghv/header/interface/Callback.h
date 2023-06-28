@@ -62,7 +62,12 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
                                            PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
 
 BOOLEAN
-VmmCallbackRestoreEptState();
+VmmCallbackRestoreEptState(UINT32 CoreId);
+
+BOOLEAN
+VmmCallbackUnhandledEptViolation(UINT32 CoreId,
+                                 UINT64 ViolationQualification,
+                                 UINT64 GuestPhysicalAddr);
 
 VOID
 VmmCallbackSetLastError(UINT32 LastError);

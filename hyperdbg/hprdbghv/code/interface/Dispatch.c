@@ -668,17 +668,6 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Also, avoid exception when we're running on a register form MTF (instrumentation step-in)
-    //
-    if (VCpu->RegisterBreakOnMtf)
-    {
-        //
-        // We ignore it because an MTF should handle it as it's an instrumentation step-in
-        //
-        return;
-    }
-
-    //
     // *** When we reached here it means that this is not a NMI cause by guest,
     // probably an event ***
     //

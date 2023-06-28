@@ -83,19 +83,9 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         IsMtfHandled = TRUE;
 
         //
-        // Restore non-readable/writeable EPTP
+        // Handle callback for the MBEC hooks
         //
-        ModeBasedExecHookChangeToExecuteOnlyEptp(VCpu);
-
-        //
-        // Check for reenabling external interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
-        //
-        // Unset the indicator to avoid further handling
-        //
-        VCpu->RestoreNonReadableWriteEptp = FALSE;
+        ModeBasedExecHookHandleMtfCallback(VCpu);
     }
 
     //

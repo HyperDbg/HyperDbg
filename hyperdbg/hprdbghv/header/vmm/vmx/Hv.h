@@ -411,3 +411,12 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks);
  */
 VOID
 HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Adjust external interrupt state
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvPreventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
