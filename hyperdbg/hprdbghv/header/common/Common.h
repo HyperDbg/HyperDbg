@@ -329,3 +329,6 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS eprocess);
 
 VOID
 CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+
+VOID
+CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu);

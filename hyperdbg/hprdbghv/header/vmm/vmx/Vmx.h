@@ -346,6 +346,9 @@ VOID
 VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 VmxVmptrst();
 
 VOID

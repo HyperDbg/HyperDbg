@@ -1002,14 +1002,14 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
         (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
     {
         //
-        // Handle for user-mode attaching mechanism
-        //
-        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
-
-        //
         // Supress incrementing the instruction
         //
         VmFuncSuppressRipIncrement(DbgState->CoreId);
+
+        //
+        // Handle for user-mode attaching mechanism
+        //
+        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
 
         //
         // It's handled here

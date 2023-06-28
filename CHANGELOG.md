@@ -10,7 +10,7 @@ New release of the HyperDbg Debugger.
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
-## [0.3.1.0] - 2023-06-28
+## [0.3.1.0] - 2023-06-29
 New release of the HyperDbg Debugger.
 
 ### Changed

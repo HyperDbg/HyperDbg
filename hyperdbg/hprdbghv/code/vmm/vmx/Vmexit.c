@@ -83,24 +83,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
     // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", VCpu->ExitQualification);
     //
-
     switch (ExitReason)
     {
     case VMX_EXIT_REASON_TRIPLE_FAULT:
     {
-        LogError("Err, triple fault error occurred");
-
-        LogInfo("Target RIP: %llx\n", VCpu->LastVmexitRip);
-        CHAR Instruction[MAXIMUM_INSTR_SIZE] = {0};
-
-        MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip, Instruction, MAXIMUM_INSTR_SIZE);
-
-        for (size_t i = 0; i < MAXIMUM_INSTR_SIZE; i++)
-        {
-            Log("%x ", Instruction[i]);
-        }
-
-        DbgBreakPoint();
+        VmxHandleTripleFaults(VCpu);
 
         break;
     }

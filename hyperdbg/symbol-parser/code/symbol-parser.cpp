@@ -1658,7 +1658,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 {
                     if (!IsSilentLoad)
                     {
-                        ShowMessages("\tcould not be loaded\n");
+                        ShowMessages("\tnot loaded (already loaded?)\n");
                     }
                 }
             }
@@ -1699,7 +1699,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 {
                     if (!IsSilentLoad)
                     {
-                        ShowMessages("\tcould not be loaded\n");
+                        ShowMessages("\tnot loaded (already loaded?)\n");
                     }
                 }
             }
