@@ -827,15 +827,18 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
 
 /**
  * @brief Checks whether the loaded module is available or not
+ * @param CoreId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessCheckForLoadedModuleDetails()
+UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    UINT64                              BaseAddress = NULL;
-    UINT64                              Entrypoint  = NULL;
+    UINT64                              BaseAddress        = NULL;
+    UINT64                              Entrypoint         = NULL;
+    UINT64                              TargetPhysicalAddr = NULL;
+    PROCESSOR_DEBUGGING_STATE *         DbgState           = &g_DbgState[CoreId];
 
     //
     // Check if the callback needs to be handled or not
@@ -870,10 +873,20 @@ UserAccessCheckForLoadedModuleDetails()
 
         // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
 
-        //
-        // Disable instruction fetch for the target address
-        //
-        ConfigureEptHookModifyInstructionFetchState(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint)), TRUE);
+        TargetPhysicalAddr = VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint);
+
+        if (!ProcessDebuggingDetail->EntrypointExecutionBitConfigured &&
+            TargetPhysicalAddr != NULL)
+        {
+            //
+            // Disable instruction fetch for the target address
+            //
+            ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                        PAGE_ALIGN(TargetPhysicalAddr),
+                                                        TRUE);
+
+            ProcessDebuggingDetail->EntrypointExecutionBitConfigured = TRUE;
+        }
 
         return TRUE;
     }

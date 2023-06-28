@@ -332,10 +332,13 @@ EptHookAllocateExtraHookingPages(UINT32 Count);
  * @brief Change PML EPT state for execution (execute)
  * @detail should be called from VMX-root
  *
+ * @param VCpu The virtual processor's state
  * @param PhysicalAddress Target physical address
  * @param IsUnset Is unsetting bit or setting bit
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset);
+EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
+                                   PVOID                   PhysicalAddress,
+                                   BOOLEAN                 IsUnset);

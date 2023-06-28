@@ -49,6 +49,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 {
     UINT64     Token;
     BOOLEAN    Enabled;
+    BOOLEAN    EntrypointExecutionBitConfigured;
     PVOID      PebAddressToMonitor;
     UINT32     ActiveThreadId; // active thread
     GUEST_REGS Registers;      // active thread

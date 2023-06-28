@@ -888,7 +888,7 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
     // Check for user-mode attaching mechanisms and callback
     // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
     //
-    VmmCallbackRestoreEptState();
+    VmmCallbackRestoreEptState(VCpu->CoreId);
 }
 
 /**

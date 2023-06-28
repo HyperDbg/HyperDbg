@@ -88,7 +88,7 @@ typedef VOID (*VMM_CALLBACK_REGISTERED_MTF_HANDLER)(UINT32 CoreId);
  * @brief Check for user-mode access for loaded module details
  *
  */
-typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)();
+typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)(UINT32 CoreId);
 
 /**
  * @brief Check for unhandled EPT violations

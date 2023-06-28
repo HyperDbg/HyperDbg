@@ -448,7 +448,9 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
                 //
                 // Allowing execution of target page
                 //
-                ConfigureEptHookModifyInstructionFetchState(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)), FALSE);
+                ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                            PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)),
+                                                            FALSE);
 
                 //
                 // Address is valid, probably the module is previously loaded
@@ -468,7 +470,9 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
             //
             // Allowing execution of target page
             //
-            ConfigureEptHookModifyInstructionFetchState(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)), FALSE);
+            ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                        PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule)),
+                                                        FALSE);
 
             //
             // We reached here as a result of setting the second hardware debug breakpoint
@@ -1001,6 +1005,11 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
         // Handle for user-mode attaching mechanism
         //
         AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
+
+        //
+        // Supress incrementing the instruction
+        //
+        VmFuncSuppressRipIncrement(DbgState->CoreId);
 
         //
         // It's handled here

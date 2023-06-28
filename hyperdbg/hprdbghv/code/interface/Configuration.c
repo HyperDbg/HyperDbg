@@ -182,15 +182,18 @@ ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOO
  * @brief Change PML EPT state for execution (execute)
  * @detail should be called from VMX-root
  *
+ * @param CoreId Current Core ID
  * @param PhysicalAddress Target physical address
  * @param IsUnset Is unsetting bit or setting bit
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ConfigureEptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset)
+ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
+                                            PVOID   PhysicalAddress,
+                                            BOOLEAN IsUnset)
 {
-    return EptHookModifyInstructionFetchState(PhysicalAddress, IsUnset);
+    return EptHookModifyInstructionFetchState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
 }
 
 /**

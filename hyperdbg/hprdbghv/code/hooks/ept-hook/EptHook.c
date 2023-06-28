@@ -1744,13 +1744,16 @@ EptHookAllocateExtraHookingPages(UINT32 Count)
  * @brief Change PML EPT state for execution (execute)
  * @detail should be called from VMX-root
  *
+ * @param VCpu The virtual processor's state
  * @param PhysicalAddress Target physical address
  * @param IsUnset Is unsetting bit or setting bit
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset)
+EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
+                                   PVOID                   PhysicalAddress,
+                                   BOOLEAN                 IsUnset)
 {
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
@@ -1791,6 +1794,12 @@ EptHookModifyInstructionFetchState(PVOID PhysicalAddress, BOOLEAN IsUnset)
     // Invalidate the EPTP (single-context)
     //
     EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+    //
+    // Invalidate EPT of other cores (as we're in VMX-root, we use VMX-root
+    // boradcasting mechanism)
+    //
+    VmFuncNmiBroadcastInvalidateEptSingleContext(VCpu->CoreId);
 
     return TRUE;
 }

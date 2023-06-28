@@ -213,4 +213,4 @@ BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit);
 
 BOOLEAN
-UserAccessCheckForLoadedModuleDetails();
+UserAccessCheckForLoadedModuleDetails(UINT32 CoreId);

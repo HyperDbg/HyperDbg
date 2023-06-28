@@ -265,11 +265,12 @@ VmmCallbackQueryTerminateProtectedResource(UINT32                               
 
 /**
  * @brief routine callback to restore EPT state
+ * @param CoreId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-VmmCallbackRestoreEptState()
+VmmCallbackRestoreEptState(UINT32 CoreId)
 {
     if (g_Callbacks.VmmCallbackRestoreEptState == NULL)
     {
@@ -279,7 +280,7 @@ VmmCallbackRestoreEptState()
         return FALSE;
     }
 
-    return g_Callbacks.VmmCallbackRestoreEptState();
+    return g_Callbacks.VmmCallbackRestoreEptState(CoreId);
 }
 
 /**
