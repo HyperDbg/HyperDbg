@@ -157,44 +157,10 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
  *
  * @param Address
  * @param HasError
- * @return WORD
- */
-WORD
-ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
-{
-    WORD Result = NULL;
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-    if (!CheckAccessValidityAndSafety(Address, sizeof(WORD)))
-    {
-        *HasError = TRUE;
-
-        return NULL;
-    }
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
-#endif // SCRIPT_ENGINE_USER_MODE
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(WORD));
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return Result;
-}
-
-/**
- * @brief Implementation of dw keyword
- *
- * @param Address
- * @param HasError
  * @return DWORD
  */
 DWORD
-ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
+ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 {
     DWORD Result = NULL;
 
@@ -215,6 +181,40 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(DWORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of dw keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
+ */
+WORD
+ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
+{
+    WORD Result = NULL;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAccessValidityAndSafety(Address, sizeof(WORD)))
+    {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = *Address;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(WORD));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;

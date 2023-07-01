@@ -16,6 +16,7 @@ New release of the HyperDbg Debugger.
 ### Changed
 - The '.start' command's mechanism for finding the entrypoint is changed to address issues ([link](https://github.com/HyperDbg/HyperDbg/commit/c64cb39ebe066865a85e9dd4b696295260a81f18))
 - The buffer overlap error in hyperlog in multi-core systems is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/1fa06c0b5a8b93656803fdc455025f59aadd0adb))
+- The implementation of 'dd' (define dwrod, 32-bit), and 'dw' (define word, 16-bit) is changed ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
 
 ## [0.3.0.0] - 2023-06-08
 New release of the HyperDbg Debugger.

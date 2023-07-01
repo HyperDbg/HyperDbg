@@ -635,7 +635,15 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
                 ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
                 LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
-                PPAGE_ENTRY PageEntry = (PAGE_ENTRY *)VmFuncMemoryMapperGetPteVaOnTargetProcess(Entrypoint, PagingLevelPageTable);
+
+                if (MemoryMapperCheckPteIsPresentOnTargetProcess(Entrypoint, PagingLevelPageTable))
+                {
+                    LogInfo("Process is already running!");
+                }
+                else
+                {
+                    LogInfo("Process is not running!");
+                }
             }
         }
 
