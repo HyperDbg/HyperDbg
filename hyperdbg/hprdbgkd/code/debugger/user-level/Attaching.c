@@ -345,12 +345,22 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
  * @return VOID
  */
 VOID
-AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 ThreadDebuggingToken)
+AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     //
     // Finish the starting point of the thread
     //
-    AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(FALSE, ThreadDebuggingToken);
+    AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(FALSE, ProcessDebuggingDetail->Token);
+
+    //
+    // Redo the page modification if it's a EXEC prevention
+    //
+    if (ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent)
+    {
+        ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                    VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule),
+                                                    FALSE);
+    }
 
     //
     // Check if we're connect to the kHyperDbg or uHyperDbg
@@ -450,7 +460,7 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
                 // or another process with same image is currently running
                 // Thus, there is no need to inject #PF, we'll handle it in debugger
                 //
-                AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail->Token);
+                AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
             }
         }
         else if (g_IsWaitingForReturnAndRunFromPageFault)
@@ -464,7 +474,7 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
             // We reached here as a result of setting the second hardware debug breakpoint
             // and after injecting a page-fault
             //
-            AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail->Token);
+            AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
         }
     }
 }
@@ -639,9 +649,17 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
                 if (MemoryMapperCheckPteIsPresentOnTargetProcess(Entrypoint, PagingLevelPageTable))
                 {
                     LogInfo("Process is already running!");
+
+                    ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent = TRUE;
+
+                    ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+                                                                VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint),
+                                                                TRUE);
                 }
                 else
                 {
+                    ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent = FALSE;
+
                     LogInfo("Process is not running!");
                 }
             }
