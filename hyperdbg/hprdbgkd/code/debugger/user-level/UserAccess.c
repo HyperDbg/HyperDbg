@@ -242,7 +242,10 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOOLEAN Is32Bit, PUINT64 BaseAddress, PUINT64 Entrypoint)
+UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
+                                                            BOOLEAN Is32Bit,
+                                                            PUINT64 BaseAddress,
+                                                            PUINT64 Entrypoint)
 {
     if (Is32Bit)
     {
@@ -835,11 +838,10 @@ BOOLEAN
 UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    UINT64                              BaseAddress        = NULL;
-    UINT64                              Entrypoint         = NULL;
-    UINT64                              TargetPhysicalAddr = NULL;
-    PROCESSOR_DEBUGGING_STATE *         DbgState           = &g_DbgState[CoreId];
-
+    UINT64                              BaseAddress = NULL;
+    UINT64                              Entrypoint  = NULL;
+    PPAGE_ENTRY                         PageEntry   = NULL;
+    PROCESSOR_DEBUGGING_STATE *         DbgState    = &g_DbgState[CoreId];
     //
     // Check if the callback needs to be handled or not
     //
@@ -873,19 +875,9 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 
         // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
 
-        TargetPhysicalAddr = VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint);
-
-        if (!ProcessDebuggingDetail->EntrypointExecutionBitConfigured &&
-            TargetPhysicalAddr != NULL)
+        if (Entrypoint != NULL)
         {
-            //
-            // Disable instruction fetch for the target address
-            //
-            ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
-                                                        PAGE_ALIGN(TargetPhysicalAddr),
-                                                        TRUE);
-
-            ProcessDebuggingDetail->EntrypointExecutionBitConfigured = TRUE;
+            // MemoryMapperSetExecuteDisableToPteOnTargetProcess(Entrypoint, TRUE);
         }
 
         return TRUE;

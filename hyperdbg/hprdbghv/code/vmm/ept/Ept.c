@@ -311,6 +311,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     // Find the PML2 entry that's currently used
     //
     TargetEntry = EptGetPml2Entry(EptPageTable, PhysicalAddress);
+
     if (!TargetEntry)
     {
         LogError("Err, an invalid physical address passed");

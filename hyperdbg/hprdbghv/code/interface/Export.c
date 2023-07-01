@@ -665,3 +665,17 @@ VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
 {
     EptHookAllocateExtraHookingPages(Count);
 }
+
+/**
+ * @brief Get virtual address of regualr OS page tables
+ * @param Va
+ * @param Level
+ *
+ * @return PVOID
+ */
+PVOID
+VmFuncMemoryMapperGetPteVaOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
+
+{
+    return MemoryMapperGetPteVaOnTargetProcess(Va, Level);
+}

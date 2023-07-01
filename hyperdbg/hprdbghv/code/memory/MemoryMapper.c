@@ -115,6 +115,138 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 
 /**
  * @brief This function gets virtual address and returns its PTE of the virtual address
+ * based on the target virtual address
+ * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
+ * addresses so the kernel functions to translate addresses should be mapped; thus,
+ * don't pass a KPTI meltdown user cr3 to this function
+ *
+ * @param Va Virtual Address
+ * @param Level PMLx
+ *
+ * @return PVOID virtual address of PTE based on cr3
+ */
+_Use_decl_annotations_
+PVOID
+MemoryMapperGetPteVaOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
+{
+    PPAGE_ENTRY PageEntry = NULL;
+    CR3_TYPE    GuestCr3;
+    CR3_TYPE    CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Switch to new process's memory layout
+    // It is because, we're not trying to change the cr3 multiple times
+    // so instead of using PhysicalAddressToVirtualAddressByCr3 we use
+    // PhysicalAddressToVirtualAddress, but keep in mind that cr3 should
+    // be a kernel cr3 (not KPTI user cr3) as the functions to translate
+    // physical address to virtual address is not mapped on the user cr3
+    //
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
+
+    //
+    // Call the wrapper
+    //
+    PageEntry = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, GuestCr3);
+
+    //
+    // Check if process is already running or not
+    //
+    if (PageEntry->Fields.Present == TRUE)
+    {
+        //
+        // Process is already running
+        //
+        LogInfo("Process is already running");
+    }
+    else
+    {
+        //
+        // Process is not already running
+        //
+        LogInfo("Process is not already running");
+    }
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    return PageEntry;
+}
+
+/**
+ * @brief This function gets virtual address and returns its PTE of the virtual address
+ * based on the target virtual address
+ * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
+ * addresses so the kernel functions to translate addresses should be mapped; thus,
+ * don't pass a KPTI meltdown user cr3 to this function
+ *
+ * @param Va Virtual Address
+ * @param Set
+ *
+ * @return PVOID virtual address of PTE based on cr3
+ */
+_Use_decl_annotations_
+PVOID
+MemoryMapperSetExecuteDisableToPteOnTargetProcess(PVOID Va, BOOLEAN Set)
+{
+    PPAGE_ENTRY PageEntry = NULL;
+    CR3_TYPE    GuestCr3;
+    CR3_TYPE    CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Switch to new process's memory layout
+    // It is because, we're not trying to change the cr3 multiple times
+    // so instead of using PhysicalAddressToVirtualAddressByCr3 we use
+    // PhysicalAddressToVirtualAddress, but keep in mind that cr3 should
+    // be a kernel cr3 (not KPTI user cr3) as the functions to translate
+    // physical address to virtual address is not mapped on the user cr3
+    //
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
+
+    //
+    // Call the wrapper
+    //
+    PageEntry = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, PagingLevelPageTable, GuestCr3);
+
+    //
+    // Set execute disable bit
+    //
+    PageEntry->Fields.ExecuteDisable = Set;
+
+    //
+    // Invalidate the TLB
+    //
+    __invlpg(Va);
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    return PageEntry;
+}
+
+/**
+ * @brief This function gets virtual address and returns its PTE of the virtual address
  * based on the specific cr3 but without switching to the target address
  * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
  * addresses so the kernel functions to translate addresses should be mapped; thus,

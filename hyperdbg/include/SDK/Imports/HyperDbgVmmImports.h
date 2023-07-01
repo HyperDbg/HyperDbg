@@ -128,6 +128,9 @@ VmFuncEventInjectBreakpoint();
 IMPORT_EXPORT_VMM VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
 
+IMPORT_EXPORT_VMM PVOID
+VmFuncMemoryMapperGetPteVaOnTargetProcess(PVOID Va, PAGING_LEVEL Level);
+
 IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptSingleContext();
 
@@ -340,6 +343,14 @@ IMPORT_EXPORT_VMM PVOID
 MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
                                           _In_ PAGING_LEVEL Level,
                                           _In_ CR3_TYPE     TargetCr3);
+
+IMPORT_EXPORT_VMM PVOID
+MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
+                                    _In_ PAGING_LEVEL Level);
+
+IMPORT_EXPORT_VMM PVOID
+MemoryMapperSetExecuteDisableToPteOnTargetProcess(_In_ PVOID   Va,
+                                                  _In_ BOOLEAN Set);
 
 // ----------------------------------------------------------------------------
 // Reading Memory Functions

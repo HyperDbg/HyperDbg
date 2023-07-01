@@ -151,9 +151,9 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         //
         // Handle page-faults
+        // Check page-fault with user-debugger
         //
-        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
-            DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, NULL, ErrorCode))
+        if (DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, __readcr2(), ErrorCode))
         {
             //
             // The page-fault is handled through the user debugger, no need further action
