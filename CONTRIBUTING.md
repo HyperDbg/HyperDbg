@@ -39,8 +39,7 @@ Ask any question about HyperDbg by opening an [issue](https://GitHub.com/HyperDb
 
 ## Source code tree
 Here's the overview of HyperDbg's source code, including the project's relations and dependencies.
-
-
+</br></br></br>
 <img align="center" width="90%" height="50%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/source-tree/source-tree.png" alt="Source Tree">
 
 
