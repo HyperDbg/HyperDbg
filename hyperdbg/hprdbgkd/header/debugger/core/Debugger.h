@@ -25,6 +25,11 @@
  */
 #define DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT 1
 
+/**
+ * @brief debug register get entrypoint of user-mode process
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT 1
+
 //////////////////////////////////////////////////
 //					Structures					//
 //////////////////////////////////////////////////

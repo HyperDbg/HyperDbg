@@ -665,12 +665,54 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
             }
         }
 
+        if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL)
+        {
+            //
+            // Re-apply the hw debug reg breakpoint
+            //
+            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                              BREAK_ON_INSTRUCTION_FETCH,
+                              TRUE,
+                              ProcessDebuggingDetail->EntrypointOfMainModule);
+        }
+
         if (ProcessDebuggingDetail->EntrypointOfMainModule == Address)
         {
-            LogInfo("I reached entrypoint, user: %s, fetch: %s, present: %s",
+            LogInfo("(no!) I reached entrypoint, user: %s, fetch: %s, present: %s",
                     PageFaultCode.Fields.User ? "true" : "false",
                     PageFaultCode.Fields.Fetch ? "true" : "false",
                     PageFaultCode.Fields.Present ? "true" : "false");
+
+            // CHAR Temp[sizeof(UINT64)] = {0};
+
+            // MemoryMapperReadMemorySafeOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule, Temp, sizeof(UINT64));
+            // LogInfo("Temp : %02llx", *Temp);
+
+            // PVOID PageEntry = MemoryMapperGetPteVaOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule, PagingLevelPageTable);
+
+            // CHAR Bp = '\xcc';
+
+            // MemoryMapperWriteMemorySafeOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule,
+            //                                            &Bp,
+            //                                            sizeof(CHAR));
+
+            // ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
+            //                                             VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule),
+            //                                             TRUE);
+
+            // ConfigureEptHookModifyPageWriteState(DbgState->CoreId,
+            //                                     VirtualAddressToPhysicalAddressOnTargetProcess(PageEntry),
+            //                                     TRUE);
+
+            // AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
+
+            //
+            // Re-apply the hw debug reg breakpoint
+            //
+            // SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+            //                   BREAK_ON_INSTRUCTION_FETCH,
+            //                   TRUE,
+            //                   ProcessDebuggingDetail->EntrypointOfMainModule);
         }
 
         //
@@ -860,7 +902,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // allocate memory in the target user-mode process
     //
-    UsermodeReservedBuffer = MemoryMapperReserveUsermodeAddressInTargetProcess(AttachRequest->ProcessId, TRUE);
+    UsermodeReservedBuffer = MemoryMapperReserveUsermodeAddressOnTargetProcess(AttachRequest->ProcessId, TRUE);
 
     if (UsermodeReservedBuffer == NULL)
     {
@@ -934,23 +976,23 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Apply monitor memory range to the PEB address
         //
-        //  ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress(
-        //      PebAddressToMonitor,
-        //      AttachRequest->ProcessId,
-        //      TRUE,
-        //      TRUE);
-        //
-        //  if (!ResultOfApplyingEvent)
-        //  {
-        //      //
-        //      // Remove the created thread debugging detail
-        //      //
-        //      AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
-        //
-        //      g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
-        //      AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        //      return FALSE;
-        //  }
+        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress(
+            PebAddressToMonitor,
+            AttachRequest->ProcessId,
+            TRUE,
+            TRUE);
+
+        if (!ResultOfApplyingEvent)
+        {
+            //
+            // Remove the created thread debugging detail
+            //
+            AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
+
+            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+            AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+            return FALSE;
+        }
 
         //
         // If the page is not already on the RAM (another instance of process is not present),
@@ -1302,7 +1344,7 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
     //
     // Free the reserved memory in the target process
     //
-    if (!MemoryMapperFreeMemoryInTargetProcess(DetachRequest->ProcessId,
+    if (!MemoryMapperFreeMemoryOnTargetProcess(DetachRequest->ProcessId,
                                                ProcessDebuggingDetail->UsermodeReservedBuffer))
     {
         //

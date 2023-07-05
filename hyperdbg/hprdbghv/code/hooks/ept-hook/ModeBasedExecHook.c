@@ -765,7 +765,7 @@ ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *               
             //
             // Restore to normal state for current process
             //
-            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
+            ModeBasedExecHookRestoreNormalStateOnTargetProcess(VCpu);
         }
         else
         {
@@ -856,7 +856,7 @@ ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Restore to normal state for current process
             //
-            ModeBasedExecHookRestoreNormalStateInTargetProcess(VCpu);
+            ModeBasedExecHookRestoreNormalStateOnTargetProcess(VCpu);
         }
         else
         {
@@ -893,7 +893,7 @@ ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-ModeBasedExecHookRestoreNormalStateInTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
+ModeBasedExecHookRestoreNormalStateOnTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change to the MBEC Enabled EPTP

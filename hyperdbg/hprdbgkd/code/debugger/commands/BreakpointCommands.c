@@ -24,6 +24,8 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
 
+    LogInfo("Hit here");
+
     //
     // Check whether it is because of thread change detection or not
     //
@@ -40,6 +42,14 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         // handling this case
         //
         ThreadHandleThreadChange(DbgState);
+    }
+    else if (g_UserDebuggerState == TRUE &&
+             (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+    {
+        //
+        // Handle for user-mode attaching mechanism
+        //
+        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
     }
     else if (g_KernelDebuggerState == TRUE)
     {

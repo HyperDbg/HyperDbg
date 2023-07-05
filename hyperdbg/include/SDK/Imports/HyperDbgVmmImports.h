@@ -247,6 +247,12 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookModifyPageReadState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
 //////////////////////////////////////////////////
@@ -318,6 +324,9 @@ CheckAddressMaximumInstructionLength(PVOID Address);
 //
 IMPORT_EXPORT_VMM CR3_TYPE
 LayoutGetCurrentProcessCr3();
+
+IMPORT_EXPORT_VMM CR3_TYPE
+LayoutGetExactGuestProcessCr3();
 
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//
@@ -412,11 +421,11 @@ MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
 // Reserving Memory Functions
 //
 IMPORT_EXPORT_VMM UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
+MemoryMapperReserveUsermodeAddressOnTargetProcess(_In_ UINT32  ProcessId,
                                                   _In_ BOOLEAN Allocate);
 
 IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
+MemoryMapperFreeMemoryOnTargetProcess(_In_ UINT32   ProcessId,
                                       _Inout_ PVOID BaseAddress);
 
 // ----------------------------------------------------------------------------

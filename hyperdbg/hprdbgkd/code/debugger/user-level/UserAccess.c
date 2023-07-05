@@ -864,21 +864,32 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
         return FALSE;
     }
 
-    if (ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+    if (ProcessDebuggingDetail->EntrypointOfMainModule == NULL &&
+        ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+        CheckAccessValidityAndSafety(ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
                                                                     ProcessDebuggingDetail->Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {
-        ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
-        ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
-
-        // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
-
         if (Entrypoint != NULL)
         {
-            // MemoryMapperSetExecuteDisableToPteOnTargetProcess(Entrypoint, TRUE);
+            ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
+            ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
+
+            LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
         }
+    }
+
+    if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL)
+    {
+        //
+        // Re-apply the hw debug reg breakpoint
+        //
+        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          TRUE,
+                          ProcessDebuggingDetail->EntrypointOfMainModule);
 
         return TRUE;
     }

@@ -197,6 +197,42 @@ ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
 }
 
 /**
+ * @brief Change PML EPT state for read
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureEptHookModifyPageReadState(UINT32  CoreId,
+                                    PVOID   PhysicalAddress,
+                                    BOOLEAN IsUnset)
+{
+    return EptHookModifyPageReadState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
+}
+
+/**
+ * @brief Change PML EPT state for write
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
+                                     PVOID   PhysicalAddress,
+                                     BOOLEAN IsUnset)
+{
+    return EptHookModifyPageWriteState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
+}
+
+/**
  * @brief routines for enabling EFER syscall hooks on a single core
  *
  * @param TargetCoreId The target core's ID (to just run on this core)

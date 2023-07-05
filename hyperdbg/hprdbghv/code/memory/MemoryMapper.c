@@ -1410,7 +1410,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa,
  */
 _Use_decl_annotations_
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate)
+MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allocate)
 {
     NTSTATUS   Status;
     PVOID      AllocPtr  = NULL;
@@ -1490,7 +1490,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allo
  */
 _Use_decl_annotations_
 BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId,
+MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
                                       PVOID  BaseAddress)
 {
     NTSTATUS   Status;
