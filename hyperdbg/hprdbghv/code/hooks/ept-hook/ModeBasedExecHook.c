@@ -138,11 +138,6 @@ ModeBasedExecHookInitialize()
     BroadcastNotifyAllToInvalidateEptAllCores();
 
     //
-    // Change EPT on all core's to a MBEC supported EPTP
-    //
-    BroadcastChangeToMbecSupportedEptpOnAllProcessors();
-
-    //
     // Indicate that MBEC is initialized
     //
     g_ModeBasedExecutionControlState = TRUE;

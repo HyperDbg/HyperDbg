@@ -548,6 +548,11 @@ ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServ
     }
 
     //
+    // Change EPT on all core's to a MBEC supported EPTP
+    //
+    BroadcastChangeToMbecSupportedEptpOnAllProcessors();
+
+    //
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting
     //
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
