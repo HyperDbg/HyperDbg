@@ -123,6 +123,11 @@
 #include "broadcast/DpcRoutines.h"
 
 //
+// Headers for supporting the reversing machine (TRM)
+//
+#include "features/reversing/ReversingMachine.h"
+
+//
 // Global Variables should be the last header to include
 //
 #include "globals/GlobalVariableManagement.h"

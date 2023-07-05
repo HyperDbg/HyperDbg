@@ -35,9 +35,9 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
  * @return VOID
  */
 VOID
-ConfigureModeBasedExecHookInitializeOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
-    ModeBasedExecHookReversingMachineInitialize(RevServiceRequest);
+    ReversingMachineInitialize(RevServiceRequest);
 }
 
 /**

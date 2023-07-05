@@ -24,8 +24,6 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
 
-    LogInfo("Hit here");
-
     //
     // Check whether it is because of thread change detection or not
     //

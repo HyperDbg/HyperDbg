@@ -129,6 +129,12 @@
     <Filter Include="header\disassembler\zycore">
       <UniqueIdentifier>{e92a39db-1b51-4463-b12f-d9d86b4e6781}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\features\reversing">
+      <UniqueIdentifier>{cd5a5094-3e8b-4a3a-8192-f81de2c71065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\features\reversing">
+      <UniqueIdentifier>{a13f3861-41c6-4b4e-84c7-a3f8bd36fa52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -274,6 +280,9 @@
     </ClCompile>
     <ClCompile Include="code\disassembler\Disassembler.c">
       <Filter>code\disassembler</Filter>
+    </ClCompile>
+    <ClCompile Include="code\features\reversing\ReversingMachine.c">
+      <Filter>code\features\reversing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -513,6 +522,9 @@
     </ClInclude>
     <ClInclude Include="header\disassembler\Disassembler.h">
       <Filter>header\disassembler</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\reversing\ReversingMachine.h">
+      <Filter>header\features\reversing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -232,9 +232,6 @@ IMPORT_EXPORT_VMM VOID
 ConfigureDirtyLoggingUninitializeOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
-ConfigureModeBasedExecHookInitializeOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
-
-IMPORT_EXPORT_VMM VOID
 ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
 IMPORT_EXPORT_VMM BOOLEAN
@@ -254,6 +251,13 @@ ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLE
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+
+//////////////////////////////////////////////////
+//         Reversing Machine Functions 	   		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM VOID
+ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
