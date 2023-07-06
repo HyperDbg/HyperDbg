@@ -128,6 +128,11 @@
 #include "features/reversing/ReversingMachine.h"
 
 //
+// Headers for exporting functions to remove the driver
+//
+#include "common/UnloadDll.h"
+
+//
 // Global Variables should be the last header to include
 //
 #include "globals/GlobalVariableManagement.h"

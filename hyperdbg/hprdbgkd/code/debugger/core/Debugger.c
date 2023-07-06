@@ -225,6 +225,11 @@ DebuggerUninitialize()
     //
 
     //
+    // Disable triggering events
+    //
+    g_EnableDebuggerEvents = FALSE;
+
+    //
     // First, disable all events
     //
     DebuggerEnableOrDisableAllEvents(FALSE);
@@ -265,6 +270,7 @@ DebuggerUninitialize()
     if (g_ScriptGlobalVariables != NULL)
     {
         ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+        g_ScriptGlobalVariables = NULL;
     }
 
     //
@@ -277,11 +283,13 @@ DebuggerUninitialize()
         if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = NULL;
         }
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
         {
             ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
+            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = NULL;
         }
     }
 
@@ -714,6 +722,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     if (TempList == NULL)
     {
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
+    }
+
+    if (TempList == 0x80)
+    {
+        DbgBreakPoint();
     }
 
     while (TempList2 != TempList->Flink)

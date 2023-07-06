@@ -1,4 +1,15 @@
-#include <ntddk.h>
+/**
+ * @file UnloadDll.c
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Unloading DLL in the target Windows
+ *
+ * @version 0.4
+ * @date 2023-07-06
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
+#include "pch.h"
 
 //
 // We'll add these functions, so whenever HyperDbg's driver is unloaded
