@@ -193,6 +193,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3);
  * @param ProcessCr3
  * @param UnsetRead
  * @param UnsetWrite
+ * @param EptHiddenHook
  * @param UnsetExecute
  * @return BOOLEAN
  */
@@ -202,7 +203,8 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
                         CR3_TYPE ProcessCr3,
                         BOOLEAN  UnsetRead,
                         BOOLEAN  UnsetWrite,
-                        BOOLEAN  UnsetExecute);
+                        BOOLEAN  UnsetExecute,
+                        BOOLEAN  EptHiddenHook);
 
 /**
  * @brief Hook in VMX Non Root Mode (hidden breakpoint)
@@ -223,6 +225,8 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId);
  * @param SetHookForRead
  * @param SetHookForWrite
  * @param SetHookForExec
+ * @param EptHiddenHook2
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -231,7 +235,8 @@ EptHook2(PVOID   TargetAddress,
          UINT32  ProcessId,
          BOOLEAN SetHookForRead,
          BOOLEAN SetHookForWrite,
-         BOOLEAN SetHookForExec);
+         BOOLEAN SetHookForExec,
+         BOOLEAN EptHiddenHook2);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode

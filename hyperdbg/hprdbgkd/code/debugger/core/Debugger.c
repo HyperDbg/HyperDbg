@@ -86,9 +86,13 @@ DebuggerInitialize()
     // Initialize lists relating to the debugger events store
     //
     InitializeListHead(&g_Events->EptHookExecCcEventsHead);
+    InitializeListHead(&g_Events->HiddenHookReadAndWriteAndExecuteEventsHead);
     InitializeListHead(&g_Events->HiddenHookReadAndWriteEventsHead);
+    InitializeListHead(&g_Events->HiddenHookReadAndExecuteEventsHead);
+    InitializeListHead(&g_Events->HiddenHookWriteAndExecuteEventsHead);
     InitializeListHead(&g_Events->HiddenHookReadEventsHead);
     InitializeListHead(&g_Events->HiddenHookWriteEventsHead);
+    InitializeListHead(&g_Events->HiddenHookExecuteEventsHead);
     InitializeListHead(&g_Events->EptHook2sExecDetourEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSyscallEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSysretEventsHead);
@@ -724,11 +728,6 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
     }
 
-    if (TempList == 0x80)
-    {
-        DbgBreakPoint();
-    }
-
     while (TempList2 != TempList->Flink)
     {
         TempList                     = TempList->Flink;
@@ -787,12 +786,16 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
+        case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
         case HIDDEN_HOOK_READ_AND_WRITE:
+        case HIDDEN_HOOK_READ_AND_EXECUTE:
+        case HIDDEN_HOOK_WRITE_AND_EXECUTE:
         case HIDDEN_HOOK_READ:
         case HIDDEN_HOOK_WRITE:
+        case HIDDEN_HOOK_EXECUTE:
 
             //
-            // For hidden hook read/writes we check whether the address
+            // For hidden hook read/write/execute we check whether the address
             // is in the range of what user specified or not, this is because
             // we get the events for all hidden hooks in a page granularity
             //
@@ -1516,14 +1519,26 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     //
     switch (EventType)
     {
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+        ResultList = &g_Events->HiddenHookReadAndWriteAndExecuteEventsHead;
+        break;
     case HIDDEN_HOOK_READ_AND_WRITE:
         ResultList = &g_Events->HiddenHookReadAndWriteEventsHead;
+        break;
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+        ResultList = &g_Events->HiddenHookReadAndExecuteEventsHead;
+        break;
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+        ResultList = &g_Events->HiddenHookWriteAndExecuteEventsHead;
         break;
     case HIDDEN_HOOK_READ:
         ResultList = &g_Events->HiddenHookReadEventsHead;
         break;
     case HIDDEN_HOOK_WRITE:
         ResultList = &g_Events->HiddenHookWriteEventsHead;
+        break;
+    case HIDDEN_HOOK_EXECUTE:
+        ResultList = &g_Events->HiddenHookExecuteEventsHead;
         break;
     case HIDDEN_HOOK_EXEC_DETOURS:
         ResultList = &g_Events->EptHook2sExecDetourEventsHead;
@@ -2136,7 +2151,13 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE || EventDetails->EventType == HIDDEN_HOOK_READ || EventDetails->EventType == HIDDEN_HOOK_WRITE)
+    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE ||
+             EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
+             EventDetails->EventType == HIDDEN_HOOK_READ_AND_EXECUTE ||
+             EventDetails->EventType == HIDDEN_HOOK_WRITE_AND_EXECUTE ||
+             EventDetails->EventType == HIDDEN_HOOK_READ ||
+             EventDetails->EventType == HIDDEN_HOOK_WRITE ||
+             EventDetails->EventType == HIDDEN_HOOK_EXECUTE)
     {
         //
         // First check if the address are valid
@@ -2239,9 +2260,13 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     switch (EventDetails->EventType)
     {
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ:
     case HIDDEN_HOOK_WRITE:
+    case HIDDEN_HOOK_EXECUTE:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2260,11 +2285,67 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // In all the cases we should set both read/write, even if it's only
             // read we should set the write too!
+            // Also execute bit has the same conditions here, because if write is set
+            // read should be also set
             //
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                     EventDetails->ProcessId,
-                                                                                     TRUE,
-                                                                                     TRUE);
+            switch (EventDetails->EventType)
+            {
+            case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+            case HIDDEN_HOOK_READ_AND_EXECUTE:
+
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                EventDetails->ProcessId,
+                                                                                TRUE,
+                                                                                TRUE,
+                                                                                TRUE);
+                break;
+
+            case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                EventDetails->ProcessId,
+                                                                                FALSE,
+                                                                                TRUE,
+                                                                                TRUE);
+                break;
+
+            case HIDDEN_HOOK_READ_AND_WRITE:
+            case HIDDEN_HOOK_READ:
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                EventDetails->ProcessId,
+                                                                                TRUE,
+                                                                                TRUE,
+                                                                                FALSE);
+
+                break;
+
+            case HIDDEN_HOOK_WRITE:
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                EventDetails->ProcessId,
+                                                                                FALSE,
+                                                                                TRUE,
+                                                                                FALSE);
+
+                break;
+
+            case HIDDEN_HOOK_EXECUTE:
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                EventDetails->ProcessId,
+                                                                                FALSE,
+                                                                                FALSE,
+                                                                                TRUE);
+                break;
+
+            default:
+                LogError("Err, Invalid monitor hook type");
+
+                ResultsToReturnUsermode->IsSuccessful = FALSE;
+                ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+
+                goto ClearTheEventAfterCreatingEvent;
+
+                break;
+            }
 
             if (!ResultOfApplyingEvent)
             {
@@ -2366,7 +2447,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, TRUE))
+        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -3034,14 +3115,18 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ:
     case HIDDEN_HOOK_WRITE:
+    case HIDDEN_HOOK_EXECUTE:
     {
         //
-        // Call read and write ept hook terminator
+        // Call read and write and execute ept hook terminator
         //
-        TerminateHiddenHookReadAndWriteEvent(Event);
+        TerminateHiddenHookReadAndWriteAndExecuteEvent(Event);
 
         break;
     }

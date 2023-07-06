@@ -170,12 +170,19 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @param SetHookForRead Hook READ Access
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+ConfigureEptHook2(PVOID   TargetAddress,
+                  PVOID   HookFunction,
+                  UINT32  ProcessId,
+                  BOOLEAN SetHookForRead,
+                  BOOLEAN SetHookForWrite,
+                  BOOLEAN SetHookForExec,
+                  BOOLEAN EptHiddenHook2)
 {
-    return EptHook2(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec);
+    return EptHook2(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec, EptHiddenHook2);
 }
 
 /**

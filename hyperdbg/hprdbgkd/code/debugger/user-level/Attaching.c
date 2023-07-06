@@ -976,11 +976,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Apply monitor memory range to the PEB address
         //
-        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress(
+        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(
             PebAddressToMonitor,
             AttachRequest->ProcessId,
             TRUE,
-            TRUE);
+            TRUE,
+            FALSE);
 
         if (!ResultOfApplyingEvent)
         {

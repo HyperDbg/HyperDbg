@@ -865,24 +865,28 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
     if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
     {
         //
-        // Check whether this is a "write" monitor hook or not
+        // *** TODO: ALL OF THEM SHOULD NOT BE CALLED HERE, FIX IT. ***
+        // ONLY ONE OF THEM SHOULD BE CALLED, BECAUSE AND EVENT MIGHT BE TRIGGERED MULTIPLE TIMES
+        // MAKE SURE TO FIX IT, THAT'S WHY I COMMENT IT TO BE FIXED
         //
-        if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
-        {
-            //
-            // This is a "write" hook
-            //
-            DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
-                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
-        else
-        {
-            //
-            // This is a "read" hook
-            //
-            DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
-                                                              &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
+
+        //  //
+        //  // This is a "read" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VCpu,
+        //                                                        &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "write" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VCpu,
+        //                                                         &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "execute" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VCpu,
+        //                                                           &VCpu->MtfEptHookRestorePoint->LastContextState);
     }
 
     //

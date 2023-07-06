@@ -768,6 +768,8 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
  * @param UnsetRead Hook READ Access
  * @param UnsetWrite Hook WRITE Access
  * @param UnsetExecute Hook EXECUTE Access
+ * @param EptHiddenHook !epthook2-like events
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -776,7 +778,8 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
                         CR3_TYPE ProcessCr3,
                         BOOLEAN  UnsetRead,
                         BOOLEAN  UnsetWrite,
-                        BOOLEAN  UnsetExecute)
+                        BOOLEAN  UnsetExecute,
+                        BOOLEAN  EptHiddenHook)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -891,6 +894,13 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     else
         ChangedEntry.WriteAccess = 1;
 
+    if (UnsetExecute)
+        ChangedEntry.ExecuteAccess = 0;
+    else
+        ChangedEntry.ExecuteAccess = 1;
+
+    DbgBreakPoint();
+
     //
     // Save the detail of hooked page to keep track of it
     //
@@ -928,14 +938,6 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     // Save the original entry
     //
     HookedPage->OriginalEntry = *TargetPage;
-
-    //
-    // Check if the hook relates to the write condition
-    //
-    if (UnsetWrite)
-    {
-        HookedPage->IsMonitorToWriteOnPages = TRUE;
-    }
 
     //
     // If it's Execution hook then we have to set extra fields
@@ -1053,10 +1055,18 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
  * @param SetHookForRead Hook READ Access
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+EptHook2(PVOID   TargetAddress,
+         PVOID   HookFunction,
+         UINT32  ProcessId,
+         BOOLEAN SetHookForRead,
+         BOOLEAN SetHookForWrite,
+         BOOLEAN SetHookForExec,
+         BOOLEAN EptHiddenHook2)
 {
     UINT32 PageHookMask = 0;
     ULONG  LogicalCoreIndex;
@@ -1107,7 +1117,11 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     }
     if (SetHookForExec)
     {
-        PageHookMask |= PAGE_ATTRIB_EXEC;
+        PageHookMask |= PAGE_ATTRIB_EXEC2;
+    }
+    if (EptHiddenHook2)
+    {
+        PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
     }
 
     if (PageHookMask == 0)
@@ -1161,7 +1175,8 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
                                     LayoutGetCr3ByProcessId(ProcessId),
                                     SetHookForRead,
                                     SetHookForWrite,
-                                    SetHookForExec) == TRUE)
+                                    SetHookForExec,
+                                    EptHiddenHook2) == TRUE)
         {
             LogInfo("Hook applied (VM has not launched)");
             return TRUE;
@@ -1234,17 +1249,6 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
         LogError("Err, Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedVirtualAddress);
     }
-    else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
-    {
-        //
-        // LogInfo("Guest RIP : 0x%llx tries to write on the page at : 0x%llx", GuestRip, ExactAccessedAddress);
-        //
-
-        //
-        // Trigger the event related to Monitor Write and Monitor Read & Write
-        //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
-    }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
         //
@@ -1252,9 +1256,34 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
 
         //
-        // Trigger the event related to Monitor Read and Monitor Read & Write
+        // Trigger the event related to Monitor Read and Monitor Read & Write and
+        // Monitor Read & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+    }
+    else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
+    {
+        //
+        // LogInfo("Guest RIP : 0x%llx tries to write on the page at : 0x%llx", GuestRip, ExactAccessedAddress);
+        //
+
+        //
+        // Trigger the event related to Monitor Write and Monitor Read & Write and
+        // Monitor Write & Execute and Monitor Read & Write & Execute
+        //
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+    }
+    else if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
+    {
+        //
+        // LogInfo("Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
+        //
+
+        //
+        // Trigger the event related to Monitor Execute and Monitor Read & Execute and
+        // Monitor Write & Execute and Monitor Read & Write & Execute
+        //
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
     }
     else
     {
