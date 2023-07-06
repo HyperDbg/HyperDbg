@@ -342,3 +342,33 @@ BOOLEAN
 EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
                                    PVOID                   PhysicalAddress,
                                    BOOLEAN                 IsUnset);
+
+/**
+ * @brief Change PML EPT state for read
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
+                           PVOID                   PhysicalAddress,
+                           BOOLEAN                 IsUnset);
+
+/**
+ * @brief Change PML EPT state for write
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
+                            PVOID                   PhysicalAddress,
+                            BOOLEAN                 IsUnset);

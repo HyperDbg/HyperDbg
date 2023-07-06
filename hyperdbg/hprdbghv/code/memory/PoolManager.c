@@ -38,6 +38,7 @@ VOID
 PlmgrFreeRequestNewAllocation(VOID)
 {
     ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
+    g_RequestNewAllocation = NULL;
 }
 
 // ----------------------------------------------------------------------------

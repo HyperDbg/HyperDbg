@@ -41,6 +41,14 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         //
         ThreadHandleThreadChange(DbgState);
     }
+    else if (g_UserDebuggerState == TRUE &&
+             (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+    {
+        //
+        // Handle for user-mode attaching mechanism
+        //
+        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
+    }
     else if (g_KernelDebuggerState == TRUE)
     {
         //

@@ -243,6 +243,7 @@ LogUnInitialize()
     // de-allocate buffers for trace message and data messages
     //
     ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+    MessageBufferInformation = NULL;
 }
 
 /**

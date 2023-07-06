@@ -204,11 +204,11 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             }
 
             //
-            // Call handler of mode-based execution hooks
+            // Call handler of the reversing machine
             //
-            if (g_CheckForModeBasedExecutionControl)
+            if (g_ReversingMachineInitialized)
             {
-                ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
+                ReversingMachineHandleCr3Vmexit(VCpu, NewCr3);
             }
 
             break;

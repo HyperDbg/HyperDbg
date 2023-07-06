@@ -48,28 +48,5 @@ ModeBasedExecHookInitialize();
 VOID
 ModeBasedExecHookUninitialize();
 
-VOID
-ModeBasedExecHookHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3);
-
-VOID
-ModeBasedExecHookHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-ModeBasedExecHookChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-ModeBasedExecHookRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-ModeBasedExecHookChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu);
-
 BOOLEAN
-ModeBasedExecHookHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
-                                          VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
-                                          UINT64                                 GuestPhysicalAddr);
-
-BOOLEAN
-ModeBasedExecHookReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
-
-VOID
-ModeBasedExecHookRestoreNormalStateInTargetProcess(VIRTUAL_MACHINE_STATE * VCpu);
+ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable);

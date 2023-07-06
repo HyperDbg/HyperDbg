@@ -96,11 +96,13 @@
   <ItemGroup>
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="code\Logging.c" />
+    <ClCompile Include="code\UnloadDll.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="header\Logging.h" />
     <ClInclude Include="header\pch.h" />
+    <ClInclude Include="header\UnloadDll.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

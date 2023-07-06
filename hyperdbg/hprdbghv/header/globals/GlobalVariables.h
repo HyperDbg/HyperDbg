@@ -117,7 +117,7 @@ BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;
  * @brief Enable interception of Cr3 for Mode-based Execution detection
  *
  */
-BOOLEAN g_CheckForModeBasedExecutionControl;
+BOOLEAN g_ModeBasedExecutionControlState;
 
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //
@@ -136,3 +136,10 @@ BOOLEAN g_TriggerEventForVmcalls;
  *
  */
 BOOLEAN g_TriggerEventForCpuids;
+
+/**
+ * @brief Showes whether the cpuid handler is
+ * allowed to trigger an event or not
+ *
+ */
+BOOLEAN g_ReversingMachineInitialized;

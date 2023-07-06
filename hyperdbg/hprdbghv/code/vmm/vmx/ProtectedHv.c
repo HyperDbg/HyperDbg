@@ -517,9 +517,9 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
         }
 
         //
-        // Check if the mode-based execution hook is enabled or not
+        // Check if the reversing machine is enabled or not
         //
-        if (g_CheckForModeBasedExecutionControl)
+        if (g_ReversingMachineInitialized)
         {
             //
             // The VMM needs mov2cr3s

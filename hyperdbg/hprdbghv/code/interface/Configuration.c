@@ -35,9 +35,9 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
  * @return VOID
  */
 VOID
-ConfigureModeBasedExecHookInitializeOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
-    ModeBasedExecHookReversingMachineInitialize(RevServiceRequest);
+    ReversingMachineInitialize(RevServiceRequest);
 }
 
 /**
@@ -194,6 +194,42 @@ ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
                                             BOOLEAN IsUnset)
 {
     return EptHookModifyInstructionFetchState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
+}
+
+/**
+ * @brief Change PML EPT state for read
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureEptHookModifyPageReadState(UINT32  CoreId,
+                                    PVOID   PhysicalAddress,
+                                    BOOLEAN IsUnset)
+{
+    return EptHookModifyPageReadState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
+}
+
+/**
+ * @brief Change PML EPT state for write
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
+                                     PVOID   PhysicalAddress,
+                                     BOOLEAN IsUnset)
+{
+    return EptHookModifyPageWriteState(&g_GuestState[CoreId], PhysicalAddress, IsUnset);
 }
 
 /**

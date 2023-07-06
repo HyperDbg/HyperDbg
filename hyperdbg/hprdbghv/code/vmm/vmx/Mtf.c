@@ -85,7 +85,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle callback for the MBEC hooks
         //
-        ModeBasedExecHookHandleMtfCallback(VCpu);
+        ReversingMachineHandleMtfCallback(VCpu);
     }
 
     //
