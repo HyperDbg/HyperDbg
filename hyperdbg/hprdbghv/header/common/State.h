@@ -155,11 +155,6 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsHiddenBreakpoint;
 
     /**
-     * @brief If TRUE, this hook relates to the write violation of the events
-     */
-    BOOLEAN IsMonitorToWriteOnPages;
-
-    /**
      * @brief Temporary context for the post event monitors
      * It shows the context of the last address that triggered the hook
      * Note: Only used for read/write trigger events

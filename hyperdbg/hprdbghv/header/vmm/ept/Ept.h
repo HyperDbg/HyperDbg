@@ -19,9 +19,10 @@
  * @brief Page attributes for internal use
  *
  */
-#define PAGE_ATTRIB_READ  0x2
-#define PAGE_ATTRIB_WRITE 0x4
-#define PAGE_ATTRIB_EXEC  0x8
+#define PAGE_ATTRIB_READ             0x2
+#define PAGE_ATTRIB_WRITE            0x4
+#define PAGE_ATTRIB_EXEC             0x8
+#define PAGE_ATTRIB_EXEC_HIDDEN_HOOK 0x10
 
 /**
  * @brief The number of 512GB PML4 entries in the page table

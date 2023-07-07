@@ -93,6 +93,9 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Tracking records of function calls and return addresses [<a href="https://docs.hyperdbg.org/commands/extension-commands/track" target="_blank">link</a>]
 * Kernel-level Length Disassembler Engine (LDE) [<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len32" target="_blank">link</a>]
 
+### Fourth Release (v0.4.0.0)
+* Memory Execution Monitor And Execution Blocking [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
+
 ## How does it work?
 
 You can read about the internal design of HyperDbg and its features in the [documentation](https://docs.hyperdbg.org/design). Here's a top-level diagram that shows how HyperDbg works:

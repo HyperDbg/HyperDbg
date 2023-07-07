@@ -685,8 +685,9 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
 {
     BOOLEAN ResultOfHandlingHook;
     BOOLEAN IsHandled                    = FALSE;
-    BOOLEAN IgnoreReadOrWrite            = FALSE;
+    BOOLEAN IgnoreReadOrWriteOrExec      = FALSE;
     BOOLEAN IsTriggeringPostEventAllowed = FALSE;
+    BOOLEAN IsExecViolation              = FALSE;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
@@ -709,7 +710,8 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                                                            ViolationQualification,
                                                            GuestPhysicalAddr,
                                                            &HookedEntry->LastContextState,
-                                                           &IgnoreReadOrWrite,
+                                                           &IgnoreReadOrWriteOrExec,
+                                                           &IsExecViolation,
                                                            &IsTriggeringPostEventAllowed);
 
             if (ResultOfHandlingHook)
@@ -719,7 +721,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                 // if we don't apply the below restorations routines, the event
                 // won't redo and the emulation of the memory access is passed
                 //
-                if (!IgnoreReadOrWrite)
+                if (!IgnoreReadOrWriteOrExec)
                 {
                     //
                     // Restore to its original entry for one instruction
@@ -764,7 +766,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     //
     // Check whether the event should be ignored or not
     //
-    if (IgnoreReadOrWrite)
+    if (IgnoreReadOrWriteOrExec)
     {
         //
         // Do not redo the instruction (EPT hooks won't affect the VMCS_VMEXIT_INSTRUCTION_LENGTH),
@@ -775,15 +777,22 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         HvSuppressRipIncrement(VCpu); // Just to make sure nothing is added to the address
 
         //
-        // Get the RIP here as the RIP might be changed by the user and thus is not valid to be read
-        // from the VCpu
+        // If the target violation is for READ/WRITE, we ignore the current instruction and move to the
+        // next instruction, but if the violation is for execute access, then we just won't increment the RIP
         //
-        CurrentRip               = HvGetRip();
-        CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
+        if (!IsExecViolation)
+        {
+            //
+            // Get the RIP here as the RIP might be changed by the user and thus is not valid to be read
+            // from the VCpu
+            //
+            CurrentRip               = HvGetRip();
+            CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
 
-        CurrentRip = CurrentRip + CurrentInstructionLength;
+            CurrentRip = CurrentRip + CurrentInstructionLength;
 
-        HvSetRip(CurrentRip);
+            HvSetRip(CurrentRip);
+        }
     }
     else
     {
@@ -865,24 +874,28 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
     if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
     {
         //
-        // Check whether this is a "write" monitor hook or not
+        // *** TODO: ALL OF THEM SHOULD NOT BE CALLED HERE, FIX IT. ***
+        // ONLY ONE OF THEM SHOULD BE CALLED, BECAUSE AND EVENT MIGHT BE TRIGGERED MULTIPLE TIMES
+        // MAKE SURE TO FIX IT, THAT'S WHY I COMMENT IT TO BE FIXED
         //
-        if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
-        {
-            //
-            // This is a "write" hook
-            //
-            DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
-                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
-        else
-        {
-            //
-            // This is a "read" hook
-            //
-            DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
-                                                              &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
+
+        //  //
+        //  // This is a "read" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VCpu,
+        //                                                        &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "write" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VCpu,
+        //                                                         &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "execute" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VCpu,
+        //                                                           &VCpu->MtfEptHookRestorePoint->LastContextState);
     }
 
     //

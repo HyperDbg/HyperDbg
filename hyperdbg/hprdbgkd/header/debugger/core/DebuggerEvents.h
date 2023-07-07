@@ -28,9 +28,11 @@ VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
 
 BOOLEAN
-DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64  Address,
-                                                 UINT32  ProcessId,
-                                                 BOOLEAN EnableForRead,
-                                                 BOOLEAN EnableForWrite);
+DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
+                                        UINT32  ProcessId,
+                                        BOOLEAN EnableForRead,
+                                        BOOLEAN EnableForWrite,
+                                        BOOLEAN EnableForExecute);
+
 BOOLEAN
 DebuggerCheckProcessOrThreadChange(_In_ UINT32 CoreId);

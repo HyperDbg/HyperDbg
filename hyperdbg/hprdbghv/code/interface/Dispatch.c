@@ -881,63 +881,7 @@ DispatchEventHiddenHookExecDetours(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 }
 
 /**
- * @brief Handling debugger functions related to read & write, write events (pre)
- *
- * @param VCpu The virtual processor's state
- * @param Context The context of the caller
- * @param IsTriggeringPostEventAllowed Is the caller required to trigger post event
- * @return BOOLEAN
- */
-BOOLEAN
-DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
-{
-    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                                   PostEventTriggerReq  = FALSE;
-    BOOLEAN                                   ShortCircuitingEvent = FALSE;
-
-    //
-    // Triggering the pre-event (for the write hooks)
-    //
-    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE,
-                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  Context,
-                                                  &PostEventTriggerReq,
-                                                  VCpu->Regs);
-
-    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
-    {
-        ShortCircuitingEvent = TRUE;
-    }
-
-    if (PostEventTriggerReq)
-    {
-        *IsTriggeringPostEventAllowed = TRUE;
-    }
-
-    //
-    // Triggering the pre-event (for the read & write hooks)
-    //
-    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  Context,
-                                                  &PostEventTriggerReq,
-                                                  VCpu->Regs);
-
-    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
-    {
-        ShortCircuitingEvent = TRUE;
-    }
-
-    if (PostEventTriggerReq)
-    {
-        *IsTriggeringPostEventAllowed = TRUE;
-    }
-
-    return ShortCircuitingEvent;
-}
-
-/**
- * @brief Handling debugger functions related to read & write, read events (pre)
+ * @brief Handling debugger functions related to read & write & execute, read events (pre)
  *
  * @param VCpu The virtual processor's state
  * @param Context The context of the caller
@@ -945,7 +889,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, 
  * @return BOOLEAN
  */
 BOOLEAN
-DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq  = FALSE;
@@ -989,18 +933,291 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(VIRTUAL_MACHINE_STATE * VCpu, P
         *IsTriggeringPostEventAllowed = TRUE;
     }
 
+    //
+    // Triggering the pre-event (for the read & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
     return ShortCircuitingEvent;
 }
 
 /**
- * @brief Handling debugger functions related to read & write, write events (post)
+ * @brief Handling debugger functions related to read & write & execute, write events (pre)
+ *
+ * @param VCpu The virtual processor's state
+ * @param Context The context of the caller
+ * @param IsTriggeringPostEventAllowed Is the caller required to trigger post event
+ * @return BOOLEAN
+ */
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq  = FALSE;
+    BOOLEAN                                   ShortCircuitingEvent = FALSE;
+
+    //
+    // Triggering the pre-event (for the write hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the write & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    return ShortCircuitingEvent;
+}
+
+/**
+ * @brief Handling debugger functions related to read & write & execute, execute events (pre)
+ *
+ * @param VCpu The virtual processor's state
+ * @param Context The context of the caller
+ * @param IsTriggeringPostEventAllowed
+ * @return BOOLEAN
+ */
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq  = FALSE;
+    BOOLEAN                                   ShortCircuitingEvent = FALSE;
+
+    //
+    // Triggering the pre-event (for the execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the write & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write & execute hooks)
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  Context,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    if (EventTriggerResult == VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        ShortCircuitingEvent = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    return ShortCircuitingEvent;
+}
+
+/**
+ * @brief Handling debugger functions related to read & write & execute, read events (post)
  *
  * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookPageReadWriteWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
+DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
+{
+    //
+    // Triggering the post-event (for the read hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ,
+                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+
+    //
+    // Triggering the post-event (for the read & write hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+
+    //
+    // Triggering the post-event (for the read & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+
+    //
+    // Triggering the post-event (for the read & write & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+}
+
+/**
+ * @brief Handling debugger functions related to read & write & execute, write events (post)
+ *
+ * @param VCpu The virtual processor's state
+ * @param Context The context of the caller
+ * @return VOID
+ */
+VOID
+DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     //
     // Triggering the post-event (for the write hooks)
@@ -1019,32 +1236,66 @@ DispatchEventHiddenHookPageReadWriteWritePostEvent(VIRTUAL_MACHINE_STATE * VCpu,
                              Context,
                              NULL,
                              VCpu->Regs);
+    //
+    // Triggering the post-event (for the write & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+    //
+    // Triggering the post-event (for the read & write & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
 }
 
 /**
- * @brief Handling debugger functions related to read & write, read events (post)
+ * @brief Handling debugger functions related to read & write & execute, execute events (post)
  *
  * @param VCpu The virtual processor's state
  * @param Context The context of the caller
  * @return VOID
  */
 VOID
-DispatchEventHiddenHookPageReadWriteReadPostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
+DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     //
-    // Triggering the post-event (for the read hooks)
+    // Triggering the post-event (for the execute hooks)
     //
-    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ,
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_EXECUTE,
                              VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
 
     //
-    // Triggering the post-event (for the read & write hooks)
+    // Triggering the post-event (for the read & execute hooks)
     //
-    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
                              VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+
+    //
+    // Triggering the post-event (for the write & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             Context,
+                             NULL,
+                             VCpu->Regs);
+
+    //
+    // Triggering the post-event (for the read & write & execute hooks)
+    //
+    VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
