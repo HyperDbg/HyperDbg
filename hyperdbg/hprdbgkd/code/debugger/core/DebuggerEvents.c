@@ -75,11 +75,10 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
                                         BOOLEAN EnableForWrite,
                                         BOOLEAN EnableForExecute)
 {
-    DbgBreakPoint();
     //
     // Check if the detail is ok for either read or write or both
     //
-    if (!EnableForRead && !EnableForWrite)
+    if (!EnableForRead && !EnableForWrite && !EnableForExecute)
     {
         return FALSE;
     }

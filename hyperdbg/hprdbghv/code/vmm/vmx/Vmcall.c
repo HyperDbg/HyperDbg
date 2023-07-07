@@ -155,7 +155,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
 
         UnsetRead            = (AttributeMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
         UnsetWrite           = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
-        UnsetExec            = (AttributeMask & PAGE_ATTRIB_EXEC2) ? TRUE : FALSE;
+        UnsetExec            = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
         UnsetExecHiddenHook2 = (AttributeMask & PAGE_ATTRIB_EXEC_HIDDEN_HOOK) ? TRUE : FALSE;
 
         CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};

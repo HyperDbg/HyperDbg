@@ -246,7 +246,8 @@ EptHook2(PVOID   TargetAddress,
  * @param ViolationQualification
  * @param PhysicalAddress
  * @param LastContext
- * @param IgnoreReadOrWrite
+ * @param IgnoreReadOrWriteOrExec
+ * @param IsExecViolation
  * @param IsTriggeringPostEventAllowed
  * @return BOOLEAN
  */
@@ -256,7 +257,8 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
-                        BOOLEAN *                            IgnoreReadOrWrite,
+                        BOOLEAN *                            IgnoreReadOrWriteOrExec,
+                        BOOLEAN *                            IsExecViolation,
                         BOOLEAN *                            IsTriggeringPostEventAllowed);
 
 /**

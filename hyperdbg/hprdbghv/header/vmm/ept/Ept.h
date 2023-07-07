@@ -21,7 +21,7 @@
  */
 #define PAGE_ATTRIB_READ             0x2
 #define PAGE_ATTRIB_WRITE            0x4
-#define PAGE_ATTRIB_EXEC2            0x8
+#define PAGE_ATTRIB_EXEC             0x8
 #define PAGE_ATTRIB_EXEC_HIDDEN_HOOK 0x10
 
 /**

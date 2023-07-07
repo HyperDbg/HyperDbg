@@ -899,8 +899,6 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     else
         ChangedEntry.ExecuteAccess = 1;
 
-    DbgBreakPoint();
-
     //
     // Save the detail of hooked page to keep track of it
     //
@@ -942,7 +940,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     //
     // If it's Execution hook then we have to set extra fields
     //
-    if (UnsetExecute)
+    if (EptHiddenHook)
     {
         //
         // Show that entry has hidden hooks for execution
@@ -1117,7 +1115,7 @@ EptHook2(PVOID   TargetAddress,
     }
     if (SetHookForExec)
     {
-        PageHookMask |= PAGE_ATTRIB_EXEC2;
+        PageHookMask |= PAGE_ATTRIB_EXEC;
     }
     if (EptHiddenHook2)
     {
@@ -1199,7 +1197,8 @@ EptHook2(PVOID   TargetAddress,
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
  * @param LastContext The last (current) context of the execution
- * @param IgnoreReadOrWrite Whether to ignore the event effects or not
+ * @param IgnoreReadOrWriteOrExec Whether to ignore the event effects or not
+ * @param IsExecViolation Whether it's execution violation or not
  * @param IsTriggeringPostEventAllowed Whether the caller should consider
  * executing the post triggering of the event or not
  *
@@ -1212,10 +1211,10 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
-                        BOOLEAN *                            IgnoreReadOrWrite,
+                        BOOLEAN *                            IgnoreReadOrWriteOrExec,
+                        BOOLEAN *                            IsExecViolation,
                         BOOLEAN *                            IsTriggeringPostEventAllowed)
 {
-    UINT64 GuestRip;
     UINT64 ExactAccessedVirtualAddress;
     UINT64 AlignedVirtualAddress;
     UINT64 AlignedPhysicalAddress;
@@ -1237,19 +1236,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     LastContext->PhysicalAddress = PhysicalAddress;
     LastContext->VirtualAddress  = ExactAccessedVirtualAddress;
 
-    if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
-    {
-        //
-        // Reading guest's RIP
-        //
-        __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
-
-        //
-        // Generally, we should never reach here, we didn't implement HyperDbg like this ;)
-        //
-        LogError("Err, Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedVirtualAddress);
-    }
-    else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
+    if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
         //
         // LogInfo("Guest RIP : 0x%llx tries to read the page at : 0x%llx", GuestRip, ExactAccessedAddress);
@@ -1259,7 +1246,12 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         // Trigger the event related to Monitor Read and Monitor Read & Write and
         // Monitor Read & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's not an execution violation
+        //
+        *IsExecViolation = FALSE;
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
@@ -1271,7 +1263,12 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         // Trigger the event related to Monitor Write and Monitor Read & Write and
         // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's not an execution violation
+        //
+        *IsExecViolation = FALSE;
     }
     else if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
     {
@@ -1283,7 +1280,12 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         // Trigger the event related to Monitor Execute and Monitor Read & Execute and
         // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's an execution violation
+        //
+        *IsExecViolation = TRUE;
     }
     else
     {

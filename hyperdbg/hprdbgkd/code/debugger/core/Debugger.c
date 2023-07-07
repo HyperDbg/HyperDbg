@@ -2306,7 +2306,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                                                                                 EventDetails->ProcessId,
                                                                                 FALSE,
                                                                                 TRUE,
-                                                                                TRUE);
+                                                                                FALSE);
                 break;
 
             case HIDDEN_HOOK_READ_AND_WRITE:
