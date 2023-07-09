@@ -115,7 +115,7 @@
       <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
     </DriverSign>
     <PreBuildEvent>
-      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release Kernel" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/kernel/ </Command>
+      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release Kernel" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\kernel"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

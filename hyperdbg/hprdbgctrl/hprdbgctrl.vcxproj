@@ -116,7 +116,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild $(SolutionDir)\dependencies\zydis\msvc\Zydis.sln /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir=$(SolutionDir)/libraries/zydis/user/</Command>
+      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
