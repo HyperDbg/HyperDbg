@@ -52,6 +52,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <TargetName>HPRDBGCTRL</TargetName>
@@ -83,7 +84,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild "$(SolutionDir)\dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)/libraries/zydis/user/"</Command>
+      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -115,7 +116,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild "$(SolutionDir)\dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)/libraries/zydis/user/"</Command>
+      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
