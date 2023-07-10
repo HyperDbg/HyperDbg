@@ -841,7 +841,6 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     UINT64                              BaseAddress = NULL;
     UINT64                              Entrypoint  = NULL;
     PPAGE_ENTRY                         PageEntry   = NULL;
-    RFLAGS                              Rflags      = {0};
     PROCESSOR_DEBUGGING_STATE *         DbgState    = &g_DbgState[CoreId];
 
     //
@@ -879,34 +878,15 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
             ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
             ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
-            LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+            // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
 
             //
-            // Set the trap-flag to intercept the execution
+            // Handle entrypoint interception
             //
+            AttachingHandleEntrypointInterception(DbgState);
 
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.TrapFlag = TRUE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
-
-            // AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
+            return TRUE;
         }
-    }
-
-    if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL &&
-        (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
-    {
-        //
-        // Re-apply the hw debug reg breakpoint
-        //
-        // SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-        //                   BREAK_ON_INSTRUCTION_FETCH,
-        //                   TRUE,
-        //                   ProcessDebuggingDetail->EntrypointOfMainModule);
-
-        return TRUE;
     }
 
     //

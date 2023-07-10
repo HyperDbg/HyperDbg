@@ -337,31 +337,49 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
 }
 
 /**
- * @brief Handle the state when it reached to the entrypoint
- * of the user-mode process
+ * @brief Handle cases where we reached to the valid loaded module
+ * The main module should be loaded once we reach to this function
  *
  * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetail
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState,
+BOOLEAN
+AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState,
                                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
+    DEBUGGEE_BP_PACKET BpRequest = {0};
+
+    //
+    // Double check to make sure the main module is loaded
+    //
+    if (!CheckAccessValidityAndSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
+    {
+        LogError("Err, the main module is not loaded or the main entrypoint is not valid");
+        return FALSE;
+    }
+
+    //
+    // Setting a breakpoint to the main entrypoint of the module
+    //
+    BpRequest.Address = ProcessDebuggingDetail->EntrypointOfMainModule;
+    BpRequest.Core    = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
+    BpRequest.Pid     = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
+    BpRequest.Tid     = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
+
+    //
+    // Register the breakpoint
+    //
+    if (!BreakpointAddNew(&BpRequest))
+    {
+        LogError("Err, unable to set breakpoint on the entrypoint module");
+        return FALSE;
+    }
+
     //
     // Finish the starting point of the thread
     //
     AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(FALSE, ProcessDebuggingDetail->Token);
-
-    //
-    // Redo the page modification if it's a EXEC prevention
-    //
-    if (ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent)
-    {
-        ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
-                                                    VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule),
-                                                    FALSE);
-    }
 
     //
     // Check if we're connect to the kHyperDbg or uHyperDbg
@@ -372,7 +390,7 @@ AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState
         // Handling state through the kernel-mode debugger
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
                                               NULL);
     }
     else
@@ -381,19 +399,25 @@ AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState
         // Handling state through the user-mode debugger
         //
         UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
                                                   NULL);
     }
+
+    //
+    // Handled successfully
+    //
+    return TRUE;
 }
 
 /**
- * @brief Handle instruction fetch prevention of attaching to user-mode process
+ * @brief Handle the interception of finding the entrypoint on
+ * attaching to user-mode process
  *
  * @param DbgState The state of the debugger on the current core
  * @return VOID
  */
 VOID
-AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState)
+AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
     RFLAGS                              Rflags                 = {0};
@@ -446,14 +470,26 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
 
             if (!CheckAccessValidityAndSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
             {
-                LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
+                // LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
 
                 //
                 // We're waiting for this pointer to be called again after handling page-fault
                 //
                 g_IsWaitingForReturnAndRunFromPageFault = TRUE;
 
+                //
+                // Inject the page-fault
+                //
                 VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId, ProcessDebuggingDetail->EntrypointOfMainModule);
+
+                //
+                // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
+                //
+                Rflags.AsUInt = VmFuncGetRflags();
+
+                Rflags.TrapFlag = TRUE;
+
+                VmFuncSetRflags(Rflags.AsUInt);
             }
             else
             {
@@ -462,7 +498,7 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
                 // or another process with same image is currently running
                 // Thus, there is no need to inject #PF, we'll handle it in debugger
                 //
-                AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
+                AttachingReachedToValidLoadedModule(DbgState, ProcessDebuggingDetail);
             }
         }
         else if (g_IsWaitingForReturnAndRunFromPageFault)
@@ -473,7 +509,7 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
             g_IsWaitingForReturnAndRunFromPageFault = FALSE;
 
             //
-            // Unset the trap-flag
+            // Unset the trap-flag, as we set it before we have to mask it now
             //
             Rflags.AsUInt = VmFuncGetRflags();
 
@@ -482,10 +518,10 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
             VmFuncSetRflags(Rflags.AsUInt);
 
             //
-            // We reached here as a result of setting the second hardware debug breakpoint
-            // and after injecting a page-fault
+            // We reached here as a result of setting the trap flag after
+            // injecting a page-fault
             //
-            AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
+            AttachingReachedToValidLoadedModule(DbgState, ProcessDebuggingDetail);
         }
     }
 }
@@ -616,120 +652,6 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
         VmFuncSuppressRipIncrement(CoreId);
 
         return TRUE;
-    }
-    else if (ProcessDebuggingDetail->IsOnTheStartingPhase)
-    {
-        UINT64 BaseAddress = NULL;
-        UINT64 Entrypoint  = NULL;
-
-        /**
-         * @brief Page-Fault Error Code
-         *
-         */
-        typedef union _PAGE_FAULT_ERROR_CODE
-        {
-            UINT32 Flags;
-            struct
-            {
-                UINT32 Present : 1;  // 0 = NotPresent
-                UINT32 Write : 1;    // 0 = Read
-                UINT32 User : 1;     // 0 = CPL==0
-                UINT32 Reserved : 1; //
-                UINT32 Fetch : 1;    //
-            } Fields;
-        } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
-
-        PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
-        PageFaultCode.Flags                 = ErrorCode;
-
-        if (ProcessDebuggingDetail->EntrypointOfMainModule == NULL &&
-            ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
-            CheckAccessValidityAndSafety(ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
-            UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
-                                                                        ProcessDebuggingDetail->Is32Bit,
-                                                                        &BaseAddress,
-                                                                        &Entrypoint))
-        {
-            if (Entrypoint != NULL)
-            {
-                ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
-                ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
-
-                LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
-
-                if (MemoryMapperCheckPteIsPresentOnTargetProcess(Entrypoint, PagingLevelPageTable))
-                {
-                    LogInfo("Process is already running!");
-
-                    ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent = TRUE;
-
-                    ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
-                                                                VirtualAddressToPhysicalAddressOnTargetProcess(Entrypoint),
-                                                                TRUE);
-                }
-                else
-                {
-                    ProcessDebuggingDetail->IsEntrypointPageAlreadyPresent = FALSE;
-
-                    LogInfo("Process is not running!");
-                }
-            }
-        }
-
-        if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL)
-        {
-            //
-            // Re-apply the hw debug reg breakpoint
-            //
-            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                              BREAK_ON_INSTRUCTION_FETCH,
-                              TRUE,
-                              ProcessDebuggingDetail->EntrypointOfMainModule);
-        }
-
-        if (ProcessDebuggingDetail->EntrypointOfMainModule == Address)
-        {
-            LogInfo("(no!) I reached entrypoint, user: %s, fetch: %s, present: %s",
-                    PageFaultCode.Fields.User ? "true" : "false",
-                    PageFaultCode.Fields.Fetch ? "true" : "false",
-                    PageFaultCode.Fields.Present ? "true" : "false");
-
-            // CHAR Temp[sizeof(UINT64)] = {0};
-
-            // MemoryMapperReadMemorySafeOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule, Temp, sizeof(UINT64));
-            // LogInfo("Temp : %02llx", *Temp);
-
-            // PVOID PageEntry = MemoryMapperGetPteVaOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule, PagingLevelPageTable);
-
-            // CHAR Bp = '\xcc';
-
-            // MemoryMapperWriteMemorySafeOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule,
-            //                                            &Bp,
-            //                                            sizeof(CHAR));
-
-            // ConfigureEptHookModifyInstructionFetchState(DbgState->CoreId,
-            //                                             VirtualAddressToPhysicalAddressOnTargetProcess(ProcessDebuggingDetail->EntrypointOfMainModule),
-            //                                             TRUE);
-
-            // ConfigureEptHookModifyPageWriteState(DbgState->CoreId,
-            //                                     VirtualAddressToPhysicalAddressOnTargetProcess(PageEntry),
-            //                                     TRUE);
-
-            // AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
-
-            //
-            // Re-apply the hw debug reg breakpoint
-            //
-            // SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-            //                   BREAK_ON_INSTRUCTION_FETCH,
-            //                   TRUE,
-            //                   ProcessDebuggingDetail->EntrypointOfMainModule);
-        }
-
-        //
-        // Re-inject it
-        //
-        return FALSE;
     }
 
     //
@@ -1007,12 +929,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         }
 
         //
-        // If the page is not already on the RAM (another instance of process is not present),
-        // then a page-fault handler might also get the entrypoint of the executable
-        //
-        // BroadcastSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
-
-        //
         // Operation was successful
         //
         AttachRequest->Token  = ProcessDebuggingToken;
@@ -1126,31 +1042,10 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
 {
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
-    if (g_UserDebuggerState == TRUE &&
-        (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
-    {
-        //
-        // Supress incrementing the instruction
-        //
-        VmFuncSuppressRipIncrement(DbgState->CoreId);
-
-        //
-        // Handle for user-mode attaching mechanism
-        //
-        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
-
-        //
-        // It's handled here
-        //
-        return TRUE;
-    }
-    else
-    {
-        //
-        // Not handled here
-        //
-        return FALSE;
-    }
+    //
+    // Not handled here
+    //
+    return FALSE;
 }
 
 /**

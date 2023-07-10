@@ -62,7 +62,6 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     BOOLEAN    Is32Bit;
     BOOLEAN    IsOnTheStartingPhase;
     BOOLEAN    IsOnThreadInterceptingPhase;
-    BOOLEAN    IsEntrypointPageAlreadyPresent;
     CR3_TYPE   InterceptedCr3[MAX_CR3_IN_A_PROCESS];
     LIST_ENTRY ThreadsListHead;
 
@@ -90,7 +89,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState);
+AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();
@@ -109,6 +108,6 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
                                     UINT64 ViolationQualification,
                                     UINT64 GuestPhysicalAddr);
 
-VOID
-AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState,
+BOOLEAN
+AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState,
                                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

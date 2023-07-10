@@ -47,7 +47,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         //
         // Handle for user-mode attaching mechanism
         //
-        AttachingHandleEntrypointInstructionFetchPrevention(DbgState);
+        AttachingHandleEntrypointInterception(DbgState);
     }
     else if (g_KernelDebuggerState == TRUE)
     {
