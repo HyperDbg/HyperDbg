@@ -1009,11 +1009,12 @@ typedef struct _DEBUGGEE_SYMBOL_REQUEST_PACKET
  */
 typedef struct _DEBUGGEE_BP_PACKET
 {
-    UINT64 Address;
-    UINT32 Pid;
-    UINT32 Tid;
-    UINT32 Core;
-    UINT32 Result;
+    UINT64  Address;
+    UINT32  Pid;
+    UINT32  Tid;
+    UINT32  Core;
+    BOOLEAN RemoveAfterHit;
+    UINT32  Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
 

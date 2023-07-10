@@ -368,6 +368,11 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     BpRequest.Tid     = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
 
     //
+    // Remove the breakpoint after hit
+    //
+    BpRequest.RemoveAfterHit = TRUE;
+
+    //
     // Register the breakpoint
     //
     if (!BreakpointAddNew(&BpRequest))
