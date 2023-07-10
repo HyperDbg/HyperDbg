@@ -841,7 +841,9 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     UINT64                              BaseAddress = NULL;
     UINT64                              Entrypoint  = NULL;
     PPAGE_ENTRY                         PageEntry   = NULL;
+    RFLAGS                              Rflags      = {0};
     PROCESSOR_DEBUGGING_STATE *         DbgState    = &g_DbgState[CoreId];
+
     //
     // Check if the callback needs to be handled or not
     //
@@ -878,26 +880,37 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
             ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
             LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+
+            //
+            // Set the trap-flag to intercept the execution
+            //
+
+            Rflags.AsUInt = VmFuncGetRflags();
+
+            Rflags.TrapFlag = TRUE;
+
+            VmFuncSetRflags(Rflags.AsUInt);
+
+            // AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
         }
     }
 
-    if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL)
+    if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL &&
+        (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
     {
         //
         // Re-apply the hw debug reg breakpoint
         //
-        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                          BREAK_ON_INSTRUCTION_FETCH,
-                          TRUE,
-                          ProcessDebuggingDetail->EntrypointOfMainModule);
+        // SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+        //                   BREAK_ON_INSTRUCTION_FETCH,
+        //                   TRUE,
+        //                   ProcessDebuggingDetail->EntrypointOfMainModule);
 
         return TRUE;
     }
-    else
-    {
-        //
-        // Not available
-        //
-        return FALSE;
-    }
+
+    //
+    // Not available
+    //
+    return FALSE;
 }

@@ -108,3 +108,7 @@ BOOLEAN
 AttachingCheckUnhandledEptViolation(UINT32 CoreId,
                                     UINT64 ViolationQualification,
                                     UINT64 GuestPhysicalAddr);
+
+VOID
+AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                                    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

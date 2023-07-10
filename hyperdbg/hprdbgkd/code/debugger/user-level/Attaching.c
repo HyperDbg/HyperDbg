@@ -341,11 +341,12 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
  * of the user-mode process
  *
  * @param DbgState The state of the debugger on the current core
- * @param ThreadDebuggingToken
+ * @param ProcessDebuggingDetail
  * @return VOID
  */
 VOID
-AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE * DbgState, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+AttachingReachedToProcessEntrypoint(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                                    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     //
     // Finish the starting point of the thread
@@ -395,6 +396,7 @@ VOID
 AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
+    RFLAGS                              Rflags                 = {0};
 
     //
     // Not increment the RIP register as no instruction is intended to go
@@ -444,7 +446,7 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
 
             if (!CheckAccessValidityAndSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
             {
-                // LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
+                LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
 
                 //
                 // We're waiting for this pointer to be called again after handling page-fault
@@ -469,6 +471,15 @@ AttachingHandleEntrypointInstructionFetchPrevention(PROCESSOR_DEBUGGING_STATE * 
             // not waiting for a break after the page-fault anymore
             //
             g_IsWaitingForReturnAndRunFromPageFault = FALSE;
+
+            //
+            // Unset the trap-flag
+            //
+            Rflags.AsUInt = VmFuncGetRflags();
+
+            Rflags.TrapFlag = FALSE;
+
+            VmFuncSetRflags(Rflags.AsUInt);
 
             //
             // We reached here as a result of setting the second hardware debug breakpoint
@@ -999,7 +1010,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         // If the page is not already on the RAM (another instance of process is not present),
         // then a page-fault handler might also get the entrypoint of the executable
         //
-        BroadcastSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
+        // BroadcastSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
 
         //
         // Operation was successful
