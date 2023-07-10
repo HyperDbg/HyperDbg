@@ -226,6 +226,7 @@ VmxPerformVirtualizationOnAllCores()
     // Allocate	global variable to hold Ept State
     //
     g_EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
+
     if (!g_EptState)
     {
         LogError("Err, insufficient memory");
@@ -980,6 +981,7 @@ VmxPerformTermination()
     // Free the buffer related to MSRs that cause #GP
     //
     ExFreePoolWithTag(g_MsrBitmapInvalidMsrs, POOLTAG);
+    g_MsrBitmapInvalidMsrs = NULL;
 
     //
     // Free Identity Page Table
@@ -1006,6 +1008,7 @@ VmxPerformTermination()
     // Free EptState
     //
     ExFreePoolWithTag(g_EptState, POOLTAG);
+    g_EptState = NULL;
 
     //
     // Free the Pool manager

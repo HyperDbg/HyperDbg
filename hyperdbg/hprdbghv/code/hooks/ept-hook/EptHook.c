@@ -768,6 +768,8 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
  * @param UnsetRead Hook READ Access
  * @param UnsetWrite Hook WRITE Access
  * @param UnsetExecute Hook EXECUTE Access
+ * @param EptHiddenHook !epthook2-like events
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -776,7 +778,8 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
                         CR3_TYPE ProcessCr3,
                         BOOLEAN  UnsetRead,
                         BOOLEAN  UnsetWrite,
-                        BOOLEAN  UnsetExecute)
+                        BOOLEAN  UnsetExecute,
+                        BOOLEAN  EptHiddenHook)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -891,6 +894,11 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     else
         ChangedEntry.WriteAccess = 1;
 
+    if (UnsetExecute)
+        ChangedEntry.ExecuteAccess = 0;
+    else
+        ChangedEntry.ExecuteAccess = 1;
+
     //
     // Save the detail of hooked page to keep track of it
     //
@@ -930,17 +938,9 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     HookedPage->OriginalEntry = *TargetPage;
 
     //
-    // Check if the hook relates to the write condition
-    //
-    if (UnsetWrite)
-    {
-        HookedPage->IsMonitorToWriteOnPages = TRUE;
-    }
-
-    //
     // If it's Execution hook then we have to set extra fields
     //
-    if (UnsetExecute)
+    if (EptHiddenHook)
     {
         //
         // Show that entry has hidden hooks for execution
@@ -1053,10 +1053,18 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
  * @param SetHookForRead Hook READ Access
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+EptHook2(PVOID   TargetAddress,
+         PVOID   HookFunction,
+         UINT32  ProcessId,
+         BOOLEAN SetHookForRead,
+         BOOLEAN SetHookForWrite,
+         BOOLEAN SetHookForExec,
+         BOOLEAN EptHiddenHook2)
 {
     UINT32 PageHookMask = 0;
     ULONG  LogicalCoreIndex;
@@ -1108,6 +1116,10 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     if (SetHookForExec)
     {
         PageHookMask |= PAGE_ATTRIB_EXEC;
+    }
+    if (EptHiddenHook2)
+    {
+        PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
     }
 
     if (PageHookMask == 0)
@@ -1161,7 +1173,8 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
                                     LayoutGetCr3ByProcessId(ProcessId),
                                     SetHookForRead,
                                     SetHookForWrite,
-                                    SetHookForExec) == TRUE)
+                                    SetHookForExec,
+                                    EptHiddenHook2) == TRUE)
         {
             LogInfo("Hook applied (VM has not launched)");
             return TRUE;
@@ -1184,7 +1197,8 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
  * @param LastContext The last (current) context of the execution
- * @param IgnoreReadOrWrite Whether to ignore the event effects or not
+ * @param IgnoreReadOrWriteOrExec Whether to ignore the event effects or not
+ * @param IsExecViolation Whether it's execution violation or not
  * @param IsTriggeringPostEventAllowed Whether the caller should consider
  * executing the post triggering of the event or not
  *
@@ -1197,10 +1211,10 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
-                        BOOLEAN *                            IgnoreReadOrWrite,
+                        BOOLEAN *                            IgnoreReadOrWriteOrExec,
+                        BOOLEAN *                            IsExecViolation,
                         BOOLEAN *                            IsTriggeringPostEventAllowed)
 {
-    UINT64 GuestRip;
     UINT64 ExactAccessedVirtualAddress;
     UINT64 AlignedVirtualAddress;
     UINT64 AlignedPhysicalAddress;
@@ -1222,17 +1236,22 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     LastContext->PhysicalAddress = PhysicalAddress;
     LastContext->VirtualAddress  = ExactAccessedVirtualAddress;
 
-    if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
+    if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
         //
-        // Reading guest's RIP
+        // LogInfo("Guest RIP : 0x%llx tries to read the page at : 0x%llx", GuestRip, ExactAccessedAddress);
         //
-        __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
 
         //
-        // Generally, we should never reach here, we didn't implement HyperDbg like this ;)
+        // Trigger the event related to Monitor Read and Monitor Read & Write and
+        // Monitor Read & Execute and Monitor Read & Write & Execute
         //
-        LogError("Err, Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedVirtualAddress);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's not an execution violation
+        //
+        *IsExecViolation = FALSE;
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
@@ -1241,20 +1260,32 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
 
         //
-        // Trigger the event related to Monitor Write and Monitor Read & Write
+        // Trigger the event related to Monitor Write and Monitor Read & Write and
+        // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's not an execution violation
+        //
+        *IsExecViolation = FALSE;
     }
-    else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
+    else if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
     {
         //
-        // LogInfo("Guest RIP : 0x%llx tries to read the page at : 0x%llx", GuestRip, ExactAccessedAddress);
+        // LogInfo("Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
         //
 
         //
-        // Trigger the event related to Monitor Read and Monitor Read & Write
+        // Trigger the event related to Monitor Execute and Monitor Read & Execute and
+        // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+
+        //
+        // It's an execution violation
+        //
+        *IsExecViolation = TRUE;
     }
     else
     {
@@ -1738,4 +1769,196 @@ EptHookAllocateExtraHookingPages(UINT32 Count)
     PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
                                  Count,
                                  TRACKING_HOOKED_PAGES);
+}
+
+/**
+ * @brief Change PML EPT state for execution (execute)
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
+                                   PVOID                   PhysicalAddress,
+                                   BOOLEAN                 IsUnset)
+{
+    PVOID   PmlEntry    = NULL;
+    BOOLEAN IsLargePage = FALSE;
+
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+
+    if (PmlEntry)
+    {
+        if (IsLargePage)
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ExecuteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ExecuteAccess = TRUE;
+            }
+        }
+        else
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ExecuteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ExecuteAccess = TRUE;
+            }
+        }
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // Invalidate the EPTP (single-context)
+    //
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+    //
+    // Invalidate EPT of other cores (as we're in VMX-root, we use VMX-root
+    // boradcasting mechanism)
+    //
+    VmFuncNmiBroadcastInvalidateEptSingleContext(VCpu->CoreId);
+
+    return TRUE;
+}
+
+/**
+ * @brief Change PML EPT state for read
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
+                           PVOID                   PhysicalAddress,
+                           BOOLEAN                 IsUnset)
+{
+    PVOID   PmlEntry    = NULL;
+    BOOLEAN IsLargePage = FALSE;
+
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+
+    if (PmlEntry)
+    {
+        if (IsLargePage)
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ReadAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->ReadAccess = TRUE;
+            }
+        }
+        else
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ReadAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->ReadAccess = TRUE;
+            }
+        }
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // Invalidate the EPTP (single-context)
+    //
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+    //
+    // Invalidate EPT of other cores (as we're in VMX-root, we use VMX-root
+    // boradcasting mechanism)
+    //
+    VmFuncNmiBroadcastInvalidateEptSingleContext(VCpu->CoreId);
+
+    return TRUE;
+}
+
+/**
+ * @brief Change PML EPT state for write
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
+                            PVOID                   PhysicalAddress,
+                            BOOLEAN                 IsUnset)
+{
+    PVOID   PmlEntry    = NULL;
+    BOOLEAN IsLargePage = FALSE;
+
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+
+    if (PmlEntry)
+    {
+        if (IsLargePage)
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->WriteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML2_ENTRY)PmlEntry)->WriteAccess = TRUE;
+            }
+        }
+        else
+        {
+            if (IsUnset)
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->WriteAccess = FALSE;
+            }
+            else
+            {
+                ((PEPT_PML1_ENTRY)PmlEntry)->WriteAccess = TRUE;
+            }
+        }
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    //
+    // Invalidate the EPTP (single-context)
+    //
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+
+    //
+    // Invalidate EPT of other cores (as we're in VMX-root, we use VMX-root
+    // boradcasting mechanism)
+    //
+    VmFuncNmiBroadcastInvalidateEptSingleContext(VCpu->CoreId);
+
+    return TRUE;
 }

@@ -146,15 +146,17 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         // Mask is the upper 32 bits to this Vmcall
         // Upper 32 bits of the Vmcall contains the attribute mask
         //
-        UINT32  AttributeMask = (UINT32)((VmcallNumber & 0xFFFFFFFF00000000LL) >> 32);
-        BOOLEAN HookResult    = FALSE;
-        BOOLEAN UnsetExec     = FALSE;
-        BOOLEAN UnsetRead     = FALSE;
-        BOOLEAN UnsetWrite    = FALSE;
+        UINT32  AttributeMask        = (UINT32)((VmcallNumber & 0xFFFFFFFF00000000LL) >> 32);
+        BOOLEAN HookResult           = FALSE;
+        BOOLEAN UnsetExec            = FALSE;
+        BOOLEAN UnsetExecHiddenHook2 = FALSE;
+        BOOLEAN UnsetRead            = FALSE;
+        BOOLEAN UnsetWrite           = FALSE;
 
-        UnsetRead  = (AttributeMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
-        UnsetWrite = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
-        UnsetExec  = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
+        UnsetRead            = (AttributeMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
+        UnsetWrite           = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
+        UnsetExec            = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
+        UnsetExecHiddenHook2 = (AttributeMask & PAGE_ATTRIB_EXEC_HIDDEN_HOOK) ? TRUE : FALSE;
 
         CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};
 
@@ -163,7 +165,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
                                              ProcCr3 /* Process cr3 */,
                                              UnsetRead,
                                              UnsetWrite,
-                                             UnsetExec);
+                                             UnsetExec,
+                                             UnsetExecHiddenHook2);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -424,14 +427,14 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP:
     {
-        ModeBasedExecHookChangeToMbecEnabledEptp(VCpu);
+        ReversingMachineChangeToMbecEnabledEptp(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESTORE_TO_NORMAL_EPTP:
     {
-        ModeBasedExecHookRestoreToNormalEptp(VCpu);
+        ReversingMachineRestoreToNormalEptp(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

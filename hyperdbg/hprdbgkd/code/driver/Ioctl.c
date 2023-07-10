@@ -1418,7 +1418,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform the service request
             //
-            ConfigureModeBasedExecHookInitializeOnAllProcessors(RevServiceRequest);
+            ConfigureInitializeReversingMachineOnAllProcessors(RevServiceRequest);
 
             Irp->IoStatus.Information = SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
             Status                    = STATUS_SUCCESS;

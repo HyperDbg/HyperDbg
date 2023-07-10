@@ -200,7 +200,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param PhysicalAddress Physical address that we want to get its PML1
  * @param IsLargePage Shows whether it's a large page or not
  *
- * @return PEPT_PML1_ENTRY Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
+ * @return PVOID Return PEPT_PML1_ENTRY or PEPT_PML2_ENTRY
  */
 PVOID
 EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage)
@@ -293,6 +293,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param EptPageTable The EPT Page Table
  * @param PreAllocatedBuffer The address of pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
+ *
  * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
@@ -310,6 +311,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     // Find the PML2 entry that's currently used
     //
     TargetEntry = EptGetPml2Entry(EptPageTable, PhysicalAddress);
+
     if (!TargetEntry)
     {
         LogError("Err, an invalid physical address passed");
@@ -683,8 +685,9 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
 {
     BOOLEAN ResultOfHandlingHook;
     BOOLEAN IsHandled                    = FALSE;
-    BOOLEAN IgnoreReadOrWrite            = FALSE;
+    BOOLEAN IgnoreReadOrWriteOrExec      = FALSE;
     BOOLEAN IsTriggeringPostEventAllowed = FALSE;
+    BOOLEAN IsExecViolation              = FALSE;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
@@ -707,7 +710,8 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                                                            ViolationQualification,
                                                            GuestPhysicalAddr,
                                                            &HookedEntry->LastContextState,
-                                                           &IgnoreReadOrWrite,
+                                                           &IgnoreReadOrWriteOrExec,
+                                                           &IsExecViolation,
                                                            &IsTriggeringPostEventAllowed);
 
             if (ResultOfHandlingHook)
@@ -717,7 +721,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                 // if we don't apply the below restorations routines, the event
                 // won't redo and the emulation of the memory access is passed
                 //
-                if (!IgnoreReadOrWrite)
+                if (!IgnoreReadOrWriteOrExec)
                 {
                     //
                     // Restore to its original entry for one instruction
@@ -762,7 +766,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     //
     // Check whether the event should be ignored or not
     //
-    if (IgnoreReadOrWrite)
+    if (IgnoreReadOrWriteOrExec)
     {
         //
         // Do not redo the instruction (EPT hooks won't affect the VMCS_VMEXIT_INSTRUCTION_LENGTH),
@@ -773,15 +777,22 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         HvSuppressRipIncrement(VCpu); // Just to make sure nothing is added to the address
 
         //
-        // Get the RIP here as the RIP might be changed by the user and thus is not valid to be read
-        // from the VCpu
+        // If the target violation is for READ/WRITE, we ignore the current instruction and move to the
+        // next instruction, but if the violation is for execute access, then we just won't increment the RIP
         //
-        CurrentRip               = HvGetRip();
-        CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
+        if (!IsExecViolation)
+        {
+            //
+            // Get the RIP here as the RIP might be changed by the user and thus is not valid to be read
+            // from the VCpu
+            //
+            CurrentRip               = HvGetRip();
+            CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
 
-        CurrentRip = CurrentRip + CurrentInstructionLength;
+            CurrentRip = CurrentRip + CurrentInstructionLength;
 
-        HvSetRip(CurrentRip);
+            HvSetRip(CurrentRip);
+        }
     }
     else
     {
@@ -815,7 +826,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ModeBasedExecHookHandleEptViolationVmexit(VCpu, &ViolationQualification))
+    if (ReversingMachineHandleEptViolationVmexit(VCpu, &ViolationQualification, GuestPhysicalAddr))
     {
         return TRUE;
     }
@@ -823,6 +834,13 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     {
         //
         // Handled by page hook code
+        //
+        return TRUE;
+    }
+    else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr))
+    {
+        //
+        // Check whether this violation is meaningful for the application or not
         //
         return TRUE;
     }
@@ -845,11 +863,6 @@ VOID
 EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
-    // Check for user-mode attaching mechanisms
-    //
-    VmmCallbackRestoreEptState();
-
-    //
     // restore the hooked state
     //
     EptSetPML1AndInvalidateTLB(VCpu->MtfEptHookRestorePoint->EntryAddress, VCpu->MtfEptHookRestorePoint->ChangedEntry, InveptSingleContext);
@@ -861,25 +874,35 @@ EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
     if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
     {
         //
-        // Check whether this is a "write" monitor hook or not
+        // *** TODO: ALL OF THEM SHOULD NOT BE CALLED HERE, FIX IT. ***
+        // ONLY ONE OF THEM SHOULD BE CALLED, BECAUSE AND EVENT MIGHT BE TRIGGERED MULTIPLE TIMES
+        // MAKE SURE TO FIX IT, THAT'S WHY I COMMENT IT TO BE FIXED
         //
-        if (VCpu->MtfEptHookRestorePoint->IsMonitorToWriteOnPages)
-        {
-            //
-            // This is a "write" hook
-            //
-            DispatchEventHiddenHookPageReadWriteWritePostEvent(VCpu,
-                                                               &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
-        else
-        {
-            //
-            // This is a "read" hook
-            //
-            DispatchEventHiddenHookPageReadWriteReadPostEvent(VCpu,
-                                                              &VCpu->MtfEptHookRestorePoint->LastContextState);
-        }
+
+        //  //
+        //  // This is a "read" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VCpu,
+        //                                                        &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "write" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VCpu,
+        //                                                         &VCpu->MtfEptHookRestorePoint->LastContextState);
+        //
+        //  //
+        //  // This is a "execute" hook
+        //  //
+        //  DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VCpu,
+        //                                                           &VCpu->MtfEptHookRestorePoint->LastContextState);
     }
+
+    //
+    // Check for user-mode attaching mechanisms and callback
+    // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
+    //
+    VmmCallbackRestoreEptState(VCpu->CoreId);
 }
 
 /**

@@ -242,7 +242,10 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOOLEAN Is32Bit, PUINT64 BaseAddress, PUINT64 Entrypoint)
+UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
+                                                            BOOLEAN Is32Bit,
+                                                            PUINT64 BaseAddress,
+                                                            PUINT64 Entrypoint)
 {
     if (Is32Bit)
     {
@@ -827,15 +830,19 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
 
 /**
  * @brief Checks whether the loaded module is available or not
+ * @param CoreId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessCheckForLoadedModuleDetails()
+UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     UINT64                              BaseAddress = NULL;
     UINT64                              Entrypoint  = NULL;
+    PPAGE_ENTRY                         PageEntry   = NULL;
+    RFLAGS                              Rflags      = {0};
+    PROCESSOR_DEBUGGING_STATE *         DbgState    = &g_DbgState[CoreId];
 
     //
     // Check if the callback needs to be handled or not
@@ -859,32 +866,51 @@ UserAccessCheckForLoadedModuleDetails()
         return FALSE;
     }
 
-    if (ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+    if (ProcessDebuggingDetail->EntrypointOfMainModule == NULL &&
+        ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+        CheckAccessValidityAndSafety(ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
                                                                     ProcessDebuggingDetail->Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {
-        ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
-        ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
+        if (Entrypoint != NULL)
+        {
+            ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
+            ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
-        //
-        // Set debug register to get the entrypoint of user-mode processs
-        //
-        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
-                          BREAK_ON_INSTRUCTION_FETCH,
-                          FALSE,
-                          Entrypoint);
+            LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
 
-        // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+            //
+            // Set the trap-flag to intercept the execution
+            //
+
+            Rflags.AsUInt = VmFuncGetRflags();
+
+            Rflags.TrapFlag = TRUE;
+
+            VmFuncSetRflags(Rflags.AsUInt);
+
+            // AttachingReachedToProcessEntrypoint(DbgState, ProcessDebuggingDetail);
+        }
+    }
+
+    if (ProcessDebuggingDetail->EntrypointOfMainModule != NULL &&
+        (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+    {
+        //
+        // Re-apply the hw debug reg breakpoint
+        //
+        // SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+        //                   BREAK_ON_INSTRUCTION_FETCH,
+        //                   TRUE,
+        //                   ProcessDebuggingDetail->EntrypointOfMainModule);
 
         return TRUE;
     }
-    else
-    {
-        //
-        // Not available
-        //
-        return FALSE;
-    }
+
+    //
+    // Not available
+    //
+    return FALSE;
 }

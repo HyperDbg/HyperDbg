@@ -78,10 +78,10 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError);
 BYTE
 ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError);
 
-WORD
+DWORD
 ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError);
 
-DWORD
+WORD
 ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError);
 
 QWORD

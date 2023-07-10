@@ -488,6 +488,7 @@ TransparentUnhideDebugger()
         // Deallocate the measurements buffer
         //
         ExFreePoolWithTag(g_TransparentModeMeasurements, POOLTAG);
+        g_TransparentModeMeasurements = NULL;
 
         return STATUS_SUCCESS;
     }

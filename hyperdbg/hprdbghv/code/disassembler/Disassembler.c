@@ -112,12 +112,13 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
  * if the caller is sure that the target buffer is safe to be access, then it's okay
  *
  * @param Address
+ * @param ActualRip
  * @param Is32Bit
  *
  * @return BOOLEAN
  */
 BOOLEAN
-DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, BOOLEAN Is32Bit)
+DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, BOOLEAN Is32Bit)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
@@ -176,7 +177,7 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, BOOLEAN Is32Bit)
         }
 
         // Format and print the instruction
-        const ZyanU64 instrAddress = (ZyanU64)((UINT64)Address + readOffset);
+        const ZyanU64 instrAddress = (ZyanU64)((UINT64)ActualRip + readOffset);
         ZydisFormatterFormatInstruction(
             &formatter,
             &instruction,
@@ -188,7 +189,7 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, BOOLEAN Is32Bit)
             NULL);
 
         // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)readOffset, instrAddress, printBuffer);
-        Log("%llx\t\t%hs\n", Address, printBuffer);
+        Log("core:%x | process id:%x\t\t%llx\t\t%hs\n", KeGetCurrentProcessorIndex(), PsGetCurrentProcessId(), ActualRip, printBuffer);
 
         // readOffset += instruction.length;
 
@@ -337,5 +338,5 @@ DisassemblerShowOneInstructionInVmxRootMode(PVOID Address, BOOLEAN Is32Bit)
                                               SafeMemoryToRead,
                                               SizeOfSafeBufferToRead);
 
-    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, Is32Bit);
+    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, Address, Is32Bit);
 }

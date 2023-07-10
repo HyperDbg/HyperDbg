@@ -26,7 +26,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandLmHelp()
 {
-    ShowMessages("lm : lists kernel modules' base address, size, name and path.\n\n");
+    ShowMessages("lm : lists user/kernel modules' base address, size, name and path.\n\n");
 
     ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)] [Filter (string)]\n");
 

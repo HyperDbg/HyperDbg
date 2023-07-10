@@ -427,6 +427,61 @@ VmFuncNmiBroadcastRequest(UINT32 CoreId)
 }
 
 /**
+ * @brief Broadcast NMI requests for single-context EPT invalidation
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncNmiBroadcastInvalidateEptSingleContext(UINT32 CoreId)
+{
+    //
+    // Broadcast NMI requests
+    //
+    return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_SINGLE_CONTEXT);
+}
+
+/**
+ * @brief Broadcast NMI requests for all contexts EPT invalidation
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId)
+{
+    //
+    // Broadcast NMI requests
+    //
+    return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
+}
+
+/**
+ * @brief Requests for single-context EPT invalidation
+ *
+ * @return VOID
+ */
+VOID
+VmFuncInvalidateEptSingleContext()
+{
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+}
+
+/**
+ * @brief Requests for all contexts EPT invalidation
+ *
+ * @return VOID
+ */
+VOID
+VmFuncInvalidateEptAllContexts()
+{
+    //
+    // Broadcast NMI requests
+    //
+    EptInveptAllContexts();
+}
+
+/**
  * @brief Check and enable external interrupts
  *
  * @param CoreId Target core's ID

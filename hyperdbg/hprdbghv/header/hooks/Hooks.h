@@ -193,6 +193,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3);
  * @param ProcessCr3
  * @param UnsetRead
  * @param UnsetWrite
+ * @param EptHiddenHook
  * @param UnsetExecute
  * @return BOOLEAN
  */
@@ -202,7 +203,8 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
                         CR3_TYPE ProcessCr3,
                         BOOLEAN  UnsetRead,
                         BOOLEAN  UnsetWrite,
-                        BOOLEAN  UnsetExecute);
+                        BOOLEAN  UnsetExecute,
+                        BOOLEAN  EptHiddenHook);
 
 /**
  * @brief Hook in VMX Non Root Mode (hidden breakpoint)
@@ -223,6 +225,8 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId);
  * @param SetHookForRead
  * @param SetHookForWrite
  * @param SetHookForExec
+ * @param EptHiddenHook2
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -231,7 +235,8 @@ EptHook2(PVOID   TargetAddress,
          UINT32  ProcessId,
          BOOLEAN SetHookForRead,
          BOOLEAN SetHookForWrite,
-         BOOLEAN SetHookForExec);
+         BOOLEAN SetHookForExec,
+         BOOLEAN EptHiddenHook2);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode
@@ -241,7 +246,8 @@ EptHook2(PVOID   TargetAddress,
  * @param ViolationQualification
  * @param PhysicalAddress
  * @param LastContext
- * @param IgnoreReadOrWrite
+ * @param IgnoreReadOrWriteOrExec
+ * @param IsExecViolation
  * @param IsTriggeringPostEventAllowed
  * @return BOOLEAN
  */
@@ -251,7 +257,8 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
-                        BOOLEAN *                            IgnoreReadOrWrite,
+                        BOOLEAN *                            IgnoreReadOrWriteOrExec,
+                        BOOLEAN *                            IsExecViolation,
                         BOOLEAN *                            IsTriggeringPostEventAllowed);
 
 /**
@@ -327,3 +334,48 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
  */
 VOID
 EptHookAllocateExtraHookingPages(UINT32 Count);
+
+/**
+ * @brief Change PML EPT state for execution (execute)
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
+                                   PVOID                   PhysicalAddress,
+                                   BOOLEAN                 IsUnset);
+
+/**
+ * @brief Change PML EPT state for read
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
+                           PVOID                   PhysicalAddress,
+                           BOOLEAN                 IsUnset);
+
+/**
+ * @brief Change PML EPT state for write
+ * @detail should be called from VMX-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param PhysicalAddress Target physical address
+ * @param IsUnset Is unsetting bit or setting bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
+                            PVOID                   PhysicalAddress,
+                            BOOLEAN                 IsUnset);

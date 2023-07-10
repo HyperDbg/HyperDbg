@@ -11,3 +11,5 @@
  */
 #pragma once
 #include <ntddk.h>
+
+#include "UnloadDll.h"

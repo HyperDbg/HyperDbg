@@ -13,8 +13,8 @@
 
 /**
  * @brief Handling XSETBV Instruction vm-exits
- *
  * @param VCpu
+ *
  * @return VOID
  */
 VOID
@@ -25,8 +25,8 @@ VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
 
 /**
  * @brief Handling VMX Preemption Timer vm-exits
- *
  * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID
@@ -38,4 +38,26 @@ VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // Not increase the RIP by default
     //
     HvSuppressRipIncrement(VCpu);
+}
+
+/**
+ * @brief Handling triple fault VM-exits
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    LogError("Err, triple fault error occurred!");
+
+    //
+    // This error cannot be recovered, produce debug results
+    //
+    CommonWriteDebugInformation(VCpu);
+
+    //
+    // We won't further continue after this error
+    //
+    DbgBreakPoint();
 }

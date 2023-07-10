@@ -92,13 +92,13 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
 }
 
 /**
- * @brief Termination function for hidden hook read/write
+ * @brief Termination function for hidden hook read/write/execute
  *
  * @param Event Target Event Object
  * @return VOID
  */
 VOID
-TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
 {
     UINT64 PagesBytes;
     UINT64 TempOptionalParam1;
