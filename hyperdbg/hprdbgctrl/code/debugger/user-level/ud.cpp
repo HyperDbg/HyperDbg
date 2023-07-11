@@ -318,7 +318,7 @@ UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_I
                                          NULL,
                                          NULL,
                                          FALSE,
-                                         CREATE_SUSPENDED,
+                                         CREATE_SUSPENDED | CREATE_NEW_CONSOLE,
                                          NULL,
                                          NULL,
                                          &StartupInfo,

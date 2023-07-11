@@ -103,7 +103,7 @@ EventInjectDebugBreakpoint()
  * @return VOID
  */
 VOID
-EventInjectPageFault(UINT64 PageFaultAddress)
+EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
 {
     PAGE_FAULT_ERROR_CODE ErrorCode = {0};
 
@@ -162,6 +162,50 @@ EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 }
 
 /**
+ * @brief inject #PFs to the guest
+ *
+ * @param VCpu The virtual processor's state
+ * @param InterruptExit interrupt info from vm-exit
+ * @param PageFaultAddress Page-fault address to be placed to cr2 register
+ * @param PageFaultCode Page-fault error code
+ *
+ * @return VOID
+ */
+VOID
+EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
+                      _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                      _In_ UINT64                       PageFaultAddress,
+                      _In_ PAGE_FAULT_ERROR_CODE        PageFaultCode)
+{
+    //
+    // *** #PF is treated differently, we have to deal with cr2 too ***
+    //
+
+    //
+    // Cr2 is used as the page-fault address
+    //
+    __writecr2(PageFaultAddress);
+
+    HvSuppressRipIncrement(VCpu);
+
+    //
+    // Re-inject the interrupt/exception
+    //
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
+
+    //
+    // re-write error code (if any)
+    //
+    if (InterruptExit.ErrorCodeValid)
+    {
+        //
+        // Write the error code
+        //
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, PageFaultCode.Flags);
+    }
+}
+
+/**
  * @brief re-inject interrupt or exception to the guest
  *
  * @param VCpu The virtual processor's state
@@ -172,10 +216,8 @@ EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 VOID
 EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
 {
-    //
-    // Inject #PF
-    //
     VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
+    PAGE_FAULT_ERROR_CODE        PageFaultCode = {0};
 
     //
     // Configure the #PF injection
@@ -198,8 +240,16 @@ EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
     InterruptInfo.NmiUnblocking    = FALSE;
     InterruptInfo.Valid            = TRUE;
 
-    IdtEmulationHandlePageFaults(VCpu,
-                                 InterruptInfo,
-                                 Address,
-                                 0x14);
+    //
+    // Configure the page-fault error code
+    //
+    PageFaultCode.Flags = 0x14;
+
+    //
+    // Inject #PF
+    //
+    EventInjectPageFaults(VCpu,
+                          InterruptInfo,
+                          Address,
+                          PageFaultCode);
 }

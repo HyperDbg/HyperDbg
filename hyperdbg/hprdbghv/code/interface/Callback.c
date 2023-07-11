@@ -354,14 +354,14 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
  *
  * @param CoreId
  * @param Address
- * @param ErrorCode
+ * @param PageFaultErrorCode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               ULONG  ErrorCode)
+DebuggingCallbackConditionalPageFaultException(UINT32                CoreId,
+                                               UINT64                Address,
+                                               PAGE_FAULT_ERROR_CODE PageFaultErrorCode)
 {
     if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
     {
@@ -371,7 +371,7 @@ DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
         return FALSE;
     }
 
-    return g_Callbacks.DebuggingCallbackConditionalPageFaultException(CoreId, Address, ErrorCode);
+    return g_Callbacks.DebuggingCallbackConditionalPageFaultException(CoreId, Address, PageFaultErrorCode);
 }
 
 /**

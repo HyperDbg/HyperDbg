@@ -1,10 +1,10 @@
 /**
- * @file pte.cpp
+ * @file pagein.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !pte command
+ * @brief .pagein command
  * @details
- * @version 0.1
- * @date 2020-05-27
+ * @version 0.4
+ * @date 2023-07-11
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -18,77 +18,41 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of !pte command
+ * @brief help of .pagein command
  *
  * @return VOID
  */
 VOID
-CommandPteHelp()
+CommandPageinHelp()
 {
-    ShowMessages("!pte : finds virtual addresses of different paging-levels.\n\n");
+    ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t!pte [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
+
+    ShowMessages("p : present\n");
+    ShowMessages("w : write\n");
+    ShowMessages("u : user\n");
+    ShowMessages("f : fetch\n");
+
+    ShowMessages("note : If you specify 'all' then e, d, or c will be applied to "
+                 "all of the events.\n\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag\n");
-    ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag+5\n");
-    ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
-    ShowMessages("\t\te.g : !pte 0x400021000 pid 1c0\n");
+    ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
+    ShowMessages("\t\te.g : .pagein nt!ExAllocatePoolWithTag+5\n");
+    ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
+    ShowMessages("\t\te.g : .pagein 0x400021000 pid 1c0\n");
 }
 
 /**
- * @brief show results of !pte command
- *
- * @param TargetVa
- * @param PteRead
- * @return VOID
- */
-VOID
-CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead)
-{
-    /*
-    VA fffff8003abc9370
-    PXE at FFFF83C1E0F07F80    PPE at FFFF83C1E0FF0000    PDE at
-    FFFF83C1FE000EA8    PTE at FFFF83FC001D5E48 contains 0000000004108063
-    contains 0000000004109063  contains 00000000026008E3  contains
-    0000000000000000 pfn 4108      ---DA--KWEV  pfn 4109      ---DA--KWEV  pfn
-    2600      --LDA--KWEV  LARGE PAGE pfn 27c9
-  */
-    ShowMessages("VA %llx\n", TargetVa);
-    ShowMessages("PML4E (PXE) at %016llx\tcontains %016llx\nPDPTE (PPE) at "
-                 "%016llx\tcontains "
-                 "%016llx\nPDE at %016llx\tcontains %016llx\n",
-                 PteRead->Pml4eVirtualAddress,
-                 PteRead->Pml4eValue,
-                 PteRead->PdpteVirtualAddress,
-                 PteRead->PdpteValue,
-                 PteRead->PdeVirtualAddress,
-                 PteRead->PdeValue);
-
-    //
-    // Check if it's a large PDE
-    //
-    if (PteRead->PdeVirtualAddress == PteRead->PteVirtualAddress)
-    {
-        ShowMessages("PDE is a large page, so it doesn't have a PTE\n");
-    }
-    else
-    {
-        ShowMessages("PTE at %016llx\tcontains %016llx\n",
-                     PteRead->PteVirtualAddress,
-                     PteRead->PteValue);
-    }
-}
-
-/**
- * @brief !pte command handler
+ * @brief .pagein command handler
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPte(vector<string> SplittedCommand, string Command)
+CommandPagein(vector<string> SplittedCommand, string Command)
 {
     BOOL                                     Status;
     ULONG                                    ReturnedLength;

@@ -75,9 +75,9 @@ BOOLEAN
 AttachingInitialize();
 
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
-                                         UINT64 Address,
-                                         ULONG  ErrorCode);
+AttachingCheckPageFaultsWithUserDebugger(UINT32                CoreId,
+                                         UINT64                Address,
+                                         PAGE_FAULT_ERROR_CODE PageFaultErrorCode);
 
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);

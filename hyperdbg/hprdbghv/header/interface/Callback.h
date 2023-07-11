@@ -89,9 +89,9 @@ BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
 
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               ULONG  ErrorCode);
+DebuggingCallbackConditionalPageFaultException(UINT32                CoreId,
+                                               UINT64                Address,
+                                               PAGE_FAULT_ERROR_CODE PageFaultErrorCode);
 
 //
 // Interception Callbacks

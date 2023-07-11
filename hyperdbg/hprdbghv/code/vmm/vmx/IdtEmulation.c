@@ -12,71 +12,51 @@
 #include "pch.h"
 
 /**
- * @brief inject #PFs to the guest
+ * @brief Handle Page-fault exception bitmap VM-exits
  *
  * @param VCpu The virtual processor's state
- * @param InterruptExit interrupt info from vm-exit
- * @param Address cr2 address
- * @param ErrorCode Page-fault error code
+ * @param InterruptExit interrupt exit information
  *
- * @return BOOLEAN
+ * @return VOID
  */
-BOOLEAN
+VOID
 IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
-                             _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                             _In_ UINT64                       Address,
-                             _In_ ULONG                        ErrorCode)
+                             _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    //
-    // #PF is treated differently, we have to deal with cr2 too.
-    //
-    PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
-
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &PageFaultCode);
-
-    if (Address == NULL)
-    {
-        UINT64 PageFaultAddress = 0;
-
-        __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
-
-        //
-        // Cr2 is used as the page-fault address
-        //
-        __writecr2(PageFaultAddress);
-    }
-    else
-    {
-        //
-        // Cr2 is used as the page-fault address
-        //
-        __writecr2(Address);
-    }
+    ULONG                 ErrorCode          = 0;
+    PAGE_FAULT_ERROR_CODE PageFaultErrorCode = {0};
+    UINT64                PageFaultAddress   = 0;
 
     //
-    // Test
+    // Read the error code and exiting address
     //
+    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+    PageFaultErrorCode.Flags = ErrorCode;
 
     //
-    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
+    // Read the page-fault address
     //
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
-    HvSuppressRipIncrement(VCpu);
+    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
+    //         PageFaultAddress,
+    //         PageFaultErrorCode.Flags,
+    //         PageFaultErrorCode.Fields.Present ? "p" : "",
+    //         PageFaultErrorCode.Fields.Write ? "w" : "",
+    //         PageFaultErrorCode.Fields.User ? "u" : "",
+    //         PageFaultErrorCode.Fields.Fetch ? "f" : "");
 
+    // Handle page-faults
+    // Check page-fault with user-debugger
+    // The page-fault is handled through the user debugger, no need further action
+    // NOTE: THE ADDRESS SHOULD BE NULL HERE
     //
-    // Re-inject the interrupt/exception
-    //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
-
-    //
-    // re-write error code (if any)
-    //
-    if (InterruptExit.ErrorCodeValid)
+    if (!DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, PageFaultAddress, PageFaultErrorCode))
     {
         //
-        // Write the error code
+        // The #pf is not related to the debugger, re-inject it
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        EventInjectPageFaults(VCpu, InterruptExit, PageFaultAddress, PageFaultErrorCode);
     }
 }
 
@@ -84,15 +64,13 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
  * @brief Handle Nmi and expection vm-exits
  *
  * @param VCpu The virtual processor's state
- * @param GuestRegs guest registers
+ * @param InterruptExit interrupt exit information
  * @return VOID
  */
 VOID
 IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                   _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG ErrorCode = 0;
-
     //
     // Exception or non-maskable interrupt (NMI). Either:
     //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception's vector was set to 1
@@ -145,27 +123,9 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     case EXCEPTION_VECTOR_PAGE_FAULT:
 
         //
-        // Read the error code
+        // Handle page-faults (#PFs)
         //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
-
-        //
-        // Handle page-faults
-        // Check page-fault with user-debugger
-        //
-        if (DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, __readcr2(), ErrorCode))
-        {
-            //
-            // The page-fault is handled through the user debugger, no need further action
-            //
-        }
-        else
-        {
-            //
-            // The #pf is not related to our debugger
-            //
-            IdtEmulationHandlePageFaults(VCpu, InterruptExit, NULL, ErrorCode);
-        }
+        IdtEmulationHandlePageFaults(VCpu, InterruptExit);
 
         break;
 

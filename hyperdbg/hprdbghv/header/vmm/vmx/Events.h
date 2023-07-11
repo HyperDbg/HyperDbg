@@ -95,6 +95,12 @@ VOID
 EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
+EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
+                      _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                      _In_ UINT64                       PageFaultAddress,
+                      _In_ PAGE_FAULT_ERROR_CODE        PageFaultCode);
+
+VOID
 EventInjectBreakpoint();
 
 VOID
@@ -107,7 +113,7 @@ VOID
 EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-EventInjectPageFault(UINT64 PageFaultAddress);
+EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress);
 
 VOID
 EventInjectDebugBreakpoint();

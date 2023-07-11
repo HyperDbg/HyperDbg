@@ -305,7 +305,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Inject #PF
             //
-            EventInjectPageFault(Rip);
+            EventInjectPageFaultWithoutErrorCode(Rip);
 
             //
             // We should not inject #UD
