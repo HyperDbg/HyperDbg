@@ -29,19 +29,35 @@ CommandPageinHelp()
 
     ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
 
-    ShowMessages("p : present\n");
-    ShowMessages("w : write\n");
-    ShowMessages("u : user\n");
-    ShowMessages("f : fetch\n");
-
-    ShowMessages("note : If you specify 'all' then e, d, or c will be applied to "
-                 "all of the events.\n\n");
-
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
-    ShowMessages("\t\te.g : .pagein nt!ExAllocatePoolWithTag+5\n");
-    ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
-    ShowMessages("\t\te.g : .pagein 0x400021000 pid 1c0\n");
+    ShowMessages("\t\te.g : .pagein w 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein pw 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
+    ShowMessages("\t\te.g : .pagein pf @rip\n");
+    ShowMessages("\t\te.g : .pagein uf @rip\n");
+
+    ShowMessages("\n");
+    ShowMessages("valid mode formats: \n");
+
+    ShowMessages("\tp : present\n");
+    ShowMessages("\tw : write\n");
+    ShowMessages("\tu : user\n");
+    ShowMessages("\tf : fetch\n");
+
+    ShowMessages("\n");
+    ShowMessages("common error codes: \n");
+
+    ShowMessages("\t0x0:  (default)\n");
+    ShowMessages("\t0x2:  w (write access fault)\n");
+    ShowMessages("\t0x3:  pw (present, write access fault)\n");
+    ShowMessages("\t0x4:  u (user access fault)\n");
+    ShowMessages("\t0x6:  wu (write, user access fault)\n");
+    ShowMessages("\t0x7:  pwu (present, write, user access fault)\n");
+    ShowMessages("\t0x10: f (fetch instruction fault)\n");
+    ShowMessages("\t0x11: pf (present, fetch instruction fault)\n");
+    ShowMessages("\t0x14: uf (user, fetch instruction fault)\n");
 }
 
 /**
