@@ -47,7 +47,7 @@ CommandPageinHelp()
     ShowMessages("\tf : fetch\n");
 
     ShowMessages("\n");
-    ShowMessages("common error codes: \n");
+    ShowMessages("common page-fault codes: \n");
 
     ShowMessages("\t0x0:  (default)\n");
     ShowMessages("\t0x2:  w (write access fault)\n");

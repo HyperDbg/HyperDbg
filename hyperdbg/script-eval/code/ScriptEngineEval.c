@@ -275,7 +275,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_EB:
 
@@ -304,7 +304,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_EQ:
 
@@ -332,7 +332,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INTERLOCKED_EXCHANGE:
 
@@ -360,7 +360,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INTERLOCKED_EXCHANGE_ADD:
 
@@ -389,7 +389,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INTERLOCKED_COMPARE_EXCHANGE:
 
@@ -424,7 +424,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_MEMCPY:
 
@@ -457,7 +457,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, SrcVal0, &HasError);
 
-        return HasError;
+        break;
 
     case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT:
 
@@ -479,7 +479,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0, &HasError);
 
-        return HasError;
+        break;
 
     case FUNC_PAUSE:
 
@@ -487,13 +487,13 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                   ActionDetail->ImmediatelySendTheResults,
                                   GuestRegs,
                                   ActionDetail->Context);
-        return HasError;
+        break;
 
     case FUNC_FLUSH:
 
         ScriptEngineFunctionFlush();
 
-        return HasError;
+        break;
 
     case FUNC_EVENT_SC:
 
@@ -510,7 +510,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         ScriptEngineFunctionShortCircuitingEvent(SrcVal0);
 
-        return HasError;
+        break;
 
     case FUNC_OR:
 
@@ -539,7 +539,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INC:
 
@@ -556,7 +556,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DEC:
 
@@ -573,7 +573,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_XOR:
 
@@ -600,7 +600,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_AND:
 
@@ -626,7 +626,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_ASR:
 
@@ -652,7 +652,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_ASL:
 
@@ -680,7 +680,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_ADD:
 
@@ -706,7 +706,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_SUB:
 
@@ -734,7 +734,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_MUL:
 
@@ -760,7 +760,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DIV:
 
@@ -786,14 +786,14 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (SrcVal0 == 0)
         {
             HasError = TRUE;
-            return HasError;
+            break;
         }
 
         DesVal = SrcVal1 / SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_MOD:
 
@@ -818,14 +818,14 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (SrcVal0 == 0)
         {
             HasError = TRUE;
-            return HasError;
+            break;
         }
 
         DesVal = SrcVal1 % SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_GT:
 
@@ -851,7 +851,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_LT:
 
@@ -877,7 +877,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_EGT:
 
@@ -903,7 +903,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_ELT:
 
@@ -930,7 +930,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_EQUAL:
 
@@ -957,7 +957,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_NEQ:
 
@@ -985,7 +985,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_POI:
 
@@ -1005,7 +1005,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                         &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DB:
 
@@ -1024,7 +1024,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                        &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DD:
 
@@ -1044,7 +1044,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DW:
 
@@ -1065,7 +1065,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                        &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DQ:
 
@@ -1085,7 +1085,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                        &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_NOT:
 
@@ -1105,7 +1105,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_REFERENCE:
 
@@ -1127,7 +1127,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_PHYSICAL_TO_VIRTUAL:
 
@@ -1146,7 +1146,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_VIRTUAL_TO_PHYSICAL:
 
@@ -1165,7 +1165,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_CHECK_ADDRESS:
 
@@ -1187,7 +1187,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_STRLEN:
 
@@ -1206,7 +1206,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DISASSEMBLE_LEN:
     case FUNC_DISASSEMBLE_LEN64:
@@ -1226,7 +1226,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_DISASSEMBLE_LEN32:
 
@@ -1245,7 +1245,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_WCSLEN:
 
@@ -1264,7 +1264,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INTERLOCKED_INCREMENT:
 
@@ -1284,7 +1284,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_INTERLOCKED_DECREMENT:
 
@@ -1303,7 +1303,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_NEG:
 
@@ -1323,7 +1323,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_HI:
 
@@ -1342,7 +1342,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                        &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_LOW:
 
@@ -1363,7 +1363,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                         &HasError);
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_MOV:
 
@@ -1382,7 +1382,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
-        return HasError;
+        break;
 
     case FUNC_PRINT:
 
@@ -1400,7 +1400,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         ScriptEngineFunctionPrint(ActionDetail->Tag,
                                   ActionDetail->ImmediatelySendTheResults,
                                   SrcVal0);
-        return HasError;
+        break;
 
     case FUNC_TEST_STATEMENT:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -1415,7 +1415,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         ScriptEngineFunctionTestStatement(ActionDetail->Tag,
                                           ActionDetail->ImmediatelySendTheResults,
                                           SrcVal0);
-        return HasError;
+        break;
 
     case FUNC_SPINLOCK_LOCK:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -1430,7 +1430,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         //
         ScriptEngineFunctionSpinlockLock((volatile LONG *)SrcVal0, &HasError);
 
-        return HasError;
+        break;
 
     case FUNC_SPINLOCK_UNLOCK:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -1444,7 +1444,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         //
         ScriptEngineFunctionSpinlockUnlock((volatile LONG *)SrcVal0, &HasError);
 
-        return HasError;
+        break;
 
     case FUNC_EVENT_DISABLE:
 
@@ -1459,7 +1459,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
 
-        return HasError;
+        break;
 
     case FUNC_EVENT_ENABLE:
 
@@ -1474,7 +1474,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
 
-        return HasError;
+        break;
 
     case FUNC_FORMATS:
 
@@ -1492,7 +1492,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
 
-        return HasError;
+        break;
 
     case FUNC_JZ:
 
@@ -1512,7 +1512,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (SrcVal1 == 0)
             *Indx = SrcVal0;
 
-        return HasError;
+        break;
 
     case FUNC_JNZ:
 
@@ -1533,7 +1533,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (SrcVal1 != 0)
             *Indx = SrcVal0;
 
-        return HasError;
+        break;
 
     case FUNC_JMP:
 
@@ -1545,7 +1545,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = SrcVal0;
 
-        return HasError;
+        break;
 
     case FUNC_PRINTF:
 
@@ -1587,6 +1587,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             Src2,
             (BOOLEAN *)&HasError);
 
-        return HasError;
+        break;
     }
+
+    //
+    // Return the result of whether error detected or not
+    //
+    return HasError;
 }

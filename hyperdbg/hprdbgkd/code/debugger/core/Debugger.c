@@ -1185,6 +1185,7 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // If has error, show error message and abort.
         //
+
         if (ScriptEngineExecute(DbgState->Regs,
                                 &ActionBuffer,
                                 &VariablesList,
