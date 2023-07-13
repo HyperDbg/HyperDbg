@@ -1808,6 +1808,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
@@ -2514,6 +2515,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
                                            PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_INJECT_PAGE_FAULT:
+
+                PageinPacket = (DEBUGGER_PAGE_IN_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform bringing the pages in (it's in vmx-root)
+                //
+                DebuggerCommandBringPagein(PageinPacket, TRUE);
+
+                //
+                // Send the result of the '.pagein' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BRINGING_PAGES_IN,
+                                           PageinPacket,
+                                           sizeof(DEBUGGER_PAGE_IN_REQUEST));
 
                 break;
 

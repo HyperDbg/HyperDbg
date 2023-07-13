@@ -39,7 +39,7 @@ CommandPageinHelp()
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 1000\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 200000\n");
     ShowMessages("\t\te.g : .pagein pf @rax\n");
-    ShowMessages("\t\te.g : .pagein uf @rax+@rcx\n");
+    ShowMessages("\t\te.g : .pagein uf @rip+@rcx\n");
     ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
 
     ShowMessages("\n");

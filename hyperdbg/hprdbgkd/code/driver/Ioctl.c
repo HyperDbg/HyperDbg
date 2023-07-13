@@ -28,6 +28,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_READ_AND_WRITE_ON_MSR                         DebuggerReadOrWriteMsrRequest;
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
+    PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
@@ -1421,6 +1422,45 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             ConfigureInitializeReversingMachineOnAllProcessors(RevServiceRequest);
 
             Irp->IoStatus.Information = SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_DEBUGGER_BRING_PAGES_IN:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PAGE_IN_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerPageinRequest = (PDEBUGGER_PAGE_IN_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place (it's not in vmx-root)
+            //
+            DebuggerCommandBringPagein(DebuggerPageinRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PAGE_IN_REQUEST;
             Status                    = STATUS_SUCCESS;
 
             //
