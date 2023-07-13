@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of !pte command
+ * @brief help of the !pte command
  *
  * @return VOID
  */
@@ -100,7 +100,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
         SplittedCommand.size() == 3)
     {
-        ShowMessages("incorrect use of '!pte'\n\n");
+        ShowMessages("incorrect use of the '!pte'\n\n");
         CommandPteHelp();
         return;
     }
@@ -172,7 +172,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of '!pte'\n\n");
+            ShowMessages("incorrect use of the '!pte'\n\n");
             CommandPteHelp();
             return;
         }

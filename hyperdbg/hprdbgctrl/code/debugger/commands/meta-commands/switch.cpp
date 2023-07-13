@@ -18,7 +18,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of .switch command
+ * @brief help of the .switch command
  *
  * @return VOID
  */
@@ -52,7 +52,7 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() > 3 || SplittedCommand.size() == 2)
     {
-        ShowMessages("incorrect use of '.switch'\n\n");
+        ShowMessages("incorrect use of the '.switch'\n\n");
         CommandSwitchHelp();
         return;
     }

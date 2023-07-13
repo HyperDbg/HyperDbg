@@ -20,7 +20,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of g command
+ * @brief help of the g command
  *
  * @return VOID
  */
@@ -94,7 +94,7 @@ CommandG(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'g'\n\n");
+        ShowMessages("incorrect use of the 'g'\n\n");
         CommandGHelp();
         return;
     }

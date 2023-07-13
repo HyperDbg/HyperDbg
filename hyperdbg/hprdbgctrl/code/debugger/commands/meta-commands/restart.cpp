@@ -19,7 +19,7 @@ extern std::wstring             g_StartCommandPathAndArguments;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of .restart command
+ * @brief help of the .restart command
  *
  * @return VOID
  */
@@ -45,7 +45,7 @@ CommandRestart(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '.restart'\n\n");
+        ShowMessages("incorrect use of the '.restart'\n\n");
         CommandRestartHelp();
         return;
     }

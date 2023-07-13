@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !monitor command
+ * @brief help of the !monitor command
  *
  * @return VOID
  */
@@ -66,7 +66,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() < 4)
     {
-        ShowMessages("incorrect use of '!monitor'\n");
+        ShowMessages("incorrect use of the '!monitor'\n");
         CommandMonitorHelp();
         return;
     }

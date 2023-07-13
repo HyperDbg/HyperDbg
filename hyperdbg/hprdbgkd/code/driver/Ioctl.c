@@ -209,7 +209,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerReadOrWriteMsrRequest = (PDEBUGGER_READ_AND_WRITE_ON_MSR)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Only the the rdmsr needs and output buffer
+            // Only the rdmsr needs and output buffer
             //
             if (DebuggerReadOrWriteMsrRequest->ActionType != DEBUGGER_MSR_WRITE)
             {

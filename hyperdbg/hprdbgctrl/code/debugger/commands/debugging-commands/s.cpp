@@ -166,7 +166,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 4)
     {
-        ShowMessages("incorrect use of 's*'\n\n");
+        ShowMessages("incorrect use of the 's*'\n\n");
         CommandSearchMemoryHelp();
         return;
     }

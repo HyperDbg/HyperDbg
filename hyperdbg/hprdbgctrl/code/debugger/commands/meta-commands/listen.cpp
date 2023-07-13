@@ -21,7 +21,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of listen command
+ * @brief help of the listen command
  *
  * @return VOID
  */
@@ -59,7 +59,7 @@ CommandListen(vector<string> SplittedCommand, string Command)
         //
         // Means that user entered invalid parameters
         //
-        ShowMessages("incorrect use of '.listen'\n\n");
+        ShowMessages("incorrect use of the '.listen'\n\n");
         CommandListenHelp();
         return;
     }
@@ -115,7 +115,7 @@ CommandListen(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of '.listen'\n\n");
+        ShowMessages("incorrect use of the '.listen'\n\n");
         CommandListenHelp();
         return;
     }

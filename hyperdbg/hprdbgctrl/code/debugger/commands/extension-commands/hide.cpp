@@ -26,7 +26,7 @@ extern BOOLEAN                  g_TransparentResultsMeasured;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of !hide command
+ * @brief help of the !hide command
  *
  * @return VOID
  */
@@ -69,7 +69,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 2 && SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '!hide'\n\n");
+        ShowMessages("incorrect use of the '!hide'\n\n");
         CommandHideHelp();
         return;
     }
@@ -103,7 +103,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() != 3)
         {
-            ShowMessages("incorrect use of '!hide'\n\n");
+            ShowMessages("incorrect use of the '!hide'\n\n");
             CommandHideHelp();
             return;
         }
@@ -146,7 +146,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // Invalid argument for the second parameter to the command
         //
-        ShowMessages("incorrect use of '!hide'\n\n");
+        ShowMessages("incorrect use of the '!hide'\n\n");
         CommandHideHelp();
         return;
     }

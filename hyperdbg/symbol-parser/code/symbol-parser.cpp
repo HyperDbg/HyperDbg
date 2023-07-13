@@ -1785,7 +1785,7 @@ SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::stri
 
 /**
  * @brief In the case of pressing CTRL+C, it sets a flag
- * to abort the execution of 'reload'ing and 'download'ing
+ * to abort the execution of the 'reload'ing and the 'download'ing
  *
  * return VOID
  */

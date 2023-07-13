@@ -20,7 +20,7 @@ extern BOOLEAN  g_LogOpened;
 extern ofstream g_LogOpenFile;
 
 /**
- * @brief help of .logopen command
+ * @brief help of the .logopen command
  *
  * @return VOID
  */

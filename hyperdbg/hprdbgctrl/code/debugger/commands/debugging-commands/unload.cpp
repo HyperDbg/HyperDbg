@@ -21,7 +21,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
- * @brief help of unload command
+ * @brief help of the unload command
  *
  * @return VOID
  */
@@ -50,7 +50,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
     {
-        ShowMessages("incorrect use of 'unload'\n\n");
+        ShowMessages("incorrect use of the 'unload'\n\n");
         CommandUnloadHelp();
         return;
     }

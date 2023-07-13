@@ -19,7 +19,7 @@ extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of pause command
+ * @brief help of the pause command
  *
  * @return VOID
  */
@@ -72,7 +72,7 @@ CommandPause(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'pause'\n\n");
+        ShowMessages("incorrect use of the 'pause'\n\n");
         CommandPauseHelp();
         return;
     }

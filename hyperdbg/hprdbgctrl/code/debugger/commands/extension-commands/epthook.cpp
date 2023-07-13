@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !epthook command
+ * @brief help of the !epthook command
  *
  * @return VOID
  */
@@ -61,7 +61,7 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() < 2)
     {
-        ShowMessages("incorrect use of '!epthook'\n");
+        ShowMessages("incorrect use of the '!epthook'\n");
         CommandEptHookHelp();
         return;
     }

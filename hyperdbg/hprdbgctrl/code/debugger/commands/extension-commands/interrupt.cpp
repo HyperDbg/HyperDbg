@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !interrupt command
+ * @brief help of the !interrupt command
  *
  * @return VOID
  */

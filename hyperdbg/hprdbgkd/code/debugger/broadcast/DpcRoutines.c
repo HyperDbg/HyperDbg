@@ -73,7 +73,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // it's sure will be executed, but we want to free the above
     // pool, so we have to wait on a spinlock that will be release
-    // by the the DPC routine, actually Affinity Thread but that
+    // by the DPC routine, actually Affinity Thread but that
     // won't support more than 64 logical cores, I create a discussion
     // here, and explained the problem, but no one answers
     // link: https://community.osr.com/discussion/292064/putting-a-barrier-for-dpc-before-continuing-the-rest-of-code

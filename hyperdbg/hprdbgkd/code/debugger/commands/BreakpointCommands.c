@@ -402,7 +402,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
         // A breakpoint triggered and two things might be happened,
         // first, a breakpoint is triggered randomly in the computer and
         // we shouldn't do anything on it (won't change the instruction)
-        // second, the breakpoint is because of 'bp' command, we should
+        // second, the breakpoint is because of the 'bp' command, we should
         // replace it with exact byte
         //
 

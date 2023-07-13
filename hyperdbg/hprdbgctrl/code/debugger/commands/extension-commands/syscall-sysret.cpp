@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !syscall command
+ * @brief help of the !syscall command
  *
  * @return VOID
  */
@@ -42,7 +42,7 @@ CommandSyscallHelp()
 }
 
 /**
- * @brief help of !sysret command
+ * @brief help of the !sysret command
  *
  * @return VOID
  */

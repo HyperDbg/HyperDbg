@@ -16,7 +16,7 @@
 //
 
 /**
- * @brief help of .sympath command
+ * @brief help of the .sympath command
  *
  * @return VOID
  */

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of help command :)
+ * @brief help of the help command :)
  *
  * @param SplittedCommand
  * @param Command

@@ -14,7 +14,7 @@
 using namespace std;
 
 /**
- * @brief help of .pe command
+ * @brief help of the .pe command
  *
  * @return VOID
  */
@@ -48,7 +48,7 @@ CommandPe(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 2)
     {
-        ShowMessages("err, incorrect use of '.pe' command\n\n");
+        ShowMessages("err, incorrect use of the '.pe' command\n\n");
         CommandPeHelp();
         return;
     }

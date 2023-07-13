@@ -333,7 +333,7 @@ StartAgain:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED:
 
                 //
-                // Handle the tracking of 'ret' and 'call' instructions
+                // Handle the tracking of the 'ret' and the 'call' instructions
                 //
                 CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
                                                        MAXIMUM_INSTR_SIZE,
@@ -613,7 +613,7 @@ StartAgain:
             if (ScriptPacket->IsFormat)
             {
                 //
-                // Signal the event relating to receiving result of .formats command
+                // Signal the event relating to receiving result of the '.formats' command
                 //
                 DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT);
             }

@@ -322,7 +322,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 /**
  * @brief This function performs allocations from VMX non-root based on g_RequestNewAllocation
  *
- * @return BOOLEAN If the the pool manager allocates buffer or there was no buffer to allocate
+ * @return BOOLEAN If the pool manager allocates buffer or there was no buffer to allocate
  * then it returns true, if there was any error then it returns false
  */
 BOOLEAN

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of help command :)
+ * @brief help of the help command :)
  *
  * @return VOID
  */
@@ -109,7 +109,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of '.formats'\n\n");
+        ShowMessages("incorrect use of the '.formats'\n\n");
         CommandFormatsHelp();
         return;
     }

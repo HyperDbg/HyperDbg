@@ -19,7 +19,7 @@ using namespace std;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of lm command
+ * @brief help of the lm command
  *
  * @return VOID
  */

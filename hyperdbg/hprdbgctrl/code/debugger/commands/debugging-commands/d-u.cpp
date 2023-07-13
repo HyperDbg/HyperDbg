@@ -91,10 +91,9 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 1)
     {
         //
-        // Means that user entered just a connect so we have to
-        // ask to connect to what ?
+        // Means that user entered one command without any parameter
         //
-        ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }
@@ -163,7 +162,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             //
             // User inserts two address
             //
-            ShowMessages("err, incorrect use of '%s' command\n\n",
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
                          FirstCommand.c_str());
             CommandReadMemoryAndDisassemblerHelp();
 
@@ -198,7 +197,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
 
     if (IsNextLength || IsNextProcessId)
     {
-        ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }

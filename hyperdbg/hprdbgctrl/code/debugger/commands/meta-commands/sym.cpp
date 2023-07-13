@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of .sym command
+ * @brief help of the .sym command
  *
  * @return VOID
  */
@@ -58,7 +58,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of '.sym'\n\n");
+        ShowMessages("incorrect use of the '.sym'\n\n");
         CommandSymHelp();
         return;
     }
@@ -70,7 +70,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() != 2)
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
@@ -87,7 +87,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() != 2)
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
@@ -111,7 +111,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() != 2 && SplittedCommand.size() != 4)
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
@@ -136,7 +136,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             }
             else
             {
-                ShowMessages("incorrect use of '.sym'\n\n");
+                ShowMessages("incorrect use of the '.sym'\n\n");
                 CommandSymHelp();
                 return;
             }
@@ -191,7 +191,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() != 2)
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
@@ -214,7 +214,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() < 6)
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
@@ -235,7 +235,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             //
             if (SplittedCommand.at(4).compare("path"))
             {
-                ShowMessages("incorrect use of '.sym'\n\n");
+                ShowMessages("incorrect use of the '.sym'\n\n");
                 CommandSymHelp();
                 return;
             }
@@ -265,7 +265,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of '.sym'\n\n");
+            ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }

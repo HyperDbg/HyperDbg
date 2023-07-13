@@ -21,7 +21,7 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsReversingMachineModulesLoaded;
 
 /**
- * @brief help of load command
+ * @brief help of the load command
  *
  * @return VOID
  */
@@ -178,7 +178,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 'load'\n\n");
+        ShowMessages("incorrect use of the 'load'\n\n");
         CommandLoadHelp();
         return;
     }

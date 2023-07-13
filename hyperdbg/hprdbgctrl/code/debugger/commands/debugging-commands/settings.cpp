@@ -21,7 +21,7 @@ extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern UINT32  g_DisassemblerSyntax;
 
 /**
- * @brief help of settings command
+ * @brief help of the settings command
  *
  * @return VOID
  */
@@ -311,7 +311,7 @@ CommandSettingsAddressConversion(vector<string> SplittedCommand)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of 'settings', please use 'help settings' "
+            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                          "for more details\n");
             return;
         }
@@ -321,7 +321,7 @@ CommandSettingsAddressConversion(vector<string> SplittedCommand)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                      "for more details\n");
         return;
     }
@@ -375,7 +375,7 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of 'settings', please use 'help settings' "
+            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                          "for more details\n");
             return;
         }
@@ -385,7 +385,7 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                      "for more details\n");
         return;
     }
@@ -438,7 +438,7 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of 'settings', please use 'help settings' "
+            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                          "for more details\n");
             return;
         }
@@ -448,7 +448,7 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                      "for more details\n");
         return;
     }
@@ -517,7 +517,7 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of 'settings', please use 'help settings' "
+            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                          "for more details\n");
             return;
         }
@@ -527,7 +527,7 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                      "for more details\n");
         return;
     }
@@ -545,7 +545,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() <= 1)
     {
-        ShowMessages("incorrect use of 'settings'\n\n");
+        ShowMessages("incorrect use of the 'settings'\n\n");
         CommandSettingsHelp();
         return;
     }
@@ -619,7 +619,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
         //
         // optionm not found
         //
-        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
                      "for more details\n");
         return;
     }

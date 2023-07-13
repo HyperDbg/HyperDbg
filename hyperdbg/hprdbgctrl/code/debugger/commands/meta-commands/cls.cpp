@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of .cls command
+ * @brief help of the .cls command
  *
  * @return VOID
  */

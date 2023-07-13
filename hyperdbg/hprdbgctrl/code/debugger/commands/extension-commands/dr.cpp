@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !dr command
+ * @brief help of the !dr command
  *
  * @return VOID
  */
@@ -78,7 +78,7 @@ CommandDr(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() > 1)
     {
-        ShowMessages("incorrect use of '!dr'\n");
+        ShowMessages("incorrect use of the '!dr'\n");
         CommandDrHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

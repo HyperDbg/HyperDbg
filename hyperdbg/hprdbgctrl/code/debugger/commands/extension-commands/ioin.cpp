@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !ioin command
+ * @brief help of the !ioin command
  *
  * @return VOID
  */

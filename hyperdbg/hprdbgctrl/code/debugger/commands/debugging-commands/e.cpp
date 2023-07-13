@@ -85,7 +85,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 2)
     {
-        ShowMessages("incorrect use of 'e*'\n\n");
+        ShowMessages("incorrect use of the 'e*'\n\n");
         CommandEditMemoryHelp();
         return;
     }

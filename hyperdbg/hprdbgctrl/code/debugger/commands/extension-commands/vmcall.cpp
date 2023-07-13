@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !vmcall command
+ * @brief help of the !vmcall command
  *
  * @return VOID
  */
@@ -78,7 +78,7 @@ CommandVmcall(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() > 1)
     {
-        ShowMessages("incorrect use of '!vmcall'\n");
+        ShowMessages("incorrect use of the '!vmcall'\n");
         CommandVmcallHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

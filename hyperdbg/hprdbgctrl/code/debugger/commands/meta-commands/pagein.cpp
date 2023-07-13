@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of .pagein command
+ * @brief help of the .pagein command
  *
  * @return VOID
  */
@@ -27,16 +27,20 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
+    ShowMessages("\t\te.g : .pagein u 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein w 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein f 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein pw 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
-    ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 1000\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 200000\n");
     ShowMessages("\t\te.g : .pagein pf @rip\n");
     ShowMessages("\t\te.g : .pagein uf @rip\n");
+    ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
 
     ShowMessages("\n");
     ShowMessages("valid mode formats: \n");
@@ -45,6 +49,10 @@ CommandPageinHelp()
     ShowMessages("\tw : write\n");
     ShowMessages("\tu : user\n");
     ShowMessages("\tf : fetch\n");
+    ShowMessages("\tk : protection key\n");
+    ShowMessages("\ts : shadow stack\n");
+    ShowMessages("\th : hlat\n");
+    ShowMessages("\tg : sgx\n");
 
     ShowMessages("\n");
     ShowMessages("common page-fault codes: \n");
@@ -61,6 +69,93 @@ CommandPageinHelp()
 }
 
 /**
+ * @brief Check whether the mode string is valid or not
+ * @param ModeString
+ * @param PageFaultErrorCode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
+                                         PAGE_FAULT_EXCEPTION * PageFaultErrorCode)
+{
+    std::unordered_set<char> AllowedChars = {'p', 'w', 'u', 'f', 'k', 's', 'h', 'g'};
+    std::unordered_set<char> FoundChars;
+
+    for (char c : ModeString)
+    {
+        if (AllowedChars.count(c) == 0)
+        {
+            //
+            // Found a character that is not allowed
+            //
+            return FALSE;
+        }
+
+        if (FoundChars.count(c) > 0)
+        {
+            //
+            // Found a character more than once
+            //
+            return false;
+        }
+
+        FoundChars.insert(c);
+    }
+
+    //
+    // All checks passed, let's interpret the page-fault code
+    //
+    for (char c : ModeString)
+    {
+        if (c == 'p')
+        {
+            PageFaultErrorCode->Present = TRUE;
+        }
+        else if (c == 'w')
+        {
+            PageFaultErrorCode->Write = TRUE;
+        }
+        else if (c == 'u')
+        {
+            PageFaultErrorCode->UserModeAccess = TRUE;
+        }
+        else if (c == 'f')
+        {
+            PageFaultErrorCode->Execute = TRUE;
+        }
+        else if (c == 'k')
+        {
+            PageFaultErrorCode->ProtectionKeyViolation = TRUE;
+        }
+        else if (c == 's')
+        {
+            PageFaultErrorCode->ShadowStack = TRUE;
+        }
+        else if (c == 'h')
+        {
+            PageFaultErrorCode->Hlat = TRUE;
+        }
+        else if (c == 'g')
+        {
+            PageFaultErrorCode->Sgx = TRUE;
+        }
+        else
+        {
+            //
+            // Something went wrong, generally we shouldn't reach here
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // All checks passed, and the page-fault code is interpreted
+    //
+    return TRUE;
+}
+
+/**
  * @brief .pagein command handler
  *
  * @param SplittedCommand
@@ -70,20 +165,15 @@ CommandPageinHelp()
 VOID
 CommandPagein(vector<string> SplittedCommand, string Command)
 {
-    BOOL                                     Status;
-    ULONG                                    ReturnedLength;
-    UINT64                                   TargetVa;
-    UINT32                                   Pid            = 0;
-    DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS AddressDetails = {0};
-    vector<string>                           SplittedCommandCaseSensitive {Split(Command, ' ')};
-
-    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3 &&
-        SplittedCommand.size() != 5)
-    {
-        ShowMessages("incorrect use of '.pagein'\n\n");
-        CommandPageinHelp();
-        return;
-    }
+    UINT32               Pid             = 0;
+    UINT32               Length          = 0;
+    UINT64               TargetAddress   = 0;
+    BOOLEAN              IsNextProcessId = FALSE;
+    BOOLEAN              IsFirstCommand  = TRUE;
+    BOOLEAN              IsNextLength    = FALSE;
+    vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32               IndexInCommandCaseSensitive = 0;
+    PAGE_FAULT_EXCEPTION PageFaultErrorCode          = {0};
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -94,149 +184,133 @@ CommandPagein(vector<string> SplittedCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplittedCommand.size() == 2)
+    if (SplittedCommand.size() == 1)
     {
         //
-        // It's just an address for current process
+        // Means that user entered one command without any parameter
         //
-        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
-        {
-            //
-            // Couldn't resolve or unkonwn parameter
-            //
-            ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplittedCommandCaseSensitive.at(1).c_str());
-            return;
-        }
+        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        CommandPageinHelp();
+        return;
     }
-    else if (SplittedCommand.size() == 3)
+
+    for (auto Section : SplittedCommand)
     {
-        //
-        // It's an address + a flag (mode) for current process
-        //
-        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+        IndexInCommandCaseSensitive++;
+
+        if (IsFirstCommand)
         {
-            //
-            // Couldn't resolve or unkonwn parameter
-            //
-            ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplittedCommandCaseSensitive.at(1).c_str());
-            return;
+            IsFirstCommand = FALSE;
+            continue;
         }
-    }
-    else
-    {
-        //
-        // It might be address + pid
-        //
-        if (!SplittedCommand.at(1).compare("pid"))
+        if (IsNextProcessId == TRUE)
         {
-            if (!ConvertStringToUInt32(SplittedCommand.at(2), &Pid))
+            if (!ConvertStringToUInt32(Section, &Pid))
             {
-                ShowMessages("incorrect address, please enter a valid process id\n");
+                ShowMessages("err, you should enter a valid process id\n\n");
                 return;
             }
+            IsNextProcessId = FALSE;
+            continue;
+        }
 
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
+        if (IsNextLength == TRUE)
+        {
+            if (!ConvertStringToUInt32(Section, &Length))
+            {
+                ShowMessages("err, you should enter a valid length\n\n");
+                return;
+            }
+            IsNextLength = FALSE;
+            continue;
+        }
+
+        if (!Section.compare("l"))
+        {
+            IsNextLength = TRUE;
+            continue;
+        }
+
+        if (!Section.compare("pid"))
+        {
+            IsNextProcessId = TRUE;
+            continue;
+        }
+
+        //
+        // Probably it's address or mode string
+        //
+
+        if (CommandPageinCheckAndInterpretModeString(Section, &PageFaultErrorCode))
+        {
+            continue;
+        }
+        else if (TargetAddress == 0)
+        {
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                                                  &TargetAddress))
             {
                 //
                 // Couldn't resolve or unkonwn parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(3).c_str());
-                return;
-            }
-        }
-        else if (!SplittedCommand.at(2).compare("pid"))
-        {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
-            {
-                //
-                // Couldn't resolve or unkonwn parameter
-                //
-                ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplittedCommandCaseSensitive.at(1).c_str());
-                return;
-            }
-
-            if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
-            {
-                ShowMessages("incorrect address, please enter a valid process id\n");
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 return;
             }
         }
         else
         {
-            ShowMessages("incorrect use of '!pte'\n\n");
-            CommandPteHelp();
+            //
+            // User inserts two address
+            //
+            ShowMessages("err, incorrect use of the '.pagein' command\n\n");
+            CommandPageinHelp();
+
             return;
         }
+    }
+
+    if (!TargetAddress)
+    {
+        //
+        // User inserts two address
+        //
+        ShowMessages("err, please enter a valid address\n\n");
+
+        return;
+    }
+
+    if (IsNextLength || IsNextProcessId)
+    {
+        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        CommandPageinHelp();
+        return;
     }
 
     //
-    // Prepare the buffer
-    // We use same buffer for input and output
+    // Check to prevent using process id in the '.pagein' command
     //
-    AddressDetails.VirtualAddress = TargetVa;
-    AddressDetails.ProcessId      = Pid; // null in debugger mode
+    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
+    {
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        return;
+    }
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    if (!g_IsSerialConnectedToRemoteDebuggee && Pid == 0)
     {
         //
-        // Check to prevent using process id in !pte command
+        // Default process we read from current process
         //
-        if (Pid != 0)
-        {
-            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
-            return;
-        }
-
-        //
-        // Send the request over serial kernel debugger
-        //
-
-        KdSendPtePacketToDebuggee(&AddressDetails);
+        Pid = GetCurrentProcessId();
     }
-    else
-    {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
-        if (Pid == 0)
-        {
-            Pid                      = GetCurrentProcessId();
-            AddressDetails.ProcessId = Pid;
-        }
+    //
+    // Send the request
+    //
 
-        //
-        // Send IOCTL
-        //
-        Status = DeviceIoControl(
-            g_DeviceHandle,                                  // Handle to device
-            IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,  // IO Control code
-            &AddressDetails,                                 // Input Buffer to driver.
-            SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Input buffer length
-            &AddressDetails,                                 // Output Buffer from driver.
-            SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Length of output
-                                                             // buffer in bytes.
-            &ReturnedLength,                                 // Bytes placed in buffer.
-            NULL                                             // synchronous call
-        );
-
-        if (!Status)
-        {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-            return;
-        }
-
-        if (AddressDetails.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-        {
-            ShowErrorMessage(AddressDetails.KernelStatus);
-            return;
-        }
-
-        //
-        // Show the results
-        //
-        CommandPteShowResults(TargetVa, &AddressDetails);
-    }
+    // ShowMessages(".pagin address: %llx, page-fault code: 0x%x, pid: %x, length: 0x%x",
+    //              TargetAddress,
+    //              PageFaultErrorCode.AsUInt,
+    //              Pid,
+    //              Length);
 }

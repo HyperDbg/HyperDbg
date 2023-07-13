@@ -23,7 +23,7 @@ extern string  g_ServerPort;
 extern string  g_ServerIp;
 
 /**
- * @brief help of .connect command
+ * @brief help of the .connect command
  *
  * @return VOID
  */
@@ -76,7 +76,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         // Means that user entered just a connect so we have to
         // ask to connect to what ?
         //
-        ShowMessages("incorrect use of '.connect'\n\n");
+        ShowMessages("incorrect use of the '.connect'\n\n");
         CommandConnectHelp();
         return;
     }
@@ -136,7 +136,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of '.connect'\n\n");
+        ShowMessages("incorrect use of the '.connect'\n\n");
         CommandConnectHelp();
         return;
     }

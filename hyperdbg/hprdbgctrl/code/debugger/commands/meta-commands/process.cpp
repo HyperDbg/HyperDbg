@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of .process command
+ * @brief help of the .process command
  *
  * @return VOID
  */
@@ -67,7 +67,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 4)
     {
-        ShowMessages("incorrect use of '.process'\n\n");
+        ShowMessages("incorrect use of the '.process'\n\n");
         CommandProcessHelp();
         return;
     }

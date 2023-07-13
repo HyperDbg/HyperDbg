@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !rev command
+ * @brief help of the !rev command
  *
  * @return VOID
  */

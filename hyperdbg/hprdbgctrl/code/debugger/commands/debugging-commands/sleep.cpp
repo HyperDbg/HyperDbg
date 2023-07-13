@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of sleep command
+ * @brief help of the sleep command
  *
  * @return VOID
  */
@@ -40,7 +40,7 @@ CommandSleep(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 'sleep'\n\n");
+        ShowMessages("incorrect use of the 'sleep'\n\n");
         CommandSleepHelp();
         return;
     }

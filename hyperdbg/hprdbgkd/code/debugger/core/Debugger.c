@@ -1030,7 +1030,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         }
 
         //
-        // Reset the the event ignorance mechanism (apply 'sc on/off' to the events)
+        // Reset the event ignorance mechanism (apply 'sc on/off' to the events)
         //
         DbgState->ShortCircuitingEvent = CurrentEvent->EnableShortCircuiting;
 
@@ -1046,7 +1046,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     if (DbgState->ShortCircuitingEvent)
     {
         //
-        // Reset the the event ignorance (short-circuit) mechanism
+        // Reset the event ignorance (short-circuit) mechanism
         //
         DbgState->ShortCircuitingEvent = FALSE;
 

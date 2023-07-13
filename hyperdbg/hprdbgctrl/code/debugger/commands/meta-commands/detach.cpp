@@ -18,7 +18,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of .detach command
+ * @brief help of the .detach command
  *
  * @return VOID
  */
@@ -74,7 +74,7 @@ CommandDetach(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() >= 2)
     {
-        ShowMessages("incorrect use of '.detach'\n\n");
+        ShowMessages("incorrect use of the '.detach'\n\n");
         CommandDetachHelp();
         return;
     }

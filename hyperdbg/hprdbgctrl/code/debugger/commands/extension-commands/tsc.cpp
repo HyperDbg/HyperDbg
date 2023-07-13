@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !tsc command
+ * @brief help of the !tsc command
  *
  * @return VOID
  */
@@ -79,7 +79,7 @@ CommandTsc(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() > 1)
     {
-        ShowMessages("incorrect use of '!tsc'\n");
+        ShowMessages("incorrect use of the '!tsc'\n");
         CommandTscHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

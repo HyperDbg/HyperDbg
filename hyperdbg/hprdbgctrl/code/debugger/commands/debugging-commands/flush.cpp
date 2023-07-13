@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of flush command
+ * @brief help of the flush command
  *
  * @return VOID
  */
@@ -110,7 +110,7 @@ CommandFlush(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'flush'\n\n");
+        ShowMessages("incorrect use of the 'flush'\n\n");
         CommandFlushHelp();
         return;
     }

@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of bc command
+ * @brief help of the bc command
  *
  * @return VOID
  */
@@ -51,7 +51,7 @@ CommandBc(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 'bc'\n\n");
+        ShowMessages("incorrect use of the 'bc'\n\n");
         CommandBcHelp();
         return;
     }

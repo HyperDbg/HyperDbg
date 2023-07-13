@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of dt command
+ * @brief help of the dt command
  *
  * @return VOID
  */
@@ -55,7 +55,7 @@ CommandDtHelp()
 }
 
 /**
- * @brief help of struct command
+ * @brief help of the struct command
  *
  * @return VOID
  */
@@ -459,7 +459,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
 
         if (IsStruct)
         {

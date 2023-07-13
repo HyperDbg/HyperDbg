@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of wrmsr command
+ * @brief help of the wrmsr command
  *
  * @return VOID
  */
@@ -51,7 +51,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 6)
     {
-        ShowMessages("incorrect use of 'wrmsr'\n\n");
+        ShowMessages("incorrect use of the 'wrmsr'\n\n");
         CommandWrmsrHelp();
         return;
     }

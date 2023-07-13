@@ -24,7 +24,7 @@ extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
 extern UINT64     g_EventTag;
 
 /**
- * @brief help of events command
+ * @brief help of the events command
  *
  * @return VOID
  */
@@ -72,7 +72,7 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 1 && SplittedCommand.size() != 3)
     {
-        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }
@@ -137,7 +137,7 @@ CommandEvents(vector<string> SplittedCommand, string Command)
         //
         // unknown second command
         //
-        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }

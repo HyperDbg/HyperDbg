@@ -18,7 +18,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
- * @brief help of .attach command
+ * @brief help of the .attach command
  *
  * @return VOID
  */
@@ -69,7 +69,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() >= 4)
     {
-        ShowMessages("incorrect use of '.attach'\n\n");
+        ShowMessages("incorrect use of the '.attach'\n\n");
         CommandAttachHelp();
         return;
     }

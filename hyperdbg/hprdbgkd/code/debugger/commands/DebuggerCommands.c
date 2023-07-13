@@ -92,7 +92,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         MemoryMapperReadMemorySafeOnTargetProcess(Address, UserBuffer, Size);
 
         //
-        // Check if the target memory is filled with breakpoint of 'bp' commands
+        // Check if the target memory is filled with breakpoint of the 'bp' commands
         // if the memory is changed due to this command, then we'll changes it to
         // the previous byte
         //

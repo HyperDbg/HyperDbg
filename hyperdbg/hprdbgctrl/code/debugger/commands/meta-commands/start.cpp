@@ -19,7 +19,7 @@ extern std::wstring g_StartCommandPathAndArguments;
 extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
 
 /**
- * @brief help of .start command
+ * @brief help of the .start command
  *
  * @return VOID
  */
@@ -66,7 +66,7 @@ CommandStart(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 2)
     {
-        ShowMessages("incorrect use of '.start'\n\n");
+        ShowMessages("incorrect use of the '.start'\n\n");
         CommandStartHelp();
         return;
     }
