@@ -27,7 +27,7 @@ BOOLEAN
 DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest);
 
 BOOLEAN
-DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest, BOOLEAN IsOperatingInVmxRoot);
+DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest);
 
 NTSTATUS
 DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UINT64 * UserBuffer, PSIZE_T ReturnSize);

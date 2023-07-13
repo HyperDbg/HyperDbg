@@ -594,13 +594,14 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
  *
  * @param CoreId Target core's ID
  * @param Address Page-fault address
+ * @param PageFaultCode Page-fault error code
  *
  * @return VOID
  */
 VOID
-VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address)
+VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaultCode)
 {
-    EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address);
+    EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address, PageFaultCode);
 }
 
 /**

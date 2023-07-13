@@ -1210,75 +1210,12 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
  * @brief routines for the .pagein command
  *
  * @param PageinRequest
- * @param IsOperatingInVmxRoot
  *
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest, BOOLEAN IsOperatingInVmxRoot)
+DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest)
 {
-    BOOLEAN  Result     = FALSE;
-    CR3_TYPE RestoreCr3 = {0};
-
-    //
-    // Check for validations
-    //
-    if (IsOperatingInVmxRoot)
-    {
-        if (!VirtualAddressToPhysicalAddressOnTargetProcess(PageinRequest->VirtualAddress))
-        {
-            //
-            // Address is not valid (doesn't have Physical Address)
-            //
-            PageinRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-            return FALSE;
-        }
-
-        //
-        // Switch on running process's cr3
-        //
-        RestoreCr3.Flags = SwitchToCurrentProcessMemoryLayout().Flags;
-    }
-    else
-    {
-        if (PageinRequest->ProcessId != PsGetCurrentProcessId())
-        {
-            //
-            // It's on another process address space
-            //
-
-            //
-            // Check if pid is valid
-            //
-            if (!CommonIsProcessExist(PageinRequest->ProcessId))
-            {
-                //
-                // Process id is invalid
-                //
-                PageinRequest->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
-                return FALSE;
-            }
-
-            //
-            // Switch to new process's memory layout
-            //
-            RestoreCr3.Flags = SwitchToProcessMemoryLayout(PageinRequest->ProcessId).Flags;
-        }
-
-        //
-        // Check if address is valid
-        //
-        if (!VirtualAddressToPhysicalAddress(PageinRequest->VirtualAddress))
-        {
-            //
-            // Address is not valid (doesn't have Physical Address)
-            //
-            PageinRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-            Result                      = FALSE;
-            goto RestoreTheState;
-        }
-    }
-
     //
     // *** Perform the injection here ***
     //
@@ -1288,17 +1225,6 @@ DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest, BOOLEAN IsOp
     // Adjust the flags for showing the successful #PF injection
     //
     PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    Result                      = TRUE;
 
-RestoreTheState:
-
-    //
-    // Check to restore the current cr3 if it's changed
-    //
-    if (RestoreCr3.Flags != NULL)
-    {
-        SwitchToPreviousProcess(RestoreCr3);
-    }
-
-    return Result;
+    return TRUE;
 }

@@ -425,6 +425,7 @@ VOID
 AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
+    PAGE_FAULT_EXCEPTION                PageFaultErrorCode     = {0};
     RFLAGS                              Rflags                 = {0};
 
     //
@@ -483,9 +484,16 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 g_IsWaitingForReturnAndRunFromPageFault = TRUE;
 
                 //
+                // Create page-fault error code (user, fetch #PF)
+                //
+                PageFaultErrorCode.AsUInt = 0x14;
+
+                //
                 // Inject the page-fault
                 //
-                VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId, ProcessDebuggingDetail->EntrypointOfMainModule);
+                VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId,
+                                                  ProcessDebuggingDetail->EntrypointOfMainModule,
+                                                  PageFaultErrorCode.AsUInt);
 
                 //
                 // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF

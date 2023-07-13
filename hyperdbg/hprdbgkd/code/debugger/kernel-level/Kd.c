@@ -1628,6 +1628,44 @@ KdQuerySystemState()
 }
 
 /**
+ * @brief routines to break page-in
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param PageinRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
+              PDEBUGGER_PAGE_IN_REQUEST   PageinRequest)
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // Inject page-fault
+    //
+    VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId,
+                                      PageinRequest->VirtualAddress,
+                                      PageinRequest->PageFaultErrorCode);
+
+    //
+    // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
+    //
+    Rflags.AsUInt = VmFuncGetRflags();
+
+    Rflags.TrapFlag = TRUE;
+
+    VmFuncSetRflags(Rflags.AsUInt);
+
+    //
+    // Adjust the flags for showing the successful #PF injection
+    //
+    PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
+}
+
+/**
  * @brief Perform modify the state of short-circuiting
  *
  * @param DbgState The state of the debugger on the current core
@@ -2525,7 +2563,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Perform bringing the pages in (it's in vmx-root)
                 //
-                DebuggerCommandBringPagein(PageinPacket, TRUE);
+                KdBringPagein(DbgState, PageinPacket, TRUE);
 
                 //
                 // Send the result of the '.pagein' back to the debuggee

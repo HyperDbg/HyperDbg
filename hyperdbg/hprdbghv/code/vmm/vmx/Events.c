@@ -208,15 +208,16 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
  * @brief re-inject interrupt or exception to the guest
  *
  * @param VCpu The virtual processor's state
- * @param Address Page fault address
+ * @param Address Page-fault address
+ * @param PageFaultCode Page-fault error code
  *
  * @return VOID
  */
 VOID
-EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
+EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address, UINT32 PageFaultCode)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
-    PAGE_FAULT_EXCEPTION         PageFaultCode = {0};
+    VMEXIT_INTERRUPT_INFORMATION InterruptInfo      = {0};
+    PAGE_FAULT_EXCEPTION         PageFaultErrorCode = {0};
 
     //
     // Configure the #PF injection
@@ -242,7 +243,7 @@ EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
     //
     // Configure the page-fault error code
     //
-    PageFaultCode.AsUInt = 0x14;
+    PageFaultErrorCode.AsUInt = PageFaultCode;
 
     //
     // Inject #PF
@@ -250,5 +251,5 @@ EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
     EventInjectPageFaults(VCpu,
                           InterruptInfo,
                           Address,
-                          PageFaultCode);
+                          PageFaultErrorCode);
 }

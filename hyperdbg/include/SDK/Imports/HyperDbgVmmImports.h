@@ -114,7 +114,7 @@ IMPORT_EXPORT_VMM VOID
 VmFuncDisableExternalInterruptsAndInterruptWindow(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address);
+VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaultCode);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncVmxBroadcastInitialize();

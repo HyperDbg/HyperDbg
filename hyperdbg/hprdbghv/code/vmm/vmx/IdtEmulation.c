@@ -38,13 +38,13 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
-    LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
-            PageFaultAddress,
-            PageFaultErrorCode.AsUInt,
-            PageFaultErrorCode.Present ? "p" : "",
-            PageFaultErrorCode.Write ? "w" : "",
-            PageFaultErrorCode.UserModeAccess ? "u" : "",
-            PageFaultErrorCode.Execute ? "f" : "");
+    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
+    //         PageFaultAddress,
+    //         PageFaultErrorCode.AsUInt,
+    //         PageFaultErrorCode.Present ? "p" : "",
+    //         PageFaultErrorCode.Write ? "w" : "",
+    //         PageFaultErrorCode.UserModeAccess ? "u" : "",
+    //         PageFaultErrorCode.Execute ? "f" : "");
 
     // Handle page-faults
     // Check page-fault with user-debugger

@@ -1456,9 +1456,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Both usermode and to send to usermode and the comming buffer are
-            // at the same place (it's not in vmx-root)
+            // at the same place (it's in VMI-mode)
             //
-            DebuggerCommandBringPagein(DebuggerPageinRequest, FALSE);
+            DebuggerCommandBringPagein(DebuggerPageinRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PAGE_IN_REQUEST;
             Status                    = STATUS_SUCCESS;
