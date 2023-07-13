@@ -18,8 +18,7 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - The **!monitor** command now supports 'execution' interception ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor))
-- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
-- **.pagein** - command is added to the debugger to bring pages in ([link](ttps://docs.hyperdbg.org/commands/meta-commands/.pagein))
+- **.pagein** - command is added to the debugger to bring pages in ([link](https://docs.hyperdbg.org/commands/meta-commands/.pagein))
 
 ### Changed
 - The '.start' command's mechanism for finding the entrypoint is changed to address issues ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))

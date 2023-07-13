@@ -38,8 +38,8 @@ CommandPageinHelp()
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 1000\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 200000\n");
-    ShowMessages("\t\te.g : .pagein pf @rip\n");
-    ShowMessages("\t\te.g : .pagein uf @rip\n");
+    ShowMessages("\t\te.g : .pagein pf @rax\n");
+    ShowMessages("\t\te.g : .pagein uf @rax+@rcx\n");
     ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
 
     ShowMessages("\n");
@@ -153,6 +153,90 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
     // All checks passed, and the page-fault code is interpreted
     //
     return TRUE;
+}
+
+/**
+ * @brief request to bring the page(s) in
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID
+CommandPageinRequest(UINT64               TargetVirtualAddr,
+                     PAGE_FAULT_EXCEPTION PageFaultErrorCode,
+                     UINT32               Pid,
+                     UINT32               Length)
+{
+    BOOL                     Status;
+    ULONG                    ReturnedLength;
+    DEBUGGER_PAGE_IN_REQUEST PageFaultRequest = {0};
+
+    //
+    // Prepare the buffer
+    // We use same buffer for input and output
+    //
+    PageFaultRequest.VirtualAddress = TargetVirtualAddr;
+    PageFaultRequest.ProcessId      = Pid; // null in debugger mode
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Check to prevent using process id in the .pagein command
+        //
+        if (PageFaultRequest.ProcessId != 0)
+        {
+            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            return;
+        }
+
+        //
+        // Send the request over serial kernel debugger
+        //
+        KdSendPageinPacketToDebuggee(&PageFaultRequest);
+    }
+    else
+    {
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+
+        if (Pid == 0)
+        {
+            Pid                        = GetCurrentProcessId();
+            PageFaultRequest.ProcessId = Pid;
+        }
+
+        //
+        // Send IOCTL
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                  // Handle to device
+            IOCTL_DEBUGGER_BRING_PAGES_IN,   // IO Control code
+            &PageFaultRequest,               // Input Buffer to driver.
+            SIZEOF_DEBUGGER_PAGE_IN_REQUEST, // Input buffer length
+            &PageFaultRequest,               // Output Buffer from driver.
+            SIZEOF_DEBUGGER_PAGE_IN_REQUEST, // Length of output
+                                             // buffer in bytes.
+            &ReturnedLength,                 // Bytes placed in buffer.
+            NULL                             // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return;
+        }
+
+        if (PageFaultRequest.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            ShowErrorMessage(PageFaultRequest.KernelStatus);
+            return;
+        }
+
+        //
+        // Show the results
+        //
+        ShowMessages("page-fault is delivered\n");
+    }
 }
 
 /**
@@ -288,23 +372,6 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check to prevent using process id in the '.pagein' command
-    //
-    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
-    {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
-        return;
-    }
-
-    if (!g_IsSerialConnectedToRemoteDebuggee && Pid == 0)
-    {
-        //
-        // Default process we read from current process
-        //
-        Pid = GetCurrentProcessId();
-    }
-
-    //
     // Send the request
     //
 
@@ -313,4 +380,12 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     //              PageFaultErrorCode.AsUInt,
     //              Pid,
     //              Length);
+
+    //
+    // Request the page-in
+    //
+    CommandPageinRequest(TargetAddress,
+                         PageFaultErrorCode,
+                         Pid,
+                         Length);
 }

@@ -95,6 +95,7 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 
 ### Fourth Release (v0.4.0.0)
 * Memory Execution Monitor And Execution Blocking [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
+* Custom Page-fault Injection [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pagein" target="_blank">link</a>]
 
 ## How does it work?
 

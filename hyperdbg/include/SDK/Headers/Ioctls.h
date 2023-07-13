@@ -26,14 +26,14 @@
 //
 #ifndef CTL_CODE
 
-#define CTL_CODE(DeviceType, Function, Method, Access) ( \
-    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
+#    define CTL_CODE(DeviceType, Function, Method, Access) ( \
+        ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
 
 #endif // ! CTL_CODE
 
 #ifndef FILE_ANY_ACCESS
 
-#define FILE_ANY_ACCESS 0
+#    define FILE_ANY_ACCESS 0
 
 #endif // !FILE_ANY_ACCESS
 
@@ -43,13 +43,13 @@
 
 #ifndef METHOD_BUFFERED
 
-#define METHOD_BUFFERED 0
+#    define METHOD_BUFFERED 0
 
 #endif // !METHOD_BUFFERED
 
 #ifndef FILE_DEVICE_UNKNOWN
 
-#define FILE_DEVICE_UNKNOWN 0x00000022
+#    define FILE_DEVICE_UNKNOWN 0x00000022
 
 #endif // !FILE_DEVICE_UNKNOWN
 
@@ -281,3 +281,10 @@
  */
 #define IOCTL_REQUEST_REV_MACHINE_SERVICE \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81f, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, request to bring pages in
+ *
+ */
+#define IOCTL_DEBUGGER_BRING_PAGES_IN \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x820, METHOD_BUFFERED, FILE_ANY_ACCESS)
