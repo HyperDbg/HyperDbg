@@ -77,11 +77,11 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS AddressDetails = {0};
     vector<string>                           SplittedCommandCaseSensitive {Split(Command, ' ')};
 
-    if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
-        SplittedCommand.size() == 3)
+    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3 &&
+        SplittedCommand.size() != 5)
     {
-        ShowMessages("incorrect use of '!pte'\n\n");
-        CommandPteHelp();
+        ShowMessages("incorrect use of '.pagein'\n\n");
+        CommandPageinHelp();
         return;
     }
 
@@ -98,6 +98,21 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     {
         //
         // It's just an address for current process
+        //
+        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+        {
+            //
+            // Couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n",
+                         SplittedCommandCaseSensitive.at(1).c_str());
+            return;
+        }
+    }
+    else if (SplittedCommand.size() == 3)
+    {
+        //
+        // It's an address + a flag (mode) for current process
         //
         if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
         {

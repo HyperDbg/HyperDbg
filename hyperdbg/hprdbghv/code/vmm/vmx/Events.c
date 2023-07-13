@@ -105,7 +105,7 @@ EventInjectDebugBreakpoint()
 VOID
 EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
 {
-    PAGE_FAULT_ERROR_CODE ErrorCode = {0};
+    PAGE_FAULT_EXCEPTION ErrorCode = {0};
 
     //
     // Write the page-fault address
@@ -115,16 +115,15 @@ EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
     //
     // Make the error code
     //
-    ErrorCode.Fields.Fetch    = 0;
-    ErrorCode.Fields.Present  = 0;
-    ErrorCode.Fields.Reserved = 0;
-    ErrorCode.Fields.User     = 0;
-    ErrorCode.Fields.Write    = 0;
+    ErrorCode.Execute        = 0;
+    ErrorCode.Present        = 0;
+    ErrorCode.UserModeAccess = 0;
+    ErrorCode.Write          = 0;
 
     //
     // Error code is from PAGE_FAULT_ERROR_CODE structure
     //
-    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.Flags);
+    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.AsUInt);
 }
 
 /**
@@ -175,7 +174,7 @@ VOID
 EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                       _In_ UINT64                       PageFaultAddress,
-                      _In_ PAGE_FAULT_ERROR_CODE        PageFaultCode)
+                      _In_ PAGE_FAULT_EXCEPTION         PageFaultCode)
 {
     //
     // *** #PF is treated differently, we have to deal with cr2 too ***
@@ -201,7 +200,7 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Write the error code
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, PageFaultCode.Flags);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, PageFaultCode.AsUInt);
     }
 }
 
@@ -217,7 +216,7 @@ VOID
 EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
 {
     VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
-    PAGE_FAULT_ERROR_CODE        PageFaultCode = {0};
+    PAGE_FAULT_EXCEPTION         PageFaultCode = {0};
 
     //
     // Configure the #PF injection
@@ -243,7 +242,7 @@ EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address)
     //
     // Configure the page-fault error code
     //
-    PageFaultCode.Flags = 0x14;
+    PageFaultCode.AsUInt = 0x14;
 
     //
     // Inject #PF

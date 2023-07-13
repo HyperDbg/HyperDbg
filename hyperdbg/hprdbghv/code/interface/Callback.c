@@ -359,9 +359,9 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32                CoreId,
-                                               UINT64                Address,
-                                               PAGE_FAULT_ERROR_CODE PageFaultErrorCode)
+DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
+                                               UINT64 Address,
+                                               UINT32 PageFaultErrorCode)
 {
     if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
     {

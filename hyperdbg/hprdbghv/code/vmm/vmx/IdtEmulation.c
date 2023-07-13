@@ -23,35 +23,35 @@ VOID
 IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                              _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG                 ErrorCode          = 0;
-    PAGE_FAULT_ERROR_CODE PageFaultErrorCode = {0};
-    UINT64                PageFaultAddress   = 0;
+    ULONG                ErrorCode          = 0;
+    PAGE_FAULT_EXCEPTION PageFaultErrorCode = {0};
+    UINT64               PageFaultAddress   = 0;
 
     //
     // Read the error code and exiting address
     //
     __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
-    PageFaultErrorCode.Flags = ErrorCode;
+    PageFaultErrorCode.AsUInt = ErrorCode;
 
     //
     // Read the page-fault address
     //
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
-    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
-    //         PageFaultAddress,
-    //         PageFaultErrorCode.Flags,
-    //         PageFaultErrorCode.Fields.Present ? "p" : "",
-    //         PageFaultErrorCode.Fields.Write ? "w" : "",
-    //         PageFaultErrorCode.Fields.User ? "u" : "",
-    //         PageFaultErrorCode.Fields.Fetch ? "f" : "");
+    LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
+            PageFaultAddress,
+            PageFaultErrorCode.AsUInt,
+            PageFaultErrorCode.Present ? "p" : "",
+            PageFaultErrorCode.Write ? "w" : "",
+            PageFaultErrorCode.UserModeAccess ? "u" : "",
+            PageFaultErrorCode.Execute ? "f" : "");
 
     // Handle page-faults
     // Check page-fault with user-debugger
     // The page-fault is handled through the user debugger, no need further action
     // NOTE: THE ADDRESS SHOULD BE NULL HERE
     //
-    if (!DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, PageFaultAddress, PageFaultErrorCode))
+    if (!DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, PageFaultAddress, PageFaultErrorCode.AsUInt))
     {
         //
         // The #pf is not related to the debugger, re-inject it

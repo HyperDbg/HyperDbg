@@ -1823,6 +1823,19 @@ StartAgain:
 }
 
 /**
+ * @brief Check and handshake to make sure if the remote debugger is listening
+ *
+ * @param ComPortHandle
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
+{
+    return TRUE;
+}
+
+/**
  * @brief Prepare and initialize COM port
  *
  * @param PortName
@@ -1997,6 +2010,15 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // It's a debuggee request
         //
+
+        //
+        // Check if debuggee is listening before loading module
+        //
+        if (!KdCheckIfDebuggerIsListening(Comm))
+        {
+            ShowMessages("failed handshake with the debugger. is debugger listening?\n");
+            return FALSE;
+        }
 
         //
         // First, connect to local machine and we load the VMM module as it's a

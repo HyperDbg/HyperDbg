@@ -603,9 +603,9 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                CoreId,
-                                         UINT64                Address,
-                                         PAGE_FAULT_ERROR_CODE PageFaultErrorCode)
+AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
+                                         UINT64 Address,
+                                         UINT32 PageFaultErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];

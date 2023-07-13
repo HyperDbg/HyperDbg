@@ -68,9 +68,9 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 C
  * @brief Check for page-faults in user-debugger
  *
  */
-typedef BOOLEAN (*DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION)(UINT32                CoreId,
-                                                                       UINT64                Address,
-                                                                       PAGE_FAULT_ERROR_CODE PageFaultErrorCode);
+typedef BOOLEAN (*DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION)(UINT32 CoreId,
+                                                                       UINT64 Address,
+                                                                       UINT32 PageFaultErrorCode);
 
 /**
  * @brief Check for commands in user-debugger

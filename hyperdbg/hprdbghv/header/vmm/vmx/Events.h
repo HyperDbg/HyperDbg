@@ -98,7 +98,7 @@ VOID
 EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                       _In_ UINT64                       PageFaultAddress,
-                      _In_ PAGE_FAULT_ERROR_CODE        PageFaultCode);
+                      _In_ PAGE_FAULT_EXCEPTION         PageFaultCode);
 
 VOID
 EventInjectBreakpoint();
