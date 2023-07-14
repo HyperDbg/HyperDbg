@@ -793,6 +793,11 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
         return FALSE;
     }
 
+    //
+    // Indicate that the process is x86
+    //
+    ProcessLoadedModuleRequest->Is32Bit = Is32Bit;
+
     if (Is32Bit)
     {
         //

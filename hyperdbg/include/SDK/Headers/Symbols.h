@@ -46,6 +46,7 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
 {
     UINT32  ProcessId;
     BOOLEAN OnlyCountModules;
+    BOOLEAN Is32Bit;
     UINT32  ModulesCount;
     UINT32  Result;
 

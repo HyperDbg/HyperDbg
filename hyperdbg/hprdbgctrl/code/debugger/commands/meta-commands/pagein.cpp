@@ -27,7 +27,7 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)]\n");
+    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddress (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
