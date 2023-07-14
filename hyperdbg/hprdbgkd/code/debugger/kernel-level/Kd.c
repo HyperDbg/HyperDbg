@@ -373,7 +373,6 @@ VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
-    RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
     //
@@ -397,11 +396,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         //
         if (DbgState->DisableTrapFlagOnContinue)
         {
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.TrapFlag = FALSE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
+            VmFuncSetRflagTrapFlag(FALSE);
 
             DbgState->DisableTrapFlagOnContinue = FALSE;
         }
@@ -1463,9 +1458,10 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 
         if (Rflags.TrapFlag == FALSE)
         {
-            Rflags.TrapFlag = TRUE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
+            //
+            // Adjust RFLAG's trap-flag
+            //
+            VmFuncSetRflagTrapFlag(TRUE);
 
             DbgState->DisableTrapFlagOnContinue = TRUE;
         }
@@ -1639,8 +1635,6 @@ BOOLEAN
 KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
               PDEBUGGER_PAGE_IN_REQUEST   PageinRequest)
 {
-    RFLAGS Rflags = {0};
-
     //
     // Inject page-fault
     //
@@ -1651,11 +1645,12 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
     //
-    Rflags.AsUInt = VmFuncGetRflags();
+    VmFuncSetRflagTrapFlag(TRUE);
 
-    Rflags.TrapFlag = TRUE;
-
-    VmFuncSetRflags(Rflags.AsUInt);
+    //
+    // Unset the trap flag next time that it's triggered (on current thread/process)
+    //
+    BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
 
     //
     // Adjust the flags for showing the successful #PF injection

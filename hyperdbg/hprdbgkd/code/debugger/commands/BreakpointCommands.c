@@ -12,6 +12,61 @@
 #include "pch.h"
 
 /**
+ * @brief Check and perform actions on RFLAGS.TF
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndPerformActionsOnTrapFlags()
+{
+    //
+    // Check if the investigation for the trap-flag is needed or not
+    //
+    if (!g_TrapFlagState.CheckTrapFlagState)
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if the thread id and process id matches the target or not
+    //
+    if (g_TrapFlagState.TargetProcessId != PsGetCurrentProcessId() || g_TrapFlagState.TargetThreadId != PsGetCurrentThreadId())
+    {
+        //
+        // Not relate to this thread
+        //
+        return FALSE;
+    }
+
+    //
+    // Uset or set the TRAP flag
+    //
+    VmFuncSetRflagTrapFlag(g_TrapFlagState.SetTo);
+
+    //
+    // We're no longer interested in intercepting trap flag states
+    //
+    g_TrapFlagState.CheckTrapFlagState = FALSE;
+
+    return TRUE;
+}
+
+/**
+ * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
+ * @param SetTo
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointAdjustUnsetTrapFlagsOnCurrentThread(BOOLEAN SetTo)
+{
+    g_TrapFlagState.TargetProcessId    = PsGetCurrentProcessId();
+    g_TrapFlagState.TargetThreadId     = PsGetCurrentThreadId();
+    g_TrapFlagState.SetTo              = SetTo;
+    g_TrapFlagState.CheckTrapFlagState = TRUE;
+}
+
+/**
  * @brief Check and handle debug breakpoint exceptions
  *
  * @param CoreId
@@ -23,6 +78,11 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 {
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
+
+    //
+    // Check whether anything should be changed with trap-flags
+    //
+    BreakpointCheckAndPerformActionsOnTrapFlags(DbgState);
 
     //
     // Check whether it is because of thread change detection or not
@@ -42,7 +102,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         ThreadHandleThreadChange(DbgState);
     }
     else if (g_UserDebuggerState == TRUE &&
-             (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+             (g_IsWaitingForUserModeProcessEntryToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
     {
         //
         // Handle for user-mode attaching mechanism

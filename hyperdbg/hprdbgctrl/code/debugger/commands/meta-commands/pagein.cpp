@@ -27,7 +27,7 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
@@ -199,6 +199,14 @@ CommandPageinRequest(UINT64               TargetVirtualAddr,
     {
         AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
+        //
+        // For know, the support for the '.pagein' command is excluded from
+        // the VMI mode
+        //
+        ShowMessages("the '.pagein' command can be used ONLY in the debugger mode, "
+                     "it is not yet supported in VMI mode\n");
+        return;
+
         if (Pid == 0)
         {
             Pid                        = GetCurrentProcessId();
@@ -315,11 +323,11 @@ CommandPagein(vector<string> SplittedCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("pid"))
-        {
-            IsNextProcessId = TRUE;
-            continue;
-        }
+        // if (!Section.compare("pid"))
+        // {
+        //     IsNextProcessId = TRUE;
+        //     continue;
+        // }
 
         //
         // Probably it's address or mode string

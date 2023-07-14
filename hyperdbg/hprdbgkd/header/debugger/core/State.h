@@ -98,6 +98,19 @@ typedef struct _KD_NMI_STATE
 } KD_NMI_STATE, *PKD_NMI_STATE;
 
 /**
+ * @brief The status of RFLAGS.TF masking
+ *
+ */
+typedef struct _KD_TRAP_FLAG_STATE_STATE
+{
+    BOOLEAN CheckTrapFlagState;
+    UINT32  TargetProcessId;
+    UINT32  TargetThreadId;
+    UINT32  SetTo;
+
+} KD_TRAP_FLAG_STATE_STATE, *PKD_TRAP_FLAG_STATE_STATE;
+
+/**
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.

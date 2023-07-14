@@ -372,6 +372,28 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
 }
 
 /**
+ * @brief Set the rflag's trap flag
+ *
+ * @param Set Set or unset the TF
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflagTrapFlag(BOOLEAN Set)
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // Unset the trap-flag, as we set it before we have to mask it now
+    //
+    Rflags.AsUInt = HvGetRflags();
+
+    Rflags.TrapFlag = Set;
+
+    HvSetRflags(Rflags.AsUInt);
+}
+
+/**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
  * @param Set Set or unset

@@ -426,7 +426,6 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
     PAGE_FAULT_EXCEPTION                PageFaultErrorCode     = {0};
-    RFLAGS                              Rflags                 = {0};
 
     //
     // Not increment the RIP register as no instruction is intended to go
@@ -441,7 +440,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     if (ProcessDebuggingDetail != NULL)
     {
-        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+        if (g_IsWaitingForUserModeProcessEntryToBeCalled)
         {
             //
             // Show a message that we reached to the entrypoint
@@ -451,7 +450,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
             //
             // Not waiting for these event anymore
             //
-            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+            g_IsWaitingForUserModeProcessEntryToBeCalled = FALSE;
 
             //
             // Whenever Windows calls the start entrypoint of the target PE, initially,
@@ -498,11 +497,13 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
                 //
-                Rflags.AsUInt = VmFuncGetRflags();
+                VmFuncSetRflagTrapFlag(TRUE);
 
-                Rflags.TrapFlag = TRUE;
-
-                VmFuncSetRflags(Rflags.AsUInt);
+                //
+                // Indicate that we should set the trap flag to the FALSE next time on
+                // the same process/thread
+                //
+                BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
             }
             else
             {
@@ -520,15 +521,6 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
             // not waiting for a break after the page-fault anymore
             //
             g_IsWaitingForReturnAndRunFromPageFault = FALSE;
-
-            //
-            // Unset the trap-flag, as we set it before we have to mask it now
-            //
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.TrapFlag = FALSE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
 
             //
             // We reached here as a result of setting the trap flag after
@@ -902,7 +894,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Waiting for #DB to be triggered
         //
-        g_IsWaitingForUserModeModuleEntrypointToBeCalled = TRUE;
+        g_IsWaitingForUserModeProcessEntryToBeCalled = TRUE;
 
         //
         // Set the starting point of the thread
@@ -914,8 +906,8 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             //
             AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
-            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
-            AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+            g_IsWaitingForUserModeProcessEntryToBeCalled = FALSE;
+            AttachRequest->Result                        = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
 
@@ -936,8 +928,8 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             //
             AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
-            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
-            AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+            g_IsWaitingForUserModeProcessEntryToBeCalled = FALSE;
+            AttachRequest->Result                        = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
 
@@ -1091,7 +1083,7 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
     // Check if the entrypoint is reached or not,
     // if it's not reached then we won't remove the hooks
     //
-    if (!g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+    if (!g_IsWaitingForUserModeProcessEntryToBeCalled)
     {
         //
         // The entrypoint is called, we should remove the hook

@@ -106,6 +106,16 @@ VOID
 HvSetMonitorTrapFlag(BOOLEAN Set);
 
 /**
+ * @brief Set the rflag's trap flag
+ *
+ * @param Set Set or unset the TF
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflagTrapFlag(BOOLEAN Set);
+
+/**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
  * @param Set Set or unset

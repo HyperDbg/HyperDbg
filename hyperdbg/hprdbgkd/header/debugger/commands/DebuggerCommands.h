@@ -52,3 +52,11 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
 
 NTSTATUS
 DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest);
+
+BOOLEAN
+SearchAddressWrapper(PUINT64                 AddressToSaveResults,
+                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
+                     UINT64                  StartAddress,
+                     UINT64                  EndAddress,
+                     BOOLEAN                 IsDebuggeePaused,
+                     PUINT32                 CountOfMatchedCases);

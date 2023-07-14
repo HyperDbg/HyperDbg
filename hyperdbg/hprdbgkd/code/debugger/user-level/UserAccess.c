@@ -846,7 +846,7 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     //
     // Check if the callback needs to be handled or not
     //
-    if (!g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+    if (!g_IsWaitingForUserModeProcessEntryToBeCalled)
     {
         return FALSE;
     }

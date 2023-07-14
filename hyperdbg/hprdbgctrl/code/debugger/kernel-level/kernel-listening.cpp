@@ -1012,7 +1012,8 @@ StartAgain:
                 //
                 // Show the successfull delivery of the packet
                 //
-                ShowMessages("page-fault is delivered\n");
+                ShowMessages("the page-fault is delivered to the target thread\n"
+                             "press 'g' to continue debuggee (the current thread will execute ONLY one instruction and will be halted again)...\n");
             }
             else
             {
