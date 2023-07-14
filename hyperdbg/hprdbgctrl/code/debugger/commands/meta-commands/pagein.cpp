@@ -27,7 +27,7 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)]\n");
+    ShowMessages("syntax : \t!pagein [Mode (string)] [VirtualAddress (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
@@ -36,8 +36,8 @@ CommandPageinHelp()
     ShowMessages("\t\te.g : .pagein f 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein pw 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
-    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 1000\n");
-    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 200000\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein pf @rax\n");
     ShowMessages("\t\te.g : .pagein uf @rip+@rcx\n");
     ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
