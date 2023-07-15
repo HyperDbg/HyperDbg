@@ -40,7 +40,7 @@ __declspec(dllexport) BOOLEAN
 __declspec(dllexport) BOOLEAN
     ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
+    ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 __declspec(dllexport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllexport) BOOLEAN

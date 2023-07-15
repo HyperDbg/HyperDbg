@@ -648,7 +648,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             }
 
             //
-            // Show modules list
+            // check the module list
             //
             if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
@@ -751,7 +751,8 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
                     TempPath,
                     ModuleSymbolPath,
-                    ModuleSymbolGuidAndAge))
+                    ModuleSymbolGuidAndAge,
+                    ModuleDetailsRequest->Is32Bit))
             {
                 IsSymbolPdbDetailAvailable = TRUE;
 
@@ -833,7 +834,13 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             Replace(ModuleFullPath, "\\SystemRoot", SystemRootString);
         }
 
-        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(), ModuleSymbolPath, ModuleSymbolGuidAndAge))
+        //
+        // Kernel modules are all 64-bit
+        //
+        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(),
+                                                                        ModuleSymbolPath,
+                                                                        ModuleSymbolGuidAndAge,
+                                                                        FALSE))
         {
             IsSymbolPdbDetailAvailable = TRUE;
 

@@ -47,7 +47,8 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
                                                             char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails);
+                                                            char *       GuidAndAgeDetails,
+                                                            BOOLEAN      Is32BitModule);
 
 BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,

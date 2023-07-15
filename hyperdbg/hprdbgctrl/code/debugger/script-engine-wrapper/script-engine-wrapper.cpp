@@ -236,16 +236,18 @@ ScriptEngineSymbolAbortLoadingWrapper()
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
+ * @param Is32BitModule
  *
  * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
                                                             char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails)
+                                                            char *       GuidAndAgeDetails,
+                                                            BOOLEAN      Is32BitModule)
 
 {
-    return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails);
+    return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails, Is32BitModule);
 }
 
 //

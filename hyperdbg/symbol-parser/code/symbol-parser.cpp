@@ -1515,25 +1515,70 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 }
 
 /**
+ * @brief Convert redirection of 32-bit compatibility path
+ *
+ * @param LocalFilePath
+ *
+ * @return string
+ */
+std::string
+SymConvertWow64CompatibilityPaths(const char * LocalFilePath)
+{
+    std::string filePath(LocalFilePath);
+
+    // Convert the path to lowercase
+    std::transform(filePath.begin(), filePath.end(), filePath.begin(), ::tolower);
+
+    // Replace "\windows\system32" with "\windows\syswow64"
+    size_t pos = filePath.find(":\\windows\\system32");
+    if (pos != std::string::npos)
+    {
+        filePath.replace(pos, 18, ":\\windows\\syswow64");
+    }
+
+    // Replace "\program files" with "\program files (x86)"
+    pos = filePath.find(":\\program files");
+    if (pos != std::string::npos)
+    {
+        filePath.replace(pos, 15, ":\\program files (x86)");
+    }
+
+    return filePath;
+}
+
+/**
  * @brief Convert a DLL to a Microsoft Symbol details
  * like pdb file path and GUID
  *
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
+ * @param Is32BitModule
  *
  * @return BOOLEAN
  */
 BOOLEAN
-SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
+SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule)
 {
     SYMSRV_INDEX_INFO SymInfo              = {0};
     const char *      FormatStrPdbFilePath = "%s";
+    const char *      ActualLocalFilePath  = NULL;
     const char *      FormatStrPdbFileGuidAndAgeDetails =
         "%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x";
     SymInfo.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
 
-    BOOL Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
+    if (Is32BitModule)
+    {
+        ActualLocalFilePath = SymConvertWow64CompatibilityPaths(LocalFilePath).c_str();
+    }
+    else
+    {
+        ActualLocalFilePath = LocalFilePath;
+    }
+
+    // ShowMessages("the final (actual) address is: %s\n", ActualLocalFilePath);
+
+    BOOL Ret = SymSrvGetFileIndexInfo(ActualLocalFilePath, &SymInfo, 0);
 
     if (Ret)
     {
@@ -1559,7 +1604,7 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
     else
     {
         //
-        // ShowMessages("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        // ShowMessages("err, unable to get symbol information for %s (%x)\n", ActualLocalFilePath, GetLastError());
         //
         return FALSE;
     }
