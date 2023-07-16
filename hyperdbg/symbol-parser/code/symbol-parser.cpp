@@ -367,25 +367,15 @@ SymGetDataTypeSizeFromModule(UINT64 Base, WCHAR * TypeName, UINT64 * TypeSize)
 }
 
 /**
- * @brief load symbol based on a file name and GUID
+ * @brief initialize the DbgHelp symbols
  *
- * @param BaseAddress
- * @param FileName
- * @param Guid
- *
- * @return UINT32
+ * @return BOOLEAN
  */
-UINT32
-SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
+BOOLEAN
+SymInit()
 {
-    BOOL                          Ret                             = FALSE;
-    DWORD                         Options                         = 0;
-    DWORD                         FileSize                        = 0;
-    int                           Index                           = 0;
-    char                          Ch                              = NULL;
-    char                          ModuleName[_MAX_FNAME]          = {0};
-    char                          AlternateModuleName[_MAX_FNAME] = {0};
-    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
+    BOOL  Ret     = FALSE;
+    DWORD Options = 0;
 
     //
     // Get options
@@ -398,6 +388,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     // to view the messages
     //
     Options |= SYMOPT_DEBUG;
+    Options |= SYMOPT_CASE_INSENSITIVE;
+    Options |= SYMOPT_INCLUDE_32BIT_MODULES;
     SymSetOptions(Options);
 
     //
@@ -413,7 +405,45 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     {
         ShowMessages("err, symbol init failed (%x)\n",
                      GetLastError());
-        return -1;
+        return FALSE;
+    }
+
+    //
+    // Indicate that at least one module is loaded
+    //
+    g_IsLoadedModulesInitialized = TRUE;
+
+    return TRUE;
+}
+
+/**
+ * @brief load symbol based on a file name and GUID
+ *
+ * @param BaseAddress
+ * @param FileName
+ * @param Guid
+ *
+ * @return UINT32
+ */
+UINT32
+SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
+{
+    DWORD                         FileSize                        = 0;
+    int                           Index                           = 0;
+    char                          Ch                              = NULL;
+    char                          ModuleName[_MAX_FNAME]          = {0};
+    char                          AlternateModuleName[_MAX_FNAME] = {0};
+    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
+
+    //
+    // Check if the loaded modules are initialized or not
+    //
+    if (!g_IsLoadedModulesInitialized)
+    {
+        //
+        // Initialize the symbol table
+        //
+        SymInit();
     }
 
     //
@@ -489,7 +519,6 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     {
         ShowMessages("err, allocating buffer for storing symbol details (%x)\n",
                      GetLastError());
-
         return -1;
     }
 
@@ -508,10 +537,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails->ModuleBase == NULL)
     {
-        //
-        // ShowMessages("err, loading symbols failed (%x)\n",
-        //       GetLastError());
-        //
+        ShowMessages("err, loading symbols failed (%x)\n",
+                     GetLastError());
 
         free(ModuleDetails);
         return -1;
@@ -544,14 +571,6 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     // Save it
     //
     g_LoadedModules.push_back(ModuleDetails);
-
-    if (!g_IsLoadedModulesInitialized)
-    {
-        //
-        // Indicate that at least one module is loaded
-        //
-        g_IsLoadedModulesInitialized = TRUE;
-    }
 
     return 0;
 }
@@ -624,10 +643,24 @@ SymUnloadModuleSymbol(char * ModuleName)
 UINT32
 SymUnloadAllSymbols()
 {
-    BOOL Ret = FALSE;
+    BOOL    Ret              = FALSE;
+    BOOLEAN IsAnythingLoaded = FALSE;
+
+    //
+    // Check if it's already initialized
+    //
+    if (!g_IsLoadedModulesInitialized)
+    {
+        return 0;
+    }
 
     for (auto item : g_LoadedModules)
     {
+        //
+        // At least one module is loaded
+        //
+        IsAnythingLoaded = TRUE;
+
         //
         // Unload symbols for the module
         //
@@ -640,6 +673,17 @@ SymUnloadAllSymbols()
         }
 
         free(item);
+    }
+
+    //
+    // Check if there is at least one module is loaded
+    //
+    if (!IsAnythingLoaded)
+    {
+        //
+        // Nothing is loaded yet!
+        //
+        return 0;
     }
 
     //
@@ -657,6 +701,11 @@ SymUnloadAllSymbols()
         ShowMessages("err, symbol cleanup failed (%x)\n", GetLastError());
         return 0;
     }
+
+    //
+    // It's not initialized anymore
+    //
+    g_IsLoadedModulesInitialized = FALSE;
 
     return 0;
 }
@@ -1755,7 +1804,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                     //
                     // Download the symbol
                     //
-                    SymbolPDBDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                    SymbolPdbDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
                                       BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
                                       SymPath,
                                       IsSilentLoad);
@@ -1779,7 +1828,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
  * return BOOLEAN
  */
 BOOLEAN
-SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad)
+SymbolPdbDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad)
 {
     vector<string> SplitedSymPath = Split(SymPath, '*');
     if (SplitedSymPath.size() < 2)

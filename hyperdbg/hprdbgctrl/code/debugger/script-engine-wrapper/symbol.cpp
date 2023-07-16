@@ -429,6 +429,14 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 BOOLEAN
 SymbolDeleteSymTable()
 {
+    //
+    // Unload all symbols
+    //
+    ScriptEngineUnloadAllSymbolsWrapper();
+
+    //
+    // Delete symbols
+    //
     if (g_SymbolTable != NULL)
     {
         free(g_SymbolTable);
