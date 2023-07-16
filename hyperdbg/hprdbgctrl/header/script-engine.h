@@ -18,7 +18,7 @@ UINT64
 ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
 
 VOID
 ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler);

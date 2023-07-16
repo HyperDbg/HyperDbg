@@ -417,16 +417,75 @@ SymInit()
 }
 
 /**
+ * @brief Remove wow64 extension to the module names
+ *
+ * @param ModuleAddress
+ * @param PdbFileName
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymCheckAndRemoveWow64Prefix(const char * ModuleAddress, const char * PdbFileName, std::string & CustomModuleName)
+{
+    char ModuleName[_MAX_FNAME]    = {0};
+    char PdbModuleName[_MAX_FNAME] = {0};
+
+    //
+    // Determine the name of the file
+    //
+    _splitpath(ModuleAddress, NULL, NULL, ModuleName, NULL);
+    _splitpath(PdbFileName, NULL, NULL, PdbModuleName, NULL);
+
+    //
+    // Convert ModuleName to lowercase
+    //
+    std::transform(ModuleName, ModuleName + strlen(ModuleName), ModuleName, [](unsigned char c) { return std::tolower(c); });
+
+    //
+    // Convert PdbModuleName to lowercase
+    //
+    std::transform(PdbModuleName, PdbModuleName + strlen(PdbModuleName), PdbModuleName, [](unsigned char c) { return std::tolower(c); });
+
+    //
+    // Compare the lowercase strings
+    //
+    if (std::strcmp(ModuleName, PdbModuleName) == 0)
+    {
+        return FALSE;
+    }
+    else
+    {
+        // Convert ModuleAddress to lowercase
+        std::string LowerModuleAddress(ModuleAddress);
+        std::transform(LowerModuleAddress.begin(), LowerModuleAddress.end(), LowerModuleAddress.begin(), [](unsigned char c) { return std::tolower(c); });
+
+        if (PdbModuleName[0] == 'w' && LowerModuleAddress.find(":\\windows\\system32") != std::string::npos)
+        {
+            //
+            // Set CustomModuleName to lowercase ModuleName
+            //
+            CustomModuleName = std::string(ModuleName);
+
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+}
+
+/**
  * @brief load symbol based on a file name and GUID
  *
  * @param BaseAddress
- * @param FileName
- * @param Guid
+ * @param PdbFileName
+ * @param CustomModuleName
  *
  * @return UINT32
  */
 UINT32
-SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
+SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
     DWORD                         FileSize                        = 0;
     int                           Index                           = 0;
@@ -455,10 +514,20 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
         return -1;
     }
 
-    //
-    // Determine the extension of the file
-    //
-    _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
+    if (CustomModuleName == NULL)
+    {
+        //
+        // Determine the name of the file
+        //
+        _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
+    }
+    else
+    {
+        //
+        // A custom name is needed for this module
+        //
+        strcpy(ModuleName, CustomModuleName);
+    }
 
     //
     // Move to alternate list
@@ -668,8 +737,8 @@ SymUnloadAllSymbols()
 
         if (!Ret)
         {
-            ShowMessages("err, unload symbol failed (%x)\n",
-                         GetLastError());
+            // ShowMessages("err, unload symbol failed (%x)\n",
+            //              GetLastError());
         }
 
         free(item);
@@ -1683,7 +1752,8 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                const char * SymbolPath,
                BOOLEAN      IsSilentLoad)
 {
-    string                Tmp, SymDir;
+    string                Tmp, SymDir, CustomModuleNameStr;
+    const char *          CustomModuleName = NULL;
     string                SymPath(SymbolPath);
     PMODULE_SYMBOL_DETAIL BufferToStoreDetailsConverted = (PMODULE_SYMBOL_DETAIL)BufferToStoreDetails;
 
@@ -1740,8 +1810,25 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                     ShowMessages("loading symbol '%s'...", Tmp.c_str());
                 }
 
+                //
+                // Check if we need an alternative module name (in 32-bit modules)
+                //
+                CustomModuleName = NULL;
+
+                if (BufferToStoreDetailsConverted[i].Is32Bit &&
+                    SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
+                                                 BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                                                 CustomModuleNameStr))
+                {
+                    //
+                    // The name of the module contains a prefix which should be removed
+                    //
+                    CustomModuleName = CustomModuleNameStr.c_str();
+                }
+
                 if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress,
-                                      BufferToStoreDetailsConverted[i].ModuleSymbolPath) == 0)
+                                      BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                                      CustomModuleName) == 0)
                 {
                     if (!IsSilentLoad)
                     {
@@ -1782,7 +1869,23 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                     ShowMessages("loading symbol '%s'...", Tmp.c_str());
                 }
 
-                if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress, Tmp.c_str()) == 0)
+                //
+                // Check if we need an alternative module name (in 32-bit modules)
+                //
+                CustomModuleName = NULL;
+
+                if (BufferToStoreDetailsConverted[i].Is32Bit &&
+                    SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
+                                                 Tmp.c_str(),
+                                                 CustomModuleNameStr))
+                {
+                    //
+                    // The name of the module contains a prefix which should be removed
+                    //
+                    CustomModuleName = CustomModuleNameStr.c_str();
+                }
+
+                if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress, Tmp.c_str(), CustomModuleName) == 0)
                 {
                     if (!IsSilentLoad)
                     {

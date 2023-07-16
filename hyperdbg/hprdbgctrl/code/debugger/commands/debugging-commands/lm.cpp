@@ -41,6 +41,38 @@ CommandLmHelp()
 }
 
 /**
+ * @brief Convert redirection of 32-bit compatibility path
+ *
+ * @param LocalFilePath
+ *
+ * @return wstring
+ */
+std::wstring
+CommandLmConvertWow64CompatibilityPaths(const wchar_t * LocalFilePath)
+{
+    std::wstring filePath(LocalFilePath);
+
+    // Convert the path to lowercase
+    std::transform(filePath.begin(), filePath.end(), filePath.begin(), ::tolower);
+
+    // Replace "\windows\system32" with "\windows\syswow64"
+    size_t pos = filePath.find(L":\\windows\\system32");
+    if (pos != std::string::npos)
+    {
+        filePath.replace(pos, 18, L":\\Windows\\SysWOW64");
+    }
+
+    // Replace "\program files" with "\program files (x86)"
+    pos = filePath.find(L":\\program files");
+    if (pos != std::string::npos)
+    {
+        filePath.replace(pos, 15, L":\\Program Files (x86)");
+    }
+
+    return filePath;
+}
+
+/**
  * @brief show modules for specified user mode process
  * @param ProcessId
  * @param SearchModule
@@ -192,10 +224,23 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
                     }
                 }
 
-                ShowMessages("%016llx\t%016llx\t%ws\n",
-                             Modules[i].BaseAddress,
-                             Modules[i].Entrypoint,
-                             Modules[i].FilePath);
+                //
+                // Check if module is 32-bit or not
+                //
+                if (ModuleDetailsRequest->Is32Bit)
+                {
+                    ShowMessages("%016llx\t%016llx\t%ws\n",
+                                 Modules[i].BaseAddress,
+                                 Modules[i].Entrypoint,
+                                 CommandLmConvertWow64CompatibilityPaths(Modules[i].FilePath).c_str());
+                }
+                else
+                {
+                    ShowMessages("%016llx\t%016llx\t%ws\n",
+                                 Modules[i].BaseAddress,
+                                 Modules[i].Entrypoint,
+                                 Modules[i].FilePath);
+                }
             }
 
             if (SearchModule != NULL)

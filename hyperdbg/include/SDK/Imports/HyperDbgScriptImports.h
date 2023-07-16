@@ -33,7 +33,7 @@ __declspec(dllimport) VOID
 __declspec(dllimport) UINT64
     ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllimport) UINT32
-    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
 __declspec(dllimport) UINT32
     ScriptEngineUnloadAllSymbols();
 __declspec(dllimport) UINT32

@@ -261,7 +261,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             // Load the pdb file (the validation of pdb file is checked into pdb
             // parsing functions)
             //
-            ScriptEngineLoadFileSymbolWrapper(BaseAddress, PathToPdb.c_str());
+            ScriptEngineLoadFileSymbolWrapper(BaseAddress, PathToPdb.c_str(), NULL);
         }
         else
         {

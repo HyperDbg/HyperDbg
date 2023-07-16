@@ -58,14 +58,13 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBO
  *
  * @param BaseAddress
  * @param FileName
- * @param Guid
  *
  * @return UINT32
  */
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName)
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
-    return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName);
+    return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName, CustomModuleName);
 }
 
 /**

@@ -39,15 +39,17 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
  *
  * @param BaseAddress
  * @param PdbFileName
+ * @param CustomModuleName
+ *
  * @return UINT32
  */
 UINT32
-ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
     //
     // A wrapper for pdb parser
     //
-    return SymLoadFileSymbol(BaseAddress, PdbFileName);
+    return SymLoadFileSymbol(BaseAddress, PdbFileName, CustomModuleName);
 }
 
 /**
