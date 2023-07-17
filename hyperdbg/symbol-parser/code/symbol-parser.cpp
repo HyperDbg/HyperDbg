@@ -389,7 +389,6 @@ SymInit()
     //
     Options |= SYMOPT_DEBUG;
     Options |= SYMOPT_CASE_INSENSITIVE;
-    Options |= SYMOPT_INCLUDE_32BIT_MODULES;
     SymSetOptions(Options);
 
     //
@@ -847,8 +846,6 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         // ShowMessages("symbol not found (%x)\n", GetLastError());
         //
     }
-
-    ////////
 
     *WasFound = Found;
     return Address;
@@ -1637,31 +1634,34 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
  *
  * @param LocalFilePath
  *
- * @return string
+ * @return VOID
  */
-std::string
-SymConvertWow64CompatibilityPaths(const char * LocalFilePath)
+VOID
+SymConvertWow64CompatibilityPaths(const char * LocalFilePath, std::string & Wow64ConvertedPath)
 {
-    std::string filePath(LocalFilePath);
+    std::string FilePath(LocalFilePath);
 
     // Convert the path to lowercase
-    std::transform(filePath.begin(), filePath.end(), filePath.begin(), ::tolower);
+    std::transform(FilePath.begin(), FilePath.end(), FilePath.begin(), ::tolower);
 
     // Replace "\windows\system32" with "\windows\syswow64"
-    size_t pos = filePath.find(":\\windows\\system32");
+    size_t pos = FilePath.find(":\\windows\\system32");
     if (pos != std::string::npos)
     {
-        filePath.replace(pos, 18, ":\\windows\\syswow64");
+        FilePath.replace(pos, 18, ":\\windows\\syswow64");
     }
 
     // Replace "\program files" with "\program files (x86)"
-    pos = filePath.find(":\\program files");
+    pos = FilePath.find(":\\program files");
     if (pos != std::string::npos)
     {
-        filePath.replace(pos, 15, ":\\program files (x86)");
+        FilePath.replace(pos, 15, ":\\program files (x86)");
     }
 
-    return filePath;
+    //
+    // Copy path to destination
+    //
+    Wow64ConvertedPath = FilePath;
 }
 
 /**
@@ -1678,7 +1678,8 @@ SymConvertWow64CompatibilityPaths(const char * LocalFilePath)
 BOOLEAN
 SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule)
 {
-    SYMSRV_INDEX_INFO SymInfo              = {0};
+    SYMSRV_INDEX_INFO SymInfo = {0};
+    std::string       Wow64ConvertedPath;
     const char *      FormatStrPdbFilePath = "%s";
     const char *      ActualLocalFilePath  = NULL;
     const char *      FormatStrPdbFileGuidAndAgeDetails =
@@ -1687,7 +1688,9 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
 
     if (Is32BitModule)
     {
-        ActualLocalFilePath = SymConvertWow64CompatibilityPaths(LocalFilePath).c_str();
+        SymConvertWow64CompatibilityPaths(LocalFilePath, Wow64ConvertedPath);
+        ActualLocalFilePath = Wow64ConvertedPath.c_str();
+        // ShowMessages("local file path: %s | final file path: %s\n", LocalFilePath, ActualLocalFilePath);
     }
     else
     {
@@ -1815,6 +1818,8 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 //
                 CustomModuleName = NULL;
 
+                // ShowMessages("name: %s , is 32-bit? %s\n", BufferToStoreDetailsConverted[i].FilePath, BufferToStoreDetailsConverted[i].Is32Bit ? "true" : "false");
+
                 if (BufferToStoreDetailsConverted[i].Is32Bit &&
                     SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
                                                  BufferToStoreDetailsConverted[i].ModuleSymbolPath,
@@ -1873,6 +1878,8 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 // Check if we need an alternative module name (in 32-bit modules)
                 //
                 CustomModuleName = NULL;
+
+                // ShowMessages("name: %s , is 32-bit? %s\n", BufferToStoreDetailsConverted[i].FilePath, BufferToStoreDetailsConverted[i].Is32Bit ? "true" : "false");
 
                 if (BufferToStoreDetailsConverted[i].Is32Bit &&
                     SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
