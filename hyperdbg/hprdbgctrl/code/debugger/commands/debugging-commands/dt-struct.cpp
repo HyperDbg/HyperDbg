@@ -333,7 +333,7 @@ CommandDtShowDataBasedOnSymbolTypes(
         //
         // Check to prevent using process id in dt command
         //
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
         return FALSE;
     }
     else if (TargetPid == NULL)

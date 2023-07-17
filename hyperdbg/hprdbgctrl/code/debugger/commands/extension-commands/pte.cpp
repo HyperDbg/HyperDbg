@@ -192,7 +192,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         //
         if (Pid != 0)
         {
-            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
             return;
         }
 
