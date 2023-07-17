@@ -751,42 +751,54 @@ InitializeCommandsDictionary()
     g_CommandsList["i"]  = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
-    g_CommandsList["db"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dc"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dd"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dq"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!db"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dc"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dd"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dq"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u"]   = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u2"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u2"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dd"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dq"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!db"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dc"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dd"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dq"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u"]    = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u64"] = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u64"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u2"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u2"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u32"] = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u32"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
 
     g_CommandsList["eb"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["ed"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};

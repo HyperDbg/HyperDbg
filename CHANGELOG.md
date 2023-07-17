@@ -26,6 +26,7 @@ New release of the HyperDbg Debugger.
 - The implementation of 'dd' (define dwrod, 32-bit), and 'dw' (define word, 16-bit) is changed ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
 - The problem with unloading driver (#238) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/238))
 - The symbol files for 32-bit modules are now loaded based on SysWOW64, and the issue (#243) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/243))
+- New alias names for u, !u as u64, !u64 and for u2, !u2 as u32, !u32 ([link](https://docs.hyperdbg.org/commands/extension-commands/u))([link](https://docs.hyperdbg.org/commands/debugging-commands/u))
 
 ## [0.3.0.0] - 2023-06-08
 New release of the HyperDbg Debugger.
