@@ -19,7 +19,6 @@ std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
 BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
 BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
-CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
 Callback                                   g_MessageHandler             = NULL;
 SymbolMapCallback                          g_SymbolMapForDisassembler   = NULL;
 
@@ -137,21 +136,6 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 
             Index++;
         }
-
-        if (strcmp(ModuleName, "ntkrnlmp") == 0 || strcmp(ModuleName, "ntoskrnl") == 0 ||
-            strcmp(ModuleName, "ntkrpamp") == 0 || strcmp(ModuleName, "ntkrnlpa") == 0)
-        {
-            //
-            // It's "nt"
-            //
-            RtlZeroMemory(ModuleName, _MAX_FNAME);
-
-            //
-            // Move nt as the name
-            //
-            ModuleName[0] = 'n';
-            ModuleName[1] = 't';
-        }
     }
     else
     {
@@ -170,11 +154,27 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
     //
     for (auto item : g_LoadedModules)
     {
+        //
+        // Check for the module name
+        //
         if (strcmp((const char *)item->ModuleName, ModuleName) == 0)
         {
             if (SetModuleNameGlobally)
             {
                 g_CurrentModuleName = (char *)item->ModuleName;
+            }
+
+            return item;
+        }
+
+        //
+        // Check for alternative module name
+        //
+        if (strcmp((const char *)item->ModuleAlternativeName, ModuleName) == 0)
+        {
+            if (SetModuleNameGlobally)
+            {
+                g_CurrentModuleName = (char *)item->ModuleAlternativeName;
             }
 
             return item;
@@ -475,6 +475,51 @@ SymCheckAndRemoveWow64Prefix(const char * ModuleAddress, const char * PdbFileNam
 }
 
 /**
+ * @brief Check for alternative name of ntoskrn;
+ *
+ * @param PdbFileName
+ * @param CustomModuleName
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymCheckNtoskrnlPrefix(const char * PdbFileName, std::string & CustomModuleName)
+{
+    char PdbModuleName[_MAX_FNAME] = {0};
+
+    //
+    // Determine the name of the file
+    //
+    _splitpath(PdbFileName, NULL, NULL, PdbModuleName, NULL);
+
+    //
+    // Convert PdbModuleName to lowercase
+    //
+    std::transform(PdbModuleName, PdbModuleName + strlen(PdbModuleName), PdbModuleName, [](unsigned char c) { return std::tolower(c); });
+
+    //
+    // Is it "nt" module or not
+    //
+    // Names of kernel
+    //     NTOSKRNL.EXE : 1 CPU
+    //     NTKRNLMP.EXE : N CPU, SMP
+    //     NTKRNLPA.EXE : 1 CPU, PAE
+    //     NTKRPAMP.EXE : N CPU SMP, PAE
+    //
+    if (strcmp(PdbModuleName, ("ntkrnlmp")) == 0 || strcmp(PdbModuleName, ("ntoskrnl")) == 0 ||
+        strcmp(PdbModuleName, ("ntkrpamp")) == 0 || strcmp(PdbModuleName, ("ntkrnlpa")) == 0)
+    {
+        CustomModuleName = "nt";
+        return TRUE;
+    }
+
+    //
+    // Not nt module
+    //
+    return FALSE;
+}
+
+/**
  * @brief load symbol based on a file name and GUID
  *
  * @param BaseAddress
@@ -513,20 +558,10 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * Cus
         return -1;
     }
 
-    if (CustomModuleName == NULL)
-    {
-        //
-        // Determine the name of the file
-        //
-        _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
-    }
-    else
-    {
-        //
-        // A custom name is needed for this module
-        //
-        strcpy(ModuleName, CustomModuleName);
-    }
+    //
+    // Determine the name of the file
+    //
+    _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
 
     //
     // Move to alternate list
@@ -546,36 +581,6 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * Cus
         ModuleName[Index] = tolower(Ch);
 
         Index++;
-    }
-
-    //
-    // Is it "nt" module or not
-    //
-    // Names of kernel
-    //     NTOSKRNL.EXE : 1 CPU
-    //     NTKRNLMP.EXE : N CPU, SMP
-    //     NTKRNLPA.EXE : 1 CPU, PAE
-    //     NTKRPAMP.EXE : N CPU SMP, PAE
-    //
-    if (strcmp(ModuleName, ("ntkrnlmp")) == 0 || strcmp(ModuleName, ("ntoskrnl")) == 0 ||
-        strcmp(ModuleName, ("ntkrpamp")) == 0 || strcmp(ModuleName, ("ntkrnlpa")) == 0)
-    {
-        //
-        // It's "nt"
-        //
-        RtlZeroMemory(ModuleName, _MAX_FNAME);
-
-        //
-        // Move nt as the name
-        //
-        ModuleName[0] = 'n';
-        ModuleName[1] = 't';
-
-        //
-        // Describe it as main nt module
-        //
-        RtlZeroMemory(g_NtModuleName, _MAX_FNAME);
-        strcpy(g_NtModuleName, AlternateModuleName);
     }
 
     //
@@ -636,6 +641,14 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * Cus
     strcpy((char *)ModuleDetails->PdbFilePath, PdbFileName);
 
     //
+    // Save the custom module name (if any)
+    //
+    if (CustomModuleName != NULL)
+    {
+        strcpy((char *)ModuleDetails->ModuleAlternativeName, CustomModuleName);
+    }
+
+    //
     // Save it
     //
     g_LoadedModules.push_back(ModuleDetails);
@@ -660,7 +673,8 @@ SymUnloadModuleSymbol(char * ModuleName)
     for (auto item : g_LoadedModules)
     {
         Index++;
-        if (strcmp(item->ModuleName, ModuleName) == 0)
+
+        if (strcmp(item->ModuleName, ModuleName) == 0 || strcmp(item->ModuleAlternativeName, ModuleName) == 0)
         {
             //
             // Unload symbol for the module
@@ -794,6 +808,9 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
     UINT64       Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(UINT64) - 1) / sizeof(UINT64)];
     PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
     string       FinalModuleName;
+    string       TempName(FunctionOrVariableName);
+    string       ExtractedModuleName;
+    string       FunctionName;
 
     //
     // Not found by default
@@ -807,24 +824,74 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
     Symbol->MaxNameLen   = MAX_SYM_NAME;
 
     //
-    // Check if it starts with 'nt!' and if starts then
-    // we'll change it to nt the kernel module real nt module
-    // name because 'nt!' is not a real module name
+    // *** Check if the module has an alternative name, then replace the
+    // original name with alternative name ***
     //
-    if (strlen(FunctionOrVariableName) >= 4 &&
-        tolower(FunctionOrVariableName[0]) == 'n' &&
-        tolower(FunctionOrVariableName[1]) == 't' &&
-        tolower(FunctionOrVariableName[2]) == '!')
+
+    //
+    // Check if '!' is present in the function or variable name
+    //
+    size_t FoundIndex = TempName.find('!');
+    if (FoundIndex != std::string::npos)
     {
-        FunctionOrVariableName += 3;
-        std::string ModuleName(g_NtModuleName);
-        std::string ObjectName(FunctionOrVariableName);
-        FinalModuleName = ModuleName + "!" + FunctionOrVariableName;
+        ExtractedModuleName = TempName.substr(0, FoundIndex);
+        FunctionName        = TempName.substr(FoundIndex + 1);
+
+        //
+        // Convert module name to lower-case
+        //
+        std::transform(ExtractedModuleName.begin(), ExtractedModuleName.end(), ExtractedModuleName.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+
+        //
+        // Check if the we find it with an alternative module name or not
+        //
+        for (auto item : g_LoadedModules)
+        {
+            //
+            // Check for the module name
+            //
+            if (strcmp((const char *)item->ModuleAlternativeName, ExtractedModuleName.c_str()) == 0)
+            {
+                //
+                // Replace the alternative module name with original module name
+                //
+                string ModuleName(item->ModuleName);
+                FinalModuleName = ModuleName + "!" + FunctionName;
+                break;
+            }
+        }
     }
     else
     {
-        std::string ModuleName(FunctionOrVariableName);
-        FinalModuleName = ModuleName;
+        //
+        // It doesn't contain a module name, so we'll use 'nt' by default
+        //
+        for (auto item : g_LoadedModules)
+        {
+            //
+            // Check for the module name
+            //
+            if (strcmp((const char *)item->ModuleAlternativeName, "nt") == 0)
+            {
+                //
+                // Replace the alternative module name with original module name
+                //
+                string ModuleName(item->ModuleName);
+                FinalModuleName = ModuleName + "!" + TempName;
+                break;
+            }
+        }
+    }
+
+    //
+    // Check if the final module name is not empty
+    //
+    if (FinalModuleName.empty())
+    {
+        *WasFound = FALSE;
+        return NULL;
     }
 
     if (SymFromName(GetCurrentProcess(), FinalModuleName.c_str(), Symbol))
@@ -1820,6 +1887,9 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
 
                 // ShowMessages("name: %s , is 32-bit? %s\n", BufferToStoreDetailsConverted[i].FilePath, BufferToStoreDetailsConverted[i].Is32Bit ? "true" : "false");
 
+                //
+                // Check for alternative module names
+                //
                 if (BufferToStoreDetailsConverted[i].Is32Bit &&
                     SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
                                                  BufferToStoreDetailsConverted[i].ModuleSymbolPath,
@@ -1827,6 +1897,14 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 {
                     //
                     // The name of the module contains a prefix which should be removed
+                    //
+                    CustomModuleName = CustomModuleNameStr.c_str();
+                }
+                else if (!BufferToStoreDetailsConverted[i].Is32Bit &&
+                         SymCheckNtoskrnlPrefix(BufferToStoreDetailsConverted[i].ModuleSymbolPath, CustomModuleNameStr))
+                {
+                    //
+                    // This is an nt module
                     //
                     CustomModuleName = CustomModuleNameStr.c_str();
                 }
@@ -1881,6 +1959,9 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
 
                 // ShowMessages("name: %s , is 32-bit? %s\n", BufferToStoreDetailsConverted[i].FilePath, BufferToStoreDetailsConverted[i].Is32Bit ? "true" : "false");
 
+                //
+                // Check for alternative module names
+                //
                 if (BufferToStoreDetailsConverted[i].Is32Bit &&
                     SymCheckAndRemoveWow64Prefix(BufferToStoreDetailsConverted[i].FilePath,
                                                  Tmp.c_str(),
@@ -1888,6 +1969,14 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 {
                     //
                     // The name of the module contains a prefix which should be removed
+                    //
+                    CustomModuleName = CustomModuleNameStr.c_str();
+                }
+                else if (!BufferToStoreDetailsConverted[i].Is32Bit &&
+                         SymCheckNtoskrnlPrefix(Tmp.c_str(), CustomModuleNameStr))
+                {
+                    //
+                    // This is an nt module
                     //
                     CustomModuleName = CustomModuleNameStr.c_str();
                 }

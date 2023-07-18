@@ -268,7 +268,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress);
+EptHookRestoreSingleHookToOriginalEntry(SIZE_T PhysicalAddress);
 
 /**
  * @brief Remove all hooks from the hooked pages lists (Should be called in vmx-root)
@@ -276,7 +276,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress);
  * @return VOID
  */
 VOID
-EptHookRestoreAllHooksToOrginalEntry();
+EptHookRestoreAllHooksToOriginalEntry();
 
 /**
  * @brief Remove all hooks from the hooked pages lists

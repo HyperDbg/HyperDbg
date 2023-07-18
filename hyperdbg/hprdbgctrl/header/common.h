@@ -22,7 +22,7 @@
 
 #define AssertReturnOne return 1;
 
-#define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command ? \n"
+#define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n"
 
 #define ASSERT_MESSAGE_CANNOT_SPECIFY_PID "err, since HyperDbg won't context-switch to keep the system in a halted state, "                       \
                                           "you cannot specify 'pid' for this command in the debugger mode. You can switch to the target process " \

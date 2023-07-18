@@ -471,7 +471,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @return BOOLEAN Return false if there was an error or returns true if it was successfull
  */
 BOOLEAN
-EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
+EptHookRestoreSingleHookToOriginalEntry(SIZE_T PhysicalAddress)
 {
     EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
 
@@ -508,7 +508,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
  * @return VOID
  */
 VOID
-EptHookRestoreAllHooksToOrginalEntry()
+EptHookRestoreAllHooksToOriginalEntry()
 {
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL

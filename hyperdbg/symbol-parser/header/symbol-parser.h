@@ -30,6 +30,7 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
     UINT64 BaseAddress;
     UINT64 ModuleBase;
     char   ModuleName[_MAX_FNAME];
+    char   ModuleAlternativeName[_MAX_FNAME];
     char   PdbFilePath[MAX_PATH];
 
 } SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
