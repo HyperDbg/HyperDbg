@@ -13,7 +13,7 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 
-## [0.4.0.0] - 2023-XX-XX
+## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.
 
 ### Added
