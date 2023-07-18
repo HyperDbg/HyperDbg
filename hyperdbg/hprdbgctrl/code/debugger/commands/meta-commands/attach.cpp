@@ -18,7 +18,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
- * @brief help of .attach command
+ * @brief help of the .attach command
  *
  * @return VOID
  */
@@ -53,12 +53,12 @@ CommandAttach(vector<string> SplittedCommand, string Command)
 
     if (!g_IsSerialConnectedToRemoteDebugger)
     {
-        ShowMessages("The user-mode debugger is still in the beta version and not stable. "
-                     "We decided to exclude it from this release and release it in future versions. "
-                     "If you want to test the user-mode debugger in VMI Mode, you should build "
-                     "HyperDbg with special instructions.(It's not recommended to use it) \n"
-                     "Please follow the steps here: "
-                     "https://docs.hyperdbg.org/getting-started/build-and-install \n");
+        ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
+                     "we decided to exclude it from this release and release it in future versions. "
+                     "if you want to test the user-mode debugger in VMI Mode, you should build "
+                     "HyperDbg with special instructions. But attaching/switching to other processes\n"
+                     "are fully supported in the Debugger Mode.\n"
+                     "(it's not recommended to use it in VMI Mode yet!)\n");
         return;
     }
 
@@ -69,7 +69,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() >= 4)
     {
-        ShowMessages("incorrect use of '.attach'\n\n");
+        ShowMessages("incorrect use of the '.attach'\n\n");
         CommandAttachHelp();
         return;
     }

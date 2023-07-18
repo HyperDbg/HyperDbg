@@ -62,6 +62,24 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 
 /* ==============================================================================================
  */
+#define SIZEOF_DEBUGGER_PAGE_IN_REQUEST \
+    sizeof(DEBUGGER_PAGE_IN_REQUEST)
+
+/**
+ * @brief requests for the '.pagein' command
+ *
+ */
+typedef struct _DEBUGGER_PAGE_IN_REQUEST
+{
+    UINT64 VirtualAddress;
+    UINT32 ProcessId;
+    UINT32 PageFaultErrorCode;
+    UINT32 KernelStatus;
+
+} DEBUGGER_PAGE_IN_REQUEST, *PDEBUGGER_PAGE_IN_REQUEST;
+
+/* ==============================================================================================
+ */
 
 /**
  * @brief different modes of reconstruct requests
@@ -1009,11 +1027,12 @@ typedef struct _DEBUGGEE_SYMBOL_REQUEST_PACKET
  */
 typedef struct _DEBUGGEE_BP_PACKET
 {
-    UINT64 Address;
-    UINT32 Pid;
-    UINT32 Tid;
-    UINT32 Core;
-    UINT32 Result;
+    UINT64  Address;
+    UINT32  Pid;
+    UINT32  Tid;
+    UINT32  Core;
+    BOOLEAN RemoveAfterHit;
+    UINT32  Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
 

@@ -144,8 +144,6 @@ VOID
 UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
                    DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType)
 {
-    RFLAGS Rflags = {0};
-
     //
     // Configure the RIP
     //
@@ -158,11 +156,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         //
         // Set the trap-flag
         //
-        Rflags.AsUInt = VmFuncGetRflags();
-
-        Rflags.TrapFlag = TRUE;
-
-        VmFuncSetRflags(Rflags.AsUInt);
+        VmFuncSetRflagTrapFlag(TRUE);
 
         //
         // Rflags' trap flag is set
@@ -404,16 +398,10 @@ VOID
 UdHandleAfterSteppingReason(PROCESSOR_DEBUGGING_STATE *        DbgState,
                             PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
-    RFLAGS Rflags = {0};
-
     //
     // Unset the trap-flag
     //
-    Rflags.AsUInt = VmFuncGetRflags();
-
-    Rflags.TrapFlag = FALSE;
-
-    VmFuncSetRflags(Rflags.AsUInt);
+    VmFuncSetRflagTrapFlag(FALSE);
 
     //
     // Rflags' trap flag is not set anymore

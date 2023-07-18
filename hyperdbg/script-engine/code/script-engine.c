@@ -39,15 +39,17 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
  *
  * @param BaseAddress
  * @param PdbFileName
+ * @param CustomModuleName
+ *
  * @return UINT32
  */
 UINT32
-ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
     //
     // A wrapper for pdb parser
     //
-    return SymLoadFileSymbol(BaseAddress, PdbFileName);
+    return SymLoadFileSymbol(BaseAddress, PdbFileName, CustomModuleName);
 }
 
 /**
@@ -236,15 +238,17 @@ ScriptEngineSymbolAbortLoading()
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
+ * @param Is32BitModule
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule)
 {
     //
     // A wrapper for pdb to path file and guid and age detail converter
     //
-    return SymConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails);
+    return SymConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails, Is32BitModule);
 }
 
 /**

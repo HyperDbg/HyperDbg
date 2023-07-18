@@ -54,6 +54,7 @@ VOID
 GlobalDebuggingStateFreeMemory(VOID)
 {
     ExFreePoolWithTag(g_DbgState, POOLTAG);
+    g_DbgState = NULL;
 }
 
 /**

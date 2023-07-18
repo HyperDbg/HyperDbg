@@ -60,15 +60,25 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
  * @brief Event for address, we don't use address range here,
  * address ranges should be check in event section
  *
+ * @param Address
+ * @param ProcessId
+ * @param EnableForRead
+ * @param EnableForWrite
+ * @param EnableForExecute
+ *
  * @return VOID
  */
 BOOLEAN
-DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite)
+DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
+                                        UINT32  ProcessId,
+                                        BOOLEAN EnableForRead,
+                                        BOOLEAN EnableForWrite,
+                                        BOOLEAN EnableForExecute)
 {
     //
     // Check if the detail is ok for either read or write or both
     //
-    if (!EnableForRead && !EnableForWrite)
+    if (!EnableForRead && !EnableForWrite && !EnableForExecute)
     {
         return FALSE;
     }
@@ -86,7 +96,7 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     //
     // Perform the EPT Hook
     //
-    return ConfigureEptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
+    return ConfigureEptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
 }
 
 /**

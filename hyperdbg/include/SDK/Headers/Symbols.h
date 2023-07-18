@@ -27,6 +27,7 @@ typedef struct _MODULE_SYMBOL_DETAIL
                                   // and FALSE if ModuleSymbolPath is just a module name
     BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is avilable(if exists in the sympath)
     BOOLEAN IsUserMode;           // TRUE if the module is a user-mode module
+    BOOLEAN Is32Bit;              // TRUE if the module is a 32-bit
     UINT64  BaseAddress;
     char    FilePath[MAX_PATH];
     char    ModuleSymbolPath[MAX_PATH];
@@ -46,6 +47,7 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
 {
     UINT32  ProcessId;
     BOOLEAN OnlyCountModules;
+    BOOLEAN Is32Bit;
     UINT32  ModulesCount;
     UINT32  Result;
 

@@ -82,6 +82,7 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR
     BYTE       PreviousByte;
     BOOLEAN    SetRflagsIFBitOnMtf;
     BOOLEAN    AvoidReApplyBreakpoint;
+    BOOLEAN    RemoveAfterHit;
 
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
@@ -95,6 +96,19 @@ typedef struct _KD_NMI_STATE
     volatile BOOLEAN WaitingToBeLocked;
 
 } KD_NMI_STATE, *PKD_NMI_STATE;
+
+/**
+ * @brief The status of RFLAGS.TF masking
+ *
+ */
+typedef struct _KD_TRAP_FLAG_STATE_STATE
+{
+    BOOLEAN CheckTrapFlagState;
+    UINT32  TargetProcessId;
+    UINT32  TargetThreadId;
+    UINT32  SetTo;
+
+} KD_TRAP_FLAG_STATE_STATE, *PKD_TRAP_FLAG_STATE_STATE;
 
 /**
  * @brief Saves the debugger state

@@ -30,6 +30,7 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
     UINT64 BaseAddress;
     UINT64 ModuleBase;
     char   ModuleName[_MAX_FNAME];
+    char   ModuleAlternativeName[_MAX_FNAME];
     char   PdbFilePath[MAX_PATH];
 
 } SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
@@ -49,7 +50,7 @@ __declspec(dllimport) void pdbex_set_logging_method_export(PVOID handler);
 // Exports
 //
 __declspec(dllexport) VOID SymSetTextMessageCallback(PVOID handler);
-__declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
 __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
@@ -58,7 +59,7 @@ __declspec(dllexport) BOOLEAN SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeS
 __declspec(dllexport) BOOLEAN SymCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
-__declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
+__declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 __declspec(dllexport) BOOLEAN SymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllexport) BOOLEAN SymShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
 __declspec(dllexport) VOID SymbolAbortLoading();
@@ -92,7 +93,7 @@ const char *
 SymTagStr(ULONG Tag);
 
 BOOLEAN
-SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad);
+SymbolPdbDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad);
 
 VOID
 SymbolAbortLoading();

@@ -19,9 +19,10 @@
  * @brief Page attributes for internal use
  *
  */
-#define PAGE_ATTRIB_READ  0x2
-#define PAGE_ATTRIB_WRITE 0x4
-#define PAGE_ATTRIB_EXEC  0x8
+#define PAGE_ATTRIB_READ             0x2
+#define PAGE_ATTRIB_WRITE            0x4
+#define PAGE_ATTRIB_EXEC             0x8
+#define PAGE_ATTRIB_EXEC_HIDDEN_HOOK 0x10
 
 /**
  * @brief The number of 512GB PML4 entries in the page table
@@ -155,8 +156,6 @@ typedef struct _EPT_STATE
     EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
 
-    PVMM_EPT_PAGE_TABLE SecondaryEptPageTable;                         // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
-
 } EPT_STATE, *PEPT_STATE;
 
 /**
@@ -197,9 +196,6 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 // ----------------------------------------------------------------------------
 // Private Interfaces
 //
-
-static PEPT_PML2_ENTRY
-EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 
 static VOID
 EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
@@ -249,6 +245,18 @@ BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   PVOID               PreAllocatedBuffer,
                   SIZE_T              PhysicalAddress);
+
+/**
+ * @brief Split 2MB (LargePage) into 4kb pages
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PreAllocatedBuffer The address of pre-allocated buffer
+ * @param PhysicalAddress Physical address of where we want to split
+ *
+ * @return BOOLEAN Returns true if it was successful or false if there was an error
+ */
+PEPT_PML2_ENTRY
+EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 
 /**
  * @brief Initialize EPT Table based on Processor Index

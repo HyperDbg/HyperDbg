@@ -18,7 +18,7 @@ extern LIST_ENTRY g_OutputSources;
 extern BOOLEAN    g_OutputSourcesInitialized;
 
 /**
- * @brief help of output command
+ * @brief help of the output command
  *
  * @return VOID
  */
@@ -130,7 +130,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 2)
     {
-        ShowMessages("incorrect use of 'output'\n\n");
+        ShowMessages("incorrect use of the 'output'\n\n");
         CommandOutputHelp();
         return;
     }
@@ -149,7 +149,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         if (SplittedCommand.size() <= 4)
         {
-            ShowMessages("incorrect use of 'output'\n\n");
+            ShowMessages("incorrect use of the 'output'\n\n");
             CommandOutputHelp();
             return;
         }

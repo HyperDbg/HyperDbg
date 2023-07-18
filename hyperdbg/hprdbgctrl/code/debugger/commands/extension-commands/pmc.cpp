@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !pmc command
+ * @brief help of the !pmc command
  *
  * @return VOID
  */
@@ -78,7 +78,7 @@ CommandPmc(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() > 1)
     {
-        ShowMessages("incorrect use of '!pmc'\n");
+        ShowMessages("incorrect use of the '!pmc'\n");
         CommandPmcHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

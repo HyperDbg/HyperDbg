@@ -52,4 +52,5 @@ VOID
 GlobalGuestStateFreeMemory(VOID)
 {
     ExFreePoolWithTag(g_GuestState, POOLTAG);
+    g_GuestState = NULL;
 }

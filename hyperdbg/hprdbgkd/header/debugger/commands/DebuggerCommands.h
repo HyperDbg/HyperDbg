@@ -26,6 +26,9 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
 BOOLEAN
 DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest);
 
+BOOLEAN
+DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest);
+
 NTSTATUS
 DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UINT64 * UserBuffer, PSIZE_T ReturnSize);
 
@@ -49,3 +52,11 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
 
 NTSTATUS
 DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest);
+
+BOOLEAN
+SearchAddressWrapper(PUINT64                 AddressToSaveResults,
+                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
+                     UINT64                  StartAddress,
+                     UINT64                  EndAddress,
+                     BOOLEAN                 IsDebuggeePaused,
+                     PUINT32                 CountOfMatchedCases);

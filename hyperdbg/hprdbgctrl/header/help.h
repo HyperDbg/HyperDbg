@@ -263,3 +263,6 @@ CommandRevHelp();
 
 VOID
 CommandTrackHelp();
+
+VOID
+CommandPageinHelp();

@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of be command
+ * @brief help of the be command
  *
  * @return VOID
  */
@@ -51,7 +51,7 @@ CommandBe(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 'be'\n\n");
+        ShowMessages("incorrect use of the 'be'\n\n");
         CommandBeHelp();
         return;
     }

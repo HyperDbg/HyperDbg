@@ -204,11 +204,11 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             }
 
             //
-            // Call handler of mode-based execution hooks
+            // Call handler of the reversing machine
             //
-            if (g_CheckForModeBasedExecutionControl)
+            if (g_ReversingMachineInitialized)
             {
-                ModeBasedExecHookHandleCr3Vmexit(VCpu, NewCr3);
+                ReversingMachineHandleCr3Vmexit(VCpu, NewCr3);
             }
 
             break;
@@ -369,6 +369,28 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     // Set the new value
     //
     __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set the rflag's trap flag
+ *
+ * @param Set Set or unset the TF
+ *
+ * @return VOID
+ */
+VOID
+HvSetRflagTrapFlag(BOOLEAN Set)
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // Unset the trap-flag, as we set it before we have to mask it now
+    //
+    Rflags.AsUInt = HvGetRflags();
+
+    Rflags.TrapFlag = Set;
+
+    HvSetRflags(Rflags.AsUInt);
 }
 
 /**
@@ -1370,6 +1392,32 @@ HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu)
     // another routine and we might (and will) trigger the same instruction soon
     //
 
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    //
+    // Indicate that we should enable external interrupts and configure external interrupt
+    // window exiting somewhere at MTF
+    //
+    VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
+}
+
+/**
+ * @brief Adjust external interrupt state
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+HvPreventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
     //
     // Change guest interrupt-state
     //

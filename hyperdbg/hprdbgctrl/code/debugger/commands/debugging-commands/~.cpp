@@ -18,7 +18,7 @@ extern ULONG   g_CurrentRemoteCore;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of ~ command
+ * @brief help of the ~ command
  *
  * @return VOID
  */
@@ -49,7 +49,7 @@ CommandCore(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of '~'\n\n");
+        ShowMessages("incorrect use of the '~'\n\n");
         CommandCoreHelp();
         return;
     }

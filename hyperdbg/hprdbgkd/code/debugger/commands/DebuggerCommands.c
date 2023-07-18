@@ -92,7 +92,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         MemoryMapperReadMemorySafeOnTargetProcess(Address, UserBuffer, Size);
 
         //
-        // Check if the target memory is filled with breakpoint of 'bp' commands
+        // Check if the target memory is filled with breakpoint of the 'bp' commands
         // if the memory is changed due to this command, then we'll changes it to
         // the previous byte
         //
@@ -1204,4 +1204,27 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     PreallocRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
+}
+
+/**
+ * @brief routines for the .pagein command
+ *
+ * @param PageinRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggerCommandBringPagein(PDEBUGGER_PAGE_IN_REQUEST PageinRequest)
+{
+    //
+    // *** Perform the injection here ***
+    //
+    LogInfo("Page-request is received!");
+
+    //
+    // Adjust the flags for showing the successful #PF injection
+    //
+    PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
 }

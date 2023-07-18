@@ -4,11 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0.0] - 2023-XX-XX
+
+## [0.4.1.0] - 2023-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+
+### Changed
+
+## [0.4.0.0] - 2023-07-18
+New release of the HyperDbg Debugger.
+
+### Added
+- The **!monitor** command now supports 'execution' interception ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor))
+- **.pagein** - command is added to the debugger to bring pages in ([link](https://docs.hyperdbg.org/commands/meta-commands/.pagein))
+
+### Changed
+- The '.start' command's mechanism for finding the entrypoint is changed to address issues ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- The buffer overlap error in hyperlog in multi-core systems is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/1fa06c0b5a8b93656803fdc455025f59aadd0adb))
+- The implementation of 'dd' (define dwrod, 32-bit), and 'dw' (define word, 16-bit) is changed ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
+- The problem with unloading driver (#238) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/238))
+- The symbol files for 32-bit modules are now loaded based on SysWOW64, and the issue (#243) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/243))
+- New alias names for u, !u as u64, !u64 and for u2, !u2 as u32, !u32 ([link](https://docs.hyperdbg.org/commands/extension-commands/u))([link](https://docs.hyperdbg.org/commands/debugging-commands/u))
 
 ## [0.3.0.0] - 2023-06-08
 New release of the HyperDbg Debugger.

@@ -101,6 +101,18 @@ VmFuncSetMonitorTrapFlag(BOOLEAN Set)
 }
 
 /**
+ * @brief Set Rflag's trap flag
+ *
+ * @param Set Set or unset the TF
+ * @return VOID
+ */
+VOID
+VmFuncSetRflagTrapFlag(BOOLEAN Set)
+{
+    HvSetRflagTrapFlag(Set);
+}
+
+/**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
  * @param Set Set or unset
@@ -427,6 +439,61 @@ VmFuncNmiBroadcastRequest(UINT32 CoreId)
 }
 
 /**
+ * @brief Broadcast NMI requests for single-context EPT invalidation
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncNmiBroadcastInvalidateEptSingleContext(UINT32 CoreId)
+{
+    //
+    // Broadcast NMI requests
+    //
+    return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_SINGLE_CONTEXT);
+}
+
+/**
+ * @brief Broadcast NMI requests for all contexts EPT invalidation
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId)
+{
+    //
+    // Broadcast NMI requests
+    //
+    return VmxBroadcastNmi(&g_GuestState[CoreId], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
+}
+
+/**
+ * @brief Requests for single-context EPT invalidation
+ *
+ * @return VOID
+ */
+VOID
+VmFuncInvalidateEptSingleContext()
+{
+    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+}
+
+/**
+ * @brief Requests for all contexts EPT invalidation
+ *
+ * @return VOID
+ */
+VOID
+VmFuncInvalidateEptAllContexts()
+{
+    //
+    // Broadcast NMI requests
+    //
+    EptInveptAllContexts();
+}
+
+/**
  * @brief Check and enable external interrupts
  *
  * @param CoreId Target core's ID
@@ -539,13 +606,14 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
  *
  * @param CoreId Target core's ID
  * @param Address Page-fault address
+ * @param PageFaultCode Page-fault error code
  *
  * @return VOID
  */
 VOID
-VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address)
+VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaultCode)
 {
-    EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address);
+    EventInjectPageFaultWithCr2(&g_GuestState[CoreId], Address, PageFaultCode);
 }
 
 /**

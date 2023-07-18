@@ -42,9 +42,10 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
     //
     switch (PausePacket->PausingReason)
     {
-    case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+    case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED:
 
-        ShowMessages("reached to the entrypoint of the main module\n");
+        ShowMessages("the target module is loaded and a breakpoint is set to the entrypoint\n"
+                     "press 'g' to reach to the entrypoint of the main module...\n");
 
         break;
     case DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED:

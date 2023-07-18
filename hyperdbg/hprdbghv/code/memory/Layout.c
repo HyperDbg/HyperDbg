@@ -67,6 +67,21 @@ LayoutGetCurrentProcessCr3()
 }
 
 /**
+ * @brief Get cr3 of the target running process
+ *
+ * @return CR3_TYPE Returns the cr3 of running process
+ */
+CR3_TYPE
+LayoutGetExactGuestProcessCr3()
+{
+    CR3_TYPE GuestCr3 = {0};
+
+    __vmx_vmread(VMCS_GUEST_CR3, &GuestCr3.Flags);
+
+    return GuestCr3;
+}
+
+/**
  * @brief Find cr3 of system process
  *
  * @return UINT64 Returns cr3 of System process (pid=4)

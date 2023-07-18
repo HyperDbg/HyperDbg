@@ -46,7 +46,7 @@ CommandBl(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'bl'\n\n");
+        ShowMessages("incorrect use of the 'bl'\n\n");
         CommandBlHelp();
         return;
     }

@@ -18,7 +18,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsRunningInstruction32Bit;
 
 /**
- * @brief help of k command
+ * @brief help of the k command
  *
  * @return VOID
  */
@@ -66,7 +66,7 @@ CommandK(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 6)
     {
-        ShowMessages("incorrect use of '%s'\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", FirstCommand.c_str());
         CommandKHelp();
         return;
     }
@@ -142,7 +142,7 @@ CommandK(vector<string> SplittedCommand, string Command)
         //
         // User inserts unexpected input
         //
-        ShowMessages("err, incorrect use of '%s' command\n\n",
+        ShowMessages("err, incorrect use of the '%s' command\n\n",
                      FirstCommand.c_str());
         CommandKHelp();
 
@@ -151,7 +151,7 @@ CommandK(vector<string> SplittedCommand, string Command)
 
     if (IsNextLength || IsNextBase)
     {
-        ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
         CommandKHelp();
         return;
     }

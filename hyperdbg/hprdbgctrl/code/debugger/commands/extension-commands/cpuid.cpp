@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !cpuid command
+ * @brief help of the !cpuid command
  *
  * @return VOID
  */

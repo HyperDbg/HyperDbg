@@ -96,7 +96,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
     {
         //
         // Cast the buffer received to perform sending buffer and possibly
-        // halt the the debuggee
+        // halt the debuggee
         //
         PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = OptionalParam1;
 

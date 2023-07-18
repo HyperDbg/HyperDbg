@@ -26,6 +26,9 @@
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\UnloadDll.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Logging.h">
@@ -35,6 +38,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\pch.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\UnloadDll.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

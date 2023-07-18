@@ -42,7 +42,7 @@ CommandLogclose(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '.logclose'\n\n");
+        ShowMessages("incorrect use of the '.logclose'\n\n");
         CommandLogcloseHelp();
         return;
     }

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !msrwrite command
+ * @brief help of the !msrwrite command
  *
  * @return VOID
  */

@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of bp command
+ * @brief help of the bp command
  *
  * @return VOID
  */
@@ -73,7 +73,7 @@ CommandBp(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 9)
     {
-        ShowMessages("incorrect use of 'bp'\n\n");
+        ShowMessages("incorrect use of the 'bp'\n\n");
         CommandBpHelp();
         return;
     }

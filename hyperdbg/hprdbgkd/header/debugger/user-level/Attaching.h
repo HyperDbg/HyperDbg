@@ -77,7 +77,7 @@ AttachingInitialize();
 BOOLEAN
 AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
                                          UINT64 Address,
-                                         ULONG  ErrorCode);
+                                         UINT32 PageFaultErrorCode);
 
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
@@ -89,7 +89,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
-AttachingHandleEntrypointDebugBreak(PROCESSOR_DEBUGGING_STATE * DbgState);
+AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails();
@@ -102,3 +102,12 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId);
 
 BOOLEAN
 AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize);
+
+BOOLEAN
+AttachingCheckUnhandledEptViolation(UINT32 CoreId,
+                                    UINT64 ViolationQualification,
+                                    UINT64 GuestPhysicalAddr);
+
+BOOLEAN
+AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                                    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

@@ -197,7 +197,7 @@ HyperDbgInterpreter(char * Command)
         }
         else
         {
-            ShowMessages("incorrect use of '%s'\n", FirstCommand.c_str());
+            ShowMessages("incorrect use of the '%s'\n", FirstCommand.c_str());
             CommandHelpHelp();
             return 0;
         }
@@ -663,6 +663,9 @@ InitializeCommandsDictionary()
 
     g_CommandsList[".logclose"] = {&CommandLogclose, &CommandLogcloseHelp, DEBUGGER_COMMAND_LOGCLOSE_ATTRIBUTES};
 
+    g_CommandsList[".pagein"] = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
+    g_CommandsList["pagein"]  = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
+
     g_CommandsList["test"] = {&CommandTest, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
 
     g_CommandsList["cpu"] = {&CommandCpu, &CommandCpuHelp, DEBUGGER_COMMAND_CPU_ATTRIBUTES};
@@ -748,42 +751,54 @@ InitializeCommandsDictionary()
     g_CommandsList["i"]  = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
-    g_CommandsList["db"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dc"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dd"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dq"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!db"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dc"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dd"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dq"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u"]   = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u2"] = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u2"]  = {&CommandReadMemoryAndDisassembler,
-                             &CommandReadMemoryAndDisassemblerHelp,
-                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dd"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dq"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!db"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dc"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dd"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dq"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u"]    = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u64"] = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u64"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u2"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u2"]   = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u32"] = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u32"]  = {&CommandReadMemoryAndDisassembler,
+                              &CommandReadMemoryAndDisassemblerHelp,
+                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
 
     g_CommandsList["eb"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["ed"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};

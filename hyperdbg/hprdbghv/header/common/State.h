@@ -50,6 +50,8 @@ typedef enum _NMI_BROADCAST_ACTION_TYPE
     NMI_BROADCAST_ACTION_NONE = 0,
     NMI_BROADCAST_ACTION_TEST,
     NMI_BROADCAST_ACTION_REQUEST,
+    NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_SINGLE_CONTEXT,
+    NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS,
 
 } NMI_BROADCAST_ACTION_TYPE;
 
@@ -153,11 +155,6 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsHiddenBreakpoint;
 
     /**
-     * @brief If TRUE, this hook relates to the write violation of the events
-     */
-    BOOLEAN IsMonitorToWriteOnPages;
-
-    /**
      * @brief Temporary context for the post event monitors
      * It shows the context of the last address that triggered the hook
      * Note: Only used for read/write trigger events
@@ -216,7 +213,8 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
     BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
     BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
-    BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is not in a normal EPTP (mainly used in MBEC hooks)
+    BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is on the normal EPTP or not
+    BOOLEAN      ExecuteOnlyEptp;                                               // Indicate that the target processor is on execute-only EPTP
     PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
     BOOLEAN      Test;                                                          // Used for test purposes
     UINT64       TestNumber;                                                    // Used for test purposes (Number)

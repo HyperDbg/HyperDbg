@@ -268,6 +268,9 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
         PteDetails->PteValue          = Pte->Flags;
     }
 
+    //
+    // Show that the details we retrieved successfully
+    //
     PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     Result                   = TRUE;
 

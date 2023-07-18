@@ -25,7 +25,7 @@ extern UINT64 g_RdtscMedian;
 extern BOOLEAN g_TransparentResultsMeasured;
 
 /**
- * @brief help of !measure command
+ * @brief help of the !measure command
  *
  * @return VOID
  */
@@ -56,14 +56,14 @@ CommandMeasure(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 3)
     {
-        ShowMessages("incorrect use of '!measure'\n\n");
+        ShowMessages("incorrect use of the '!measure'\n\n");
         CommandMeasureHelp();
         return;
     }
 
     if (SplittedCommand.size() == 2 && SplittedCommand.at(1).compare("default"))
     {
-        ShowMessages("incorrect use of '!measure'\n\n");
+        ShowMessages("incorrect use of the '!measure'\n\n");
         CommandMeasureHelp();
         return;
     }

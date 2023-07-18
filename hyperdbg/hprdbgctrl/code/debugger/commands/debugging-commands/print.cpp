@@ -20,7 +20,7 @@ using namespace std;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of print command
+ * @brief help of the print command
  *
  * @return VOID
  */
@@ -52,7 +52,7 @@ CommandPrint(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of 'print'\n\n");
+        ShowMessages("incorrect use of the 'print'\n\n");
         CommandPrintHelp();
         return;
     }

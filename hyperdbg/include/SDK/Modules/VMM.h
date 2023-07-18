@@ -70,7 +70,7 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 C
  */
 typedef BOOLEAN (*DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION)(UINT32 CoreId,
                                                                        UINT64 Address,
-                                                                       ULONG  ErrorCode);
+                                                                       UINT32 PageFaultErrorCode);
 
 /**
  * @brief Check for commands in user-debugger
@@ -88,7 +88,13 @@ typedef VOID (*VMM_CALLBACK_REGISTERED_MTF_HANDLER)(UINT32 CoreId);
  * @brief Check for user-mode access for loaded module details
  *
  */
-typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)();
+typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)(UINT32 CoreId);
+
+/**
+ * @brief Check for unhandled EPT violations
+ *
+ */
+typedef BOOLEAN (*VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION)(UINT32 CoreId, UINT64 ViolationQualification, UINT64 GuestPhysicalAddr);
 
 /**
  * @brief Handle cr3 process change callbacks
@@ -183,6 +189,7 @@ typedef struct _VMM_CALLBACKS
     VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER      VmmCallbackNmiBroadcastRequestHandler;      // Fixed
     VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource; // Fixed
     VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;                 // Fixed
+    VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION      VmmCallbackCheckUnhandledEptViolations;     // Fixed
 
     //
     // Debugging callbacks

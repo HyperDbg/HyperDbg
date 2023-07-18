@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of cpu command
+ * @brief help of the cpu command
  *
  * @return VOID
  */
@@ -36,7 +36,7 @@ CommandCpu(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'cpu'\n\n");
+        ShowMessages("incorrect use of the 'cpu'\n\n");
         CommandCpuHelp();
         return;
     }

@@ -213,4 +213,10 @@ BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit);
 
 BOOLEAN
-UserAccessCheckForLoadedModuleDetails();
+UserAccessCheckForLoadedModuleDetails(UINT32 CoreId);
+
+BOOLEAN
+UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
+                                                            BOOLEAN Is32Bit,
+                                                            PUINT64 BaseAddress,
+                                                            PUINT64 Entrypoint);

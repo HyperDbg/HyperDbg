@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !unhide command
+ * @brief help of the !unhide command
  *
  * @return VOID
  */
@@ -43,7 +43,7 @@ CommandUnhide(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 2)
     {
-        ShowMessages("incorrect use of '!unhide'\n\n");
+        ShowMessages("incorrect use of the '!unhide'\n\n");
         CommandUnhideHelp();
         return;
     }

@@ -237,23 +237,6 @@ typedef struct _CPUID
     int edx;
 } CPUID, *PCPUID;
 
-/**
- * @brief Page-Fault Error Code
- *
- */
-typedef union _PAGE_FAULT_ERROR_CODE
-{
-    UINT32 Flags;
-    struct
-    {
-        UINT32 Present : 1;  // 0 = NotPresent
-        UINT32 Write : 1;    // 0 = Read
-        UINT32 User : 1;     // 0 = CPL==0
-        UINT32 Reserved : 1; //
-        UINT32 Fetch : 1;    //
-    } Fields;
-} PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
-
 typedef union _CR_FIXED
 {
     UINT64 Flags;
@@ -329,3 +312,6 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS eprocess);
 
 VOID
 CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+
+VOID
+CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu);

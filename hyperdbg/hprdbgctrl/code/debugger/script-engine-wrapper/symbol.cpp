@@ -281,6 +281,9 @@ SymbolBuildAndShowSymbolTable()
         ShowMessages("file path : %s\n", g_SymbolTable[i].FilePath);
         ShowMessages("guid and age : %s\n", g_SymbolTable[i].ModuleSymbolGuidAndAge);
         ShowMessages("module symbol path/name : %s\n", g_SymbolTable[i].ModuleSymbolPath);
+        ShowMessages("is user-mode? : %s - is 32-bit? %s\n",
+                     g_SymbolTable[i].IsUserMode ? "true" : "false",
+                     g_SymbolTable[i].Is32Bit ? "true" : "false");
         ShowMessages("========================================================================\n");
     }
 }
@@ -429,6 +432,14 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 BOOLEAN
 SymbolDeleteSymTable()
 {
+    //
+    // Unload all symbols
+    //
+    ScriptEngineUnloadAllSymbolsWrapper();
+
+    //
+    // Delete symbols
+    //
     if (g_SymbolTable != NULL)
     {
         free(g_SymbolTable);
@@ -648,7 +659,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             }
 
             //
-            // Show modules list
+            // check the module list
             //
             if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
@@ -751,7 +762,8 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
                     TempPath,
                     ModuleSymbolPath,
-                    ModuleSymbolGuidAndAge))
+                    ModuleSymbolGuidAndAge,
+                    ModuleDetailsRequest->Is32Bit))
             {
                 IsSymbolPdbDetailAvailable = TRUE;
 
@@ -769,6 +781,8 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             ModuleSymDetailArray[i].BaseAddress = Modules[i].BaseAddress;
             ModuleSymDetailArray[i].IsUserMode  = TRUE;
+            ModuleSymDetailArray[i].Is32Bit     = ModuleDetailsRequest->Is32Bit;
+
             memcpy(ModuleSymDetailArray[i].FilePath, TempPath, strlen(TempPath));
 
             if (IsSymbolPdbDetailAvailable)
@@ -833,7 +847,13 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             Replace(ModuleFullPath, "\\SystemRoot", SystemRootString);
         }
 
-        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(), ModuleSymbolPath, ModuleSymbolGuidAndAge))
+        //
+        // Kernel modules are all 64-bit
+        //
+        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(),
+                                                                        ModuleSymbolPath,
+                                                                        ModuleSymbolGuidAndAge,
+                                                                        FALSE))
         {
             IsSymbolPdbDetailAvailable = TRUE;
 

@@ -161,6 +161,9 @@ BOOLEAN
 KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket);
 
 BOOLEAN
+KdSendPageinPacketToDebuggee(PDEBUGGER_PAGE_IN_REQUEST PageinPacket);
+
+BOOLEAN
 KdSendListOrModifyPacketToDebuggee(
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyPacket);
 

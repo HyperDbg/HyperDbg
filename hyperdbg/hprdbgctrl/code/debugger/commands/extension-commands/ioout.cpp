@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !ioout command
+ * @brief help of the !ioout command
  *
  * @return VOID
  */

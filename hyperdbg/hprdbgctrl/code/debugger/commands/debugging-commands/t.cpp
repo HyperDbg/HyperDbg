@@ -19,7 +19,7 @@ extern BOOLEAN                  g_IsInstrumentingInstructions;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of t command
+ * @brief help of the t command
  *
  * @return VOID
  */
@@ -59,7 +59,7 @@ CommandT(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 't'\n\n");
+        ShowMessages("incorrect use of the 't'\n\n");
         CommandTHelp();
         return;
     }

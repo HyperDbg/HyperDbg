@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of x command
+ * @brief help of the x command
  *
  * @return VOID
  */
@@ -41,7 +41,7 @@ CommandX(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of 'x'\n\n");
+        ShowMessages("incorrect use of the 'x'\n\n");
         CommandXHelp();
         return;
     }

@@ -25,14 +25,14 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandReadMemoryAndDisassemblerHelp()
 {
-    ShowMessages("db dc dd dq !db !dc !dd !dq & u !u u2 !u2 : reads the  "
+    ShowMessages("db dc dd dq !db !dc !dd !dq & u u64 !u !u64 u2 u32 !u2 !u32 : reads the  "
                  "memory different shapes (hex) and disassembler\n");
     ShowMessages("db  Byte and ASCII characters\n");
     ShowMessages("dc  Double-word values (4 bytes) and ASCII characters\n");
     ShowMessages("dd  Double-word values (4 bytes)\n");
     ShowMessages("dq  Quad-word values (8 bytes). \n");
-    ShowMessages("u  Disassembler at the target address (x64) \n");
-    ShowMessages("u2  Disassembler at the target address (x86) \n");
+    ShowMessages("u u64 Disassembler at the target address (x64) \n");
+    ShowMessages("u2 u32  Disassembler at the target address (x86) \n");
     ShowMessages("\nIf you want to read physical memory then add '!' at the "
                  "start of the command\n");
     ShowMessages("you can also disassemble physical memory using '!u'\n\n");
@@ -42,7 +42,9 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("syntax : \tdd [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tdq [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tu64 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tu32 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
@@ -52,6 +54,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("\t\te.g : db fffff8077356f010\n");
     ShowMessages("\t\te.g : !dq 100000\n");
     ShowMessages("\t\te.g : !dq @rax+77\n");
+    ShowMessages("\t\te.g : u32 @eip\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag+30\n");
     ShowMessages("\t\te.g : u fffff8077356f010\n");
@@ -91,10 +94,9 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 1)
     {
         //
-        // Means that user entered just a connect so we have to
-        // ask to connect to what ?
+        // Means that user entered one command without any parameter
         //
-        ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }
@@ -163,7 +165,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             //
             // User inserts two address
             //
-            ShowMessages("err, incorrect use of '%s' command\n\n",
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
                          FirstCommand.c_str());
             CommandReadMemoryAndDisassemblerHelp();
 
@@ -186,7 +188,10 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         //
         // Default length (user doesn't specified)
         //
-        if (!FirstCommand.compare("u") || !FirstCommand.compare("!u"))
+        if (!FirstCommand.compare("u") ||
+            !FirstCommand.compare("!u") ||
+            !FirstCommand.compare("u64") ||
+            !FirstCommand.compare("!u64"))
         {
             Length = 0x40;
         }
@@ -198,7 +203,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
 
     if (IsNextLength || IsNextProcessId)
     {
-        ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }
@@ -208,7 +213,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
     {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
         return;
     }
 
@@ -304,7 +309,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     //
     // Disassembler (!u or u or u2 !u2)
     //
-    else if (!FirstCommand.compare("u"))
+    else if (!FirstCommand.compare("u") || !FirstCommand.compare("u64"))
     {
         HyperDbgReadMemoryAndDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
@@ -315,7 +320,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("!u"))
+    else if (!FirstCommand.compare("!u") || !FirstCommand.compare("!u64"))
     {
         HyperDbgReadMemoryAndDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
@@ -326,7 +331,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("u2"))
+    else if (!FirstCommand.compare("u2") || !FirstCommand.compare("u32"))
     {
         HyperDbgReadMemoryAndDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
@@ -337,7 +342,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("!u2"))
+    else if (!FirstCommand.compare("!u2") || !FirstCommand.compare("!u32"))
     {
         HyperDbgReadMemoryAndDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,

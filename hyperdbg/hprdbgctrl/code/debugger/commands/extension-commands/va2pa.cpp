@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of !va2pa command
+ * @brief help of the !va2pa command
  *
  * @return VOID
  */
@@ -58,7 +58,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
         SplittedCommand.size() == 3)
     {
-        ShowMessages("incorrect use of '!va2pa'\n\n");
+        ShowMessages("incorrect use of the '!va2pa'\n\n");
         CommandVa2paHelp();
         return;
     }
@@ -130,7 +130,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of '!va2pa'\n\n");
+            ShowMessages("incorrect use of the '!va2pa'\n\n");
             CommandVa2paHelp();
             return;
         }
@@ -151,7 +151,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         if (Pid != 0)
         {
-            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
             return;
         }
 

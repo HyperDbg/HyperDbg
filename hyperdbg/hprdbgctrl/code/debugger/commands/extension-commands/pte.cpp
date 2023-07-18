@@ -18,7 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of !pte command
+ * @brief help of the !pte command
  *
  * @return VOID
  */
@@ -55,7 +55,7 @@ CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS
     2600      --LDA--KWEV  LARGE PAGE pfn 27c9
   */
     ShowMessages("VA %llx\n", TargetVa);
-    ShowMessages("PML4E (PXE) at %016llx\tcontains %016llx\nPDPT (PPE) at "
+    ShowMessages("PML4E (PXE) at %016llx\tcontains %016llx\nPDPTE (PPE) at "
                  "%016llx\tcontains "
                  "%016llx\nPDE at %016llx\tcontains %016llx\n",
                  PteRead->Pml4eVirtualAddress,
@@ -100,7 +100,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
         SplittedCommand.size() == 3)
     {
-        ShowMessages("incorrect use of '!pte'\n\n");
+        ShowMessages("incorrect use of the '!pte'\n\n");
         CommandPteHelp();
         return;
     }
@@ -172,7 +172,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of '!pte'\n\n");
+            ShowMessages("incorrect use of the '!pte'\n\n");
             CommandPteHelp();
             return;
         }
@@ -192,7 +192,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         //
         if (Pid != 0)
         {
-            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
             return;
         }
 

@@ -23,6 +23,12 @@ UINT64 * g_ScriptGlobalVariables;
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief State of the trap-flag
+ *
+ */
+KD_TRAP_FLAG_STATE_STATE g_TrapFlagState;
+
+/**
  * @brief Determines whether the one application gets the handle or not
  * this is used to ensure that only one application can get the handle
  *
@@ -176,4 +182,4 @@ UINT64 g_KernelTestR12;
  * @brief Whether the thread attaching mechanism is waiting for #DB or not
  *
  */
-BOOLEAN g_IsWaitingForUserModeModuleEntrypointToBeCalled;
+BOOLEAN g_IsWaitingForUserModeProcessEntryToBeCalled;

@@ -21,7 +21,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
- * @brief help of .debug command
+ * @brief help of the .debug command
  *
  * @return VOID
  */
@@ -133,7 +133,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
     }
     else if (SplittedCommand.size() <= 3)
     {
-        ShowMessages("incorrect use of '.debug'\n\n");
+        ShowMessages("incorrect use of the '.debug'\n\n");
         CommandDebugHelp();
         return;
     }
@@ -144,7 +144,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
     if (!SplittedCommand.at(1).compare("remote"))
     {
         //
-        // in the case of 'remote'
+        // in the case of the 'remote'
         //
 
         if (!SplittedCommand.at(2).compare("serial"))
@@ -154,7 +154,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             if (SplittedCommand.size() != 5)
             {
-                ShowMessages("incorrect use of '.debug'\n\n");
+                ShowMessages("incorrect use of the '.debug'\n\n");
                 CommandDebugHelp();
                 return;
             }
@@ -235,13 +235,13 @@ CommandDebug(vector<string> SplittedCommand, string Command)
     {
         if (SplittedCommand.size() != 5)
         {
-            ShowMessages("incorrect use of '.debug'\n\n");
+            ShowMessages("incorrect use of the '.debug'\n\n");
             CommandDebugHelp();
             return;
         }
 
         //
-        // in the case of 'prepare'
+        // in the case of the 'prepare'
         // currently we only support serial
         //
         if (!SplittedCommand.at(2).compare("serial"))

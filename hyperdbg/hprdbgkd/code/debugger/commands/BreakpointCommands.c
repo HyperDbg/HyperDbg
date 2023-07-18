@@ -12,6 +12,61 @@
 #include "pch.h"
 
 /**
+ * @brief Check and perform actions on RFLAGS.TF
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndPerformActionsOnTrapFlags()
+{
+    //
+    // Check if the investigation for the trap-flag is needed or not
+    //
+    if (!g_TrapFlagState.CheckTrapFlagState)
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if the thread id and process id matches the target or not
+    //
+    if (g_TrapFlagState.TargetProcessId != PsGetCurrentProcessId() || g_TrapFlagState.TargetThreadId != PsGetCurrentThreadId())
+    {
+        //
+        // Not relate to this thread
+        //
+        return FALSE;
+    }
+
+    //
+    // Uset or set the TRAP flag
+    //
+    VmFuncSetRflagTrapFlag(g_TrapFlagState.SetTo);
+
+    //
+    // We're no longer interested in intercepting trap flag states
+    //
+    g_TrapFlagState.CheckTrapFlagState = FALSE;
+
+    return TRUE;
+}
+
+/**
+ * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
+ * @param SetTo
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointAdjustUnsetTrapFlagsOnCurrentThread(BOOLEAN SetTo)
+{
+    g_TrapFlagState.TargetProcessId    = PsGetCurrentProcessId();
+    g_TrapFlagState.TargetThreadId     = PsGetCurrentThreadId();
+    g_TrapFlagState.SetTo              = SetTo;
+    g_TrapFlagState.CheckTrapFlagState = TRUE;
+}
+
+/**
  * @brief Check and handle debug breakpoint exceptions
  *
  * @param CoreId
@@ -23,6 +78,11 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 {
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
+
+    //
+    // Check whether anything should be changed with trap-flags
+    //
+    BreakpointCheckAndPerformActionsOnTrapFlags(DbgState);
 
     //
     // Check whether it is because of thread change detection or not
@@ -42,12 +102,12 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         ThreadHandleThreadChange(DbgState);
     }
     else if (g_UserDebuggerState == TRUE &&
-             (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+             (g_IsWaitingForUserModeProcessEntryToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
     {
         //
         // Handle for user-mode attaching mechanism
         //
-        AttachingHandleEntrypointDebugBreak(DbgState);
+        AttachingHandleEntrypointInterception(DbgState);
     }
     else if (g_KernelDebuggerState == TRUE)
     {
@@ -75,6 +135,75 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     }
 
     return Result;
+}
+
+/**
+ * @brief clears the 0xcc and removes the breakpoint
+ * @detail this function won't remove the descriptor from the list
+ * @param BreakpointDescriptor
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
+{
+    BYTE TargetMem = NULL;
+
+    //
+    // Check if address is safe (only one byte for 0xcc)
+    //
+    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+    {
+        //
+        // Double check if we can access it by physical address
+        //
+        MemoryMapperReadMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress, &TargetMem, sizeof(BYTE));
+
+        if (TargetMem != 0xcc)
+        {
+            return FALSE;
+        }
+    }
+
+    //
+    // Apply the previous byte
+    //
+    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                 &BreakpointDescriptor->PreviousByte,
+                                                 sizeof(BYTE));
+
+    //
+    // Set breakpoint to disabled
+    //
+    BreakpointDescriptor->Enabled                = FALSE;
+    BreakpointDescriptor->AvoidReApplyBreakpoint = TRUE;
+
+    return TRUE;
+}
+
+/**
+ * @brief Clears the breakpoint and remove the entry from the breakpoint list
+ * @param
+ *
+ * @return VOID
+ */
+VOID
+BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
+{
+    //
+    // Clear the breakpoint
+    //
+    BreakpointClear(BreakpointDesc);
+
+    //
+    // Remove breakpoint from the list of breakpoints
+    //
+    RemoveEntryList(&BreakpointDesc->BreakpointsList);
+
+    //
+    // Uninitialize the breakpoint descriptor (safely)
+    //
+    PoolManagerFreePool(BreakpointDesc);
 }
 
 /**
@@ -219,10 +348,20 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 (CurrentBreakpointDesc->Core == DEBUGGEE_BP_APPLY_TO_ALL_CORES || CurrentBreakpointDesc->Core == DbgState->CoreId))
             {
                 //
+                // Check if breakpoint should be removed after this hit or not
+                //
+                if (CurrentBreakpointDesc->RemoveAfterHit)
+                {
+                    //
+                    // One hit, we have to remove it
+                    //
+                    BreakpointClearAndDeallocateMemory(CurrentBreakpointDesc);
+                }
+
+                //
                 // *** It's not safe to access CurrentBreakpointDesc anymore as the
                 // breakpoint might be removed ***
                 //
-
                 KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                       Reason,
                                                       &ContextAndTag);
@@ -323,7 +462,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
         // A breakpoint triggered and two things might be happened,
         // first, a breakpoint is triggered randomly in the computer and
         // we shouldn't do anything on it (won't change the instruction)
-        // second, the breakpoint is because of 'bp' command, we should
+        // second, the breakpoint is because of the 'bp' command, we should
         // replace it with exact byte
         //
 
@@ -402,50 +541,6 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 }
 
 /**
- * @brief clears the 0xcc and removes the breakpoint
- * @detail this function won't remove the descriptor from the list
- * @param BreakpointDescriptor
- *
- * @return BOOLEAN
- */
-BOOLEAN
-BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
-{
-    BYTE TargetMem = NULL;
-
-    //
-    // Check if address is safe (only one byte for 0xcc)
-    //
-    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
-    {
-        //
-        // Double check if we can access it by physical address
-        //
-        MemoryMapperReadMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress, &TargetMem, sizeof(BYTE));
-
-        if (TargetMem != 0xcc)
-        {
-            return FALSE;
-        }
-    }
-
-    //
-    // Apply the previous byte
-    //
-    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
-                                                 &BreakpointDescriptor->PreviousByte,
-                                                 sizeof(BYTE));
-
-    //
-    // Set breakpoint to disabled
-    //
-    BreakpointDescriptor->Enabled                = FALSE;
-    BreakpointDescriptor->AvoidReApplyBreakpoint = TRUE;
-
-    return TRUE;
-}
-
-/**
  * @brief Remove all the breakpoints if possible
  *
  * @return VOID
@@ -466,19 +561,9 @@ BreakpointRemoveAllBreakpoints()
         PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
 
         //
-        // Clear the breakpoint
+        // Clear and deallocate the breakpoint
         //
-        BreakpointClear(CurrentBreakpointDesc);
-
-        //
-        // Remove breakpoint from the list of breakpoints
-        //
-        RemoveEntryList(&CurrentBreakpointDesc->BreakpointsList);
-
-        //
-        // Uninitialize the breakpoint descriptor (safely)
-        //
-        PoolManagerFreePool(CurrentBreakpointDesc);
+        BreakpointClearAndDeallocateMemory(CurrentBreakpointDesc);
     }
 }
 
@@ -633,13 +718,14 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     // Copy details of breakpoint to the descriptor structure
     //
     g_MaximumBreakpointId++;
-    BreakpointDescriptor->BreakpointId = g_MaximumBreakpointId;
-    BreakpointDescriptor->Address      = BpDescriptorArg->Address;
-    BreakpointDescriptor->PhysAddress  = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+    BreakpointDescriptor->BreakpointId   = g_MaximumBreakpointId;
+    BreakpointDescriptor->Address        = BpDescriptorArg->Address;
+    BreakpointDescriptor->PhysAddress    = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
                                                                                     GuestCr3);
-    BreakpointDescriptor->Core         = BpDescriptorArg->Core;
-    BreakpointDescriptor->Pid          = BpDescriptorArg->Pid;
-    BreakpointDescriptor->Tid          = BpDescriptorArg->Tid;
+    BreakpointDescriptor->Core           = BpDescriptorArg->Core;
+    BreakpointDescriptor->Pid            = BpDescriptorArg->Pid;
+    BreakpointDescriptor->Tid            = BpDescriptorArg->Tid;
+    BreakpointDescriptor->RemoveAfterHit = BpDescriptorArg->RemoveAfterHit;
 
     //
     // Check whether address is 32-bit or 64-bit
@@ -822,19 +908,9 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
         }
 
         //
-        // Unset the breakpoint
+        // Clear and deallocate the breakpoint
         //
-        BreakpointClear(BreakpointDescriptor);
-
-        //
-        // Remove breakpoint from the list of breakpoints
-        //
-        RemoveEntryList(&BreakpointDescriptor->BreakpointsList);
-
-        //
-        // Uninitialize the breakpoint descriptor (safely)
-        //
-        PoolManagerFreePool(BreakpointDescriptor);
+        BreakpointClearAndDeallocateMemory(BreakpointDescriptor);
     }
 
     //

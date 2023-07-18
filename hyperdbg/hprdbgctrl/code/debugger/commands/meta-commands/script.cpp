@@ -19,7 +19,7 @@ using namespace std;
 extern BOOLEAN g_ExecutingScript;
 
 /**
- * @brief help of .script command
+ * @brief help of the .script command
  *
  * @return VOID
  */

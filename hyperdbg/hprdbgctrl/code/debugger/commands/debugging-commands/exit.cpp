@@ -17,7 +17,7 @@
 extern HANDLE g_DeviceHandle;
 
 /**
- * @brief help of exit command
+ * @brief help of the exit command
  *
  * @return VOID
  */
@@ -42,7 +42,7 @@ CommandExit(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of 'exit'\n\n");
+        ShowMessages("incorrect use of the 'exit'\n\n");
         CommandExitHelp();
         return;
     }

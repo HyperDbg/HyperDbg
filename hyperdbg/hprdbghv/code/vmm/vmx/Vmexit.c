@@ -83,12 +83,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
     // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", VCpu->ExitQualification);
     //
-
     switch (ExitReason)
     {
     case VMX_EXIT_REASON_TRIPLE_FAULT:
     {
-        LogError("Err, triple fault error occurred");
+        VmxHandleTripleFaults(VCpu);
 
         break;
     }
@@ -338,11 +337,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
 
     //
-    // Set indicator of Vmx non root mode to false
-    //
-    VCpu->IsOnVmxRootMode = FALSE;
-
-    //
     // Check for vmxoff request
     //
     if (VCpu->VmxoffState.IsVmxoffExecuted)
@@ -364,6 +358,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
         }
     }
+
+    //
+    // Set indicator of Vmx non root mode to false
+    //
+    VCpu->IsOnVmxRootMode = FALSE;
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE

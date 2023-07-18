@@ -66,6 +66,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_BP_PACKET                         BpPacket;
     PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
+    PDEBUGGER_PAGE_IN_REQUEST                   PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
     PGUEST_REGS                                 Regs;
@@ -258,9 +259,10 @@ StartAgain:
 
                 break;
 
-            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED:
 
-                ShowMessages("reached to the entrypoint of the user-mode process\n");
+                ShowMessages("the target module is loaded and a breakpoint is set to the entrypoint\n"
+                             "press 'g' to reach to the entrypoint of the main module...\n");
 
                 break;
 
@@ -332,7 +334,7 @@ StartAgain:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED:
 
                 //
-                // Handle the tracking of 'ret' and 'call' instructions
+                // Handle the tracking of the 'ret' and the 'call' instructions
                 //
                 CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
                                                        MAXIMUM_INSTR_SIZE,
@@ -346,7 +348,7 @@ StartAgain:
 
                 break;
 
-            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED:
 
                 //
                 // Unpause the debugger to get commands
@@ -612,7 +614,7 @@ StartAgain:
             if (ScriptPacket->IsFormat)
             {
                 //
-                // Signal the event relating to receiving result of .formats command
+                // Signal the event relating to receiving result of the '.formats' command
                 //
                 DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT);
             }
@@ -998,6 +1000,30 @@ StartAgain:
             // Signal the event relating to receiving result of PTE query
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BRINGING_PAGES_IN:
+
+            PageinPacket = (DEBUGGER_PAGE_IN_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (PageinPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                //
+                // Show the successfull delivery of the packet
+                //
+                ShowMessages("the page-fault is delivered to the target thread\n"
+                             "press 'g' to continue debuggee (the current thread will execute ONLY one instruction and will be halted again)...\n");
+            }
+            else
+            {
+                ShowErrorMessage(PageinPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of page-in request
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 
             break;
 

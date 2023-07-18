@@ -23,7 +23,7 @@ extern string  g_ServerPort;
 extern string  g_ServerIp;
 
 /**
- * @brief help of .status command
+ * @brief help of the .status command
  *
  * @return VOID
  */
@@ -51,7 +51,7 @@ CommandStatus(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '.status'\n\n");
+        ShowMessages("incorrect use of the '.status'\n\n");
         CommandStatusHelp();
     }
 

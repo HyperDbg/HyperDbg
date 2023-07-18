@@ -166,7 +166,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() <= 4)
     {
-        ShowMessages("incorrect use of 's*'\n\n");
+        ShowMessages("incorrect use of the 's*'\n\n");
         CommandSearchMemoryHelp();
         return;
     }
@@ -380,7 +380,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee && ProcId != 0)
     {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
         return;
     }
 

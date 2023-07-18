@@ -20,7 +20,7 @@ extern HANDLE  g_RemoteDebuggeeListeningThread;
 extern HANDLE  g_EndOfMessageReceivedEvent;
 
 /**
- * @brief help of .disconnect command
+ * @brief help of the .disconnect command
  *
  * @return VOID
  */
@@ -45,7 +45,7 @@ CommandDisconnect(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '.disconnect'\n\n");
+        ShowMessages("incorrect use of the '.disconnect'\n\n");
         CommandDisconnectHelp();
         return;
     }

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !monitor command
+ * @brief help of the !monitor command
  *
  * @return VOID
  */
@@ -28,9 +28,12 @@ CommandMonitorHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
+    ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
     ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
     ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor x fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor wx fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
 }
 
 /**
@@ -63,7 +66,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() < 4)
     {
-        ShowMessages("incorrect use of '!monitor'\n");
+        ShowMessages("incorrect use of the '!monitor'\n");
         CommandMonitorHelp();
         return;
     }
@@ -72,13 +75,13 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     // We use HIDDEN_HOOK_READ_AND_WRITE here but it might be changed to
-    // HIDDEN_HOOK_READ or HIDDEN_HOOK_WRITE it is because we are not sure what
-    // kind event the user need
+    // HIDDEN_HOOK_READ or HIDDEN_HOOK_WRITE or other events it is because
+    // we are not sure what kind event the user need
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            HIDDEN_HOOK_READ_AND_WRITE,
+            HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,
@@ -113,9 +116,32 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             Event->EventType = HIDDEN_HOOK_WRITE;
             SetMode          = TRUE;
         }
+        else if (!Section.compare("x") && !SetMode)
+        {
+            Event->EventType = HIDDEN_HOOK_EXECUTE;
+            SetMode          = TRUE;
+        }
         else if ((!Section.compare("rw") || !Section.compare("wr")) && !SetMode)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
+            SetMode          = TRUE;
+        }
+        else if ((!Section.compare("rx") || !Section.compare("xr")) &&
+                 !SetMode)
+        {
+            Event->EventType = HIDDEN_HOOK_READ_AND_EXECUTE;
+            SetMode          = TRUE;
+        }
+        else if ((!Section.compare("wx") || !Section.compare("xw")) &&
+                 !SetMode)
+        {
+            Event->EventType = HIDDEN_HOOK_WRITE_AND_EXECUTE;
+            SetMode          = TRUE;
+        }
+        else if ((!Section.compare("rwx") || !Section.compare("rxw") || !Section.compare("wrx") || !Section.compare("wxr") || !Section.compare("xrw") || !Section.compare("xwr")) &&
+                 !SetMode)
+        {
+            Event->EventType = HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE;
             SetMode          = TRUE;
         }
         else

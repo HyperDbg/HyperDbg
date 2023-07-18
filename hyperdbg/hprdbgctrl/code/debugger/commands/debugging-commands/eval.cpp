@@ -19,7 +19,7 @@ using namespace std;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of ? command
+ * @brief help of the ? command
  *
  * @return VOID
  */
@@ -202,7 +202,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of '?'\n\n");
+        ShowMessages("incorrect use of the '?'\n\n");
         CommandEvalHelp();
         return;
     }

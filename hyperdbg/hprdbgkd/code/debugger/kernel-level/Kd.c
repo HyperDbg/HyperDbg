@@ -373,7 +373,6 @@ VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
-    RFLAGS                           Rflags           = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
     //
@@ -397,11 +396,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         //
         if (DbgState->DisableTrapFlagOnContinue)
         {
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.TrapFlag = FALSE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
+            VmFuncSetRflagTrapFlag(FALSE);
 
             DbgState->DisableTrapFlagOnContinue = FALSE;
         }
@@ -1463,9 +1458,10 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 
         if (Rflags.TrapFlag == FALSE)
         {
-            Rflags.TrapFlag = TRUE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
+            //
+            // Adjust RFLAG's trap-flag
+            //
+            VmFuncSetRflagTrapFlag(TRUE);
 
             DbgState->DisableTrapFlagOnContinue = TRUE;
         }
@@ -1625,6 +1621,43 @@ KdQuerySystemState()
             LogInfo("Core : %d - not called from an NMI handler (through the immediate VM-exit mechanism)", i);
         }
     }
+}
+
+/**
+ * @brief routines to break page-in
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param PageinRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
+              PDEBUGGER_PAGE_IN_REQUEST   PageinRequest)
+{
+    //
+    // Inject page-fault
+    //
+    VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId,
+                                      PageinRequest->VirtualAddress,
+                                      PageinRequest->PageFaultErrorCode);
+
+    //
+    // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
+    //
+    VmFuncSetRflagTrapFlag(TRUE);
+
+    //
+    // Unset the trap flag next time that it's triggered (on current thread/process)
+    //
+    BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
+
+    //
+    // Adjust the flags for showing the successful #PF injection
+    //
+    PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
 }
 
 /**
@@ -1808,6 +1841,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
@@ -2384,7 +2418,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 }
 
                 //
-                // Send the result of 's*' back to the debuggee
+                // Send the result of the 's*' back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
@@ -2489,7 +2523,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 BreakpointAddNew(BpPacket);
 
                 //
-                // Send the result of 'bp' back to the debuggee
+                // Send the result of the 'bp' back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
@@ -2508,12 +2542,31 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 ExtensionCommandPte(PtePacket, TRUE);
 
                 //
-                // Send the result of '!pte' back to the debuggee
+                // Send the result of the '!pte' back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
                                            PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_INJECT_PAGE_FAULT:
+
+                PageinPacket = (DEBUGGER_PAGE_IN_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform bringing the pages in (it's in vmx-root)
+                //
+                KdBringPagein(DbgState, PageinPacket, TRUE);
+
+                //
+                // Send the result of the '.pagein' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BRINGING_PAGES_IN,
+                                           PageinPacket,
+                                           sizeof(DEBUGGER_PAGE_IN_REQUEST));
 
                 break;
 
@@ -2528,7 +2581,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 ExtensionCommandVa2paAndPa2va(Va2paPa2vaPacket, TRUE);
 
                 //
-                // Send the result of '!va2pa' or '!pa2va' back to the debuggee
+                // Send the result of the '!va2pa' or '!pa2va' back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,

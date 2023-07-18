@@ -830,7 +830,7 @@ BOOLEAN
 KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
 {
     //
-    // Send 'bp' as a breakpoint packet
+    // Send the '!pte' packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
@@ -845,6 +845,35 @@ KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
     // Wait until the result of PTE packet is received
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends a page-in or '.pagein' command packet to the debuggee
+ * @param PageinPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPageinPacketToDebuggee(PDEBUGGER_PAGE_IN_REQUEST PageinPacket)
+{
+    //
+    // Send the '.pagein' packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_INJECT_PAGE_FAULT,
+            (CHAR *)PageinPacket,
+            sizeof(DEBUGGER_PAGE_IN_REQUEST)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of page-in packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 
     return TRUE;
 }
@@ -1823,6 +1852,19 @@ StartAgain:
 }
 
 /**
+ * @brief Check and handshake to make sure if the remote debugger is listening
+ *
+ * @param ComPortHandle
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
+{
+    return TRUE;
+}
+
+/**
  * @brief Prepare and initialize COM port
  *
  * @param PortName
@@ -1997,6 +2039,15 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // It's a debuggee request
         //
+
+        //
+        // Check if debuggee is listening before loading module
+        //
+        if (!KdCheckIfDebuggerIsListening(Comm))
+        {
+            ShowMessages("failed handshake with the debugger. is debugger listening?\n");
+            return FALSE;
+        }
 
         //
         // First, connect to local machine and we load the VMM module as it's a

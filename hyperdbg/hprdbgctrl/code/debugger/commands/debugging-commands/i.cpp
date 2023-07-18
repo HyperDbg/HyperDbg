@@ -19,7 +19,7 @@ extern BOOLEAN                  g_IsInstrumentingInstructions;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of i command
+ * @brief help of the i command
  *
  * @return VOID
  */
@@ -62,7 +62,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
     {
-        ShowMessages("incorrect use of 'i'\n\n");
+        ShowMessages("incorrect use of the 'i'\n\n");
         CommandIHelp();
         return;
     }

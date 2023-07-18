@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of .thread command
+ * @brief help of the .thread command
  *
  * @return VOID
  */
@@ -125,7 +125,7 @@ CommandThread(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 5)
     {
-        ShowMessages("incorrect use of '.thread'\n\n");
+        ShowMessages("incorrect use of the '.thread'\n\n");
         CommandThreadHelp();
         return;
     }

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of prealloc command
+ * @brief help of the prealloc command
  *
  * @return VOID
  */
@@ -45,7 +45,7 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() != 3)
     {
-        ShowMessages("incorrect use of 'prealloc'\n\n");
+        ShowMessages("incorrect use of the 'prealloc'\n\n");
         CommandPreallocHelp();
         return;
     }

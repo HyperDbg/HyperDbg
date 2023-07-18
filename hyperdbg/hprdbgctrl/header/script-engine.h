@@ -18,7 +18,7 @@ UINT64
 ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
 
 VOID
 ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler);
@@ -47,7 +47,8 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
                                                             char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails);
+                                                            char *       GuidAndAgeDetails,
+                                                            BOOLEAN      Is32BitModule);
 
 BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,

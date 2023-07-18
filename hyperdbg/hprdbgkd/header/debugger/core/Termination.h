@@ -20,7 +20,7 @@ VOID
 TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event);
 
 VOID
-TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event);
+TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event);
 
 VOID
 TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event);

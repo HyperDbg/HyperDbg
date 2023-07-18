@@ -40,9 +40,4 @@ BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId);
 
 BOOLEAN
-SearchAddressWrapper(PUINT64                 AddressToSaveResults,
-                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
-                     UINT64                  StartAddress,
-                     UINT64                  EndAddress,
-                     BOOLEAN                 IsDebuggeePaused,
-                     PUINT32                 CountOfMatchedCases);
+BreakpointAdjustUnsetTrapFlagsOnCurrentThread(BOOLEAN SetTo);

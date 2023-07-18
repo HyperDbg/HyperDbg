@@ -134,6 +134,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #include <cstring>
 
+#include <unordered_set>
+
 //
 // Scope definitions
 //

@@ -143,7 +143,7 @@ std::map<std::string, REGS_ENUM> RegistersMap = {
 };
 
 /**
- * @brief help of r command
+ * @brief help of the r command
  *
  * @return VOID
  */

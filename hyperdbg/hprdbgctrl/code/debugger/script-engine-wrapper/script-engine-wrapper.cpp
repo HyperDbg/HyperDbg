@@ -58,14 +58,13 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBO
  *
  * @param BaseAddress
  * @param FileName
- * @param Guid
  *
  * @return UINT32
  */
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName)
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
-    return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName);
+    return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName, CustomModuleName);
 }
 
 /**
@@ -236,16 +235,18 @@ ScriptEngineSymbolAbortLoadingWrapper()
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
+ * @param Is32BitModule
  *
  * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
                                                             char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails)
+                                                            char *       GuidAndAgeDetails,
+                                                            BOOLEAN      Is32BitModule)
 
 {
-    return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails);
+    return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails, Is32BitModule);
 }
 
 //

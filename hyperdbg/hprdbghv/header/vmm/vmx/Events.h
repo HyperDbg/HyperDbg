@@ -15,8 +15,23 @@
 //					Definitions					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Reserved MSR low range
+ *
+ */
 #define RESERVED_MSR_RANGE_LOW 0x40000000
-#define RESERVED_MSR_RANGE_HI  0x4000109F
+
+/**
+ * @brief Reserved MSR high range
+ *
+ */
+#define RESERVED_MSR_RANGE_HI 0x4000109F
+
+/**
+ * @brief Exception bitmap for masking all exceptions/faults/traps
+ *
+ */
+#define EXCEPTION_BITMAP_MASK_ALL 0xffffffff
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -80,6 +95,12 @@ VOID
 EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
+EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
+                      _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                      _In_ UINT64                       PageFaultAddress,
+                      _In_ PAGE_FAULT_EXCEPTION         PageFaultCode);
+
+VOID
 EventInjectBreakpoint();
 
 VOID
@@ -92,10 +113,10 @@ VOID
 EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-EventInjectPageFault(UINT64 PageFaultAddress);
+EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress);
 
 VOID
 EventInjectDebugBreakpoint();
 
 VOID
-EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address);
+EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address, UINT32 PageFaultCode);

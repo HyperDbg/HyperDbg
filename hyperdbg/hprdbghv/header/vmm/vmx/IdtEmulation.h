@@ -32,9 +32,3 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
-                             _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                             _In_ UINT64                       Address,
-                             _In_ ULONG                        ErrorCode);

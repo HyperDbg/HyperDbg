@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !crwrite command
+ * @brief help of the !crwrite command
  *
  * @return VOID
  */
@@ -59,7 +59,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() < 2)
     {
-        ShowMessages("incorrect use of '!crwrite'\n");
+        ShowMessages("incorrect use of the '!crwrite'\n");
         CommandCrwriteHelp();
         return;
     }

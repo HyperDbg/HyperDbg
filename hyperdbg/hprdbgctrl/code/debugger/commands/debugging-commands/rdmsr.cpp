@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of rdmsr command
+ * @brief help of the rdmsr command
  *
  * @return VOID
  */
@@ -50,7 +50,7 @@ CommandRdmsr(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() >= 5)
     {
-        ShowMessages("incorrect use of 'rdmsr'\n\n");
+        ShowMessages("incorrect use of the 'rdmsr'\n\n");
         CommandRdmsrHelp();
         return;
     }

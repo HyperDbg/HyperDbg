@@ -17,7 +17,7 @@
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief help of .kill command
+ * @brief help of the .kill command
  *
  * @return VOID
  */
@@ -41,7 +41,7 @@ CommandKill(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() != 1)
     {
-        ShowMessages("incorrect use of '.kill'\n\n");
+        ShowMessages("incorrect use of the '.kill'\n\n");
         CommandKillHelp();
         return;
     }

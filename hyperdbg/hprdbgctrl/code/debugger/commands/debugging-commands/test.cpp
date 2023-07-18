@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of test command
+ * @brief help of the test command
  *
  * @return VOID
  */
@@ -386,7 +386,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of 'test'\n\n");
+        ShowMessages("incorrect use of the 'test'\n\n");
         CommandTestHelp();
         return;
     }

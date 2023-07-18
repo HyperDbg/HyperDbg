@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief help of !exception command
+ * @brief help of the !exception command
  *
  * @return VOID
  */
