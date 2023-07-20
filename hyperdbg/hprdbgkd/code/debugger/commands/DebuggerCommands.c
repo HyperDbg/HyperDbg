@@ -28,7 +28,11 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
     UINT32                    Size;
     UINT64                    Address;
     DEBUGGER_READ_MEMORY_TYPE MemType;
+    BOOLEAN                   Is32BitProcess = FALSE;
 
+    //
+    // Adjust the parameters
+    //
     Pid     = ReadMemRequest->Pid;
     Size    = ReadMemRequest->Size;
     Address = ReadMemRequest->Address;
@@ -36,11 +40,73 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
 
     if (Size && Address != NULL)
     {
-        return MemoryManagerReadProcessMemoryNormal((HANDLE)Pid, Address, MemType, (PVOID)UserBuffer, Size, ReturnSize);
+        if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid, Address, MemType, (PVOID)UserBuffer, Size, ReturnSize))
+        {
+            //
+            // Reading memory was successful
+            //
+
+            //
+            // *** Now, we check whether this a disassembly request for a virtual address
+            // or not, if so, we'll detect whether the target process is 32-bit or 64-bit ***
+            //
+
+            //
+            // Check if the address is on a 32-bit mode process or not (just in case of disassembling)
+            //
+            if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->IsForDisasm)
+            {
+                //
+                // Check if the address is in the canonical range for kernel space
+                //
+                if (ReadMemRequest->Address >= 0xFFFF800000000000 && ReadMemRequest->Address <= 0xFFFFFFFFFFFFFFFF)
+                {
+                    //
+                    // The address is in the range of canonical kernel space, so it's 64-bit process
+                    //
+                    ReadMemRequest->Is32BitAddress = FALSE;
+                }
+                else
+                {
+                    //
+                    // The address is in the user-mode and the memory type is a virtual address
+                    // for disassembly, so we have to query whether the target process is a
+                    // 32-bit process or a 64-bit process
+                    //
+                    if (UserAccessIsWow64Process(ReadMemRequest->Pid, &Is32BitProcess))
+                    {
+                        ReadMemRequest->Is32BitAddress = Is32BitProcess;
+                    }
+                    else
+                    {
+                        //
+                        // We couldn't determine the type of process, let's assume that it's a
+                        // 64-bit process by default
+                        //
+                        ReadMemRequest->Is32BitAddress = FALSE;
+                    }
+                }
+            }
+
+            //
+            // Anyway, the read was successful
+            //
+            return TRUE;
+        }
+        else
+        {
+            //
+            // Reading memory was not successful
+            //
+            return FALSE;
+        }
     }
     else
     {
-        return STATUS_UNSUCCESSFUL;
+        //
+        // Parameters are invalid
+        //
+        return FALSE;
     }
 }
 
@@ -60,7 +126,8 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
     UINT64                    Address;
     UINT64                    OffsetInUserBuffer;
     DEBUGGER_READ_MEMORY_TYPE MemType;
-    PLIST_ENTRY               TempList = 0;
+    BOOLEAN                   Is32BitProcess = FALSE;
+    PLIST_ENTRY               TempList       = 0;
 
     Pid     = ReadMemRequest->Pid;
     Size    = ReadMemRequest->Size;
@@ -131,6 +198,47 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         ReadMemRequest->KernelStatus = DEBUGGER_ERROR_MEMORY_TYPE_INVALID;
         return FALSE;
     }
+
+    //
+    // Check if the address is on a 32-bit mode process or not (just in case of disassembling)
+    //
+    if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->IsForDisasm)
+    {
+        //
+        // Check if the address is in the canonical range for kernel space
+        //
+        if (ReadMemRequest->Address >= 0xFFFF800000000000 && ReadMemRequest->Address <= 0xFFFFFFFFFFFFFFFF)
+        {
+            //
+            // The address is in the range of canonical kernel space, so it's 64-bit process
+            //
+            ReadMemRequest->Is32BitAddress = FALSE;
+        }
+        else
+        {
+            //
+            // The address is in the user-mode and the memory type is a virtual address
+            // for disassembly, so we have to query whether the target process is a
+            // 32-bit process or a 64-bit process
+            //
+            if (UserAccessIsWow64ProcessByEprocess(PsGetCurrentProcess(), &Is32BitProcess))
+            {
+                ReadMemRequest->Is32BitAddress = Is32BitProcess;
+            }
+            else
+            {
+                //
+                // We couldn't determine the type of process, let's assume that it's a
+                // 64-bit process by default
+                //
+                ReadMemRequest->Is32BitAddress = FALSE;
+            }
+        }
+    }
+
+    //
+    // Set the final status of memory read as it was successful
+    //
     ReadMemRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     *ReturnSize                  = Size;
 

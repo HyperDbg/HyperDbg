@@ -233,6 +233,8 @@ typedef struct _DEBUGGER_READ_MEMORY
     UINT32                       Pid; // Read from cr3 of what process
     UINT64                       Address;
     UINT32                       Size;
+    BOOLEAN                      IsForDisasm;    // Debugger sets whether the read memory is for diassembler or not
+    BOOLEAN                      Is32BitAddress; // Debuggee sets the status of address
     DEBUGGER_READ_MEMORY_TYPE    MemoryType;
     DEBUGGER_READ_READING_TYPE   ReadingType;
     PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;

@@ -214,7 +214,7 @@ StartAgain:
             RtlZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
             memcpy(g_CurrentRunningInstruction, &PausePacket->InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
 
-            g_IsRunningInstruction32Bit = PausePacket->Is32BitAddress;
+            g_IsRunningInstruction32Bit = PausePacket->IsProcessorOn32BitMode;
 
             //
             // Show additional messages before showing assembly and pausing
@@ -283,13 +283,13 @@ StartAgain:
                     //
                     if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
                                                          MAXIMUM_INSTR_SIZE,
-                                                         PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+                                                         PausePacket->IsProcessorOn32BitMode ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
                     {
                         ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
                     }
                 }
 
-                if (!PausePacket->Is32BitAddress)
+                if (!PausePacket->IsProcessorOn32BitMode)
                 {
                     //
                     // Show diassembles
@@ -338,7 +338,7 @@ StartAgain:
                 //
                 CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
                                                        MAXIMUM_INSTR_SIZE,
-                                                       PausePacket->Is32BitAddress ? FALSE : TRUE,
+                                                       PausePacket->IsProcessorOn32BitMode ? FALSE : TRUE,
                                                        PausePacket->Rip);
 
                 //

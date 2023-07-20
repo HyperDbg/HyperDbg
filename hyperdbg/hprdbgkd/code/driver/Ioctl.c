@@ -105,6 +105,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }
+
             break;
 
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
@@ -123,6 +124,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                                   TRUE);
 
             Status = STATUS_SUCCESS;
+
             break;
 
         case IOCTL_TERMINATE_VMX:
@@ -544,6 +546,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+
         case IOCTL_DEBUGGER_SEARCH_MEMORY:
 
             //

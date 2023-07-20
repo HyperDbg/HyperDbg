@@ -54,6 +54,19 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     ReadMem.DtDetails   = DtDetails;
 
     //
+    // Check if this is used for disassembler or not
+    //
+    if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64 ||
+        Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
+    {
+        ReadMem.IsForDisasm = TRUE;
+    }
+    else
+    {
+        ReadMem.IsForDisasm = FALSE;
+    }
+
+    //
     // send the request
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
