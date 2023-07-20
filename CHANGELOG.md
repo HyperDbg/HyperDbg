@@ -12,6 +12,7 @@ New release of the HyperDbg Debugger.
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
 ### Changed
+- The disassembler now warns if you mistakenly used the 'u' command over a 32-bit program ([link](https://github.com/HyperDbg/HyperDbg/commit/9d239ccdfd7901cad197a4b49327efbf322cd116))
 
 ## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.

@@ -242,6 +242,10 @@ typedef struct _DEBUGGER_READ_MEMORY
     UINT32                       ReturnLength; // not used in local debugging
     UINT32                       KernelStatus; // not used in local debugging
 
+    //
+    // Here is the target buffer (actual memory)
+    //
+
 } DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
 
 /* ==============================================================================================

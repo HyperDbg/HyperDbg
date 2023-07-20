@@ -831,6 +831,16 @@ StartAgain:
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
                     //
+                    // Check if assembly mismatch occured with the target address
+                    //
+                    if (ReadMemoryPacket->Is32BitAddress == TRUE &&
+                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+                    {
+                        ShowMessages("the target address seems to be located in a 32-bit program, if so, "
+                                     "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
+                    }
+
+                    //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
@@ -838,6 +848,16 @@ StartAgain:
                     break;
 
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
+
+                    //
+                    // Check if assembly mismatch occured with the target address
+                    //
+                    if (ReadMemoryPacket->Is32BitAddress == FALSE &&
+                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+                    {
+                        ShowMessages("the target address seems to be located in a 64-bit program, if so, "
+                                     "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
+                    }
 
                     //
                     // Show diassembles

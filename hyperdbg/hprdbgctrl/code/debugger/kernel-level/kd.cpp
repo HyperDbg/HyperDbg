@@ -516,7 +516,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
     PDEBUGGER_READ_MEMORY ActualBufferToSend = NULL;
     UINT                  Size               = 0;
 
-    Size               = ReadMem->Size * sizeof(unsigned char) + sizeof(DEBUGGER_READ_MEMORY);
+    Size               = ReadMem->Size * sizeof(CHAR) + sizeof(DEBUGGER_READ_MEMORY);
     ActualBufferToSend = (PDEBUGGER_READ_MEMORY)malloc(Size);
 
     if (ActualBufferToSend == NULL)

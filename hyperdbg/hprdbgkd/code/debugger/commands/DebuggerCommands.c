@@ -91,6 +91,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
             //
             // Anyway, the read was successful
             //
+            ReadMemRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             return TRUE;
         }
         else
@@ -98,6 +99,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
             //
             // Reading memory was not successful
             //
+            ReadMemRequest->KernelStatus = DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER;
             return FALSE;
         }
     }
@@ -106,6 +108,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
         //
         // Parameters are invalid
         //
+        ReadMemRequest->KernelStatus = DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER;
         return FALSE;
     }
 }
