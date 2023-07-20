@@ -398,6 +398,12 @@
  */
 #define DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED 0xc000003b
 
+/**
+ * @brief error, for reading from memory in case of invalid parameters
+ *
+ */
+#define DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER 0xc000003c
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

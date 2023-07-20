@@ -2760,8 +2760,8 @@ StartAgain:
         //
         // Set the RIP and mode of execution
         //
-        PausePacket.Rip            = LastVmexitRip;
-        PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
+        PausePacket.Rip                    = LastVmexitRip;
+        PausePacket.IsProcessorOn32BitMode = KdIsGuestOnUsermode32Bit();
 
         //
         // Set disassembly state

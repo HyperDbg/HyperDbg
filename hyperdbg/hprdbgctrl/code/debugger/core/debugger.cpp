@@ -369,6 +369,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER:
+        ShowMessages("err, invalid process or memory address (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

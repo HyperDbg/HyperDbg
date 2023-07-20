@@ -213,6 +213,9 @@ BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit);
 
 BOOLEAN
+UserAccessIsWow64ProcessByEprocess(PEPROCESS SourceProcess, PBOOLEAN Is32Bit);
+
+BOOLEAN
 UserAccessCheckForLoadedModuleDetails(UINT32 CoreId);
 
 BOOLEAN

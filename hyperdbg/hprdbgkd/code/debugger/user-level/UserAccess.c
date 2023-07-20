@@ -702,30 +702,17 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
 }
 
 /**
- * @brief Detects whether process is 32-bit or 64-bit
+ * @brief Detects whether process is 32-bit or 64-bit by using EPROCESS pointer
  * @details This function should be called in vmx non-root
  *
- * @param ProcessId
+ * @param SourceProcess
  * @param Is32Bit
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
+UserAccessIsWow64ProcessByEprocess(PEPROCESS SourceProcess, PBOOLEAN Is32Bit)
 {
-    PEPROCESS  SourceProcess;
-    KAPC_STATE State = {0};
-
-    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
-    {
-        //
-        // if the process not found
-        //
-        return FALSE;
-    }
-
-    ObDereferenceObject(SourceProcess);
-
     if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
     {
         return FALSE;
@@ -754,6 +741,34 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
     {
         return FALSE;
     }
+}
+
+/**
+ * @brief Detects whether process is 32-bit or 64-bit
+ * @details This function should be called in vmx non-root
+ *
+ * @param ProcessId
+ * @param Is32Bit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
+{
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    {
+        //
+        // if the process not found
+        //
+        return FALSE;
+    }
+
+    ObDereferenceObject(SourceProcess);
+
+    return UserAccessIsWow64ProcessByEprocess(SourceProcess, Is32Bit);
 }
 
 /**
