@@ -280,8 +280,9 @@ typedef enum _DEBUGGER_TEST_QUERY_STATE
 {
     TEST_QUERY_HALTING_CORE_STATUS     = 1, // Query constant to show detail of halting of core
     TEST_QUERY_PREALLOCATED_POOL_STATE = 2, // Query pre-allocated pool state
-    TEST_BREAKPOINT_TURN_OFF_BPS       = 3, // Turn off the breakpoints
-    TEST_BREAKPOINT_TURN_ON_BPS        = 4, // Turn on the breakpoints
+    TEST_QUERY_TRAP_STATE              = 3, // Query trap state
+    TEST_BREAKPOINT_TURN_OFF_BPS       = 4, // Turn off the breakpoints
+    TEST_BREAKPOINT_TURN_ON_BPS        = 5, // Turn on the breakpoints
 
 } DEBUGGER_TEST_QUERY_STATE;
 

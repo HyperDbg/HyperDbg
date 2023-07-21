@@ -13,57 +13,154 @@
 
 /**
  * @brief Check and perform actions on RFLAGS.TF
+ * @param ProcessId
+ * @param ThreadId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndPerformActionsOnTrapFlags()
+BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
 {
+    BOOLEAN IsPreviouslySetByTheDebugger = FALSE;
+    RFLAGS  Rflags                       = {0};
+
     //
-    // Check if the investigation for the trap-flag is needed or not
+    // Read the RFLAGS
     //
-    if (!g_TrapFlagState.CheckTrapFlagState)
+    Rflags.AsUInt = VmFuncGetRflags();
+
+    //
+    // Check if this debug breakpoint relates to the TRAP FLAG or not
+    //
+    if (!Rflags.TrapFlag)
     {
+        //
+        // It's not related to the TRAP FLAG
+        //
         return FALSE;
     }
 
     //
-    // Check if the thread id and process id matches the target or not
+    // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    if (g_TrapFlagState.TargetProcessId != PsGetCurrentProcessId() || g_TrapFlagState.TargetThreadId != PsGetCurrentThreadId())
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&BreakpointCommandTrapListLock);
+
+    //
+    // Check if the current process/thread id is found or not (which indicates
+    // that the trap flag is set by the debugger)
+    //
+    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
     {
-        //
-        // Not relate to this thread
-        //
-        return FALSE;
+        if (g_TrapFlagState.ThreadInformation[i].ProcessId == ProcessId &&
+            g_TrapFlagState.ThreadInformation[i].ThreadId == ThreadId)
+        {
+            //
+            // Remove the process id/thread id from the list
+            //
+            g_TrapFlagState.ThreadInformation[i].ProcessId = NULL;
+            g_TrapFlagState.ThreadInformation[i].ThreadId  = NULL;
+
+            //
+            // Set by the debugger
+            //
+            IsPreviouslySetByTheDebugger = TRUE;
+
+            break;
+        }
     }
 
     //
-    // Uset or set the TRAP flag
+    // Unlock the list modification lock
     //
-    VmFuncSetRflagTrapFlag(g_TrapFlagState.SetTo);
+    SpinlockUnlock(&BreakpointCommandTrapListLock);
 
     //
-    // We're no longer interested in intercepting trap flag states
+    // Check if we have to unset the trap or not
     //
-    g_TrapFlagState.CheckTrapFlagState = FALSE;
+    if (IsPreviouslySetByTheDebugger)
+    {
+        //
+        // Uset or set the TRAP flag
+        //
+        VmFuncSetRflagTrapFlag(FALSE);
+    }
 
-    return TRUE;
+    //
+    // As it's not set by the debugger, we'll inject #DB to the debugger
+    //
+    if (!IsPreviouslySetByTheDebugger)
+    {
+        LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
+                "which was not previously adjusted by HyperDbg. This occurrence could indicate "
+                "the employment of an anti-debugging technique by the process or the involvement "
+                "of another debugger. By default, HyperDbg automatically manages these #DB events "
+                "and halt the debugger; however, if you wish to redirect them to the debugger, "
+                "you can utilize 'test trap off'. Alternatively, you can use the transparent-mode "
+                "to mitigate these situations",
+                PsGetCurrentProcessId(),
+                PsGetCurrentThreadId(),
+                CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()));
+    }
+
+    //
+    // By default, #DBs are managed by HyperDbg
+    //
+    return FALSE;
 }
 
 /**
  * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
- * @param SetTo
+ * on the target process/thread
+ * @param ProcessId
+ * @param ThreadId
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointAdjustUnsetTrapFlagsOnCurrentThread(BOOLEAN SetTo)
+BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
 {
-    g_TrapFlagState.TargetProcessId    = PsGetCurrentProcessId();
-    g_TrapFlagState.TargetThreadId     = PsGetCurrentThreadId();
-    g_TrapFlagState.SetTo              = SetTo;
-    g_TrapFlagState.CheckTrapFlagState = TRUE;
+    BOOLEAN SuccessfullySet = FALSE;
+
+    //
+    // *** Search the list of processes/threads for the current process's trap flag state ***
+    //
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&BreakpointCommandTrapListLock);
+
+    //
+    // Store the current process/thread id to indicate that the trap is supposed to
+    // be handled by HyperDbg once it's triggered
+    //
+    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    {
+        if (g_TrapFlagState.ThreadInformation[i].ProcessId == NULL &&
+            g_TrapFlagState.ThreadInformation[i].ThreadId == NULL)
+        {
+            //
+            // Remove the process id/thread id from the list
+            //
+            g_TrapFlagState.ThreadInformation[i].ProcessId = PsGetCurrentProcessId();
+            g_TrapFlagState.ThreadInformation[i].ThreadId  = PsGetCurrentThreadId();
+
+            SuccessfullySet = TRUE;
+
+            break;
+        }
+    }
+
+    //
+    // Unlock the list modification lock
+    //
+    SpinlockUnlock(&BreakpointCommandTrapListLock);
+
+    return SuccessfullySet;
 }
 
 /**
@@ -82,14 +179,19 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     //
     // Check whether anything should be changed with trap-flags
     //
-    BreakpointCheckAndPerformActionsOnTrapFlags(DbgState);
-
-    //
-    // Check whether it is because of thread change detection or not
-    //
-    if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    if (BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
     {
         //
+        // Inject #DB as it's not supposed to be handled by HyperDbg
+        //
+        Result = FALSE;
+    }
+    else if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    {
+        //
+        // This check was to show whether it is because of thread change detection or not
+        //
+
         // This way of handling has a problem, if the user set to change
         // the thread and instead of using 'g', it pressed the 'p' to
         // set or a trap happens somewhere then will be ignored
@@ -129,7 +231,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     else
     {
         //
-        // Not handled by debugger
+        // Not handled by the debugger
         //
         Result = FALSE;
     }

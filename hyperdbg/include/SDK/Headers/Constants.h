@@ -357,7 +357,7 @@ const unsigned char BuildVersion[] = {
     0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
-//            Breakpoint Backup                 //
+//       Breakpoints & Debug Breakpoints        //
 //////////////////////////////////////////////////
 
 /**
@@ -365,6 +365,15 @@ const unsigned char BuildVersion[] = {
  * breakpoint
  */
 #define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+
+/**
+ * @brief maximum number of thread/process ids to be allocated for a simultaneous
+ * debugging
+ * @details it shows the maximum number of threads/processes that HyperDbg sets
+ * trap flag for them
+ *
+ */
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS 100
 
 //////////////////////////////////////////////////
 //          Pool tags used in HyperDbg          //

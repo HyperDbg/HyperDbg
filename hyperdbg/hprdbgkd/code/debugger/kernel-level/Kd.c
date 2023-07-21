@@ -392,16 +392,6 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         DbgState->WaitForStepTrap = FALSE;
 
         //
-        // Check if we should disable RFLAGS.TF in this core or not
-        //
-        if (DbgState->DisableTrapFlagOnContinue)
-        {
-            VmFuncSetRflagTrapFlag(FALSE);
-
-            DbgState->DisableTrapFlagOnContinue = FALSE;
-        }
-
-        //
         // Check and handle if there is a software defined breakpoint
         //
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
@@ -1450,21 +1440,22 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->WaitForStepTrap = TRUE;
 
     //
-    // Change guest trap flag
+    // Change guest trap flag, we only indicate to unset it if the debuggee
+    // not already set it
     //
-    if (!DbgState->DisableTrapFlagOnContinue)
+    Rflags.AsUInt = VmFuncGetRflags();
+
+    if (Rflags.TrapFlag == FALSE)
     {
-        Rflags.AsUInt = VmFuncGetRflags();
+        //
+        // Adjust RFLAG's trap-flag
+        //
+        VmFuncSetRflagTrapFlag(TRUE);
 
-        if (Rflags.TrapFlag == FALSE)
-        {
-            //
-            // Adjust RFLAG's trap-flag
-            //
-            VmFuncSetRflagTrapFlag(TRUE);
-
-            DbgState->DisableTrapFlagOnContinue = TRUE;
-        }
+        //
+        // Unset the trap flag on the next VM-exit
+        //
+        BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
     }
 
     //
@@ -1576,6 +1567,25 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 }
 
 /**
+ * @brief Query state of the RFLAG's traps
+ *
+ * @return VOID
+ */
+VOID
+KdQueryRflagTrapState()
+{
+    ULONG CoreCount;
+
+    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    {
+        LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
+                i,
+                g_TrapFlagState.ThreadInformation[i].ProcessId,
+                g_TrapFlagState.ThreadInformation[i].ThreadId);
+    }
+}
+
+/**
  * @brief Query state of the system
  *
  * @return VOID
@@ -1650,14 +1660,24 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    {
+        //
+        // Adjust the flags for showing there was error
+        //
+        PageinRequest->KernelStatus = DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL;
 
-    //
-    // Adjust the flags for showing the successful #PF injection
-    //
-    PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return FALSE;
+    }
+    else
+    {
+        //
+        // Adjust the flags for showing the successful #PF injection
+        //
+        PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
-    return TRUE;
+        return TRUE;
+    }
 }
 
 /**
@@ -2151,6 +2171,17 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     // Query state of the system
                     //
                     KdQuerySystemState();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_QUERY_TRAP_STATE:
+
+                    //
+                    // Query state of the trap
+                    //
+                    KdQueryRflagTrapState();
 
                     TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
