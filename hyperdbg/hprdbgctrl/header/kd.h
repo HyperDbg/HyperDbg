@@ -92,6 +92,9 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR * BufferToSave, UINT32 * LengthReceived);
 
 BOOLEAN
+KdReceivePacketFromDebugger(CHAR * BufferToSave, UINT32 * LengthReceived);
+
+BOOLEAN
 KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer);
 
 BOOLEAN

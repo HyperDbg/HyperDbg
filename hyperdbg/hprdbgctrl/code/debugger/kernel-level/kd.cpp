@@ -26,6 +26,7 @@ extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_
 extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
+extern OVERLAPPED                           g_OverlappedIoStructureForReadDebuggee;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
                g_DebuggeeResultOfAddingActionsToEvent;
@@ -39,6 +40,7 @@ extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
 extern BOOLEAN g_IgnorePauseRequests;
+extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -1273,7 +1275,7 @@ KdGetWindowVersion(CHAR * BufferToSave)
 }
 
 /**
- * @brief Receive packet from the debugger
+ * @brief Receive packet from the debuggee
  *
  * @param BufferToSave
  * @param LengthReceived
@@ -1294,51 +1296,149 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
     //
     do
     {
-        if (g_IsSerialConnectedToRemoteDebugger)
-        {
-            //
-            // It's a debuggee
-            //
-            Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
-        }
-        else
-        {
-            //
-            // It's a debugger
-            //
+        //
+        // It's in the debugger
+        //
 
-            //
-            // Try to read one byte in overlapped I/O (in debugger)
-            //
-            if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), NULL, &g_OverlappedIoStructureForReadDebugger))
+        //
+        // Try to read one byte in overlapped I/O (in debugger)
+        //
+        if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), NULL, &g_OverlappedIoStructureForReadDebugger))
+        {
+            DWORD e = GetLastError();
+
+            if (e != ERROR_IO_PENDING)
             {
-                DWORD e = GetLastError();
-
-                if (e != ERROR_IO_PENDING)
-                {
-                    return FALSE;
-                }
+                return FALSE;
             }
-
-            //
-            // Wait till one packet becomes available
-            //
-            WaitForSingleObject(g_OverlappedIoStructureForReadDebugger.hEvent,
-                                INFINITE);
-
-            //
-            // Get the result
-            //
-            GetOverlappedResult(g_SerialRemoteComPortHandle,
-                                &g_OverlappedIoStructureForReadDebugger,
-                                &NoBytesRead,
-                                FALSE);
-
-            //
-            // Reset event for next try
-            //
-            ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
         }
+
+        //
+        // Wait till one packet becomes available
+        //
+        WaitForSingleObject(g_OverlappedIoStructureForReadDebugger.hEvent,
+                            INFINITE);
+
+        //
+        // Get the result
+        //
+        GetOverlappedResult(g_SerialRemoteComPortHandle,
+                            &g_OverlappedIoStructureForReadDebugger,
+                            &NoBytesRead,
+                            FALSE);
+
+        //
+        // Reset event for next try
+        //
+        ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
+
+        //
+        // We already now that the maximum packet size is MaxSerialPacketSize
+        // Check to make sure that we don't pass the boundaries
+        //
+        if (!(MaxSerialPacketSize > Loop))
+        {
+            //
+            // Invalid buffer
+            //
+            ShowMessages("err, a buffer received in which exceeds the "
+                         "buffer limitation\n");
+            return FALSE;
+        }
+
+        BufferToSave[Loop] = ReadData;
+
+        if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave))
+        {
+            break;
+        }
+
+        Loop++;
+
+    } while (NoBytesRead > 0);
+
+    //
+    // Set the length
+    //
+    *LengthReceived = Loop;
+
+    return TRUE;
+}
+
+/**
+ * @brief Receive packet from the debugger
+ *
+ * @param BufferToSave
+ * @param LengthReceived
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdReceivePacketFromDebugger(CHAR *   BufferToSave,
+                            UINT32 * LengthReceived)
+{
+    BOOL   Status;             /* Status */
+    char   ReadData    = NULL; /* temperory Character */
+    DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
+    UINT32 Loop        = 0;
+
+    //
+    // Set the timeout in milliseconds (e.g., 5000 ms = 5 seconds)
+    //
+    DWORD ReadTimeout = 5000;
+
+    //
+    // Set the read timeout using SetCommTimeouts
+    //
+    COMMTIMEOUTS Timeouts;
+    GetCommTimeouts(g_SerialRemoteComPortHandle, &Timeouts);
+    Timeouts.ReadIntervalTimeout         = MAXDWORD;
+    Timeouts.ReadTotalTimeoutConstant    = ReadTimeout;
+    Timeouts.ReadTotalTimeoutMultiplier  = 0;
+    Timeouts.WriteTotalTimeoutConstant   = 0;
+    Timeouts.WriteTotalTimeoutMultiplier = 0;
+    SetCommTimeouts(g_SerialRemoteComPortHandle, &Timeouts);
+
+    //
+    // Read data and store in a buffer
+    //
+    do
+    {
+        //
+        // It's in the debuggee
+        //
+
+        //
+        // Try to read one byte in overlapped I/O (in debugger)
+        //
+        if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), NULL, &g_OverlappedIoStructureForReadDebuggee))
+        {
+            DWORD e = GetLastError();
+
+            if (e != ERROR_IO_PENDING)
+            {
+                return FALSE;
+            }
+        }
+
+        //
+        // Wait till one packet becomes available
+        //
+        WaitForSingleObject(g_OverlappedIoStructureForReadDebuggee.hEvent,
+                            INFINITE);
+
+        //
+        // Get the result
+        //
+        GetOverlappedResult(g_SerialRemoteComPortHandle,
+                            &g_OverlappedIoStructureForReadDebuggee,
+                            &NoBytesRead,
+                            FALSE);
+
+        //
+        // Reset event for next try
+        //
+        ResetEvent(g_OverlappedIoStructureForReadDebuggee.hEvent);
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1413,7 +1513,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
         return FALSE;
     }
 
-    if (g_IsSerialConnectedToRemoteDebugger)
+    if (g_IsSerialConnectedToRemoteDebugger || g_IsDebuggeeInHandshakingPhase)
     {
         //
         // It's for a debuggee
@@ -1866,6 +1966,8 @@ KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
     UINT32                  LengthReceived                       = 0;
     BOOLEAN                 Result                               = FALSE;
 
+StartAgain:
+
     //
     // Send the ping packet and request the version of the debugger
     //
@@ -1875,13 +1977,11 @@ KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
     {
     }
 
-StartAgain:
-
     //
     // Wait for handshake to complete or in other words
     // get the receive packet
     //
-    if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived))
+    if (!KdReceivePacketFromDebugger(BufferToReceive, &LengthReceived))
     {
         if (LengthReceived == 0 && BufferToReceive[0] == NULL)
         {
@@ -1904,7 +2004,7 @@ StartAgain:
     //
     if (LengthReceived == 1 && BufferToReceive[0] == NULL)
     {
-        ShowMessages("err, invalid buffer received\n");
+        ShowMessages("is the debugger listening? retry handshaking with the debugger... (timeout: 5 seconds)\n");
         goto StartAgain;
     }
 
@@ -2030,6 +2130,12 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
                               OPEN_EXISTING,                // Open existing port only
                               0,                            // Non Overlapped I/O
                               NULL);                        // Null for Comm Devices
+
+            //
+            // Create event for overlapped I/O (Read)
+            //
+            g_OverlappedIoStructureForReadDebuggee.hEvent =
+                CreateEvent(NULL, TRUE, FALSE, NULL);
         }
         else
         {
@@ -2143,9 +2249,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
 
         //
-        // We temporary set the serial connection to TRUE to perform the handshake
+        // We entered the handshaking phase
         //
-        g_IsSerialConnectedToRemoteDebugger = TRUE;
+        g_IsDebuggeeInHandshakingPhase = TRUE;
 
         //
         // Set handle to serial device
@@ -2158,19 +2264,19 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!KdCheckIfDebuggerIsListening(Comm))
         {
             CloseHandle(Comm);
-            g_SerialRemoteComPortHandle         = NULL;
-            g_IsSerialConnectedToRemoteDebugger = FALSE;
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsDebuggeeInHandshakingPhase = FALSE;
 
-            ShowMessages("failed to handshake with the debugger. is debugger listening?\n");
+            ShowMessages("failed to handshake with the debugger. is the debugger listening?\n");
             return FALSE;
         }
-
-        //
-        // As we temporary set the connection to serial to TRUE,
-        // now we set it to FALSE, so if the VMM loading is failed, it keeps
-        // to FALSE to prevent errors
-        //
-        g_IsSerialConnectedToRemoteDebugger = FALSE;
+        else
+        {
+            //
+            // Not in handshaking phase anymore (The handshaking phase was successful)
+            //
+            g_IsDebuggeeInHandshakingPhase = FALSE;
+        }
 
         //
         // First, connect to local machine and we load the VMM module as it's a
@@ -2972,6 +3078,11 @@ KdUninitializeConnection()
         CloseHandle(g_OverlappedIoStructureForReadDebugger.hEvent);
     }
 
+    if (g_OverlappedIoStructureForReadDebuggee.hEvent != NULL)
+    {
+        CloseHandle(g_OverlappedIoStructureForReadDebuggee.hEvent);
+    }
+
     if (g_OverlappedIoStructureForWriteDebugger.hEvent != NULL)
     {
         CloseHandle(g_OverlappedIoStructureForWriteDebugger.hEvent);
@@ -3016,6 +3127,11 @@ KdUninitializeConnection()
     // No current core
     //
     g_CurrentRemoteCore = DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE;
+
+    //
+    // Not in handshaking phase
+    //
+    g_IsDebuggeeInHandshakingPhase = FALSE;
 
     //
     // If connected to debugger
