@@ -374,6 +374,13 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL:
+        ShowMessages("err, unable to add the current thread/process to the list of trap flags. "
+                     "Are you debugging multiple threads or stepping through different processes "
+                     "simultaneously? (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

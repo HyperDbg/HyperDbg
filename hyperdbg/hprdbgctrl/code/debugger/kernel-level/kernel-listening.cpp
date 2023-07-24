@@ -161,6 +161,15 @@ StartAgain:
         //
         switch (TheActualPacket->RequestedActionOfThePacket)
         {
+        case DEBUGGER_REMOTE_PACKET_PING_AND_SEND_SUPPORTED_VERSION:
+
+            //
+            // Send the handshake response
+            //
+            KdSendResponseOfThePingPacket();
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
             InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));

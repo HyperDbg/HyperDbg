@@ -238,6 +238,12 @@ BOOLEAN g_IsSerialConnectedToRemoteDebuggee = FALSE;
 BOOLEAN g_IsSerialConnectedToRemoteDebugger = FALSE;
 
 /**
+ * @brief Shows if the debuggee is in the handshake phase or not
+ *
+ */
+BOOLEAN g_IsDebuggeeInHandshakingPhase = FALSE;
+
+/**
  * @brief Shows if the debuggee is running or not
  *
  */
@@ -286,11 +292,13 @@ DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
 /**
  * @brief This is an OVERLAPPED structure for managing simultaneous
  * read and writes for debugger (in current design debuggee is not needed
- * to read and write simultaneously)
+ * to write simultaneously but it's needed for write)
  *
  */
 OVERLAPPED g_OverlappedIoStructureForReadDebugger  = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
+
+OVERLAPPED g_OverlappedIoStructureForReadDebuggee = {0};
 
 /**
  * @brief Shows whether the queried event is enabled or disabled

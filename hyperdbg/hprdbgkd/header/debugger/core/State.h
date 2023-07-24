@@ -98,17 +98,26 @@ typedef struct _KD_NMI_STATE
 } KD_NMI_STATE, *PKD_NMI_STATE;
 
 /**
- * @brief The status of RFLAGS.TF masking
+ * @brief The thread/process information
  *
  */
-typedef struct _KD_TRAP_FLAG_STATE_STATE
+typedef struct _DEBUGGER_PROCESS_THREAD_INFORMATION
 {
-    BOOLEAN CheckTrapFlagState;
-    UINT32  TargetProcessId;
-    UINT32  TargetThreadId;
-    UINT32  SetTo;
+    UINT32 ProcessId;
+    UINT32 ThreadId;
 
-} KD_TRAP_FLAG_STATE_STATE, *PKD_TRAP_FLAG_STATE_STATE;
+} DEBUGGER_PROCESS_THREAD_INFORMATION, *PDEBUGGER_PROCESS_THREAD_INFORMATION;
+
+/**
+ * @brief The status of RFLAGS.TF masking
+ * @details Used for masking trap flags on threads
+ *
+ */
+typedef struct _DEBUGGER_TRAP_FLAG_STATE
+{
+    DEBUGGER_PROCESS_THREAD_INFORMATION ThreadInformation[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS];
+
+} DEBUGGER_TRAP_FLAG_STATE, *PDEBUGGER_TRAP_FLAG_STATE;
 
 /**
  * @brief Saves the debugger state
@@ -128,7 +137,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
-    BOOLEAN                                    DisableTrapFlagOnContinue;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
     KD_NMI_STATE                               NmiState;

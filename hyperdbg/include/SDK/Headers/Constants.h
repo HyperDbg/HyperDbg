@@ -18,7 +18,7 @@
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 4
-#define VERSION_PATCH 0
+#define VERSION_PATCH 1
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -183,6 +183,21 @@ const unsigned char BuildVersion[] = {
     '\0'};
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+
+/**
+ * @brief Maximum size of version buffer
+ */
+#define MAX_COMPLETE_VERSION_SIZE 10
+
+/**
+ * @brief Maximum size of build version buffer
+ */
+#define MAX_BUILD_VERSION_SIZE 10
+
+/**
+ * @brief Maximum size of build version and version buffer plush delimiter and null-terminator
+ */
+#define MAX_BUILD_VERSION_COMBINED_SIZE (MAX_COMPLETE_VERSION_SIZE + MAX_BUILD_VERSION_SIZE + 2) // +2 for the '-' delimiter and null-terminator
 
 //////////////////////////////////////////////////
 //				Message Tracing                 //
@@ -357,7 +372,7 @@ const unsigned char BuildVersion[] = {
     0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
-//            Breakpoint Backup                 //
+//       Breakpoints & Debug Breakpoints        //
 //////////////////////////////////////////////////
 
 /**
@@ -365,6 +380,15 @@ const unsigned char BuildVersion[] = {
  * breakpoint
  */
 #define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+
+/**
+ * @brief maximum number of thread/process ids to be allocated for a simultaneous
+ * debugging
+ * @details it shows the maximum number of threads/processes that HyperDbg sets
+ * trap flag for them
+ *
+ */
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS 100
 
 //////////////////////////////////////////////////
 //          Pool tags used in HyperDbg          //

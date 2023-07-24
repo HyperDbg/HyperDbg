@@ -12,6 +12,16 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				      Locks 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief The lock for modifying list of process/thread for unsetting TRAP FLAG
+ *
+ */
+volatile LONG BreakpointCommandTrapListLock;
+
+//////////////////////////////////////////////////
 //				     Functions		      		//
 //////////////////////////////////////////////////
 
@@ -40,4 +50,4 @@ BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId);
 
 BOOLEAN
-BreakpointAdjustUnsetTrapFlagsOnCurrentThread(BOOLEAN SetTo);
+BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId);

@@ -503,7 +503,11 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Indicate that we should set the trap flag to the FALSE next time on
                 // the same process/thread
                 //
-                BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
+                if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+                {
+                    LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
+                               "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
+                }
             }
             else
             {

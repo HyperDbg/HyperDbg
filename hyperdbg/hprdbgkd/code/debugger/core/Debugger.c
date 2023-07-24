@@ -146,6 +146,11 @@ DebuggerInitialize()
     RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
 
     //
+    // Zero the TRAP FLAG state memory
+    //
+    RtlZeroMemory(&g_TrapFlagState, sizeof(DEBUGGER_TRAP_FLAG_STATE));
+
+    //
     // Intialize the local and temp variables
     //
     for (size_t i = 0; i < ProcessorCount; i++)

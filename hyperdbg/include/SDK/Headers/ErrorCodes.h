@@ -404,6 +404,12 @@
  */
 #define DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER 0xc000003c
 
+/**
+ * @brief error, the list of threads/process trap flag is full
+ *
+ */
+#define DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL 0xc000003d
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
