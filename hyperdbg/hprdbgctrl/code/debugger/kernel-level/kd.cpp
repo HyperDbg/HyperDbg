@@ -1861,7 +1861,109 @@ StartAgain:
 BOOLEAN
 KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
 {
-    return TRUE;
+    CHAR                    BufferToReceive[MaxSerialPacketSize] = {0};
+    PDEBUGGER_REMOTE_PACKET TheActualPacket                      = NULL;
+    UINT32                  LengthReceived                       = 0;
+    BOOLEAN                 Result                               = FALSE;
+
+    //
+    // Send the ping packet and request the version of the debugger
+    //
+    if (!KdCommandPacketToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+            DEBUGGER_REMOTE_PACKET_PING_AND_SEND_SUPPORTED_VERSION))
+    {
+    }
+
+StartAgain:
+
+    //
+    // Wait for handshake to complete or in other words
+    // get the receive packet
+    //
+    if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived))
+    {
+        if (LengthReceived == 0 && BufferToReceive[0] == NULL)
+        {
+            //
+            // The remote computer (debuggee) closed the connection
+            //
+            ShowMessages("err, the remote connection is closed\n");
+
+            return FALSE;
+        }
+        else
+        {
+            ShowMessages("err, invalid buffer received\n");
+            goto StartAgain;
+        }
+    }
+
+    //
+    // Check for invalid close packets
+    //
+    if (LengthReceived == 1 && BufferToReceive[0] == NULL)
+    {
+        ShowMessages("err, invalid buffer received\n");
+        goto StartAgain;
+    }
+
+    //
+    // Check the handshaking packet
+    //
+    TheActualPacket = (PDEBUGGER_REMOTE_PACKET)BufferToReceive;
+
+    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
+    {
+        //
+        // Check checksum
+        //
+        if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
+                                  LengthReceived - sizeof(BYTE)) != TheActualPacket->Checksum)
+        {
+            ShowMessages("err, checksum is invalid\n");
+            goto StartAgain;
+        }
+
+        //
+        // Check if the packet type is correct
+        //
+        if (TheActualPacket->TypeOfThePacket != DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE)
+        {
+            //
+            // sth wrong happened, the packet is not belonging to use
+            // nothing to do, just wait again
+            //
+            ShowMessages("err, unknown packet received from the debuggee\n");
+            goto StartAgain;
+        }
+
+        //
+        // It's a HyperDbg packet
+        //
+        switch (TheActualPacket->RequestedActionOfThePacket)
+        {
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION:
+
+            Result = TRUE;
+            ShowMessages("The answer to the PING request is received!!!! :)\n");
+
+            break;
+
+        default:
+
+            Result = FALSE;
+            ShowMessages("err, invalid packet is received. did you connect to an instance of HyperDbg?\n"
+                         "maybe an incorrect COM source is specified\n");
+
+            break;
+        }
+    }
+
+    //
+    // By default, we prevent the connection
+    //
+    return Result;
 }
 
 /**
@@ -2041,13 +2143,34 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
 
         //
+        // We temporary set the serial connection to TRUE to perform the handshake
+        //
+        g_IsSerialConnectedToRemoteDebugger = TRUE;
+
+        //
+        // Set handle to serial device
+        //
+        g_SerialRemoteComPortHandle = Comm;
+
+        //
         // Check if debuggee is listening before loading module
         //
         if (!KdCheckIfDebuggerIsListening(Comm))
         {
-            ShowMessages("failed handshake with the debugger. is debugger listening?\n");
+            CloseHandle(Comm);
+            g_SerialRemoteComPortHandle         = NULL;
+            g_IsSerialConnectedToRemoteDebugger = FALSE;
+
+            ShowMessages("failed to handshake with the debugger. is debugger listening?\n");
             return FALSE;
         }
+
+        //
+        // As we temporary set the connection to serial to TRUE,
+        // now we set it to FALSE, so if the VMM loading is failed, it keeps
+        // to FALSE to prevent errors
+        //
+        g_IsSerialConnectedToRemoteDebugger = FALSE;
 
         //
         // First, connect to local machine and we load the VMM module as it's a
@@ -2061,6 +2184,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!CommandLoadVmmModule())
         {
             CloseHandle(Comm);
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsConnectedToHyperDbgLocally = FALSE;
+
             ShowMessages("failed to install or load the driver\n");
             return FALSE;
         }
@@ -2072,6 +2198,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!g_DeviceHandle)
         {
             CloseHandle(Comm);
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsConnectedToHyperDbgLocally = FALSE;
+
             AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
         }
 
@@ -2084,6 +2213,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (DebuggeeRequest == NULL)
         {
             CloseHandle(Comm);
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsConnectedToHyperDbgLocally = FALSE;
+
             ShowMessages("err, unable to allocate memory for request packet");
             return FALSE;
         }
@@ -2107,7 +2239,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!KdGetWindowVersion(DebuggeeRequest->OsName))
         {
             //
-            // It's not an error if it returned null
+            // It's not an error if it returned null (we could ignore it)
             //
             // return FALSE;
         }
@@ -2131,6 +2263,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!StatusIoctl)
         {
             CloseHandle(Comm);
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsConnectedToHyperDbgLocally = FALSE;
+
             ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
             //
@@ -2161,6 +2296,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         else
         {
             CloseHandle(Comm);
+            g_SerialRemoteComPortHandle    = NULL;
+            g_IsConnectedToHyperDbgLocally = FALSE;
+
             ShowErrorMessage(DebuggeeRequest->Result);
 
             //
@@ -2188,11 +2326,6 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         // Indicate that we connected to the debugger
         //
         g_IsSerialConnectedToRemoteDebugger = TRUE;
-
-        //
-        // Set handle to serial device
-        //
-        g_SerialRemoteComPortHandle = Comm;
 
         //
         // Free the buffer

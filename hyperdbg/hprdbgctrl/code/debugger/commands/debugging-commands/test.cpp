@@ -32,6 +32,9 @@ CommandTestHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
+    ShowMessages("\t\te.g : test trap\n");
+    ShowMessages("\t\te.g : test pool\n");
+    ShowMessages("\t\te.g : test query\n");
     ShowMessages("\t\te.g : test breakpoint on\n");
     ShowMessages("\t\te.g : test breakpoint off\n");
 }
