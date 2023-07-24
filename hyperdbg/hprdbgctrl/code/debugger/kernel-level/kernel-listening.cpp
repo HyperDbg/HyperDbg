@@ -163,19 +163,10 @@ StartAgain:
         {
         case DEBUGGER_REMOTE_PACKET_PING_AND_SEND_SUPPORTED_VERSION:
 
-            ShowMessages("I received the ping request :)\n");
-
             //
-            // Send the handshake packet
+            // Send the handshake response
             //
-            //
-            // Send the pause packet to debuggee
-            //
-            if (!KdCommandPacketToDebuggee(
-                    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
-                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION))
-            {
-            }
+            KdSendResponseOfThePingPacket();
 
             break;
 

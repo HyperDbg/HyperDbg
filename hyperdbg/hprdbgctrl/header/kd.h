@@ -209,6 +209,9 @@ KdCloseConnection();
 BOOLEAN
 KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId);
 
+BOOLEAN
+KdSendResponseOfThePingPacket();
+
 VOID
 KdUninitializeConnection();
 

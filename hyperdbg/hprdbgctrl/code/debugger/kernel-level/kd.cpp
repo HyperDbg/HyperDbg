@@ -1795,6 +1795,54 @@ KdBreakControlCheckAndContinueDebugger()
 }
 
 /**
+ * @brief Respond to the debuggee with the version and build date of the debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendResponseOfThePingPacket()
+{
+    unsigned char CombinedVersion[MAX_BUILD_VERSION_COMBINED_SIZE] = {0};
+
+    //
+    // For logging purposes
+    //
+    // ShowMessages("the ping request is received\n");
+
+    //
+    // Copy CompleteVersion to the combined buffer
+    //
+    strcpy((char *)CombinedVersion, (const char *)CompleteVersion);
+
+    //
+    // Append '-' delimiter
+    //
+    strcat((char *)CombinedVersion, "-");
+
+    //
+    // Append BuildVersion
+    //
+    strcat((char *)CombinedVersion, (const char *)BuildVersion);
+
+    // ShowMessages("Combined Version: %s\n", CombinedVersion);
+
+    //
+    // Send the handshake packet to debuggee
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION,
+            (CHAR *)CombinedVersion,
+            strlen((const char *)CombinedVersion)))
+    {
+        ShowMessages("err, unable to send response to the ping packet\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief wait for a event to be triggered and if the debuggee
  * is running it just halts the system
  *
@@ -1962,9 +2010,37 @@ BOOLEAN
 KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
 {
     CHAR                    BufferToReceive[MaxSerialPacketSize] = {0};
+    CHAR *                  ReceivedPingBuildVersionBuffer       = NULL;
     PDEBUGGER_REMOTE_PACKET TheActualPacket                      = NULL;
     UINT32                  LengthReceived                       = 0;
     BOOLEAN                 Result                               = FALSE;
+
+    //
+    // Compute the combined build and version string
+    //
+    unsigned char CombinedVersion[MAX_BUILD_VERSION_COMBINED_SIZE] = {0};
+
+    //
+    // For logging purposes
+    //
+    // ShowMessages("the ping request is received\n");
+
+    //
+    // Copy CompleteVersion to the combined buffer
+    //
+    strcpy((char *)CombinedVersion, (const char *)CompleteVersion);
+
+    //
+    // Append '-' delimiter
+    //
+    strcat((char *)CombinedVersion, "-");
+
+    //
+    // Append BuildVersion
+    //
+    strcat((char *)CombinedVersion, (const char *)BuildVersion);
+
+    // ShowMessages("Combined Version: %s\n", CombinedVersion);
 
 StartAgain:
 
@@ -2045,8 +2121,28 @@ StartAgain:
         {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION:
 
-            Result = TRUE;
-            ShowMessages("The answer to the PING request is received!!!! :)\n");
+            ReceivedPingBuildVersionBuffer = (CHAR *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            // ShowMessages("the answer to the PING request is received: %s\n", ReceivedPingBuildVersionBuffer);
+
+            if (strcmp((const char *)CombinedVersion, ReceivedPingBuildVersionBuffer) == 0)
+            {
+                //
+                // Build version matched
+                //
+                Result = TRUE;
+            }
+            else
+            {
+                //
+                // Build version doesn't match
+                //
+                ShowMessages("the handshaking process was successful; however, there is a mismatch between "
+                             "the version/build of the debuggee and the debugger. please use the same "
+                             "version/build for both the debuggee and debugger\n");
+
+                Result = FALSE;
+            }
 
             break;
 
@@ -2267,7 +2363,6 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             g_SerialRemoteComPortHandle    = NULL;
             g_IsDebuggeeInHandshakingPhase = FALSE;
 
-            ShowMessages("failed to handshake with the debugger. is the debugger listening?\n");
             return FALSE;
         }
         else
