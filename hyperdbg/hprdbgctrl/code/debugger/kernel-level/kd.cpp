@@ -1802,29 +1802,10 @@ KdBreakControlCheckAndContinueDebugger()
 BOOLEAN
 KdSendResponseOfThePingPacket()
 {
-    unsigned char CombinedVersion[MAX_BUILD_VERSION_COMBINED_SIZE] = {0};
-
     //
     // For logging purposes
     //
     // ShowMessages("the ping request is received\n");
-
-    //
-    // Copy CompleteVersion to the combined buffer
-    //
-    strcpy((char *)CombinedVersion, (const char *)CompleteVersion);
-
-    //
-    // Append '-' delimiter
-    //
-    strcat((char *)CombinedVersion, "-");
-
-    //
-    // Append BuildVersion
-    //
-    strcat((char *)CombinedVersion, (const char *)BuildVersion);
-
-    // ShowMessages("Combined Version: %s\n", CombinedVersion);
 
     //
     // Send the handshake packet to debuggee
@@ -1832,8 +1813,8 @@ KdSendResponseOfThePingPacket()
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION,
-            (CHAR *)CombinedVersion,
-            strlen((const char *)CombinedVersion)))
+            (CHAR *)BuildSignature,
+            sizeof(BuildSignature)))
     {
         ShowMessages("err, unable to send response to the ping packet\n");
         return FALSE;
@@ -2016,31 +1997,9 @@ KdCheckIfDebuggerIsListening(HANDLE ComPortHandle)
     BOOLEAN                 Result                               = FALSE;
 
     //
-    // Compute the combined build and version string
-    //
-    unsigned char CombinedVersion[MAX_BUILD_VERSION_COMBINED_SIZE] = {0};
-
-    //
     // For logging purposes
     //
     // ShowMessages("the ping request is received\n");
-
-    //
-    // Copy CompleteVersion to the combined buffer
-    //
-    strcpy((char *)CombinedVersion, (const char *)CompleteVersion);
-
-    //
-    // Append '-' delimiter
-    //
-    strcat((char *)CombinedVersion, "-");
-
-    //
-    // Append BuildVersion
-    //
-    strcat((char *)CombinedVersion, (const char *)BuildVersion);
-
-    // ShowMessages("Combined Version: %s\n", CombinedVersion);
 
 StartAgain:
 
@@ -2125,7 +2084,7 @@ StartAgain:
 
             // ShowMessages("the answer to the PING request is received: %s\n", ReceivedPingBuildVersionBuffer);
 
-            if (strcmp((const char *)CombinedVersion, ReceivedPingBuildVersionBuffer) == 0)
+            if (strcmp((const char *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
             {
                 //
                 // Build version matched
