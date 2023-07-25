@@ -179,20 +179,25 @@ const unsigned char BuildVersion[] = {
     BUILD_MONTH_CH1,
     BUILD_DAY_CH0,
     BUILD_DAY_CH1,
+    '.',
+    BUILD_HOUR_CH0,
+    BUILD_HOUR_CH1,
+    BUILD_MIN_CH0,
+    BUILD_MIN_CH1,
 
     '\0'};
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 /**
- * @brief Maximum size of version buffer
+ * @brief Maximum size of version buffer (vXXX.XXX.XXX.XXX)
  */
-#define MAX_COMPLETE_VERSION_SIZE 10
+#define MAX_COMPLETE_VERSION_SIZE 20
 
 /**
  * @brief Maximum size of build version buffer
  */
-#define MAX_BUILD_VERSION_SIZE 10
+#define MAX_BUILD_VERSION_SIZE 18
 
 /**
  * @brief Maximum size of build version and version buffer plush delimiter and null-terminator
