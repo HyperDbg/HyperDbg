@@ -1,5 +1,5 @@
 /**
- * @file remoteconnection.cpp
+ * @file remote-connection.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief handle remote connections command
  * @details
@@ -210,7 +210,7 @@ RemoteConnectionListen(PCSTR Port)
 DWORD WINAPI
 RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 {
-    char   recvbuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+    char   RecvBuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
     UINT32 BuffLenReceived                                                    = 0;
 
     while (g_IsConnectedToRemoteDebuggee)
@@ -218,7 +218,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         // Receive message
         //
-        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, recvbuf, COMMUNICATION_BUFFER_SIZE, &BuffLenReceived) != 0)
+        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, RecvBuf, COMMUNICATION_BUFFER_SIZE, &BuffLenReceived) != 0)
         {
             //
             // Failed, break
@@ -231,18 +231,18 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         for (size_t i = 0; i < BuffLenReceived; i++)
         {
-            if (recvbuf[i] == g_EndOfBufferCheckTcp[0] &&
-                recvbuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
-                recvbuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
-                recvbuf[i + 3] == g_EndOfBufferCheckTcp[3])
+            if (RecvBuf[i] == g_EndOfBufferCheckTcp[0] &&
+                RecvBuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
+                RecvBuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
+                RecvBuf[i + 3] == g_EndOfBufferCheckTcp[3])
             {
                 g_IsEndOfMessageReceived = TRUE;
 
                 //
                 // Cut the last string using \x00 \x00
                 //
-                recvbuf[i]     = '\x00';
-                recvbuf[i + 1] = '\x00';
+                RecvBuf[i]     = '\x00';
+                RecvBuf[i + 1] = '\x00';
                 break;
             }
         }
@@ -255,7 +255,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
             //
             // Show message from remote debuggee
             //
-            ShowMessages("%s", recvbuf);
+            ShowMessages("%s", RecvBuf);
         }
 
         //
@@ -277,7 +277,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         // Clear the buffer
         //
-        RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
+        RtlZeroMemory(RecvBuf, COMMUNICATION_BUFFER_SIZE);
     }
 
     //

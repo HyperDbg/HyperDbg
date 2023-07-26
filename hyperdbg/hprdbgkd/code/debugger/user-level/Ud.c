@@ -159,9 +159,14 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         VmFuncSetRflagTrapFlag(TRUE);
 
         //
-        // Rflags' trap flag is set
+        // Indicate that we should set the trap flag to the FALSE next time on
+        // the same process/thread
         //
-        ThreadDebuggingDetails->IsRflagsTrapFlagsSet = TRUE;
+        if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+        {
+            LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
+                       "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
+        }
 
         break;
 
@@ -387,29 +392,6 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
 }
 
 /**
- * @brief Handle after we hit the stepping
- * @details This function can be used in vmx-root
- *
- * @param DbgState The state of the debugger on the current core
- * @param ThreadDebuggingDetails
- * @return VOID
- */
-VOID
-UdHandleAfterSteppingReason(PROCESSOR_DEBUGGING_STATE *        DbgState,
-                            PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
-{
-    //
-    // Unset the trap-flag
-    //
-    VmFuncSetRflagTrapFlag(FALSE);
-
-    //
-    // Rflags' trap flag is not set anymore
-    //
-    ThreadDebuggingDetails->IsRflagsTrapFlagsSet = FALSE;
-}
-
-/**
  * @brief Handle special reasons pre-pausings
  * @details This function can be used in vmx-root
  *
@@ -432,11 +414,6 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
     switch (Reason)
     {
     case DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK:
-
-        if (ThreadDebuggingDetails->IsRflagsTrapFlagsSet)
-        {
-            UdHandleAfterSteppingReason(DbgState, ThreadDebuggingDetails);
-        }
 
         break;
 

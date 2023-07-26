@@ -34,7 +34,6 @@ typedef struct _USERMODE_DEBUGGING_THREAD_DETAILS
     UINT32                     ThreadId;
     UINT64                     ThreadRip; // if IsPaused is TRUE
     BOOLEAN                    IsPaused;
-    BOOLEAN                    IsRflagsTrapFlagsSet;
     DEBUGGER_UD_COMMAND_ACTION UdAction[MAX_USER_ACTIONS_FOR_THREADS];
 
 } USERMODE_DEBUGGING_THREAD_DETAILS, *PUSERMODE_DEBUGGING_THREAD_DETAILS;
