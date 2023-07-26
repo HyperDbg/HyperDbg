@@ -41,13 +41,14 @@ VOID
 CommandWrmsr(vector<string> SplittedCommand, string Command)
 {
     BOOL                           Status;
-    BOOL                           IsNextCoreId = FALSE;
-    BOOL                           SetMsr       = FALSE;
-    BOOL                           SetValue     = FALSE;
-    DEBUGGER_READ_AND_WRITE_ON_MSR MsrWriteRequest;
     UINT64                         Msr;
-    UINT64                         Value     = 0;
-    UINT32                         CoreNumer = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
+    DEBUGGER_READ_AND_WRITE_ON_MSR MsrWriteRequest = {0};
+    BOOL                           IsNextCoreId    = FALSE;
+    BOOL                           SetMsr          = FALSE;
+    BOOL                           SetValue        = FALSE;
+    UINT64                         Value           = 0;
+    UINT32                         CoreNumer       = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
+    BOOLEAN                        IsFirstCommand  = TRUE;
 
     if (SplittedCommand.size() >= 6)
     {
@@ -58,8 +59,9 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     for (auto Section : SplittedCommand)
     {
-        if (!Section.compare(SplittedCommand.at(0)))
+        if (IsFirstCommand == TRUE)
         {
+            IsFirstCommand = FALSE;
             continue;
         }
 

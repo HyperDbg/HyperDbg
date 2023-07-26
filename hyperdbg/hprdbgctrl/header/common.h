@@ -24,11 +24,15 @@
 
 #define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n"
 
+#define ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH "the handshaking process was successful; however, there is a mismatch between " \
+                                                    "the version/build of the debuggee and the debugger. please use the same "      \
+                                                    "version/build for both the debuggee and debugger\n"
+
 #define ASSERT_MESSAGE_CANNOT_SPECIFY_PID "err, since HyperDbg won't context-switch to keep the system in a halted state, "                       \
                                           "you cannot specify 'pid' for this command in the debugger mode. You can switch to the target process " \
                                           "memory layout using the '.process' or the '.thread' command. After that, you can use "                 \
                                           "this command without specifying the process ID. Alternatively, you can modify the current "            \
-                                          "CR3 register to achieve the same functionality \n"
+                                          "CR3 register to achieve the same functionality\n"
 
 #define AssertReturnStmt(expr, stmt, rc) \
     do                                   \

@@ -55,6 +55,30 @@ RemoteConnectionListen(PCSTR Port)
     CommunicationServerCreateServerAndWaitForClient(Port, &g_SeverSocket, &g_ServerListenSocket);
 
     //
+    // Check the version of debuggee and debugger
+    //
+    if (CommunicationServerReceiveMessage(g_SeverSocket, recvbuf, COMMUNICATION_BUFFER_SIZE) != 0)
+    {
+        //
+        // Failed
+        //
+        ShowMessages("err, unable to handshake with the remote debugger");
+        return;
+    }
+
+    //
+    // Check whether the signature of debuggee and debugger match or not
+    //
+    if (strcmp((const char *)BuildSignature, recvbuf) != 0)
+    {
+        //
+        // Build version not matched
+        //
+        ShowMessages(ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH);
+        return;
+    }
+
+    //
     // Indicate that it's a remote debugger
     //
     g_IsConnectedToRemoteDebugger = TRUE;
@@ -63,6 +87,11 @@ RemoteConnectionListen(PCSTR Port)
     // And also, make it a local debugger
     //
     g_IsConnectedToHyperDbgLocally = TRUE;
+
+    //
+    // Zero the buffer for next command
+    //
+    RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
 
     while (true)
     {
@@ -255,8 +284,7 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
     //
     // Connect to server
     //
-    if (CommunicationClientConnectToServer(Ip, Port, &g_ClientConnectSocket) ==
-        1)
+    if (CommunicationClientConnectToServer(Ip, Port, &g_ClientConnectSocket) == 1)
     {
         //
         // There was an error
@@ -286,6 +314,10 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
     {
         //
         // Connection was successful
+        //
+
+        //
+        // Check to see whether the version of debugger and debuggee matches together or not
         //
 
         //
@@ -338,8 +370,7 @@ RemoteConnectionSendCommand(const char * sendbuf, int len)
     //
     // Send Message
     //
-    if (CommunicationClientSendMessage(g_ClientConnectSocket, sendbuf, len) !=
-        0)
+    if (CommunicationClientSendMessage(g_ClientConnectSocket, sendbuf, len) != 0)
     {
         //
         // Failed

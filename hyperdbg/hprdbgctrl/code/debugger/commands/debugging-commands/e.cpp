@@ -97,8 +97,6 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
         if (IsFirstCommand)
         {
-            IsFirstCommand = FALSE;
-
             if (!Section.compare("!eb"))
             {
                 EditMemoryRequest.MemoryType = EDIT_PHYSICAL_MEMORY;
@@ -138,6 +136,8 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
                 CommandEditMemoryHelp();
                 return;
             }
+
+            IsFirstCommand = FALSE;
 
             continue;
         }

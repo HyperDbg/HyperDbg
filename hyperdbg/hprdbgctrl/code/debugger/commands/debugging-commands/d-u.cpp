@@ -110,6 +110,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             IsFirstCommand = FALSE;
             continue;
         }
+
         if (IsNextProcessId == TRUE)
         {
             if (!ConvertStringToUInt32(Section, &Pid))
