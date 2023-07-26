@@ -62,7 +62,13 @@ RemoteConnectionListen(PCSTR Port)
         //
         // Failed
         //
-        ShowMessages("err, unable to handshake with the remote debugger");
+        ShowMessages("err, unable to handshake with the remote debugger\n");
+
+        //
+        // Close the connection
+        //
+        CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
         return;
     }
 
@@ -75,7 +81,44 @@ RemoteConnectionListen(PCSTR Port)
         // Build version not matched
         //
         ShowMessages(ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH);
+
+        //
+        // Send unsuccessful handshake (version match) message
+        //
+        if (CommunicationServerSendMessage(g_SeverSocket, "NO", 3) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, unable to handshake with the remote debugger\n");
+        }
+
+        //
+        // Close the connection
+        //
+        CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
         return;
+    }
+    else
+    {
+        //
+        // Send successful handshake (version match) message
+        //
+        if (CommunicationServerSendMessage(g_SeverSocket, "OK", 3) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, unable to handshake with the remote debugger\n");
+
+            //
+            // Close the connection
+            //
+            CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
+            return;
+        }
     }
 
     //
@@ -271,7 +314,9 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 VOID
 RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
 {
-    DWORD ThreadId;
+    DWORD  ThreadId;
+    CHAR   Recv[3]  = {0};
+    UINT32 BuffRecv = 0;
 
     //
     // Check if the debugger or debuggee is already active
@@ -319,6 +364,38 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         //
         // Check to see whether the version of debugger and debuggee matches together or not
         //
+        if (CommunicationClientSendMessage(g_ClientConnectSocket, (const char *)BuildSignature, sizeof(BuildSignature)) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, failed to communicate with debuggee\n");
+            return;
+        }
+
+        //
+        // Receive the handshake results
+        //
+        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, Recv, sizeof(Recv), &BuffRecv) != 0)
+        {
+            //
+            // Failed, break
+            //
+            ShowMessages("err, failed to receive message from debuggee\n");
+            return;
+        }
+
+        //
+        // Check if the handshake was successful or not
+        //
+        if (strcmp((const char *)"OK", Recv) != 0)
+        {
+            //
+            // Build version not matched
+            //
+            ShowMessages(ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH);
+            return;
+        }
 
         //
         // Indicate that local debugger is not connected

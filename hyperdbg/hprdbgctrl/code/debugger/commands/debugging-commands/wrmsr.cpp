@@ -35,6 +35,7 @@ CommandWrmsrHelp()
  *
  * @param SplittedCommand
  * @param Command
+ *
  * @return VOID
  */
 VOID
@@ -73,6 +74,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
                 CommandWrmsrHelp();
                 return;
             }
+
             IsNextCoreId = FALSE;
             continue;
         }
@@ -127,12 +129,14 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
         CommandWrmsrHelp();
         return;
     }
+
     if (!SetValue)
     {
         ShowMessages("please specify a correct hex value to put on msr\n\n");
         CommandWrmsrHelp();
         return;
     }
+
     if (IsNextCoreId)
     {
         ShowMessages("please specify a correct hex value for core\n\n");
