@@ -631,7 +631,7 @@ VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam2,
                 long long          OptionalParam3)
 {
-    AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
+    return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }
 
 /**

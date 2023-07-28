@@ -384,6 +384,8 @@ ReversingMachineEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
             }
         }
     }
+
+    return TRUE;
 }
 
 /**
