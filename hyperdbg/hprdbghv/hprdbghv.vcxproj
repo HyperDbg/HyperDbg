@@ -125,6 +125,7 @@
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\common\ArrayManagement.c" />
     <ClCompile Include="code\common\Bitwise.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\UnloadDll.c" />
@@ -219,6 +220,7 @@
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\common\ArrayManagement.h" />
     <ClInclude Include="header\common\Bitwise.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />

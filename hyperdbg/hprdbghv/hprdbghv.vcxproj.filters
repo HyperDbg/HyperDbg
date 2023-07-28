@@ -287,6 +287,9 @@
     <ClCompile Include="code\common\UnloadDll.c">
       <Filter>code\common</Filter>
     </ClCompile>
+    <ClCompile Include="code\common\ArrayManagement.c">
+      <Filter>code\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -530,6 +533,9 @@
       <Filter>header\features\reversing</Filter>
     </ClInclude>
     <ClInclude Include="header\common\UnloadDll.h">
+      <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\ArrayManagement.h">
       <Filter>header\common</Filter>
     </ClInclude>
   </ItemGroup>
