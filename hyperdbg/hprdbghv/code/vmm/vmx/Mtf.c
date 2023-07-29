@@ -59,7 +59,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Restore the previous state
         //
-        EptHandleMonitorTrapFlag(VCpu);
+        EptHookHandleMonitorTrapFlag(VCpu);
 
         //
         // Set it to NULL

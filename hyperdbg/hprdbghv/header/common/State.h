@@ -55,6 +55,18 @@ typedef enum _NMI_BROADCAST_ACTION_TYPE
 
 } NMI_BROADCAST_ACTION_TYPE;
 
+/**
+ * @brief Types of last violation happened to EPT hook
+ *
+ */
+typedef enum _EPT_HOOKED_LAST_VIOLATION
+{
+    EPT_HOOKED_LAST_VIOLATION_READ  = 1,
+    EPT_HOOKED_LAST_VIOLATION_WRITE = 2,
+    EPT_HOOKED_LAST_VIOLATION_EXEC  = 3
+
+} EPT_HOOKED_LAST_VIOLATION;
+
 //////////////////////////////////////////////////
 //					  Structure	    			//
 //////////////////////////////////////////////////
@@ -166,6 +178,11 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      * after restoring the state or not
      */
     BOOLEAN IsPostEventTriggerAllowed;
+
+    /**
+     * @brief This field shows the last violation happened to this EPT hook
+     */
+    EPT_HOOKED_LAST_VIOLATION LastViolation;
 
     /**
      * @brief Address of hooked pages (multiple breakpoints on a single page)

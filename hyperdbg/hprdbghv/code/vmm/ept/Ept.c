@@ -684,10 +684,9 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       UINT64                               GuestPhysicalAddr)
 {
     BOOLEAN ResultOfHandlingHook;
-    BOOLEAN IsHandled                    = FALSE;
-    BOOLEAN IgnoreReadOrWriteOrExec      = FALSE;
-    BOOLEAN IsTriggeringPostEventAllowed = FALSE;
-    BOOLEAN IsExecViolation              = FALSE;
+    BOOLEAN IsHandled               = FALSE;
+    BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
+    BOOLEAN IsExecViolation         = FALSE;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
@@ -711,8 +710,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                                                            GuestPhysicalAddr,
                                                            &HookedEntry->LastContextState,
                                                            &IgnoreReadOrWriteOrExec,
-                                                           &IsExecViolation,
-                                                           &IsTriggeringPostEventAllowed);
+                                                           &IsExecViolation);
 
             if (ResultOfHandlingHook)
             {
@@ -727,11 +725,6 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     // Restore to its original entry for one instruction
                     //
                     EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
-
-                    //
-                    // Set whether the caller should consider triggering the post-event or not
-                    //
-                    HookedEntry->IsPostEventTriggerAllowed = IsTriggeringPostEventAllowed;
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -851,58 +844,6 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     // Redo the instruction that caused the exception
     //
     return FALSE;
-}
-
-/**
- * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
- *
- * @param VCpu The virtual processor's state
- * @return VOID
- */
-VOID
-EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    //
-    // restore the hooked state
-    //
-    EptSetPML1AndInvalidateTLB(VCpu->MtfEptHookRestorePoint->EntryAddress, VCpu->MtfEptHookRestorePoint->ChangedEntry, InveptSingleContext);
-
-    //
-    // Check to trigger the post event (for events relating the !monitor command
-    // and the emulation hardware debug registers)
-    //
-    if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
-    {
-        //
-        // *** TODO: ALL OF THEM SHOULD NOT BE CALLED HERE, FIX IT. ***
-        // ONLY ONE OF THEM SHOULD BE CALLED, BECAUSE AND EVENT MIGHT BE TRIGGERED MULTIPLE TIMES
-        // MAKE SURE TO FIX IT, THAT'S WHY I COMMENT IT TO BE FIXED
-        //
-
-        //  //
-        //  // This is a "read" hook
-        //  //
-        //  DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VCpu,
-        //                                                        &VCpu->MtfEptHookRestorePoint->LastContextState);
-        //
-        //  //
-        //  // This is a "write" hook
-        //  //
-        //  DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VCpu,
-        //                                                         &VCpu->MtfEptHookRestorePoint->LastContextState);
-        //
-        //  //
-        //  // This is a "execute" hook
-        //  //
-        //  DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VCpu,
-        //                                                           &VCpu->MtfEptHookRestorePoint->LastContextState);
-    }
-
-    //
-    // Check for user-mode attaching mechanisms and callback
-    // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
-    //
-    VmmCallbackRestoreEptState(VCpu->CoreId);
 }
 
 /**

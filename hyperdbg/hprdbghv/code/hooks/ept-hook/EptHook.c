@@ -1199,7 +1199,6 @@ EptHook2(PVOID   TargetAddress,
  * @param LastContext The last (current) context of the execution
  * @param IgnoreReadOrWriteOrExec Whether to ignore the event effects or not
  * @param IsExecViolation Whether it's execution violation or not
- * @param IsTriggeringPostEventAllowed Whether the caller should consider
  * executing the post triggering of the event or not
  *
  * @return BOOLEAN Returns TRUE if the function was hook was handled or returns false
@@ -1212,12 +1211,12 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
                         BOOLEAN *                            IgnoreReadOrWriteOrExec,
-                        BOOLEAN *                            IsExecViolation,
-                        BOOLEAN *                            IsTriggeringPostEventAllowed)
+                        BOOLEAN *                            IsExecViolation)
 {
-    UINT64 ExactAccessedVirtualAddress;
-    UINT64 AlignedVirtualAddress;
-    UINT64 AlignedPhysicalAddress;
+    UINT64  ExactAccessedVirtualAddress;
+    UINT64  AlignedVirtualAddress;
+    UINT64  AlignedPhysicalAddress;
+    BOOLEAN IsTriggeringPostEventAllowed = FALSE;
 
     //
     // Get alignment
@@ -1243,10 +1242,15 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
 
         //
+        // Set last violation
+        //
+        HookedEntryDetails->LastViolation = EPT_HOOKED_LAST_VIOLATION_READ;
+
+        //
         // Trigger the event related to Monitor Read and Monitor Read & Write and
         // Monitor Read & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteReadPreEvent(VCpu, LastContext, &IsTriggeringPostEventAllowed);
 
         //
         // It's not an execution violation
@@ -1260,10 +1264,15 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
 
         //
+        // Set last violation
+        //
+        HookedEntryDetails->LastViolation = EPT_HOOKED_LAST_VIOLATION_WRITE;
+
+        //
         // Trigger the event related to Monitor Write and Monitor Read & Write and
         // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteWritePreEvent(VCpu, LastContext, &IsTriggeringPostEventAllowed);
 
         //
         // It's not an execution violation
@@ -1277,10 +1286,15 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
         //
 
         //
+        // Set last violation
+        //
+        HookedEntryDetails->LastViolation = EPT_HOOKED_LAST_VIOLATION_EXEC;
+
+        //
         // Trigger the event related to Monitor Execute and Monitor Read & Execute and
         // Monitor Write & Execute and Monitor Read & Write & Execute
         //
-        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWriteOrExec = DispatchEventHiddenHookPageReadWriteExecuteExecutePreEvent(VCpu, LastContext, &IsTriggeringPostEventAllowed);
 
         //
         // It's an execution violation
@@ -1290,9 +1304,30 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     else
     {
         //
+        // triggering post event is not allowed as it's not valid
+        //
+        HookedEntryDetails->IsPostEventTriggerAllowed = FALSE;
+
+        //
         // there was an unexpected ept violation
         //
         return FALSE;
+    }
+
+    //
+    // Set whether the post event trigger is allowed or not
+    // If only one event short-circuit a special EPT hook the 'post' mode will be ignored for all of the same events
+    //
+    if (*IgnoreReadOrWriteOrExec == FALSE)
+    {
+        HookedEntryDetails->IsPostEventTriggerAllowed = IsTriggeringPostEventAllowed;
+    }
+    else
+    {
+        //
+        // Ignoring read/write/exec will remove the 'post' event
+        //
+        HookedEntryDetails->IsPostEventTriggerAllowed = FALSE;
     }
 
     //
@@ -1411,6 +1446,59 @@ EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+EptHookHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // restore the hooked state
+    //
+    EptSetPML1AndInvalidateTLB(VCpu->MtfEptHookRestorePoint->EntryAddress, VCpu->MtfEptHookRestorePoint->ChangedEntry, InveptSingleContext);
+
+    //
+    // Check to trigger the post event (for events relating the !monitor command
+    // and the emulation hardware debug registers)
+    //
+    if (VCpu->MtfEptHookRestorePoint->IsPostEventTriggerAllowed)
+    {
+        if (VCpu->MtfEptHookRestorePoint->LastViolation == EPT_HOOKED_LAST_VIOLATION_READ)
+        {
+            //
+            // This is a "read" hook
+            //
+            DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VCpu,
+                                                                  &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+        else if (VCpu->MtfEptHookRestorePoint->LastViolation == EPT_HOOKED_LAST_VIOLATION_WRITE)
+        {
+            //
+            // This is a "write" hook
+            //
+            DispatchEventHiddenHookPageReadWriteExecWritePostEvent(VCpu,
+                                                                   &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+        else if (VCpu->MtfEptHookRestorePoint->LastViolation == EPT_HOOKED_LAST_VIOLATION_EXEC)
+        {
+            //
+            // This is a "execute" hook
+            //
+            DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VCpu,
+                                                                     &VCpu->MtfEptHookRestorePoint->LastContextState);
+        }
+    }
+
+    //
+    // Check for user-mode attaching mechanisms and callback
+    // (we call it here, because this callback might change the EPTP entries and invalidate EPTP)
+    //
+    VmmCallbackRestoreEptState(VCpu->CoreId);
 }
 
 /**

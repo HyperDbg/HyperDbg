@@ -300,15 +300,6 @@ PVOID
 EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, BOOLEAN * IsLargePage);
 
 /**
- * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
- *
- * @param VCpu The virtual processor's state
- * @return VOID
- */
-VOID
-EptHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu);
-
-/**
  * @brief Handle Ept Misconfigurations
  *
  * @return VOID
