@@ -135,6 +135,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                    WaitForStepTrap;
     BOOLEAN                                    IgnoreDisasmInNextPacket;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE      CurrentCallingStage;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;

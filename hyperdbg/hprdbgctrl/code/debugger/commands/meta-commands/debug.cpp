@@ -38,7 +38,7 @@ CommandDebugHelp()
     ShowMessages("syntax : \t.debug [close]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : .debug remote serial 115200 com3\n");
+    ShowMessages("\t\te.g : .debug remote serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");

@@ -985,13 +985,15 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         }
 
         //
-        // Check the stage of calling (pre and post event)
+        // Check the stage of calling (pre, all, or post event)
         //
-        if (CallingStage == VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION && CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+        if (CallingStage == VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION &&
+            (CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION ||
+             CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION))
         {
             //
-            // Here it means that the current event is a post-event event and
-            // the current stage of calling is for the pre-event events, thus
+            // Here it means that the current event is a post, or all event event
+            // and the current stage of calling is for the pre-event events, thus
             // this event is not supposed to be runned at the current stage.
             // However, we'll set a flag so the caller will know that there is
             // a valid post-event available for the parameters related to this
@@ -1005,7 +1007,14 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             *PostEventRequired = TRUE;
 
-            continue;
+            if (CurrentEvent->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+            {
+                //
+                // If it's not an 'all' event and it is only the 'post' event,
+                // then we ignore the trigger stage
+                //
+                continue;
+            }
         }
 
         //
@@ -1038,6 +1047,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         // Reset the event ignorance mechanism (apply 'sc on/off' to the events)
         //
         DbgState->ShortCircuitingEvent = CurrentEvent->EnableShortCircuiting;
+
+        //
+        // Set the current calling stage
+        //
+        DbgState->CurrentCallingStage = CallingStage;
 
         //
         // perform the actions
@@ -2056,7 +2070,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // it is because using the short-circuiting mechanism with
     // post-events doesn't make sense; it's not supported!
     //
-    if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION && EventDetails->EnableShortCircuiting == TRUE)
+    if ((EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION ||
+         EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION) &&
+        EventDetails->EnableShortCircuiting == TRUE)
     {
         ResultsToReturnUsermode->IsSuccessful = FALSE;
         ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
@@ -2905,6 +2921,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
     {
         Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+    }
+    else if (EventDetails->EventMode == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION)
+    {
+        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
     }
     else
     {
