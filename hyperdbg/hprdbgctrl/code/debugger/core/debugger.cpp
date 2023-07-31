@@ -2122,7 +2122,7 @@ InterpretGeneralEventAndActionsFields(
     BOOLEAN                               IsNextCommandCoreId              = FALSE;
     BOOLEAN                               IsNextCommandBufferSize          = FALSE;
     BOOLEAN                               IsNextCommandImmediateMessaging  = FALSE;
-    BOOLEAN                               IsNextCommandExecutionMode       = FALSE;
+    BOOLEAN                               IsNextCommandExecutionStage      = FALSE;
     BOOLEAN                               IsNextCommandSc                  = FALSE;
     BOOLEAN                               ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
     UINT32                                CoreId;
@@ -2713,7 +2713,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandExecutionMode)
+        if (IsNextCommandExecutionStage)
         {
             if (!Section.compare("pre"))
             {
@@ -2738,7 +2738,7 @@ InterpretGeneralEventAndActionsFields(
                 goto ReturnWithError;
             }
 
-            IsNextCommandExecutionMode = FALSE;
+            IsNextCommandExecutionStage = FALSE;
 
             //
             // Add index to remove it from the command
@@ -2873,12 +2873,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("mode"))
+        if (!Section.compare("stage"))
         {
             //
             // the next commnad is execution mode (pre- and post-events)
             //
-            IsNextCommandExecutionMode = TRUE;
+            IsNextCommandExecutionStage = TRUE;
 
             //
             // Add index to remove it from the command
@@ -2951,9 +2951,9 @@ InterpretGeneralEventAndActionsFields(
         goto ReturnWithError;
     }
 
-    if (IsNextCommandExecutionMode)
+    if (IsNextCommandExecutionStage)
     {
-        ShowMessages("err, please specify a value for 'mode'\n");
+        ShowMessages("err, please specify a value for 'stage'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -3059,7 +3059,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Set the specific event mode (calling stage)
     //
-    TempEvent->EventMode = CallingStage;
+    TempEvent->EventStage = CallingStage;
 
     //
     // Fill the address and length of event before release

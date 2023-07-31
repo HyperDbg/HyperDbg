@@ -22,8 +22,8 @@ CommandDrHelp()
     ShowMessages("!dr : monitors any access to debug registers.\n\n");
 
     ShowMessages("syntax : \t!dr [pid ProcessId (hex)] [core CoreId (hex)] "
-                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !dr\n");

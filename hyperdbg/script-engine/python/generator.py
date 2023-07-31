@@ -57,6 +57,7 @@ typedef struct ACTION_BUFFER {
   long long unsigned Tag;
   long long unsigned CurrentAction;
   char ImmediatelySendTheResults;
+  char CallingStage;
   long long unsigned Context;
 } ACTION_BUFFER, *PACTION_BUFFER;
 

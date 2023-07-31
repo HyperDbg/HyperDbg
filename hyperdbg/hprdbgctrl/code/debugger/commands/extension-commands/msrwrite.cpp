@@ -22,8 +22,8 @@ CommandMsrwriteHelp()
     ShowMessages("!msrwrite : detects the execution of wrmsr instructions.\n\n");
 
     ShowMessages("syntax : \t!msrwrite [Msr (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !msrwrite\n");

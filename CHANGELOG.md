@@ -10,6 +10,8 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+- The event calling stage mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage))
+- New pseudo-registers (**$stage**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 
 ### Changed
 - The disassembler now warns if you mistakenly used the 'u' command over a 32-bit program ([link](https://github.com/HyperDbg/HyperDbg/commit/9d239ccdfd7901cad197a4b49327efbf322cd116))

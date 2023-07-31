@@ -89,9 +89,10 @@ typedef enum _VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
  */
 typedef enum _VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE
 {
-    VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION  = 0,
-    VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION = 1,
-    VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION  = 2
+    VMM_CALLBACK_CALLING_STAGE_INVALID_EVENT_EMULATION = 0,
+    VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION     = 1,
+    VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION    = 2,
+    VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION     = 3
 
 } VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE;
 
@@ -303,11 +304,11 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 
     BOOLEAN IsEnabled;
 
-    BOOLEAN EnableShortCircuiting;                   // indicates whether the short-circuiting event
-                                                     // is enabled or not for this event
+    BOOLEAN EnableShortCircuiting;                    // indicates whether the short-circuiting event
+                                                      // is enabled or not for this event
 
-    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
-    // of the event (whether it's a pre- or post- event)
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventStage; // reveals the calling stage of the event
+    // (whether it's a all- pre- or post- event)
 
     BOOLEAN HasCustomOutput; // Shows whether this event has a custom output
                              // source or not

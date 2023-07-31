@@ -97,6 +97,9 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Memory Execution Monitor & Execution Blocking [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
 * Custom Page-fault Injection [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pagein" target="_blank">link</a>]
 
+### Fifth Release (v0.5.0.0)
+* Different Event Calling Stages [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage" target="_blank">link</a>]
+
 ## How does it work?
 
 You can read about the internal design of HyperDbg and its features in the [documentation](https://docs.hyperdbg.org/design). Here's a top-level diagram that shows how HyperDbg works:
