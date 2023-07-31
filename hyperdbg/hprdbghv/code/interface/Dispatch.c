@@ -1176,7 +1176,7 @@ DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VIRTUAL_MACHINE_STATE * VC
     // Triggering the post-event (for the read hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_READ,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
@@ -1185,7 +1185,7 @@ DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VIRTUAL_MACHINE_STATE * VC
     // Triggering the post-event (for the read & write hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
@@ -1194,7 +1194,7 @@ DispatchEventHiddenHookPageReadWriteExecReadPostEvent(VIRTUAL_MACHINE_STATE * VC
     // Triggering the post-event (for the read & execute hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
@@ -1268,7 +1268,7 @@ DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VIRTUAL_MACHINE_STATE *
     // Triggering the post-event (for the execute hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_EXECUTE,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
@@ -1277,7 +1277,7 @@ DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VIRTUAL_MACHINE_STATE *
     // Triggering the post-event (for the read & execute hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_READ_AND_EXECUTE,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);
@@ -1286,7 +1286,7 @@ DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VIRTUAL_MACHINE_STATE *
     // Triggering the post-event (for the write & execute hooks)
     //
     VmmCallbackTriggerEvents(HIDDEN_HOOK_WRITE_AND_EXECUTE,
-                             VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                             VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                              Context,
                              NULL,
                              VCpu->Regs);

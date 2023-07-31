@@ -59,6 +59,8 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         return ScriptEnginePseudoRegGetEventTag(ActionBuffer);
     case PSEUDO_REGISTER_ID:
         return ScriptEnginePseudoRegGetEventId(ActionBuffer);
+    case PSEUDO_REGISTER_STAGE:
+        return ScriptEnginePseudoRegGetEventStage(ActionBuffer);
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");

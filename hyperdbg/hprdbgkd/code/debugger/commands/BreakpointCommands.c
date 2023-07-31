@@ -146,8 +146,8 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
             //
             // Remove the process id/thread id from the list
             //
-            g_TrapFlagState.ThreadInformation[i].ProcessId = PsGetCurrentProcessId();
-            g_TrapFlagState.ThreadInformation[i].ThreadId  = PsGetCurrentThreadId();
+            g_TrapFlagState.ThreadInformation[i].ProcessId = ProcessId;
+            g_TrapFlagState.ThreadInformation[i].ThreadId  = ThreadId;
 
             SuccessfullySet = TRUE;
 
