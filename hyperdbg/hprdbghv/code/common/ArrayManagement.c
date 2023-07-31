@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-#define MAX_NUM_OF_ARRAY 10
-
 /**
  * @brief Function to implement insertion sort
  *
@@ -25,7 +23,7 @@
 BOOLEAN
 ArrayManagementInsert(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT64 Key)
 {
-    UINT32 i;
+    UINT32 Idx;
 
     if (*NumberOfItems >= MAX_NUM_OF_ARRAY)
     {
@@ -35,18 +33,18 @@ ArrayManagementInsert(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT64 Key)
         return FALSE;
     }
 
-    i = *NumberOfItems;
+    Idx = *NumberOfItems;
 
     //
     // Move elements of Arr[0..i-1], that are greater than Key,
     // to one position ahead of their current position
     //
-    while (i > 0 && ArrayPtr[i - 1] > Key)
+    while (Idx > 0 && ArrayPtr[Idx - 1] > Key)
     {
-        ArrayPtr[i] = ArrayPtr[i - 1];
-        i           = i - 1;
+        ArrayPtr[Idx] = ArrayPtr[Idx - 1];
+        Idx           = Idx - 1;
     }
-    ArrayPtr[i] = Key;
+    ArrayPtr[Idx] = Key;
     (*NumberOfItems)++;
 
     //
