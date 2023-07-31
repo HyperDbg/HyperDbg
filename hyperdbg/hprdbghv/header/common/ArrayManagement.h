@@ -13,17 +13,27 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				Test Constants					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum number of array for test cases
+ *
+ */
+#define MAX_NUM_OF_ARRAY 10
+
+//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
 BOOLEAN
 ArrayManagementInsert(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT64 Key);
 
-VOID
+BOOLEAN
 ArrayManagementDeleteItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 Index);
 
 VOID
 ArrayManagementPrintArray(UINT64 ArrayPtr[], UINT32 NumberOfItems);
 
-UINT32
-ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT32 High, UINT32 Low, UINT64 Key);
+BOOLEAN
+ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT64 Key, UINT32 NumberOfItems, UINT32 * ResultIndex);
