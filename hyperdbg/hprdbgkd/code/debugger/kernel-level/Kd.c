@@ -1580,8 +1580,8 @@ KdQueryRflagTrapState()
     {
         LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
                 i,
-                g_TrapFlagState.ThreadInformation[i].ProcessId,
-                g_TrapFlagState.ThreadInformation[i].ThreadId);
+                g_TrapFlagState.ThreadInformation[i].Fields.ProcessId,
+                g_TrapFlagState.ThreadInformation[i].Fields.ThreadId);
     }
 }
 

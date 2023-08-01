@@ -1,5 +1,5 @@
 /**
- * @file ArrayManagement.c
+ * @file BinarySearch.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The file contains array management routines
  * @details
@@ -108,19 +108,27 @@ ArrayManagementPrintArray(UINT64 ArrayPtr[], UINT32 NumberOfItems)
  * @brief A utility function to perform the binary search
  *
  * @param ArrayPtr
- * @param Key
  * @param NumberOfItems
  * @param ResultIndex
+ * @param Key
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT64 Key, UINT32 NumberOfItems, UINT32 * ResultIndex)
+ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT32 NumberOfItems, UINT32 * ResultIndex, UINT64 Key)
 {
     UINT32 TempLow  = 0;
     UINT32 TempHigh = NumberOfItems;
 
     *ResultIndex = NULL;
+
+    if (NumberOfItems == 0)
+    {
+        //
+        // array is empty
+        //
+        return FALSE;
+    }
 
     //
     // Becasue the high is the count of items, not index of the last item
@@ -149,7 +157,6 @@ ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT64 Key, UINT32 NumberOfItems,
 
         if (ArrayPtr[Mid] < Key)
             TempLow = Mid + 1;
-
         else
             TempHigh = Mid - 1;
     }
@@ -182,9 +189,9 @@ ArrayManagementExample()
     //
     // Search for item equal to 15
     //
-    BOOLEAN result = ArrayManagementBinarySearch(Arr, 13, NumberOfItems, &Index);
+    BOOLEAN Result = ArrayManagementBinarySearch(Arr, NumberOfItems, &Index, 15);
 
-    if (result)
+    if (Result)
     {
         LogInfo("Index found: %d", Index);
 

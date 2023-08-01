@@ -16,13 +16,15 @@
  * @param ProcessId
  * @param ThreadId
  *
- * @return BOOLEAN
+ * @return BOOLEAN Shows whether the #DB should be handled by the debugger or re-injected
  */
 BOOLEAN
 BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
 {
-    BOOLEAN IsPreviouslySetByTheDebugger = FALSE;
-    RFLAGS  Rflags                       = {0};
+    UINT32                              Index;
+    DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+    BOOLEAN                             Result;
+    RFLAGS                              Rflags = {0};
 
     //
     // Read the RFLAGS
@@ -30,69 +32,40 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     Rflags.AsUInt = VmFuncGetRflags();
 
     //
-    // Check if this debug breakpoint relates to the TRAP FLAG or not
+    // Form the process id and thread id into a 64-bit value
     //
-    if (!Rflags.TrapFlag)
-    {
-        //
-        // It's not related to the TRAP FLAG
-        //
-        return FALSE;
-    }
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
+    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
+                                         g_TrapFlagState.NumberOfItems,
+                                         &Index,
+                                         ProcThrdInfo.asUInt);
 
     //
-    // Make sure, nobody is in the middle of modifying the list
+    // We check the trap flag after the results because we might set the trap flag
+    // for the thread but the thread might run 'popfq' removing our trap flag
+    // so, we both check whether thread is expected to have trap flag, if not
+    // we check whether the trap flag is available or not
     //
-    SpinlockLock(&BreakpointCommandTrapListLock);
-
-    //
-    // Check if the current process/thread id is found or not (which indicates
-    // that the trap flag is set by the debugger)
-    //
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    if (!Result && !Rflags.TrapFlag)
     {
-        if (g_TrapFlagState.ThreadInformation[i].ProcessId == ProcessId &&
-            g_TrapFlagState.ThreadInformation[i].ThreadId == ThreadId)
-        {
-            //
-            // Remove the process id/thread id from the list
-            //
-            g_TrapFlagState.ThreadInformation[i].ProcessId = NULL;
-            g_TrapFlagState.ThreadInformation[i].ThreadId  = NULL;
-
-            //
-            // Set by the debugger
-            //
-            IsPreviouslySetByTheDebugger = TRUE;
-
-            break;
-        }
+        //
+        // It's not related to a TRAP FLAG, and we didn't previously set trap flag for this thread
+        // So, probably other events like setting hardware debug breakpoints caused this #DB
+        // which means that it should be handled by the debugger
+        //
+        return TRUE;
     }
 
     //
-    // Unlock the list modification lock
+    // As it's not set by the debugger (not found in our list), it means the program or
+    // a debugger already set the trap flag, we'll inject #DB to the debugger
     //
-    SpinlockUnlock(&BreakpointCommandTrapListLock);
-
-    //
-    // Check if we have to unset the trap or not
-    //
-    if (IsPreviouslySetByTheDebugger)
-    {
-        //
-        // Uset or set the TRAP flag
-        //
-        VmFuncSetRflagTrapFlag(FALSE);
-    }
-
-    //
-    // As it's not set by the debugger, we'll inject #DB to the debugger
-    //
-    if (!IsPreviouslySetByTheDebugger)
+    if (!Result && Rflags.TrapFlag)
     {
         LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
                 "which was not previously adjusted by HyperDbg. This occurrence could indicate "
@@ -104,12 +77,48 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
                 PsGetCurrentProcessId(),
                 PsGetCurrentThreadId(),
                 CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()));
+
+        //
+        // Returning false means that it should be re-injected into the debuggee
+        //
+        return FALSE;
     }
+
+    //
+    // *** being here means the thread is found in the list of threads that we set TRAP FLAG on it ***
+    //
+
+    //
+    // Uset or set the TRAP flag
+    //
+    VmFuncSetRflagTrapFlag(FALSE);
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&BreakpointCommandTrapListLock);
+
+    //
+    // Remove the thread/process from the list
+    // We're sure the Result is TRUE
+    //
+
+    // if (Result)
+    // {
+    ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+                              &g_TrapFlagState.NumberOfItems,
+                              Index);
+    // }
+
+    //
+    // Unlock the list modification lock
+    //
+    SpinlockUnlock(&BreakpointCommandTrapListLock);
 
     //
     // By default, #DBs are managed by HyperDbg
     //
-    return FALSE;
+    return TRUE;
 }
 
 /**
@@ -123,11 +132,33 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
 BOOLEAN
 BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
 {
-    BOOLEAN SuccessfullySet = FALSE;
+    UINT32                              Index;
+    BOOLEAN                             Result;
+    BOOLEAN                             SuccessfullyStored;
+    DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+
+    //
+    // Form the process id and thread id into a 64-bit value
+    //
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
+    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
+                                         g_TrapFlagState.NumberOfItems,
+                                         &Index,
+                                         ProcThrdInfo.asUInt);
+
+    if (Result)
+    {
+        //
+        // It means that we already find this entry in the stored list
+        // so, just imply that the addition was successful (no need for extra addition)
+        //
+        return TRUE;
+    }
 
     //
     // Make sure, nobody is in the middle of modifying the list
@@ -135,32 +166,18 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     SpinlockLock(&BreakpointCommandTrapListLock);
 
     //
-    // Store the current process/thread id to indicate that the trap is supposed to
-    // be handled by HyperDbg once it's triggered
+    // Insert the thread into the list
     //
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
-    {
-        if (g_TrapFlagState.ThreadInformation[i].ProcessId == NULL &&
-            g_TrapFlagState.ThreadInformation[i].ThreadId == NULL)
-        {
-            //
-            // Remove the process id/thread id from the list
-            //
-            g_TrapFlagState.ThreadInformation[i].ProcessId = ProcessId;
-            g_TrapFlagState.ThreadInformation[i].ThreadId  = ThreadId;
-
-            SuccessfullySet = TRUE;
-
-            break;
-        }
-    }
+    SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
+                                               &g_TrapFlagState.NumberOfItems,
+                                               ProcThrdInfo.asUInt);
 
     //
     // Unlock the list modification lock
     //
     SpinlockUnlock(&BreakpointCommandTrapListLock);
 
-    return SuccessfullySet;
+    return SuccessfullyStored;
 }
 
 /**
@@ -179,7 +196,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     //
     // Check whether anything should be changed with trap-flags
     //
-    if (BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    if (!BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
     {
         //
         // Inject #DB as it's not supposed to be handled by HyperDbg
