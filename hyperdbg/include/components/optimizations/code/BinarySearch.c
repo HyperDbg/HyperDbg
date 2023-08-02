@@ -117,54 +117,21 @@ ArrayManagementPrintArray(UINT64 ArrayPtr[], UINT32 NumberOfItems)
 BOOLEAN
 ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT32 NumberOfItems, UINT32 * ResultIndex, UINT64 Key)
 {
-    UINT32 TempLow  = 0;
-    UINT32 TempHigh = NumberOfItems;
+    UINT32 Position = 0;
+    UINT32 Limit    = NumberOfItems;
 
-    *ResultIndex = NULL;
-
-    if (NumberOfItems == 0)
+    while (Position < Limit)
     {
-        //
-        // array is empty
-        //
-        return FALSE;
-    }
+        UINT32 TestPos = Position + ((Limit - Position) >> 1);
 
-    //
-    // Becasue the high is the count of items, not index of the last item
-    //
-    TempHigh--;
-
-    //
-    // Repeat until the pointers low and high meet each other
-    //
-    while (TempLow <= TempHigh)
-    {
-        UINT32 Mid = (TempHigh + TempLow) / 2;
-
-        if (ArrayPtr[Mid] == Key)
-        {
-            //
-            // Set the result
-            //
-            *ResultIndex = Mid;
-
-            //
-            // Found
-            //
-            return TRUE;
-        }
-
-        if (ArrayPtr[Mid] < Key)
-            TempLow = Mid + 1;
+        if (ArrayPtr[TestPos] < Key)
+            Position = TestPos + 1;
         else
-            TempHigh = Mid - 1;
+            Limit = TestPos;
     }
 
-    //
-    // Not found
-    //
-    return FALSE;
+    *ResultIndex = Position;
+    return (Position < NumberOfItems && ArrayPtr[Position] == Key);
 }
 
 /**

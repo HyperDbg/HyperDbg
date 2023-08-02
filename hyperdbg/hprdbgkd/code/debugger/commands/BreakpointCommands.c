@@ -24,6 +24,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     UINT32                              Index;
     DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
     BOOLEAN                             Result;
+    BOOLEAN                             ResultToReturn;
     RFLAGS                              Rflags = {0};
 
     //
@@ -36,6 +37,11 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     //
     ProcThrdInfo.Fields.ProcessId = ProcessId;
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&BreakpointCommandTrapListLock);
 
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
@@ -58,7 +64,8 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
         // So, probably other events like setting hardware debug breakpoints caused this #DB
         // which means that it should be handled by the debugger
         //
-        return TRUE;
+        ResultToReturn = TRUE;
+        goto Return;
     }
 
     //
@@ -81,7 +88,8 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Returning false means that it should be re-injected into the debuggee
         //
-        return FALSE;
+        ResultToReturn = FALSE;
+        goto Return;
     }
 
     //
@@ -94,21 +102,19 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     VmFuncSetRflagTrapFlag(FALSE);
 
     //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&BreakpointCommandTrapListLock);
-
-    //
     // Remove the thread/process from the list
     // We're sure the Result is TRUE
     //
-
-    // if (Result)
-    // {
     ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
                               &g_TrapFlagState.NumberOfItems,
                               Index);
-    // }
+
+    //
+    // Handled #DB by debugger
+    //
+    ResultToReturn = TRUE;
+
+Return:
 
     //
     // Unlock the list modification lock
@@ -118,7 +124,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     //
     // By default, #DBs are managed by HyperDbg
     //
-    return TRUE;
+    return ResultToReturn;
 }
 
 /**
@@ -144,6 +150,11 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&BreakpointCommandTrapListLock);
+
+    //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
     Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
@@ -157,13 +168,9 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         // It means that we already find this entry in the stored list
         // so, just imply that the addition was successful (no need for extra addition)
         //
-        return TRUE;
+        SuccessfullyStored = TRUE;
+        goto Return;
     }
-
-    //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&BreakpointCommandTrapListLock);
 
     //
     // Insert the thread into the list
@@ -172,6 +179,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
                                                &g_TrapFlagState.NumberOfItems,
                                                ProcThrdInfo.asUInt);
 
+Return:
     //
     // Unlock the list modification lock
     //
