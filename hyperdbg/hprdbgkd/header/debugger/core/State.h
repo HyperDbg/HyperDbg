@@ -141,7 +141,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     GUEST_REGS *                               Regs;
     UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
-    BOOLEAN                                    WaitForStepTrap;
     BOOLEAN                                    IgnoreDisasmInNextPacket;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE      CurrentCallingStage;

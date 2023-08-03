@@ -15,11 +15,12 @@
  * @brief Check and perform actions on RFLAGS.TF
  * @param ProcessId
  * @param ThreadId
+ * @param TrapSetByDebugger
  *
  * @return BOOLEAN Shows whether the #DB should be handled by the debugger or re-injected
  */
 BOOLEAN
-BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
+BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, BOOLEAN * TrapSetByDebugger)
 {
     UINT32                              Index;
     DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
@@ -50,6 +51,11 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
                                          g_TrapFlagState.NumberOfItems,
                                          &Index,
                                          ProcThrdInfo.asUInt);
+
+    //
+    // Indicate whether the trap flag is set by the debugger or not
+    //
+    *TrapSetByDebugger = Result;
 
     //
     // We check the trap flag after the results because we might set the trap flag
@@ -198,13 +204,16 @@ Return:
 BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 {
+    BOOLEAN                     TrapSetByDebugger;
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
 
     //
     // Check whether anything should be changed with trap-flags
     //
-    if (!BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    if (!BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(),
+                                                     PsGetCurrentThreadId(),
+                                                     &TrapSetByDebugger))
     {
         //
         // Inject #DB as it's not supposed to be handled by HyperDbg
@@ -242,7 +251,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         // Handle debug events (breakpoint, traps, hardware debug register when kernel
         // debugger is attached.)
         //
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState);
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
     }
     else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
                                                        DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
