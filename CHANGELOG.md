@@ -19,6 +19,7 @@ New release of the HyperDbg Debugger.
 - The debugger and the debuggee now perform a version/build check to prevent version mismatch 
 - fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
 - Fix the connection problem with serial (checksum error) over two VMs 
+- fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
 
 ## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.
@@ -40,7 +41,6 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - The event short-circuiting mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-short-circuiting))
-- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - New pseudo-registers (**$tag**, **$id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
