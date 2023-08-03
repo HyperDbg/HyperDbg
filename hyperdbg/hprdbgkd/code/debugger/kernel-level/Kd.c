@@ -365,31 +365,29 @@ KdLoggingResponsePacketToDebugger(
 
 /**
  * @brief Handles debug events when kernel-debugger is attached
+ *
  * @param DbgState The state of the debugger on the current core
+ * @param TrapSetByDebugger Shows whether a trap set by debugger or not
  *
  * @return VOID
  */
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN TrapSetByDebugger)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
+
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
     ContextAndTag.Context = LastVmexitRip;
 
-    if (DbgState->WaitForStepTrap)
+    if (TrapSetByDebugger)
     {
         //
-        // *** Handle a regular step ***
+        // *** Handle a regular trap flag (most of the times as a result of stepping) set by the debugger ***
         //
-
-        //
-        // Unset to show that we're no longer looking for a trap
-        //
-        DbgState->WaitForStepTrap = FALSE;
 
         //
         // Check and handle if there is a software defined breakpoint
@@ -447,7 +445,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
     else
     {
         //
-        // It's a regular breakpoint
+        // It's a regular debug break event
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
@@ -1432,31 +1430,16 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     UINT32 Interruptibility;
     UINT32 InterruptibilityOld = NULL;
-    RFLAGS Rflags              = {0};
 
     //
-    // We're waiting for an step
+    // Adjust RFLAG's trap-flag
     //
-    DbgState->WaitForStepTrap = TRUE;
+    VmFuncSetRflagTrapFlag(TRUE);
 
     //
-    // Change guest trap flag, we only indicate to unset it if the debuggee
-    // not already set it
+    // Unset the trap flag on the next VM-exit
     //
-    Rflags.AsUInt = VmFuncGetRflags();
-
-    if (Rflags.TrapFlag == FALSE)
-    {
-        //
-        // Adjust RFLAG's trap-flag
-        //
-        VmFuncSetRflagTrapFlag(TRUE);
-
-        //
-        // Unset the trap flag on the next VM-exit
-        //
-        BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
-    }
+    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
 
     //
     // During testing single-step, we realized that after single-stepping
@@ -1506,7 +1489,6 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         // It's a call, we should put a hardware debug register breakpoint
         // on the next instruction
         //
-        DbgState->WaitForStepTrap     = TRUE;
         NextAddressForHardwareDebugBp = VmFuncGetLastVmexitRip(DbgState->CoreId) + CallLength;
 
         CoreCount = KeQueryActiveProcessorCount(0);
@@ -1576,12 +1558,21 @@ KdQueryRflagTrapState()
 {
     ULONG CoreCount;
 
+    //
+    // show the number of items
+    //
+    LogInfo("Number of valid entries: 0x%x\n"
+            "(Please be aware that only top 0x%x items are considered valid. "
+            "There could be other items present in the array, but they are not valid.)",
+            g_TrapFlagState.NumberOfItems,
+            g_TrapFlagState.NumberOfItems);
+
     for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
     {
         LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
                 i,
-                g_TrapFlagState.ThreadInformation[i].ProcessId,
-                g_TrapFlagState.ThreadInformation[i].ThreadId);
+                g_TrapFlagState.ThreadInformation[i].Fields.ProcessId,
+                g_TrapFlagState.ThreadInformation[i].Fields.ThreadId);
     }
 }
 

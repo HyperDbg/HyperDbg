@@ -140,6 +140,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgrm", "hprdbgrm\hprdbg
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgrev", "hprdbgrev\hprdbgrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "optimizations", "optimizations", "{165C089B-6860-4AEA-9F88-67559156C2E7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{FCB5111C-C7D9-4E65-8EF7-E9BB80E54B7D}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\optimizations\code\BinarySearch.c = include\components\optimizations\code\BinarySearch.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{D8207406-263E-4831-A8E9-20C4ECE5CA15}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\optimizations\header\BinarySearch.h = include\components\optimizations\header\BinarySearch.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -209,6 +221,9 @@ Global
 		{66E41242-266A-44B1-803F-616E9FBD761F} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
 		{30E86BBD-BE38-4FB6-9F54-EA7DA3A30D2E} = {66E41242-266A-44B1-803F-616E9FBD761F}
 		{D7284E54-A479-4790-9387-65BDAC2257E1} = {66E41242-266A-44B1-803F-616E9FBD761F}
+		{165C089B-6860-4AEA-9F88-67559156C2E7} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{FCB5111C-C7D9-4E65-8EF7-E9BB80E54B7D} = {165C089B-6860-4AEA-9F88-67559156C2E7}
+		{D8207406-263E-4831-A8E9-20C4ECE5CA15} = {165C089B-6860-4AEA-9F88-67559156C2E7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

@@ -21,9 +21,12 @@ CommandRevHelp()
 {
     ShowMessages("!rev : uses the reversing machine module in order to reconstruct the programmer/memory assumptions.\n\n");
 
-    ShowMessages("syntax : \t!rev [config] [Path (string)]\n");
+    ShowMessages("syntax : \t!rev [config] [pid ProcessId (hex)]\n");
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !rev pattern c:\\users\\sina\\reverse eng\\config.json\n");
+    ShowMessages("\t\te.g : !rev pattern\n");
+    ShowMessages("\t\te.g : !rev reconstruct\n");
+    ShowMessages("\t\te.g : !rev pattern pid 1c0\n");
+    ShowMessages("\t\te.g : !rev reconstruct pid 1c0\n");
 }
 
 /**
@@ -36,22 +39,70 @@ CommandRevHelp()
 VOID
 CommandRev(vector<string> SplittedCommand, string Command)
 {
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevRequest = {0};
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevRequest         = {0};
+    BOOLEAN                                      SetPid             = FALSE;
+    UINT32                                       TargetPid          = NULL;
+    BOOLEAN                                      IgnoreFirstCommand = TRUE;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE    Mode               = REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_UNKNOWN;
+    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE    Type               = REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_UNKNOWN;
 
-    BOOLEAN IgnoreFirstCommand = TRUE;
+    //
+    // Interpret command specific details
+    //
+    for (auto Section : SplittedCommand)
+    {
+        if (!Section.compare("!rev") && IgnoreFirstCommand)
+        {
+            IgnoreFirstCommand = FALSE;
+            continue;
+        }
+        else if (!Section.compare("pid") && !SetPid)
+        {
+            SetPid = TRUE;
+        }
+        else if (SetPid)
+        {
+            if (!ConvertStringToUInt32(Section, &TargetPid))
+            {
+                //
+                // couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             Section.c_str());
+                CommandRevHelp();
+                return;
+            }
+            SetPid = FALSE;
+        }
+        else if (!Section.compare("pattern"))
+        {
+            Type = REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_PATTERN;
+        }
+        else if (!Section.compare("reconstruct"))
+        {
+            Type = REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_RECONSTRUCT;
+        }
+        else
+        {
+            //
+            // Unknown parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         Section.c_str());
+            CommandRevHelp();
+            return;
+        }
+    }
 
-    UINT64  TargetPid = 0;
-    BOOLEAN NextIsPid = FALSE;
+    if (SetPid)
+    {
+        ShowMessages("err, please enter a valid process id in hex format, "
+                     "or if you want to use it in decimal format, add '0n' "
+                     "prefix to the number\n");
+        return;
+    }
 
-    UINT32  TargetSize = 0;
-    BOOLEAN NextIsSize = FALSE;
-
-    UINT64  TargetAddress = 0;
-    BOOLEAN NextIsAddress = FALSE;
-
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE Mode = REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE_UNKNOWN;
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE Type = REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_UNKNOWN;
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM Form = REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_UNKNOWN;
+    // ================================================================================
 
     //
     // Send the request to the hypervisor (kernel)

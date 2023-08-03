@@ -68,6 +68,7 @@
 // Spinlock component
 //
 #include "components/spinlock/header/Spinlock.h"
+#include "components/optimizations/header/BinarySearch.h"
 
 //
 // Debugger Types

@@ -103,8 +103,16 @@ typedef struct _KD_NMI_STATE
  */
 typedef struct _DEBUGGER_PROCESS_THREAD_INFORMATION
 {
-    UINT32 ProcessId;
-    UINT32 ThreadId;
+    union
+    {
+        UINT64 asUInt;
+
+        struct
+        {
+            UINT32 ProcessId;
+            UINT32 ThreadId;
+        } Fields;
+    };
 
 } DEBUGGER_PROCESS_THREAD_INFORMATION, *PDEBUGGER_PROCESS_THREAD_INFORMATION;
 
@@ -115,6 +123,7 @@ typedef struct _DEBUGGER_PROCESS_THREAD_INFORMATION
  */
 typedef struct _DEBUGGER_TRAP_FLAG_STATE
 {
+    UINT32                              NumberOfItems;
     DEBUGGER_PROCESS_THREAD_INFORMATION ThreadInformation[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS];
 
 } DEBUGGER_TRAP_FLAG_STATE, *PDEBUGGER_TRAP_FLAG_STATE;
@@ -132,7 +141,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     GUEST_REGS *                               Regs;
     UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
-    BOOLEAN                                    WaitForStepTrap;
     BOOLEAN                                    IgnoreDisasmInNextPacket;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE      CurrentCallingStage;

@@ -401,7 +401,7 @@ const unsigned char BuildSignature[] = {
  * trap flag for them
  *
  */
-#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS 100
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS 200
 
 //////////////////////////////////////////////////
 //          Pool tags used in HyperDbg          //

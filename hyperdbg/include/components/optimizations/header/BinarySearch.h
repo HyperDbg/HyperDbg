@@ -1,5 +1,5 @@
 /**
- * @file ArrayManagement.h
+ * @file BinarySearch.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The header file for array management routines
  * @details
@@ -36,4 +36,4 @@ VOID
 ArrayManagementPrintArray(UINT64 ArrayPtr[], UINT32 NumberOfItems);
 
 BOOLEAN
-ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT64 Key, UINT32 NumberOfItems, UINT32 * ResultIndex);
+ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT32 NumberOfItems, UINT32 * ResultIndex, UINT64 Key);

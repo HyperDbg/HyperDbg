@@ -135,6 +135,12 @@
     <Filter Include="header\features\reversing">
       <UniqueIdentifier>{a13f3861-41c6-4b4e-84c7-a3f8bd36fa52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\components\optimizations">
+      <UniqueIdentifier>{e40e02a6-cc03-43ef-a9ff-aecdd7932f0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\optimizations">
+      <UniqueIdentifier>{4b8ceffa-1dca-49fe-8256-b758008048f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -287,8 +293,8 @@
     <ClCompile Include="code\common\UnloadDll.c">
       <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="code\common\ArrayManagement.c">
-      <Filter>code\common</Filter>
+    <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c">
+      <Filter>code\components\optimizations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -535,8 +541,8 @@
     <ClInclude Include="header\common\UnloadDll.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\ArrayManagement.h">
-      <Filter>header\common</Filter>
+    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h">
+      <Filter>header\components\optimizations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

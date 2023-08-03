@@ -15,14 +15,18 @@
  * @brief Check and perform actions on RFLAGS.TF
  * @param ProcessId
  * @param ThreadId
+ * @param TrapSetByDebugger
  *
- * @return BOOLEAN
+ * @return BOOLEAN Shows whether the #DB should be handled by the debugger or re-injected
  */
 BOOLEAN
-BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
+BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, BOOLEAN * TrapSetByDebugger)
 {
-    BOOLEAN IsPreviouslySetByTheDebugger = FALSE;
-    RFLAGS  Rflags                       = {0};
+    UINT32                              Index;
+    DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+    BOOLEAN                             Result;
+    BOOLEAN                             ResultToReturn;
+    RFLAGS                              Rflags = {0};
 
     //
     // Read the RFLAGS
@@ -30,19 +34,10 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     Rflags.AsUInt = VmFuncGetRflags();
 
     //
-    // Check if this debug breakpoint relates to the TRAP FLAG or not
+    // Form the process id and thread id into a 64-bit value
     //
-    if (!Rflags.TrapFlag)
-    {
-        //
-        // It's not related to the TRAP FLAG
-        //
-        return FALSE;
-    }
-
-    //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
-    //
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
     // Make sure, nobody is in the middle of modifying the list
@@ -50,50 +45,40 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
     SpinlockLock(&BreakpointCommandTrapListLock);
 
     //
-    // Check if the current process/thread id is found or not (which indicates
-    // that the trap flag is set by the debugger)
+    // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
-    {
-        if (g_TrapFlagState.ThreadInformation[i].ProcessId == ProcessId &&
-            g_TrapFlagState.ThreadInformation[i].ThreadId == ThreadId)
-        {
-            //
-            // Remove the process id/thread id from the list
-            //
-            g_TrapFlagState.ThreadInformation[i].ProcessId = NULL;
-            g_TrapFlagState.ThreadInformation[i].ThreadId  = NULL;
-
-            //
-            // Set by the debugger
-            //
-            IsPreviouslySetByTheDebugger = TRUE;
-
-            break;
-        }
-    }
+    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
+                                         g_TrapFlagState.NumberOfItems,
+                                         &Index,
+                                         ProcThrdInfo.asUInt);
 
     //
-    // Unlock the list modification lock
+    // Indicate whether the trap flag is set by the debugger or not
     //
-    SpinlockUnlock(&BreakpointCommandTrapListLock);
+    *TrapSetByDebugger = Result;
 
     //
-    // Check if we have to unset the trap or not
+    // We check the trap flag after the results because we might set the trap flag
+    // for the thread but the thread might run 'popfq' removing our trap flag
+    // so, we both check whether thread is expected to have trap flag, if not
+    // we check whether the trap flag is available or not
     //
-    if (IsPreviouslySetByTheDebugger)
+    if (!Result && !Rflags.TrapFlag)
     {
         //
-        // Uset or set the TRAP flag
+        // It's not related to a TRAP FLAG, and we didn't previously set trap flag for this thread
+        // So, probably other events like setting hardware debug breakpoints caused this #DB
+        // which means that it should be handled by the debugger
         //
-        VmFuncSetRflagTrapFlag(FALSE);
+        ResultToReturn = TRUE;
+        goto Return;
     }
-
-    //
-    // As it's not set by the debugger, we'll inject #DB to the debugger
-    //
-    if (!IsPreviouslySetByTheDebugger)
+    else if (!Result && Rflags.TrapFlag)
     {
+        //
+        // As it's not set by the debugger (not found in our list), it means the program or
+        // a debugger already set the trap flag, we'll inject #DB to the debugger
+        //
         LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
                 "which was not previously adjusted by HyperDbg. This occurrence could indicate "
                 "the employment of an anti-debugging technique by the process or the involvement "
@@ -104,12 +89,50 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
                 PsGetCurrentProcessId(),
                 PsGetCurrentThreadId(),
                 CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()));
+
+        //
+        // Returning false means that it should be re-injected into the debuggee
+        //
+        ResultToReturn = FALSE;
+        goto Return;
     }
+    else
+    {
+        //
+        // *** being here means the thread is found in the list of threads that we set TRAP FLAG on it ***
+        //
+
+        //
+        // Uset or set the TRAP flag
+        //
+        VmFuncSetRflagTrapFlag(FALSE);
+
+        //
+        // Remove the thread/process from the list
+        // We're sure the Result is TRUE
+        //
+        ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+                                  &g_TrapFlagState.NumberOfItems,
+                                  Index);
+
+        //
+        // Handled #DB by debugger
+        //
+        ResultToReturn = TRUE;
+        goto Return;
+    }
+
+Return:
+
+    //
+    // Unlock the list modification lock
+    //
+    SpinlockUnlock(&BreakpointCommandTrapListLock);
 
     //
     // By default, #DBs are managed by HyperDbg
     //
-    return FALSE;
+    return ResultToReturn;
 }
 
 /**
@@ -123,11 +146,16 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId)
 BOOLEAN
 BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
 {
-    BOOLEAN SuccessfullySet = FALSE;
+    UINT32                              Index;
+    BOOLEAN                             Result;
+    BOOLEAN                             SuccessfullyStored;
+    DEBUGGER_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
 
     //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
+    // Form the process id and thread id into a 64-bit value
     //
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
     // Make sure, nobody is in the middle of modifying the list
@@ -135,32 +163,40 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     SpinlockLock(&BreakpointCommandTrapListLock);
 
     //
-    // Store the current process/thread id to indicate that the trap is supposed to
-    // be handled by HyperDbg once it's triggered
+    // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
+                                         g_TrapFlagState.NumberOfItems,
+                                         &Index,
+                                         ProcThrdInfo.asUInt);
+
+    if (Result)
     {
-        if (g_TrapFlagState.ThreadInformation[i].ProcessId == NULL &&
-            g_TrapFlagState.ThreadInformation[i].ThreadId == NULL)
-        {
-            //
-            // Remove the process id/thread id from the list
-            //
-            g_TrapFlagState.ThreadInformation[i].ProcessId = ProcessId;
-            g_TrapFlagState.ThreadInformation[i].ThreadId  = ThreadId;
-
-            SuccessfullySet = TRUE;
-
-            break;
-        }
+        //
+        // It means that we already find this entry in the stored list
+        // so, just imply that the addition was successful (no need for extra addition)
+        //
+        SuccessfullyStored = TRUE;
+        goto Return;
+    }
+    else
+    {
+        //
+        // Insert the thread into the list as the item is not already present
+        //
+        SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
+                                                   &g_TrapFlagState.NumberOfItems,
+                                                   ProcThrdInfo.asUInt);
+        goto Return;
     }
 
+Return:
     //
     // Unlock the list modification lock
     //
     SpinlockUnlock(&BreakpointCommandTrapListLock);
 
-    return SuccessfullySet;
+    return SuccessfullyStored;
 }
 
 /**
@@ -173,13 +209,16 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
 BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 {
+    BOOLEAN                     TrapSetByDebugger;
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
     BOOLEAN                     Result   = TRUE;
 
     //
     // Check whether anything should be changed with trap-flags
     //
-    if (BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    if (!BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(),
+                                                     PsGetCurrentThreadId(),
+                                                     &TrapSetByDebugger))
     {
         //
         // Inject #DB as it's not supposed to be handled by HyperDbg
@@ -217,7 +256,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
         // Handle debug events (breakpoint, traps, hardware debug register when kernel
         // debugger is attached.)
         //
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState);
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
     }
     else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
                                                        DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
