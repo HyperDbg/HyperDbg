@@ -130,8 +130,18 @@ ArrayManagementBinarySearch(UINT64 ArrayPtr[], UINT32 NumberOfItems, UINT32 * Re
             Limit = TestPos;
     }
 
-    *ResultIndex = Position;
-    return (Position < NumberOfItems && ArrayPtr[Position] == Key);
+    if (Position < NumberOfItems && ArrayPtr[Position] == Key)
+    {
+        //
+        // Set the result position in the array
+        //
+        *ResultIndex = Position;
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 /**

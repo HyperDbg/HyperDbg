@@ -73,13 +73,12 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         ResultToReturn = TRUE;
         goto Return;
     }
-
-    //
-    // As it's not set by the debugger (not found in our list), it means the program or
-    // a debugger already set the trap flag, we'll inject #DB to the debugger
-    //
-    if (!Result && Rflags.TrapFlag)
+    else if (!Result && Rflags.TrapFlag)
     {
+        //
+        // As it's not set by the debugger (not found in our list), it means the program or
+        // a debugger already set the trap flag, we'll inject #DB to the debugger
+        //
         LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
                 "which was not previously adjusted by HyperDbg. This occurrence could indicate "
                 "the employment of an anti-debugging technique by the process or the involvement "
@@ -97,28 +96,31 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         ResultToReturn = FALSE;
         goto Return;
     }
+    else
+    {
+        //
+        // *** being here means the thread is found in the list of threads that we set TRAP FLAG on it ***
+        //
 
-    //
-    // *** being here means the thread is found in the list of threads that we set TRAP FLAG on it ***
-    //
+        //
+        // Uset or set the TRAP flag
+        //
+        VmFuncSetRflagTrapFlag(FALSE);
 
-    //
-    // Uset or set the TRAP flag
-    //
-    VmFuncSetRflagTrapFlag(FALSE);
+        //
+        // Remove the thread/process from the list
+        // We're sure the Result is TRUE
+        //
+        ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+                                  &g_TrapFlagState.NumberOfItems,
+                                  Index);
 
-    //
-    // Remove the thread/process from the list
-    // We're sure the Result is TRUE
-    //
-    ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
-                              &g_TrapFlagState.NumberOfItems,
-                              Index);
-
-    //
-    // Handled #DB by debugger
-    //
-    ResultToReturn = TRUE;
+        //
+        // Handled #DB by debugger
+        //
+        ResultToReturn = TRUE;
+        goto Return;
+    }
 
 Return:
 
@@ -177,13 +179,16 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         SuccessfullyStored = TRUE;
         goto Return;
     }
-
-    //
-    // Insert the thread into the list
-    //
-    SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
-                                               &g_TrapFlagState.NumberOfItems,
-                                               ProcThrdInfo.asUInt);
+    else
+    {
+        //
+        // Insert the thread into the list as the item is not already present
+        //
+        SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
+                                                   &g_TrapFlagState.NumberOfItems,
+                                                   ProcThrdInfo.asUInt);
+        goto Return;
+    }
 
 Return:
     //

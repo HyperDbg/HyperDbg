@@ -1558,6 +1558,15 @@ KdQueryRflagTrapState()
 {
     ULONG CoreCount;
 
+    //
+    // show the number of items
+    //
+    LogInfo("Number of valid entries: 0x%x\n"
+            "(Please be aware that only top 0x%x items are considered valid. "
+            "There could be other items present in the array, but they are not valid.)",
+            g_TrapFlagState.NumberOfItems,
+            g_TrapFlagState.NumberOfItems);
+
     for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
     {
         LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
