@@ -510,7 +510,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionShortCircuitingEvent(SrcVal0);
+        ScriptEngineFunctionShortCircuitingEvent(SrcVal0, ActionDetail);
 
         break;
 

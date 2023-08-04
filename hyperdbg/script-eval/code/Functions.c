@@ -830,17 +830,26 @@ ScriptEngineFunctionFlush()
 
 /**
  * @brief Implementation of event_ignore function
+ * @param State
+ * @param ActionDetail
  *
  * @return VOID
  */
 VOID
-ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDetail)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to short-circuit events in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (ActionDetail->CallingStage == 1)
+    {
+        LogWarning("Warning, calling the 'event_sc' function in the 'post' calling stage doesn't make sense as the emulation is already performed!\n"
+                   "You can use this function in the 'pre' calling stage");
+        return;
+    }
 
     UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 

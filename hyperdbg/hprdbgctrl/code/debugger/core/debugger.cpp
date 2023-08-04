@@ -2922,6 +2922,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandCoreId)
     {
         ShowMessages("err, please specify a value for 'core'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2930,6 +2931,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandPid)
     {
         ShowMessages("err, please specify a value for 'pid'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2938,6 +2940,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandBufferSize)
     {
         ShowMessages("err, please specify a value for 'buffer'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2946,6 +2949,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandImmediateMessaging)
     {
         ShowMessages("err, please specify a value for 'imm'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2954,6 +2958,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandExecutionStage)
     {
         ShowMessages("err, please specify a value for 'stage'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2962,6 +2967,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandSc)
     {
         ShowMessages("err, please specify a value for 'sc'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2977,13 +2983,14 @@ InterpretGeneralEventAndActionsFields(
         ShowMessages(
             "err, using the short-circuiting mechanism with 'post' or 'all' stage events "
             "doesn't make sense; it's not supported!\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_USING_SHORT_CIRCUITING_IN_POST_EVENTS;
 
         goto ReturnWithError;
     }
 
     //
-    // It's not possible to break to debugger in vmi-mode
+    // It's not possible to break to debugger in VMI-mode
     //
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
@@ -2992,6 +2999,7 @@ InterpretGeneralEventAndActionsFields(
             "You should operate in Debugger Mode to break and get the "
             "full control of the system. Still, you can use 'script' and run "
             "'custom code' in your local debugging (VMI Mode)\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
 
         goto ReturnWithError;
@@ -3005,6 +3013,7 @@ InterpretGeneralEventAndActionsFields(
     {
         ShowMessages("err, non-immediate message passing is not supported in "
                      "'output-forwarding mode'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE;
 
         goto ReturnWithError;
