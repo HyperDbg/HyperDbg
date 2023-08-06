@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -46,14 +47,31 @@ CommandKill(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!g_ActiveProcessDebuggingState.IsActive)
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        //
+        // Kill the current active process
+        //
+        if (!UdKillProcess(g_ActiveProcessDebuggingState.ProcessId))
+        {
+            ShowMessages("process does not exists, is it already terminated?\n");
+        }
+    }
+    else if (g_ProcessIdOfLatestStartingProcess != NULL)
+    {
+        if (!UdKillProcess(g_ProcessIdOfLatestStartingProcess))
+        {
+            ShowMessages("process does not exists, is it already terminated?\n");
+        }
+
+        //
+        // No longer the last process exists
+        //
+        g_ProcessIdOfLatestStartingProcess = NULL;
+    }
+    else
     {
         ShowMessages("nothing to terminate!\n");
         return;
     }
-
-    //
-    // Kill the current active process
-    //
-    UdKillProcess(g_ActiveProcessDebuggingState.ProcessId);
 }

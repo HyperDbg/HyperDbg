@@ -14,9 +14,11 @@
 //
 // Global Variables
 //
+extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern std::wstring             g_StartCommandPath;
 extern std::wstring             g_StartCommandPathAndArguments;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+;
 
 /**
  * @brief help of the .restart command
@@ -69,6 +71,15 @@ CommandRestart(vector<string> SplittedCommand, string Command)
         // successfully killed the active process
         //
         UdKillProcess(g_ActiveProcessDebuggingState.ProcessId);
+    }
+    else if (g_ProcessIdOfLatestStartingProcess != NULL)
+    {
+        UdKillProcess(g_ProcessIdOfLatestStartingProcess);
+
+        //
+        // No longer the last process exists
+        //
+        g_ProcessIdOfLatestStartingProcess = NULL;
     }
 
     //

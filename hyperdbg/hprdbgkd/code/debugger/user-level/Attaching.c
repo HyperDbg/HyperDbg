@@ -1171,6 +1171,24 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     }
 
     //
+    // Check if process exists or not
+    //
+    if (!CommonIsProcessExist(ProcessDebuggingDetail->ProcessId))
+    {
+        //
+        // Process was killed before killing it here (not exists)
+        //
+
+        //
+        // Remove the entry from the process debugging details list
+        //
+        AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingDetail->Token);
+
+        KillRequest->Result = DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS_DOES_NOT_EXISTS;
+        return FALSE;
+    }
+
+    //
     // Check if we can kill it using the first method
     //
     WasKilled = CommonKillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_1);

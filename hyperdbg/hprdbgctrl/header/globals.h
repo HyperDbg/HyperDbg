@@ -370,6 +370,12 @@ BOOLEAN g_IsReversingMachineModulesLoaded = FALSE;
 ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState = {0};
 
 /**
+ * @brief The process id of the latest starting process
+ *
+ */
+UINT32 g_ProcessIdOfLatestStartingProcess = NULL;
+
+/**
  * @brief This variable holds the trace and generate numbers
  * for new tags of events
  *

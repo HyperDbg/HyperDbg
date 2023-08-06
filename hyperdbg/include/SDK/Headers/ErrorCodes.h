@@ -410,6 +410,12 @@
  */
 #define DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL 0xc000003d
 
+/**
+ * @brief error, unable to kill the target process. process does not exists
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS_DOES_NOT_EXISTS 0xc000003e
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

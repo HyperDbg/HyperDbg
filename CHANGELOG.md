@@ -4,12 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [0.5.0.0] - 2023-XX-XX
+## [0.6.0.0] - 2023-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+
+## [0.5.0.0] - 2023-08-07
+New release of the HyperDbg Debugger.
+
+### Added
 - The event calling stage mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage))
 - New pseudo-registers (**$stage**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 
@@ -20,6 +24,7 @@ New release of the HyperDbg Debugger.
 - fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
 - Fix the connection problem with serial (checksum error) over two VMs 
 - fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
+- fix the problem with the '.kill' and '.restart' commands
 
 ## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.
