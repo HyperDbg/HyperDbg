@@ -20,8 +20,8 @@ typedef struct ACTION_BUFFER {
   long long unsigned Tag;
   long long unsigned CurrentAction;
   char ImmediatelySendTheResults;
-  char CallingStage;
   long long unsigned Context;
+  char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
 
 

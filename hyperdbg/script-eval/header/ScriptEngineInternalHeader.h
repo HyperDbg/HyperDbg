@@ -175,10 +175,9 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
                                  UINT64  Value);
 
 VOID
-ScriptEngineFunctionPause(UINT64      Tag,
-                          BOOLEAN     ImmediateMessagePassing,
-                          PGUEST_REGS GuestRegs,
-                          UINT64      Context);
+ScriptEngineFunctionPause(
+    ACTION_BUFFER * ActionDetail,
+    PGUEST_REGS     GuestRegs);
 
 VOID
 ScriptEngineFunctionFlush();

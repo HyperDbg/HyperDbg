@@ -419,7 +419,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     BOOLEAN                          IsHandledByBpRoutines = FALSE;
     PLIST_ENTRY                      TempList              = 0;
     UINT64                           GuestRipPhysical      = NULL;
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
     RFLAGS                           Rflags                = {0};
     ULONG                            LengthOfExitInstr     = 0;
     BYTE                             InstrByte             = NULL;
@@ -466,14 +466,14 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             //
             // Now, halt the debuggee
             //
-            ContextAndTag.Context = VmFuncGetLastVmexitRip(DbgState->CoreId);
+            TargetContext.Context = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
             //
             // In breakpoints tag is breakpoint id, not event tag
             //
             if (Reason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT)
             {
-                ContextAndTag.Tag = CurrentBreakpointDesc->BreakpointId;
+                TargetContext.Tag = CurrentBreakpointDesc->BreakpointId;
             }
 
             //
@@ -505,7 +505,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 //
                 KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                       Reason,
-                                                      &ContextAndTag);
+                                                      &TargetContext);
             }
 
             //
@@ -584,7 +584,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
 BOOLEAN
 BreakpointHandleBpTraps(UINT32 CoreId)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
     UINT64                           GuestRip      = 0;
     PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
 
@@ -615,10 +615,10 @@ BreakpointHandleBpTraps(UINT32 CoreId)
             //
             // It's a random breakpoint byte
             //
-            ContextAndTag.Context = GuestRip;
+            TargetContext.Context = GuestRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                  &ContextAndTag);
+                                                  &TargetContext);
 
             //
             // Increment rip

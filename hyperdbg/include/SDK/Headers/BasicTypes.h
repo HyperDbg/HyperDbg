@@ -107,17 +107,6 @@ typedef struct GUEST_EXTRA_REGISTERS
 } GUEST_EXTRA_REGISTERS, *PGUEST_EXTRA_REGISTERS;
 
 /**
- * @brief The structure of detail of a triggered event in HyperDbg
- *
- */
-typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS
-{
-    UINT64 Tag; /* in breakpoints Tag is breakpoint id, not event tag */
-    PVOID  Context;
-
-} DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;
-
-/**
  * @brief List of different variables
  */
 typedef struct _SCRIPT_ENGINE_VARIABLES_LIST

@@ -250,8 +250,16 @@ StartAgain:
                     //
                     // It's an event tag
                     //
-                    ShowMessages("event 0x%x triggered\n",
-                                 PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    if (PausePacket->EventCallingStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+                    {
+                        ShowMessages("event 0x%x triggered (post)\n",
+                                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    }
+                    else
+                    {
+                        ShowMessages("event 0x%x triggered (pre)\n",
+                                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    }
                 }
 
                 break;

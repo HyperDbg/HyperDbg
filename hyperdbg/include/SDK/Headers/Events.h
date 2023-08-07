@@ -83,19 +83,6 @@ typedef enum _VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
 
 } VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE;
 
-/**
- * @brief Type of calling the event
- *
- */
-typedef enum _VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE
-{
-    VMM_CALLBACK_CALLING_STAGE_INVALID_EVENT_EMULATION = 0,
-    VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION     = 1,
-    VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION    = 2,
-    VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION     = 3
-
-} VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE;
-
 //////////////////////////////////////////////////
 //               Event Details                  //
 //////////////////////////////////////////////////

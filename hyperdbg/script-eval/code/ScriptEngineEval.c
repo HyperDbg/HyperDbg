@@ -485,10 +485,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
     case FUNC_PAUSE:
 
-        ScriptEngineFunctionPause(ActionDetail->Tag,
-                                  ActionDetail->ImmediatelySendTheResults,
-                                  GuestRegs,
-                                  ActionDetail->Context);
+        ScriptEngineFunctionPause(ActionDetail,
+                                  GuestRegs);
         break;
 
     case FUNC_FLUSH:

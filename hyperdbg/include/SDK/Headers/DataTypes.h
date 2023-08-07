@@ -70,6 +70,19 @@ typedef enum _VMX_EXECUTION_MODE
 } VMX_EXECUTION_MODE;
 
 /**
+ * @brief Type of calling the event
+ *
+ */
+typedef enum _VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE
+{
+    VMM_CALLBACK_CALLING_STAGE_INVALID_EVENT_EMULATION = 0,
+    VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION     = 1,
+    VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION    = 2,
+    VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION     = 3
+
+} VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE;
+
+/**
  * @brief enum to query different process and thread interception mechanisms
  *
  */
@@ -150,20 +163,37 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
  */
 
 /**
+ * @brief The structure of detail of a triggered event in HyperDbg
+ * @details This structure is also used for transferring breakpoint ids, RIP as the context, etc.
+ *
+ */
+typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS
+{
+    UINT64                                Tag; /* in breakpoints Tag is breakpoint id, not event tag */
+    PVOID                                 Context;
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE Stage;
+
+} DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;
+
+/* ==============================================================================================
+ */
+
+/**
  * @brief The structure of pausing packet in kHyperDbg
  *
  */
 typedef struct _DEBUGGEE_KD_PAUSED_PACKET
 {
-    UINT64                  Rip;
-    BOOLEAN                 IsProcessorOn32BitMode; // if true shows that the address should be interpreted in 32-bit mode
-    BOOLEAN                 IgnoreDisassembling;    // if check if diassembling should be ignored or not
-    DEBUGGEE_PAUSING_REASON PausingReason;
-    ULONG                   CurrentCore;
-    UINT64                  EventTag;
-    UINT64                  Rflags;
-    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    UINT16                  ReadInstructionLen;
+    UINT64                                Rip;
+    BOOLEAN                               IsProcessorOn32BitMode; // if true shows that the address should be interpreted in 32-bit mode
+    BOOLEAN                               IgnoreDisassembling;    // if check if diassembling should be ignored or not
+    DEBUGGEE_PAUSING_REASON               PausingReason;
+    ULONG                                 CurrentCore;
+    UINT64                                EventTag;
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventCallingStage;
+    UINT64                                Rflags;
+    BYTE                                  InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    UINT16                                ReadInstructionLen;
 
 } DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
 
@@ -176,17 +206,18 @@ typedef struct _DEBUGGEE_KD_PAUSED_PACKET
  */
 typedef struct _DEBUGGEE_UD_PAUSED_PACKET
 {
-    UINT64                  Rip;
-    UINT64                  ProcessDebuggingToken;
-    BOOLEAN                 Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
-    DEBUGGEE_PAUSING_REASON PausingReason;
-    UINT32                  ProcessId;
-    UINT32                  ThreadId;
-    UINT64                  EventTag;
-    UINT64                  Rflags;
-    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    UINT16                  ReadInstructionLen;
-    GUEST_REGS              GuestRegs;
+    UINT64                                Rip;
+    UINT64                                ProcessDebuggingToken;
+    BOOLEAN                               Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
+    DEBUGGEE_PAUSING_REASON               PausingReason;
+    UINT32                                ProcessId;
+    UINT32                                ThreadId;
+    UINT64                                Rflags;
+    UINT64                                EventTag;
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventCallingStage;
+    BYTE                                  InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    UINT16                                ReadInstructionLen;
+    GUEST_REGS                            GuestRegs;
 
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
 

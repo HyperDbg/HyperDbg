@@ -696,10 +696,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                       BOOLEAN *                             PostEventRequired,
                       GUEST_REGS *                          Regs)
 {
-    DebuggerCheckForCondition * ConditionFunc;
-    PLIST_ENTRY                 TempList  = 0;
-    PLIST_ENTRY                 TempList2 = 0;
-    PROCESSOR_DEBUGGING_STATE * DbgState  = NULL;
+    DebuggerCheckForCondition *      ConditionFunc;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail;
+    PLIST_ENTRY                      TempList  = 0;
+    PLIST_ENTRY                      TempList2 = 0;
+    PROCESSOR_DEBUGGING_STATE *      DbgState  = NULL;
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -1049,19 +1050,16 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         DbgState->ShortCircuitingEvent = CurrentEvent->EnableShortCircuiting;
 
         //
-        // Set the current calling stage
+        // Setup event trigger detail
         //
-        DbgState->CurrentCallingStage = CallingStage;
+        EventTriggerDetail.Context = Context;
+        EventTriggerDetail.Tag     = CurrentEvent->Tag;
+        EventTriggerDetail.Stage   = CallingStage;
 
         //
         // perform the actions
         //
-        DebuggerPerformActions(DbgState, CurrentEvent, Context);
-
-        //
-        // Set the current calling stage
-        //
-        DbgState->CurrentCallingStage = VMM_CALLBACK_CALLING_STAGE_INVALID_EVENT_EMULATION;
+        DebuggerPerformActions(DbgState, CurrentEvent, &EventTriggerDetail);
     }
 
     //
@@ -1093,11 +1091,14 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
  *
  * @param DbgState The state of the debugger on the current core
  * @param Event Event Object
- * @param Context Optional parameter
+ * @param EventTriggerDetail Event trigger details
+ *
  * @return VOID
  */
 VOID
-DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Event, PVOID Context)
+DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE *        DbgState,
+                       DEBUGGER_EVENT *                   Event,
+                       DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1116,14 +1117,23 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Eve
         switch (CurrentAction->ActionType)
         {
         case BREAK_TO_DEBUGGER:
-            DebuggerPerformBreakToDebugger(DbgState, Event->Tag, CurrentAction, Context);
+
+            DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail);
+
             break;
+
         case RUN_SCRIPT:
-            DebuggerPerformRunScript(DbgState, Event->Tag, CurrentAction, NULL, Context);
+
+            DebuggerPerformRunScript(DbgState, CurrentAction, NULL, EventTriggerDetail);
+
             break;
+
         case RUN_CUSTOM_CODE:
-            DebuggerPerformRunTheCustomCode(DbgState, Event->Tag, CurrentAction, Context);
+
+            DebuggerPerformRunTheCustomCode(DbgState, CurrentAction, EventTriggerDetail);
+
             break;
+
         default:
 
             //
@@ -1138,44 +1148,45 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGER_EVENT Eve
  * @brief Managing run script action
  *
  * @param DbgState The state of the debugger on the current core
- * @param Tag Tag of event
  * @param Action Action object
- * @param Context Optional parameter
+ * @param ScriptDetails Details of script
+ * @param EventTriggerDetail Event trigger detail
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
-                         UINT64                      Tag,
-                         PDEBUGGER_EVENT_ACTION      Action,
-                         PDEBUGGEE_SCRIPT_PACKET     ScriptDetails,
-                         PVOID                       Context)
+DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
+                         DEBUGGER_EVENT_ACTION *            Action,
+                         DEBUGGEE_SCRIPT_PACKET *           ScriptDetails,
+                         DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
     SYMBOL_BUFFER                CodeBuffer    = {0};
     ACTION_BUFFER                ActionBuffer  = {0};
     SYMBOL                       ErrorSymbol   = {0};
     SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
 
-    //
-    // Fill the action buffer's calling stage
-    //
-    if (DbgState->CurrentCallingStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
-    {
-        ActionBuffer.CallingStage = 1;
-    }
-    else
-    {
-        ActionBuffer.CallingStage = 0;
-    }
+    LogInfo("Event tag: %llx. context: %llx. stage: %x", EventTriggerDetail->Tag, EventTriggerDetail->Context, EventTriggerDetail->Stage);
 
     if (Action != NULL)
     {
         //
+        // Fill the action buffer's calling stage
+        //
+        if (EventTriggerDetail->Stage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+        {
+            ActionBuffer.CallingStage = 1;
+        }
+        else
+        {
+            ActionBuffer.CallingStage = 0;
+        }
+
+        //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = Context;
+        ActionBuffer.Context                   = EventTriggerDetail->Context;
+        ActionBuffer.Tag                       = EventTriggerDetail->Tag;
         ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
         ActionBuffer.CurrentAction             = Action;
-        ActionBuffer.Tag                       = Tag;
 
         //
         // Context point to the registers
@@ -1187,12 +1198,24 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
     else if (ScriptDetails != NULL)
     {
         //
+        // Fill the action buffer's calling stage
+        //
+        if (EventTriggerDetail->Stage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+        {
+            ActionBuffer.CallingStage = 1;
+        }
+        else
+        {
+            ActionBuffer.CallingStage = 0;
+        }
+
+        //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = Context;
+        ActionBuffer.Context                   = EventTriggerDetail->Context;
+        ActionBuffer.Tag                       = EventTriggerDetail->Tag;
         ActionBuffer.ImmediatelySendTheResults = TRUE;
         ActionBuffer.CurrentAction             = NULL;
-        ActionBuffer.Tag                       = Tag;
 
         //
         // Context point to the registers
@@ -1243,13 +1266,15 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE * DbgState,
  * @brief Manage running the custom code action
  *
  * @param DbgState The state of the debugger on the current core
- * @param Tag Tag of event
  * @param Action Action object
- * @param Context Optional parameter
+ * @param EventTriggerDetail Event trigger detail
+ *
  * @return VOID
  */
 VOID
-DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
+DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
+                                DEBUGGER_EVENT_ACTION *            Action,
+                                DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -1280,14 +1305,20 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(NULL, DbgState->Regs, Context, Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler(NULL,
+                                     DbgState->Regs,
+                                     EventTriggerDetail->Context,
+                                     Action->CustomCodeBufferAddress);
     }
     else
     {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, DbgState->Regs, Context, Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress,
+                                     DbgState->Regs,
+                                     EventTriggerDetail->Context,
+                                     Action->CustomCodeBufferAddress);
     }
 }
 
@@ -1298,27 +1329,26 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag
  * @param Tag Tag of event
  * @param Action Action object
  * @param Context Optional parameter
+ * @param EventTriggerDetail Event trigger detail
  *
  * @return VOID
  */
 VOID
-DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE * DbgState, UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PVOID Context)
+DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
+                               DEBUGGER_EVENT_ACTION *            Action,
+                               DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
-
     if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // The guest is already in vmx-root mode
         // Halt other cores
         //
-        ContextAndTag.Tag     = Tag;
-        ContextAndTag.Context = Context;
 
         KdHandleBreakpointAndDebugBreakpoints(
             DbgState,
             DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-            &ContextAndTag);
+            EventTriggerDetail);
     }
     else
     {

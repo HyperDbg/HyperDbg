@@ -121,16 +121,10 @@ BOOLEAN g_InterceptBreakpoints;
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 
 /**
- * @brief Optional context as the debuggee is halted
+ * @brief Trigger event details
  *
  */
-PVOID g_DebuggeeHaltContext;
-
-/**
- * @brief Optional tag as the debuggee is halted
- *
- */
-UINT64 g_DebuggeeHaltTag;
+DEBUGGER_TRIGGERED_EVENT_DETAILS g_EventTriggerDetail;
 
 /**
  * @brief Seed for tokens of unique details buffer for threads
