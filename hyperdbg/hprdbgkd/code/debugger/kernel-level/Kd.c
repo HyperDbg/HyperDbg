@@ -374,14 +374,14 @@ KdLoggingResponsePacketToDebugger(
 VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN TrapSetByDebugger)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext    = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
-    ContextAndTag.Context = LastVmexitRip;
+    TargetContext.Context = LastVmexitRip;
 
     if (TrapSetByDebugger)
     {
@@ -435,10 +435,9 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                 //
                 // Handle a regular step
                 //
-                ContextAndTag.Context = LastVmexitRip;
                 KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &ContextAndTag);
+                                                      &TargetContext);
             }
         }
     }
@@ -449,7 +448,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                              &ContextAndTag);
+                                              &TargetContext);
     }
 }
 
@@ -1067,14 +1066,14 @@ _Use_decl_annotations_
 VOID
 KdHandleRegisteredMtfCallback(UINT32 CoreId)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     //
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64                      CsSel         = NULL;
-    PROCESSOR_DEBUGGING_STATE * DbgState      = &g_DbgState[CoreId];
-    UINT64                      LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+    UINT64                           CsSel         = NULL;
+    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
+    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
 
     //
     // Check if the cs selector changed or not, which indicates that the
@@ -1103,10 +1102,10 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
         // as a tracking mechanism, so we'll change the reason for that)
         //
-        ContextAndTag.Context = LastVmexitRip;
+        TargetContext.Context = LastVmexitRip;
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                              &ContextAndTag);
+                                              &TargetContext);
     }
 }
 
@@ -1164,12 +1163,11 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     g_DebuggeeHaltReason = Reason;
 
     //
-    // Set the context and tag
+    // Set the context and tag, and stage
     //
     if (EventDetails != NULL)
     {
-        g_DebuggeeHaltContext = EventDetails->Context;
-        g_DebuggeeHaltTag     = EventDetails->Tag;
+        RtlCopyMemory(&g_EventTriggerDetail, EventDetails, sizeof(DEBUGGER_TRIGGERED_EVENT_DETAILS));
     }
 
     if (DbgState->DoNotNmiNotifyOtherCoresByThisCore == TRUE)
@@ -1208,10 +1206,9 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
 
     //
-    // Clear the context and tag
+    // Clear the context, tag, and stage
     //
-    g_DebuggeeHaltContext = NULL;
-    g_DebuggeeHaltTag     = NULL;
+    RtlZeroMemory(&g_EventTriggerDetail, sizeof(DEBUGGER_TRIGGERED_EVENT_DETAILS));
 
     //
     // Unlock handling breaks
@@ -2364,10 +2361,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Run the script in debuggee
                 //
                 if (DebuggerPerformRunScript(DbgState,
-                                             OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,
-                                             g_DebuggeeHaltContext))
+                                             &g_EventTriggerDetail))
                 {
                     //
                     // Set status
@@ -2767,7 +2763,7 @@ StartAgain:
         //
         // Get the last RIP for vm-exit handler
         //
-        LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
+        LastVmexitRip = VmFuncGetRip();
 
         //
         // Set the halt reason
@@ -2802,7 +2798,8 @@ StartAgain:
         //
         if (EventDetails != NULL)
         {
-            PausePacket.EventTag = EventDetails->Tag;
+            PausePacket.EventTag          = EventDetails->Tag;
+            PausePacket.EventCallingStage = EventDetails->Stage;
         }
 
         //

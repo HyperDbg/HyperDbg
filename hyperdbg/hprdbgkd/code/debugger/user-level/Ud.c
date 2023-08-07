@@ -524,7 +524,8 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     if (EventDetails != NULL)
     {
-        PausePacket.EventTag = EventDetails->Tag;
+        PausePacket.EventTag          = EventDetails->Tag;
+        PausePacket.EventCallingStage = EventDetails->Stage;
     }
 
     //

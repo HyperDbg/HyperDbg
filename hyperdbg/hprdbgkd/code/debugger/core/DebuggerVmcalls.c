@@ -45,11 +45,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
     }
     case DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT:
     {
-        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
-        PGUEST_REGS                      TempReg              = NULL;
-
-        TriggeredEventDetail.Context = OptionalParam1;
-        TriggeredEventDetail.Tag     = OptionalParam2;
+        DEBUGGER_TRIGGERED_EVENT_DETAILS * TriggeredEventDetail = (DEBUGGER_TRIGGERED_EVENT_DETAILS *)OptionalParam1;
+        PGUEST_REGS                        TempReg              = NULL;
 
         TempReg = DbgState->Regs;
 
@@ -58,11 +55,11 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // instead we send the registers provided
         // from the third parameter
         //
-        DbgState->Regs = OptionalParam3;
+        DbgState->Regs = OptionalParam2;
 
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-                                              &TriggeredEventDetail);
+                                              TriggeredEventDetail);
 
         //
         // Restore the register
