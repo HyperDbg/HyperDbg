@@ -1164,8 +1164,6 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     SYMBOL                       ErrorSymbol   = {0};
     SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
 
-    LogInfo("Event tag: %llx. context: %llx. stage: %x", EventTriggerDetail->Tag, EventTriggerDetail->Context, EventTriggerDetail->Stage);
-
     if (Action != NULL)
     {
         //
@@ -1353,9 +1351,9 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
     else
     {
         //
-        // The guest is on vmx non-root mode
+        // The guest is on vmx non-root mode and this is an event
         //
-        VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, EventTriggerDetail, DbgState->Regs, NULL);
     }
 }
 

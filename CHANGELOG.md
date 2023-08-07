@@ -21,10 +21,12 @@ New release of the HyperDbg Debugger.
 - The disassembler now warns if you mistakenly used the 'u' command over a 32-bit program ([link](https://github.com/HyperDbg/HyperDbg/commit/9d239ccdfd7901cad197a4b49327efbf322cd116))
 - The debuggee won't load the VMM module if the debugger is not listening
 - The debugger and the debuggee now perform a version/build check to prevent version mismatch 
-- fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
+- Fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
 - Fix the connection problem with serial (checksum error) over two VMs 
-- fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
-- fix the problem with the '.kill' and '.restart' commands
+- Fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
+- Fix the problem with the '.kill' and '.restart' commands
+- Show the stage of event once the debugger is paused
+- Fix sending context, tag, and registers once '!epthook2' wants to halt the debugger
 
 ## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.
