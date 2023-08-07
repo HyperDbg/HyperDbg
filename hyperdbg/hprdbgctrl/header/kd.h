@@ -92,6 +92,9 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR * BufferToSave, UINT32 * LengthReceived);
 
 BOOLEAN
+KdReceivePacketFromDebugger(CHAR * BufferToSave, UINT32 * LengthReceived);
+
+BOOLEAN
 KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer);
 
 BOOLEAN
@@ -205,6 +208,9 @@ KdCloseConnection();
 
 BOOLEAN
 KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId);
+
+BOOLEAN
+KdSendResponseOfThePingPacket();
 
 VOID
 KdUninitializeConnection();

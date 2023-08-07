@@ -503,7 +503,11 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Indicate that we should set the trap flag to the FALSE next time on
                 // the same process/thread
                 //
-                BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
+                if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+                {
+                    LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
+                               "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
+                }
             }
             else
             {
@@ -1163,6 +1167,24 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
         // not found
         //
         KillRequest->Result = DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS;
+        return FALSE;
+    }
+
+    //
+    // Check if process exists or not
+    //
+    if (!CommonIsProcessExist(ProcessDebuggingDetail->ProcessId))
+    {
+        //
+        // Process was killed before killing it here (not exists)
+        //
+
+        //
+        // Remove the entry from the process debugging details list
+        //
+        AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingDetail->Token);
+
+        KillRequest->Result = DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS_DOES_NOT_EXISTS;
         return FALSE;
     }
 

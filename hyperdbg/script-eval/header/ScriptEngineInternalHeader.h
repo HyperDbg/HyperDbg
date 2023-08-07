@@ -62,6 +62,9 @@ ScriptEnginePseudoRegGetEventTag(PACTION_BUFFER ActionBuffer);
 UINT64
 ScriptEnginePseudoRegGetEventId(PACTION_BUFFER ActionBuffer);
 
+UINT64
+ScriptEnginePseudoRegGetEventStage(PACTION_BUFFER ActionBuffer);
+
 //////////////////////////////////////////////////
 //			         Keywords                   //
 //////////////////////////////////////////////////
@@ -172,16 +175,15 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
                                  UINT64  Value);
 
 VOID
-ScriptEngineFunctionPause(UINT64      Tag,
-                          BOOLEAN     ImmediateMessagePassing,
-                          PGUEST_REGS GuestRegs,
-                          UINT64      Context);
+ScriptEngineFunctionPause(
+    ACTION_BUFFER * ActionDetail,
+    PGUEST_REGS     GuestRegs);
 
 VOID
 ScriptEngineFunctionFlush();
 
 VOID
-ScriptEngineFunctionShortCircuitingEvent(UINT64 State);
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDetail);
 
 VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);

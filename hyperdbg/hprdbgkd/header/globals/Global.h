@@ -11,22 +11,22 @@
 #pragma once
 
 /**
- * @brief Holder of script engines global variables
- *
- */
-UINT64 * g_ScriptGlobalVariables;
-
-/**
  * @brief Save the state and variables related to debugging on each to logical core
  *
  */
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief Holder of script engines global variables
+ *
+ */
+UINT64 * g_ScriptGlobalVariables;
+
+/**
  * @brief State of the trap-flag
  *
  */
-KD_TRAP_FLAG_STATE_STATE g_TrapFlagState;
+DEBUGGER_TRAP_FLAG_STATE g_TrapFlagState;
 
 /**
  * @brief Determines whether the one application gets the handle or not
@@ -121,16 +121,10 @@ BOOLEAN g_InterceptBreakpoints;
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 
 /**
- * @brief Optional context as the debuggee is halted
+ * @brief Trigger event details
  *
  */
-PVOID g_DebuggeeHaltContext;
-
-/**
- * @brief Optional tag as the debuggee is halted
- *
- */
-UINT64 g_DebuggeeHaltTag;
+DEBUGGER_TRIGGERED_EVENT_DETAILS g_EventTriggerDetail;
 
 /**
  * @brief Seed for tokens of unique details buffer for threads

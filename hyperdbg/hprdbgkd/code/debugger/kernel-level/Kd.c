@@ -365,41 +365,29 @@ KdLoggingResponsePacketToDebugger(
 
 /**
  * @brief Handles debug events when kernel-debugger is attached
+ *
  * @param DbgState The state of the debugger on the current core
+ * @param TrapSetByDebugger Shows whether a trap set by debugger or not
  *
  * @return VOID
  */
 VOID
-KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState)
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN TrapSetByDebugger)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext    = {0};
     BOOLEAN                          IgnoreDebugEvent = FALSE;
     UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
+
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
-    ContextAndTag.Context = LastVmexitRip;
+    TargetContext.Context = LastVmexitRip;
 
-    if (DbgState->WaitForStepTrap)
+    if (TrapSetByDebugger)
     {
         //
-        // *** Handle a regular step ***
+        // *** Handle a regular trap flag (most of the times as a result of stepping) set by the debugger ***
         //
-
-        //
-        // Unset to show that we're no longer looking for a trap
-        //
-        DbgState->WaitForStepTrap = FALSE;
-
-        //
-        // Check if we should disable RFLAGS.TF in this core or not
-        //
-        if (DbgState->DisableTrapFlagOnContinue)
-        {
-            VmFuncSetRflagTrapFlag(FALSE);
-
-            DbgState->DisableTrapFlagOnContinue = FALSE;
-        }
 
         //
         // Check and handle if there is a software defined breakpoint
@@ -447,21 +435,20 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                 //
                 // Handle a regular step
                 //
-                ContextAndTag.Context = LastVmexitRip;
                 KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &ContextAndTag);
+                                                      &TargetContext);
             }
         }
     }
     else
     {
         //
-        // It's a regular breakpoint
+        // It's a regular debug break event
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                              &ContextAndTag);
+                                              &TargetContext);
     }
 }
 
@@ -1079,14 +1066,14 @@ _Use_decl_annotations_
 VOID
 KdHandleRegisteredMtfCallback(UINT32 CoreId)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     //
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64                      CsSel         = NULL;
-    PROCESSOR_DEBUGGING_STATE * DbgState      = &g_DbgState[CoreId];
-    UINT64                      LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+    UINT64                           CsSel         = NULL;
+    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
+    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
 
     //
     // Check if the cs selector changed or not, which indicates that the
@@ -1115,10 +1102,10 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
         // as a tracking mechanism, so we'll change the reason for that)
         //
-        ContextAndTag.Context = LastVmexitRip;
+        TargetContext.Context = LastVmexitRip;
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                              &ContextAndTag);
+                                              &TargetContext);
     }
 }
 
@@ -1176,12 +1163,11 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     g_DebuggeeHaltReason = Reason;
 
     //
-    // Set the context and tag
+    // Set the context and tag, and stage
     //
     if (EventDetails != NULL)
     {
-        g_DebuggeeHaltContext = EventDetails->Context;
-        g_DebuggeeHaltTag     = EventDetails->Tag;
+        RtlCopyMemory(&g_EventTriggerDetail, EventDetails, sizeof(DEBUGGER_TRIGGERED_EVENT_DETAILS));
     }
 
     if (DbgState->DoNotNmiNotifyOtherCoresByThisCore == TRUE)
@@ -1220,10 +1206,9 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
 
     //
-    // Clear the context and tag
+    // Clear the context, tag, and stage
     //
-    g_DebuggeeHaltContext = NULL;
-    g_DebuggeeHaltTag     = NULL;
+    RtlZeroMemory(&g_EventTriggerDetail, sizeof(DEBUGGER_TRIGGERED_EVENT_DETAILS));
 
     //
     // Unlock handling breaks
@@ -1442,30 +1427,16 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     UINT32 Interruptibility;
     UINT32 InterruptibilityOld = NULL;
-    RFLAGS Rflags              = {0};
 
     //
-    // We're waiting for an step
+    // Adjust RFLAG's trap-flag
     //
-    DbgState->WaitForStepTrap = TRUE;
+    VmFuncSetRflagTrapFlag(TRUE);
 
     //
-    // Change guest trap flag
+    // Unset the trap flag on the next VM-exit
     //
-    if (!DbgState->DisableTrapFlagOnContinue)
-    {
-        Rflags.AsUInt = VmFuncGetRflags();
-
-        if (Rflags.TrapFlag == FALSE)
-        {
-            //
-            // Adjust RFLAG's trap-flag
-            //
-            VmFuncSetRflagTrapFlag(TRUE);
-
-            DbgState->DisableTrapFlagOnContinue = TRUE;
-        }
-    }
+    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
 
     //
     // During testing single-step, we realized that after single-stepping
@@ -1515,7 +1486,6 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         // It's a call, we should put a hardware debug register breakpoint
         // on the next instruction
         //
-        DbgState->WaitForStepTrap     = TRUE;
         NextAddressForHardwareDebugBp = VmFuncGetLastVmexitRip(DbgState->CoreId) + CallLength;
 
         CoreCount = KeQueryActiveProcessorCount(0);
@@ -1573,6 +1543,34 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
                           ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           ActionDetailHeader->Length,
                           TRUE);
+}
+
+/**
+ * @brief Query state of the RFLAG's traps
+ *
+ * @return VOID
+ */
+VOID
+KdQueryRflagTrapState()
+{
+    ULONG CoreCount;
+
+    //
+    // show the number of items
+    //
+    LogInfo("Number of valid entries: 0x%x\n"
+            "(Please be aware that only top 0x%x items are considered valid. "
+            "There could be other items present in the array, but they are not valid.)",
+            g_TrapFlagState.NumberOfItems,
+            g_TrapFlagState.NumberOfItems);
+
+    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    {
+        LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
+                i,
+                g_TrapFlagState.ThreadInformation[i].Fields.ProcessId,
+                g_TrapFlagState.ThreadInformation[i].Fields.ThreadId);
+    }
 }
 
 /**
@@ -1650,14 +1648,24 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    BreakpointAdjustUnsetTrapFlagsOnCurrentThread(FALSE);
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    {
+        //
+        // Adjust the flags for showing there was error
+        //
+        PageinRequest->KernelStatus = DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL;
 
-    //
-    // Adjust the flags for showing the successful #PF injection
-    //
-    PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return FALSE;
+    }
+    else
+    {
+        //
+        // Adjust the flags for showing the successful #PF injection
+        //
+        PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
-    return TRUE;
+        return TRUE;
+    }
 }
 
 /**
@@ -2156,6 +2164,17 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
+                case TEST_QUERY_TRAP_STATE:
+
+                    //
+                    // Query state of the trap
+                    //
+                    KdQueryRflagTrapState();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
                 case TEST_QUERY_PREALLOCATED_POOL_STATE:
 
                     //
@@ -2342,10 +2361,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Run the script in debuggee
                 //
                 if (DebuggerPerformRunScript(DbgState,
-                                             OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,
-                                             g_DebuggeeHaltContext))
+                                             &g_EventTriggerDetail))
                 {
                     //
                     // Set status
@@ -2745,7 +2763,7 @@ StartAgain:
         //
         // Get the last RIP for vm-exit handler
         //
-        LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
+        LastVmexitRip = VmFuncGetRip();
 
         //
         // Set the halt reason
@@ -2760,8 +2778,8 @@ StartAgain:
         //
         // Set the RIP and mode of execution
         //
-        PausePacket.Rip            = LastVmexitRip;
-        PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
+        PausePacket.Rip                    = LastVmexitRip;
+        PausePacket.IsProcessorOn32BitMode = KdIsGuestOnUsermode32Bit();
 
         //
         // Set disassembly state
@@ -2780,7 +2798,8 @@ StartAgain:
         //
         if (EventDetails != NULL)
         {
-            PausePacket.EventTag = EventDetails->Tag;
+            PausePacket.EventTag          = EventDetails->Tag;
+            PausePacket.EventCallingStage = EventDetails->Stage;
         }
 
         //

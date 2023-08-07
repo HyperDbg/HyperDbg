@@ -1398,7 +1398,7 @@ TerminateQueryDebuggerResourceMovControlRegsExiting(UINT32                      
         if (DebuggerEventListCountByEventType(CONTROL_REGISTER_MODIFIED, CoreId) != 0)
         {
             //
-            // We should ignore this unset, because !dr is enabled for this core
+            // We should ignore this unset, because !crwrite is enabled for this core
             //
             return TRUE;
         }

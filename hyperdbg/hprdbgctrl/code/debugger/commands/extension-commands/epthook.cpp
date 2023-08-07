@@ -23,9 +23,8 @@ CommandEptHookHelp()
 
     ShowMessages(
         "syntax : \t!epthook [Address (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
-        "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
-        "[script { Script (string) }] [condition { Condition (hex) }] "
-        "[code { Code (hex) }] \n");
+        "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+        "[condition { Condition (hex) }] [code { Code (hex) }] \n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag\n");
@@ -83,6 +82,18 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
             &ActionScriptLength,
             &EventParsingErrorCause))
     {
+        return;
+    }
+
+    //
+    // Check here to make sure that the user didn't specified the calling stages for this ept hook
+    //
+    if (Event->EventStage != VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION)
+    {
+        ShowMessages("the utilization of 'post' or 'all' event calling stages is not meaningful "
+                     "for the hidden hook; therefore, this command does not support them\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 

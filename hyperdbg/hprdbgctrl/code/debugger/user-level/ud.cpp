@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
@@ -521,6 +522,11 @@ UdAttachToProcess(UINT32        TargetPid,
         }
 
         //
+        // Store the process id and handle of the latest process
+        //
+        g_ProcessIdOfLatestStartingProcess = ProcInfo.dwProcessId;
+
+        //
         // The operation of attaching was successful
         //
         return TRUE;
@@ -532,6 +538,101 @@ UdAttachToProcess(UINT32        TargetPid,
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Check if process exists or not
+ *
+ * @param TargetPid
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdTerminateProcessByPid(DWORD TargetPid)
+{
+    BOOL Terminated = FALSE;
+
+    //
+    // Attempt to open a handle to the process with PROCESS_TERMINATE access rights
+    //
+    HANDLE Handle = OpenProcess(PROCESS_TERMINATE, FALSE, TargetPid);
+    if (Handle == NULL)
+    {
+        //
+        // Failed to open the process, which likely means it does not exist or access is denied
+        //
+        return FALSE;
+    }
+
+    //
+    // Terminate the process
+    //
+    Terminated = TerminateProcess(Handle, 0);
+
+    //
+    // Close the process handle
+    //
+    CloseHandle(Handle);
+
+    return Terminated;
+}
+
+/**
+ * @brief Check if process exists or not by process id
+ *
+ * @param TargetPid
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdDoesProcessExistByPid(DWORD TargetPid)
+{
+    if (HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, TargetPid))
+    {
+        DWORD ExitCodeOut;
+
+        //
+        // GetExitCodeProcess returns zero on failure
+        //
+        if (GetExitCodeProcess(process, &ExitCodeOut) != 0)
+        {
+            //
+            // Return if the process is still active
+            //
+            return ExitCodeOut == STILL_ACTIVE;
+        }
+    }
+    return FALSE;
+}
+
+/**
+ * @brief Check if process exists or not by handle
+ *
+ * @param TargetHandle
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdDoesProcessExistByHandle(HANDLE TargetHandle)
+{
+    DWORD exitCodeOut;
+
+    //
+    // GetExitCodeProcess returns zero on failure
+    //
+    if (GetExitCodeProcess(TargetHandle, &exitCodeOut) == 0)
+    {
+        //
+        // Optionally get the error
+        //
+        // DWORD error = GetLastError();
+        return FALSE;
+    }
+
+    //
+    // Return if the process is still active
+    //
+    return exitCodeOut == STILL_ACTIVE;
 }
 
 /**
@@ -554,6 +655,28 @@ UdKillProcess(UINT32 TargetPid)
     // Check if debugger is loaded or not
     //
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    //
+    // Check if the process exists
+    //
+    if (!UdDoesProcessExistByPid(TargetPid))
+    {
+        return FALSE;
+    }
+
+    //
+    // First, we try to kill the process in user-mode, if not successful,
+    // we try to kill it from kernel-mode
+    //
+    UdTerminateProcessByPid(TargetPid);
+
+    //
+    // Check again to see if the process exists
+    //
+    if (!UdDoesProcessExistByPid(TargetPid))
+    {
+        return TRUE;
+    }
 
     //
     // We wanna kill a process

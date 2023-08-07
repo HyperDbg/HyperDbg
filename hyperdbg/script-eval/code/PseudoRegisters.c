@@ -340,7 +340,7 @@ ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
 }
 
 /**
- * @brief Implementation of $event_tag pseudo-register
+ * @brief Implementation of $tag pseudo-register
  * @param ActionBuffer
  *
  * @return UINT64
@@ -358,7 +358,7 @@ ScriptEnginePseudoRegGetEventTag(PACTION_BUFFER ActionBuffer)
 }
 
 /**
- * @brief Implementation of $event_id pseudo-register
+ * @brief Implementation of $id pseudo-register
  * @param ActionBuffer
  *
  * @return UINT64
@@ -372,5 +372,23 @@ ScriptEnginePseudoRegGetEventId(PACTION_BUFFER ActionBuffer)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     return (ActionBuffer->Tag - DebuggerEventTagStartSeed);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of stage pseudo-register
+ * @param ActionBuffer
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEnginePseudoRegGetEventStage(PACTION_BUFFER ActionBuffer)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return ActionBuffer->CallingStage;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

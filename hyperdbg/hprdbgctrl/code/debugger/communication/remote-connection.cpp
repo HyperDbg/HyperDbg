@@ -1,5 +1,5 @@
 /**
- * @file remoteconnection.cpp
+ * @file remote-connection.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief handle remote connections command
  * @details
@@ -55,6 +55,73 @@ RemoteConnectionListen(PCSTR Port)
     CommunicationServerCreateServerAndWaitForClient(Port, &g_SeverSocket, &g_ServerListenSocket);
 
     //
+    // Check the version of debuggee and debugger
+    //
+    if (CommunicationServerReceiveMessage(g_SeverSocket, recvbuf, COMMUNICATION_BUFFER_SIZE) != 0)
+    {
+        //
+        // Failed
+        //
+        ShowMessages("err, unable to handshake with the remote debugger\n");
+
+        //
+        // Close the connection
+        //
+        CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
+        return;
+    }
+
+    //
+    // Check whether the signature of debuggee and debugger match or not
+    //
+    if (strcmp((const char *)BuildSignature, recvbuf) != 0)
+    {
+        //
+        // Build version not matched
+        //
+        ShowMessages(ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH);
+
+        //
+        // Send unsuccessful handshake (version match) message
+        //
+        if (CommunicationServerSendMessage(g_SeverSocket, "NO", 3) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, unable to handshake with the remote debugger\n");
+        }
+
+        //
+        // Close the connection
+        //
+        CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
+        return;
+    }
+    else
+    {
+        //
+        // Send successful handshake (version match) message
+        //
+        if (CommunicationServerSendMessage(g_SeverSocket, "OK", 3) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, unable to handshake with the remote debugger\n");
+
+            //
+            // Close the connection
+            //
+            CommunicationServerShutdownAndCleanupConnection(g_SeverSocket, g_ServerListenSocket);
+
+            return;
+        }
+    }
+
+    //
     // Indicate that it's a remote debugger
     //
     g_IsConnectedToRemoteDebugger = TRUE;
@@ -63,6 +130,11 @@ RemoteConnectionListen(PCSTR Port)
     // And also, make it a local debugger
     //
     g_IsConnectedToHyperDbgLocally = TRUE;
+
+    //
+    // Zero the buffer for next command
+    //
+    RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
 
     while (true)
     {
@@ -138,7 +210,7 @@ RemoteConnectionListen(PCSTR Port)
 DWORD WINAPI
 RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 {
-    char   recvbuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+    char   RecvBuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
     UINT32 BuffLenReceived                                                    = 0;
 
     while (g_IsConnectedToRemoteDebuggee)
@@ -146,7 +218,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         // Receive message
         //
-        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, recvbuf, COMMUNICATION_BUFFER_SIZE, &BuffLenReceived) != 0)
+        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, RecvBuf, COMMUNICATION_BUFFER_SIZE, &BuffLenReceived) != 0)
         {
             //
             // Failed, break
@@ -159,18 +231,18 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         for (size_t i = 0; i < BuffLenReceived; i++)
         {
-            if (recvbuf[i] == g_EndOfBufferCheckTcp[0] &&
-                recvbuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
-                recvbuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
-                recvbuf[i + 3] == g_EndOfBufferCheckTcp[3])
+            if (RecvBuf[i] == g_EndOfBufferCheckTcp[0] &&
+                RecvBuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
+                RecvBuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
+                RecvBuf[i + 3] == g_EndOfBufferCheckTcp[3])
             {
                 g_IsEndOfMessageReceived = TRUE;
 
                 //
                 // Cut the last string using \x00 \x00
                 //
-                recvbuf[i]     = '\x00';
-                recvbuf[i + 1] = '\x00';
+                RecvBuf[i]     = '\x00';
+                RecvBuf[i + 1] = '\x00';
                 break;
             }
         }
@@ -183,7 +255,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
             //
             // Show message from remote debuggee
             //
-            ShowMessages("%s", recvbuf);
+            ShowMessages("%s", RecvBuf);
         }
 
         //
@@ -205,7 +277,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         // Clear the buffer
         //
-        RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
+        RtlZeroMemory(RecvBuf, COMMUNICATION_BUFFER_SIZE);
     }
 
     //
@@ -242,7 +314,9 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 VOID
 RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
 {
-    DWORD ThreadId;
+    DWORD  ThreadId;
+    CHAR   Recv[3]  = {0};
+    UINT32 BuffRecv = 0;
 
     //
     // Check if the debugger or debuggee is already active
@@ -255,8 +329,7 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
     //
     // Connect to server
     //
-    if (CommunicationClientConnectToServer(Ip, Port, &g_ClientConnectSocket) ==
-        1)
+    if (CommunicationClientConnectToServer(Ip, Port, &g_ClientConnectSocket) == 1)
     {
         //
         // There was an error
@@ -287,6 +360,42 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         //
         // Connection was successful
         //
+
+        //
+        // Check to see whether the version of debugger and debuggee matches together or not
+        //
+        if (CommunicationClientSendMessage(g_ClientConnectSocket, (const char *)BuildSignature, sizeof(BuildSignature)) != 0)
+        {
+            //
+            // Failed
+            //
+            ShowMessages("err, failed to communicate with debuggee\n");
+            return;
+        }
+
+        //
+        // Receive the handshake results
+        //
+        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, Recv, sizeof(Recv), &BuffRecv) != 0)
+        {
+            //
+            // Failed, break
+            //
+            ShowMessages("err, failed to receive message from debuggee\n");
+            return;
+        }
+
+        //
+        // Check if the handshake was successful or not
+        //
+        if (strcmp((const char *)"OK", Recv) != 0)
+        {
+            //
+            // Build version not matched
+            //
+            ShowMessages(ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH);
+            return;
+        }
 
         //
         // Indicate that local debugger is not connected
@@ -338,8 +447,7 @@ RemoteConnectionSendCommand(const char * sendbuf, int len)
     //
     // Send Message
     //
-    if (CommunicationClientSendMessage(g_ClientConnectSocket, sendbuf, len) !=
-        0)
+    if (CommunicationClientSendMessage(g_ClientConnectSocket, sendbuf, len) != 0)
     {
         //
         // Failed

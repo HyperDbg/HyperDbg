@@ -4,14 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [0.4.1.0] - 2023-XX-XX
+## [0.6.0.0] - 2023-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
+## [0.5.0.0] - 2023-08-07
+New release of the HyperDbg Debugger.
+
+### Added
+- The event calling stage mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage))
+- New pseudo-registers (**$stage**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+
 ### Changed
+- The disassembler now warns if you mistakenly used the 'u' command over a 32-bit program ([link](https://github.com/HyperDbg/HyperDbg/commit/9d239ccdfd7901cad197a4b49327efbf322cd116))
+- The debuggee won't load the VMM module if the debugger is not listening
+- The debugger and the debuggee now perform a version/build check to prevent version mismatch 
+- Fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
+- Fix the connection problem with serial (checksum error) over two VMs 
+- Fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
+- Fix the problem with the '.kill' and '.restart' commands
+- Show the stage of event once the debugger is paused
+- Fix sending context, tag, and registers once '!epthook2' wants to halt the debugger
 
 ## [0.4.0.0] - 2023-07-18
 New release of the HyperDbg Debugger.
@@ -33,7 +48,6 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - The event short-circuiting mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-short-circuiting))
-- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - New pseudo-registers (**$tag**, **$id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))

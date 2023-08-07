@@ -369,6 +369,23 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_READING_MEMORY_INVALID_PARAMETER:
+        ShowMessages("err, invalid process or memory address (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_THE_TRAP_FLAG_LIST_IS_FULL:
+        ShowMessages("err, unable to add the current thread/process to the list of trap flags. "
+                     "Are you debugging multiple threads or stepping through different processes "
+                     "simultaneously? (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS_DOES_NOT_EXISTS:
+        ShowMessages("err, process does not exists (already terminated?) (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -2080,49 +2097,49 @@ InterpretGeneralEventAndActionsFields(
     PUINT32                             ActionBufferLengthScript,
     PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing)
 {
-    BOOLEAN                        Result                         = FALSE;
-    PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent                      = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionBreak                = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionScript               = NULL;
-    PDEBUGGER_GENERAL_ACTION       TempActionCustomCode           = NULL;
-    UINT32                         LengthOfCustomCodeActionBuffer = 0;
-    UINT32                         LengthOfScriptActionBuffer     = 0;
-    UINT32                         LengthOfBreakActionBuffer      = 0;
-    UINT64                         ConditionBufferAddress;
-    UINT32                         ConditionBufferLength = 0;
-    vector<string>                 ListOfOutputSources;
-    UINT64                         CodeBufferAddress;
-    UINT32                         CodeBufferLength = 0;
-    UINT64                         ScriptBufferAddress;
-    UINT64                         ScriptCodeBuffer     = 0;
-    BOOLEAN                        HasScriptSyntaxError = 0;
-    UINT32                         ScriptBufferLength   = 0;
-    UINT32                         ScriptBufferPointer  = 0;
-    UINT32                         LengthOfEventBuffer  = 0;
-    string                         CommandString;
-    BOOLEAN                        IsAPostEvent                     = FALSE;
-    BOOLEAN                        IsAShortCircuitingEventByDefault = FALSE;
-    BOOLEAN                        HasConditionBuffer               = FALSE;
-    BOOLEAN                        HasOutputPath                    = FALSE;
-    BOOLEAN                        HasCodeBuffer                    = FALSE;
-    BOOLEAN                        HasScript                        = FALSE;
-    BOOLEAN                        IsNextCommandPid                 = FALSE;
-    BOOLEAN                        IsNextCommandCoreId              = FALSE;
-    BOOLEAN                        IsNextCommandBufferSize          = FALSE;
-    BOOLEAN                        IsNextCommandImmediateMessaging  = FALSE;
-    BOOLEAN                        IsNextCommandExecutionMode       = FALSE;
-    BOOLEAN                        IsNextCommandSc                  = FALSE;
-    BOOLEAN                        ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
-    UINT32                         CoreId;
-    UINT32                         ProcessId;
-    UINT32                         IndexOfValidSourceTags;
-    UINT32                         RequestBuffer = 0;
-    PLIST_ENTRY                    TempList;
-    BOOLEAN                        OutputSourceFound;
-    vector<int>                    IndexesToRemove;
-    vector<UINT64>                 ListOfValidSourceTags;
-    int                            NewIndexToRemove = 0;
-    int                            Index            = 0;
+    BOOLEAN                               Result                         = FALSE;
+    PDEBUGGER_GENERAL_EVENT_DETAIL        TempEvent                      = NULL;
+    PDEBUGGER_GENERAL_ACTION              TempActionBreak                = NULL;
+    PDEBUGGER_GENERAL_ACTION              TempActionScript               = NULL;
+    PDEBUGGER_GENERAL_ACTION              TempActionCustomCode           = NULL;
+    VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE CallingStage                   = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION; // by default 'pre' event
+    UINT32                                LengthOfCustomCodeActionBuffer = 0;
+    UINT32                                LengthOfScriptActionBuffer     = 0;
+    UINT32                                LengthOfBreakActionBuffer      = 0;
+    UINT64                                ConditionBufferAddress;
+    UINT32                                ConditionBufferLength = 0;
+    vector<string>                        ListOfOutputSources;
+    UINT64                                CodeBufferAddress;
+    UINT32                                CodeBufferLength = 0;
+    UINT64                                ScriptBufferAddress;
+    UINT64                                ScriptCodeBuffer     = 0;
+    BOOLEAN                               HasScriptSyntaxError = 0;
+    UINT32                                ScriptBufferLength   = 0;
+    UINT32                                ScriptBufferPointer  = 0;
+    UINT32                                LengthOfEventBuffer  = 0;
+    string                                CommandString;
+    BOOLEAN                               IsAShortCircuitingEventByDefault = FALSE;
+    BOOLEAN                               HasConditionBuffer               = FALSE;
+    BOOLEAN                               HasOutputPath                    = FALSE;
+    BOOLEAN                               HasCodeBuffer                    = FALSE;
+    BOOLEAN                               HasScript                        = FALSE;
+    BOOLEAN                               IsNextCommandPid                 = FALSE;
+    BOOLEAN                               IsNextCommandCoreId              = FALSE;
+    BOOLEAN                               IsNextCommandBufferSize          = FALSE;
+    BOOLEAN                               IsNextCommandImmediateMessaging  = FALSE;
+    BOOLEAN                               IsNextCommandExecutionStage      = FALSE;
+    BOOLEAN                               IsNextCommandSc                  = FALSE;
+    BOOLEAN                               ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
+    UINT32                                CoreId;
+    UINT32                                ProcessId;
+    UINT32                                IndexOfValidSourceTags;
+    UINT32                                RequestBuffer = 0;
+    PLIST_ENTRY                           TempList;
+    BOOLEAN                               OutputSourceFound;
+    vector<int>                           IndexesToRemove;
+    vector<UINT64>                        ListOfValidSourceTags;
+    int                                   NewIndexToRemove = 0;
+    int                                   Index            = 0;
 
     //
     // Create a command string to show in the history
@@ -2701,15 +2718,19 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (IsNextCommandExecutionMode)
+        if (IsNextCommandExecutionStage)
         {
             if (!Section.compare("pre"))
             {
-                IsAPostEvent = FALSE;
+                CallingStage = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
             }
             else if (!Section.compare("post"))
             {
-                IsAPostEvent = TRUE;
+                CallingStage = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+            }
+            else if (!Section.compare("all"))
+            {
+                CallingStage = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
             }
             else
             {
@@ -2722,7 +2743,7 @@ InterpretGeneralEventAndActionsFields(
                 goto ReturnWithError;
             }
 
-            IsNextCommandExecutionMode = FALSE;
+            IsNextCommandExecutionStage = FALSE;
 
             //
             // Add index to remove it from the command
@@ -2857,12 +2878,12 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("mode"))
+        if (!Section.compare("stage"))
         {
             //
             // the next commnad is execution mode (pre- and post-events)
             //
-            IsNextCommandExecutionMode = TRUE;
+            IsNextCommandExecutionStage = TRUE;
 
             //
             // Add index to remove it from the command
@@ -2906,6 +2927,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandCoreId)
     {
         ShowMessages("err, please specify a value for 'core'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2914,6 +2936,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandPid)
     {
         ShowMessages("err, please specify a value for 'pid'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2922,6 +2945,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandBufferSize)
     {
         ShowMessages("err, please specify a value for 'buffer'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2930,14 +2954,16 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandImmediateMessaging)
     {
         ShowMessages("err, please specify a value for 'imm'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
     }
 
-    if (IsNextCommandExecutionMode)
+    if (IsNextCommandExecutionStage)
     {
-        ShowMessages("err, please specify a value for 'mode'\n");
+        ShowMessages("err, please specify a value for 'stage'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2946,6 +2972,7 @@ InterpretGeneralEventAndActionsFields(
     if (IsNextCommandSc)
     {
         ShowMessages("err, please specify a value for 'sc'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
 
         goto ReturnWithError;
@@ -2954,18 +2981,21 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check to make sure that short-circuiting is not used in post-events
     //
-    if (IsAPostEvent && IsAShortCircuitingEventByDefault)
+    if ((CallingStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION ||
+         CallingStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION) &&
+        IsAShortCircuitingEventByDefault)
     {
         ShowMessages(
-            "err, using the short-circuiting mechanism with post-events "
+            "err, using the short-circuiting mechanism with 'post' or 'all' stage events "
             "doesn't make sense; it's not supported!\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_USING_SHORT_CIRCUITING_IN_POST_EVENTS;
 
         goto ReturnWithError;
     }
 
     //
-    // It's not possible to break to debugger in vmi-mode
+    // It's not possible to break to debugger in VMI-mode
     //
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
@@ -2974,6 +3004,7 @@ InterpretGeneralEventAndActionsFields(
             "You should operate in Debugger Mode to break and get the "
             "full control of the system. Still, you can use 'script' and run "
             "'custom code' in your local debugging (VMI Mode)\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
 
         goto ReturnWithError;
@@ -2987,6 +3018,7 @@ InterpretGeneralEventAndActionsFields(
     {
         ShowMessages("err, non-immediate message passing is not supported in "
                      "'output-forwarding mode'\n");
+
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE;
 
         goto ReturnWithError;
@@ -3039,19 +3071,9 @@ InterpretGeneralEventAndActionsFields(
     }
 
     //
-    // Set the specific event mode
+    // Set the specific event mode (calling stage)
     //
-    if (IsAPostEvent)
-    {
-        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
-    }
-    else
-    {
-        //
-        // By default, event's are 'pre-event'
-        //
-        TempEvent->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
-    }
+    TempEvent->EventStage = CallingStage;
 
     //
     // Fill the address and length of event before release

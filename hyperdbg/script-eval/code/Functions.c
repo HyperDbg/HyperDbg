@@ -745,17 +745,15 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
 /**
  * @brief Implementation of pause function
  *
- * @param Tag
- * @param ImmediateMessagePassing
+ * @param ActionDetail
  * @param GuestRegs
- * @param Context
+ *
  * @return VOID
  */
 VOID
-ScriptEngineFunctionPause(UINT64      Tag,
-                          BOOLEAN     ImmediateMessagePassing,
-                          PGUEST_REGS GuestRegs,
-                          UINT64      Context)
+ScriptEngineFunctionPause(
+    ACTION_BUFFER * ActionDetail,
+    PGUEST_REGS     GuestRegs)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, breaking is not possible in user-mode\n");
@@ -769,8 +767,23 @@ ScriptEngineFunctionPause(UINT64      Tag,
     //
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
-        DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail  = {0};
         UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+        //
+        // Make the details of context
+        //
+        TriggeredEventDetail.Tag     = ActionDetail->Tag;
+        TriggeredEventDetail.Context = ActionDetail->Context;
+
+        if (ActionDetail->CallingStage == 1)
+        {
+            TriggeredEventDetail.Stage = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+        }
+        else
+        {
+            TriggeredEventDetail.Stage = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
+        }
 
         if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
         {
@@ -778,13 +791,11 @@ ScriptEngineFunctionPause(UINT64      Tag,
             // The guest is already in vmx-root mode
             // Halt other cores
             //
-            ContextAndTag.Tag     = Tag;
-            ContextAndTag.Context = Context;
 
             KdHandleBreakpointAndDebugBreakpointsCallback(
                 CurrentProcessorIndex,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-                &ContextAndTag);
+                &TriggeredEventDetail);
         }
         else
         {
@@ -792,7 +803,7 @@ ScriptEngineFunctionPause(UINT64      Tag,
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, &TriggeredEventDetail, GuestRegs, NULL);
         }
     }
     else
@@ -830,17 +841,26 @@ ScriptEngineFunctionFlush()
 
 /**
  * @brief Implementation of event_ignore function
+ * @param State
+ * @param ActionDetail
  *
  * @return VOID
  */
 VOID
-ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDetail)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to short-circuit events in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (ActionDetail->CallingStage == 1)
+    {
+        LogWarning("Warning, calling the 'event_sc' function in the 'post' calling stage doesn't make sense as the emulation is already performed!\n"
+                   "You can use this function in the 'pre' calling stage");
+        return;
+    }
 
     UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 

@@ -68,6 +68,7 @@ CommandBp(vector<string> SplittedCommand, string Command)
     UINT64         Address   = NULL;
     vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
+    BOOLEAN        IsFirstCommand              = TRUE;
 
     DEBUGGEE_BP_PACKET BpPacket = {0};
 
@@ -85,8 +86,9 @@ CommandBp(vector<string> SplittedCommand, string Command)
         //
         // Ignore the first argument as it's the command string itself (bp)
         //
-        if (!Section.compare(SplittedCommand.at(0)))
+        if (IsFirstCommand == TRUE)
         {
+            IsFirstCommand = FALSE;
             continue;
         }
 

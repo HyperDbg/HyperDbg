@@ -105,6 +105,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }
+
             break;
 
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
@@ -123,6 +124,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                                   TRUE);
 
             Status = STATUS_SUCCESS;
+
             break;
 
         case IOCTL_TERMINATE_VMX:
@@ -163,27 +165,29 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             DebuggerReadMemRequest = (PDEBUGGER_READ_MEMORY)Irp->AssociatedIrp.SystemBuffer;
 
-            if (DebuggerCommandReadMemory(DebuggerReadMemRequest, DebuggerReadMemRequest, &ReturnSize) == TRUE)
+            if (DebuggerCommandReadMemory(DebuggerReadMemRequest,
+                                          ((CHAR *)DebuggerReadMemRequest) + SIZEOF_DEBUGGER_READ_MEMORY,
+                                          &ReturnSize) == TRUE)
             {
-                Status = STATUS_SUCCESS;
+                //
+                // Return the header a read bytes
+                //
+                Irp->IoStatus.Information = ReturnSize + SIZEOF_DEBUGGER_READ_MEMORY;
             }
             else
             {
-                Status = STATUS_UNSUCCESSFUL;
+                //
+                // Just return the header to the user-mode
+                //
+                Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_MEMORY;
             }
 
-            //
-            // Set the size
-            //
-            if (Status == STATUS_SUCCESS)
-            {
-                Irp->IoStatus.Information = ReturnSize;
+            Status = STATUS_SUCCESS;
 
-                //
-                // Avoid zeroing it
-                //
-                DoNotChangeInformation = TRUE;
-            }
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
 
             break;
 
@@ -544,6 +548,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+
         case IOCTL_DEBUGGER_SEARCH_MEMORY:
 
             //

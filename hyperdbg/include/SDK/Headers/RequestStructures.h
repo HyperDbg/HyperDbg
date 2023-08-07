@@ -103,17 +103,6 @@ typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE
     REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE_PATTERN,
 } REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE;
 
-/**
- * @brief different forms of reconstruct requests
- *
- */
-typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM
-{
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_UNKNOWN = 0,
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_OVERALL,
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM_ADDRESS_BASED,
-} REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM;
-
 #define SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST \
     sizeof(REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST)
 
@@ -123,12 +112,10 @@ typedef enum _REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM
  */
 typedef struct _REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST
 {
-    UINT64                                    VirtualAddress;
     UINT32                                    ProcessId;
     UINT32                                    Size;
     REVERSING_MACHINE_RECONSTRUCT_MEMORY_MODE Mode;
     REVERSING_MACHINE_RECONSTRUCT_MEMORY_TYPE Type;
-    REVERSING_MACHINE_RECONSTRUCT_MEMORY_FORM Form;
     UINT32                                    KernelStatus;
 
 } REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, *PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
@@ -233,12 +220,18 @@ typedef struct _DEBUGGER_READ_MEMORY
     UINT32                       Pid; // Read from cr3 of what process
     UINT64                       Address;
     UINT32                       Size;
+    BOOLEAN                      IsForDisasm;    // Debugger sets whether the read memory is for diassembler or not
+    BOOLEAN                      Is32BitAddress; // Debuggee sets the status of address
     DEBUGGER_READ_MEMORY_TYPE    MemoryType;
     DEBUGGER_READ_READING_TYPE   ReadingType;
     PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;
     DEBUGGER_SHOW_MEMORY_STYLE   Style;        // not used in local debugging
     UINT32                       ReturnLength; // not used in local debugging
     UINT32                       KernelStatus; // not used in local debugging
+
+    //
+    // Here is the target buffer (actual memory)
+    //
 
 } DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
 
@@ -274,8 +267,9 @@ typedef enum _DEBUGGER_TEST_QUERY_STATE
 {
     TEST_QUERY_HALTING_CORE_STATUS     = 1, // Query constant to show detail of halting of core
     TEST_QUERY_PREALLOCATED_POOL_STATE = 2, // Query pre-allocated pool state
-    TEST_BREAKPOINT_TURN_OFF_BPS       = 3, // Turn off the breakpoints
-    TEST_BREAKPOINT_TURN_ON_BPS        = 4, // Turn on the breakpoints
+    TEST_QUERY_TRAP_STATE              = 3, // Query trap state
+    TEST_BREAKPOINT_TURN_OFF_BPS       = 4, // Turn off the breakpoints
+    TEST_BREAKPOINT_TURN_ON_BPS        = 5, // Turn on the breakpoints
 
 } DEBUGGER_TEST_QUERY_STATE;
 

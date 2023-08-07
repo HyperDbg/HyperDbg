@@ -161,6 +161,15 @@ StartAgain:
         //
         switch (TheActualPacket->RequestedActionOfThePacket)
         {
+        case DEBUGGER_REMOTE_PACKET_PING_AND_SEND_SUPPORTED_VERSION:
+
+            //
+            // Send the handshake response
+            //
+            KdSendResponseOfThePingPacket();
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
             InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
@@ -214,7 +223,7 @@ StartAgain:
             RtlZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
             memcpy(g_CurrentRunningInstruction, &PausePacket->InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
 
-            g_IsRunningInstruction32Bit = PausePacket->Is32BitAddress;
+            g_IsRunningInstruction32Bit = PausePacket->IsProcessorOn32BitMode;
 
             //
             // Show additional messages before showing assembly and pausing
@@ -241,8 +250,16 @@ StartAgain:
                     //
                     // It's an event tag
                     //
-                    ShowMessages("event 0x%x triggered\n",
-                                 PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    if (PausePacket->EventCallingStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+                    {
+                        ShowMessages("event 0x%x triggered (post)\n",
+                                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    }
+                    else
+                    {
+                        ShowMessages("event 0x%x triggered (pre)\n",
+                                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+                    }
                 }
 
                 break;
@@ -283,13 +300,13 @@ StartAgain:
                     //
                     if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
                                                          MAXIMUM_INSTR_SIZE,
-                                                         PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+                                                         PausePacket->IsProcessorOn32BitMode ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
                     {
                         ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
                     }
                 }
 
-                if (!PausePacket->Is32BitAddress)
+                if (!PausePacket->IsProcessorOn32BitMode)
                 {
                     //
                     // Show diassembles
@@ -338,7 +355,7 @@ StartAgain:
                 //
                 CommandTrackHandleReceivedInstructions(&PausePacket->InstructionBytesOnRip[0],
                                                        MAXIMUM_INSTR_SIZE,
-                                                       PausePacket->Is32BitAddress ? FALSE : TRUE,
+                                                       PausePacket->IsProcessorOn32BitMode ? FALSE : TRUE,
                                                        PausePacket->Rip);
 
                 //
@@ -831,6 +848,16 @@ StartAgain:
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
                     //
+                    // Check if assembly mismatch occured with the target address
+                    //
+                    if (ReadMemoryPacket->Is32BitAddress == TRUE &&
+                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+                    {
+                        ShowMessages("the target address seems to be located in a 32-bit program, if so, "
+                                     "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
+                    }
+
+                    //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
@@ -838,6 +865,16 @@ StartAgain:
                     break;
 
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
+
+                    //
+                    // Check if assembly mismatch occured with the target address
+                    //
+                    if (ReadMemoryPacket->Is32BitAddress == FALSE &&
+                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+                    {
+                        ShowMessages("the target address seems to be located in a 64-bit program, if so, "
+                                     "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
+                    }
 
                     //
                     // Show diassembles

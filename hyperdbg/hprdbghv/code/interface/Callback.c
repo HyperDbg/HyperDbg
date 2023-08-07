@@ -187,7 +187,7 @@ VmmCallbackVmcallHandler(UINT32 CoreId,
         //
         // Ignore handling external VMCALLs
         //
-        return;
+        return FALSE;
     }
 
     return g_Callbacks.VmmCallbackVmcallHandler(CoreId, VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);

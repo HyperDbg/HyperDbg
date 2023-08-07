@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 4
+#define VERSION_MINOR 5
 #define VERSION_PATCH 0
 
 //
@@ -179,6 +179,34 @@ const unsigned char BuildVersion[] = {
     BUILD_MONTH_CH1,
     BUILD_DAY_CH0,
     BUILD_DAY_CH1,
+    '.',
+    BUILD_HOUR_CH0,
+    BUILD_HOUR_CH1,
+    BUILD_MIN_CH0,
+    BUILD_MIN_CH1,
+
+    '\0'};
+
+const unsigned char BuildSignature[] = {
+    VERSION_MAJOR_INIT,
+    '.',
+    VERSION_MINOR_INIT,
+    '.',
+    VERSION_PATCH_INIT,
+    '-',
+    BUILD_YEAR_CH0,
+    BUILD_YEAR_CH1,
+    BUILD_YEAR_CH2,
+    BUILD_YEAR_CH3,
+    BUILD_MONTH_CH0,
+    BUILD_MONTH_CH1,
+    BUILD_DAY_CH0,
+    BUILD_DAY_CH1,
+    '.',
+    BUILD_HOUR_CH0,
+    BUILD_HOUR_CH1,
+    BUILD_MIN_CH0,
+    BUILD_MIN_CH1,
 
     '\0'};
 
@@ -357,7 +385,7 @@ const unsigned char BuildVersion[] = {
     0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
-//            Breakpoint Backup                 //
+//       Breakpoints & Debug Breakpoints        //
 //////////////////////////////////////////////////
 
 /**
@@ -365,6 +393,15 @@ const unsigned char BuildVersion[] = {
  * breakpoint
  */
 #define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+
+/**
+ * @brief maximum number of thread/process ids to be allocated for a simultaneous
+ * debugging
+ * @details it shows the maximum number of threads/processes that HyperDbg sets
+ * trap flag for them
+ *
+ */
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS 200
 
 //////////////////////////////////////////////////
 //          Pool tags used in HyperDbg          //

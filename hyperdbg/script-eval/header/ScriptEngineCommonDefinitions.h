@@ -21,6 +21,7 @@ typedef struct ACTION_BUFFER {
   long long unsigned CurrentAction;
   char ImmediatelySendTheResults;
   long long unsigned Context;
+  char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
 
 
@@ -301,5 +302,6 @@ static const char *const RegistersNames[] = {
 #define PSEUDO_REGISTER_CONTEXT 10
 #define PSEUDO_REGISTER_TAG 11
 #define PSEUDO_REGISTER_ID 12
+#define PSEUDO_REGISTER_STAGE 13
 
 #endif

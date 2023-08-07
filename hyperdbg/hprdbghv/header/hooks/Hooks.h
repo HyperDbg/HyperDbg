@@ -248,7 +248,6 @@ EptHook2(PVOID   TargetAddress,
  * @param LastContext
  * @param IgnoreReadOrWriteOrExec
  * @param IsExecViolation
- * @param IsTriggeringPostEventAllowed
  * @return BOOLEAN
  */
 BOOLEAN
@@ -258,8 +257,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
                         BOOLEAN *                            IgnoreReadOrWriteOrExec,
-                        BOOLEAN *                            IsExecViolation,
-                        BOOLEAN *                            IsTriggeringPostEventAllowed);
+                        BOOLEAN *                            IsExecViolation);
 
 /**
  * @brief Remove a special hook from the hooked pages lists
@@ -379,3 +377,12 @@ BOOLEAN
 EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
                             PVOID                   PhysicalAddress,
                             BOOLEAN                 IsUnset);
+
+/**
+ * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+EptHookHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu);

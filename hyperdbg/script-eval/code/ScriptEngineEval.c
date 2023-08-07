@@ -59,6 +59,8 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         return ScriptEnginePseudoRegGetEventTag(ActionBuffer);
     case PSEUDO_REGISTER_ID:
         return ScriptEnginePseudoRegGetEventId(ActionBuffer);
+    case PSEUDO_REGISTER_STAGE:
+        return ScriptEnginePseudoRegGetEventStage(ActionBuffer);
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
@@ -483,10 +485,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
     case FUNC_PAUSE:
 
-        ScriptEngineFunctionPause(ActionDetail->Tag,
-                                  ActionDetail->ImmediatelySendTheResults,
-                                  GuestRegs,
-                                  ActionDetail->Context);
+        ScriptEngineFunctionPause(ActionDetail,
+                                  GuestRegs);
         break;
 
     case FUNC_FLUSH:
@@ -508,7 +508,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionShortCircuitingEvent(SrcVal0);
+        ScriptEngineFunctionShortCircuitingEvent(SrcVal0, ActionDetail);
 
         break;
 

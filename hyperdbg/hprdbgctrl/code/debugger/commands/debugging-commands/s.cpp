@@ -137,6 +137,8 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
 VOID
 CommandSearchMemory(vector<string> SplittedCommand, string Command)
 {
+    UINT64                 Address;
+    vector<UINT64>         ValuesToEdit;
     BOOL                   SetAddress          = FALSE;
     BOOL                   SetValue            = FALSE;
     BOOL                   SetProcId           = FALSE;
@@ -144,16 +146,15 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     BOOL                   SetLength           = FALSE;
     BOOL                   NextIsLength        = FALSE;
     DEBUGGER_SEARCH_MEMORY SearchMemoryRequest = {0};
-    UINT64                 Address;
-    UINT64                 Value         = 0;
-    UINT64                 Length        = 0;
-    UINT32                 ProcId        = 0;
-    UINT32                 CountOfValues = 0;
-    UINT32                 FinalSize     = 0;
-    UINT64 *               FinalBuffer   = NULL;
-    vector<UINT64>         ValuesToEdit;
+    UINT64                 Value               = 0;
+    UINT64                 Length              = 0;
+    UINT32                 ProcId              = 0;
+    UINT32                 CountOfValues       = 0;
+    UINT32                 FinalSize           = 0;
+    UINT64 *               FinalBuffer         = NULL;
     vector<string>         SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32                 IndexInCommandCaseSensitive = 0;
+    BOOLEAN                IsFirstCommand              = TRUE;
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -175,7 +176,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     {
         IndexInCommandCaseSensitive++;
 
-        if (!Section.compare(SplittedCommand.at(0)))
+        if (IsFirstCommand == TRUE)
         {
             if (!Section.compare("!sb"))
             {
@@ -216,6 +217,8 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
                 CommandSearchMemoryHelp();
                 return;
             }
+
+            IsFirstCommand = FALSE;
 
             continue;
         }

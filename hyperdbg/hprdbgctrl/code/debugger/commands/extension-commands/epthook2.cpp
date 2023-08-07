@@ -86,6 +86,18 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // Check here to make sure that the user didn't specified the calling stages for this ept hook
+    //
+    if (Event->EventStage != VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION)
+    {
+        ShowMessages("the utilization of 'post' or 'all' event calling stages is not meaningful "
+                     "for the hidden hook; therefore, this command does not support them\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+        return;
+    }
+
+    //
     // Interpret command specific details (if any)
     //
     for (auto Section : SplittedCommand)

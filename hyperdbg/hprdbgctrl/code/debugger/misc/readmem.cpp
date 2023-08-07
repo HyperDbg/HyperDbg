@@ -44,6 +44,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     DEBUGGER_READ_MEMORY ReadMem = {0};
     UINT32               OperationCode;
     CHAR                 Character;
+    UINT32               SizeOfTargetBuffer;
 
     ReadMem.Address     = Address;
     ReadMem.Pid         = Pid;
@@ -52,6 +53,19 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     ReadMem.ReadingType = ReadingType;
     ReadMem.Style       = Style;
     ReadMem.DtDetails   = DtDetails;
+
+    //
+    // Check if this is used for disassembler or not
+    //
+    if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64 ||
+        Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
+    {
+        ReadMem.IsForDisasm = TRUE;
+    }
+    else
+    {
+        ReadMem.IsForDisasm = FALSE;
+    }
 
     //
     // send the request
@@ -70,16 +84,17 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     //
     // allocate buffer for transfering messages
     //
-    unsigned char * OutputBuffer = (unsigned char *)malloc(Size * sizeof(unsigned char));
+    SizeOfTargetBuffer           = (Size * sizeof(CHAR)) + sizeof(DEBUGGER_READ_MEMORY);
+    unsigned char * OutputBuffer = (unsigned char *)malloc(SizeOfTargetBuffer);
 
-    ZeroMemory(OutputBuffer, Size * sizeof(unsigned char));
+    ZeroMemory(OutputBuffer, SizeOfTargetBuffer);
 
     Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
                              IOCTL_DEBUGGER_READ_MEMORY,  // IO Control code
                              &ReadMem,                    // Input Buffer to driver.
                              SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
                              OutputBuffer,                // Output Buffer from driver.
-                             Size,                        // Length of output buffer in bytes.
+                             SizeOfTargetBuffer,          // Length of output buffer in bytes.
                              &ReturnedLength,             // Bytes placed in buffer.
                              NULL                         // synchronous call
     );
@@ -87,8 +102,25 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        free(OutputBuffer);
+        std::free(OutputBuffer);
         return;
+    }
+
+    //
+    // Check if reading memory was successful or not
+    //
+    if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        std::free(OutputBuffer);
+        ShowErrorMessage(((PDEBUGGER_READ_MEMORY)OutputBuffer)->KernelStatus);
+        return;
+    }
+    else
+    {
+        //
+        // Change the ReturnedLength as it contains the headers
+        //
+        ReturnedLength -= SIZEOF_DEBUGGER_READ_MEMORY;
     }
 
     switch (Style)
@@ -103,7 +135,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
             ScriptEngineShowDataBasedOnSymbolTypesWrapper(DtDetails->TypeName,
                                                           Address,
                                                           FALSE,
-                                                          OutputBuffer,
+                                                          ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
                                                           DtDetails->AdditionalParameters);
         }
         else if (ReturnedLength == 0)
@@ -119,43 +151,95 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
 
     case DEBUGGER_SHOW_COMMAND_DB:
 
-        ShowMemoryCommandDB(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
+        ShowMemoryCommandDB(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
 
         break;
 
     case DEBUGGER_SHOW_COMMAND_DC:
 
-        ShowMemoryCommandDC(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
+        ShowMemoryCommandDC(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
 
         break;
 
     case DEBUGGER_SHOW_COMMAND_DD:
 
-        ShowMemoryCommandDD(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
+        ShowMemoryCommandDD(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
 
         break;
 
     case DEBUGGER_SHOW_COMMAND_DQ:
 
-        ShowMemoryCommandDQ(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
+        ShowMemoryCommandDQ(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
 
         break;
 
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
         //
+        // Check if assembly mismatch occured with the target address
+        //
+        if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == TRUE &&
+            MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+        {
+            ShowMessages("the target address seems to be located in a 32-bit program, if so, "
+                         "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
+        }
+
+        //
         // Show diassembles
         //
-        HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
+        HyperDbgDisassembler64(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Address,
+            ReturnedLength,
+            0,
+            FALSE,
+            NULL);
 
         break;
 
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
 
         //
+        // Check if assembly mismatch occured with the target address
+        //
+        if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == FALSE &&
+            MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+        {
+            ShowMessages("the target address seems to be located in a 64-bit program, if so, "
+                         "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
+        }
+
+        //
         // Show diassembles
         //
-        HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
+        HyperDbgDisassembler32(
+            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Address,
+            ReturnedLength,
+            0,
+            FALSE,
+            NULL);
 
         break;
     }
@@ -163,7 +247,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     //
     // free the buffer
     //
-    free(OutputBuffer);
+    std::free(OutputBuffer);
 
     ShowMessages("\n");
 }

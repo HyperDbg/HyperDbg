@@ -73,6 +73,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     UINT32               FinalSize         = 0;
     vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32               IndexInCommandCaseSensitive = 0;
+    BOOLEAN              IsFirstCommand              = TRUE;
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -94,7 +95,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     {
         IndexInCommandCaseSensitive++;
 
-        if (!Section.compare(SplittedCommand.at(0)))
+        if (IsFirstCommand)
         {
             if (!Section.compare("!eb"))
             {
@@ -135,6 +136,8 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
                 CommandEditMemoryHelp();
                 return;
             }
+
+            IsFirstCommand = FALSE;
 
             continue;
         }

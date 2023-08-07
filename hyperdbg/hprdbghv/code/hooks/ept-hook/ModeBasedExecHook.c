@@ -51,6 +51,8 @@ ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
     }
+
+    return TRUE;
 }
 
 /**
@@ -91,6 +93,8 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
     }
+
+    return TRUE;
 }
 
 /**
