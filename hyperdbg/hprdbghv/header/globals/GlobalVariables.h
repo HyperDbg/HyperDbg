@@ -137,6 +137,10 @@ BOOLEAN g_TriggerEventForVmcalls;
  */
 BOOLEAN g_TriggerEventForCpuids;
 
+//////////////////////////////////////////////////
+//  	Global Variable (Reversing Machine)	    //
+//////////////////////////////////////////////////
+
 /**
  * @brief Showes whether the cpuid handler is
  * allowed to trigger an event or not

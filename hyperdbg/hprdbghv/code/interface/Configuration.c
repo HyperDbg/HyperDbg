@@ -29,7 +29,7 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief routines for initializing Mode-based execution hooks
+ * @brief routines for initializing reversing machine
  * @param RevServiceRequest
  *
  * @return VOID
@@ -38,6 +38,23 @@ VOID
 ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
     ReversingMachineInitialize(RevServiceRequest);
+}
+
+/**
+ * @brief routines for adding process to the reversing machine's watch list
+ *
+ * @param CoreId
+ * @param ProcessId
+ * @param ThreadId
+ *
+ * @return VOID
+ */
+VOID
+ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
+                                                 UINT32 ProcessId,
+                                                 UINT32 ThreadId)
+{
+    ReversingAddProcessThreadToTheWatchList(&g_GuestState[CoreId], ProcessId, ThreadId);
 }
 
 /**

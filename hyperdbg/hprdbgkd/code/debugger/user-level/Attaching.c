@@ -373,6 +373,11 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     BpRequest.RemoveAfterHit = TRUE;
 
     //
+    // This breakpoint should check for callbacks
+    //
+    BpRequest.CheckForCallbacks = TRUE;
+
+    //
     // Register the breakpoint
     //
     if (!BreakpointAddNew(&BpRequest))

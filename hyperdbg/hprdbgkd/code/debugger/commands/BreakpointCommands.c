@@ -136,6 +136,29 @@ Return:
 }
 
 /**
+ * @brief Trigger callback for breakpoint hit
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param ProcessId
+ * @param ThreadId
+ *
+ * @return BOOLEAN If true, it won't halt the debugger, but if false will halt the debugger
+ */
+BOOLEAN
+BreakpointTriggerCallbacks(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 ProcessId, UINT32 ThreadId)
+{
+    //
+    // Add the process/thread to the watching list
+    //
+    ConfigureReversingAddProcessThreadToTheWatchList(DbgState->CoreId, ProcessId, ThreadId);
+
+    //
+    // By default return FALSE to set handling the breakpoint to the user to the debugger
+    //
+    return FALSE;
+}
+
+/**
  * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
  * on the target process/thread
  * @param ProcessId
@@ -424,6 +447,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     ULONG                            LengthOfExitInstr     = 0;
     BYTE                             InstrByte             = NULL;
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
+    BOOLEAN                          IgnoreUserHandling    = FALSE;
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -500,12 +524,29 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 }
 
                 //
-                // *** It's not safe to access CurrentBreakpointDesc anymore as the
-                // breakpoint might be removed ***
+                // Check if it needs to check for callbacks or not
                 //
-                KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                      Reason,
-                                                      &TargetContext);
+                if (CurrentBreakpointDesc->CheckForCallbacks)
+                {
+                    //
+                    // check callbacks
+                    //
+                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, PsGetCurrentProcessId(), PsGetCurrentThreadId());
+                }
+
+                //
+                // Check if we need to handle the breakpoint by user or just ignore handling it
+                //
+                if (!IgnoreUserHandling)
+                {
+                    //
+                    // *** It's not safe to access CurrentBreakpointDesc anymore as the
+                    // breakpoint might be removed ***
+                    //
+                    KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                          Reason,
+                                                          &TargetContext);
+                }
             }
 
             //
@@ -859,14 +900,15 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     // Copy details of breakpoint to the descriptor structure
     //
     g_MaximumBreakpointId++;
-    BreakpointDescriptor->BreakpointId   = g_MaximumBreakpointId;
-    BreakpointDescriptor->Address        = BpDescriptorArg->Address;
-    BreakpointDescriptor->PhysAddress    = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+    BreakpointDescriptor->BreakpointId      = g_MaximumBreakpointId;
+    BreakpointDescriptor->Address           = BpDescriptorArg->Address;
+    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
                                                                                     GuestCr3);
-    BreakpointDescriptor->Core           = BpDescriptorArg->Core;
-    BreakpointDescriptor->Pid            = BpDescriptorArg->Pid;
-    BreakpointDescriptor->Tid            = BpDescriptorArg->Tid;
-    BreakpointDescriptor->RemoveAfterHit = BpDescriptorArg->RemoveAfterHit;
+    BreakpointDescriptor->Core              = BpDescriptorArg->Core;
+    BreakpointDescriptor->Pid               = BpDescriptorArg->Pid;
+    BreakpointDescriptor->Tid               = BpDescriptorArg->Tid;
+    BreakpointDescriptor->RemoveAfterHit    = BpDescriptorArg->RemoveAfterHit;
+    BreakpointDescriptor->CheckForCallbacks = BpDescriptorArg->CheckForCallbacks;
 
     //
     // Check whether address is 32-bit or 64-bit

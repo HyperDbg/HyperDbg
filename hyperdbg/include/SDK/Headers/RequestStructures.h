@@ -1026,6 +1026,7 @@ typedef struct _DEBUGGEE_BP_PACKET
     UINT32  Tid;
     UINT32  Core;
     BOOLEAN RemoveAfterHit;
+    BOOLEAN CheckForCallbacks;
     UINT32  Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;

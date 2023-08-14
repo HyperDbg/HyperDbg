@@ -24,5 +24,8 @@ To release (deploy) :
 To update submodules: 
 - git submodule update --init --recursive --remote
 
+To remove the effects of 'git add .' without modifying (removing) the changes in the source code (remove the source codes ready for staging):
+- git reset
+
 To remove the effects of 'git add .' and 'git commit -m "test"' without modifying (removing) the changes in the source code:
 - git reset --soft HEAD~1

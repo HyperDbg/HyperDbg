@@ -262,6 +262,11 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, U
 IMPORT_EXPORT_VMM VOID
 ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
 
+IMPORT_EXPORT_VMM VOID
+ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
+                                                 UINT32 ProcessId,
+                                                 UINT32 ThreadId);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////

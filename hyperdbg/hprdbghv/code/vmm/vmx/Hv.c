@@ -208,7 +208,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             if (g_ReversingMachineInitialized)
             {
-                ReversingMachineHandleCr3Vmexit(VCpu, NewCr3);
+                ReversingMachineHandleCr3Vmexit(VCpu);
             }
 
             break;
