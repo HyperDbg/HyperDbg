@@ -3,7 +3,7 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The header file for array management routines
  * @details
- * @version 0.4.1
+ * @version 0.5
  * @date 2023-07-28
  *
  * @copyright This project is released under the GNU Public License v3.
