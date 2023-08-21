@@ -617,6 +617,28 @@ VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaul
 }
 
 /**
+ * @brief Inject interrupt/faults/exceptions
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param DeliverErrorCode
+ * @param ErrorCode
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventInjectInterruption(UINT32  InterruptionType,
+                              UINT32  Vector,
+                              BOOLEAN DeliverErrorCode,
+                              UINT32  ErrorCode)
+{
+    EventInjectInterruption(InterruptionType,
+                            Vector,
+                            DeliverErrorCode,
+                            ErrorCode);
+}
+
+/**
  * @brief Export for running VMX VMCALLs
  *
  * @param VmcallNumber
