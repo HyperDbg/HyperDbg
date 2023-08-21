@@ -100,7 +100,10 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
+    <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
+    <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
@@ -133,7 +136,10 @@
     <ClCompile Include="code\driver\Loader.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
+    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
+    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
     <ClInclude Include="header\assembly\Assembly.h" />

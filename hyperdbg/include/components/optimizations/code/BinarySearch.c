@@ -1,7 +1,7 @@
 /**
  * @file BinarySearch.c
- * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The file contains array management routines (Binary Search and Insertion sort)
+ * @author Mohammad K. Fallah (mkf1980@gmail.com)
+ * @brief The file contains array management routines (Binary Search)
  * @details
  * @version 0.5
  * @date 2023-07-28

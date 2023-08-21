@@ -213,6 +213,15 @@
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c">
       <Filter>code\components\optimizations</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\AvlTree.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -309,6 +318,15 @@
       <Filter>header\assembly</Filter>
     </ClInclude>
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
       <Filter>header\components\optimizations</Filter>
     </ClInclude>
   </ItemGroup>

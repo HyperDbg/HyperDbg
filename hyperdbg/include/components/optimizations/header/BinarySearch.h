@@ -1,7 +1,7 @@
 /**
  * @file BinarySearch.h
- * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The header file for array management routines
+ * @author Mohammad K. Fallah (mkf1980@gmail.com)
+ * @brief The header file for array management routines (Binary Search)
  * @details
  * @version 0.5
  * @date 2023-07-28
@@ -9,7 +9,6 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #pragma once
 
 //////////////////////////////////////////////////
