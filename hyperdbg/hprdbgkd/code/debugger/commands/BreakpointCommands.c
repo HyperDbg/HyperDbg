@@ -47,10 +47,10 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
-                                         g_TrapFlagState.NumberOfItems,
-                                         &Index,
-                                         ProcThrdInfo.asUInt);
+    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+                                           g_TrapFlagState.NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
 
     //
     // Indicate whether the trap flag is set by the debugger or not
@@ -111,9 +111,9 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         // Remove the thread/process from the list
         // We're sure the Result is TRUE
         //
-        ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
-                                  &g_TrapFlagState.NumberOfItems,
-                                  Index);
+        InsertionSortDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+                                &g_TrapFlagState.NumberOfItems,
+                                Index);
 
         //
         // Handled #DB by debugger
@@ -188,10 +188,10 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
-                                         g_TrapFlagState.NumberOfItems,
-                                         &Index,
-                                         ProcThrdInfo.asUInt);
+    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+                                           g_TrapFlagState.NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
 
     if (Result)
     {
@@ -207,9 +207,10 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Insert the thread into the list as the item is not already present
         //
-        SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
-                                                   &g_TrapFlagState.NumberOfItems,
-                                                   ProcThrdInfo.asUInt);
+        SuccessfullyStored = InsertionSortInsertItem(&g_TrapFlagState.ThreadInformation[0],
+                                                     &g_TrapFlagState.NumberOfItems,
+                                                     MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
+                                                     ProcThrdInfo.asUInt);
         goto Return;
     }
 

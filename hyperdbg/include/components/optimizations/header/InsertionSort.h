@@ -14,3 +14,9 @@
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
+
+BOOLEAN
+InsertionSortInsertItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 MaxNumOfItems, UINT64 Key);
+
+BOOLEAN
+InsertionSortDeleteItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 Index);
