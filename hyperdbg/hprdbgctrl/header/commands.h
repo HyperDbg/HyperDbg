@@ -389,6 +389,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_DUMP_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -636,3 +639,6 @@ CommandTrack(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandPagein(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandDump(vector<string> SplittedCommand, string Command);

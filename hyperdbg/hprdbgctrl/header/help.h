@@ -266,3 +266,6 @@ CommandTrackHelp();
 
 VOID
 CommandPageinHelp();
+
+VOID
+CommandDumpHelp();
