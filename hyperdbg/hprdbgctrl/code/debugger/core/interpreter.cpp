@@ -847,4 +847,5 @@ InitializeCommandsDictionary()
 
     g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 }

@@ -728,9 +728,9 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
 VOID
 StringToWString(std::wstring & ws, const std::string & s)
 {
-    std::wstring wsTmp(s.begin(), s.end());
+    std::wstring WsTmp(s.begin(), s.end());
 
-    ws = wsTmp;
+    ws = WsTmp;
 }
 
 /**

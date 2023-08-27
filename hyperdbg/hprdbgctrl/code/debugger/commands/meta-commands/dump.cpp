@@ -25,16 +25,20 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandDumpHelp()
 {
-    ShowMessages(".dump : saves memory context into a file.\n\n");
+    ShowMessages(".dump & !dump : saves memory context into a file.\n\n");
 
-    ShowMessages("syntax : \t.dump [FromAddress (hex)] [ToAddress (hex)] [path Path (string)]\n");
+    ShowMessages("syntax : \t.dump [FromAddress (hex)] [ToAddress (hex)] [pid ProcessId (hex)] [path Path (string)]\n");
+    ShowMessages("\nIf you want to dump physical memory then add '!' at the "
+                 "start of the command\n\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .dump 401000 40b000 path c:\\users\\sina\\desktop\\dump1.dmp\n");
-    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\users\\sina\\desktop\\dump2.dmp\n");
+    ShowMessages("\t\te.g : .dump 401000 40b000 pid 1c0 path c:\\users\\sina\\desktop\\dump2.dmp\n");
     ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\users\\sina\\desktop\\dump3.dmp\n");
-    ShowMessages("\t\te.g : .dump 00007ff8349f2000 00007ff8349f8000 path c:\\users\\sina\\desktop\\dump4.dmp\n");
-    ShowMessages("\t\te.g : .dump rax+rcx rax+rcx+1000 path c:\\users\\sina\\desktop\\dump5.dmp\n");
+    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\users\\sina\\desktop\\dump4.dmp\n");
+    ShowMessages("\t\te.g : .dump 00007ff8349f2000 00007ff8349f8000 path c:\\users\\sina\\desktop\\dump5.dmp\n");
+    ShowMessages("\t\te.g : .dump @rax+@rcx @rax+@rcx+1000 path c:\\users\\sina\\desktop\\dump6.dmp\n");
+    ShowMessages("\t\te.g : !dump 1000 2100 path c:\\users\\sina\\desktop\\dump7.dmp\n");
 }
 
 /**
@@ -47,10 +51,17 @@ CommandDumpHelp()
 VOID
 CommandDump(vector<string> SplittedCommand, string Command)
 {
-    wstring     Filepath;
-    UINT64      StartAddress = 0;
-    UINT64      EndAddress   = 0;
-    std::string Delimiter    = "path";
+    wstring                   Filepath;
+    UINT64                    StartAddress        = 0;
+    UINT64                    EndAddress          = 0;
+    UINT32                    Pid                 = 0;
+    string                    Delimiter           = "path";
+    BOOLEAN                   IsFirstCommand      = TRUE;
+    BOOLEAN                   NextIsProcId        = FALSE;
+    BOOLEAN                   NextIsPath          = FALSE;
+    BOOLEAN                   IsDumpPathSpecified = FALSE;
+    string                    FirstCommand        = SplittedCommand.front();
+    DEBUGGER_READ_MEMORY_TYPE MemoryType          = DEBUGGER_READ_VIRTUAL_ADDRESS;
 
     if (SplittedCommand.size() <= 4)
     {
@@ -60,80 +71,171 @@ CommandDump(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check the 'From' address
+    // By default if the user-debugger is active, we use these commands
+    // on the memory layout of the debuggee process
     //
-    if (!SymbolConvertNameOrExprToAddress(
-            SplittedCommand.at(1),
-            &StartAddress))
+    if (g_ActiveProcessDebuggingState.IsActive)
     {
-        //
-        // couldn't resolve or unkonwn parameter
-        //
-        ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(1).c_str());
+        Pid = g_ActiveProcessDebuggingState.ProcessId;
+    }
 
+    for (auto Section : SplittedCommand)
+    {
+        if (IsFirstCommand == TRUE)
+        {
+            IsFirstCommand = FALSE;
+            continue;
+        }
+        else if (NextIsProcId)
+        {
+            if (!ConvertStringToUInt32(Section, &Pid))
+            {
+                ShowMessages("please specify a correct hex value for process id\n\n");
+                CommandDumpHelp();
+                return;
+            }
+            NextIsProcId = FALSE;
+            continue;
+        }
+        else if (NextIsPath)
+        {
+            //
+            // Convert path to wstring
+            //
+            StringToWString(Filepath, Section);
+            IsDumpPathSpecified = TRUE;
+
+            NextIsPath = FALSE;
+        }
+        else if (!Section.compare("pid"))
+        {
+            NextIsProcId = TRUE;
+            continue;
+        }
+        else if (!Section.compare("path"))
+        {
+            NextIsPath = TRUE;
+            continue;
+        }
+        //
+        // Check the 'From' address
+        //
+        else if (!SymbolConvertNameOrExprToAddress(
+                     Section,
+                     &StartAddress))
+        {
+            //
+            // couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         Section.c_str());
+
+            CommandDumpHelp();
+            return;
+        }
+
+        //
+        // Check the 'To' address
+        //
+        else if (!SymbolConvertNameOrExprToAddress(
+                     Section,
+                     &EndAddress))
+        {
+            //
+            // couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         Section.c_str());
+
+            CommandDumpHelp();
+            return;
+        }
+        else
+        {
+            //
+            // invalid input
+            //
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         Section.c_str());
+            CommandDumpHelp();
+
+            return;
+        }
+    }
+
+    //
+    // Check if 'pid' is not specified
+    //
+    if (NextIsProcId)
+    {
+        ShowMessages("please specify a correct hex value for process id\n\n");
         CommandDumpHelp();
         return;
     }
 
     //
-    // Check the 'To' address
+    // Check if 'path' is either specified, not completely specified
     //
-    if (!SymbolConvertNameOrExprToAddress(
-            SplittedCommand.at(2),
-            &EndAddress))
+    if (NextIsPath || IsDumpPathSpecified)
     {
-        //
-        // couldn't resolve or unkonwn parameter
-        //
-        ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(2).c_str());
-
+        ShowMessages("please specify a correct path for saving the dump\n\n");
         CommandDumpHelp();
         return;
     }
 
     //
-    // Check the 'path' file names
+    // Check if start address or end address is null
     //
-    if (SplittedCommand.at(3).compare("path"))
+    if (StartAddress == NULL || EndAddress == NULL)
     {
-        //
-        // couldn't resolve or unkonwn parameter
-        //
-        ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(3).c_str());
-
-        CommandDumpHelp();
+        ShowMessages("err, please specify the start and end address in hex format\n");
         return;
     }
 
-    size_t DelimiterPos = Command.find(SplittedCommand.at(3));
-
-    if (DelimiterPos != std::string::npos)
+    //
+    // Check if end address is bigger than start address
+    //
+    if (StartAddress >= EndAddress)
     {
-        string FirstPart  = Command.substr(0, DelimiterPos);
-        string SecondPart = Command.substr(DelimiterPos + Delimiter.length());
-
-        //
-        // Trim the command
-        //
-        Trim(SecondPart);
-
-        //
-        // Convert path to wstring
-        //
-        StringToWString(Filepath, SecondPart);
-
-        ShowMessages("The path is : %ws\n", Filepath);
-        //
-        // Check whether addesss are valid or not , and check whether the 'to' is greater than 'from'
-        //
-    }
-    else
-    {
-        ShowMessages("err, incorrect use of the '.dump' command\n\n");
-        CommandDumpHelp();
+        ShowMessages("err, please note that the 'to' address should be greater than the 'from' address\n");
         return;
     }
+
+    //
+    // Check to prevent using process id in d* and u* commands
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
+    {
+        ShowMessages(ASSERT_MESSAGE_CANNOT_SPECIFY_PID);
+        return;
+    }
+
+    if (Pid == 0)
+    {
+        //
+        // Default process we read from current process
+        //
+        Pid = GetCurrentProcessId();
+    }
+
+    //
+    // Check whether it's physical or virtual address
+    //
+    if (!FirstCommand.compare("!dump"))
+    {
+        MemoryType = DEBUGGER_READ_PHYSICAL_ADDRESS;
+    }
+
+    ShowMessages("the dump path is : %ls\n", Filepath.c_str());
+
+    /*
+    HyperDbgReadMemoryAndDisassemble(
+        DEBUGGER_SHOW_COMMAND_DUMP,
+        StartAddress,
+        MemoryType,
+        READ_FROM_KERNEL,
+        Pid,
+        Length,
+        NULL);
+        */
 }
