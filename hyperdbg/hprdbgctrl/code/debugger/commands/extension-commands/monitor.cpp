@@ -138,7 +138,12 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             Event->EventType = HIDDEN_HOOK_WRITE_AND_EXECUTE;
             SetMode          = TRUE;
         }
-        else if ((!Section.compare("rwx") || !Section.compare("rxw") || !Section.compare("wrx") || !Section.compare("wxr") || !Section.compare("xrw") || !Section.compare("xwr")) &&
+        else if ((!Section.compare("rwx") ||
+                  !Section.compare("rxw") ||
+                  !Section.compare("wrx") ||
+                  !Section.compare("wxr") ||
+                  !Section.compare("xrw") ||
+                  !Section.compare("xwr")) &&
                  !SetMode)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE;

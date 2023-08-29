@@ -927,6 +927,12 @@ StartAgain:
 
                     break;
 
+                case DEBUGGER_SHOW_COMMAND_DUMP:
+
+                    CommandDumpSaveIntoFile(MemoryBuffer, ReadMemoryPacket->Size);
+
+                    break;
+
                 case DEBUGGER_SHOW_COMMAND_DT:
 
                     //

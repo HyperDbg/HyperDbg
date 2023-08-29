@@ -844,4 +844,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!track"] = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
     g_CommandsList["track"]  = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+
+    g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 }

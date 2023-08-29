@@ -1447,3 +1447,74 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of event_inject function
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, event_inject is not supported in user-mode\n");
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Validate the arguments
+    //
+    if (Vector >= 256 || InterruptionType >= 8)
+    {
+        LogInfo("Err, invalid event vector or interruption type is specified");
+        return;
+    }
+    else
+    {
+        VmFuncEventInjectInterruption(InterruptionType, Vector, FALSE, 0);
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of event_inject_error_code function
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param ErrorCode
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, event_inject is not supported in user-mode\n");
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Validate the arguments
+    //
+    if (Vector >= 256 || InterruptionType >= 8)
+    {
+        LogInfo("Err, invalid event vector or interruption type is specified");
+        return;
+    }
+    else
+    {
+        VmFuncEventInjectInterruption(InterruptionType, Vector, TRUE, ErrorCode);
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}

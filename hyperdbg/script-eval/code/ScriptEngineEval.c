@@ -428,6 +428,39 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
+    case FUNC_EVENT_INJECT_ERROR_CODE:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal2 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        ScriptEngineFunctionEventInjectErrorCode(SrcVal2, SrcVal1, SrcVal0, &HasError);
+
+        break;
+
     case FUNC_MEMCPY:
 
         Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -480,6 +513,28 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
         ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0, &HasError);
+
+        break;
+
+    case FUNC_EVENT_INJECT:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
+        ScriptEngineFunctionEventInject(SrcVal1, SrcVal0, &HasError);
 
         break;
 
