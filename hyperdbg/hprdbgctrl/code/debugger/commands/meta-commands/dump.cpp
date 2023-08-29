@@ -17,6 +17,16 @@
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
+//
+// Local global variables
+//
+
+/**
+ * @brief Holds the handle of the dump file
+ *
+ */
+HANDLE DumpFileHandle;
+
 /**
  * @brief help of the .dump command
  *
@@ -52,13 +62,17 @@ VOID
 CommandDump(vector<string> SplittedCommand, string Command)
 {
     wstring                   Filepath;
+    UINT32                    ActualLength;
+    UINT32                    Iterator;
+    UINT32                    Pid                 = 0;
+    UINT32                    Length              = 0;
     UINT64                    StartAddress        = 0;
     UINT64                    EndAddress          = 0;
-    UINT32                    Pid                 = 0;
-    string                    Delimiter           = "path";
     BOOLEAN                   IsFirstCommand      = TRUE;
     BOOLEAN                   NextIsProcId        = FALSE;
     BOOLEAN                   NextIsPath          = FALSE;
+    BOOLEAN                   IsTheFirstAddr      = FALSE;
+    BOOLEAN                   IsTheSecondAddr     = FALSE;
     BOOLEAN                   IsDumpPathSpecified = FALSE;
     string                    FirstCommand        = SplittedCommand.front();
     DEBUGGER_READ_MEMORY_TYPE MemoryType          = DEBUGGER_READ_VIRTUAL_ADDRESS;
@@ -120,42 +134,23 @@ CommandDump(vector<string> SplittedCommand, string Command)
         //
         // Check the 'From' address
         //
-        else if (!SymbolConvertNameOrExprToAddress(
-                     Section,
-                     &StartAddress))
+        else if (!IsTheFirstAddr && SymbolConvertNameOrExprToAddress(Section, &StartAddress))
         {
-            //
-            // couldn't resolve or unkonwn parameter
-            //
-            ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                         Section.c_str());
-
-            CommandDumpHelp();
-            return;
+            IsTheFirstAddr = TRUE;
         }
-
         //
         // Check the 'To' address
         //
-        else if (!SymbolConvertNameOrExprToAddress(
-                     Section,
-                     &EndAddress))
+        else if (!IsTheSecondAddr && SymbolConvertNameOrExprToAddress(Section, &EndAddress))
         {
-            //
-            // couldn't resolve or unkonwn parameter
-            //
-            ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                         Section.c_str());
-
-            CommandDumpHelp();
-            return;
+            IsTheSecondAddr = TRUE;
         }
         else
         {
             //
             // invalid input
             //
-            ShowMessages("err, incorrect use of the '%s' command\n\n",
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
                          Section.c_str());
             CommandDumpHelp();
 
@@ -176,7 +171,7 @@ CommandDump(vector<string> SplittedCommand, string Command)
     //
     // Check if 'path' is either specified, not completely specified
     //
-    if (NextIsPath || IsDumpPathSpecified)
+    if (NextIsPath || !IsDumpPathSpecified)
     {
         ShowMessages("please specify a correct path for saving the dump\n\n");
         CommandDumpHelp();
@@ -186,7 +181,7 @@ CommandDump(vector<string> SplittedCommand, string Command)
     //
     // Check if start address or end address is null
     //
-    if (StartAddress == NULL || EndAddress == NULL)
+    if (!IsTheFirstAddr || !IsTheSecondAddr)
     {
         ShowMessages("err, please specify the start and end address in hex format\n");
         return;
@@ -226,16 +221,106 @@ CommandDump(vector<string> SplittedCommand, string Command)
         MemoryType = DEBUGGER_READ_PHYSICAL_ADDRESS;
     }
 
-    ShowMessages("the dump path is : %ls\n", Filepath.c_str());
-
-    /*
-    HyperDbgReadMemoryAndDisassemble(
-        DEBUGGER_SHOW_COMMAND_DUMP,
-        StartAddress,
-        MemoryType,
-        READ_FROM_KERNEL,
-        Pid,
-        Length,
+    //
+    // Create or open the file for writing the dump file
+    //
+    DumpFileHandle = CreateFileW(
+        Filepath.c_str(),
+        GENERIC_WRITE,
+        0,
+        NULL,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
         NULL);
-        */
+
+    if (DumpFileHandle == INVALID_HANDLE_VALUE)
+    {
+        ShowMessages("err, unable to create or open the file\n");
+        return;
+    }
+
+    //
+    // Compute the length
+    //
+    Length = EndAddress - StartAddress;
+
+    ActualLength = NULL;
+    Iterator     = Length / PAGE_SIZE;
+
+    for (size_t i = 0; i <= Iterator; i++)
+    {
+        UINT64 Address = StartAddress + (i * PAGE_SIZE);
+
+        if (Length >= PAGE_SIZE)
+        {
+            ActualLength = PAGE_SIZE;
+        }
+        else
+        {
+            ActualLength = Length;
+        }
+
+        Length -= ActualLength;
+
+        if (ActualLength != 0)
+        {
+            // ShowMessages("address: 0x%llx | actual length: 0x%llx\n", Address, ActualLength);
+
+            HyperDbgReadMemoryAndDisassemble(
+                DEBUGGER_SHOW_COMMAND_DUMP,
+                Address,
+                MemoryType,
+                READ_FROM_KERNEL,
+                Pid,
+                ActualLength,
+                NULL);
+        }
+    }
+
+    //
+    // Close the file handle if it's not already closed
+    //
+    if (DumpFileHandle != NULL)
+    {
+        CloseHandle(DumpFileHandle);
+        DumpFileHandle = NULL;
+    }
+
+    ShowMessages("the dump file is saved at: %ls\n", Filepath.c_str());
+}
+
+/**
+ * @brief Saves the received buffers into the files
+ *
+ * @param Buffer
+ * @param Length
+ *
+ * @return VOID
+ */
+VOID
+CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length)
+{
+    DWORD BytesWritten;
+
+    //
+    // Check if handle is valid
+    //
+    if (DumpFileHandle == NULL)
+    {
+        ShowMessages("err, invalid handle for saving the dump buffer is specified\n");
+        return;
+    }
+
+    //
+    // Write the buffer into the dump file
+    //
+    if (!WriteFile(DumpFileHandle, Buffer, Length, &BytesWritten, NULL))
+    {
+        ShowMessages("err, unable to write buffer into the dump\n");
+
+        CloseHandle(DumpFileHandle);
+        DumpFileHandle = NULL;
+
+        return;
+    }
 }

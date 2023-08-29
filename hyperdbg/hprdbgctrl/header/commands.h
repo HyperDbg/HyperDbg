@@ -122,6 +122,9 @@ InitializeCommandsDictionary();
 VOID
 InitializeDebugger();
 
+VOID
+CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
+
 //////////////////////////////////////////////////
 //              Type of Commands                //
 //////////////////////////////////////////////////

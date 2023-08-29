@@ -193,6 +193,12 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
 
         break;
 
+    case DEBUGGER_SHOW_COMMAND_DUMP:
+
+        CommandDumpSaveIntoFile(((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY), Size);
+
+        break;
+
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
         //
