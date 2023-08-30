@@ -618,49 +618,71 @@ EptAllocateAndCreateIdentityPageTable()
 BOOLEAN
 EptLogicalProcessorInitialize()
 {
+    ULONG               LogicalProcessorsCount;
     PVMM_EPT_PAGE_TABLE PageTable;
     EPT_POINTER         EPTP = {0};
 
     //
-    // Allocate the identity mapped page table
+    // Get number of processors
     //
-    PageTable = EptAllocateAndCreateIdentityPageTable();
-    if (!PageTable)
+    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < LogicalProcessorsCount; i++)
     {
-        LogError("Err, unable to allocate memory for EPT");
-        return FALSE;
+        //
+        // Allocate the identity mapped page table
+        //
+        PageTable = EptAllocateAndCreateIdentityPageTable();
+
+        if (!PageTable)
+        {
+            //
+            // Try to deallocate previous pools (if any)
+            //
+            for (size_t j = 0; j < LogicalProcessorsCount; j++)
+            {
+                if (g_GuestState[j].EptPageTable != NULL)
+                {
+                    MmFreeContiguousMemory(g_GuestState[j].EptPageTable);
+                    g_GuestState[j].EptPageTable = NULL;
+                }
+            }
+
+            LogError("Err, unable to allocate memory for EPT");
+            return FALSE;
+        }
+
+        //
+        // Virtual address to the page table to keep track of it for later freeing
+        //
+        g_GuestState[i].EptPageTable = PageTable;
+
+        //
+        // For performance, we let the processor know it can cache the EPT
+        //
+        EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
+
+        //
+        // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
+        //
+        EPTP.EnableAccessAndDirtyFlags = TRUE;
+
+        //
+        // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
+        // see Section 28.2.2
+        //
+        EPTP.PageWalkLength = 3;
+
+        //
+        // The physical page number of the page table we will be using
+        //
+        EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
+
+        //
+        // We will write the EPTP to the VMCS later
+        //
+        g_GuestState[i].EptPointer = EPTP;
     }
-
-    //
-    // Virtual address to the page table to keep track of it for later freeing
-    //
-    g_EptState->EptPageTable = PageTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
-    //
-    EPTP.EnableAccessAndDirtyFlags = TRUE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->EptPointer = EPTP;
 
     return TRUE;
 }
@@ -884,11 +906,6 @@ VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType)
 {
     //
-    // acquire the lock
-    //
-    SpinlockLock(&Pml1ModificationAndInvalidationLock);
-
-    //
     // set the value
     //
     EntryAddress->AsUInt = EntryValue.AsUInt;
@@ -908,11 +925,6 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     {
         LogError("Err, invald invalidation parameter");
     }
-
-    //
-    // release the lock
-    //
-    SpinlockUnlock(&Pml1ModificationAndInvalidationLock);
 }
 
 /**

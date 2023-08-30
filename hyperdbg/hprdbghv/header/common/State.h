@@ -257,10 +257,15 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                                 // Pending interrupt queue (FIFO).
                                                                                 // Make storage for up-to 64 pending interrupts.
                                                                                 // In practice I haven't seen more than 2 pending interrupts.
-
     VMX_VMXOFF_STATE        VmxoffState;                                        // Shows the vmxoff state of the guest
     NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+
+    //
+    // EPT Decriptors
+    //
+    EPT_POINTER         EptPointer;   // Extended-Page-Table Pointer
+    PVMM_EPT_PAGE_TABLE EptPageTable; // Details of core-specific page-table
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

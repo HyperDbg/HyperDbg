@@ -106,6 +106,13 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 BOOLEAN
 ModeBasedExecHookInitialize()
 {
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
     //
     // Check if MBEC supported by this processors
     //
@@ -133,7 +140,10 @@ ModeBasedExecHookInitialize()
     //
     // Enable EPT user-mode execution bit for the target EPTP
     //
-    ModeBasedExecHookEnableUsermodeExecution(g_EptState->EptPageTable);
+    for (size_t i = 0; i < ProcessorsCount; i++)
+    {
+        ModeBasedExecHookEnableUsermodeExecution(g_GuestState[i].EptPageTable);
+    }
 
     //
     // Invalidate ALL context on all cores (not necessary here because we will change

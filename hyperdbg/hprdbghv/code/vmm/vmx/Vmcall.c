@@ -11,9 +11,17 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Handle vm-exits of VMCALLs
+ *
+ * @param VCpu The virtual processor's state
+ * @param GuestRegs
+ *
+ * @return NTSTATUS
+ */
 _Use_decl_annotations_
 NTSTATUS
-VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
+VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
 {
     UINT64                GuestRsp   = NULL;
     HYPERCALL_INPUT_VALUE InputValue = {.Flags = GuestRegs->rcx};
@@ -32,7 +40,7 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
     case HvCallFlushGuestPhysicalAddressSpace:
     case HvCallFlushGuestPhysicalAddressList:
 
-        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
         break;
     }
 
@@ -82,7 +90,7 @@ VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
     }
     else
     {
-        return VmxHypervVmcallHandler(GuestRegs);
+        return VmxHypervVmcallHandler(VCpu, GuestRegs);
     }
 
     return STATUS_SUCCESS;

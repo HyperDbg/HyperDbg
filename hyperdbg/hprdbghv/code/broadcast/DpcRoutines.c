@@ -1647,7 +1647,7 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
         //
         // We have to invalidate all contexts
         //
-        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, DeferredContext, NULL, NULL);
+        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, g_GuestState[KeGetCurrentProcessorNumber()].EptPointer.AsUInt, NULL, NULL);
     }
     //
     // Wait for all DPCs to synchronize at this point

@@ -135,7 +135,7 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncInvalidateEptSingleContext();
+VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptAllContexts();

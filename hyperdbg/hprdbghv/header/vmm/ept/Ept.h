@@ -87,16 +87,6 @@
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
 //////////////////////////////////////////////////
-//	    			Variables 	 	            //
-//////////////////////////////////////////////////
-
-/**
- * @brief Vmx-root lock for changing EPT PML1 Entry and Invalidating TLB
- *
- */
-volatile LONG Pml1ModificationAndInvalidationLock;
-
-//////////////////////////////////////////////////
 //			     Structs Cont.                	//
 //////////////////////////////////////////////////
 
@@ -140,10 +130,15 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
 /**
- * @brief Main structure for saving the state of EPT among the project
+ * @brief Maximum range of MTRR descriptors
  *
  */
 #define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
+
+/**
+ * @brief Main structure for saving the state of EPT among the project
+ *
+ */
 typedef struct _EPT_STATE
 {
     LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
@@ -152,7 +147,6 @@ typedef struct _EPT_STATE
     PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
     PVMM_EPT_PAGE_TABLE   ModeBasedEptPageTable;                       // Page table entries for hooks based on mode-based execution control bits
     PVMM_EPT_PAGE_TABLE   ExecuteOnlyEptPageTable;                     // Page table entries for execute-only control bits
-    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
     EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
 
