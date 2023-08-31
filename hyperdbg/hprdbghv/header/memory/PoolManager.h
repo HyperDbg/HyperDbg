@@ -19,7 +19,7 @@
  * @brief Maximum Pool Requests (while not allocated)
  *
  */
-#define MaximumRequestsQueueDepth   100
+#define MaximumRequestsQueueDepth   300
 #define NumberOfPreAllocatedBuffers 10
 
 //////////////////////////////////////////////////

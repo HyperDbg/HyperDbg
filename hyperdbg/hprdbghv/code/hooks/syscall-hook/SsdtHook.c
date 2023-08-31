@@ -295,7 +295,14 @@ SyscallHookTest()
     //
     // THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
     //
-    if (EptHook2(ApiLocationFromSSDTOfNtCreateFile, NtCreateFileHook, PsGetCurrentProcessId(), FALSE, FALSE, FALSE, TRUE))
+    if (EptHook2(&g_GuestState[KeGetCurrentProcessorNumber()],
+                 ApiLocationFromSSDTOfNtCreateFile,
+                 NtCreateFileHook,
+                 PsGetCurrentProcessId(),
+                 FALSE,
+                 FALSE,
+                 FALSE,
+                 TRUE))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }

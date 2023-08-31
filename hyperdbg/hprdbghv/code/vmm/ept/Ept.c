@@ -517,6 +517,7 @@ EptAllocateAndCreateIdentityPageTable()
     // zero out all entries to ensure all unused entries are marked Not Present
     //
     PageTable = CrsAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
+
     if (PageTable == NULL)
     {
         LogError("Err, failed to allocate memory for PageTable");
@@ -709,6 +710,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     BOOLEAN IsHandled               = FALSE;
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
+    PVOID   TargetPage              = NULL;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
@@ -744,9 +746,17 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                 if (!IgnoreReadOrWriteOrExec)
                 {
                     //
+                    // Pointer to the page entry in the page table
+                    //
+                    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
+
+                    //
                     // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                    EptSetPML1AndInvalidateTLB(VCpu,
+                                               TargetPage,
+                                               HookedEntry->OriginalEntry,
+                                               InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -896,6 +906,7 @@ EptHandleMisconfiguration()
  * @brief This function set the specific PML1 entry in a spinlock protected area then invalidate the TLB
  * @details This function should be called from vmx root-mode
  *
+ * @param VCpu The virtual processor's state
  * @param EntryAddress PML1 entry information (the target address)
  * @param EntryValue The value of pm1's entry (the value that should be replaced)
  * @param InvalidationType type of invalidation
@@ -903,7 +914,10 @@ EptHandleMisconfiguration()
  */
 _Use_decl_annotations_
 VOID
-EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType)
+EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
+                           PEPT_PML1_ENTRY         EntryAddress,
+                           EPT_PML1_ENTRY          EntryValue,
+                           INVEPT_TYPE             InvalidationType)
 {
     //
     // set the value
@@ -915,7 +929,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     //
     if (InvalidationType == InveptSingleContext)
     {
-        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
     }
     else if (InvalidationType == InveptAllContext)
     {
@@ -938,6 +952,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
 BOOLEAN
 EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRip)
 {
+    PVOID       TargetPage         = NULL;
     PLIST_ENTRY TempList           = 0;
     BOOLEAN     IsHandledByEptHook = FALSE;
 
@@ -972,9 +987,17 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     DispatchEventHiddenHookExecCc(VCpu, GuestRip);
 
                     //
+                    // Pointer to the page entry in the page table
+                    //
+                    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
+
+                    //
                     // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                    EptSetPML1AndInvalidateTLB(VCpu,
+                                               TargetPage,
+                                               HookedEntry->OriginalEntry,
+                                               InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit

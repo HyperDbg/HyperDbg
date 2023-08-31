@@ -2514,7 +2514,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
+        if (!ConfigureEptHook2(PsGetCurrentProcessId(), EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting

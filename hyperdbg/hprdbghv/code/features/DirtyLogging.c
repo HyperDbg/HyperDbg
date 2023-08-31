@@ -258,7 +258,7 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE * VCpu)
 
         AccessedPhysAddr = PmlBuf[PmlIdx];
 
-        PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, AccessedPhysAddr, &IsLargePage);
+        PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, AccessedPhysAddr, &IsLargePage);
 
         if (PmlEntry == NULL)
         {

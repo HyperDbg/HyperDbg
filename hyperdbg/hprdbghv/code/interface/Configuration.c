@@ -181,6 +181,7 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @details this command uses hidden detours, this NOT be called from vmx-root mode
  *
  *
+ * @param CoreId ID of the target core
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
  * @param ProcessId The process id to translate based on that process's cr3
@@ -191,7 +192,8 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-ConfigureEptHook2(PVOID   TargetAddress,
+ConfigureEptHook2(UINT32  CoreId,
+                  PVOID   TargetAddress,
                   PVOID   HookFunction,
                   UINT32  ProcessId,
                   BOOLEAN SetHookForRead,
@@ -199,7 +201,7 @@ ConfigureEptHook2(PVOID   TargetAddress,
                   BOOLEAN SetHookForExec,
                   BOOLEAN EptHiddenHook2)
 {
-    return EptHook2(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec, EptHiddenHook2);
+    return EptHook2(&g_GuestState[CoreId], TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec, EptHiddenHook2);
 }
 
 /**
