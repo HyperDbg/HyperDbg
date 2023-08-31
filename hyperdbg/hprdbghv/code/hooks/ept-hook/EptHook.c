@@ -507,13 +507,7 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
                                         SIZE_T                  PhysicalAddress)
 {
     PEPT_PML1_ENTRY          TargetPage;
-    ULONG                    ProcessorsCount;
     EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
-
-    //
-    // Get number of processors
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
@@ -527,18 +521,15 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
 
     if (HookedEntry != NULL)
     {
-        for (size_t i = 0; i < ProcessorsCount; i++)
-        {
-            //
-            // Pointer to the page entry in the page table
-            //
-            TargetPage = EptGetPml1Entry(g_GuestState[i].EptPageTable, HookedEntry->PhysicalBaseAddress);
+        //
+        // Pointer to the page entry in the page table
+        //
+        TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
 
-            //
-            // Apply the hook to EPT
-            //
-            TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
-        }
+        //
+        // Apply the hook to EPT
+        //
+        TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
 
         //
         // Invalidate EPT Cache
@@ -566,12 +557,6 @@ VOID
 EptHookRestoreAllHooksToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu)
 {
     PEPT_PML1_ENTRY TargetPage;
-    ULONG           ProcessorsCount;
-
-    //
-    // Get number of processors
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
@@ -583,24 +568,21 @@ EptHookRestoreAllHooksToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu)
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
-        for (size_t i = 0; i < ProcessorsCount; i++)
-        {
-            //
-            // Pointer to the page entry in the page table
-            //
-            TargetPage = EptGetPml1Entry(g_GuestState[i].EptPageTable, HookedEntry->PhysicalBaseAddress);
-
-            //
-            // Apply the hook to EPT
-            //
-            TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
-        }
+        //
+        // Pointer to the page entry in the page table
+        //
+        TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
 
         //
-        // Invalidate EPT Cache
+        // Apply the hook to EPT
         //
-        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
+        TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
     }
+
+    //
+    // Invalidate EPT Cache
+    //
+    EptInveptSingleContext(VCpu->EptPointer.AsUInt);
 }
 
 /**
