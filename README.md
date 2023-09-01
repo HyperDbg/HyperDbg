@@ -33,6 +33,12 @@ git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
 Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see the **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information, or if you previously used other native debuggers like GDB, LLDB, or WinDbg, you could see the [command map](https://hyperdbg.github.io/commands-map).
 
+## Tutorials
+
+The **[OpenSecurityTraining2's "Reversing with HyperDbg (Dbg3301)"](https://ost2.fyi/Dbg3301)** tutorial is the recommended way to get started with and learn HyperDbg. This tutorial will guide you through the initial steps of using HyperDbg, covering essential concepts, principles, and debugging functionalities as well as numerous reverse engineering methods achievable by using HyperDbg, along with practical and real-world examples.
+
+If you're interested in understanding the internal design and architecture of hypervisors and HyperDbg, you can read the [**Hypervisor From Scratch**](https://rayanfam.com/tutorials) tutorials.
+
 ## Publications
 
 In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
