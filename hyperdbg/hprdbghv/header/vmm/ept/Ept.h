@@ -70,16 +70,17 @@
  */
 typedef struct _MTRR_RANGE_DESCRIPTOR
 {
-    SIZE_T PhysicalBaseAddress;
-    SIZE_T PhysicalEndAddress;
-    UCHAR  MemoryType;
+    SIZE_T  PhysicalBaseAddress;
+    SIZE_T  PhysicalEndAddress;
+    UCHAR   MemoryType;
+    BOOLEAN FixedRange;
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
 /**
  * @brief Maximum range of MTRR descriptors
  *
  */
-#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
+#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 100
 
 /**
  * @brief Main structure for saving the state of EPT among the project
@@ -95,7 +96,7 @@ typedef struct _EPT_STATE
     PVMM_EPT_PAGE_TABLE   ExecuteOnlyEptPageTable;                     // Page table entries for execute-only control bits
     EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
-
+    UINT8                 DefaultMemoryType;
 } EPT_STATE, *PEPT_STATE;
 
 /**
@@ -138,7 +139,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 //
 
 static VOID
-EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
+EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
 
 static BOOLEAN
 EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
