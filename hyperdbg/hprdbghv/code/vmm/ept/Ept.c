@@ -59,7 +59,7 @@ EptCheckFeatures()
 
 /**
  * @brief Check whether EPT features are present or not
- * 
+ *
  * @param PageFrameNumber
  * @param IsLargePage
  * @return UINT8 Return desired type of memory for particular small/large page
@@ -73,7 +73,7 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
     SIZE_T                  CurrentMtrrRange;
     MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
 
-    StartAddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber* PAGE_SIZE;
+    StartAddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber * PAGE_SIZE;
     EndAddressOfPage   = IsLargePage ? StartAddressOfPage + SIZE_2_MB - 1 : StartAddressOfPage + PAGE_SIZE - 1;
 
     TargetMemoryType = g_EptState->DefaultMemoryType;
@@ -122,6 +122,8 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
             }
         }
     }
+
+    return TargetMemoryType;
 }
 
 /**
@@ -140,7 +142,7 @@ EptBuildMtrrMap()
     ULONG                           CurrentRegister;
     ULONG                           NumberOfBitsInMask;
 
-    MTRRCap.AsUInt = __readmsr(IA32_MTRR_CAPABILITIES);
+    MTRRCap.AsUInt     = __readmsr(IA32_MTRR_CAPABILITIES);
     MTRRDefType.AsUInt = __readmsr(IA32_MTRR_DEF_TYPE);
 
     //
@@ -164,7 +166,7 @@ EptBuildMtrrMap()
     // memory address range used by system-management mode (SMM) software (see Section 31.4.2.1). If the SMRR
     // interface is supported, SMM software is strongly encouraged to use it to protect the SMI code and data stored by
     // SMI handler in the SMRAM region.
-    // 
+    //
     // The system-management range registers consist of a pair of MSRs (see Figure 11-8). The IA32_SMRR_PHYSBASE
     // MSR defines the base address for the SMRAM memory range and the memory type used to access it in SMM. The
     // IA32_SMRR_PHYSMASK MSR contains a valid bit and a mask that determines the SMRAM address range protected
@@ -178,7 +180,7 @@ EptBuildMtrrMap()
 
         if (CurrentPhysMask.Valid && CurrentPhysBase.Type != MTRRDefType.DefaultMemoryType)
         {
-            Descriptor = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+            Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
             Descriptor->PhysicalBaseAddress = CurrentPhysBase.PageFrameNumber * PAGE_SIZE;
 
             _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
@@ -194,15 +196,15 @@ EptBuildMtrrMap()
     // divided into 8-bit fields that are used to specify the memory type for each of the sub-ranges the register controls:
     //  • Register IA32_MTRR_FIX64K_00000 — Maps the 512-KByte address range from 0H to 7FFFFH. This range
     //  is divided into eight 64-KByte sub-ranges.
-    // 
+    //
     //  • Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 — Maps the two 128-KByte
     //  address ranges from 80000H to BFFFFH. This range is divided into sixteen 16-KByte sub-ranges, 8 ranges per
     //  register.
-    // 
+    //
     //  • Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 — Maps eight 32-KByte
     //  address ranges from C0000H to FFFFFH. This range is divided into sixty-four 4-KByte sub-ranges, 8 ranges per
     //  register.
-    // 
+    //
     if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
     {
         typedef union _IA32_MTRR_FIXED_RANGE_TYPE
@@ -212,18 +214,18 @@ EptBuildMtrrMap()
             {
                 UINT8 Types[8];
             };
-        }IA32_MTRR_FIXED_RANGE_TYPE;
+        } IA32_MTRR_FIXED_RANGE_TYPE;
 
-        const ULONG K64Base = 0x0;
-        const ULONG K64Size = 0x10000;
+        const ULONG                K64Base  = 0x0;
+        const ULONG                K64Size  = 0x10000;
         IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
         for (unsigned int i = 0; i < 8; i++)
         {
-            Descriptor                        = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-            Descriptor->MemoryType            = K64Types.Types[i];
-            Descriptor->PhysicalBaseAddress   = K64Base + (K64Size * i);
-            Descriptor->PhysicalEndAddress    = K64Base + (K64Size * i) + (K64Size - 1);
-            Descriptor->FixedRange            = TRUE;
+            Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+            Descriptor->MemoryType          = K64Types.Types[i];
+            Descriptor->PhysicalBaseAddress = K64Base + (K64Size * i);
+            Descriptor->PhysicalEndAddress  = K64Base + (K64Size * i) + (K64Size - 1);
+            Descriptor->FixedRange          = TRUE;
         }
 
         const ULONG K16Base = 0x80000;
@@ -233,31 +235,30 @@ EptBuildMtrrMap()
             IA32_MTRR_FIXED_RANGE_TYPE K16Types = {__readmsr(IA32_MTRR_FIX16K_80000 + i)};
             for (unsigned int j = 0; j < 8; j++)
             {
-                Descriptor                        = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-                Descriptor->MemoryType            = K16Types.Types[i];
-                Descriptor->PhysicalBaseAddress   = K16Base + (K16Size * i);
-                Descriptor->PhysicalEndAddress    = K16Base + (K16Size * i) + (K16Size - 1);
-                Descriptor->FixedRange            = TRUE;
+                Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+                Descriptor->MemoryType          = K16Types.Types[i];
+                Descriptor->PhysicalBaseAddress = K16Base + (K16Size * i);
+                Descriptor->PhysicalEndAddress  = K16Base + (K16Size * i) + (K16Size - 1);
+                Descriptor->FixedRange          = TRUE;
             }
         }
 
-        const ULONG K4Base  = 0xC0000;
-        const ULONG K4Size  = 0x1000;
+        const ULONG K4Base = 0xC0000;
+        const ULONG K4Size = 0x1000;
         for (unsigned int i = 0; i < 8; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K4Types = {__readmsr(IA32_MTRR_FIX4K_C0000 + i)};
 
             for (unsigned int j = 0; j < 8; j++)
             {
-                Descriptor                        = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-                Descriptor->MemoryType            = K4Types.Types[j];
-                Descriptor->PhysicalBaseAddress   = (K4Base + (i * K4Size * 8)) + (K4Size * j);
-                Descriptor->PhysicalEndAddress    = (K4Base + (i * K4Size * 8)) + (K4Size * j) + (K4Size - 1);
-                Descriptor->FixedRange            = TRUE;
+                Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+                Descriptor->MemoryType          = K4Types.Types[j];
+                Descriptor->PhysicalBaseAddress = (K4Base + (i * K4Size * 8)) + (K4Size * j);
+                Descriptor->PhysicalEndAddress  = (K4Base + (i * K4Size * 8)) + (K4Size * j) + (K4Size - 1);
+                Descriptor->FixedRange          = TRUE;
             }
         }
     }
-
 
     for (CurrentRegister = 0; CurrentRegister < MTRRCap.VariableRangeCount; CurrentRegister++)
     {
@@ -605,7 +606,7 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
         CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
 
         if ((StartAddressOfPage <= CurrentMemoryRange->PhysicalEndAddress &&
-            EndAddressOfPage > CurrentMemoryRange->PhysicalEndAddress) ||
+             EndAddressOfPage > CurrentMemoryRange->PhysicalEndAddress) ||
             (StartAddressOfPage < CurrentMemoryRange->PhysicalBaseAddress &&
              EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress))
         {
@@ -627,7 +628,7 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
 VOID
 EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 {
-    PVOID                   TargetBuffer;
+    PVOID TargetBuffer;
 
     //
     // Each of the 512 collections of 512 PML2 entries is setup here
@@ -637,7 +638,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     // the actual physical address we're mapping
     //
     NewEntry->PageFrameNumber = PageFrameNumber;
-    
+
     if (EptIsValidForLargePage(PageFrameNumber))
     {
         NewEntry->MemoryType = EptGetMemoryType(PageFrameNumber, TRUE);
