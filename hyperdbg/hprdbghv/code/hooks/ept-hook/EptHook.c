@@ -80,7 +80,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
     UINT64                  TargetAddressInFakePageContent;
-    UINT64                  PageOffset;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     CR3_TYPE                Cr3OfCurrentProcess;
@@ -167,10 +166,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     // It will be used to compute the length of the detours
     // address because we might have a user mode code
     //
-    TargetAddressInFakePageContent = &HookedPage->FakePageContents;
-    TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
-    PageOffset                     = PAGE_OFFSET(TargetAddress);
-    TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+    TargetAddressInFakePageContent = EptHookCalcBreakpointOffset(TargetAddress, HookedPage);
 
     //
     // Switch to target process
@@ -185,7 +181,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
 
     //
-    // Set the breakpoint on the fake page
+    // we set the breakpoint on the fake page
     //
     *(BYTE *)TargetAddressInFakePageContent = 0xcc;
 
@@ -265,6 +261,25 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         ChangedEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
 
         //
+        // Only for the first time execution of the loop, we save these details,
+        // it is because after this condition, the hook is applied and by applying
+        // the hook, we have to make sure that the address is saved g_EptState->HookedPagesList
+        // because the hook might be simulatenously triggered from other cores
+        //
+        if (i == 0)
+        {
+            //
+            // Save the modified entry
+            //
+            HookedPage->ChangedEntry = ChangedEntry;
+
+            //
+            // Add it to the list
+            //
+            InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
+        }
+
+        //
         // Apply the hook to EPT
         //
         TargetPage->AsUInt = ChangedEntry.AsUInt;
@@ -277,16 +292,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
             EptInveptSingleContext(VCpu->EptPointer.AsUInt);
         }
     }
-
-    //
-    // Save the modified entry
-    //
-    HookedPage->ChangedEntry = ChangedEntry;
-
-    //
-    // Add it to the list
-    //
-    InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
 
     return TRUE;
 }
@@ -304,7 +309,6 @@ EptHookUpdateHookPage(_In_ PVOID                       TargetAddress,
                       _Inout_ EPT_HOOKED_PAGE_DETAIL * HookedEntry)
 {
     UINT64 TargetAddressInFakePageContent;
-    UINT64 PageOffset;
     BYTE   OriginalByte;
 
     if (HookedEntry == NULL)
@@ -331,20 +335,12 @@ EptHookUpdateHookPage(_In_ PVOID                       TargetAddress,
     // It will be used to compute the length of the detours
     // address because we might have a user mode code
     //
-    TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
-    TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
-    PageOffset                     = PAGE_OFFSET(TargetAddress);
-    TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+    TargetAddressInFakePageContent = EptHookCalcBreakpointOffset(TargetAddress, HookedEntry);
 
     //
     // Read the original byte
     //
     OriginalByte = *(BYTE *)TargetAddressInFakePageContent;
-
-    //
-    // Set the breakpoint on the fake page
-    //
-    *(BYTE *)TargetAddressInFakePageContent = 0xcc;
 
     //
     // Add target address to the list of breakpoints
@@ -360,6 +356,14 @@ EptHookUpdateHookPage(_In_ PVOID                       TargetAddress,
     // Add to the breakpoint counts
     //
     HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints + 1;
+
+    //
+    // Once we set every details, now we can apply the breakpoint on the fake page
+    // It should be after setting the above details because the 0xcc might be triggered
+    // in other cores before we saved the details and it will cause errors as the above
+    // details might not be available
+    //
+    *(BYTE *)TargetAddressInFakePageContent = 0xcc;
 
     return TRUE;
 }
@@ -848,7 +852,6 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
     UINT64                  TargetAddressInSafeMemory;
-    UINT64                  PageOffset;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     CR3_TYPE                Cr3OfCurrentProcess;
@@ -960,10 +963,7 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
         // It will be used to compute the length of the detours
         // address because we might have a user mode code
         //
-        TargetAddressInSafeMemory = &HookedPage->FakePageContents;
-        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
-        PageOffset                = PAGE_OFFSET(TargetAddress);
-        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+        TargetAddressInSafeMemory = EptHookCalcBreakpointOffset(TargetAddress, HookedPage);
 
         //
         // Make sure if handler function is valid or if it's default
@@ -1078,6 +1078,25 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
         }
 
         //
+        // Only for the first time execution of the loop, we save these details,
+        // it is because after this condition, the hook is applied and by applying
+        // the hook, we have to make sure that the address is saved g_EptState->HookedPagesList
+        // because the hook might be simulatenously triggered from other cores
+        //
+        if (i == 0)
+        {
+            //
+            // Save the modified entry
+            //
+            HookedPage->ChangedEntry = ChangedEntry;
+
+            //
+            // Add it to the list
+            //
+            InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
+        }
+
+        //
         // Apply the hook to EPT
         //
         TargetPage->AsUInt = ChangedEntry.AsUInt;
@@ -1090,16 +1109,6 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
             EptInveptSingleContext(VCpu->EptPointer.AsUInt);
         }
     }
-
-    //
-    // Save the modified entry
-    //
-    HookedPage->ChangedEntry = ChangedEntry;
-
-    //
-    // Add it to the list
-    //
-    InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
 
     return TRUE;
 }
@@ -1587,7 +1596,6 @@ BOOLEAN
 EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, UINT64 VirtualAddress)
 {
     UINT64 TargetAddressInFakePageContent;
-    UINT64 PageOffset;
     UINT32 CountOfEntriesWithSameAddr = 0;
 
     //
@@ -1597,7 +1605,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
     // is the HookedEntry that should be remove (not the first one as it has the
     // correct PreviousByte)
     //
-    for (size_t i = HookedEntry->CountOfBreakpoints; i-- > 0;)
+    for (size_t i = HookedEntry->CountOfBreakpoints; i > 0; i--)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -1646,10 +1654,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
                 //
                 // Set 0xcc to its previous value
                 //
-                TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
-                TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
-                PageOffset                     = PAGE_OFFSET(VirtualAddress);
-                TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+                TargetAddressInFakePageContent = EptHookCalcBreakpointOffset(VirtualAddress, HookedEntry);
 
                 //
                 // We'll check if there is another hooked address with the same virtual address
@@ -1658,7 +1663,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
                 //
                 for (size_t j = 0; j < HookedEntry->CountOfBreakpoints; j++)
                 {
-                    if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
+                    if (HookedEntry->BreakpointAddresses[j] == VirtualAddress)
                     {
                         CountOfEntriesWithSameAddr++;
                     }
