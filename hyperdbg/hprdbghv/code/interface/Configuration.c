@@ -30,14 +30,13 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 
 /**
  * @brief routines for initializing reversing machine
- * @param RevServiceRequest
  *
  * @return VOID
  */
 VOID
 ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
-    ReversingMachineInitialize(RevServiceRequest);
+    ReversingMachineInitialize();
 }
 
 /**

@@ -341,12 +341,15 @@ UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_I
  * @param TargetPid
  * @param TargetFileAddress
  * @param CommandLine
+ * @param RunCallbackAtTheFirstInstruction
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 UdAttachToProcess(UINT32        TargetPid,
                   const WCHAR * TargetFileAddress,
-                  WCHAR *       CommandLine)
+                  WCHAR *       CommandLine,
+                  BOOLEAN       RunCallbackAtTheFirstInstruction)
 {
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
@@ -376,6 +379,11 @@ UdAttachToProcess(UINT32        TargetPid,
     }
 
     //
+    // Set the state of the debugger for getting the
+    //
+    AttachRequest.CheckCallbackAtFirstInstruction = RunCallbackAtTheFirstInstruction;
+
+    //
     // We wanna attach to a remote process
     //
     AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH;
@@ -387,7 +395,7 @@ UdAttachToProcess(UINT32        TargetPid,
         //
         if (!IsFileExistW(TargetFileAddress))
         {
-            ShowMessages("err, unable to start, file not found\n");
+            ShowMessages("err, unable to start (file not found)\n");
             return FALSE;
         }
 

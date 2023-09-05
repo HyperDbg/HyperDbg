@@ -11,6 +11,14 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
+extern std::wstring g_StartCommandPath;
+extern std::wstring g_StartCommandPathAndArguments;
+extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
+
 /**
  * @brief help of the !rev command
  *
@@ -22,7 +30,10 @@ CommandRevHelp()
     ShowMessages("!rev : uses the reversing machine module in order to reconstruct the programmer/memory assumptions.\n\n");
 
     ShowMessages("syntax : \t!rev [config] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!rev [path Path (string)] [Parameters (string)]\n");
+
     ShowMessages("\n");
+    ShowMessages("\t\te.g : !rev path c:\\reverse eng\\my_file.exe\n");
     ShowMessages("\t\te.g : !rev pattern\n");
     ShowMessages("\t\te.g : !rev reconstruct\n");
     ShowMessages("\t\te.g : !rev pattern pid 1c0\n");
@@ -39,7 +50,6 @@ CommandRevHelp()
 VOID
 CommandRev(vector<string> SplittedCommand, string Command)
 {
-    /*
     vector<string> PathAndArgs;
     string         Arguments = "";
 
@@ -80,9 +90,9 @@ CommandRev(vector<string> SplittedCommand, string Command)
         Trim(Command);
 
         //
-        // Remove .start from it
+        // Remove !rev from it
         //
-        Command.erase(0, 6);
+        Command.erase(0, SplittedCommand.at(0).size());
 
         //
         // Remove path + space
@@ -145,17 +155,19 @@ CommandRev(vector<string> SplittedCommand, string Command)
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          NULL);
+                          NULL,
+                          TRUE);
     }
     else
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str(),
+                          TRUE);
     }
-    */
 
     ///////////////////////////////////////////////////////////////////////////////
+    return;
 
     REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevRequest         = {0};
     BOOLEAN                                      SetPid             = FALSE;

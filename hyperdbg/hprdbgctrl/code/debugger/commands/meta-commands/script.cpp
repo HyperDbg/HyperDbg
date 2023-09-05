@@ -282,7 +282,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
     //
     // Remove .script from it
     //
-    Command.erase(0, 7);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again

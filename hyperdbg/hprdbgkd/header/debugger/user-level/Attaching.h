@@ -62,6 +62,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     BOOLEAN    Is32Bit;
     BOOLEAN    IsOnTheStartingPhase;
     BOOLEAN    IsOnThreadInterceptingPhase;
+    BOOLEAN    CheckCallBackForInterceptingFirstInstruction; // checks for the callbacks for interceptions of the very first instruction (used by RE Machine)
     CR3_TYPE   InterceptedCr3[MAX_CR3_IN_A_PROCESS];
     LIST_ENTRY ThreadsListHead;
 

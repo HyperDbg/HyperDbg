@@ -213,7 +213,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
     Trim(Command);
 
     //
-    // Remove first command from it
+    // Remove the first command from it
     //
     Command.erase(0, SplittedCommand.at(0).size());
 

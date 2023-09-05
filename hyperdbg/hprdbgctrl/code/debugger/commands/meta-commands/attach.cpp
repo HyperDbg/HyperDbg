@@ -123,5 +123,5 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     // Perform attach to target process
     //
-    UdAttachToProcess(TargetPid, NULL, NULL);
+    UdAttachToProcess(TargetPid, NULL, NULL, FALSE);
 }

@@ -89,12 +89,14 @@ CommandRestart(vector<string> SplittedCommand, string Command)
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          NULL);
+                          NULL,
+                          FALSE);
     }
     else
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str(),
+                          FALSE);
     }
 }

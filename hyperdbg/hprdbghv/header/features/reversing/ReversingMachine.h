@@ -52,7 +52,7 @@ ReversingAddProcessThreadToTheWatchList(VIRTUAL_MACHINE_STATE * VCpu,
                                         UINT32                  ProcessId,
                                         UINT32                  ThreadId);
 BOOLEAN
-ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
+ReversingMachineInitialize();
 
 BOOLEAN
 ReversingMachineHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,

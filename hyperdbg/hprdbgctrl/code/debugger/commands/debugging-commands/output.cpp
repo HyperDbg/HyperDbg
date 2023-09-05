@@ -33,7 +33,7 @@ CommandOutputHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : output create MyOutputName1 file "
-                 "c:\\users\\sina\\desktop\\output.txt\n");
+                 "c:\\rev\\output.txt\n");
     ShowMessages("\t\te.g : output create MyOutputName2 tcp 192.168.1.10:8080\n");
     ShowMessages("\t\te.g : output create MyOutputName3 namedpipe "
                  "\\\\.\\Pipe\\HyperDbgOutput\n");

@@ -122,7 +122,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     //
     // Remove .formats from it
     //
-    Command.erase(0, 8);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again

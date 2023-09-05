@@ -493,12 +493,10 @@ ReversingMachineReadRamPhysicalRegions()
 /**
  * @brief Initialize the reversing machine based on service request
  *
- * @param RevServiceRequest
- *
  * @return BOOLEAN
  */
 BOOLEAN
-ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+ReversingMachineInitialize()
 {
     //
     // Check if the reversing machine is already initialized
@@ -558,11 +556,6 @@ ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServ
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting
     //
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
-
-    //
-    // Set the error/success code
-    //
-    RevServiceRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Indicate that the reversing machine is initialized

@@ -42,13 +42,13 @@ CommandDumpHelp()
                  "start of the command\n\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : .dump 401000 40b000 path c:\\users\\sina\\desktop\\dump1.dmp\n");
-    ShowMessages("\t\te.g : .dump 401000 40b000 pid 1c0 path c:\\users\\sina\\desktop\\dump2.dmp\n");
-    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\users\\sina\\desktop\\dump3.dmp\n");
-    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\users\\sina\\desktop\\dump4.dmp\n");
-    ShowMessages("\t\te.g : .dump 00007ff8349f2000 00007ff8349f8000 path c:\\users\\sina\\desktop\\dump5.dmp\n");
-    ShowMessages("\t\te.g : .dump @rax+@rcx @rax+@rcx+1000 path c:\\users\\sina\\desktop\\dump6.dmp\n");
-    ShowMessages("\t\te.g : !dump 1000 2100 path c:\\users\\sina\\desktop\\dump7.dmp\n");
+    ShowMessages("\t\te.g : .dump 401000 40b000 path c:\\rev\\dump1.dmp\n");
+    ShowMessages("\t\te.g : .dump 401000 40b000 pid 1c0 path c:\\rev\\desktop\\dump2.dmp\n");
+    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\rev\\dump3.dmp\n");
+    ShowMessages("\t\te.g : .dump fffff801deadb000 fffff801deade054 path c:\\rev\\dump4.dmp\n");
+    ShowMessages("\t\te.g : .dump 00007ff8349f2000 00007ff8349f8000 path c:\\rev\\dump5.dmp\n");
+    ShowMessages("\t\te.g : .dump @rax+@rcx @rax+@rcx+1000 path c:\\rev\\dump6.dmp\n");
+    ShowMessages("\t\te.g : !dump 1000 2100 path c:\\rev\\dump7.dmp\n");
 }
 
 /**

@@ -65,7 +65,7 @@ CommandPrint(vector<string> SplittedCommand, string Command)
     //
     // Remove print from it
     //
-    Command.erase(0, 5);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again
