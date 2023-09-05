@@ -30,7 +30,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
-    VCpu = &g_GuestState[KeGetCurrentProcessorNumber()];
+    VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
     // Set the registers

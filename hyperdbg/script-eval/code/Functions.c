@@ -768,7 +768,7 @@ ScriptEngineFunctionPause(
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail  = {0};
-        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
 
         //
         // Make the details of context
@@ -862,7 +862,7 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
         return;
     }
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     if (State != 0)
     {

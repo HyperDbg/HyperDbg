@@ -716,7 +716,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Find the debugging state structure
     //
-    DbgState = &g_DbgState[KeGetCurrentProcessorNumber()];
+    DbgState = &g_DbgState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
     // Set the registers for debug state

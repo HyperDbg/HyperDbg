@@ -303,7 +303,7 @@ VmxPerformVirtualizationOnAllCores()
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
-    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
@@ -409,7 +409,7 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
     UINT64                  ErrorCode   = 0;
-    ULONG                   ProcessorID = KeGetCurrentProcessorNumber();
+    ULONG                   ProcessorID = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
@@ -481,7 +481,7 @@ BOOLEAN
 VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
-    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
 
     //
@@ -927,7 +927,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 UINT64
 VmxReturnStackPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRsp;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRsp;
 }
 
 /**
@@ -938,7 +938,7 @@ VmxReturnStackPointerForVmxoff()
 UINT64
 VmxReturnInstructionPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRip;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRip;
 }
 
 /**

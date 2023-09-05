@@ -295,7 +295,7 @@ SyscallHookTest()
     //
     // THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
     //
-    if (EptHook2(&g_GuestState[KeGetCurrentProcessorNumber()],
+    if (EptHook2(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)],
                  ApiLocationFromSSDTOfNtCreateFile,
                  NtCreateFileHook,
                  PsGetCurrentProcessId(),

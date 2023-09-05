@@ -1873,7 +1873,7 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     //
     // Create a temporary VCpu
     //
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[KeGetCurrentProcessorNumber()];
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
     // Set the register for the temporary VCpu

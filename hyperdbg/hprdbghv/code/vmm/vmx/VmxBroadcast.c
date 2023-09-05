@@ -84,7 +84,7 @@ BOOLEAN
 VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 {
     ULONG CurrentCoreIndex;
-    CurrentCoreIndex             = KeGetCurrentProcessorNumber();
+    CurrentCoreIndex             = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCoreIndex];
 
     //
