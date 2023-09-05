@@ -493,6 +493,9 @@
     <ClCompile Include="code\debugger\commands\meta-commands\dump.cpp">
       <Filter>code\debugger\commands\meta-commands</Filter>
     </ClCompile>
+    <ClCompile Include="gu.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">

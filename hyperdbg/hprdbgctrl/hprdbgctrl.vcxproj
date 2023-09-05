@@ -178,6 +178,7 @@
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
     <ClCompile Include="code\objects\objects.cpp" />
     <ClCompile Include="code\rev\rev-ctrl.cpp" />
+    <ClCompile Include="gu.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>
