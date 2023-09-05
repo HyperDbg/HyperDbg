@@ -211,16 +211,13 @@ VmxInitialize()
 BOOLEAN
 VmxPerformVirtualizationOnAllCores()
 {
-    int       ProcessorCount;
-    KAFFINITY AffinityMask;
+    PAGED_CODE();
 
     if (!VmxCheckVmxSupport())
     {
         LogError("Err, VMX is not supported in this machine");
         return FALSE;
     }
-
-    PAGED_CODE();
 
     //
     // Allocate	global variable to hold Ept State
@@ -288,7 +285,7 @@ VmxPerformVirtualizationOnAllCores()
     }
 
     //
-    // Broadcast to run vmx-specific task to vitualize cores
+    // Broadcast to run vmx-specific task to virtualize cores
     //
     BroadcastVmxVirtualizationAllCores();
 
@@ -306,7 +303,7 @@ VmxPerformVirtualizationOnAllCores()
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
-    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
@@ -412,7 +409,7 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
     UINT64                  ErrorCode   = 0;
-    ULONG                   ProcessorID = KeGetCurrentProcessorNumber();
+    ULONG                   ProcessorID = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
@@ -484,7 +481,7 @@ BOOLEAN
 VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
-    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
 
     //
@@ -731,7 +728,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     // Set up EPT
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // Set up VPID
@@ -930,7 +927,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 UINT64
 VmxReturnStackPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRsp;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRsp;
 }
 
 /**
@@ -941,7 +938,7 @@ VmxReturnStackPointerForVmxoff()
 UINT64
 VmxReturnInstructionPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRip;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRip;
 }
 
 /**
@@ -952,7 +949,14 @@ VmxReturnInstructionPointerForVmxoff()
 VOID
 VmxPerformTermination()
 {
-    LogDebugInfo("Terminating VMX ...\n");
+    ULONG LogicalProcessorsCount;
+
+    LogDebugInfo("Terminating VMX...\n");
+
+    //
+    // Get number of processors
+    //
+    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // ******* Terminating Vmx *******
@@ -986,7 +990,11 @@ VmxPerformTermination()
     //
     // Free Identity Page Table
     //
-    MmFreeContiguousMemory(g_EptState->EptPageTable);
+    for (size_t i = 0; i < LogicalProcessorsCount; i++)
+    {
+        MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
+        g_GuestState[i].EptPageTable = NULL;
+    }
 
     //
     // Free Identity Page Table for MBEC hooks

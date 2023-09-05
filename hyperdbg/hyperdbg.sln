@@ -144,12 +144,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "optimizations", "optimizati
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{FCB5111C-C7D9-4E65-8EF7-E9BB80E54B7D}"
 	ProjectSection(SolutionItems) = preProject
+		include\components\optimizations\code\AvlTree.c = include\components\optimizations\code\AvlTree.c
 		include\components\optimizations\code\BinarySearch.c = include\components\optimizations\code\BinarySearch.c
+		include\components\optimizations\code\InsertionSort.c = include\components\optimizations\code\InsertionSort.c
+		include\components\optimizations\code\OptimizationsExamples.c = include\components\optimizations\code\OptimizationsExamples.c
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{D8207406-263E-4831-A8E9-20C4ECE5CA15}"
 	ProjectSection(SolutionItems) = preProject
+		include\components\optimizations\header\AvlTree.h = include\components\optimizations\header\AvlTree.h
 		include\components\optimizations\header\BinarySearch.h = include\components\optimizations\header\BinarySearch.h
+		include\components\optimizations\header\InsertionSort.h = include\components\optimizations\header\InsertionSort.h
+		include\components\optimizations\header\OptimizationsExamples.h = include\components\optimizations\header\OptimizationsExamples.h
 	EndProjectSection
 EndProject
 Global

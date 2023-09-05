@@ -21,7 +21,7 @@ ScriptEngineWrapperGetInstructionPointer()
 {
     ULONG CurrentProcessorIndex;
 
-    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Check if we are in vmx-root or not

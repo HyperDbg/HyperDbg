@@ -89,7 +89,7 @@ CommandPe(vector<string> SplittedCommand, string Command)
     //
     // Remove .pe from it
     //
-    Command.erase(0, 3);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     if (!ShowDumpOfSection)
     {
@@ -108,7 +108,7 @@ CommandPe(vector<string> SplittedCommand, string Command)
         //
         // Remove the string param for section + space
         //
-        Command.erase(0, SplittedCommand.at(2).length() + 1);
+        Command.erase(0, SplittedCommand.at(2).size() + 1);
     }
 
     //

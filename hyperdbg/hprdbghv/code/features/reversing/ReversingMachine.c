@@ -493,12 +493,10 @@ ReversingMachineReadRamPhysicalRegions()
 /**
  * @brief Initialize the reversing machine based on service request
  *
- * @param RevServiceRequest
- *
  * @return BOOLEAN
  */
 BOOLEAN
-ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+ReversingMachineInitialize()
 {
     //
     // Check if the reversing machine is already initialized
@@ -558,11 +556,6 @@ ReversingMachineInitialize(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServ
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting
     //
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
-
-    //
-    // Set the error/success code
-    //
-    RevServiceRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Indicate that the reversing machine is initialized
@@ -630,7 +623,7 @@ ReversingMachineRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Change EPTP
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // It's on normal EPTP
@@ -877,14 +870,13 @@ ReversingMachineRestoreNormalStateOnTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Handle MOV to CR3 vm-exits for hooking mode execution
  * @param VCpu The virtual processor's state
- * @param NewCr3 New cr3
  *
  * @return VOID
  */
 VOID
-ReversingMachineHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
+ReversingMachineHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    if (PsGetCurrentProcessId() == 10344 && VCpu->Test == FALSE)
+    if (PsGetCurrentProcessId() == ReversingMachineProcessId && VCpu->Test == FALSE)
     {
         //
         // Enable MBEC to detect execution in user-mode
@@ -905,4 +897,32 @@ ReversingMachineHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, UINT64 NewCr3)
         //
         HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
     }
+}
+
+/**
+ * @brief Add the process/thread to the watching list
+ * @param VCpu The virtual processor's state
+ * @param ProcessId
+ * @param ThreadId
+ *
+ * @return VOID
+ */
+VOID
+ReversingAddProcessThreadToTheWatchList(VIRTUAL_MACHINE_STATE * VCpu,
+                                        UINT32                  ProcessId,
+                                        UINT32                  ThreadId)
+{
+    //
+    // Store the process id/thread id
+    //
+    ReversingMachineProcessId = ProcessId;
+    ReversingMachineThreadId  = ThreadId;
+
+    LogInfo("Process added to the watch list (pid: %x, tid: %x)", ProcessId, ThreadId);
+
+    //
+    // Here we're also in the target thread/process, so we set it to handle the
+    // current process
+    //
+    // ReversingMachineHandleCr3Vmexit(VCpu);
 }

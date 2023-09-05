@@ -31,7 +31,7 @@ CommandStartHelp()
     ShowMessages("syntax : \t.start [path Path (string)] [Parameters (string)]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : .start path c:\\users\\sina\\reverse eng\\my_file.exe\n");
+    ShowMessages("\t\te.g : .start path c:\\reverse eng\\my_file.exe\n");
 }
 
 /**
@@ -84,9 +84,9 @@ CommandStart(vector<string> SplittedCommand, string Command)
         Trim(Command);
 
         //
-        // Remove .start from it
+        // Remove '.start' or 'start' from it
         //
-        Command.erase(0, 6);
+        Command.erase(0, SplittedCommand.at(0).size());
 
         //
         // Remove path + space
@@ -149,12 +149,14 @@ CommandStart(vector<string> SplittedCommand, string Command)
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          NULL);
+                          NULL,
+                          FALSE);
     }
     else
     {
         UdAttachToProcess(NULL,
                           g_StartCommandPath.c_str(),
-                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str(),
+                          FALSE);
     }
 }

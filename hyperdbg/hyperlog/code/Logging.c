@@ -906,7 +906,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     char *  LogMessage     = NULL;
     char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
-    ULONG   CoreId         = KeGetCurrentProcessorNumber();
+    ULONG   CoreId         = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Set Vmx State

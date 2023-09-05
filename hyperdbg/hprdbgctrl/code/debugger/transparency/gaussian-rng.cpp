@@ -228,7 +228,7 @@ TestGaussianFromFile()
     UINT64         StandardDeviationOfData;
     UINT64         MedianOfData;
 
-    std::ifstream file("C:\\Users\\sina\\Desktop\\r.txt");
+    std::ifstream file("c:\\rev\\r.txt");
     if (file.is_open())
     {
         std::string line;

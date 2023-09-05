@@ -11,9 +11,17 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Handle vm-exits of VMCALLs
+ *
+ * @param VCpu The virtual processor's state
+ * @param GuestRegs
+ *
+ * @return NTSTATUS
+ */
 _Use_decl_annotations_
 NTSTATUS
-VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
+VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
 {
     UINT64                GuestRsp   = NULL;
     HYPERCALL_INPUT_VALUE InputValue = {.Flags = GuestRegs->rcx};
@@ -32,7 +40,7 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
     case HvCallFlushGuestPhysicalAddressSpace:
     case HvCallFlushGuestPhysicalAddressList:
 
-        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
         break;
     }
 
@@ -82,7 +90,7 @@ VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
     }
     else
     {
-        return VmxHypervVmcallHandler(GuestRegs);
+        return VmxHypervVmcallHandler(VCpu, GuestRegs);
     }
 
     return STATUS_SUCCESS;
@@ -160,7 +168,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
 
         CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};
 
-        HookResult = EptHookPerformPageHook2(OptionalParam1 /* TargetAddress */,
+        HookResult = EptHookPerformPageHook2(VCpu,
+                                             OptionalParam1 /* TargetAddress */,
                                              OptionalParam2 /* Hook Function*/,
                                              ProcCr3 /* Process cr3 */,
                                              UnsetRead,
@@ -186,13 +195,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_UNHOOK_ALL_PAGES:
     {
-        EptHookRestoreAllHooksToOriginalEntry();
+        EptHookRestoreAllHooksToOriginalEntry(VCpu);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNHOOK_SINGLE_PAGE:
     {
-        if (EptHookRestoreSingleHookToOriginalEntry(OptionalParam1))
+        if (EptHookRestoreSingleHookToOriginalEntry(VCpu, OptionalParam1))
             VmcallStatus = STATUS_SUCCESS;
         else
             VmcallStatus = STATUS_UNSUCCESSFUL;
@@ -264,7 +273,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         BOOLEAN  HookResult = FALSE;
         CR3_TYPE ProcCr3    = {.Flags = OptionalParam2};
 
-        HookResult = EptHookPerformPageHook(OptionalParam1, /* TargetAddress */
+        HookResult = EptHookPerformPageHook(VCpu,
+                                            OptionalParam1, /* TargetAddress */
                                             ProcCr3);       /* process cr3 */
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;

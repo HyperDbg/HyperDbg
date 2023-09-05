@@ -91,7 +91,6 @@
 #include "memory/AddressCheck.h"
 #include "common/Bitwise.h"
 #include "common/Common.h"
-#include "components/optimizations/header/BinarySearch.h"
 #include "components/spinlock/header/Spinlock.h"
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"

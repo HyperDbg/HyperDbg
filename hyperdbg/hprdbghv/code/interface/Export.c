@@ -470,13 +470,14 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId)
 
 /**
  * @brief Requests for single-context EPT invalidation
+ * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncInvalidateEptSingleContext()
+VmFuncInvalidateEptSingleContext(UINT32 CoreId)
 {
-    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+    EptInveptSingleContext(g_GuestState[CoreId].EptPointer.AsUInt);
 }
 
 /**

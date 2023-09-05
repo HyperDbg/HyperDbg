@@ -68,7 +68,13 @@
 // Spinlock component
 //
 #include "components/spinlock/header/Spinlock.h"
+
+//
+// Optimization algorithms
+//
+#include "components/optimizations/header/AvlTree.h"
 #include "components/optimizations/header/BinarySearch.h"
+#include "components/optimizations/header/InsertionSort.h"
 
 //
 // Debugger Types

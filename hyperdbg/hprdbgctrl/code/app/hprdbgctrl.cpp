@@ -351,15 +351,6 @@ ReadIrpBasedBuffer()
 
                 default:
 
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
                     //
                     // Set output source to not found
                     //
@@ -394,11 +385,13 @@ ReadIrpBasedBuffer()
 
                                 //
                                 // Send the event to output sources
+                                // Minus one (-1) is because we want to
+                                // remove the null character at end of the message
                                 //
                                 if (!ForwardingPerformEventForwarding(
                                         EventDetail,
                                         OutputBuffer + sizeof(UINT32),
-                                        ReturnedLength - sizeof(UINT32) + 1))
+                                        ReturnedLength - sizeof(UINT32) - 1))
                                 {
                                     ShowMessages("err, there was an error transferring the "
                                                  "message to the remote sources\n");
@@ -414,6 +407,15 @@ ReadIrpBasedBuffer()
                     //
                     if (!OutputSourceFound)
                     {
+                        if (g_BreakPrintingOutput)
+                        {
+                            //
+                            // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                            // we shouldn't show or save anything in this case
+                            //
+                            continue;
+                        }
+
                         ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     }
 

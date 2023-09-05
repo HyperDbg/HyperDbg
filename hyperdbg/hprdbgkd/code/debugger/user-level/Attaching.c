@@ -100,6 +100,7 @@ UINT64
 AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
                                        BOOLEAN   Enabled,
                                        BOOLEAN   Is32Bit,
+                                       BOOLEAN   CheckCallbackAtFirstInstruction,
                                        PEPROCESS Eprocess,
                                        UINT64    PebAddressToMonitor,
                                        UINT64    UsermodeReservedBuffer)
@@ -127,12 +128,13 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     // Set the details of the created buffer
     //
-    ProcessDebuggingDetail->ProcessId              = ProcessId;
-    ProcessDebuggingDetail->Enabled                = Enabled;
-    ProcessDebuggingDetail->Is32Bit                = Is32Bit;
-    ProcessDebuggingDetail->Eprocess               = Eprocess;
-    ProcessDebuggingDetail->PebAddressToMonitor    = PebAddressToMonitor;
-    ProcessDebuggingDetail->UsermodeReservedBuffer = UsermodeReservedBuffer;
+    ProcessDebuggingDetail->ProcessId                                    = ProcessId;
+    ProcessDebuggingDetail->Enabled                                      = Enabled;
+    ProcessDebuggingDetail->Is32Bit                                      = Is32Bit;
+    ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction = CheckCallbackAtFirstInstruction;
+    ProcessDebuggingDetail->Eprocess                                     = Eprocess;
+    ProcessDebuggingDetail->PebAddressToMonitor                          = PebAddressToMonitor;
+    ProcessDebuggingDetail->UsermodeReservedBuffer                       = UsermodeReservedBuffer;
 
     //
     // Allocate a thread holder buffer for this process
@@ -371,6 +373,17 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     // Remove the breakpoint after hit
     //
     BpRequest.RemoveAfterHit = TRUE;
+
+    //
+    // Check if the process needs to check for callbacks for the very first instruction
+    //
+    if (ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction)
+    {
+        //
+        // This breakpoint should check for callbacks
+        //
+        BpRequest.CheckForCallbacks = TRUE;
+    }
 
     //
     // Register the breakpoint
@@ -757,6 +770,29 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 }
 
 /**
+ * @brief This function checks whether any special initialization is needed while
+ * attaching to a process that requests a callback
+ *
+ * @details this function should not be called in vmx-root
+ *
+ * @param AttachRequest
+ * @param ProcessDebuggingToken
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest,
+                                                      UINT64                                    ProcessDebuggingToken)
+{
+    //
+    // Enable the memory access logging
+    //
+    ConfigureInitializeReversingMachineOnAllProcessors(NULL);
+
+    return TRUE;
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should not be called in vmx-root
  *
@@ -873,6 +909,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     ProcessDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
                                                                    TRUE,
                                                                    Is32Bit,
+                                                                   AttachRequest->CheckCallbackAtFirstInstruction,
                                                                    SourceProcess,
                                                                    PebAddressToMonitor,
                                                                    UsermodeReservedBuffer);
@@ -936,13 +973,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result                        = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-
-        //
-        // Operation was successful
-        //
-        AttachRequest->Token  = ProcessDebuggingToken;
-        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-        return TRUE;
     }
     else
     {
@@ -959,14 +989,23 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-
-        //
-        // Operation was successful
-        //
-        AttachRequest->Token  = ProcessDebuggingToken;
-        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-        return TRUE;
     }
+
+    //
+    // Check whether any special initialization for thread safe features
+    // is needed or not
+    //
+    if (AttachRequest->CheckCallbackAtFirstInstruction)
+    {
+        AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
+    }
+
+    //
+    // Operation was successful
+    //
+    AttachRequest->Token  = ProcessDebuggingToken;
+    AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    return TRUE;
 }
 
 /**

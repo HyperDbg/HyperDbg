@@ -135,7 +135,7 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncInvalidateEptSingleContext();
+VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptAllContexts();
@@ -244,7 +244,7 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
+ConfigureEptHook2(UINT32 CoreId, PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
@@ -264,6 +264,11 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, U
 
 IMPORT_EXPORT_VMM VOID
 ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
+                                                 UINT32 ProcessId,
+                                                 UINT32 ThreadId);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

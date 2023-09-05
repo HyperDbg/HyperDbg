@@ -47,10 +47,10 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
-                                         g_TrapFlagState.NumberOfItems,
-                                         &Index,
-                                         ProcThrdInfo.asUInt);
+    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+                                           g_TrapFlagState.NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
 
     //
     // Indicate whether the trap flag is set by the debugger or not
@@ -111,9 +111,9 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         // Remove the thread/process from the list
         // We're sure the Result is TRUE
         //
-        ArrayManagementDeleteItem(&g_TrapFlagState.ThreadInformation[0],
-                                  &g_TrapFlagState.NumberOfItems,
-                                  Index);
+        InsertionSortDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+                                &g_TrapFlagState.NumberOfItems,
+                                Index);
 
         //
         // Handled #DB by debugger
@@ -133,6 +133,29 @@ Return:
     // By default, #DBs are managed by HyperDbg
     //
     return ResultToReturn;
+}
+
+/**
+ * @brief Trigger callback for breakpoint hit
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param ProcessId
+ * @param ThreadId
+ *
+ * @return BOOLEAN If true, it won't halt the debugger, but if false will halt the debugger
+ */
+BOOLEAN
+BreakpointTriggerCallbacks(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 ProcessId, UINT32 ThreadId)
+{
+    //
+    // Add the process/thread to the watching list
+    //
+    ConfigureReversingAddProcessThreadToTheWatchList(DbgState->CoreId, ProcessId, ThreadId);
+
+    //
+    // By default return FALSE to set handling the breakpoint to the user to the debugger
+    //
+    return FALSE;
 }
 
 /**
@@ -165,10 +188,10 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = ArrayManagementBinarySearch(&g_TrapFlagState.ThreadInformation[0],
-                                         g_TrapFlagState.NumberOfItems,
-                                         &Index,
-                                         ProcThrdInfo.asUInt);
+    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+                                           g_TrapFlagState.NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
 
     if (Result)
     {
@@ -184,9 +207,10 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Insert the thread into the list as the item is not already present
         //
-        SuccessfullyStored = ArrayManagementInsert(&g_TrapFlagState.ThreadInformation[0],
-                                                   &g_TrapFlagState.NumberOfItems,
-                                                   ProcThrdInfo.asUInt);
+        SuccessfullyStored = InsertionSortInsertItem(&g_TrapFlagState.ThreadInformation[0],
+                                                     &g_TrapFlagState.NumberOfItems,
+                                                     MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
+                                                     ProcThrdInfo.asUInt);
         goto Return;
     }
 
@@ -424,6 +448,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     ULONG                            LengthOfExitInstr     = 0;
     BYTE                             InstrByte             = NULL;
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
+    BOOLEAN                          IgnoreUserHandling    = FALSE;
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -500,12 +525,29 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 }
 
                 //
-                // *** It's not safe to access CurrentBreakpointDesc anymore as the
-                // breakpoint might be removed ***
+                // Check if it needs to check for callbacks or not
                 //
-                KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                      Reason,
-                                                      &TargetContext);
+                if (CurrentBreakpointDesc->CheckForCallbacks)
+                {
+                    //
+                    // check callbacks
+                    //
+                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, PsGetCurrentProcessId(), PsGetCurrentThreadId());
+                }
+
+                //
+                // Check if we need to handle the breakpoint by user or just ignore handling it
+                //
+                if (!IgnoreUserHandling)
+                {
+                    //
+                    // *** It's not safe to access CurrentBreakpointDesc anymore as the
+                    // breakpoint might be removed ***
+                    //
+                    KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                          Reason,
+                                                          &TargetContext);
+                }
             }
 
             //
@@ -859,14 +901,15 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     // Copy details of breakpoint to the descriptor structure
     //
     g_MaximumBreakpointId++;
-    BreakpointDescriptor->BreakpointId   = g_MaximumBreakpointId;
-    BreakpointDescriptor->Address        = BpDescriptorArg->Address;
-    BreakpointDescriptor->PhysAddress    = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+    BreakpointDescriptor->BreakpointId      = g_MaximumBreakpointId;
+    BreakpointDescriptor->Address           = BpDescriptorArg->Address;
+    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
                                                                                     GuestCr3);
-    BreakpointDescriptor->Core           = BpDescriptorArg->Core;
-    BreakpointDescriptor->Pid            = BpDescriptorArg->Pid;
-    BreakpointDescriptor->Tid            = BpDescriptorArg->Tid;
-    BreakpointDescriptor->RemoveAfterHit = BpDescriptorArg->RemoveAfterHit;
+    BreakpointDescriptor->Core              = BpDescriptorArg->Core;
+    BreakpointDescriptor->Pid               = BpDescriptorArg->Pid;
+    BreakpointDescriptor->Tid               = BpDescriptorArg->Tid;
+    BreakpointDescriptor->RemoveAfterHit    = BpDescriptorArg->RemoveAfterHit;
+    BreakpointDescriptor->CheckForCallbacks = BpDescriptorArg->CheckForCallbacks;
 
     //
     // Check whether address is 32-bit or 64-bit

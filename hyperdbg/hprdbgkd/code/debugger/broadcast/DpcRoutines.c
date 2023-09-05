@@ -128,7 +128,7 @@ VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     ULONG                       CurrentProcessorIndex = 0;
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
+    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -160,7 +160,7 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 VOID
 DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
+    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -192,7 +192,7 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
 VOID
 DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
+    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -226,7 +226,7 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
 VOID
 DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
+    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);

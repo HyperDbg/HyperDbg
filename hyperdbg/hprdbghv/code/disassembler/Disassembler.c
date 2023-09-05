@@ -189,7 +189,13 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
             NULL);
 
         // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)readOffset, instrAddress, printBuffer);
-        Log("core:%x | process id:%x\t\t%llx\t\t%hs\n", KeGetCurrentProcessorIndex(), PsGetCurrentProcessId(), ActualRip, printBuffer);
+
+        Log("core: | process id: - thread id:\t\t\t\t%hs\n",
+            // KeGetCurrentProcessorIndex(),
+            // PsGetCurrentProcessId(),
+            // PsGetCurrentThreadId(),
+            // ActualRip,
+            printBuffer);
 
         // readOffset += instruction.length;
 
