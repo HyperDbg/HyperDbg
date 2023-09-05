@@ -150,7 +150,7 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 VOID
 KdFireDpc(PVOID Routine, PVOID Paramter)
 {
-    ULONG CurrentCore = KeGetCurrentProcessorNumber();
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, Routine, Paramter);
 

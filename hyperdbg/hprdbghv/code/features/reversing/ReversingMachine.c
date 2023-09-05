@@ -630,7 +630,7 @@ ReversingMachineRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Change EPTP
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // It's on normal EPTP

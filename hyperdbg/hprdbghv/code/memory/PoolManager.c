@@ -53,6 +53,13 @@ PlmgrFreeRequestNewAllocation(VOID)
 BOOLEAN
 PoolManagerInitialize()
 {
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
     //
     // Allocate global requesting variable
     //
@@ -70,8 +77,9 @@ PoolManagerInitialize()
 
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5 * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
 
     //
     // Request pages to be allocated for paged hook details

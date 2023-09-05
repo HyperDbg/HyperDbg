@@ -300,7 +300,7 @@
 //
 
 static NTSTATUS
-VmxHypervVmcallHandler(_Inout_ PGUEST_REGS GuestRegs);
+VmxHypervVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE * VCpu, _Inout_ PGUEST_REGS GuestRegs);
 
 /**
  * @brief Handle vm-exits of VMCALLs

@@ -58,6 +58,75 @@ EptCheckFeatures()
 }
 
 /**
+ * @brief Check whether EPT features are present or not
+ *
+ * @param PageFrameNumber
+ * @param IsLargePage
+ * @return UINT8 Return desired type of memory for particular small/large page
+ */
+UINT8
+EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
+{
+    UINT8                   TargetMemoryType;
+    SIZE_T                  StartAddressOfPage;
+    SIZE_T                  EndAddressOfPage;
+    SIZE_T                  CurrentMtrrRange;
+    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
+
+    StartAddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber * PAGE_SIZE;
+    EndAddressOfPage   = IsLargePage ? StartAddressOfPage + SIZE_2_MB - 1 : StartAddressOfPage + PAGE_SIZE - 1;
+
+    TargetMemoryType = g_EptState->DefaultMemoryType;
+
+    //
+    // For each MTRR range
+    //
+    for (CurrentMtrrRange = 0; CurrentMtrrRange < g_EptState->NumberOfEnabledMemoryRanges; CurrentMtrrRange++)
+    {
+        CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
+
+        //
+        // If this page's address is below or equal to the max physical address of the range
+        // And this page's last address is above or equal to the base physical address of the range
+        //
+        if (StartAddressOfPage <= CurrentMemoryRange->PhysicalEndAddress &&
+            EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress)
+        {
+            //
+            // If we're here, this page fell within one of the ranges specified by the variable MTRRs
+            // Therefore, we must mark this page as the same cache type exposed by the MTRR
+            //
+            TargetMemoryType = CurrentMemoryRange->MemoryType;
+
+            // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
+
+            //
+            // 11.11.4.1 MTRR Precedences
+            //
+            if (CurrentMemoryRange->FixedRange)
+            {
+                //
+                // When the fixed-range MTRRs are enabled, they take priority over the variable-range
+                // MTRRs when overlaps in ranges occur.
+                //
+                break;
+            }
+
+            if (TargetMemoryType == MEMORY_TYPE_UNCACHEABLE)
+            {
+                //
+                // If this is going to be marked uncacheable, then we stop the search as UC always
+                // takes precedent
+                //
+                break;
+            }
+        }
+    }
+
+    return TargetMemoryType;
+}
+
+/**
  * @brief Build MTRR Map of current physical addresses
  *
  * @return BOOLEAN
@@ -68,11 +137,128 @@ EptBuildMtrrMap()
     IA32_MTRR_CAPABILITIES_REGISTER MTRRCap;
     IA32_MTRR_PHYSBASE_REGISTER     CurrentPhysBase;
     IA32_MTRR_PHYSMASK_REGISTER     CurrentPhysMask;
+    IA32_MTRR_DEF_TYPE_REGISTER     MTRRDefType;
     PMTRR_RANGE_DESCRIPTOR          Descriptor;
     ULONG                           CurrentRegister;
     ULONG                           NumberOfBitsInMask;
 
-    MTRRCap.AsUInt = __readmsr(IA32_MTRR_CAPABILITIES);
+    MTRRCap.AsUInt     = __readmsr(IA32_MTRR_CAPABILITIES);
+    MTRRDefType.AsUInt = __readmsr(IA32_MTRR_DEF_TYPE);
+
+    //
+    // All MTRRs are disabled when clear, and the
+    // UC memory type is applied to all of physical memory.
+    //
+    if (!MTRRDefType.MtrrEnable)
+    {
+        g_EptState->DefaultMemoryType = MEMORY_TYPE_UNCACHEABLE;
+        return TRUE;
+    }
+
+    //
+    // The IA32_MTRR_DEF_TYPE MSR (named MTRRdefType MSR for the P6 family processors) sets the default
+    // properties of the regions of physical memory that are not encompassed by MTRRs
+    //
+    g_EptState->DefaultMemoryType = MTRRDefType.DefaultMemoryType;
+
+    //
+    // If IA32_MTRRCAP[bit 11] is set, the processor supports the SMRR interface to restrict access to a specified
+    // memory address range used by system-management mode (SMM) software (see Section 31.4.2.1). If the SMRR
+    // interface is supported, SMM software is strongly encouraged to use it to protect the SMI code and data stored by
+    // SMI handler in the SMRAM region.
+    //
+    // The system-management range registers consist of a pair of MSRs (see Figure 11-8). The IA32_SMRR_PHYSBASE
+    // MSR defines the base address for the SMRAM memory range and the memory type used to access it in SMM. The
+    // IA32_SMRR_PHYSMASK MSR contains a valid bit and a mask that determines the SMRAM address range protected
+    // by the SMRR interface. These MSRs may be written only in SMM;
+    // an attempt to write them outside of SMM causes a general-protection exception.
+    //
+    if (MTRRCap.SmrrSupported)
+    {
+        CurrentPhysBase.AsUInt = __readmsr(IA32_SMRR_PHYSBASE);
+        CurrentPhysMask.AsUInt = __readmsr(IA32_SMRR_PHYSMASK);
+
+        if (CurrentPhysMask.Valid && CurrentPhysBase.Type != MTRRDefType.DefaultMemoryType)
+        {
+            Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+            Descriptor->PhysicalBaseAddress = CurrentPhysBase.PageFrameNumber * PAGE_SIZE;
+
+            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
+
+            Descriptor->PhysicalEndAddress = Descriptor->PhysicalBaseAddress + ((1ULL << NumberOfBitsInMask) - 1ULL);
+            Descriptor->MemoryType         = CurrentPhysBase.Type;
+            Descriptor->FixedRange         = FALSE;
+        }
+    }
+
+    //
+    // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is
+    // divided into 8-bit fields that are used to specify the memory type for each of the sub-ranges the register controls:
+    //  • Register IA32_MTRR_FIX64K_00000 — Maps the 512-KByte address range from 0H to 7FFFFH. This range
+    //  is divided into eight 64-KByte sub-ranges.
+    //
+    //  • Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 — Maps the two 128-KByte
+    //  address ranges from 80000H to BFFFFH. This range is divided into sixteen 16-KByte sub-ranges, 8 ranges per
+    //  register.
+    //
+    //  • Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 — Maps eight 32-KByte
+    //  address ranges from C0000H to FFFFFH. This range is divided into sixty-four 4-KByte sub-ranges, 8 ranges per
+    //  register.
+    //
+    if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
+    {
+        typedef union _IA32_MTRR_FIXED_RANGE_TYPE
+        {
+            UINT64 AsUInt;
+            struct
+            {
+                UINT8 Types[8];
+            };
+        } IA32_MTRR_FIXED_RANGE_TYPE;
+
+        const ULONG                K64Base  = 0x0;
+        const ULONG                K64Size  = 0x10000;
+        IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
+        for (unsigned int i = 0; i < 8; i++)
+        {
+            Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+            Descriptor->MemoryType          = K64Types.Types[i];
+            Descriptor->PhysicalBaseAddress = K64Base + (K64Size * i);
+            Descriptor->PhysicalEndAddress  = K64Base + (K64Size * i) + (K64Size - 1);
+            Descriptor->FixedRange          = TRUE;
+        }
+
+        const ULONG K16Base = 0x80000;
+        const ULONG K16Size = 0x4000;
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            IA32_MTRR_FIXED_RANGE_TYPE K16Types = {__readmsr(IA32_MTRR_FIX16K_80000 + i)};
+            for (unsigned int j = 0; j < 8; j++)
+            {
+                Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+                Descriptor->MemoryType          = K16Types.Types[i];
+                Descriptor->PhysicalBaseAddress = K16Base + (K16Size * i);
+                Descriptor->PhysicalEndAddress  = K16Base + (K16Size * i) + (K16Size - 1);
+                Descriptor->FixedRange          = TRUE;
+            }
+        }
+
+        const ULONG K4Base = 0xC0000;
+        const ULONG K4Size = 0x1000;
+        for (unsigned int i = 0; i < 8; i++)
+        {
+            IA32_MTRR_FIXED_RANGE_TYPE K4Types = {__readmsr(IA32_MTRR_FIX4K_C0000 + i)};
+
+            for (unsigned int j = 0; j < 8; j++)
+            {
+                Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
+                Descriptor->MemoryType          = K4Types.Types[j];
+                Descriptor->PhysicalBaseAddress = (K4Base + (i * K4Size * 8)) + (K4Size * j);
+                Descriptor->PhysicalEndAddress  = (K4Base + (i * K4Size * 8)) + (K4Size * j) + (K4Size - 1);
+                Descriptor->FixedRange          = TRUE;
+            }
+        }
+    }
 
     for (CurrentRegister = 0; CurrentRegister < MTRRCap.VariableRangeCount; CurrentRegister++)
     {
@@ -85,7 +271,7 @@ EptBuildMtrrMap()
         //
         // Is the range enabled?
         //
-        if (CurrentPhysMask.Valid)
+        if (CurrentPhysMask.Valid && CurrentPhysBase.Type != MTRRDefType.DefaultMemoryType)
         {
             //
             // We only need to read these once because the ISA dictates that MTRRs are
@@ -113,6 +299,8 @@ EptBuildMtrrMap()
             // Memory Type (cacheability attributes)
             //
             Descriptor->MemoryType = (UCHAR)CurrentPhysBase.Type;
+
+            Descriptor->FixedRange = FALSE;
 
             if (Descriptor->MemoryType == MEMORY_TYPE_WRITE_BACK)
             {
@@ -379,6 +567,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
         // Convert the 2MB page frame number to the 4096 page entry number plus the offset into the frame
         //
         NewSplit->PML1[EntryIndex].PageFrameNumber = ((TargetEntry->PageFrameNumber * SIZE_2_MB) / PAGE_SIZE) + EntryIndex;
+        NewSplit->PML1[EntryIndex].MemoryType      = EptGetMemoryType(NewSplit->PML1[EntryIndex].PageFrameNumber, FALSE);
     }
 
     //
@@ -399,19 +588,47 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
 }
 
 /**
+ * @brief Check if potential large page doesn't land on two or more different cache memory types
+ *
+ * @param PageFrameNumber PFN (Physical Address)
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptIsValidForLargePage(SIZE_T PageFrameNumber)
+{
+    SIZE_T                  StartAddressOfPage = PageFrameNumber * SIZE_2_MB;
+    SIZE_T                  EndAddressOfPage   = StartAddressOfPage + (SIZE_2_MB - 1);
+    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
+    SIZE_T                  CurrentMtrrRange;
+
+    for (CurrentMtrrRange = 0; CurrentMtrrRange < g_EptState->NumberOfEnabledMemoryRanges; CurrentMtrrRange++)
+    {
+        CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
+
+        if ((StartAddressOfPage <= CurrentMemoryRange->PhysicalEndAddress &&
+             EndAddressOfPage > CurrentMemoryRange->PhysicalEndAddress) ||
+            (StartAddressOfPage < CurrentMemoryRange->PhysicalBaseAddress &&
+             EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress))
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Set up PML2 Entries
  *
+ * @param EptPageTable
  * @param NewEntry The PML2 Entry
  * @param PageFrameNumber PFN (Physical Address)
  * @return VOID
  */
 VOID
-EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
+EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 {
-    SIZE_T                  AddressOfPage;
-    SIZE_T                  CurrentMtrrRange;
-    SIZE_T                  TargetMemoryType;
-    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
+    PVOID TargetBuffer;
 
     //
     // Each of the 512 collections of 512 PML2 entries is setup here
@@ -422,74 +639,22 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     //
     NewEntry->PageFrameNumber = PageFrameNumber;
 
-    //
-    // Size of 2MB page * PageFrameNumber == AddressOfPage (physical memory)
-    //
-    AddressOfPage = PageFrameNumber * SIZE_2_MB;
-
-    //
-    // To be safe, we will map the first page as UC as to not bring up any
-    // kind of undefined behavior from the fixed MTRR section which we are
-    // not formally recognizing (typically there is MMIO memory in the first MB)
-    //
-    // I suggest reading up on the fixed MTRR section of the manual to see why the
-    // first entry is likely going to need to be UC.
-    //
-    if (PageFrameNumber == 0)
+    if (EptIsValidForLargePage(PageFrameNumber))
     {
-        NewEntry->MemoryType = MEMORY_TYPE_UNCACHEABLE;
-        return;
+        NewEntry->MemoryType = EptGetMemoryType(PageFrameNumber, TRUE);
+        return TRUE;
     }
-
-    //
-    // Default memory type is always WB for performance
-    //
-    TargetMemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // For each MTRR range
-    //
-    for (CurrentMtrrRange = 0; CurrentMtrrRange < g_EptState->NumberOfEnabledMemoryRanges; CurrentMtrrRange++)
+    else
     {
-        CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
-
-        //
-        // If this page's address is below or equal to the max physical address of the range
-        //
-        if (AddressOfPage <= CurrentMemoryRange->PhysicalEndAddress)
+        TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        if (!TargetBuffer)
         {
-            //
-            // And this page's last address is above or equal to the base physical address of the range
-            //
-            if ((AddressOfPage + SIZE_2_MB - 1) >= CurrentMemoryRange->PhysicalBaseAddress)
-            {
-                //
-                // If we're here, this page fell within one of the ranges specified by the variable MTRRs
-                // Therefore, we must mark this page as the same cache type exposed by the MTRR
-                //
-                TargetMemoryType = CurrentMemoryRange->MemoryType;
-
-                // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
-
-                //
-                // 11.11.4.1 MTRR Precedences
-                //
-                if (TargetMemoryType == MEMORY_TYPE_UNCACHEABLE)
-                {
-                    //
-                    // If this is going to be marked uncacheable, then we stop the search as UC always
-                    // takes precedent
-                    //
-                    break;
-                }
-            }
+            VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+            return FALSE;
         }
-    }
 
-    //
-    // Finally, commit the memory type to the entry
-    //
-    NewEntry->MemoryType = TargetMemoryType;
+        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * PAGE_SIZE);
+    }
 }
 
 /**
@@ -517,6 +682,7 @@ EptAllocateAndCreateIdentityPageTable()
     // zero out all entries to ensure all unused entries are marked Not Present
     //
     PageTable = CrsAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
+
     if (PageTable == NULL)
     {
         LogError("Err, failed to allocate memory for PageTable");
@@ -602,7 +768,7 @@ EptAllocateAndCreateIdentityPageTable()
             //
             // Setup the memory type and frame number of the PML2 entry
             //
-            EptSetupPML2Entry(&PageTable->PML2[EntryGroupIndex][EntryIndex], (EntryGroupIndex * VMM_EPT_PML2E_COUNT) + EntryIndex);
+            EptSetupPML2Entry(PageTable, &PageTable->PML2[EntryGroupIndex][EntryIndex], (EntryGroupIndex * VMM_EPT_PML2E_COUNT) + EntryIndex);
         }
     }
 
@@ -618,49 +784,71 @@ EptAllocateAndCreateIdentityPageTable()
 BOOLEAN
 EptLogicalProcessorInitialize()
 {
+    ULONG               LogicalProcessorsCount;
     PVMM_EPT_PAGE_TABLE PageTable;
     EPT_POINTER         EPTP = {0};
 
     //
-    // Allocate the identity mapped page table
+    // Get number of processors
     //
-    PageTable = EptAllocateAndCreateIdentityPageTable();
-    if (!PageTable)
+    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < LogicalProcessorsCount; i++)
     {
-        LogError("Err, unable to allocate memory for EPT");
-        return FALSE;
+        //
+        // Allocate the identity mapped page table
+        //
+        PageTable = EptAllocateAndCreateIdentityPageTable();
+
+        if (!PageTable)
+        {
+            //
+            // Try to deallocate previous pools (if any)
+            //
+            for (size_t j = 0; j < LogicalProcessorsCount; j++)
+            {
+                if (g_GuestState[j].EptPageTable != NULL)
+                {
+                    MmFreeContiguousMemory(g_GuestState[j].EptPageTable);
+                    g_GuestState[j].EptPageTable = NULL;
+                }
+            }
+
+            LogError("Err, unable to allocate memory for EPT");
+            return FALSE;
+        }
+
+        //
+        // Virtual address to the page table to keep track of it for later freeing
+        //
+        g_GuestState[i].EptPageTable = PageTable;
+
+        //
+        // Use default memory type
+        //
+        EPTP.MemoryType = g_EptState->DefaultMemoryType;
+
+        //
+        // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
+        //
+        EPTP.EnableAccessAndDirtyFlags = TRUE;
+
+        //
+        // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
+        // see Section 28.2.2
+        //
+        EPTP.PageWalkLength = 3;
+
+        //
+        // The physical page number of the page table we will be using
+        //
+        EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
+
+        //
+        // We will write the EPTP to the VMCS later
+        //
+        g_GuestState[i].EptPointer = EPTP;
     }
-
-    //
-    // Virtual address to the page table to keep track of it for later freeing
-    //
-    g_EptState->EptPageTable = PageTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
-    //
-    EPTP.EnableAccessAndDirtyFlags = TRUE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->EptPointer = EPTP;
 
     return TRUE;
 }
@@ -687,6 +875,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     BOOLEAN IsHandled               = FALSE;
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
+    PVOID   TargetPage              = NULL;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
@@ -722,9 +911,17 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                 if (!IgnoreReadOrWriteOrExec)
                 {
                     //
+                    // Pointer to the page entry in the page table
+                    //
+                    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
+
+                    //
                     // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                    EptSetPML1AndInvalidateTLB(VCpu,
+                                               TargetPage,
+                                               HookedEntry->OriginalEntry,
+                                               InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -874,6 +1071,7 @@ EptHandleMisconfiguration()
  * @brief This function set the specific PML1 entry in a spinlock protected area then invalidate the TLB
  * @details This function should be called from vmx root-mode
  *
+ * @param VCpu The virtual processor's state
  * @param EntryAddress PML1 entry information (the target address)
  * @param EntryValue The value of pm1's entry (the value that should be replaced)
  * @param InvalidationType type of invalidation
@@ -881,13 +1079,11 @@ EptHandleMisconfiguration()
  */
 _Use_decl_annotations_
 VOID
-EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType)
+EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
+                           PEPT_PML1_ENTRY         EntryAddress,
+                           EPT_PML1_ENTRY          EntryValue,
+                           INVEPT_TYPE             InvalidationType)
 {
-    //
-    // acquire the lock
-    //
-    SpinlockLock(&Pml1ModificationAndInvalidationLock);
-
     //
     // set the value
     //
@@ -898,7 +1094,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     //
     if (InvalidationType == InveptSingleContext)
     {
-        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
     }
     else if (InvalidationType == InveptAllContext)
     {
@@ -908,11 +1104,6 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     {
         LogError("Err, invald invalidation parameter");
     }
-
-    //
-    // release the lock
-    //
-    SpinlockUnlock(&Pml1ModificationAndInvalidationLock);
 }
 
 /**
@@ -926,6 +1117,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
 BOOLEAN
 EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRip)
 {
+    PVOID       TargetPage         = NULL;
     PLIST_ENTRY TempList           = 0;
     BOOLEAN     IsHandledByEptHook = FALSE;
 
@@ -960,9 +1152,17 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     DispatchEventHiddenHookExecCc(VCpu, GuestRip);
 
                     //
+                    // Pointer to the page entry in the page table
+                    //
+                    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
+
+                    //
                     // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                    EptSetPML1AndInvalidateTLB(VCpu,
+                                               TargetPage,
+                                               HookedEntry->OriginalEntry,
+                                               InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit

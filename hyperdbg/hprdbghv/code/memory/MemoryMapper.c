@@ -930,7 +930,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     UINT64                                 BufferToSaveMemory,
     SIZE_T                                 SizeToRead)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 
@@ -1236,7 +1236,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                    PCR3_TYPE                              TargetProcessCr3,
                                    UINT32                                 TargetProcessId)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 

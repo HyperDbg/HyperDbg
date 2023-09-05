@@ -68,6 +68,64 @@ typedef enum _EPT_HOOKED_LAST_VIOLATION
 } EPT_HOOKED_LAST_VIOLATION;
 
 //////////////////////////////////////////////////
+//			      Memory Layout      			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief The number of 512GB PML4 entries in the page table
+ *
+ */
+#define VMM_EPT_PML4E_COUNT 512
+
+/**
+ * @brief The number of 1GB PDPT entries in the page table per 512GB PML4 entry
+ *
+ */
+#define VMM_EPT_PML3E_COUNT 512
+
+/**
+ * @brief Then number of 2MB Page Directory entries in the page table per 1GB
+ *  PML3 entry
+ *
+ */
+#define VMM_EPT_PML2E_COUNT 512
+
+/**
+ * @brief Then number of 4096 byte Page Table entries in the page table per 2MB PML2
+ * entry when dynamically split
+ *
+ */
+#define VMM_EPT_PML1E_COUNT 512
+
+/**
+ * @brief Structure for saving EPT Table
+ *
+ */
+typedef struct _VMM_EPT_PAGE_TABLE
+{
+    /**
+     * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
+     */
+    DECLSPEC_ALIGN(PAGE_SIZE)
+    EPT_PML4_POINTER PML4[VMM_EPT_PML4E_COUNT];
+
+    /**
+     * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
+     */
+    DECLSPEC_ALIGN(PAGE_SIZE)
+    EPT_PML3_POINTER PML3[VMM_EPT_PML3E_COUNT];
+
+    /**
+     * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
+     * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
+     * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
+     */
+    DECLSPEC_ALIGN(PAGE_SIZE)
+    EPT_PML2_ENTRY PML2[VMM_EPT_PML3E_COUNT][VMM_EPT_PML2E_COUNT];
+
+} VMM_EPT_PAGE_TABLE, *PVMM_EPT_PAGE_TABLE;
+
+//////////////////////////////////////////////////
 //					  Structure	    			//
 //////////////////////////////////////////////////
 
@@ -133,11 +191,6 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      * when a hook is hit.
      */
     SIZE_T PhysicalBaseAddressOfFakePageContents;
-
-    /*
-     * @brief The page entry in the page tables that this page is targetting.
-     */
-    PEPT_PML1_ENTRY EntryAddress;
 
     /**
      * @brief The original page entry. Will be copied back when the hook is removed
@@ -257,10 +310,15 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                                 // Pending interrupt queue (FIFO).
                                                                                 // Make storage for up-to 64 pending interrupts.
                                                                                 // In practice I haven't seen more than 2 pending interrupts.
-
     VMX_VMXOFF_STATE        VmxoffState;                                        // Shows the vmxoff state of the guest
     NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+
+    //
+    // EPT Decriptors
+    //
+    EPT_POINTER         EptPointer;   // Extended-Page-Table Pointer
+    PVMM_EPT_PAGE_TABLE EptPageTable; // Details of core-specific page-table
 
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

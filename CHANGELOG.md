@@ -10,6 +10,11 @@ New release of the HyperDbg Debugger.
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
+### Changed
+- HyperDbg now switched to a multiple EPTP memory model, and each core has its own EPT table ([link](https://github.com/HyperDbg/HyperDbg/commit/7f53fab2ee3ba5b6a48eac6ddeb5975398c4da31))
+- Building mtrr map by adding smrr, fixed ranges, and default memory type is fixed (#255) thanks to [Air](https://github.com/Air14)
+- The problem of removing multiple EPT hooks on a single address is fixed
+
 ## [0.5.0.0] - 2023-08-07
 New release of the HyperDbg Debugger.
 

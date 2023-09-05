@@ -46,7 +46,7 @@ ScriptEnginePseudoRegGetCore()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return KeGetCurrentProcessorNumber();
+    return KeGetCurrentProcessorNumberEx(NULL);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

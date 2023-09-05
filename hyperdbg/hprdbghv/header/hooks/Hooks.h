@@ -177,17 +177,19 @@ PVOID(*ExAllocatePoolWithTagOrig)
 /**
  * @brief Hook in VMX Root Mode with hidden breakpoints (A pre-allocated buffer should be available)
  *
+ * @param VCpu
  * @param TargetAddress
  * @param ProcessCr3
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3);
+EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu, PVOID TargetAddress, CR3_TYPE ProcessCr3);
 
 /**
  * @brief Hook in VMX Root Mode with hidden detours and monitor
  * (A pre-allocated buffer should be available)
  *
+ * @param VCpu
  * @param TargetAddress
  * @param HookFunction
  * @param ProcessCr3
@@ -198,13 +200,14 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3);
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookPerformPageHook2(PVOID    TargetAddress,
-                        PVOID    HookFunction,
-                        CR3_TYPE ProcessCr3,
-                        BOOLEAN  UnsetRead,
-                        BOOLEAN  UnsetWrite,
-                        BOOLEAN  UnsetExecute,
-                        BOOLEAN  EptHiddenHook);
+EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
+                        PVOID                   TargetAddress,
+                        PVOID                   HookFunction,
+                        CR3_TYPE                ProcessCr3,
+                        BOOLEAN                 UnsetRead,
+                        BOOLEAN                 UnsetWrite,
+                        BOOLEAN                 UnsetExecute,
+                        BOOLEAN                 EptHiddenHook);
 
 /**
  * @brief Hook in VMX Non Root Mode (hidden breakpoint)
@@ -219,6 +222,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId);
 /**
  * @brief Hook in VMX Non Root Mode (hidden detours)
  *
+ * @param VCpu
  * @param TargetAddress
  * @param HookFunction
  * @param ProcessId
@@ -230,13 +234,14 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId);
  * @return BOOLEAN
  */
 BOOLEAN
-EptHook2(PVOID   TargetAddress,
-         PVOID   HookFunction,
-         UINT32  ProcessId,
-         BOOLEAN SetHookForRead,
-         BOOLEAN SetHookForWrite,
-         BOOLEAN SetHookForExec,
-         BOOLEAN EptHiddenHook2);
+EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
+         PVOID                   TargetAddress,
+         PVOID                   HookFunction,
+         UINT32                  ProcessId,
+         BOOLEAN                 SetHookForRead,
+         BOOLEAN                 SetHookForWrite,
+         BOOLEAN                 SetHookForExec,
+         BOOLEAN                 EptHiddenHook2);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode
@@ -262,19 +267,23 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
 /**
  * @brief Remove a special hook from the hooked pages lists
  *
+ * @param VCpu
  * @param PhysicalAddress
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookRestoreSingleHookToOriginalEntry(SIZE_T PhysicalAddress);
+EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu, SIZE_T PhysicalAddress);
 
 /**
  * @brief Remove all hooks from the hooked pages lists (Should be called in vmx-root)
  *
+ * @param VCpu
+ *
  * @return VOID
  */
 VOID
-EptHookRestoreAllHooksToOriginalEntry();
+EptHookRestoreAllHooksToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
  * @brief Remove all hooks from the hooked pages lists
