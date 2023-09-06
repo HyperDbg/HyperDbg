@@ -1964,6 +1964,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU:
                 case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
 
                     //
@@ -1975,6 +1976,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     // Unlock other cores
                     //
                     KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+
+                    if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU)
+                    {
+                        DbgState->IgnoreDisasmInNextPacket = TRUE;
+                    }
 
                     //
                     // Continue to the debuggee

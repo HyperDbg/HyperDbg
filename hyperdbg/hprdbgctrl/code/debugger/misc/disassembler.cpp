@@ -1069,3 +1069,99 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
         }
     }
 }
+
+/**
+ * @brief Check whether the current instruction is a 'ret' or not
+ *
+ * @param BufferToDisassemble Current Bytes of assembly
+ * @param BuffLength Length of buffer
+ * @param Isx86_64 Whether it's an x86 or x64
+ * @param RetLength Length of ret (if return value is TRUE)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsRet(
+    unsigned char * BufferToDisassemble,
+    UINT64          BuffLength,
+    BOOLEAN         Isx86_64,
+    PUINT32         RetLength)
+{
+    ZydisDecoder            decoder;
+    ZydisFormatter          formatter;
+    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
+    UINT64                  CurrentRip    = 0;
+    int                     instr_decoded = 0;
+    ZydisDecodedInstruction instruction;
+    char                    buffer[256];
+    UINT32                  MaximumInstrDecoded = 1;
+
+    //
+    // Default length
+    //
+    *RetLength = 0;
+
+    if (ZydisGetVersion() != ZYDIS_VERSION)
+    {
+        ShowMessages("invalid zydis version\n");
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+    }
+
+    if (Isx86_64)
+    {
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
+    }
+    else
+    {
+        ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
+    }
+
+    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+
+    ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SEGMENT, ZYAN_TRUE);
+    ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SIZE, ZYAN_TRUE);
+
+    //
+    // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that
+    // formats the absolute addresses
+    //
+    default_print_address_absolute =
+        (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+    ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS, (const void **)&default_print_address_absolute);
+
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, BufferToDisassemble, BuffLength, &instruction, operands)))
+    {
+        //
+        // We have to pass a `runtime_address` different to
+        // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+        //
+
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, &buffer[0], sizeof(buffer), (ZyanU64)CurrentRip, ZYAN_NULL);
+
+        if (instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_RET)
+        {
+            //
+            // It's a ret
+            //
+
+            //
+            // Log ret
+            //
+            // ShowMessages("ret length : 0x%x\n", instruction.length);
+
+            //
+            // Set the length
+            //
+            *RetLength = instruction.length;
+
+            return TRUE;
+        }
+        else
+        {
+            //
+            // It's not ret
+            //
+            return FALSE;
+        }
+    }
+}

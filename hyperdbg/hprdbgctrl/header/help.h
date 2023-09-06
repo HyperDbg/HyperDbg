@@ -269,3 +269,6 @@ CommandPageinHelp();
 
 VOID
 CommandDumpHelp();
+
+VOID
+CommandGuHelp();
