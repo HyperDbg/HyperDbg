@@ -1141,8 +1141,14 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
     //
     // Check if it's a step-over
     //
-    if (StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+    if (StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER ||
+        StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU)
     {
+        //
+        // It's not needed to check for DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION
+        // as the last instruction is a 'RET' not a 'CALL'
+        //
+
         //
         // We should check whether the current instruction is a 'call'
         // instruction or not, if yes we have to compute the length of call
@@ -2804,8 +2810,8 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     // Send IOCTL
     //
     Status =
-        DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                        IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
+        DeviceIoControl(g_DeviceHandle,                // Handle to device
+                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
                         EventRegBuffer,
                         Length                                        // Input Buffer to driver.
                         ,                                             // Input buffer length

@@ -1503,7 +1503,7 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         //
         for (size_t i = 0; i < CoreCount; i++)
         {
-            DbgState->HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
+            g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
         }
     }
     else
@@ -1964,8 +1964,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
-                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU:
                 case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU:
+                case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION:
 
                     //
                     // Step-over (p command)

@@ -111,8 +111,7 @@ BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsRet(
     unsigned char * BufferToDisassemble,
     UINT64          BuffLength,
-    BOOLEAN         Isx86_64,
-    PUINT32         RetLength);
+    BOOLEAN         Isx86_64);
 
 VOID
 HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,

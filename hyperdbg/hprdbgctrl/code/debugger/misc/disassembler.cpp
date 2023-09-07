@@ -1084,8 +1084,7 @@ BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsRet(
     unsigned char * BufferToDisassemble,
     UINT64          BuffLength,
-    BOOLEAN         Isx86_64,
-    PUINT32         RetLength)
+    BOOLEAN         Isx86_64)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
@@ -1095,11 +1094,6 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
     ZydisDecodedInstruction instruction;
     char                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
-
-    //
-    // Default length
-    //
-    *RetLength = 0;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
@@ -1148,11 +1142,6 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
             // Log ret
             //
             // ShowMessages("ret length : 0x%x\n", instruction.length);
-
-            //
-            // Set the length
-            //
-            *RetLength = instruction.length;
 
             return TRUE;
         }

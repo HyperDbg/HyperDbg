@@ -79,16 +79,16 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         // As it's not set by the debugger (not found in our list), it means the program or
         // a debugger already set the trap flag, we'll inject #DB to the debugger
         //
-        LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
-                "which was not previously adjusted by HyperDbg. This occurrence could indicate "
-                "the employment of an anti-debugging technique by the process or the involvement "
-                "of another debugger. By default, HyperDbg automatically manages these #DB events "
-                "and halt the debugger; however, if you wish to redirect them to the debugger, "
-                "you can utilize 'test trap off'. Alternatively, you can use the transparent-mode "
-                "to mitigate these situations",
-                PsGetCurrentProcessId(),
-                PsGetCurrentThreadId(),
-                CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()));
+        // LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
+        //         "which was not previously adjusted by HyperDbg. This occurrence could indicate "
+        //         "the employment of an anti-debugging technique by the process or the involvement "
+        //         "of another debugger. By default, HyperDbg automatically manages these #DB events "
+        //         "and halt the debugger; however, if you wish to redirect them to the debugger, "
+        //         "you can utilize 'test trap off'. Alternatively, you can use the transparent-mode "
+        //         "to mitigate these situations",
+        //         PsGetCurrentProcessId(),
+        //         PsGetCurrentThreadId(),
+        //         CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()));
 
         //
         // Returning false means that it should be re-injected into the debuggee
