@@ -33,13 +33,11 @@ CommandGuHelp()
         "resulting values of all registers and flags.\n\n");
 
     ShowMessages("syntax : \tgu\n");
-    ShowMessages("syntax : \tgur\n");
     ShowMessages("syntax : \tgu [Count (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : gu\n");
     ShowMessages("\t\te.g : gu 10000\n");
-    ShowMessages("\t\te.g : gur\n");
 }
 
 /**
@@ -149,18 +147,6 @@ CommandGu(vector<string> SplittedCommand, string Command)
                 UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
                                            g_ActiveProcessDebuggingState.ThreadId,
                                            RequestFormat);
-            }
-
-            if (!SplittedCommand.at(0).compare("gur"))
-            {
-                //
-                // Show registers
-                //
-                ShowAllRegisters();
-                if (i != StepCount - 1)
-                {
-                    ShowMessages("\n");
-                }
             }
 
             //

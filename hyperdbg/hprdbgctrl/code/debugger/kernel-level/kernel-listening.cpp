@@ -950,6 +950,17 @@ StartAgain:
             else
             {
                 ShowErrorMessage(ReadMemoryPacket->KernelStatus);
+
+                if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DUMP &&
+                    ReadMemoryPacket->KernelStatus == DEBUGGER_ERROR_INVALID_ADDRESS)
+                {
+                    ShowMessages("HyperDbg attempted to access an invalid target address: 0x%llx\n"
+                                 "if you are confident that the address is valid, it may be paged out "
+                                 "or not yet available in the current CR3 page table\n"
+                                 "you can use the '.pagein' command to load this page table into memory and "
+                                 "trigger a page fault (#PF), please refer to the documentation for further details\n\n",
+                                 ReadMemoryPacket->Address);
+                }
             }
 
             //
@@ -1163,7 +1174,7 @@ ListeningSerialPortInDebuggee()
 {
 StartAgain:
 
-    BOOL Status;                                    /* Status */
+    BOOL Status; /* Status */
     char SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
     DWORD                   EventMask       = 0;    /* Event mask to trigger */

@@ -751,6 +751,8 @@ InitializeCommandsDictionary()
     g_CommandsList["i"]  = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
+    g_CommandsList["gu"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
+
     g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler,
                               &CommandReadMemoryAndDisassemblerHelp,
                               DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
@@ -848,7 +850,4 @@ InitializeCommandsDictionary()
     g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
-
-    g_CommandsList["gu"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
-    g_CommandsList["gur"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
 }
