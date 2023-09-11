@@ -217,7 +217,10 @@ typedef enum _SEGMENT_REGISTERS
 #define _XABORT_CAPACITY (1 << 3)
 #define _XABORT_DEBUG    (1 << 4)
 #define _XABORT_NESTED   (1 << 5)
-#define _XABORT_CODE(x)  (((x) >> 24) & 0xFF)
+
+#ifndef _XABORT_CODE
+#    define _XABORT_CODE(x) (((x) >> 24) & 0xFF)
+#endif // !_XABORT_CODE
 
 //////////////////////////////////////////////////
 //					 Structures					//

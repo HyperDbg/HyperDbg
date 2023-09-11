@@ -110,15 +110,13 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     // Allocate the buffer
     //
-    ProcessDebuggingDetail = (PUSERMODE_DEBUGGING_PROCESS_DETAILS)
-        ExAllocatePoolWithTag(NonPagedPool, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS), POOLTAG);
+    ProcessDebuggingDetail = (USERMODE_DEBUGGING_PROCESS_DETAILS *)
+        CrsAllocateZeroedNonPagedPool(sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     if (!ProcessDebuggingDetail)
     {
         return NULL;
     }
-
-    RtlZeroMemory(ProcessDebuggingDetail, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     //
     // Set the unique tag and increment it
@@ -141,7 +139,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
     {
-        ExFreePoolWithTag(ProcessDebuggingDetail, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetail);
         return NULL;
     }
 
@@ -245,7 +243,7 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
         //
         // Unallocate the pool
         //
-        ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetails);
     }
 }
 
@@ -286,7 +284,7 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
     //
     // Unallocate the pool
     //
-    ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+    CrsFreePool(ProcessDebuggingDetails);
 
     return TRUE;
 }

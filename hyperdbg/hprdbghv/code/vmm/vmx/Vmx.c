@@ -222,18 +222,13 @@ VmxPerformVirtualizationOnAllCores()
     //
     // Allocate	global variable to hold Ept State
     //
-    g_EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
+    g_EptState = CrsAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
 
     if (!g_EptState)
     {
         LogError("Err, insufficient memory");
         return FALSE;
     }
-
-    //
-    // Zero memory
-    //
-    RtlZeroMemory(g_EptState, sizeof(EPT_STATE));
 
     //
     // Initialize the list of hooked pages detail
@@ -498,10 +493,10 @@ VmxTerminate()
         //
         MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
         MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(VCpu->VmmStack, POOLTAG);
-        ExFreePoolWithTag(VCpu->MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressB, POOLTAG);
+        CrsFreePool(VCpu->VmmStack);
+        CrsFreePool(VCpu->MsrBitmapVirtualAddress);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressA);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressB);
 
         return TRUE;
     }
@@ -984,7 +979,7 @@ VmxPerformTermination()
     //
     // Free the buffer related to MSRs that cause #GP
     //
-    ExFreePoolWithTag(g_MsrBitmapInvalidMsrs, POOLTAG);
+    CrsFreePool(g_MsrBitmapInvalidMsrs);
     g_MsrBitmapInvalidMsrs = NULL;
 
     //
@@ -1015,7 +1010,7 @@ VmxPerformTermination()
     //
     // Free EptState
     //
-    ExFreePoolWithTag(g_EptState, POOLTAG);
+    CrsFreePool(g_EptState);
     g_EptState = NULL;
 
     //

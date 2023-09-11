@@ -348,6 +348,18 @@ LayoutGetExactGuestProcessCr3();
 //////////////////////////////////////////////////
 
 // ----------------------------------------------------------------------------
+// Cross Platform Memory Allocate/Free Functions
+//
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM VOID
+CrsFreePool(PVOID BufferAddress);
+
+// ----------------------------------------------------------------------------
 // PTE-related Functions
 //
 

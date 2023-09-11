@@ -221,7 +221,7 @@ ReversingMachineTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TY
                                         {
                                             // LogInfo("Address of PtVa: %llx", PtVa);
 
-                                            PPAGE_ENTRY Pt = &PtVa[l];
+                                            // PPAGE_ENTRY Pt = &PtVa[l];
 
                                             /* if (Pt->Fields.Present)
                                             {

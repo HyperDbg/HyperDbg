@@ -100,7 +100,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
     //
     // Allocate a temporary buffer to store the path name
     //
-    Buffer = ExAllocatePoolWithTag(NonPagedPool, ReturnedLength, POOLTAG);
+    Buffer = CrsAllocateZeroedNonPagedPool(ReturnedLength);
 
     if (Buffer == NULL)
     {
@@ -128,7 +128,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         //
         ProcessImageName->Length        = 0;
         ProcessImageName->MaximumLength = SizeOfImageNameToBeAllocated;
-        ProcessImageName->Buffer        = (PWSTR)ExAllocatePoolWithTag(NonPagedPool, SizeOfImageNameToBeAllocated, POOLTAG);
+        ProcessImageName->Buffer        = (PWSTR)CrsAllocateZeroedNonPagedPool(SizeOfImageNameToBeAllocated);
 
         if (ProcessImageName->Buffer == NULL)
         {
@@ -145,7 +145,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         //
         // Free the temp buffer which stored the path
         //
-        ExFreePoolWithTag(Buffer, POOLTAG);
+        CrsFreePool(Buffer);
 
         return TRUE;
     }
@@ -155,7 +155,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         // There was an error in ZwQueryInformationProcess
         // Free the temp buffer which stored the path
         //
-        ExFreePoolWithTag(Buffer, POOLTAG);
+        CrsFreePool(Buffer);
         return FALSE;
     }
 }

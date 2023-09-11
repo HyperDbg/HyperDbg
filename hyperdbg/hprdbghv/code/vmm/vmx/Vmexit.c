@@ -24,7 +24,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     ULONG                   ExitReason          = 0;
     BOOLEAN                 Result              = FALSE;
     BOOLEAN                 ShouldEmulateRdtscp = TRUE;
-    ULONG                   CoreId              = TRUE;
     VIRTUAL_MACHINE_STATE * VCpu                = NULL;
 
     //

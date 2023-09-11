@@ -15,8 +15,9 @@
 //				     Functions		      		//
 //////////////////////////////////////////////////
 
-PVOID
-CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes);
+//
+// Some functions are globally defined in SDK
+//
 
 PVOID
-CrsAllocateNonPagedPool(SIZE_T NumberOfBytes);
+CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);

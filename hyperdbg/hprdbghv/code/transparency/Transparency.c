@@ -302,17 +302,12 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
     //
     // Allocate the Buffer
     //
-    PidAndNameBuffer = ExAllocatePoolWithTag(NonPagedPool, SizeOfBuffer, POOLTAG);
+    PidAndNameBuffer = CrsAllocateZeroedNonPagedPool(SizeOfBuffer);
 
     if (PidAndNameBuffer == NULL)
     {
         return FALSE;
     }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(PidAndNameBuffer, SizeOfBuffer);
 
     //
     // Save the address of the buffer for future de-allocation
@@ -375,18 +370,12 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
         //
         // Allocate the measurements buffer
         //
-        g_TransparentModeMeasurements = (PTRANSPARENCY_MEASUREMENTS)ExAllocatePoolWithTag(NonPagedPool,
-                                                                                          sizeof(TRANSPARENCY_MEASUREMENTS),
-                                                                                          POOLTAG);
+        g_TransparentModeMeasurements = (PTRANSPARENCY_MEASUREMENTS)CrsAllocateZeroedNonPagedPool(sizeof(TRANSPARENCY_MEASUREMENTS));
+
         if (!g_TransparentModeMeasurements)
         {
             return STATUS_INSUFFICIENT_RESOURCES;
         }
-
-        //
-        // Zero the memory
-        //
-        RtlZeroMemory(g_TransparentModeMeasurements, sizeof(TRANSPARENCY_MEASUREMENTS));
 
         //
         // Initialize the lists
@@ -481,13 +470,13 @@ TransparentUnhideDebugger()
             //
             // Free the buffer
             //
-            ExFreePoolWithTag(BufferToDeAllocate, POOLTAG);
+            CrsFreePool(BufferToDeAllocate);
         }
 
         //
         // Deallocate the measurements buffer
         //
-        ExFreePoolWithTag(g_TransparentModeMeasurements, POOLTAG);
+        CrsFreePool(g_TransparentModeMeasurements);
         g_TransparentModeMeasurements = NULL;
 
         return STATUS_SUCCESS;
@@ -511,7 +500,6 @@ BOOLEAN
 TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 {
     int         Aux                = 0;
-    UINT64      GuestCsSel         = 0;
     PLIST_ENTRY TempList           = 0;
     PCHAR       CurrentProcessName = 0;
     PCHAR       CurrentProcessId;
