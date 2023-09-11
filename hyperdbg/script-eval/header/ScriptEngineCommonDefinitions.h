@@ -41,115 +41,442 @@ typedef struct ACTION_BUFFER {
 
 
 
+#ifndef FUNC_INC
 #define FUNC_INC 0
+#endif // !FUNC_INC
+
+#ifndef FUNC_DEC
 #define FUNC_DEC 1
+#endif // !FUNC_DEC
+
+#ifndef FUNC_REFERENCE
 #define FUNC_REFERENCE 2
+#endif // !FUNC_REFERENCE
+
+#ifndef FUNC_DEREFERENCE
 #define FUNC_DEREFERENCE 3
+#endif // !FUNC_DEREFERENCE
+
+#ifndef FUNC_OR
 #define FUNC_OR 4
+#endif // !FUNC_OR
+
+#ifndef FUNC_XOR
 #define FUNC_XOR 5
+#endif // !FUNC_XOR
+
+#ifndef FUNC_AND
 #define FUNC_AND 6
+#endif // !FUNC_AND
+
+#ifndef FUNC_ASR
 #define FUNC_ASR 7
+#endif // !FUNC_ASR
+
+#ifndef FUNC_ASL
 #define FUNC_ASL 8
+#endif // !FUNC_ASL
+
+#ifndef FUNC_ADD
 #define FUNC_ADD 9
+#endif // !FUNC_ADD
+
+#ifndef FUNC_SUB
 #define FUNC_SUB 10
+#endif // !FUNC_SUB
+
+#ifndef FUNC_MUL
 #define FUNC_MUL 11
+#endif // !FUNC_MUL
+
+#ifndef FUNC_DIV
 #define FUNC_DIV 12
+#endif // !FUNC_DIV
+
+#ifndef FUNC_MOD
 #define FUNC_MOD 13
+#endif // !FUNC_MOD
+
+#ifndef FUNC_GT
 #define FUNC_GT 14
+#endif // !FUNC_GT
+
+#ifndef FUNC_LT
 #define FUNC_LT 15
+#endif // !FUNC_LT
+
+#ifndef FUNC_EGT
 #define FUNC_EGT 16
+#endif // !FUNC_EGT
+
+#ifndef FUNC_ELT
 #define FUNC_ELT 17
+#endif // !FUNC_ELT
+
+#ifndef FUNC_EQUAL
 #define FUNC_EQUAL 18
+#endif // !FUNC_EQUAL
+
+#ifndef FUNC_NEQ
 #define FUNC_NEQ 19
+#endif // !FUNC_NEQ
+
+#ifndef FUNC_START_OF_IF
 #define FUNC_START_OF_IF 20
+#endif // !FUNC_START_OF_IF
+
+#ifndef FUNC_JMP
 #define FUNC_JMP 21
+#endif // !FUNC_JMP
+
+#ifndef FUNC_JZ
 #define FUNC_JZ 22
+#endif // !FUNC_JZ
+
+#ifndef FUNC_JNZ
 #define FUNC_JNZ 23
+#endif // !FUNC_JNZ
+
+#ifndef FUNC_JMP_TO_END_AND_JZCOMPLETED
 #define FUNC_JMP_TO_END_AND_JZCOMPLETED 24
+#endif // !FUNC_JMP_TO_END_AND_JZCOMPLETED
+
+#ifndef FUNC_END_OF_IF
 #define FUNC_END_OF_IF 25
+#endif // !FUNC_END_OF_IF
+
+#ifndef FUNC_START_OF_WHILE
 #define FUNC_START_OF_WHILE 26
+#endif // !FUNC_START_OF_WHILE
+
+#ifndef FUNC_END_OF_WHILE
 #define FUNC_END_OF_WHILE 27
+#endif // !FUNC_END_OF_WHILE
+
+#ifndef FUNC_VARGSTART
 #define FUNC_VARGSTART 28
+#endif // !FUNC_VARGSTART
+
+#ifndef FUNC_MOV
 #define FUNC_MOV 29
+#endif // !FUNC_MOV
+
+#ifndef FUNC_START_OF_DO_WHILE
 #define FUNC_START_OF_DO_WHILE 30
+#endif // !FUNC_START_OF_DO_WHILE
+
+#ifndef FUNC_
 #define FUNC_ 31
+#endif // !FUNC_
+
+#ifndef FUNC_START_OF_DO_WHILE_COMMANDS
 #define FUNC_START_OF_DO_WHILE_COMMANDS 32
+#endif // !FUNC_START_OF_DO_WHILE_COMMANDS
+
+#ifndef FUNC_END_OF_DO_WHILE
 #define FUNC_END_OF_DO_WHILE 33
+#endif // !FUNC_END_OF_DO_WHILE
+
+#ifndef FUNC_START_OF_FOR
 #define FUNC_START_OF_FOR 34
+#endif // !FUNC_START_OF_FOR
+
+#ifndef FUNC_FOR_INC_DEC
 #define FUNC_FOR_INC_DEC 35
+#endif // !FUNC_FOR_INC_DEC
+
+#ifndef FUNC_START_OF_FOR_OMMANDS
 #define FUNC_START_OF_FOR_OMMANDS 36
+#endif // !FUNC_START_OF_FOR_OMMANDS
+
+#ifndef FUNC_END_OF_IF
 #define FUNC_END_OF_IF 37
+#endif // !FUNC_END_OF_IF
+
+#ifndef FUNC_IGNORE_LVALUE
 #define FUNC_IGNORE_LVALUE 38
+#endif // !FUNC_IGNORE_LVALUE
+
+#ifndef FUNC_PRINT
 #define FUNC_PRINT 39
+#endif // !FUNC_PRINT
+
+#ifndef FUNC_FORMATS
 #define FUNC_FORMATS 40
+#endif // !FUNC_FORMATS
+
+#ifndef FUNC_EVENT_ENABLE
 #define FUNC_EVENT_ENABLE 41
+#endif // !FUNC_EVENT_ENABLE
+
+#ifndef FUNC_EVENT_DISABLE
 #define FUNC_EVENT_DISABLE 42
+#endif // !FUNC_EVENT_DISABLE
+
+#ifndef FUNC_TEST_STATEMENT
 #define FUNC_TEST_STATEMENT 43
+#endif // !FUNC_TEST_STATEMENT
+
+#ifndef FUNC_SPINLOCK_LOCK
 #define FUNC_SPINLOCK_LOCK 44
+#endif // !FUNC_SPINLOCK_LOCK
+
+#ifndef FUNC_SPINLOCK_UNLOCK
 #define FUNC_SPINLOCK_UNLOCK 45
+#endif // !FUNC_SPINLOCK_UNLOCK
+
+#ifndef FUNC_PRINTF
 #define FUNC_PRINTF 46
+#endif // !FUNC_PRINTF
+
+#ifndef FUNC_PAUSE
 #define FUNC_PAUSE 47
+#endif // !FUNC_PAUSE
+
+#ifndef FUNC_FLUSH
 #define FUNC_FLUSH 48
+#endif // !FUNC_FLUSH
+
+#ifndef FUNC_SPINLOCK_LOCK_CUSTOM_WAIT
 #define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT 49
+#endif // !FUNC_SPINLOCK_LOCK_CUSTOM_WAIT
+
+#ifndef FUNC_EVENT_INJECT
 #define FUNC_EVENT_INJECT 50
+#endif // !FUNC_EVENT_INJECT
+
+#ifndef FUNC_POI
 #define FUNC_POI 51
+#endif // !FUNC_POI
+
+#ifndef FUNC_DB
 #define FUNC_DB 52
+#endif // !FUNC_DB
+
+#ifndef FUNC_DD
 #define FUNC_DD 53
+#endif // !FUNC_DD
+
+#ifndef FUNC_DW
 #define FUNC_DW 54
+#endif // !FUNC_DW
+
+#ifndef FUNC_DQ
 #define FUNC_DQ 55
+#endif // !FUNC_DQ
+
+#ifndef FUNC_NEG
 #define FUNC_NEG 56
+#endif // !FUNC_NEG
+
+#ifndef FUNC_HI
 #define FUNC_HI 57
+#endif // !FUNC_HI
+
+#ifndef FUNC_LOW
 #define FUNC_LOW 58
+#endif // !FUNC_LOW
+
+#ifndef FUNC_NOT
 #define FUNC_NOT 59
+#endif // !FUNC_NOT
+
+#ifndef FUNC_CHECK_ADDRESS
 #define FUNC_CHECK_ADDRESS 60
+#endif // !FUNC_CHECK_ADDRESS
+
+#ifndef FUNC_STRLEN
 #define FUNC_STRLEN 61
+#endif // !FUNC_STRLEN
+
+#ifndef FUNC_WCSLEN
 #define FUNC_WCSLEN 62
+#endif // !FUNC_WCSLEN
+
+#ifndef FUNC_DISASSEMBLE_LEN
 #define FUNC_DISASSEMBLE_LEN 63
+#endif // !FUNC_DISASSEMBLE_LEN
+
+#ifndef FUNC_DISASSEMBLE_LEN32
 #define FUNC_DISASSEMBLE_LEN32 64
+#endif // !FUNC_DISASSEMBLE_LEN32
+
+#ifndef FUNC_DISASSEMBLE_LEN64
 #define FUNC_DISASSEMBLE_LEN64 65
+#endif // !FUNC_DISASSEMBLE_LEN64
+
+#ifndef FUNC_INTERLOCKED_INCREMENT
 #define FUNC_INTERLOCKED_INCREMENT 66
+#endif // !FUNC_INTERLOCKED_INCREMENT
+
+#ifndef FUNC_INTERLOCKED_DECREMENT
 #define FUNC_INTERLOCKED_DECREMENT 67
+#endif // !FUNC_INTERLOCKED_DECREMENT
+
+#ifndef FUNC_REFERENCE
 #define FUNC_REFERENCE 68
+#endif // !FUNC_REFERENCE
+
+#ifndef FUNC_PHYSICAL_TO_VIRTUAL
 #define FUNC_PHYSICAL_TO_VIRTUAL 69
+#endif // !FUNC_PHYSICAL_TO_VIRTUAL
+
+#ifndef FUNC_VIRTUAL_TO_PHYSICAL
 #define FUNC_VIRTUAL_TO_PHYSICAL 70
+#endif // !FUNC_VIRTUAL_TO_PHYSICAL
+
+#ifndef FUNC_EVENT_SC
 #define FUNC_EVENT_SC 71
+#endif // !FUNC_EVENT_SC
+
+#ifndef FUNC_ED
 #define FUNC_ED 72
+#endif // !FUNC_ED
+
+#ifndef FUNC_EB
 #define FUNC_EB 73
+#endif // !FUNC_EB
+
+#ifndef FUNC_EQ
 #define FUNC_EQ 74
+#endif // !FUNC_EQ
+
+#ifndef FUNC_INTERLOCKED_EXCHANGE
 #define FUNC_INTERLOCKED_EXCHANGE 75
+#endif // !FUNC_INTERLOCKED_EXCHANGE
+
+#ifndef FUNC_INTERLOCKED_EXCHANGE_ADD
 #define FUNC_INTERLOCKED_EXCHANGE_ADD 76
+#endif // !FUNC_INTERLOCKED_EXCHANGE_ADD
+
+#ifndef FUNC_INTERLOCKED_COMPARE_EXCHANGE
 #define FUNC_INTERLOCKED_COMPARE_EXCHANGE 77
+#endif // !FUNC_INTERLOCKED_COMPARE_EXCHANGE
+
+#ifndef FUNC_MEMCPY
 #define FUNC_MEMCPY 78
+#endif // !FUNC_MEMCPY
+
+#ifndef FUNC_EVENT_INJECT_ERROR_CODE
 #define FUNC_EVENT_INJECT_ERROR_CODE 79
+#endif // !FUNC_EVENT_INJECT_ERROR_CODE
+
+#ifndef FUNC_POI
 #define FUNC_POI 80
+#endif // !FUNC_POI
+
+#ifndef FUNC_DB
 #define FUNC_DB 81
+#endif // !FUNC_DB
+
+#ifndef FUNC_DD
 #define FUNC_DD 82
+#endif // !FUNC_DD
+
+#ifndef FUNC_DW
 #define FUNC_DW 83
+#endif // !FUNC_DW
+
+#ifndef FUNC_DQ
 #define FUNC_DQ 84
+#endif // !FUNC_DQ
+
+#ifndef FUNC_NEG
 #define FUNC_NEG 85
+#endif // !FUNC_NEG
+
+#ifndef FUNC_HI
 #define FUNC_HI 86
+#endif // !FUNC_HI
+
+#ifndef FUNC_LOW
 #define FUNC_LOW 87
+#endif // !FUNC_LOW
+
+#ifndef FUNC_NOT
 #define FUNC_NOT 88
+#endif // !FUNC_NOT
+
+#ifndef FUNC_CHECK_ADDRESS
 #define FUNC_CHECK_ADDRESS 89
+#endif // !FUNC_CHECK_ADDRESS
+
+#ifndef FUNC_STRLEN
 #define FUNC_STRLEN 90
+#endif // !FUNC_STRLEN
+
+#ifndef FUNC_WCSLEN
 #define FUNC_WCSLEN 91
+#endif // !FUNC_WCSLEN
+
+#ifndef FUNC_DISASSEMBLE_LEN
 #define FUNC_DISASSEMBLE_LEN 92
+#endif // !FUNC_DISASSEMBLE_LEN
+
+#ifndef FUNC_DISASSEMBLE_LEN32
 #define FUNC_DISASSEMBLE_LEN32 93
+#endif // !FUNC_DISASSEMBLE_LEN32
+
+#ifndef FUNC_DISASSEMBLE_LEN64
 #define FUNC_DISASSEMBLE_LEN64 94
+#endif // !FUNC_DISASSEMBLE_LEN64
+
+#ifndef FUNC_INTERLOCKED_INCREMENT
 #define FUNC_INTERLOCKED_INCREMENT 95
+#endif // !FUNC_INTERLOCKED_INCREMENT
+
+#ifndef FUNC_INTERLOCKED_DECREMENT
 #define FUNC_INTERLOCKED_DECREMENT 96
+#endif // !FUNC_INTERLOCKED_DECREMENT
+
+#ifndef FUNC_REFERENCE
 #define FUNC_REFERENCE 97
+#endif // !FUNC_REFERENCE
+
+#ifndef FUNC_PHYSICAL_TO_VIRTUAL
 #define FUNC_PHYSICAL_TO_VIRTUAL 98
+#endif // !FUNC_PHYSICAL_TO_VIRTUAL
+
+#ifndef FUNC_VIRTUAL_TO_PHYSICAL
 #define FUNC_VIRTUAL_TO_PHYSICAL 99
+#endif // !FUNC_VIRTUAL_TO_PHYSICAL
+
+#ifndef FUNC_EVENT_SC
 #define FUNC_EVENT_SC 100
+#endif // !FUNC_EVENT_SC
+
+#ifndef FUNC_ED
 #define FUNC_ED 101
+#endif // !FUNC_ED
+
+#ifndef FUNC_EB
 #define FUNC_EB 102
+#endif // !FUNC_EB
+
+#ifndef FUNC_EQ
 #define FUNC_EQ 103
+#endif // !FUNC_EQ
+
+#ifndef FUNC_INTERLOCKED_EXCHANGE
 #define FUNC_INTERLOCKED_EXCHANGE 104
+#endif // !FUNC_INTERLOCKED_EXCHANGE
+
+#ifndef FUNC_INTERLOCKED_EXCHANGE_ADD
 #define FUNC_INTERLOCKED_EXCHANGE_ADD 105
+#endif // !FUNC_INTERLOCKED_EXCHANGE_ADD
+
+#ifndef FUNC_INTERLOCKED_COMPARE_EXCHANGE
 #define FUNC_INTERLOCKED_COMPARE_EXCHANGE 106
+#endif // !FUNC_INTERLOCKED_COMPARE_EXCHANGE
+
+#ifndef FUNC_MEMCPY
 #define FUNC_MEMCPY 107
+#endif // !FUNC_MEMCPY
+
+#ifndef FUNC_EVENT_INJECT_ERROR_CODE
 #define FUNC_EVENT_INJECT_ERROR_CODE 108
+#endif // !FUNC_EVENT_INJECT_ERROR_CODE
+
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,
 	REGISTER_EAX = 1,
