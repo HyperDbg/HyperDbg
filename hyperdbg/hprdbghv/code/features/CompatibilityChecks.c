@@ -66,6 +66,24 @@ CompatibilityCheckGetX86VirtualAddressWidth()
 }
 
 /**
+ * @brief Get physical address width for x86 processors
+ *
+ * @return UINT32
+ */
+UINT32
+CompatibilityCheckGetX86PhysicalAddressWidth()
+{
+    int Regs[4];
+
+    CommonCpuidInstruction(CPUID_ADDR_WIDTH, 0, Regs);
+
+    //
+    // Extracting bit 7:0 from eax register
+    //
+    return (Regs[0] & 0x0ff);
+}
+
+/**
  * @brief Check for mode-based execution
  *
  * @return BOOLEAN
@@ -143,6 +161,11 @@ CompatibilityCheckPerformChecks()
     // Get x86 processor width for virtual address
     //
     g_CompatibilityCheck.VirtualAddressWidth = CompatibilityCheckGetX86VirtualAddressWidth();
+
+    //
+    // Get x86 processor width for physical address
+    //
+    g_CompatibilityCheck.PhysicalAddressWidth = CompatibilityCheckGetX86PhysicalAddressWidth();
 
     //
     // Check Mode-based execution compatibility

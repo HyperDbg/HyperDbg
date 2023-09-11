@@ -331,6 +331,9 @@ CheckAddressValidityUsingTsx(CHAR * Address);
 IMPORT_EXPORT_VMM BOOLEAN
 CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
 
+IMPORT_EXPORT_VMM BOOLEAN
+CheckAddressPhysical(UINT64 PAddr);
+
 IMPORT_EXPORT_VMM UINT32
 CheckAddressMaximumInstructionLength(PVOID Address);
 

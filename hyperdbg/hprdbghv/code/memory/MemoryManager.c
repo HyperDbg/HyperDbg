@@ -104,6 +104,14 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
             }
             else if (MemType == DEBUGGER_READ_PHYSICAL_ADDRESS)
             {
+                //
+                // Check whether the physical memory is valid or not
+                //
+                if (!CheckAddressPhysical(Address, Size))
+                {
+                    return FALSE;
+                }
+
                 CopyAddress.PhysicalAddress.QuadPart = Address;
                 MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize);
             }
