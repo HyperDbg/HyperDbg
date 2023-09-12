@@ -240,15 +240,23 @@ private:
 //
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 
-string
-ReadVendorString()
+/**
+ * @brief Reads the CPU vendor string
+ *
+ * @return char *
+ */
+HPRDBGCTRL_API VOID
+HyperDbgReadVendorString(char * Result)
 {
-    return InstructionSet::Vendor();
+    std::string VendorString = InstructionSet::Vendor();
+    strcpy(Result, VendorString.c_str());
 }
 
-//
-// Print out supported instruction set extensions
-//
+/**
+ * @brief Print out supported instruction set extensions
+ *
+ * @return int
+ */
 int
 ReadCpuDetails()
 {

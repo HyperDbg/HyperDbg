@@ -40,9 +40,6 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 int
 ReadCpuDetails();
 
-string
-ReadVendorString();
-
 VOID
 ShowMessages(const char * Fmt, ...);
 

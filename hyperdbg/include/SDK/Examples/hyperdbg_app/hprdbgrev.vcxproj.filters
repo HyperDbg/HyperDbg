@@ -9,13 +9,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\hprdbgrev.cpp">
-      <Filter>code</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="code\hyperdbg-app.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

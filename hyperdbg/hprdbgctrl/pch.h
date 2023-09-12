@@ -161,11 +161,10 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "..\script-eval\header\ScriptEngineHeader.h"
 
 //
-// Imports
+// Imports/Exports
 //
-#include "SDK/Imports/HyperDbgRevImports.h"
-
 #include "SDK/Imports/HyperDbgScriptImports.h"
+#include "header/exports.h"
 
 //
 // General
