@@ -38,4 +38,4 @@
 //
 #include "Definition.h"
 #include "SDK/HyperDbgSdk.h"
-#include "../../../../../hprdbgctrl/header/exports.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"

@@ -19,6 +19,12 @@ extern "C" {
 #endif
 
 //
+// Support Detection
+//
+__declspec(dllimport) bool HyperDbgVmxSupportDetection();
+__declspec(dllimport) void HyperDbgReadVendorString(char *);
+
+//
 // VMM Module
 //
 __declspec(dllimport) int HyperDbgLoadVmm();
