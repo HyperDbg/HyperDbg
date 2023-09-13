@@ -106,7 +106,7 @@ VmxGetCurrentLaunchState()
 }
 
 /**
- * @brief Initialize Vmx operation
+ * @brief Initialize the VMX operation
  *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */

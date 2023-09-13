@@ -300,6 +300,66 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
+ * @brief Handling debugger functions related to user-mode execution trap events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    // Registers are the best source to know the purpose
+    //
+    if (g_TriggerEventForVmcalls)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(USER_MODE_EXECUTION_TRAP,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the user-mode execution trap event in the case of triggering event
+            //
+            // VmxHandleVmcallVmExit(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(USER_MODE_EXECUTION_TRAP,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // user-mode execution trap normally
+        //
+        // VmxHandleVmcallVmExit(VCpu);
+    }
+}
+
+/**
  * @brief Handling debugger functions related to IO events
  *
  * @param VCpu The virtual processor's state

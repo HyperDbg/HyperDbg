@@ -37,6 +37,8 @@ VOID
 ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
 {
     ReversingMachineInitialize();
+
+    ReversingAddProcessThreadToTheWatchList(NULL, RevServiceRequest->ProcessId, NULL);
 }
 
 /**

@@ -1644,6 +1644,9 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case VMCALL_INSTRUCTION_EXECUTION:
         ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
         break;
+    case USER_MODE_EXECUTION_TRAP:
+        ResultList = &g_Events->UserModeExecutionTrapEventsHead;
+        break;
     case CONTROL_REGISTER_MODIFIED:
         ResultList = &g_Events->ControlRegisterModifiedEventsHead;
         break;
@@ -2923,6 +2926,14 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
+    case USER_MODE_EXECUTION_TRAP:
+    {
+        //
+        // To-do
+        //
+
+        break;
+    }
     case CPUID_INSTRUCTION_EXECUTION:
     {
         //
@@ -3282,6 +3293,14 @@ DebuggerTerminateEvent(UINT64 Tag)
         // Call vmcall instruction execution event terminator
         //
         TerminateVmcallExecutionEvent(Event);
+
+        break;
+    }
+    case USER_MODE_EXECUTION_TRAP:
+    {
+        //
+        // To-do
+        //
 
         break;
     }

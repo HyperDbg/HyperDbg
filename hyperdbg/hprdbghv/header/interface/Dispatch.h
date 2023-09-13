@@ -32,6 +32,9 @@ VOID
 DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID

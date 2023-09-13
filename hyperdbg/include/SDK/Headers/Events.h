@@ -129,6 +129,8 @@ typedef enum _VMM_EVENT_TYPE_ENUM
     CONTROL_REGISTER_MODIFIED,
     CONTROL_REGISTER_READ,
 
+    USER_MODE_EXECUTION_TRAP,
+
 } VMM_EVENT_TYPE_ENUM;
 
 /**
@@ -177,8 +179,8 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     UINT64 Tag;          // Tag of the target event that we want to modify
     UINT64 KernelStatus; // Kerenl put the status in this field
     DEBUGGER_MODIFY_EVENTS_TYPE
-    TypeOfAction;        // Determines what's the action (enable | disable | clear)
-    BOOLEAN IsEnabled;   // Determines what's the action (enable | disable | clear)
+    TypeOfAction;      // Determines what's the action (enable | disable | clear)
+    BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
 
@@ -277,22 +279,22 @@ typedef enum _PROTECTED_HV_RESOURCES_TYPE
 typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 {
     LIST_ENTRY
-    CommandsEventList;   // Linked-list of commands list (used for tracing purpose
-                         // in user mode)
+    CommandsEventList; // Linked-list of commands list (used for tracing purpose
+                       // in user mode)
 
     time_t CreationTime; // Date of creating this event
 
-    UINT32 CoreId;       // determines the core index to apply this event to, if it's
-                         // 0xffffffff means that we have to apply it to all cores
+    UINT32 CoreId; // determines the core index to apply this event to, if it's
+                   // 0xffffffff means that we have to apply it to all cores
 
-    UINT32 ProcessId;    // determines the process id to apply this to
-                         // only that 0xffffffff means that we have to
-                         // apply it to all processes
+    UINT32 ProcessId; // determines the process id to apply this to
+                      // only that 0xffffffff means that we have to
+                      // apply it to all processes
 
     BOOLEAN IsEnabled;
 
-    BOOLEAN EnableShortCircuiting;                    // indicates whether the short-circuiting event
-                                                      // is enabled or not for this event
+    BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
+                                   // is enabled or not for this event
 
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventStage; // reveals the calling stage of the event
     // (whether it's a all- pre- or post- event)

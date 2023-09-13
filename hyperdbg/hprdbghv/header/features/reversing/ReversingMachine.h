@@ -22,12 +22,6 @@
  */
 UINT32 ReversingMachineProcessId;
 
-/**
- * @brief The variable to store reversing machine's thread Id
- *
- */
-UINT32 ReversingMachineThreadId;
-
 //////////////////////////////////////////////////
 //				      Functions					//
 //////////////////////////////////////////////////
@@ -49,8 +43,7 @@ ReversingMachineRestoreNormalStateOnTargetProcess(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 ReversingAddProcessThreadToTheWatchList(VIRTUAL_MACHINE_STATE * VCpu,
-                                        UINT32                  ProcessId,
-                                        UINT32                  ThreadId);
+                                        UINT32                  ProcessId);
 BOOLEAN
 ReversingMachineInitialize();
 

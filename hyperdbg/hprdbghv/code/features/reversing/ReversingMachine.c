@@ -761,6 +761,13 @@ ReversingMachineHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                
         HvSuppressRipIncrement(VCpu);
 
         //
+        // Should be remove
+        //
+        ReversingMachineRestoreToNormalEptp(VCpu);
+        LogInfo("reached to user mode of the process pid: %x, rip: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        return TRUE;
+
+        //
         // Prevent external-interrupts
         //
         HvPreventExternalInterrupts(VCpu);
@@ -877,7 +884,7 @@ ReversingMachineRestoreNormalStateOnTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 ReversingMachineHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    if (PsGetCurrentProcessId() == ReversingMachineProcessId && VCpu->Test == FALSE)
+    if (PsGetCurrentProcessId() == ReversingMachineProcessId /* && VCpu->Test == FALSE*/)
     {
         //
         // Enable MBEC to detect execution in user-mode
@@ -904,22 +911,19 @@ ReversingMachineHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Add the process/thread to the watching list
  * @param VCpu The virtual processor's state
  * @param ProcessId
- * @param ThreadId
  *
  * @return VOID
  */
 VOID
 ReversingAddProcessThreadToTheWatchList(VIRTUAL_MACHINE_STATE * VCpu,
-                                        UINT32                  ProcessId,
-                                        UINT32                  ThreadId)
+                                        UINT32                  ProcessId)
 {
     //
     // Store the process id/thread id
     //
     ReversingMachineProcessId = ProcessId;
-    ReversingMachineThreadId  = ThreadId;
 
-    LogInfo("Process added to the watch list (pid: %x, tid: %x)", ProcessId, ThreadId);
+    LogInfo("Process added to the watch list (pid: %x)", ProcessId);
 
     //
     // Here we're also in the target thread/process, so we set it to handle the
