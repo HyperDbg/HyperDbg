@@ -549,8 +549,9 @@ ReversingMachineInitialize()
 
     //
     // Change EPT on all core's to a MBEC supported EPTP
+    // (No longer needed as the starting phase of the process uses EPT hooks)
     //
-    BroadcastChangeToMbecSupportedEptpOnAllProcessors();
+    // BroadcastChangeToMbecSupportedEptpOnAllProcessors();
 
     //
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting

@@ -77,7 +77,7 @@ VmxGetCurrentExecutionMode()
 {
     if (g_GuestState)
     {
-        ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+        ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
         VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
         return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
@@ -99,7 +99,7 @@ VmxGetCurrentExecutionMode()
 BOOLEAN
 VmxGetCurrentLaunchState()
 {
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
     return CurrentVmState->HasLaunched;

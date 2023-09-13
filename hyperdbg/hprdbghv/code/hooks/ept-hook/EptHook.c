@@ -381,7 +381,11 @@ ExAllocatePoolWithTagHook(
     SIZE_T    NumberOfBytes,
     ULONG     Tag)
 {
-    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = 0x%x , Pool Type = 0x%x ", Tag, NumberOfBytes, PoolType);
+    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x, Number Of Bytes = 0x%x, Pool Type = 0x%x ",
+            Tag,
+            NumberOfBytes,
+            PoolType);
+
     return ExAllocatePoolWithTagOrig(PoolType, NumberOfBytes, Tag);
 }
 
@@ -1171,7 +1175,7 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Check whether we are in VMX Root Mode or Not
     //
-    LogicalCoreIndex = KeGetCurrentProcessorIndex();
+    LogicalCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     if (SetHookForRead)
     {

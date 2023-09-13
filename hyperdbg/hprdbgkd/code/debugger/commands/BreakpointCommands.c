@@ -152,6 +152,8 @@ BreakpointTriggerCallbacks(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 ProcessI
     //
     ConfigureReversingAddProcessThreadToTheWatchList(DbgState->CoreId, ProcessId, ThreadId);
 
+    LogInfo("Adding to watch list: Process Id: %x, Thread Id: %x", ProcessId, ThreadId);
+
     //
     // By default return FALSE to set handling the breakpoint to the user to the debugger
     //

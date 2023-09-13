@@ -931,6 +931,15 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
 
         //
+        // Check whether any special initialization for thread safe features
+        // is needed or not
+        //
+        if (AttachRequest->CheckCallbackAtFirstInstruction)
+        {
+            AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
+        }
+
+        //
         // Waiting for #DB to be triggered
         //
         g_IsWaitingForUserModeProcessEntryToBeCalled = TRUE;
@@ -987,15 +996,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-    }
-
-    //
-    // Check whether any special initialization for thread safe features
-    // is needed or not
-    //
-    if (AttachRequest->CheckCallbackAtFirstInstruction)
-    {
-        AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
     }
 
     //
