@@ -437,14 +437,14 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP:
     {
-        ReversingMachineChangeToMbecEnabledEptp(VCpu);
+        UserExecTrapChangeToMbecEnabledEptp(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESTORE_TO_NORMAL_EPTP:
     {
-        ReversingMachineRestoreToNormalEptp(VCpu);
+        UserExecTrapRestoreToNormalEptp(VCpu);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

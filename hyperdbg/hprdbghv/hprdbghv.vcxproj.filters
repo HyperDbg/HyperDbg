@@ -39,12 +39,6 @@
     <Filter Include="header\memory">
       <UniqueIdentifier>{7d72077e-4c3d-471b-8465-c235fc9b9488}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\components">
-      <UniqueIdentifier>{f54cce1c-42c4-4de5-b281-605d86f54d24}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\components\registers">
-      <UniqueIdentifier>{abd2d5cf-8f42-4aae-a8c2-ea77c40fd87b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\components">
       <UniqueIdentifier>{6d4d41d1-afae-48ce-9a7b-a9e9160e647a}</UniqueIdentifier>
     </Filter>
@@ -102,9 +96,6 @@
     <Filter Include="header\components\spinlock">
       <UniqueIdentifier>{91f41500-46a9-4c4d-ad6b-3697f1ba5639}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\components\spinlock">
-      <UniqueIdentifier>{3850bccc-e309-4094-8ba9-625b5f59a1e7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\macros">
       <UniqueIdentifier>{3341e414-60a5-4c8c-9dee-59addb1b6bca}</UniqueIdentifier>
     </Filter>
@@ -129,11 +120,20 @@
     <Filter Include="header\disassembler\zycore">
       <UniqueIdentifier>{e92a39db-1b51-4463-b12f-d9d86b4e6781}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\features\reversing">
-      <UniqueIdentifier>{cd5a5094-3e8b-4a3a-8192-f81de2c71065}</UniqueIdentifier>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{f54cce1c-42c4-4de5-b281-605d86f54d24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\features\reversing">
-      <UniqueIdentifier>{a13f3861-41c6-4b4e-84c7-a3f8bd36fa52}</UniqueIdentifier>
+    <Filter Include="code\components\registers">
+      <UniqueIdentifier>{abd2d5cf-8f42-4aae-a8c2-ea77c40fd87b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\spinlock">
+      <UniqueIdentifier>{3850bccc-e309-4094-8ba9-625b5f59a1e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\optimizations">
+      <UniqueIdentifier>{15197c45-ff17-439c-85b3-4af9ba3b0b37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\optimizations">
+      <UniqueIdentifier>{0c6f7e8d-4829-4a45-b09d-4c40cfcc5cf7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -281,11 +281,23 @@
     <ClCompile Include="code\disassembler\Disassembler.c">
       <Filter>code\disassembler</Filter>
     </ClCompile>
-    <ClCompile Include="code\features\reversing\ReversingMachine.c">
-      <Filter>code\features\reversing</Filter>
-    </ClCompile>
     <ClCompile Include="code\common\UnloadDll.c">
       <Filter>code\common</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\ept-hook\UserExecTrap.c">
+      <Filter>code\hooks\ept-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\AvlTree.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
+      <Filter>code\components\optimizations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -526,11 +538,23 @@
     <ClInclude Include="header\disassembler\Disassembler.h">
       <Filter>header\disassembler</Filter>
     </ClInclude>
-    <ClInclude Include="header\features\reversing\ReversingMachine.h">
-      <Filter>header\features\reversing</Filter>
-    </ClInclude>
     <ClInclude Include="header\common\UnloadDll.h">
       <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\UserExecTrap.h">
+      <Filter>header\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
+      <Filter>header\components\optimizations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -785,7 +785,7 @@ AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_US
     //
     // Enable the memory access logging
     //
-    ConfigureInitializeReversingMachineOnAllProcessors(NULL);
+    ConfigureInitializeUserExecTrapOnAllProcessors();
 
     return TRUE;
 }

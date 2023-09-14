@@ -313,9 +313,8 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
 
     //
     // As the context to event trigger, we send NULL
-    // Registers are the best source to know the purpose
     //
-    if (g_TriggerEventForVmcalls)
+    if (g_UserExecTrapInitialized)
     {
         //
         // Triggering the pre-event
@@ -334,7 +333,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Handle the user-mode execution trap event in the case of triggering event
             //
-            // VmxHandleVmcallVmExit(VCpu);
+            UserExecHandleRestoringToNormalState(VCpu);
         }
 
         //
@@ -355,7 +354,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
         // Otherwise and if there is no event, we should handle the
         // user-mode execution trap normally
         //
-        // VmxHandleVmcallVmExit(VCpu);
+        UserExecHandleRestoringToNormalState(VCpu);
     }
 }
 

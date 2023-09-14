@@ -205,9 +205,9 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call handler of the reversing machine
             //
-            if (g_ReversingMachineInitialized)
+            if (g_UserExecTrapInitialized)
             {
-                ReversingMachineHandleCr3Vmexit(VCpu);
+                UserExecTrapHandleCr3Vmexit(VCpu);
             }
 
             break;

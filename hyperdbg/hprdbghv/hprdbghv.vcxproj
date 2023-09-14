@@ -122,6 +122,10 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
+    <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
+    <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
+    <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
@@ -134,10 +138,10 @@
     <ClCompile Include="code\disassembler\ZydisKernel.c" />
     <ClCompile Include="code\features\CompatibilityChecks.c" />
     <ClCompile Include="code\features\DirtyLogging.c" />
-    <ClCompile Include="code\features\reversing\ReversingMachine.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
     <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
+    <ClCompile Include="code\hooks\ept-hook\UserExecTrap.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
     <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
     <ClCompile Include="code\interface\Callback.c" />
@@ -214,6 +218,10 @@
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
+    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
+    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
+    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
+    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
@@ -230,11 +238,11 @@
     <ClInclude Include="header\disassembler\Disassembler.h" />
     <ClInclude Include="header\features\CompatibilityChecks.h" />
     <ClInclude Include="header\features\DirtyLogging.h" />
-    <ClInclude Include="header\features\reversing\ReversingMachine.h" />
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />
     <ClInclude Include="header\hooks\Hooks.h" />
     <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
+    <ClInclude Include="header\hooks\UserExecTrap.h" />
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\Dispatch.h" />

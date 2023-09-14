@@ -107,6 +107,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->UserModeExecutionTrapEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
@@ -2929,8 +2930,18 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     case USER_MODE_EXECUTION_TRAP:
     {
         //
-        // To-do
+        // Enable triggering events for user-mode execution
+        // traps. This event doesn't support custom optional
+        // parameter(s) because it's unconditional users can
+        // use condition(s) to check for their custom optional
+        // parameters
         //
+        ConfigureInitializeUserExecTrapOnAllProcessors();
+
+        //
+        // Add the process to the watching list
+        //
+        ConfigureUserExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
 
         break;
     }

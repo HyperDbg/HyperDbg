@@ -29,33 +29,49 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief routines for initializing reversing machine
+ * @brief routines for initializing user-mode exec trap
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest)
+BOOLEAN
+ConfigureInitializeUserExecTrapOnAllProcessors()
 {
-    ReversingMachineInitialize();
-
-    ReversingAddProcessThreadToTheWatchList(NULL, RevServiceRequest->ProcessId, NULL);
+    return UserExecTrapInitialize();
 }
 
 /**
- * @brief routines for adding process to the reversing machine's watch list
- *
- * @param CoreId
- * @param ProcessId
- * @param ThreadId
+ * @brief routines for uninitializing user-mode exec trap
  *
  * @return VOID
  */
 VOID
-ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
-                                                 UINT32 ProcessId,
-                                                 UINT32 ThreadId)
+ConfigureUninitializeUserExecTrapOnAllProcessors()
 {
-    ReversingAddProcessThreadToTheWatchList(&g_GuestState[CoreId], ProcessId, ThreadId);
+    UserExecTrapUninitialize();
+}
+
+/**
+ * @brief Add the target process to the watching list
+ * @param ProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureUserExecTrapAddProcessToWatchingList(UINT32 ProcessId)
+{
+    return UserExecTrapAddProcessToWatchingList(ProcessId);
+}
+
+/**
+ * @brief Remove the target process from the watching list
+ * @param ProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConfigureUserExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
+{
+    return UserExecTrapRemoveProcessFromWatchingList(ProcessId);
 }
 
 /**

@@ -240,6 +240,12 @@ ConfigureDirtyLoggingUninitializeOnAllProcessors();
 IMPORT_EXPORT_VMM VOID
 ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
+IMPORT_EXPORT_VMM VOID
+ConfigureUninitializeUserExecTrapOnAllProcessors();
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureInitializeUserExecTrapOnAllProcessors();
+
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
@@ -258,17 +264,11 @@ ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLE
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
-//////////////////////////////////////////////////
-//         Reversing Machine Functions 	   		//
-//////////////////////////////////////////////////
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureUserExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
-IMPORT_EXPORT_VMM VOID
-ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
-
-IMPORT_EXPORT_VMM VOID
-ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
-                                                 UINT32 ProcessId,
-                                                 UINT32 ThreadId);
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureUserExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
