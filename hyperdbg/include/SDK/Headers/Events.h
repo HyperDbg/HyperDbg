@@ -94,6 +94,9 @@ typedef enum _VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
 typedef enum _VMM_EVENT_TYPE_ENUM
 {
 
+    //
+    // EPT Memory Monitoring Events
+    //
     HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
     HIDDEN_HOOK_READ_AND_WRITE,
     HIDDEN_HOOK_READ_AND_EXECUTE,
@@ -102,34 +105,70 @@ typedef enum _VMM_EVENT_TYPE_ENUM
     HIDDEN_HOOK_WRITE,
     HIDDEN_HOOK_EXECUTE,
 
+    //
+    // EPT Hook Events
+    //
     HIDDEN_HOOK_EXEC_DETOURS,
     HIDDEN_HOOK_EXEC_CC,
 
+    //
+    // System-call Events
+    //
     SYSCALL_HOOK_EFER_SYSCALL,
     SYSCALL_HOOK_EFER_SYSRET,
 
+    //
+    // CPUID Instruction Execution Events
+    //
     CPUID_INSTRUCTION_EXECUTION,
 
+    //
+    // Model-Specific Registers (MSRs) Reads/Modifications Events
+    //
     RDMSR_INSTRUCTION_EXECUTION,
     WRMSR_INSTRUCTION_EXECUTION,
 
+    //
+    // PMIO Events
+    //
     IN_INSTRUCTION_EXECUTION,
     OUT_INSTRUCTION_EXECUTION,
 
+    //
+    // Interrupts/Exceptions/Faults Events
+    //
     EXCEPTION_OCCURRED,
     EXTERNAL_INTERRUPT_OCCURRED,
 
+    //
+    // Debug Registers Events
+    //
     DEBUG_REGISTERS_ACCESSED,
 
+    //
+    // Timing & Performance Events
+    //
     TSC_INSTRUCTION_EXECUTION,
     PMC_INSTRUCTION_EXECUTION,
 
+    //
+    // VMCALL Instruction Execution Events
+    //
     VMCALL_INSTRUCTION_EXECUTION,
 
+    //
+    // Control Registers Events
+    //
     CONTROL_REGISTER_MODIFIED,
     CONTROL_REGISTER_READ,
+    CONTROL_REGISTER_3_MODIFIED,
 
-    USER_MODE_EXECUTION_TRAP,
+    //
+    // Execution Trap Events
+    //
+    TRAP_EXECUTION_USER_MODE,
+    TRAP_EXECUTION_KERNEL_MODE,
+    TRAP_EXECUTION_MEMORY,
 
 } VMM_EVENT_TYPE_ENUM;
 

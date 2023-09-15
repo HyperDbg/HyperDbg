@@ -17,7 +17,7 @@
  * @return VOID
  */
 VOID
-CommandUtrapHelp()
+CommandUTrapHelp()
 {
     ShowMessages("!utrap : traps the execution of user-mode instructions.\n\n");
 
@@ -39,7 +39,7 @@ CommandUtrapHelp()
  * @return VOID
  */
 VOID
-CommandUtrap(vector<string> SplittedCommand, string Command)
+CommandUTrap(vector<string> SplittedCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -59,7 +59,7 @@ CommandUtrap(vector<string> SplittedCommand, string Command)
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            USER_MODE_EXECUTION_TRAP,
+            TRAP_EXECUTION_USER_MODE,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,
@@ -79,7 +79,7 @@ CommandUtrap(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() > 1)
     {
         ShowMessages("incorrect use of the '!utrap'\n");
-        CommandUtrapHelp();
+        CommandUTrapHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;

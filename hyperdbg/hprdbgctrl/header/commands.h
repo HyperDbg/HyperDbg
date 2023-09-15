@@ -503,7 +503,7 @@ VOID
 CommandVmcall(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandUtrap(vector<string> SplittedCommand, string Command);
+CommandUTrap(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandHide(vector<string> SplittedCommand, string Command);

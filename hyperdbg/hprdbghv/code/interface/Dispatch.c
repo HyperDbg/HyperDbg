@@ -306,7 +306,7 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
+DispatchEventUTrap(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
@@ -319,7 +319,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = VmmCallbackTriggerEvents(USER_MODE_EXECUTION_TRAP,
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_USER_MODE,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
                                                       NULL,
                                                       &PostEventTriggerReq,
@@ -341,7 +341,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            VmmCallbackTriggerEvents(USER_MODE_EXECUTION_TRAP,
+            VmmCallbackTriggerEvents(TRAP_EXECUTION_USER_MODE,
                                      VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                                      NULL,
                                      NULL,
@@ -355,6 +355,183 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
         // user-mode execution trap normally
         //
         ExecTrapHandleRestoringToNormalState(VCpu);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to kernel-mode execution trap events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventKTrap(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_KERNEL_MODE,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the kernel-mode execution trap event in the case of triggering event
+            //
+            // ExecTrapHandleRestoringToNormalState(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(TRAP_EXECUTION_KERNEL_MODE,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // kernel-mode execution trap normally
+        //
+        // ExecTrapHandleRestoringToNormalState(VCpu);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to memory execution trap events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventMemoryTrap(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the memory execution trap event in the case of triggering event
+            //
+            // ExecTrapHandleRestoringToNormalState(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // memory execution trap normally
+        //
+        // ExecTrapHandleRestoringToNormalState(VCpu);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to mov 2 cr3 events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventMovToCr3(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(CONTROL_REGISTER_3_MODIFIED,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the mov 2 cr3 event in the case of triggering event
+            //
+            // ExecTrapHandleRestoringToNormalState(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(CONTROL_REGISTER_3_MODIFIED,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // mov 2 cr3 normally
+        //
+        // ExecTrapHandleRestoringToNormalState(VCpu);
     }
 }
 

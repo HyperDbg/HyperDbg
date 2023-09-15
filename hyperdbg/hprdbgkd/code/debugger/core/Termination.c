@@ -635,7 +635,7 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
 VOID
 TerminateUserModeExecTrapEvent(PDEBUGGER_EVENT Event)
 {
-    if (DebuggerEventListCount(&g_Events->UserModeExecutionTrapEventsHead) > 1)
+    if (DebuggerEventListCount(&g_Events->TrapExecutionUserModeEventsHead) > 1)
     {
         //
         // There are still other events in the queue (list), we should only remove

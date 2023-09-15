@@ -899,7 +899,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        // DispatchEventUtrap(VCpu);
+        // DispatchEventUTrap(VCpu);
 
         return TRUE;
     }

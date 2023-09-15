@@ -64,7 +64,10 @@ typedef struct _DEBUGGER_CORE_EVENTS
     LIST_ENTRY DebugRegistersAccessedEventsHead;           // DEBUG_REGISTERS_ACCESSED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
     LIST_ENTRY ExternalInterruptOccurredEventsHead;        // EXTERNAL_INTERRUPT_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
     LIST_ENTRY VmcallInstructionExecutionEventsHead;       // VMCALL_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY UserModeExecutionTrapEventsHead;            // USER_MODE_EXECUTION_TRAP [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY TrapExecutionUserModeEventsHead;            // TRAP_EXECUTION_USER_MODE [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY TrapExecutionKernelModeEventsHead;          // TRAP_EXECUTION_KERNEL_MODE [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY TrapExecutionMemoryEventsHead;              // TRAP_EXECUTION_MEMORY [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
     LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;

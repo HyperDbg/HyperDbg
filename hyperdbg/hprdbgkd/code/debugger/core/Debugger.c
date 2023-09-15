@@ -107,7 +107,10 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
-    InitializeListHead(&g_Events->UserModeExecutionTrapEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionUserModeEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionKernelModeEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionMemoryEventsHead);
+    InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
@@ -1645,8 +1648,17 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case VMCALL_INSTRUCTION_EXECUTION:
         ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
         break;
-    case USER_MODE_EXECUTION_TRAP:
-        ResultList = &g_Events->UserModeExecutionTrapEventsHead;
+    case TRAP_EXECUTION_USER_MODE:
+        ResultList = &g_Events->TrapExecutionUserModeEventsHead;
+        break;
+    case TRAP_EXECUTION_KERNEL_MODE:
+        ResultList = &g_Events->TrapExecutionKernelModeEventsHead;
+        break;
+    case TRAP_EXECUTION_MEMORY:
+        ResultList = &g_Events->TrapExecutionMemoryEventsHead;
+        break;
+    case CONTROL_REGISTER_3_MODIFIED:
+        ResultList = &g_Events->ControlRegister3ModifiedEventsHead;
         break;
     case CONTROL_REGISTER_MODIFIED:
         ResultList = &g_Events->ControlRegisterModifiedEventsHead;
@@ -2927,7 +2939,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case USER_MODE_EXECUTION_TRAP:
+    case TRAP_EXECUTION_USER_MODE:
     {
         //
         // Enable triggering events for user-mode execution
@@ -3307,7 +3319,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case USER_MODE_EXECUTION_TRAP:
+    case TRAP_EXECUTION_USER_MODE:
     {
         //
         // To-do

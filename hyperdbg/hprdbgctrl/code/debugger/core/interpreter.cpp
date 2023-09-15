@@ -734,7 +734,7 @@ InitializeCommandsDictionary()
     g_CommandsList["!sysret"]  = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
     g_CommandsList["!sysret2"] = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
 
-    g_CommandsList["!utrap"] = {&CommandUtrap, &CommandUtrapHelp, DEBUGGER_COMMAND_UTRAP_ATTRIBUTES};
+    g_CommandsList["!utrap"] = {&CommandUTrap, &CommandUTrapHelp, DEBUGGER_COMMAND_UTRAP_ATTRIBUTES};
 
     g_CommandsList["!hide"] = {&CommandHide, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
 
