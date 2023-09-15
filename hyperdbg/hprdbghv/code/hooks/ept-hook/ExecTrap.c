@@ -865,12 +865,17 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // For test purposes
         //
-        // LogInfo("Kernel-mode process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        LogInfo("Kernel-mode process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
+
+        //
+        // Change EPT to user disabled
+        //
+        ExecTrapChangeToUserDisabledMbecEptp(VCpu);
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
@@ -884,12 +889,17 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         HvSuppressRipIncrement(VCpu);
 
-        // LogInfo("Reached to-user mode of the process pid: %x, rip: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        //
+        // Change EPT to user disabled
+        //
+        ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
+
+        LogInfo("Reached to-user mode of the process pid: %x, rip: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Trigger the event
         //
-        DispatchEventUtrap(VCpu);
+        // DispatchEventUtrap(VCpu);
 
         return TRUE;
     }
