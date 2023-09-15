@@ -968,6 +968,11 @@ VmxPerformTermination()
     EptHookUnHookAll();
 
     //
+    // Restore the state of execution trap hooks
+    //
+    ExecTrapUninitialize();
+
+    //
     // Broadcast to terminate Vmx
     //
     KeGenericCallDpc(DpcRoutineTerminateGuest, 0x0);
@@ -989,22 +994,6 @@ VmxPerformTermination()
     {
         MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
         g_GuestState[i].EptPageTable = NULL;
-    }
-
-    //
-    // Free Identity Page Table for MBEC hooks
-    //
-    if (g_EptState->ModeBasedEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
-    }
-
-    //
-    // Free Identity Page Table for execute-only hooks
-    //
-    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
     }
 
     //

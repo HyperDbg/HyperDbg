@@ -45,7 +45,10 @@ VOID
 ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-ExecTrapChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu);
+ExecTrapChangeToUserDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+ExecTrapChangeToKernelDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);

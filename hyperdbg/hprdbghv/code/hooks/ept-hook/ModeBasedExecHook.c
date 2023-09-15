@@ -20,7 +20,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 {
     //
     // Set execute access for PML4s
@@ -31,6 +31,60 @@ ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
         // We only set the top-level PML4 for intercepting user-mode execution
         //
         EptTable->PML4[i].UserModeExecute = FALSE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Adjust (unset) kernel-mode execution bit of target page-table
+ * but allow user-mode execution
+ * @details should be called from vmx non-root mode
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // From Intel Manual:
+    // [Bit 2] If the "mode-based execute control for EPT" VM - execution control is 0, execute access;
+    // indicates whether instruction fetches are allowed from the 2-MByte page controlled by this entry.
+    // If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction
+    // fetches are allowed from supervisor - mode linear addresses in the 2 - MByte page controlled by this entry
+    //
+
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        EptTable->PML4[i].UserModeExecute = TRUE;
+
+        //
+        // We only set the top-level PML4 for intercepting kernel-mode execution
+        //
+        EptTable->PML4[i].ExecuteAccess = FALSE;
     }
 
     //
