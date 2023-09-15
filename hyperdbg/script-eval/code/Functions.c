@@ -1518,3 +1518,25 @@ ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of strcmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = strcmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleStrcmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}

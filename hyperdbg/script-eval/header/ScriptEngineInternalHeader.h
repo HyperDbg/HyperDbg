@@ -204,3 +204,6 @@ ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * H
 
 VOID
 ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError);
+
+UINT64
+ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
