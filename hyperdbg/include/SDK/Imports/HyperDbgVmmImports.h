@@ -241,10 +241,10 @@ IMPORT_EXPORT_VMM VOID
 ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
-ConfigureUninitializeUserExecTrapOnAllProcessors();
+ConfigureUninitializeExecTrapOnAllProcessors();
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureInitializeUserExecTrapOnAllProcessors();
+ConfigureInitializeExecTrapOnAllProcessors();
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
@@ -265,10 +265,10 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureUserExecTrapAddProcessToWatchingList(UINT32 ProcessId);
+ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureUserExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
+ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

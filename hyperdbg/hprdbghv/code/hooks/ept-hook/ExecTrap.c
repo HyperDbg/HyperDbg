@@ -1,5 +1,5 @@
 /**
- * @file UserExecTrap.c
+ * @file ExecTrap.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The reversing machine's routines
  * @details
@@ -27,7 +27,7 @@
  */
 _Use_decl_annotations_
 BOOLEAN
-UserExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
+ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
 {
     CR3_TYPE Cr3;
     UINT64   TempCr3;
@@ -253,7 +253,7 @@ UserExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE T
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapAllocateMbecEptPageTable()
+ExecTrapAllocateMbecEptPageTable()
 {
     PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
     EPT_POINTER         EPTP = {0};
@@ -318,7 +318,7 @@ UserExecTrapAllocateMbecEptPageTable()
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
+ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
 {
     INT64  RemainingSize  = 0;
     UINT64 CurrentAddress = 0;
@@ -395,7 +395,7 @@ UserExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapAllocateExecuteOnlyEptPageTable()
+ExecTrapAllocateExecuteOnlyEptPageTable()
 {
     PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
     EPT_POINTER         EPTP = {0};
@@ -416,7 +416,7 @@ UserExecTrapAllocateExecuteOnlyEptPageTable()
     //
     // Enable all execute-only bit
     //
-    UserExecTrapEnableExecuteOnlyPages(ModeBasedEptTable);
+    ExecTrapEnableExecuteOnlyPages(ModeBasedEptTable);
 
     //
     // Set the global address for execute only EPT page table
@@ -458,7 +458,7 @@ UserExecTrapAllocateExecuteOnlyEptPageTable()
  * @return VOID
  */
 VOID
-UserExecTrapReadRamPhysicalRegions()
+ExecTrapReadRamPhysicalRegions()
 {
     PHYSICAL_ADDRESS       Address;
     LONGLONG               Size;
@@ -496,12 +496,12 @@ UserExecTrapReadRamPhysicalRegions()
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapInitialize()
+ExecTrapInitialize()
 {
     //
     // Check if the reversing machine is already initialized
     //
-    if (g_UserExecTrapInitialized)
+    if (g_ExecTrapInitialized)
     {
         //
         // Already initialized
@@ -512,12 +512,12 @@ UserExecTrapInitialize()
     //
     // Read the RAM regions
     //
-    UserExecTrapReadRamPhysicalRegions();
+    ExecTrapReadRamPhysicalRegions();
 
     //
     // Allocate MBEC EPT page-table
     //
-    if (!UserExecTrapAllocateMbecEptPageTable())
+    if (!ExecTrapAllocateMbecEptPageTable())
     {
         //
         // There was an error allocating MBEC page table for EPT tables
@@ -528,7 +528,7 @@ UserExecTrapInitialize()
     //
     // Allocate execute-only EPT page-table
     //
-    if (!UserExecTrapAllocateExecuteOnlyEptPageTable())
+    if (!ExecTrapAllocateExecuteOnlyEptPageTable())
     {
         //
         // There was an error allocating execute-only page table for EPT tables
@@ -561,7 +561,7 @@ UserExecTrapInitialize()
     //
     // Indicate that the reversing machine is initialized
     //
-    g_UserExecTrapInitialized = TRUE;
+    g_ExecTrapInitialized = TRUE;
 
     return TRUE;
 }
@@ -573,12 +573,12 @@ UserExecTrapInitialize()
  * @return VOID
  */
 VOID
-UserExecTrapUninitialize()
+ExecTrapUninitialize()
 {
     //
     // Indicate that the reversing machine is disabled
     //
-    g_UserExecTrapInitialized = FALSE;
+    g_ExecTrapInitialized = FALSE;
 
     //
     // Disable MOV to CR3 exiting
@@ -619,7 +619,7 @@ UserExecTrapUninitialize()
  * @return VOID
  */
 VOID
-UserExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
@@ -639,7 +639,7 @@ UserExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-UserExecTrapChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
@@ -659,7 +659,7 @@ UserExecTrapChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-UserExecTrapChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Change EPTP
@@ -679,12 +679,12 @@ UserExecTrapChangeToMbecEnabledEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-UserExecHandleRestoringToNormalState(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapHandleRestoringToNormalState(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Restore to normal EPTP
     //
-    UserExecTrapRestoreToNormalEptp(VCpu);
+    ExecTrapRestoreToNormalEptp(VCpu);
 }
 
 /**
@@ -696,72 +696,29 @@ UserExecHandleRestoringToNormalState(VIRTUAL_MACHINE_STATE * VCpu)
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
-                                     VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
-                                     UINT64                                 GuestPhysicalAddr)
+ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
+                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
+                                 UINT64                                 GuestPhysicalAddr)
 {
     //
     // Check if this mechanism is use or not
     //
-    if (!g_UserExecTrapInitialized)
+    if (!g_ExecTrapInitialized)
     {
         return FALSE;
     }
 
-    if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
+    if (!ViolationQualification->EptExecutable || !ViolationQualification->ExecuteAccess)
     {
         //
-        // Show the disassembly of current instruction
+        // For test purposes
         //
-        // LogInfo("Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
-        //         PsGetCurrentThreadId(),
-        //         GuestPhysicalAddr,
-        //         PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
-        //         VCpu->LastVmexitRip);
+        // LogInfo("Kernel-mode process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
-
-        //
-        // Check whether the current RIP instruction is in kernel-mode or user-mode
-        //
-        if (VCpu->LastVmexitRip & 0xff00000000000000)
-        {
-            //
-            // Restore to normal state for current process
-            //
-            UserExecTrapRestoreNormalStateOnTargetProcess(VCpu);
-        }
-        else
-        {
-            //
-            // Change to all enable EPTP
-            //
-            UserExecTrapRestoreToNormalEptp(VCpu);
-
-            //
-            // Set MTF
-            // Note that external interrupts are previously masked
-            //
-            HvEnableMtfAndChangeExternalInterruptState(VCpu);
-
-            //
-            // Disable the user-mode execution interception
-            //
-            HvSetModeBasedExecutionEnableFlag(FALSE);
-
-            //
-            // Disassemble instructions
-            //
-            DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
-            //
-            // Set the indicator to handle MTF
-            //
-            VCpu->RestoreNonReadableWriteEptp = TRUE;
-        }
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
@@ -799,92 +756,13 @@ UserExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu
 }
 
 /**
- * @brief Callback for handling VM-exits for MTF in the case of MBEC hooks
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-UserExecTrapHandleMtfCallback(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    if (VCpu->TestNumber != 1000000)
-    {
-        //
-        // Check for re-enabling external interrupts
-        //
-        if (VCpu->PendingExternalInterrupts[0] != NULL)
-        {
-            //
-            // Restore to normal state for current process
-            //
-            UserExecTrapRestoreNormalStateOnTargetProcess(VCpu);
-        }
-        else
-        {
-            //
-            // Restore non-readable/writeable EPTP
-            //
-            UserExecTrapChangeToExecuteOnlyEptp(VCpu);
-        }
-
-        VCpu->TestNumber++;
-    }
-    else
-    {
-        UserExecTrapRestoreToNormalEptp(VCpu);
-
-        //
-        // Check for reenabling external interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
-        VCpu->Test = TRUE;
-    }
-
-    //
-    // Unset the indicator to avoid further handling
-    //
-    VCpu->RestoreNonReadableWriteEptp = TRUE;
-}
-
-/**
- * @brief Restore to the normal state for the current process
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-UserExecTrapRestoreNormalStateOnTargetProcess(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    //
-    // Change to the MBEC Enabled EPTP
-    //
-    UserExecTrapChangeToMbecEnabledEptp(VCpu);
-
-    //
-    // Check for reenabling external interrupts
-    //
-    HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
-    //
-    // Enable the user-mode execution interception
-    //
-    HvSetModeBasedExecutionEnableFlag(TRUE);
-
-    //
-    // Mask all exceptions
-    //
-    HvWriteExceptionBitmap(0x0);
-}
-
-/**
  * @brief Handle MOV to CR3 vm-exits for hooking mode execution
  * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-UserExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
     BOOLEAN Result;
     UINT32  Index;
@@ -893,8 +771,8 @@ UserExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // Search the list of processes for the current process's user-execution
     //  trap state
     //
-    Result = BinarySearchPerformSearchItem(&g_UserExecTrapState.InterceptionProcessIds[0],
-                                           g_UserExecTrapState.NumberOfItems,
+    Result = BinarySearchPerformSearchItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                           g_ExecTrapState.NumberOfItems,
                                            &Index,
                                            (UINT64)PsGetCurrentProcessId());
 
@@ -914,13 +792,6 @@ UserExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         // In case, the process is changed, we've disable the MBEC
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
-
-        HvWriteExceptionBitmap(0x0);
-
-        //
-        // Enable interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
     }
 }
 
@@ -931,11 +802,11 @@ UserExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapAddProcessToWatchingList(UINT32 ProcessId)
+ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 {
-    return InsertionSortInsertItem(&g_UserExecTrapState.InterceptionProcessIds[0],
-                                   &g_UserExecTrapState.NumberOfItems,
-                                   MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_MODE_EXEC_THREAD,
+    return InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                   &g_ExecTrapState.NumberOfItems,
+                                   MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
                                    (UINT64)ProcessId);
 }
 
@@ -946,9 +817,9 @@ UserExecTrapAddProcessToWatchingList(UINT32 ProcessId)
  * @return BOOLEAN
  */
 BOOLEAN
-UserExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
+ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
 {
-    return InsertionSortDeleteItem(&g_UserExecTrapState.InterceptionProcessIds[0],
-                                   &g_UserExecTrapState.NumberOfItems,
+    return InsertionSortDeleteItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                   &g_ExecTrapState.NumberOfItems,
                                    (UINT64)ProcessId);
 }

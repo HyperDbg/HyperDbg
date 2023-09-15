@@ -2936,12 +2936,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // use condition(s) to check for their custom optional
         // parameters
         //
-        ConfigureInitializeUserExecTrapOnAllProcessors();
+        ConfigureInitializeExecTrapOnAllProcessors();
 
         //
         // Add the process to the watching list
         //
-        ConfigureUserExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
+        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
 
         break;
     }

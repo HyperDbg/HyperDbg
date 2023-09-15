@@ -73,22 +73,6 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Check for MBEC Hooks
-    //
-    if (VCpu->RestoreNonReadableWriteEptp)
-    {
-        //
-        // MTF is handled
-        //
-        IsMtfHandled = TRUE;
-
-        //
-        // Handle callback for the MBEC hooks
-        //
-        UserExecTrapHandleMtfCallback(VCpu);
-    }
-
-    //
     // Check for insturmentation step-in
     //
     if (VCpu->RegisterBreakOnMtf)

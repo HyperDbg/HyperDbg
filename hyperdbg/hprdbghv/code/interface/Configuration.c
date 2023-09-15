@@ -29,25 +29,25 @@ ConfigureEnableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief routines for initializing user-mode exec trap
+ * @brief routines for initializing user-mode, kernel-mode exec trap
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ConfigureInitializeUserExecTrapOnAllProcessors()
+ConfigureInitializeExecTrapOnAllProcessors()
 {
-    return UserExecTrapInitialize();
+    return ExecTrapInitialize();
 }
 
 /**
- * @brief routines for uninitializing user-mode exec trap
+ * @brief routines for uninitializing user-mode, kernel-mode exec trap
  *
  * @return VOID
  */
 VOID
-ConfigureUninitializeUserExecTrapOnAllProcessors()
+ConfigureUninitializeExecTrapOnAllProcessors()
 {
-    UserExecTrapUninitialize();
+    ExecTrapUninitialize();
 }
 
 /**
@@ -57,9 +57,9 @@ ConfigureUninitializeUserExecTrapOnAllProcessors()
  * @return BOOLEAN
  */
 BOOLEAN
-ConfigureUserExecTrapAddProcessToWatchingList(UINT32 ProcessId)
+ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 {
-    return UserExecTrapAddProcessToWatchingList(ProcessId);
+    return ExecTrapAddProcessToWatchingList(ProcessId);
 }
 
 /**
@@ -69,9 +69,9 @@ ConfigureUserExecTrapAddProcessToWatchingList(UINT32 ProcessId)
  * @return BOOLEAN
  */
 BOOLEAN
-ConfigureUserExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
+ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
 {
-    return UserExecTrapRemoveProcessFromWatchingList(ProcessId);
+    return ExecTrapRemoveProcessFromWatchingList(ProcessId);
 }
 
 /**

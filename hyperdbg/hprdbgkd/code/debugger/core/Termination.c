@@ -627,7 +627,7 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
 }
 
 /**
- * @brief Termination function for user-mode exec trap events
+ * @brief Termination function for user-mode, kernel-mode exec trap events
  *
  * @param Event Target Event Object
  * @return VOID
@@ -657,7 +657,7 @@ TerminateUserModeExecTrapEvent(PDEBUGGER_EVENT Event)
         //
         // We have to uninitialize the event
         //
-        ConfigureUninitializeUserExecTrapOnAllProcessors();
+        ConfigureUninitializeExecTrapOnAllProcessors();
     }
 }
 

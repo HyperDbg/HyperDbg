@@ -517,7 +517,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
         //
         // Check if the reversing machine is enabled or not
         //
-        if (g_UserExecTrapInitialized)
+        if (g_ExecTrapInitialized)
         {
             //
             // The VMM needs mov2cr3s

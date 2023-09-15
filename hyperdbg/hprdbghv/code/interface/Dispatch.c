@@ -314,7 +314,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // As the context to event trigger, we send NULL
     //
-    if (g_UserExecTrapInitialized)
+    if (g_ExecTrapInitialized)
     {
         //
         // Triggering the pre-event
@@ -333,7 +333,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Handle the user-mode execution trap event in the case of triggering event
             //
-            UserExecHandleRestoringToNormalState(VCpu);
+            ExecTrapHandleRestoringToNormalState(VCpu);
         }
 
         //
@@ -354,7 +354,7 @@ DispatchEventUtrap(VIRTUAL_MACHINE_STATE * VCpu)
         // Otherwise and if there is no event, we should handle the
         // user-mode execution trap normally
         //
-        UserExecHandleRestoringToNormalState(VCpu);
+        ExecTrapHandleRestoringToNormalState(VCpu);
     }
 }
 

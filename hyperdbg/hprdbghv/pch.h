@@ -125,7 +125,7 @@
 //
 // Headers for supporting the reversing machine (TRM)
 //
-#include "hooks/UserExecTrap.h"
+#include "hooks/ExecTrap.h"
 
 //
 // Headers for exporting functions to remove the driver

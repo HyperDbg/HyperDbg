@@ -284,7 +284,7 @@
     <ClCompile Include="code\common\UnloadDll.c">
       <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="code\hooks\ept-hook\UserExecTrap.c">
+    <ClCompile Include="code\hooks\ept-hook\ExecTrap.c">
       <Filter>code\hooks\ept-hook</Filter>
     </ClCompile>
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c">
@@ -541,7 +541,7 @@
     <ClInclude Include="header\common\UnloadDll.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\hooks\UserExecTrap.h">
+    <ClInclude Include="header\hooks\ExecTrap.h">
       <Filter>header\hooks</Filter>
     </ClInclude>
     <ClInclude Include="..\include\components\optimizations\header\AvlTree.h">
