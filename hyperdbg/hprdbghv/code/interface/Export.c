@@ -701,3 +701,16 @@ VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
 {
     EptHookAllocateExtraHookingPages(Count);
 }
+
+/**
+ * @brief VMX-root compatible strcmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32
+ */
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+{
+    VmxCompatibleStrcmp(Address1, Address2);
+}

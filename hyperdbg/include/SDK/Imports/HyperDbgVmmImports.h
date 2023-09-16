@@ -185,6 +185,9 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId);
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
 
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
+
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
 //////////////////////////////////////////////////

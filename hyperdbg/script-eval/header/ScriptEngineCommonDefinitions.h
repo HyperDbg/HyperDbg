@@ -150,6 +150,7 @@ typedef struct ACTION_BUFFER
 #    define FUNC_INTERLOCKED_COMPARE_EXCHANGE 106
 #    define FUNC_MEMCPY                       107
 #    define FUNC_EVENT_INJECT_ERROR_CODE      108
+#    define FUNC_STRCMP                       109
 typedef enum REGS_ENUM
 {
     REGISTER_RAX    = 0,
