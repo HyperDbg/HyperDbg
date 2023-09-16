@@ -1265,3 +1265,113 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
 
     return TRUE;
 }
+
+/**
+ * @brief implementation of vmx-root mode compatible strcmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32 0x2 indicates error, otherwise the same result as strcmp in string.h
+ */
+INT32
+VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+{
+    CHAR     C1 = NULL, C2 = NULL;
+    INT32    Ret = 0;
+    UINT64   AlignedAddress1, AlignedAddress2;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress1 = (UINT64)PAGE_ALIGN((UINT64)Address1);
+    AlignedAddress2 = (UINT64)PAGE_ALIGN((UINT64)Address2);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(CHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(CHAR)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0x2;
+    }
+
+    do
+    {
+        /*
+        C1 = *Address1;
+        */
+        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(CHAR));
+
+        /*
+        C2 = *Address2;
+        */
+        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(CHAR));
+
+        Address1++;
+        Address2++;
+
+        if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+
+        if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+    } while (!(Ret = C1 - C2) && C2);
+
+    if (Ret < 0)
+    {
+        Ret = -1;
+    }
+    else if (Ret > 0)
+    {
+        Ret = 1;
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+    return Ret;
+}

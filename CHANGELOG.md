@@ -20,6 +20,7 @@ New release of the HyperDbg Debugger.
 - Building mtrr map by adding smrr, fixed ranges, and default memory type is fixed (#255) thanks to [@Air14](https://github.com/Air14)
 - The problem of removing multiple EPT hooks on a single address is fixed
 - The problem of not intercepting the step-over command 'p' when executed in different cores is fixed
+- HyperDbg now checks for the validity of physical addresses based on CPUID.80000008H:EAX\[7:0\]'s physical address width
 
 ## [0.5.0.0] - 2023-08-07
 New release of the HyperDbg Debugger.

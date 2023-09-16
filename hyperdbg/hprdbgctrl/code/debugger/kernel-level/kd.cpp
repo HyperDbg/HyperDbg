@@ -1504,7 +1504,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
         ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
+                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size\n",
                      Length + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                      MaxSerialPacketSize);
         return FALSE;
