@@ -1283,7 +1283,7 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
 }
 
 /**
- * @brief implementation of vmx-root mode compatible strlen
+ * @brief implementation of vmx-root mode compatible strcmp
  * @param Address1
  * @param Address2
  *
