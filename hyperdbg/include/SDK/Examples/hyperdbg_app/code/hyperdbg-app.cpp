@@ -1,5 +1,5 @@
 /**
- * @file hprdbgrmctrl.h
+ * @file hyperdbg-app.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Controller of the reversing machine's module
  * @details
@@ -48,6 +48,7 @@ BOOLEAN g_IsReversingMachineModulesLoaded;
  */
 BOOLEAN g_IsVmxOffProcessStart;
 
+/*
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,6 +59,7 @@ __declspec(dllexport) int ReversingMachineStop();
 #ifdef __cplusplus
 }
 #endif
+*/
 
 /**
  * @brief Show messages
@@ -359,4 +361,111 @@ ReversingMachineStart()
     // Operation was successful
     //
     return 0;
+}
+
+/**
+ * @brief Unload the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+int
+HyperDbgUnloadReversingMachine()
+{
+    BOOL Status;
+
+    //
+    // Check if driver is loaded
+    //
+    if (!g_IsReversingMachineModulesLoaded)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n");
+        return 1;
+    }
+
+    ShowMessages("start terminating...\n");
+
+    //
+    // Call the unloader of the hprdbgrev module
+    //
+    ReversingMachineStop();
+
+    ShowMessages("you're not on reversing machine's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Load the reversing machine driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+int
+HyperDbgLoadReversingMachine()
+{
+    char CpuId[13] = {0};
+
+    if (g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver found, if you use 'load' before, please "
+                     "unload it using 'unload'\n");
+        return 1;
+    }
+
+    //
+    // Read the vendor string
+    //
+    HyperDbgReadVendorString(CpuId);
+
+    ShowMessages("current processor vendor is : %s\n", CpuId);
+
+    if (strcmp(CpuId, "GenuineIntel") == 0)
+    {
+        ShowMessages("virtualization technology is vt-x\n");
+    }
+    else
+    {
+        ShowMessages("this program is not designed to run in a non-VT-x "
+                     "environemnt !\n");
+        return 1;
+    }
+
+    if (HyperDbgVmxSupportDetection())
+    {
+        ShowMessages("vmx operation is supported by your processor\n");
+    }
+    else
+    {
+        ShowMessages("vmx operation is not supported by your processor\n");
+        return 1;
+    }
+
+    //
+    // Call hprdbgrev start function
+    //
+    ReversingMachineStart();
+
+    return 0;
+}
+
+/**
+ * @brief main function
+ *
+ * @return int
+ */
+int
+main()
+{
+    if (HyperDbgLoadReversingMachine() == 0)
+    {
+        //
+        // HyperDbg driver loaded successfully
+        //
+        HyperDbgUnloadReversingMachine();
+    }
+    else
+    {
+        ShowMessages("err, in loading HyperDbg\n");
+    }
 }

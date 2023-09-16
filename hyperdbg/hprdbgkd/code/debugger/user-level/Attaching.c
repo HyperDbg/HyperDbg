@@ -110,15 +110,13 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     // Allocate the buffer
     //
-    ProcessDebuggingDetail = (PUSERMODE_DEBUGGING_PROCESS_DETAILS)
-        ExAllocatePoolWithTag(NonPagedPool, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS), POOLTAG);
+    ProcessDebuggingDetail = (USERMODE_DEBUGGING_PROCESS_DETAILS *)
+        CrsAllocateZeroedNonPagedPool(sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     if (!ProcessDebuggingDetail)
     {
         return NULL;
     }
-
-    RtlZeroMemory(ProcessDebuggingDetail, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     //
     // Set the unique tag and increment it
@@ -141,7 +139,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
     {
-        ExFreePoolWithTag(ProcessDebuggingDetail, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetail);
         return NULL;
     }
 
@@ -245,7 +243,7 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
         //
         // Unallocate the pool
         //
-        ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetails);
     }
 }
 
@@ -286,7 +284,7 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
     //
     // Unallocate the pool
     //
-    ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+    CrsFreePool(ProcessDebuggingDetails);
 
     return TRUE;
 }
@@ -787,7 +785,7 @@ AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_US
     //
     // Enable the memory access logging
     //
-    ConfigureInitializeReversingMachineOnAllProcessors(NULL);
+    ConfigureInitializeExecTrapOnAllProcessors();
 
     return TRUE;
 }
@@ -933,6 +931,15 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
 
         //
+        // Check whether any special initialization for thread safe features
+        // is needed or not
+        //
+        if (AttachRequest->CheckCallbackAtFirstInstruction)
+        {
+            AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
+        }
+
+        //
         // Waiting for #DB to be triggered
         //
         g_IsWaitingForUserModeProcessEntryToBeCalled = TRUE;
@@ -989,15 +996,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-    }
-
-    //
-    // Check whether any special initialization for thread safe features
-    // is needed or not
-    //
-    if (AttachRequest->CheckCallbackAtFirstInstruction)
-    {
-        AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
     }
 
     //

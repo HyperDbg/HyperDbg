@@ -627,6 +627,41 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
 }
 
 /**
+ * @brief Termination function for user-mode, kernel-mode exec trap events
+ *
+ * @param Event Target Event Object
+ * @return VOID
+ */
+VOID
+TerminateUserModeExecTrapEvent(PDEBUGGER_EVENT Event)
+{
+    if (DebuggerEventListCount(&g_Events->TrapExecutionUserModeEventsHead) > 1)
+    {
+        //
+        // There are still other events in the queue (list), we should only remove
+        // this special event (not all events)
+        //
+
+        //
+        // Nothing we can do for this event type, let it work because of other events
+        //
+        return;
+    }
+    else
+    {
+        //
+        // Nothing else is in the list, we have to restore everything to default
+        // as the current event is the only event in the list
+        //
+
+        //
+        // We have to uninitialize the event
+        //
+        ConfigureUninitializeExecTrapOnAllProcessors();
+    }
+}
+
+/**
  * @brief Termination function for CPUID Instruction events
  *
  * @param Event Target Event Object

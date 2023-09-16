@@ -447,8 +447,6 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
 VOID
 ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
 {
-    ULONG CpuBasedVmExecControls = 0;
-
     //
     // The protected checks are only performed if the "Set" is "FALSE",
     // because if sb wants to set it to "TRUE" then we're no need to
@@ -519,7 +517,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
         //
         // Check if the reversing machine is enabled or not
         //
-        if (g_ReversingMachineInitialized)
+        if (g_ExecTrapInitialized)
         {
             //
             // The VMM needs mov2cr3s

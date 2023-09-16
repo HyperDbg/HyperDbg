@@ -18,7 +18,6 @@ extern HANDLE  g_IsDriverLoadedSuccessfully;
 extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
-extern BOOLEAN g_IsReversingMachineModulesLoaded;
 
 /**
  * @brief help of the load command
@@ -34,60 +33,6 @@ CommandLoadHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
-}
-
-/**
- * @brief load reversing machine module
- *
- * @return BOOLEAN
- */
-BOOLEAN
-CommandLoadReversingMachineModule()
-{
-    BOOL   Status;
-    HANDLE hToken;
-
-    //
-    // Enable Debug privilege
-    //
-    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    if (!Status)
-    {
-        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
-        return FALSE;
-    }
-
-    Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    if (!Status)
-    {
-        CloseHandle(hToken);
-        return FALSE;
-    }
-
-    //
-    // Install RM driver
-    //
-    if (HyperDbgInstallReversingMachineDriver() == 1)
-    {
-        return FALSE;
-    }
-
-    if (HyperDbgLoadReversingMachine() == 1)
-    {
-        //
-        // No need to handle anymore
-        //
-        return FALSE;
-    }
-
-    //
-    // If we reach here so the module are loaded
-    //
-    g_IsReversingMachineModulesLoaded = TRUE;
-
-    ShowMessages("reversing machine module is running...\n");
-
-    return TRUE;
 }
 
 /**
@@ -224,29 +169,6 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         // symbols
         //
         SymbolLocalReload(GetCurrentProcessId());
-    }
-    else if (!SplittedCommand.at(1).compare("rev"))
-    {
-        //
-        // Check to make sure that the driver is not already loaded
-        //
-        if (g_DeviceHandle || g_IsDebuggerModulesLoaded)
-        {
-            ShowMessages("handle of the driver found, if you use 'load' before, please "
-                         "first unload it then call 'unload'\n");
-            return;
-        }
-
-        //
-        // Load Reversing Machine Module
-        //
-        ShowMessages("loading the reversing machine's driver\n");
-
-        if (!CommandLoadReversingMachineModule())
-        {
-            ShowMessages("failed to install or load the driver\n");
-            return;
-        }
     }
     else
     {

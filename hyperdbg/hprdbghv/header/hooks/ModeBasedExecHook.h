@@ -49,4 +49,7 @@ VOID
 ModeBasedExecHookUninitialize();
 
 BOOLEAN
-ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable);
+ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable);
+
+BOOLEAN
+ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable);

@@ -26,7 +26,6 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
     UINT16      Port      = 0;
     UINT32      Count     = 0;
     UINT32      Size      = 0;
-    UINT64      GpReg     = 0;
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     //

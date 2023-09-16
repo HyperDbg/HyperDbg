@@ -67,7 +67,6 @@ VOID
 HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
 {
     INT32       CpuInfo[4];
-    ULONG       Mode = 0;
     PGUEST_REGS Regs = VCpu->Regs;
 
     //
@@ -206,9 +205,9 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Call handler of the reversing machine
             //
-            if (g_ReversingMachineInitialized)
+            if (g_ExecTrapInitialized)
             {
-                ReversingMachineHandleCr3Vmexit(VCpu);
+                ExecTrapHandleCr3Vmexit(VCpu);
             }
 
             break;
@@ -640,6 +639,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 VOID
 HvSetPmlEnableFlag(BOOLEAN Set)
 {
+    ULONG AdjSecCtrl;
     ULONG SecondaryProcBasedVmExecControls = 0;
 
     //
@@ -659,12 +659,12 @@ HvSetPmlEnableFlag(BOOLEAN Set)
         SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG;
     }
 
-    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+    AdjSecCtrl = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
 
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**
@@ -676,6 +676,7 @@ HvSetPmlEnableFlag(BOOLEAN Set)
 VOID
 HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
 {
+    ULONG AdjSecCtrl;
     ULONG SecondaryProcBasedVmExecControls = 0;
 
     //
@@ -695,12 +696,12 @@ HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
         SecondaryProcBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG;
     }
 
-    ULONG Sec = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
+    AdjSecCtrl = HvAdjustControls(SecondaryProcBasedVmExecControls, IA32_VMX_PROCBASED_CTLS2);
 
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**

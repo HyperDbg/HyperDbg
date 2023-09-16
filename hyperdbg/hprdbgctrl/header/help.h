@@ -109,6 +109,9 @@ VOID
 CommandVmcallHelp();
 
 VOID
+CommandUTrapHelp();
+
+VOID
 CommandHideHelp();
 
 VOID

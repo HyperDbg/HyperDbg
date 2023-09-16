@@ -107,6 +107,10 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionUserModeEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionKernelModeEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionMemoryEventsHead);
+    InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
@@ -129,7 +133,7 @@ DebuggerInitialize()
     //
     if (!g_ScriptGlobalVariables)
     {
-        g_ScriptGlobalVariables = ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
+        g_ScriptGlobalVariables = CrsAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
     }
 
     if (!g_ScriptGlobalVariables)
@@ -159,7 +163,7 @@ DebuggerInitialize()
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
+            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = CrsAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
@@ -172,7 +176,7 @@ DebuggerInitialize()
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = ExAllocatePoolWithTag(NonPagedPool, MAX_TEMP_COUNT * sizeof(UINT64), POOLTAG);
+            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = CrsAllocateNonPagedPool(MAX_TEMP_COUNT * sizeof(UINT64));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
@@ -278,7 +282,7 @@ DebuggerUninitialize()
     //
     if (g_ScriptGlobalVariables != NULL)
     {
-        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+        CrsFreePool(g_ScriptGlobalVariables);
         g_ScriptGlobalVariables = NULL;
     }
 
@@ -291,13 +295,13 @@ DebuggerUninitialize()
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+            CrsFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable);
             CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = NULL;
         }
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
         {
-            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
+            CrsFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable);
             CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = NULL;
         }
     }
@@ -341,7 +345,7 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
                     PVOID               ConditionBuffer)
 {
     //
-    // As this function uses ExAllocatePoolWithTag,
+    // As this function uses the memory allocation functions,
     // we have to make sure that it will not be called in vmx root
     //
     if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
@@ -352,7 +356,8 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     //
     // Initialize the event structure
     //
-    PDEBUGGER_EVENT Event = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT) + ConditionsBufferSize, POOLTAG);
+    PDEBUGGER_EVENT Event = CrsAllocateZeroedNonPagedPool(sizeof(DEBUGGER_EVENT) + ConditionsBufferSize);
+
     if (!Event)
     {
         //
@@ -360,7 +365,6 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
         //
         return NULL;
     }
-    RtlZeroMemory(Event, sizeof(DEBUGGER_EVENT) + ConditionsBufferSize);
 
     Event->CoreId         = CoreId;
     Event->ProcessId      = ProcessId;
@@ -432,7 +436,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     SIZE_T                 Size;
 
     //
-    // As this function uses ExAllocatePoolWithTag,
+    // As this function uses the memory allocation functions,
     // we have to make sure that it will not be called in vmx root
     //
     if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
@@ -466,7 +470,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         Size = sizeof(DEBUGGER_EVENT_ACTION);
     }
 
-    Action = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
+    Action = CrsAllocateZeroedNonPagedPool(Size);
 
     if (Action == NULL)
     {
@@ -475,8 +479,6 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         return NULL;
     }
-
-    RtlZeroMemory(Action, Size);
 
     //
     // If the user needs a buffer to be passed to the debugger then
@@ -493,25 +495,23 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
 
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfCustomCode->OptionalRequestedBufferSize, POOLTAG);
+        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfCustomCode->OptionalRequestedBufferSize);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
-
-        RtlZeroMemory(RequestedBuffer, InTheCaseOfCustomCode->OptionalRequestedBufferSize);
 
         //
         // Add it to the action
@@ -536,25 +536,23 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
 
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfRunScript->OptionalRequestedBufferSize, POOLTAG);
+        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfRunScript->OptionalRequestedBufferSize);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
-
-        RtlZeroMemory(RequestedBuffer, InTheCaseOfRunScript->OptionalRequestedBufferSize);
 
         //
         // Add it to the action
@@ -574,7 +572,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
 
@@ -604,7 +602,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // Invalid configuration
             //
-            ExFreePoolWithTag(Action, POOLTAG);
+            CrsFreePool(Action);
             return NULL;
         }
 
@@ -1650,6 +1648,18 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case VMCALL_INSTRUCTION_EXECUTION:
         ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
         break;
+    case TRAP_EXECUTION_USER_MODE:
+        ResultList = &g_Events->TrapExecutionUserModeEventsHead;
+        break;
+    case TRAP_EXECUTION_KERNEL_MODE:
+        ResultList = &g_Events->TrapExecutionKernelModeEventsHead;
+        break;
+    case TRAP_EXECUTION_MEMORY:
+        ResultList = &g_Events->TrapExecutionMemoryEventsHead;
+        break;
+    case CONTROL_REGISTER_3_MODIFIED:
+        ResultList = &g_Events->ControlRegister3ModifiedEventsHead;
+        break;
     case CONTROL_REGISTER_MODIFIED:
         ResultList = &g_Events->ControlRegisterModifiedEventsHead;
         break;
@@ -2002,7 +2012,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
             //
             // There is a buffer
             //
-            ExFreePoolWithTag(CurrentAction->RequestedBuffer.RequstBufferAddress, POOLTAG);
+            CrsFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
         }
 
         //
@@ -2010,7 +2020,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
         // if it's a custom buffer then the buffer
         // is appended to the Action
         //
-        ExFreePoolWithTag(CurrentAction, POOLTAG);
+        CrsFreePool(CurrentAction);
     }
     //
     // Remember to free the pool
@@ -2075,7 +2085,7 @@ DebuggerRemoveEvent(UINT64 Tag)
     // are both allocate in a same pool ) so both of
     // them are freed
     //
-    ExFreePoolWithTag(Event, POOLTAG);
+    CrsFreePool(Event);
 
     return TRUE;
 }
@@ -2929,6 +2939,24 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
+    case TRAP_EXECUTION_USER_MODE:
+    {
+        //
+        // Enable triggering events for user-mode execution
+        // traps. This event doesn't support custom optional
+        // parameter(s) because it's unconditional users can
+        // use condition(s) to check for their custom optional
+        // parameters
+        //
+        ConfigureInitializeExecTrapOnAllProcessors();
+
+        //
+        // Add the process to the watching list
+        //
+        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
+
+        break;
+    }
     case CPUID_INSTRUCTION_EXECUTION:
     {
         //
@@ -3288,6 +3316,14 @@ DebuggerTerminateEvent(UINT64 Tag)
         // Call vmcall instruction execution event terminator
         //
         TerminateVmcallExecutionEvent(Event);
+
+        break;
+    }
+    case TRAP_EXECUTION_USER_MODE:
+    {
+        //
+        // To-do
+        //
 
         break;
     }

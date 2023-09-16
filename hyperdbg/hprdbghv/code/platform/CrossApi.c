@@ -18,7 +18,7 @@
  * @return PVOID
  */
 PVOID
-CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes)
+CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
 {
     PVOID            Result          = NULL;
     PHYSICAL_ADDRESS MaxPhysicalAddr = {.QuadPart = MAXULONG64};
@@ -30,12 +30,45 @@ CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes)
     return Result;
 }
 
+/**
+ * @brief Allocate a non-paged buffer
+ *
+ * @param NumberOfBytes
+ * @return PVOID
+ */
 PVOID
 CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
 {
     PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+
+    return Result;
+}
+
+/**
+ * @brief Allocate a non-paged buffer (zeroed)
+ *
+ * @param NumberOfBytes
+ * @return PVOID
+ */
+PVOID
+CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
+{
+    PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+
     if (Result != NULL)
         RtlSecureZeroMemory(Result, NumberOfBytes);
 
     return Result;
+}
+
+/**
+ * @brief Free (dellocate) a non-paged buffer
+ *
+ * @param BufferAddress
+ * @return VOID
+ */
+VOID
+CrsFreePool(PVOID BufferAddress)
+{
+    ExFreePoolWithTag(BufferAddress, POOLTAG);
 }

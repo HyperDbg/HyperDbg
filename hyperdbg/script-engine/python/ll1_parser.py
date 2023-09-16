@@ -426,19 +426,19 @@ class LL1Parser:
 
         Counter = 0                
         for X in self.OperatorsOneOperand:
-            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
             Counter += 1
 
         for X in self.OperatorsTwoOperand:
-            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
             Counter += 1
         
         for X in self.SemantiRulesList:
-            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
             Counter += 1
 
         for X in self.keywordList:
-            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
             Counter += 1
 
 

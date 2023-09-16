@@ -57,7 +57,7 @@ DirtyLoggingInitialize()
     {
         if (g_GuestState[i].PmlBufferAddress == NULL)
         {
-            g_GuestState[i].PmlBufferAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+            g_GuestState[i].PmlBufferAddress = CrsAllocateNonPagedPool(PAGE_SIZE);
         }
 
         if (g_GuestState[i].PmlBufferAddress == NULL)
@@ -69,7 +69,7 @@ DirtyLoggingInitialize()
             {
                 if (g_GuestState[j].PmlBufferAddress != NULL)
                 {
-                    ExFreePoolWithTag(g_GuestState[j].PmlBufferAddress, POOLTAG);
+                    CrsFreePool(g_GuestState[j].PmlBufferAddress);
                 }
             }
 
@@ -198,7 +198,7 @@ DirtyLoggingUninitialize()
     {
         if (g_GuestState[i].PmlBufferAddress != NULL)
         {
-            ExFreePoolWithTag(g_GuestState[i].PmlBufferAddress, POOLTAG);
+            CrsFreePool(g_GuestState[i].PmlBufferAddress);
         }
     }
 }

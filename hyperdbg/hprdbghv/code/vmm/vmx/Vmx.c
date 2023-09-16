@@ -77,7 +77,7 @@ VmxGetCurrentExecutionMode()
 {
     if (g_GuestState)
     {
-        ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+        ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
         VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
         return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
@@ -99,14 +99,14 @@ VmxGetCurrentExecutionMode()
 BOOLEAN
 VmxGetCurrentLaunchState()
 {
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
     return CurrentVmState->HasLaunched;
 }
 
 /**
- * @brief Initialize Vmx operation
+ * @brief Initialize the VMX operation
  *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */
@@ -222,18 +222,13 @@ VmxPerformVirtualizationOnAllCores()
     //
     // Allocate	global variable to hold Ept State
     //
-    g_EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
+    g_EptState = CrsAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
 
     if (!g_EptState)
     {
         LogError("Err, insufficient memory");
         return FALSE;
     }
-
-    //
-    // Zero memory
-    //
-    RtlZeroMemory(g_EptState, sizeof(EPT_STATE));
 
     //
     // Initialize the list of hooked pages detail
@@ -498,10 +493,10 @@ VmxTerminate()
         //
         MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
         MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(VCpu->VmmStack, POOLTAG);
-        ExFreePoolWithTag(VCpu->MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressB, POOLTAG);
+        CrsFreePool(VCpu->VmmStack);
+        CrsFreePool(VCpu->MsrBitmapVirtualAddress);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressA);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressB);
 
         return TRUE;
     }
@@ -973,6 +968,11 @@ VmxPerformTermination()
     EptHookUnHookAll();
 
     //
+    // Restore the state of execution trap hooks
+    //
+    ExecTrapUninitialize();
+
+    //
     // Broadcast to terminate Vmx
     //
     KeGenericCallDpc(DpcRoutineTerminateGuest, 0x0);
@@ -984,7 +984,7 @@ VmxPerformTermination()
     //
     // Free the buffer related to MSRs that cause #GP
     //
-    ExFreePoolWithTag(g_MsrBitmapInvalidMsrs, POOLTAG);
+    CrsFreePool(g_MsrBitmapInvalidMsrs);
     g_MsrBitmapInvalidMsrs = NULL;
 
     //
@@ -997,25 +997,9 @@ VmxPerformTermination()
     }
 
     //
-    // Free Identity Page Table for MBEC hooks
-    //
-    if (g_EptState->ModeBasedEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
-    }
-
-    //
-    // Free Identity Page Table for execute-only hooks
-    //
-    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
-    }
-
-    //
     // Free EptState
     //
-    ExFreePoolWithTag(g_EptState, POOLTAG);
+    CrsFreePool(g_EptState);
     g_EptState = NULL;
 
     //

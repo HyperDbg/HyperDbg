@@ -1131,7 +1131,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // We support up to MaximumSearchResults search results
     //
-    SearchResultsStorage = ExAllocatePoolWithTag(NonPagedPool, MaximumSearchResults * sizeof(UINT64), POOLTAG);
+    SearchResultsStorage = CrsAllocateZeroedNonPagedPool(MaximumSearchResults * sizeof(UINT64));
 
     if (SearchResultsStorage == NULL)
     {
@@ -1140,11 +1140,6 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
         //
         return STATUS_INSUFFICIENT_RESOURCES;
     }
-
-    //
-    // Make sure there is nothing else in the buffer
-    //
-    RtlZeroMemory(SearchResultsStorage, MaximumSearchResults * sizeof(UINT64));
 
     //
     // Call the wrapper
@@ -1192,7 +1187,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Free the results pool
     //
-    ExFreePoolWithTag(SearchResultsStorage, POOLTAG);
+    CrsFreePool(SearchResultsStorage);
 
     return STATUS_SUCCESS;
 }

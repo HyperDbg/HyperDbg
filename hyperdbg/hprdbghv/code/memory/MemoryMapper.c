@@ -631,12 +631,7 @@ MemoryMapperInitialize()
     //
     // Allocate the memory buffer structure
     //
-    g_MemoryMapper = ExAllocatePoolWithTag(NonPagedPool, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount, POOLTAG);
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_MemoryMapper, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
+    g_MemoryMapper = CrsAllocateZeroedNonPagedPool(sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
 
     //
     // Set the core's id and initialize memory mapper

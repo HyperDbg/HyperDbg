@@ -243,6 +243,12 @@ ConfigureDirtyLoggingUninitializeOnAllProcessors();
 IMPORT_EXPORT_VMM VOID
 ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
+IMPORT_EXPORT_VMM VOID
+ConfigureUninitializeExecTrapOnAllProcessors();
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureInitializeExecTrapOnAllProcessors();
+
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
@@ -261,17 +267,11 @@ ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLE
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
-//////////////////////////////////////////////////
-//         Reversing Machine Functions 	   		//
-//////////////////////////////////////////////////
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
-IMPORT_EXPORT_VMM VOID
-ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
-
-IMPORT_EXPORT_VMM VOID
-ConfigureReversingAddProcessThreadToTheWatchList(UINT32 CoreId,
-                                                 UINT32 ProcessId,
-                                                 UINT32 ThreadId);
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
@@ -352,6 +352,18 @@ LayoutGetExactGuestProcessCr3();
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//
 //////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// Cross Platform Memory Allocate/Free Functions
+//
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM VOID
+CrsFreePool(PVOID BufferAddress);
 
 // ----------------------------------------------------------------------------
 // PTE-related Functions

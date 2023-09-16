@@ -50,6 +50,7 @@ CommandRevHelp()
 VOID
 CommandRev(vector<string> SplittedCommand, string Command)
 {
+    /*
     vector<string> PathAndArgs;
     string         Arguments = "";
 
@@ -77,6 +78,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
         CommandStartHelp();
         return;
     }
+
 
     if (!SplittedCommand.at(1).compare("path"))
     {
@@ -169,6 +171,8 @@ CommandRev(vector<string> SplittedCommand, string Command)
     ///////////////////////////////////////////////////////////////////////////////
     return;
 
+    */
+
     REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevRequest         = {0};
     BOOLEAN                                      SetPid             = FALSE;
     UINT32                                       TargetPid          = NULL;
@@ -231,6 +235,8 @@ CommandRev(vector<string> SplittedCommand, string Command)
                      "prefix to the number\n");
         return;
     }
+
+    RevRequest.ProcessId = TargetPid;
 
     // ================================================================================
 

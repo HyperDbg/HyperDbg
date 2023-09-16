@@ -539,10 +539,21 @@ const unsigned char BuildSignature[] = {
 #define X86_FLAGS_RESERVED_BITS 0xffc38028
 #define X86_FLAGS_FIXED         0x00000002
 
-#define LOWORD(l) ((WORD)(l))
-#define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
-#define LOBYTE(w) ((BYTE)(w))
-#define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
+#ifndef LOWORD
+#    define LOWORD(l) ((WORD)(l))
+#endif // !LOWORD
+
+#ifndef HIWORD
+#    define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
+#endif // !HIWORD
+
+#ifndef LOBYTE
+#    define LOBYTE(w) ((BYTE)(w))
+#endif // !LOBYTE
+
+#ifndef HIBYTE
+#    define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
+#endif // !HIBYTE
 
 #define MAX_TEMP_COUNT 128
 

@@ -40,9 +40,6 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 int
 ReadCpuDetails();
 
-string
-ReadVendorString();
-
 VOID
 ShowMessages(const char * Fmt, ...);
 
@@ -326,6 +323,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_SYSRET_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
+#define DEBUGGER_COMMAND_UTRAP_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+
 #define DEBUGGER_COMMAND_HIDE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
 #define DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES NULL
@@ -392,6 +391,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
+// #define DEBUGGER_COMMAND_REV_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 #define DEBUGGER_COMMAND_REV_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_TRACK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -501,6 +501,9 @@ CommandIoout(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandVmcall(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandUTrap(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandHide(vector<string> SplittedCommand, string Command);

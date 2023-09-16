@@ -84,7 +84,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     CR3_TYPE                Cr3OfCurrentProcess;
     BYTE                    OriginalByte;
-    BOOLEAN                 HookedEntryFound = FALSE;
 
     //
     // Get number of processors
@@ -382,7 +381,11 @@ ExAllocatePoolWithTagHook(
     SIZE_T    NumberOfBytes,
     ULONG     Tag)
 {
-    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = 0x%x , Pool Type = 0x%x ", Tag, NumberOfBytes, PoolType);
+    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x, Number Of Bytes = 0x%x, Pool Type = 0x%x ",
+            Tag,
+            NumberOfBytes,
+            PoolType);
+
     return ExAllocatePoolWithTagOrig(PoolType, NumberOfBytes, Tag);
 }
 
@@ -402,7 +405,6 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
                        CR3_TYPE                ProcessCr3)
 {
     EPT_PML1_ENTRY           ChangedEntry;
-    INVEPT_DESCRIPTOR        Descriptor;
     SIZE_T                   PhysicalBaseAddress;
     PVOID                    VirtualTarget;
     PVOID                    TargetBuffer;
@@ -410,10 +412,8 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
     UINT64                   PageOffset;
     PEPT_PML1_ENTRY          TargetPage;
     PEPT_HOOKED_PAGE_DETAIL  HookedPage;
-    CR3_TYPE                 Cr3OfCurrentProcess;
     BYTE                     OriginalByte;
-    BOOLEAN                  HookedEntryFound = FALSE;
-    EPT_HOOKED_PAGE_DETAIL * HookedEntry      = NULL;
+    EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -1175,7 +1175,7 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Check whether we are in VMX Root Mode or Not
     //
-    LogicalCoreIndex = KeGetCurrentProcessorIndex();
+    LogicalCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     if (SetHookForRead)
     {

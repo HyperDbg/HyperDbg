@@ -25,13 +25,13 @@
 BOOLEAN
 DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLEAN Is32Bit)
 {
-    ZydisDecoder            decoder;
-    ZydisFormatter          formatter;
-    SIZE_T                  readOffset = 0;
-    ZydisDecodedInstruction instruction;
-    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    ZyanStatus              status;
-    CHAR                    printBuffer[128];
+    ZydisDecoder            Decoder;
+    ZydisFormatter          Formatter;
+    SIZE_T                  ReadOffset = 0;
+    ZydisDecodedInstruction Instruction;
+    ZydisDecodedOperand     Operands[ZYDIS_MAX_OPERAND_COUNT];
+    ZyanStatus              Status;
+    CHAR                    PrintBuffer[128];
 
     PAGED_CODE();
 
@@ -46,14 +46,14 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
     //
     if (Is32Bit)
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
         {
             return FALSE;
         }
     }
     else
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
         {
             return FALSE;
         }
@@ -62,7 +62,7 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
     //
     // Initialize Zydis formatter
     //
-    if (!ZYAN_SUCCESS(ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL)))
+    if (!ZYAN_SUCCESS(ZydisFormatterInit(&Formatter, ZYDIS_FORMATTER_STYLE_INTEL)))
     {
         return FALSE;
     }
@@ -70,34 +70,34 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
     //
     // Start the decode loop
     //
-    while ((status = ZydisDecoderDecodeFull(&decoder,
-                                            (PVOID)((UINT64)Address + readOffset),
-                                            Length - readOffset,
-                                            &instruction,
-                                            operands)) != ZYDIS_STATUS_NO_MORE_DATA)
+    while ((Status = ZydisDecoderDecodeFull(&Decoder,
+                                            (PVOID)((UINT64)Address + ReadOffset),
+                                            Length - ReadOffset,
+                                            &Instruction,
+                                            Operands)) != ZYDIS_STATUS_NO_MORE_DATA)
     {
-        NT_ASSERT(ZYAN_SUCCESS(status));
-        if (!ZYAN_SUCCESS(status))
+        NT_ASSERT(ZYAN_SUCCESS(Status));
+        if (!ZYAN_SUCCESS(Status))
         {
-            readOffset++;
+            ReadOffset++;
             continue;
         }
 
         // Format and print the instruction
-        const ZyanU64 instrAddress = (ZyanU64)((UINT64)Address + readOffset);
+        const ZyanU64 InstrAddress = (ZyanU64)((UINT64)Address + ReadOffset);
         ZydisFormatterFormatInstruction(
-            &formatter,
-            &instruction,
-            operands,
-            instruction.operand_count_visible,
-            printBuffer,
-            sizeof(printBuffer),
-            instrAddress,
+            &Formatter,
+            &Instruction,
+            Operands,
+            Instruction.operand_count_visible,
+            PrintBuffer,
+            sizeof(PrintBuffer),
+            InstrAddress,
             NULL);
 
-        LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)readOffset, instrAddress, printBuffer);
+        LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)ReadOffset, InstrAddress, PrintBuffer);
 
-        readOffset += instruction.length;
+        ReadOffset += Instruction.length;
     }
 
     //
@@ -120,13 +120,13 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
 BOOLEAN
 DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, BOOLEAN Is32Bit)
 {
-    ZydisDecoder            decoder;
-    ZydisFormatter          formatter;
-    SIZE_T                  readOffset = 0;
-    ZydisDecodedInstruction instruction;
-    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    ZyanStatus              status;
-    CHAR                    printBuffer[128];
+    ZydisDecoder            Decoder;
+    ZydisFormatter          Formatter;
+    SIZE_T                  ReadOffset = 0;
+    ZydisDecodedInstruction Instruction;
+    ZydisDecodedOperand     Operands[ZYDIS_MAX_OPERAND_COUNT];
+    ZyanStatus              Status;
+    CHAR                    PrintBuffer[128];
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
@@ -139,14 +139,14 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
     //
     if (Is32Bit)
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
         {
             return FALSE;
         }
     }
     else
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
         {
             return FALSE;
         }
@@ -155,7 +155,7 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
     //
     // Initialize Zydis formatter
     //
-    if (!ZYAN_SUCCESS(ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL)))
+    if (!ZYAN_SUCCESS(ZydisFormatterInit(&Formatter, ZYDIS_FORMATTER_STYLE_INTEL)))
     {
         return FALSE;
     }
@@ -163,41 +163,43 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
     //
     // Start the decode loop
     //
-    while ((status = ZydisDecoderDecodeFull(&decoder,
-                                            (PVOID)((UINT64)Address + readOffset),
-                                            MAXIMUM_INSTR_SIZE - readOffset,
-                                            &instruction,
-                                            operands)) != ZYDIS_STATUS_NO_MORE_DATA)
+    while ((Status = ZydisDecoderDecodeFull(&Decoder,
+                                            (PVOID)((UINT64)Address + ReadOffset),
+                                            MAXIMUM_INSTR_SIZE - ReadOffset,
+                                            &Instruction,
+                                            Operands)) != ZYDIS_STATUS_NO_MORE_DATA)
     {
-        NT_ASSERT(ZYAN_SUCCESS(status));
-        if (!ZYAN_SUCCESS(status))
+        NT_ASSERT(ZYAN_SUCCESS(Status));
+        if (!ZYAN_SUCCESS(Status))
         {
-            readOffset++;
+            ReadOffset++;
             continue;
         }
 
         // Format and print the instruction
-        const ZyanU64 instrAddress = (ZyanU64)((UINT64)ActualRip + readOffset);
+        const ZyanU64 InstrAddress = (ZyanU64)((UINT64)ActualRip + ReadOffset);
         ZydisFormatterFormatInstruction(
-            &formatter,
-            &instruction,
-            operands,
-            instruction.operand_count_visible,
-            printBuffer,
-            sizeof(printBuffer),
-            instrAddress,
+            &Formatter,
+            &Instruction,
+            Operands,
+            Instruction.operand_count_visible,
+            PrintBuffer,
+            sizeof(PrintBuffer),
+            InstrAddress,
             NULL);
 
-        // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)readOffset, instrAddress, printBuffer);
+        // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)ReadOffset, InstrAddress, PrintBuffer);
 
-        Log("core: | process id: - thread id:\t\t\t\t%hs\n",
-            // KeGetCurrentProcessorIndex(),
-            // PsGetCurrentProcessId(),
-            // PsGetCurrentThreadId(),
-            // ActualRip,
-            printBuffer);
+        /* Log("core: %x | pid: %x - tid: %x,\t %llx \t\t\t\t%hs\n",
+             KeGetCurrentProcessorNumberEx(NULL),
+             PsGetCurrentProcessId(),
+             PsGetCurrentThreadId(),
+             ActualRip,
+             PrintBuffer);
 
-        // readOffset += instruction.length;
+             */
+
+        // ReadOffset += Instruction.length;
 
         //
         // Only one instruction is enough
@@ -224,11 +226,11 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
 UINT32
 DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
 {
-    ZydisDecoder            decoder;
-    ZydisDecodedInstruction instruction;
-    ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    ZyanStatus              status;
-    CHAR                    printBuffer[128];
+    ZydisDecoder            Decoder;
+    ZydisDecodedInstruction Instruction;
+    ZydisDecodedOperand     Operands[ZYDIS_MAX_OPERAND_COUNT];
+    ZyanStatus              Status;
+    CHAR                    PrintBuffer[128];
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
@@ -241,14 +243,14 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     //
     if (Is32Bit)
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
         {
             return NULL;
         }
     }
     else
     {
-        if (!ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
+        if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
         {
             return NULL;
         }
@@ -257,15 +259,15 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     //
     // Start the decode loop
     //
-    while ((status = ZydisDecoderDecodeFull(&decoder,
+    while ((Status = ZydisDecoderDecodeFull(&Decoder,
                                             (PVOID)((UINT64)Address),
                                             MAXIMUM_INSTR_SIZE,
-                                            &instruction,
-                                            operands)) != ZYDIS_STATUS_NO_MORE_DATA)
+                                            &Instruction,
+                                            Operands)) != ZYDIS_STATUS_NO_MORE_DATA)
     {
-        NT_ASSERT(ZYAN_SUCCESS(status));
+        NT_ASSERT(ZYAN_SUCCESS(Status));
 
-        if (!ZYAN_SUCCESS(status))
+        if (!ZYAN_SUCCESS(Status))
         {
             //
             // Probably invalid instruction
@@ -276,7 +278,7 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
         //
         // This is a length disassembler, so we just return the length
         //
-        return instruction.length;
+        return Instruction.length;
     }
 
     //

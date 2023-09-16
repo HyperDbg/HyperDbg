@@ -146,4 +146,10 @@ BOOLEAN g_TriggerEventForCpuids;
  * allowed to trigger an event or not
  *
  */
-BOOLEAN g_ReversingMachineInitialized;
+BOOLEAN g_ExecTrapInitialized;
+
+/**
+ * @brief State of the trap-flag
+ *
+ */
+USER_KERNEL_EXECUTION_TRAP_STATE g_ExecTrapState;

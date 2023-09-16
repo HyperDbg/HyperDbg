@@ -31,9 +31,11 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <string>
 
 //
 // HyperDbg SDK headers
 //
 #include "Definition.h"
 #include "SDK/HyperDbgSdk.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"
