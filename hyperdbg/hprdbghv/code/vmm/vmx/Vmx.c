@@ -1292,11 +1292,11 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
 INT32
 VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
-    CHAR C1 = NULL, C2 = NULL;
-    INT32         Ret = 0;
-    UINT64        AlignedAddress1, AlignedAddress2;
-    CR3_TYPE      GuestCr3;
-    CR3_TYPE      OriginalCr3;
+    CHAR     C1 = NULL, C2 = NULL;
+    INT32    Ret = 0;
+    UINT64   AlignedAddress1, AlignedAddress2;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
 
     AlignedAddress1 = (UINT64)PAGE_ALIGN((UINT64)Address1);
     AlignedAddress2 = (UINT64)PAGE_ALIGN((UINT64)Address2);

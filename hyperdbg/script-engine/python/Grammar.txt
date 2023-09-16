@@ -3,7 +3,7 @@
 
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
-.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add
+.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add strcmp
 
 # TwoOpFunc2 inputs are two numbers and returns no value 
 .TwoOpFunc2->spinlock_lock_custom_wait event_inject
