@@ -32,7 +32,7 @@ VOID
 DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-DispatchEventUTrap(VIRTUAL_MACHINE_STATE * VCpu);
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventKTrap(VIRTUAL_MACHINE_STATE * VCpu);

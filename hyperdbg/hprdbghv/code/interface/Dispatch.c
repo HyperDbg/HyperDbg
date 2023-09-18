@@ -306,7 +306,7 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-DispatchEventUTrap(VIRTUAL_MACHINE_STATE * VCpu)
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;

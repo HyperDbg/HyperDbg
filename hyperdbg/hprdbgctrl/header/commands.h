@@ -323,7 +323,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_SYSRET_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
-#define DEBUGGER_COMMAND_UTRAP_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+#define DEBUGGER_COMMAND_MODE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
 #define DEBUGGER_COMMAND_HIDE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
@@ -503,7 +503,7 @@ VOID
 CommandVmcall(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandUTrap(vector<string> SplittedCommand, string Command);
+CommandMode(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandHide(vector<string> SplittedCommand, string Command);

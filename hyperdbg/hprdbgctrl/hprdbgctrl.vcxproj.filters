@@ -496,7 +496,7 @@
     <ClCompile Include="gu.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\commands\extension-commands\utrap.cpp">
+    <ClCompile Include="code\debugger\commands\extension-commands\mode.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
     </ClCompile>
   </ItemGroup>

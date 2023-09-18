@@ -1,7 +1,7 @@
 /**
- * @file utrap.cpp
+ * @file mode.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !utrap commands
+ * @brief !mode commands
  * @details
  * @version 0.6
  * @date 2023-09-13
@@ -12,34 +12,34 @@
 #include "pch.h"
 
 /**
- * @brief help of the !utrap command
+ * @brief help of the !mode command
  *
  * @return VOID
  */
 VOID
-CommandUTrapHelp()
+CommandModeHelp()
 {
-    ShowMessages("!utrap : traps the execution of user-mode instructions.\n\n");
+    ShowMessages("!mode : traps the execution of user-mode instructions.\n\n");
 
-    ShowMessages("syntax : \t!utrap [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
+    ShowMessages("syntax : \t!mode [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !utrap\n");
-    ShowMessages("\t\te.g : !utrap pid 1c0\n");
-    ShowMessages("\t\te.g : !utrap core 2 pid 400\n");
+    ShowMessages("\t\te.g : !mode\n");
+    ShowMessages("\t\te.g : !mode pid 1c0\n");
+    ShowMessages("\t\te.g : !mode core 2 pid 400\n");
 }
 
 /**
- * @brief !utrap command handler
+ * @brief !mode command handler
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandUTrap(vector<string> SplittedCommand, string Command)
+CommandMode(vector<string> SplittedCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -78,8 +78,8 @@ CommandUTrap(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() > 1)
     {
-        ShowMessages("incorrect use of the '!utrap'\n");
-        CommandUTrapHelp();
+        ShowMessages("incorrect use of the '!mode'\n");
+        CommandModeHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
