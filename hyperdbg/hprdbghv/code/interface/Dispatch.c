@@ -300,13 +300,16 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief Handling debugger functions related to user-mode execution trap events
+ * @brief Handling debugger functions related to user-mode/kernel-mode execution trap events
  *
  * @param VCpu The virtual processor's state
+ * @param IsUserMode Whether the execution event caused by a switch from kernel-to-user
+ * or otherwise user-to-kernel
+ *
  * @return VOID
  */
 VOID
-DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
@@ -319,9 +322,9 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_USER_MODE,
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      NULL,
+                                                      IsKernelToUser,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
 
@@ -331,9 +334,9 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
         if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
         {
             //
-            // Handle the user-mode execution trap event in the case of triggering event
+            // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
             //
-            ExecTrapHandleRestoringToNormalState(VCpu);
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, IsKernelToUser);
         }
 
         //
@@ -341,9 +344,9 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (PostEventTriggerReq)
         {
-            VmmCallbackTriggerEvents(TRAP_EXECUTION_USER_MODE,
+            VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
                                      VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     NULL,
+                                     IsKernelToUser,
                                      NULL,
                                      VCpu->Regs);
         }
@@ -352,68 +355,9 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu)
     {
         //
         // Otherwise and if there is no event, we should handle the
-        // user-mode execution trap normally
+        // user-mode/kernel-mode execution trap normally
         //
-        ExecTrapHandleRestoringToNormalState(VCpu);
-    }
-}
-
-/**
- * @brief Handling debugger functions related to kernel-mode execution trap events
- *
- * @param VCpu The virtual processor's state
- * @return VOID
- */
-VOID
-DispatchEventKTrap(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                                   PostEventTriggerReq = FALSE;
-
-    //
-    // As the context to event trigger, we send NULL
-    //
-    if (g_ExecTrapInitialized)
-    {
-        //
-        // Triggering the pre-event
-        //
-        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_KERNEL_MODE,
-                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      NULL,
-                                                      &PostEventTriggerReq,
-                                                      VCpu->Regs);
-
-        //
-        // Check whether we need to short-circuiting event emulation or not
-        //
-        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
-        {
-            //
-            // Handle the kernel-mode execution trap event in the case of triggering event
-            //
-            // ExecTrapHandleRestoringToNormalState(VCpu);
-        }
-
-        //
-        // Check for the post-event triggering needs
-        //
-        if (PostEventTriggerReq)
-        {
-            VmmCallbackTriggerEvents(TRAP_EXECUTION_KERNEL_MODE,
-                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     NULL,
-                                     NULL,
-                                     VCpu->Regs);
-        }
-    }
-    else
-    {
-        //
-        // Otherwise and if there is no event, we should handle the
-        // kernel-mode execution trap normally
-        //
-        // ExecTrapHandleRestoringToNormalState(VCpu);
+        ExecTrapHandleMoveToAdjustedTrapState(VCpu, IsKernelToUser);
     }
 }
 

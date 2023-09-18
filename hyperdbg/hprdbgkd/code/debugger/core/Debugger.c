@@ -107,8 +107,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
-    InitializeListHead(&g_Events->TrapExecutionUserModeEventsHead);
-    InitializeListHead(&g_Events->TrapExecutionKernelModeEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionModeChangedEventsHead);
     InitializeListHead(&g_Events->TrapExecutionMemoryEventsHead);
     InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
@@ -1648,11 +1647,8 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case VMCALL_INSTRUCTION_EXECUTION:
         ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
         break;
-    case TRAP_EXECUTION_USER_MODE:
-        ResultList = &g_Events->TrapExecutionUserModeEventsHead;
-        break;
-    case TRAP_EXECUTION_KERNEL_MODE:
-        ResultList = &g_Events->TrapExecutionKernelModeEventsHead;
+    case TRAP_EXECUTION_MODE_CHANGED:
+        ResultList = &g_Events->TrapExecutionModeChangedEventsHead;
         break;
     case TRAP_EXECUTION_MEMORY:
         ResultList = &g_Events->TrapExecutionMemoryEventsHead;
@@ -2939,7 +2935,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
-    case TRAP_EXECUTION_USER_MODE:
+    case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
         // Enable triggering events for user-mode execution
@@ -3319,7 +3315,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
-    case TRAP_EXECUTION_USER_MODE:
+    case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
         // To-do

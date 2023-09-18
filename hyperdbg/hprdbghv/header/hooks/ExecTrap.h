@@ -54,7 +54,7 @@ VOID
 ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-ExecTrapHandleRestoringToNormalState(VIRTUAL_MACHINE_STATE * VCpu);
+ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser);
 
 VOID
 ExecTrapUninitialize();
