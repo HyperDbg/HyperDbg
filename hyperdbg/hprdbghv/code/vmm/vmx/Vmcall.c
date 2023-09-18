@@ -449,6 +449,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_DISABLE_OR_ENABLE_MBEC:
+    {
+        ModeBasedExecHookEnableOrDisable(VCpu, OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");

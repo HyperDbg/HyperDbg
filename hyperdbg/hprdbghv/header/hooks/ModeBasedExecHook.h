@@ -42,11 +42,14 @@ MODE_BASED_RAM_REGIONS PhysicalRamRegions[MAX_PHYSICAL_RAM_RANGE_COUNT];
 //				      Functions					//
 //////////////////////////////////////////////////
 
-BOOLEAN
-ModeBasedExecHookInitialize();
+VOID
+ModeBasedExecHookEnableOrDisable(VIRTUAL_MACHINE_STATE * VCpu, UINT32 State);
 
 VOID
 ModeBasedExecHookUninitialize();
+
+BOOLEAN
+ModeBasedExecHookInitialize();
 
 BOOLEAN
 ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable);

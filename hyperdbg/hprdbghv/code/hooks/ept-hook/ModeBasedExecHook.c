@@ -126,7 +126,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
         //
         // We only set the top-level PML4 for intercepting user-mode execution
         //
-        EptTable->PML4[i].UserModeExecute = FALSE;
+        EptTable->PML4[i].UserModeExecute = TRUE;
     }
 
     //
@@ -149,6 +149,30 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Enable/disable MBEC
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookEnableOrDisable(VIRTUAL_MACHINE_STATE * VCpu, UINT32 State)
+{
+    if (State == 0x0)
+    {
+        HvSetModeBasedExecutionEnableFlag(FALSE);
+
+        //
+        // MBEC is not enabled anymore!
+        //
+        VCpu->MbecEnabled = FALSE;
+    }
+    else
+    {
+        HvSetModeBasedExecutionEnableFlag(TRUE);
+    }
 }
 
 /**
@@ -222,6 +246,11 @@ ModeBasedExecHookInitialize()
 VOID
 ModeBasedExecHookUninitialize()
 {
+    //
+    // Broadcast to disable MBEC on all cores
+    //
+    BroadcasDisableMbecOnAllProcessors();
+
     //
     // Indicate that MBEC is disabled
     //

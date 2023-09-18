@@ -525,6 +525,37 @@ DpcRoutineRestoreToNormalEptp(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
 }
 
 /**
+ * @brief Broadcast to enable or disable MBEC
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineEnableOrDisableMbec(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Enable/Disable MBEC from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_OR_ENABLE_MBEC, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Broadcast to disable mov-to-cr3 exitings
  *
  * @param Dpc

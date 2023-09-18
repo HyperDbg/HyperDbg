@@ -643,6 +643,11 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
         //
 
         //
+        // Just remove the process id from the watching list
+        //
+        ConfigureExecTrapRemoveProcessFromWatchingList(Event->ProcessId);
+
+        //
         // Nothing we can do for this event type, let it work because of other events
         //
         return;
@@ -658,6 +663,12 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
         // We have to uninitialize the event
         //
         ConfigureUninitializeExecTrapOnAllProcessors();
+
+        //
+        // Remove the process id from the watching list
+        // THIS SHOULD BE DONE AFTER UNINITIALIZING THE TRAPS BECAUSE IT MIGHT END UP TO AN ERROR
+        //
+        ConfigureExecTrapRemoveProcessFromWatchingList(Event->ProcessId);
     }
 }
 

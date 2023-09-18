@@ -608,6 +608,7 @@ ExecTrapInitialize()
         // Free the user-disabled page-table buffer
         //
         MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
 
         //
         // There was an error allocating MBEC page table for EPT tables
@@ -624,11 +625,13 @@ ExecTrapInitialize()
     //     // Free the user-disabled page-table buffer
     //     //
     //     MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+    //     g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
     //
     //     //
     //     // Free the kernel-disabled page-table buffer
     //     //
     //     MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+    //     g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
     //
     //     //
     //     // There was an error allocating execute-only page table for EPT tables
@@ -646,16 +649,22 @@ ExecTrapInitialize()
         // Free the user-disabled page-table buffer
         //
         MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
 
         //
         // Free the kernel-disabled page-table buffer
         //
         MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
 
         //
         // Free the execute-only page-table buffer
         //
-        MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+        if (g_EptState->ExecuteOnlyEptPageTable)
+        {
+            MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
+            g_EptState->ExecuteOnlyEptPageTable = NULL;
+        }
 
         //
         // The initialization was not successfull
@@ -670,14 +679,17 @@ ExecTrapInitialize()
     BroadcastChangeToMbecSupportedEptpOnAllProcessors();
 
     //
+    // Indicate that the reversing machine is initialized
+    // It should be initialized here BEFORE broadcasting mov 2 cr3 exiting
+    // because an EPT violation might be thrown before we enabled it from
+    // here
+    //
+    g_ExecTrapInitialized = TRUE;
+
+    //
     // Enable Mode-based execution control by broadcasting MOV to CR3 exiting
     //
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
-
-    //
-    // Indicate that the reversing machine is initialized
-    //
-    g_ExecTrapInitialized = TRUE;
 
     return TRUE;
 }
@@ -700,9 +712,9 @@ ExecTrapUninitialize()
     }
 
     //
-    // Indicate that the execution traps are disabled
+    // Indicate that the uninitialization phase started
     //
-    g_ExecTrapInitialized = FALSE;
+    g_ExecTrapUnInitializationStarted = TRUE;
 
     //
     // Disable MOV to CR3 exiting
@@ -720,11 +732,22 @@ ExecTrapUninitialize()
     ModeBasedExecHookUninitialize();
 
     //
+    // Indicate that the execution traps are disabled
+    //
+    g_ExecTrapInitialized = FALSE;
+
+    //
+    // Indicate that the uninitialization phase finished
+    //
+    g_ExecTrapUnInitializationStarted = FALSE;
+
+    //
     // Free Identity Page Table for MBEC hooks (user-disabled)
     //
     if (g_EptState->ModeBasedUserDisabledEptPageTable != NULL)
     {
         MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
     }
 
     //
@@ -733,6 +756,7 @@ ExecTrapUninitialize()
     if (g_EptState->ModeBasedKernelDisabledEptPageTable != NULL)
     {
         MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
     }
 
     //
@@ -741,6 +765,7 @@ ExecTrapUninitialize()
     if (g_EptState->ExecuteOnlyEptPageTable != NULL)
     {
         MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
+        g_EptState->ExecuteOnlyEptPageTable = NULL;
     }
 }
 
@@ -833,16 +858,16 @@ ExecTrapChangeToKernelDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
+ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode)
 {
-    if (IsKernelToUser)
+    if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_USER_MODE)
     {
         //
-        // Change EPT to user disabled
+        // Change EPT to kernel disabled
         //
         ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
     }
-    else
+    else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
         //
         // Change EPT to user disabled
@@ -887,7 +912,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, FALSE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE);
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
@@ -904,7 +929,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, TRUE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE);
 
         return TRUE;
     }
@@ -952,13 +977,15 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         // Enable MBEC to detect execution in user-mode
         //
         HvSetModeBasedExecutionEnableFlag(TRUE);
+        VCpu->MbecEnabled = TRUE;
     }
-    else
+    else if (VCpu->MbecEnabled)
     {
         //
         // In case, the process is changed, we've disable the MBEC
         //
         HvSetModeBasedExecutionEnableFlag(FALSE);
+        VCpu->MbecEnabled = FALSE;
     }
 }
 

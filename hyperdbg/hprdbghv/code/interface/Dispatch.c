@@ -309,7 +309,7 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
@@ -324,7 +324,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
         //
         EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      IsKernelToUser,
+                                                      (UINT64)TargetMode,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
 
@@ -336,20 +336,12 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
             //
             // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
             //
-            ExecTrapHandleMoveToAdjustedTrapState(VCpu, IsKernelToUser);
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
         }
 
         //
-        // Check for the post-event triggering needs
+        // *** Post-event doesn't make sense for this kind of event ! ***
         //
-        if (PostEventTriggerReq)
-        {
-            VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
-                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     IsKernelToUser,
-                                     NULL,
-                                     VCpu->Regs);
-        }
     }
     else
     {
@@ -357,7 +349,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser)
         // Otherwise and if there is no event, we should handle the
         // user-mode/kernel-mode execution trap normally
         //
-        ExecTrapHandleMoveToAdjustedTrapState(VCpu, IsKernelToUser);
+        ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
     }
 }
 

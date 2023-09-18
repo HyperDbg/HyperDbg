@@ -142,11 +142,18 @@ BOOLEAN g_TriggerEventForCpuids;
 //////////////////////////////////////////////////
 
 /**
- * @brief Showes whether the cpuid handler is
+ * @brief Showes whether the execution trap handler is
  * allowed to trigger an event or not
  *
  */
 BOOLEAN g_ExecTrapInitialized;
+
+/**
+ * @brief Showes whether the uninitialization of the exec trap is
+ * started or not
+ *
+ */
+BOOLEAN g_ExecTrapUnInitializationStarted;
 
 /**
  * @brief State of the trap-flag

@@ -461,6 +461,28 @@ BroadcastRestoreToNormalEptpOnAllProcessors()
 }
 
 /**
+ * @brief routines for disabling MBEC
+ *
+ * @return VOID
+ */
+VOID
+BroadcasDisableMbecOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x0);
+}
+
+/**
+ * @brief routines for enabling MBEC
+ *
+ * @return VOID
+ */
+VOID
+BroadcasEnableMbecOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x1);
+}
+
+/**
  * @brief routines for debugging threads (disable mov-to-cr3 exiting)
  *
  * @return VOID

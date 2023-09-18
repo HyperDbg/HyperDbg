@@ -197,6 +197,19 @@ typedef enum _DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE
 #define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
 
 /**
+ * @brief Type of mode change traps
+ *
+ */
+typedef enum _DEBUGGER_EVENT_MODE_TYPE
+{
+    DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE = 1,
+    DEBUGGER_EVENT_MODE_TYPE_USER_MODE                 = 3,
+    DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE               = 0,
+    DEBUGGER_EVENT_MODE_TYPE_INVALID                   = 0xffffffff,
+
+} DEBUGGER_EVENT_MODE_TYPE;
+
+/**
  * @brief different types of modifing events request (enable/disable/clear)
  *
  */

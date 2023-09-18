@@ -978,6 +978,24 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
+        case TRAP_EXECUTION_MODE_CHANGED:
+
+            //
+            // check if the debugger needs user-to-kernel or kernel-to-user events
+            //
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+            {
+                if ((CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+                     Context == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE) ||
+                    (CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
+                     Context == DEBUGGER_EVENT_MODE_TYPE_USER_MODE))
+                {
+                    continue;
+                }
+            }
+
+            break;
+
         default:
             break;
         }
@@ -2202,6 +2220,23 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
+    else if (EventDetails->EventType == TRAP_EXECUTION_MODE_CHANGED)
+    {
+        //
+        // Check if the execution mode is valid or not
+        //
+        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
+            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+        {
+            //
+            // The execution mode is not correctly applied
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID;
+            return FALSE;
+        }
+    }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
         //
@@ -2938,6 +2973,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
+        // Add the process to the watching list
+        //
+        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
+
+        //
+        // Set the event's mode of execution
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        //
         // Enable triggering events for user-mode execution
         // traps. This event doesn't support custom optional
         // parameter(s) because it's unconditional users can
@@ -2945,11 +2990,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // parameters
         //
         ConfigureInitializeExecTrapOnAllProcessors();
-
-        //
-        // Add the process to the watching list
-        //
-        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
 
         break;
     }
@@ -3318,8 +3358,9 @@ DebuggerTerminateEvent(UINT64 Tag)
     case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // To-do
+        // Call mode execution trap event terminator
         //
+        TerminateExecTrapModeChangedEvent(Event);
 
         break;
     }

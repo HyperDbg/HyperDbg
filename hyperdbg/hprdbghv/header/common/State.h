@@ -284,6 +284,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
     BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
     BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is on the normal EPTP or not
+    BOOLEAN      MbecEnabled;                                                   // Indicate that the target processor is on MBEC-enabled mode or not
     BOOLEAN      ExecuteOnlyEptp;                                               // Indicate that the target processor is on execute-only EPTP
     PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
     BOOLEAN      Test;                                                          // Used for test purposes
