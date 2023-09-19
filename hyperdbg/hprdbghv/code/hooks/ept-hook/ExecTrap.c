@@ -912,7 +912,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
     }
     else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
     {
@@ -929,7 +929,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
 
         return TRUE;
     }
@@ -978,6 +978,11 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         HvSetModeBasedExecutionEnableFlag(TRUE);
         VCpu->MbecEnabled = TRUE;
+
+        //
+        // Trigger the event
+        //
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, FALSE);
     }
     else if (VCpu->MbecEnabled)
     {

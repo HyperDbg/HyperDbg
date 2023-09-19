@@ -305,11 +305,12 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
  * @param VCpu The virtual processor's state
  * @param IsUserMode Whether the execution event caused by a switch from kernel-to-user
  * or otherwise user-to-kernel
+ * @param HandleState whether the state should be handled by dispatcher or not
  *
  * @return VOID
  */
 VOID
-DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode)
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode, BOOLEAN HandleState)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
@@ -331,7 +332,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         // Check whether we need to short-circuiting event emulation or not
         //
-        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT && HandleState)
         {
             //
             // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
@@ -349,7 +350,10 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         // Otherwise and if there is no event, we should handle the
         // user-mode/kernel-mode execution trap normally
         //
-        ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
+        if (HandleState)
+        {
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
+        }
     }
 }
 
