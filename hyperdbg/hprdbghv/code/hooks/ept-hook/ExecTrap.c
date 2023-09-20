@@ -619,26 +619,25 @@ ExecTrapInitialize()
     //
     // Allocate execute-only EPT page-table
     //
-    // if (!ExecTrapAllocateExecuteOnlyEptPageTable())
-    // {
-    //     //
-    //     // Free the user-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-    //     g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // Free the kernel-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
-    //     g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // There was an error allocating execute-only page table for EPT tables
-    //     //
-    //     return FALSE;
-    // }
-    //
+    if (!ExecTrapAllocateExecuteOnlyEptPageTable())
+    {
+        //
+        // Free the user-disabled page-table buffer
+        //
+        MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
+
+        //
+        // Free the kernel-disabled page-table buffer
+        //
+        MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
+
+        //
+        // There was an error allocating execute-only page table for EPT tables
+        //
+        return FALSE;
+    }
 
     //
     // Call the function responsible for initializing Mode-based hooks
@@ -919,7 +918,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // For test purposes
         //
-        // LogInfo("Reached to the user-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        LogInfo("Reached to the user-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
@@ -930,7 +929,44 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         // Trigger the event
         //
         DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
+        // ExecTrapChangeToExecuteOnlyEptp(VCpu);
 
+        return TRUE;
+    }
+    if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
+    {
+        LogInfo("Reached to the execute-only mode of the process (0x%x) thread Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+                PsGetCurrentProcessId(),
+                PsGetCurrentThreadId(),
+                GuestPhysicalAddr,
+                PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+                VCpu->LastVmexitRip);
+
+        //
+        // Disable the user-mode execution interception
+        //
+        // HvSetModeBasedExecutionEnableFlag(FALSE);
+
+        //
+        // Disassemble instructions
+        //
+        DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
+        //
+        // Set MTF
+        // Note that external interrupts are previously masked
+        //
+        HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+        //
+        // Set the indicator to handle MTF
+        //
+        VCpu->RestoreNonReadableWriteEptp = TRUE;
+
+        //
+        // Supress the RIP increment
+        //
+        HvSuppressRipIncrement(VCpu);
         return TRUE;
     }
     else
@@ -945,6 +981,26 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
     // It successfully handled by MBEC hooks
     //
     return TRUE;
+}
+
+/**
+ * @brief Callback for handling VM-exits for MTF in the case of exec trap hooks
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Restore non-readable/writeable EPTP
+    //
+    ExecTrapChangeToExecuteOnlyEptp(VCpu);
+
+    //
+    // Unset the indicator to avoid further handling
+    //
+    VCpu->RestoreNonReadableWriteEptp = FALSE;
 }
 
 /**
