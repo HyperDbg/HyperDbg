@@ -207,3 +207,6 @@ ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector,
 
 UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
+
+UINT64
+ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2);

@@ -1540,3 +1540,25 @@ ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2)
 
     return Result;
 }
+
+/**
+ * @brief Implementation of wcscmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = wcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleWcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
