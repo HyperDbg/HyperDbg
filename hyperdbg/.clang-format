@@ -64,7 +64,6 @@ IndentPPDirectives: AfterHash
 IndentWidth: 4
 
 KeepEmptyLinesAtTheStartOfBlocks: false
-Language: Cpp
 
 MacroBlockBegin: '^BEGIN_MODULE$|^BEGIN_TEST_CLASS$|^BEGIN_TEST_METHOD$'
 MacroBlockEnd: '^END_MODULE$|^END_TEST_CLASS$|^END_TEST_METHOD$'
@@ -77,7 +76,6 @@ SortIncludes: false
 
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeCtorInitializerColon: true
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true

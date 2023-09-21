@@ -424,7 +424,6 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
     //
-
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
         if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
@@ -572,6 +571,11 @@ ExecTrapInitialize()
         //
         return FALSE;
     }
+
+    //
+    // Test - should be removed
+    //
+    g_IsInterceptingMemory = TRUE;
 
     //
     // Check if MBEC supported by this processors
@@ -876,6 +880,75 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
 }
 
 /**
+ * @brief Change the state to memory interception
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapSetStateToMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // The core is in the phase of intercepting memory reads/writes
+    //
+    VCpu->InterceptingMemReadsWrites = TRUE;
+
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+    ExecTrapChangeToExecuteOnlyEptp(VCpu);
+}
+
+/**
+ * @brief Handle the memory read/write interceptions (#EPT Violations)
+ * @param VCpu The virtual processor's state
+ * @param GuestPhysicalAddr
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleMemoryReadWriteViolations(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestPhysicalAddr)
+{
+    LogInfo("Reached to the execute-only mode of the process (0x%x) thread Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+            PsGetCurrentProcessId(),
+            PsGetCurrentThreadId(),
+            GuestPhysicalAddr,
+            PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+            VCpu->LastVmexitRip);
+
+    //
+    // Disassemble instructions
+    //
+    // DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
+    //
+    // Disable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+
+    //
+    // Restore to normal EPTP
+    //
+    ExecTrapRestoreToNormalEptp(VCpu);
+
+    VCpu->InterceptingMemReadsWrites = FALSE;
+
+    //
+    // Set MTF
+    // Note that external interrupts are previously masked
+    //
+    // HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+    //
+    // Set the indicator to handle MTF
+    //
+    // VCpu->RestoreNonReadableWriteEptp = TRUE;
+
+    //
+    // Supress the RIP increment
+    //
+    HvSuppressRipIncrement(VCpu);
+}
+
+/**
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
@@ -896,24 +969,16 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         return FALSE;
     }
 
-    if (!ViolationQualification->EptExecutable || !ViolationQualification->ExecuteAccess)
+    if (ViolationQualification->WriteAccess && !ViolationQualification->EptWriteable)
     {
-        //
-        // For test purposes
-        //
-        // LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        if (g_IsInterceptingMemory)
+        {
+            ExecTrapHandleMemoryReadWriteViolations(VCpu, GuestPhysicalAddr);
+        }
 
-        //
-        // Supress the RIP increment
-        //
-        HvSuppressRipIncrement(VCpu);
-
-        //
-        // Trigger the event
-        //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
+        return TRUE;
     }
-    else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
+    else if (!ViolationQualification->EptExecutableForUserMode && ViolationQualification->ExecuteAccess)
     {
         //
         // For test purposes
@@ -928,46 +993,33 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
-        // ExecTrapChangeToExecuteOnlyEptp(VCpu);
+        if (!g_IsInterceptingMemory)
+        {
+            DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
+        }
+        else
+        {
+            ExecTrapSetStateToMemoryInterception(VCpu);
+        }
 
         return TRUE;
     }
-    if (!ViolationQualification->EptReadable || !ViolationQualification->EptWriteable)
+    else if (!ViolationQualification->EptExecutable && ViolationQualification->ExecuteAccess)
     {
-        LogInfo("Reached to the execute-only mode of the process (0x%x) thread Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
-                PsGetCurrentProcessId(),
-                PsGetCurrentThreadId(),
-                GuestPhysicalAddr,
-                PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
-                VCpu->LastVmexitRip);
-
         //
-        // Disable the user-mode execution interception
+        // For test purposes
         //
-        // HvSetModeBasedExecutionEnableFlag(FALSE);
-
-        //
-        // Disassemble instructions
-        //
-        DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
-        //
-        // Set MTF
-        // Note that external interrupts are previously masked
-        //
-        HvEnableMtfAndChangeExternalInterruptState(VCpu);
-
-        //
-        // Set the indicator to handle MTF
-        //
-        VCpu->RestoreNonReadableWriteEptp = TRUE;
+        LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
-        return TRUE;
+
+        //
+        // Trigger the event
+        //
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
     }
     else
     {
@@ -995,7 +1047,8 @@ ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Restore non-readable/writeable EPTP
     //
-    ExecTrapChangeToExecuteOnlyEptp(VCpu);
+    // ExecTrapChangeToExecuteOnlyEptp(VCpu);
+    ExecTrapRestoreToNormalEptp(VCpu);
 
     //
     // Unset the indicator to avoid further handling
@@ -1038,7 +1091,7 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, FALSE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
     }
     else if (VCpu->MbecEnabled)
     {
