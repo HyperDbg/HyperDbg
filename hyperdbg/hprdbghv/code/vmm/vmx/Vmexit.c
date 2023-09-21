@@ -202,6 +202,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
     {
+        if (VCpu->InterceptingMemReadsWrites)
+        {
+            ExecTrapRemoveMemoryInterception(VCpu);
+        }
+
         //
         // Handle the EXCEPTION injection/emulation
         //
@@ -211,6 +216,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
     {
+        if (VCpu->InterceptingMemReadsWrites)
+        {
+            ExecTrapRemoveMemoryInterception(VCpu);
+        }
+
         //
         // Call the external-interrupt handler
         //

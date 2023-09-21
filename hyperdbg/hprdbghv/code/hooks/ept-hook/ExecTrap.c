@@ -893,8 +893,36 @@ ExecTrapSetStateToMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu)
     //
     VCpu->InterceptingMemReadsWrites = TRUE;
 
+    HvWriteExceptionBitmap(0xffffffff);
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
     HvSetModeBasedExecutionEnableFlag(FALSE);
     ExecTrapChangeToExecuteOnlyEptp(VCpu);
+}
+
+/**
+ * @brief Remove the memory interception
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapRemoveMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    HvWriteExceptionBitmap(0x0);
+    HvSetExternalInterruptExiting(VCpu, FALSE);
+
+    //
+    // Disable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+
+    //
+    // Restore to normal EPTP
+    //
+    ExecTrapRestoreToNormalEptp(VCpu);
+
+    VCpu->InterceptingMemReadsWrites = FALSE;
 }
 
 /**
@@ -917,19 +945,12 @@ ExecTrapHandleMemoryReadWriteViolations(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Gue
     //
     // Disassemble instructions
     //
-    // DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
     //
-    // Disable the user-mode execution interception
+    // Remove the effects of memory interception
     //
-    HvSetModeBasedExecutionEnableFlag(FALSE);
-
-    //
-    // Restore to normal EPTP
-    //
-    ExecTrapRestoreToNormalEptp(VCpu);
-
-    VCpu->InterceptingMemReadsWrites = FALSE;
+    ExecTrapRemoveMemoryInterception(VCpu);
 
     //
     // Set MTF
