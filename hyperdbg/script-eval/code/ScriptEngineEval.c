@@ -1631,6 +1631,35 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
+    case FUNC_WCSCMP:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionWcscmp((const wchar_t *)SrcVal1, (const wchar_t *)SrcVal0);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        break;
+
     case FUNC_PRINTF:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

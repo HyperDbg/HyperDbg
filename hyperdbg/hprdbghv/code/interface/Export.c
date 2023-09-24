@@ -714,3 +714,16 @@ VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
     VmxCompatibleStrcmp(Address1, Address2);
 }
+
+/**
+ * @brief VMX-root compatible wcscmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32
+ */
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+{
+    VmxCompatibleWcscmp(Address1, Address2);
+}
