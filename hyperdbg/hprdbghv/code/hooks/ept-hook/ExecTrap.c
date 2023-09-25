@@ -424,7 +424,6 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
     //
-
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
         if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
@@ -574,6 +573,11 @@ ExecTrapInitialize()
     }
 
     //
+    // Test - should be removed
+    //
+    g_IsInterceptingMemory = TRUE;
+
+    //
     // Check if MBEC supported by this processors
     //
     if (!g_CompatibilityCheck.ModeBasedExecutionSupport)
@@ -619,26 +623,25 @@ ExecTrapInitialize()
     //
     // Allocate execute-only EPT page-table
     //
-    // if (!ExecTrapAllocateExecuteOnlyEptPageTable())
-    // {
-    //     //
-    //     // Free the user-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-    //     g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // Free the kernel-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
-    //     g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // There was an error allocating execute-only page table for EPT tables
-    //     //
-    //     return FALSE;
-    // }
-    //
+    if (!ExecTrapAllocateExecuteOnlyEptPageTable())
+    {
+        //
+        // Free the user-disabled page-table buffer
+        //
+        MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
+        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
+
+        //
+        // Free the kernel-disabled page-table buffer
+        //
+        MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
+        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
+
+        //
+        // There was an error allocating execute-only page table for EPT tables
+        //
+        return FALSE;
+    }
 
     //
     // Call the function responsible for initializing Mode-based hooks
@@ -877,6 +880,96 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
 }
 
 /**
+ * @brief Change the state to memory interception
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapSetStateToMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // The core is in the phase of intercepting memory reads/writes
+    //
+    VCpu->InterceptingMemReadsWrites = TRUE;
+
+    HvWriteExceptionBitmap(0xffffffff);
+    HvSetExternalInterruptExiting(VCpu, TRUE);
+
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+    ExecTrapChangeToExecuteOnlyEptp(VCpu);
+}
+
+/**
+ * @brief Remove the memory interception
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapRemoveMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    HvWriteExceptionBitmap(0x0);
+    HvSetExternalInterruptExiting(VCpu, FALSE);
+
+    //
+    // Disable the user-mode execution interception
+    //
+    HvSetModeBasedExecutionEnableFlag(FALSE);
+
+    //
+    // Restore to normal EPTP
+    //
+    ExecTrapRestoreToNormalEptp(VCpu);
+
+    VCpu->InterceptingMemReadsWrites = FALSE;
+}
+
+/**
+ * @brief Handle the memory read/write interceptions (#EPT Violations)
+ * @param VCpu The virtual processor's state
+ * @param GuestPhysicalAddr
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleMemoryReadWriteViolations(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestPhysicalAddr)
+{
+    LogInfo("Reached to the execute-only mode of the process (0x%x) thread Tid: %x, Guest physical address: %llx, Virtual Address: %llx , RIP: %llx",
+            PsGetCurrentProcessId(),
+            PsGetCurrentThreadId(),
+            GuestPhysicalAddr,
+            PhysicalAddressToVirtualAddressByCr3(GuestPhysicalAddr, LayoutGetCurrentProcessCr3()),
+            VCpu->LastVmexitRip);
+
+    //
+    // Disassemble instructions
+    //
+    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
+    //
+    // Remove the effects of memory interception
+    //
+    ExecTrapRemoveMemoryInterception(VCpu);
+
+    //
+    // Set MTF
+    // Note that external interrupts are previously masked
+    //
+    // HvEnableMtfAndChangeExternalInterruptState(VCpu);
+
+    //
+    // Set the indicator to handle MTF
+    //
+    // VCpu->RestoreNonReadableWriteEptp = TRUE;
+
+    //
+    // Supress the RIP increment
+    //
+    HvSuppressRipIncrement(VCpu);
+}
+
+/**
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
@@ -897,12 +990,47 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         return FALSE;
     }
 
-    if (!ViolationQualification->EptExecutable || !ViolationQualification->ExecuteAccess)
+    if (ViolationQualification->WriteAccess && !ViolationQualification->EptWriteable)
+    {
+        if (g_IsInterceptingMemory)
+        {
+            ExecTrapHandleMemoryReadWriteViolations(VCpu, GuestPhysicalAddr);
+        }
+
+        return TRUE;
+    }
+    else if (!ViolationQualification->EptExecutableForUserMode && ViolationQualification->ExecuteAccess)
     {
         //
         // For test purposes
         //
-        // LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+        LogInfo("Reached to the user-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+
+        //
+        // Supress the RIP increment
+        //
+        HvSuppressRipIncrement(VCpu);
+
+        //
+        // Trigger the event
+        //
+        if (!g_IsInterceptingMemory)
+        {
+            DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
+        }
+        else
+        {
+            ExecTrapSetStateToMemoryInterception(VCpu);
+        }
+
+        return TRUE;
+    }
+    else if (!ViolationQualification->EptExecutable && ViolationQualification->ExecuteAccess)
+    {
+        //
+        // For test purposes
+        //
+        LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
         // Supress the RIP increment
@@ -913,25 +1041,6 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         // Trigger the event
         //
         DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
-    }
-    else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
-    {
-        //
-        // For test purposes
-        //
-        // LogInfo("Reached to the user-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
-
-        //
-        // Supress the RIP increment
-        //
-        HvSuppressRipIncrement(VCpu);
-
-        //
-        // Trigger the event
-        //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
-
-        return TRUE;
     }
     else
     {
@@ -945,6 +1054,27 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
     // It successfully handled by MBEC hooks
     //
     return TRUE;
+}
+
+/**
+ * @brief Callback for handling VM-exits for MTF in the case of exec trap hooks
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Restore non-readable/writeable EPTP
+    //
+    // ExecTrapChangeToExecuteOnlyEptp(VCpu);
+    ExecTrapRestoreToNormalEptp(VCpu);
+
+    //
+    // Unset the indicator to avoid further handling
+    //
+    VCpu->RestoreNonReadableWriteEptp = FALSE;
 }
 
 /**
@@ -982,7 +1112,7 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, FALSE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
     }
     else if (VCpu->MbecEnabled)
     {
