@@ -129,7 +129,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // Remove !hide from it
         //
-        Command.erase(0, 5);
+        Command.erase(0, SplittedCommand.at(0).size());
 
         //
         // remove name + space

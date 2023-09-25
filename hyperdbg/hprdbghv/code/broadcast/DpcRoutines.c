@@ -50,7 +50,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Allocate Memory for DPC
     //
-    Dpc = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
+    Dpc = CrsAllocateNonPagedPool(sizeof(KDPC));
 
     if (!Dpc)
     {
@@ -91,7 +91,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
         //
         // We can't get the lock, probably sth goes wrong !
         //
-        ExFreePoolWithTag(Dpc, POOLTAG);
+        CrsFreePool(Dpc);
         return STATUS_UNSUCCESSFUL;
     }
 
@@ -110,7 +110,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Now it's safe to deallocate the bugger
     //
-    ExFreePoolWithTag(Dpc, POOLTAG);
+    CrsFreePool(Dpc);
 
     return STATUS_SUCCESS;
 }
@@ -512,6 +512,37 @@ DpcRoutineRestoreToNormalEptp(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
     // Restore to normal EPTP from vmx-root
     //
     AsmVmxVmcall(VMCALL_RESTORE_TO_NORMAL_EPTP, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Broadcast to enable or disable MBEC
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineEnableOrDisableMbec(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Enable/Disable MBEC from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_OR_ENABLE_MBEC, DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1647,7 +1678,7 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
         //
         // We have to invalidate all contexts
         //
-        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, DeferredContext, NULL, NULL);
+        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].EptPointer.AsUInt, NULL, NULL);
     }
     //
     // Wait for all DPCs to synchronize at this point

@@ -35,7 +35,7 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 ## Tutorials
 
-The **[OpenSecurityTraining2's "Reversing with HyperDbg (Dbg3301)"](https://ost2.fyi/Dbg3301)** tutorial is the recommended way to get started with and learn HyperDbg. This tutorial will guide you through the initial steps of using HyperDbg, covering essential concepts, principles, and debugging functionalities as well as numerous reverse engineering methods achievable by using HyperDbg, along with practical and real-world examples.
+The **[OpenSecurityTraining2's "Reversing with HyperDbg (Dbg3301)"](https://ost2.fyi/Dbg3301)** tutorial is the recommended way to get started with and learn HyperDbg, guiding you through the initial steps of using HyperDbg, covering essential concepts, principles, debugging functionalities, along with practical examples and numerous reverse engineering methods that are unique to HyperDbg.
 
 If you're interested in understanding the internal design and architecture of hypervisors and HyperDbg, you can read the [**Hypervisor From Scratch**](https://rayanfam.com/tutorials) tutorials.
 
@@ -104,6 +104,9 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 
 ### Fifth Release (v0.5.0.0)
 * Different Event Calling Stages [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage" target="_blank">link</a>]
+
+### Sixth Release (v0.6.0.0)
+* Injecting Custom Interrupts/Exceptions/Faults [<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject_error_code" target="_blank">link</a>]
 
 ## How does it work?
 

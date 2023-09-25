@@ -768,7 +768,7 @@ ScriptEngineFunctionPause(
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail  = {0};
-        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
 
         //
         // Make the details of context
@@ -862,7 +862,7 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
         return;
     }
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     if (State != 0)
     {
@@ -1446,4 +1446,119 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
     LogSimpleWithTag(Tag, ImmediateMessagePassing, FinalBuffer, strlen(FinalBuffer) + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of event_inject function
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, event_inject is not supported in user-mode\n");
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Validate the arguments
+    //
+    if (Vector >= 256 || InterruptionType >= 8)
+    {
+        LogInfo("Err, invalid event vector or interruption type is specified");
+        return;
+    }
+    else
+    {
+        VmFuncEventInjectInterruption(InterruptionType, Vector, FALSE, 0);
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of event_inject_error_code function
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param ErrorCode
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, event_inject is not supported in user-mode\n");
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Validate the arguments
+    //
+    if (Vector >= 256 || InterruptionType >= 8)
+    {
+        LogInfo("Err, invalid event vector or interruption type is specified");
+        return;
+    }
+    else
+    {
+        VmFuncEventInjectInterruption(InterruptionType, Vector, TRUE, ErrorCode);
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of strcmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = strcmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleStrcmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of wcscmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = wcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleWcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
 }

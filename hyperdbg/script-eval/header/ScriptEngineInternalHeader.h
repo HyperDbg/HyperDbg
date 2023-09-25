@@ -198,3 +198,15 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            UINT64                         ArgCount,
                            PSYMBOL                        FirstArg,
                            BOOLEAN *                      HasError);
+
+VOID
+ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError);
+
+VOID
+ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError);
+
+UINT64
+ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
+
+UINT64
+ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2);

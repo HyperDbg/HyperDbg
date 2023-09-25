@@ -208,7 +208,8 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
     DEBUGGER_SHOW_COMMAND_DB,
     DEBUGGER_SHOW_COMMAND_DC,
     DEBUGGER_SHOW_COMMAND_DQ,
-    DEBUGGER_SHOW_COMMAND_DD
+    DEBUGGER_SHOW_COMMAND_DD,
+    DEBUGGER_SHOW_COMMAND_DUMP
 } DEBUGGER_SHOW_MEMORY_STYLE;
 
 /**
@@ -408,7 +409,7 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR
                        // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all
                        // the cores)
     DEBUGGER_MSR_ACTION_TYPE
-    ActionType;        // Detects whether user needs wrmsr or rdmsr
+    ActionType; // Detects whether user needs wrmsr or rdmsr
     UINT64 Value;
 
 } DEBUGGER_READ_AND_WRITE_ON_MSR, *PDEBUGGER_READ_AND_WRITE_ON_MSR;
@@ -528,9 +529,9 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
                                  // shows the length of xxx
 
-    UINT64 KernelStatus;         /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
-                                  DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
-                                  */
+    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
+                          DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
+                          */
 
 } DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,
     *PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
@@ -598,8 +599,9 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
     UINT32                                               ThreadId;
+    BOOLEAN                                              CheckCallbackAtFirstInstruction;
     BOOLEAN                                              Is32Bit;
-    BOOLEAN                                              IsPaused;                                  // used in switching to threads
+    BOOLEAN                                              IsPaused; // used in switching to threads
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT32                                               CountOfActiveDebuggingThreadsAndProcesses; // used in showing the list of active threads/processes
     UINT64                                               Token;
@@ -954,11 +956,13 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET
  */
 typedef enum _DEBUGGER_REMOTE_STEPPING_REQUEST
 {
-
-    DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER,
     DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN,
     DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN,
     DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN_FOR_TRACKING,
+
+    DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER,
+    DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU,
+    DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION,
 
 } DEBUGGER_REMOTE_STEPPING_REQUEST;
 
@@ -1026,6 +1030,7 @@ typedef struct _DEBUGGEE_BP_PACKET
     UINT32  Tid;
     UINT32  Core;
     BOOLEAN RemoveAfterHit;
+    BOOLEAN CheckForCallbacks;
     UINT32  Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;

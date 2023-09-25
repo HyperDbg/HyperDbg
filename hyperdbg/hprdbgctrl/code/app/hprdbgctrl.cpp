@@ -351,15 +351,6 @@ ReadIrpBasedBuffer()
 
                 default:
 
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
                     //
                     // Set output source to not found
                     //
@@ -394,11 +385,13 @@ ReadIrpBasedBuffer()
 
                                 //
                                 // Send the event to output sources
+                                // Minus one (-1) is because we want to
+                                // remove the null character at end of the message
                                 //
                                 if (!ForwardingPerformEventForwarding(
                                         EventDetail,
                                         OutputBuffer + sizeof(UINT32),
-                                        ReturnedLength - sizeof(UINT32) + 1))
+                                        ReturnedLength - sizeof(UINT32) - 1))
                                 {
                                     ShowMessages("err, there was an error transferring the "
                                                  "message to the remote sources\n");
@@ -414,6 +407,15 @@ ReadIrpBasedBuffer()
                     //
                     if (!OutputSourceFound)
                     {
+                        if (g_BreakPrintingOutput)
+                        {
+                            //
+                            // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                            // we shouldn't show or save anything in this case
+                            //
+                            continue;
+                        }
+
                         ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     }
 
@@ -509,40 +511,6 @@ HyperDbgInstallVmmDriver()
 }
 
 /**
- * @brief Install Reversing Machine driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-HPRDBGCTRL_API int
-HyperDbgInstallReversingMachineDriver()
-{
-    //
-    // The driver is not started yet so let us the install driver
-    // First setup full path to driver name
-    //
-
-    if (!SetupDriverName(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
-    {
-        return 1;
-    }
-
-    if (!ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
-    {
-        ShowMessages("unable to install reversing machine's driver\n");
-
-        //
-        // Error - remove driver
-        //
-        ManageDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
-
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
  * @brief Stop the driver
  *
  * @return int return zero if it was successful or non-zero if there
@@ -574,18 +542,6 @@ HPRDBGCTRL_API int
 HyperDbgStopVmmDriver()
 {
     return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
-}
-
-/**
- * @brief Stop reversing machine driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-HPRDBGCTRL_API int
-HyperDbgStopReversingMachineDriver()
-{
-    return HyperDbgStopDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
 }
 
 /**
@@ -623,18 +579,6 @@ HyperDbgUninstallVmmDriver()
 }
 
 /**
- * @brief Remove the reversing machine driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-HPRDBGCTRL_API int
-HyperDbgUninstallReversingMachineDriver()
-{
-    return HyperDbgUninstallDriver(KERNEL_REVERSING_MACHINE_DRIVER_NAME);
-}
-
-/**
  * @brief Load the VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
@@ -643,9 +587,9 @@ HyperDbgUninstallReversingMachineDriver()
 HPRDBGCTRL_API int
 HyperDbgLoadVmm()
 {
-    string CpuID;
-    DWORD  ErrorNum;
-    DWORD  ThreadId;
+    char  CpuId[13] = {0};
+    DWORD ErrorNum;
+    DWORD ThreadId;
 
     if (g_DeviceHandle)
     {
@@ -654,11 +598,14 @@ HyperDbgLoadVmm()
         return 1;
     }
 
-    CpuID = ReadVendorString();
+    //
+    // Read the vendor string
+    //
+    HyperDbgReadVendorString(CpuId);
 
-    ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
+    ShowMessages("current processor vendor is : %s\n", CpuId);
 
-    if (CpuID == "GenuineIntel")
+    if (strcmp(CpuId, "GenuineIntel") == 0)
     {
         ShowMessages("virtualization technology is vt-x\n");
     }
@@ -669,7 +616,7 @@ HyperDbgLoadVmm()
         return 1;
     }
 
-    if (VmxSupportDetection())
+    if (HyperDbgVmxSupportDetection())
     {
         ShowMessages("vmx operation is supported by your processor\n");
     }
@@ -733,57 +680,6 @@ HyperDbgLoadVmm()
     // }
 
 #endif
-
-    return 0;
-}
-
-/**
- * @brief Load the reversing machine driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-HPRDBGCTRL_API int
-HyperDbgLoadReversingMachine()
-{
-    string CpuID;
-
-    if (g_DeviceHandle || g_IsReversingMachineModulesLoaded)
-    {
-        ShowMessages("handle of the driver found, if you use 'load' before, please "
-                     "unload it using 'unload'\n");
-        return 1;
-    }
-
-    CpuID = ReadVendorString();
-
-    ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
-
-    if (CpuID == "GenuineIntel")
-    {
-        ShowMessages("virtualization technology is vt-x\n");
-    }
-    else
-    {
-        ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environemnt !\n");
-        return 1;
-    }
-
-    if (VmxSupportDetection())
-    {
-        ShowMessages("vmx operation is supported by your processor\n");
-    }
-    else
-    {
-        ShowMessages("vmx operation is not supported by your processor\n");
-        return 1;
-    }
-
-    //
-    // Call hprdbgrev start function
-    //
-    ReversingMachineStart();
 
     return 0;
 }
@@ -890,31 +786,6 @@ HyperDbgUnloadVmm()
     SymbolDeleteSymTable();
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
-
-    return 0;
-}
-
-/**
- * @brief Unload the reversing machine driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-HPRDBGCTRL_API int
-HyperDbgUnloadReversingMachine()
-{
-    BOOL Status;
-
-    AssertShowMessageReturnStmt(g_IsReversingMachineModulesLoaded, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
-
-    ShowMessages("start terminating...\n");
-
-    //
-    // Call the unloader of the hprdbgrev module
-    //
-    ReversingMachineStop();
-
-    ShowMessages("you're not on reversing machine's hypervisor anymore!\n");
 
     return 0;
 }

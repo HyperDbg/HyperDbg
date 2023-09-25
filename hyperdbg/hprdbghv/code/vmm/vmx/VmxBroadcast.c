@@ -84,7 +84,7 @@ BOOLEAN
 VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 {
     ULONG CurrentCoreIndex;
-    CurrentCoreIndex             = KeGetCurrentProcessorNumber();
+    CurrentCoreIndex             = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCoreIndex];
 
     //
@@ -221,7 +221,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         //
         // Invalidate EPT cache (single-context)
         //
-        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+        EptInveptSingleContext(VCpu->EptPointer.AsUInt);
 
         IsHandled = TRUE;
 

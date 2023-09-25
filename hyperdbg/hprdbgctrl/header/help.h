@@ -109,6 +109,9 @@ VOID
 CommandVmcallHelp();
 
 VOID
+CommandModeHelp();
+
+VOID
 CommandHideHelp();
 
 VOID
@@ -266,3 +269,9 @@ CommandTrackHelp();
 
 VOID
 CommandPageinHelp();
+
+VOID
+CommandDumpHelp();
+
+VOID
+CommandGuHelp();

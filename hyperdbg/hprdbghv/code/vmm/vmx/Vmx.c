@@ -77,7 +77,7 @@ VmxGetCurrentExecutionMode()
 {
     if (g_GuestState)
     {
-        ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+        ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
         VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
         return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
@@ -99,14 +99,14 @@ VmxGetCurrentExecutionMode()
 BOOLEAN
 VmxGetCurrentLaunchState()
 {
-    ULONG                   CurrentCore    = KeGetCurrentProcessorIndex();
+    ULONG                   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
 
     return CurrentVmState->HasLaunched;
 }
 
 /**
- * @brief Initialize Vmx operation
+ * @brief Initialize the VMX operation
  *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */
@@ -211,8 +211,7 @@ VmxInitialize()
 BOOLEAN
 VmxPerformVirtualizationOnAllCores()
 {
-    int       ProcessorCount;
-    KAFFINITY AffinityMask;
+    PAGED_CODE();
 
     if (!VmxCheckVmxSupport())
     {
@@ -220,23 +219,16 @@ VmxPerformVirtualizationOnAllCores()
         return FALSE;
     }
 
-    PAGED_CODE();
-
     //
     // Allocate	global variable to hold Ept State
     //
-    g_EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
+    g_EptState = CrsAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
 
     if (!g_EptState)
     {
         LogError("Err, insufficient memory");
         return FALSE;
     }
-
-    //
-    // Zero memory
-    //
-    RtlZeroMemory(g_EptState, sizeof(EPT_STATE));
 
     //
     // Initialize the list of hooked pages detail
@@ -288,7 +280,7 @@ VmxPerformVirtualizationOnAllCores()
     }
 
     //
-    // Broadcast to run vmx-specific task to vitualize cores
+    // Broadcast to run vmx-specific task to virtualize cores
     //
     BroadcastVmxVirtualizationAllCores();
 
@@ -306,7 +298,7 @@ VmxPerformVirtualizationOnAllCores()
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
-    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
@@ -412,7 +404,7 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
     UINT64                  ErrorCode   = 0;
-    ULONG                   ProcessorID = KeGetCurrentProcessorNumber();
+    ULONG                   ProcessorID = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
@@ -484,7 +476,7 @@ BOOLEAN
 VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
-    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
     VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
 
     //
@@ -501,10 +493,10 @@ VmxTerminate()
         //
         MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
         MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(VCpu->VmmStack, POOLTAG);
-        ExFreePoolWithTag(VCpu->MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(VCpu->IoBitmapVirtualAddressB, POOLTAG);
+        CrsFreePool(VCpu->VmmStack);
+        CrsFreePool(VCpu->MsrBitmapVirtualAddress);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressA);
+        CrsFreePool(VCpu->IoBitmapVirtualAddressB);
 
         return TRUE;
     }
@@ -731,7 +723,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     // Set up EPT
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // Set up VPID
@@ -930,7 +922,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 UINT64
 VmxReturnStackPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRsp;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRsp;
 }
 
 /**
@@ -941,7 +933,7 @@ VmxReturnStackPointerForVmxoff()
 UINT64
 VmxReturnInstructionPointerForVmxoff()
 {
-    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRip;
+    return g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].VmxoffState.GuestRip;
 }
 
 /**
@@ -952,7 +944,14 @@ VmxReturnInstructionPointerForVmxoff()
 VOID
 VmxPerformTermination()
 {
-    LogDebugInfo("Terminating VMX ...\n");
+    ULONG LogicalProcessorsCount;
+
+    LogDebugInfo("Terminating VMX...\n");
+
+    //
+    // Get number of processors
+    //
+    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // ******* Terminating Vmx *******
@@ -969,6 +968,11 @@ VmxPerformTermination()
     EptHookUnHookAll();
 
     //
+    // Restore the state of execution trap hooks
+    //
+    ExecTrapUninitialize();
+
+    //
     // Broadcast to terminate Vmx
     //
     KeGenericCallDpc(DpcRoutineTerminateGuest, 0x0);
@@ -980,34 +984,22 @@ VmxPerformTermination()
     //
     // Free the buffer related to MSRs that cause #GP
     //
-    ExFreePoolWithTag(g_MsrBitmapInvalidMsrs, POOLTAG);
+    CrsFreePool(g_MsrBitmapInvalidMsrs);
     g_MsrBitmapInvalidMsrs = NULL;
 
     //
     // Free Identity Page Table
     //
-    MmFreeContiguousMemory(g_EptState->EptPageTable);
-
-    //
-    // Free Identity Page Table for MBEC hooks
-    //
-    if (g_EptState->ModeBasedEptPageTable != NULL)
+    for (size_t i = 0; i < LogicalProcessorsCount; i++)
     {
-        MmFreeContiguousMemory(g_EptState->ModeBasedEptPageTable);
-    }
-
-    //
-    // Free Identity Page Table for execute-only hooks
-    //
-    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
+        MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
+        g_GuestState[i].EptPageTable = NULL;
     }
 
     //
     // Free EptState
     //
-    ExFreePoolWithTag(g_EptState, POOLTAG);
+    CrsFreePool(g_EptState);
     g_EptState = NULL;
 
     //
@@ -1272,4 +1264,224 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
     }
 
     return TRUE;
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible strcmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32 0x2 indicates error, otherwise the same result as strcmp in string.h
+ */
+INT32
+VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+{
+    CHAR     C1 = NULL, C2 = NULL;
+    INT32    Result = 0;
+    UINT64   AlignedAddress1, AlignedAddress2;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress1 = (UINT64)PAGE_ALIGN((UINT64)Address1);
+    AlignedAddress2 = (UINT64)PAGE_ALIGN((UINT64)Address2);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(CHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(CHAR)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0x2;
+    }
+
+    do
+    {
+        /*
+        C1 = *Address1;
+        */
+        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(CHAR));
+
+        /*
+        C2 = *Address2;
+        */
+        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(CHAR));
+
+        Address1++;
+        Address2++;
+
+        if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+
+        if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+    } while (!(Result = C1 - C2) && C2);
+
+    if (Result < 0)
+    {
+        Result = -1;
+    }
+    else if (Result > 0)
+    {
+        Result = 1;
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+    return Result;
+}
+
+/**
+ * @brief implementation of vmx-root mode compatible wcscmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32 0x2 indicates error, otherwise the same result as wcscmp in string.h
+ */
+INT32
+VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+{
+    wchar_t  C1 = NULL, C2 = NULL;
+    INT32    Result = 0;
+    UINT64   AlignedAddress1, AlignedAddress2;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress1 = (UINT64)PAGE_ALIGN((UINT64)Address1);
+    AlignedAddress2 = (UINT64)PAGE_ALIGN((UINT64)Address2);
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // First check
+    //
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(wchar_t)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(wchar_t)))
+    {
+        //
+        // Error
+        //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
+        return 0x2;
+    }
+
+    do
+    {
+        /*
+        C1 = *Address1;
+        */
+        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(wchar_t));
+
+        /*
+        C2 = *Address2;
+        */
+        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(wchar_t));
+
+        Address1++;
+        Address2++;
+
+        if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(wchar_t)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+
+        if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
+        {
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(wchar_t)))
+            {
+                //
+                // Error
+                //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
+                return 0x2;
+            }
+        }
+    } while (!(Result = C1 - C2) && C2);
+
+    if (Result < 0)
+    {
+        Result = -1;
+    }
+    else if (Result > 0)
+    {
+        Result = 1;
+    }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+    return Result;
 }

@@ -121,7 +121,7 @@ BroadcastNotifyAllToInvalidateEptAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, g_EptState->EptPointer.AsUInt);
+    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, TRUE);
 }
 
 /**
@@ -458,6 +458,28 @@ VOID
 BroadcastRestoreToNormalEptpOnAllProcessors()
 {
     KeGenericCallDpc(DpcRoutineRestoreToNormalEptp, 0x0);
+}
+
+/**
+ * @brief routines for disabling MBEC
+ *
+ * @return VOID
+ */
+VOID
+BroadcasDisableMbecOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x0);
+}
+
+/**
+ * @brief routines for enabling MBEC
+ *
+ * @return VOID
+ */
+VOID
+BroadcasEnableMbecOnAllProcessors()
+{
+    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x1);
 }
 
 /**

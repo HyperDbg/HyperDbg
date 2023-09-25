@@ -1,20 +1,20 @@
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy
+.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code
 
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
-.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add
+.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add strcmp wcscmp
 
 # TwoOpFunc2 inputs are two numbers and returns no value 
-.TwoOpFunc2->spinlock_lock_custom_wait 
+.TwoOpFunc2->spinlock_lock_custom_wait event_inject
 
 
 
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical event_sc
+.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats event_enable event_disable test_statement spinlock_lock spinlock_unlock
+.OneOpFunc2->print formats event_enable event_disable test_statement spinlock_lock spinlock_unlock event_sc
 
 .ZeroOpFunc1->pause flush
 

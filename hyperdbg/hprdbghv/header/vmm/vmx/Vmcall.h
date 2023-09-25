@@ -291,6 +291,12 @@
  */
 #define VMCALL_RESTORE_TO_NORMAL_EPTP 0x0000002c
 
+/**
+ * @brief VMCALL to enable/disable MBEC
+ *
+ */
+#define VMCALL_DISABLE_OR_ENABLE_MBEC 0x0000002d
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
@@ -300,7 +306,7 @@
 //
 
 static NTSTATUS
-VmxHypervVmcallHandler(_Inout_ PGUEST_REGS GuestRegs);
+VmxHypervVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE * VCpu, _Inout_ PGUEST_REGS GuestRegs);
 
 /**
  * @brief Handle vm-exits of VMCALLs

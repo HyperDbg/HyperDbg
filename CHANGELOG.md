@@ -4,11 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0.0] - 2023-XX-XX
+## [0.7.0.0] - 2023-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+
+### Changed
+
+## [0.6.0.0-beta] - 2023-09-25
+New release of the HyperDbg Debugger.
+
+### Added
+- **event_inject(InterruptionType, Vector)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject))
+- **event_inject_error_code(InterruptionType, Vector, ErrorCode)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject_error_code))
+- **.dump** - command is added to the debugger to dump the virtual memory into a file ([link](https://docs.hyperdbg.org/commands/meta-commands/.dump))
+- **!dump** - command is added to the debugger to dump the physical memory into a file ([link](https://docs.hyperdbg.org/commands/extension-commands/dump))
+- **gu** - command is added to the debugger to step-out or go up instructions thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/debugging-commands/gu))
+
+### Changed
+- HyperDbg now switched to a multiple EPTP memory model, and each core has its own EPT table ([link](https://github.com/HyperDbg/HyperDbg/commit/7f53fab2ee3ba5b6a48eac6ddeb5975398c4da31))
+- Building mtrr map by adding smrr, fixed ranges, and default memory type is fixed (#255) thanks to [@Air14](https://github.com/Air14)
+- The problem of removing multiple EPT hooks on a single address is fixed
+- The problem of not intercepting the step-over command 'p' when executed in different cores is fixed
+- HyperDbg now checks for the validity of physical addresses based on CPUID.80000008H:EAX\[7:0\]'s physical address width
 
 ## [0.5.0.0] - 2023-08-07
 New release of the HyperDbg Debugger.

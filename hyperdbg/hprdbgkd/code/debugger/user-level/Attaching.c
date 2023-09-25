@@ -100,6 +100,7 @@ UINT64
 AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
                                        BOOLEAN   Enabled,
                                        BOOLEAN   Is32Bit,
+                                       BOOLEAN   CheckCallbackAtFirstInstruction,
                                        PEPROCESS Eprocess,
                                        UINT64    PebAddressToMonitor,
                                        UINT64    UsermodeReservedBuffer)
@@ -109,15 +110,13 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     // Allocate the buffer
     //
-    ProcessDebuggingDetail = (PUSERMODE_DEBUGGING_PROCESS_DETAILS)
-        ExAllocatePoolWithTag(NonPagedPool, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS), POOLTAG);
+    ProcessDebuggingDetail = (USERMODE_DEBUGGING_PROCESS_DETAILS *)
+        CrsAllocateZeroedNonPagedPool(sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     if (!ProcessDebuggingDetail)
     {
         return NULL;
     }
-
-    RtlZeroMemory(ProcessDebuggingDetail, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     //
     // Set the unique tag and increment it
@@ -127,19 +126,20 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     // Set the details of the created buffer
     //
-    ProcessDebuggingDetail->ProcessId              = ProcessId;
-    ProcessDebuggingDetail->Enabled                = Enabled;
-    ProcessDebuggingDetail->Is32Bit                = Is32Bit;
-    ProcessDebuggingDetail->Eprocess               = Eprocess;
-    ProcessDebuggingDetail->PebAddressToMonitor    = PebAddressToMonitor;
-    ProcessDebuggingDetail->UsermodeReservedBuffer = UsermodeReservedBuffer;
+    ProcessDebuggingDetail->ProcessId                                    = ProcessId;
+    ProcessDebuggingDetail->Enabled                                      = Enabled;
+    ProcessDebuggingDetail->Is32Bit                                      = Is32Bit;
+    ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction = CheckCallbackAtFirstInstruction;
+    ProcessDebuggingDetail->Eprocess                                     = Eprocess;
+    ProcessDebuggingDetail->PebAddressToMonitor                          = PebAddressToMonitor;
+    ProcessDebuggingDetail->UsermodeReservedBuffer                       = UsermodeReservedBuffer;
 
     //
     // Allocate a thread holder buffer for this process
     //
     if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
     {
-        ExFreePoolWithTag(ProcessDebuggingDetail, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetail);
         return NULL;
     }
 
@@ -243,7 +243,7 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
         //
         // Unallocate the pool
         //
-        ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+        CrsFreePool(ProcessDebuggingDetails);
     }
 }
 
@@ -284,7 +284,7 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
     //
     // Unallocate the pool
     //
-    ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
+    CrsFreePool(ProcessDebuggingDetails);
 
     return TRUE;
 }
@@ -371,6 +371,17 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     // Remove the breakpoint after hit
     //
     BpRequest.RemoveAfterHit = TRUE;
+
+    //
+    // Check if the process needs to check for callbacks for the very first instruction
+    //
+    if (ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction)
+    {
+        //
+        // This breakpoint should check for callbacks
+        //
+        BpRequest.CheckForCallbacks = TRUE;
+    }
 
     //
     // Register the breakpoint
@@ -757,6 +768,29 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 }
 
 /**
+ * @brief This function checks whether any special initialization is needed while
+ * attaching to a process that requests a callback
+ *
+ * @details this function should not be called in vmx-root
+ *
+ * @param AttachRequest
+ * @param ProcessDebuggingToken
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest,
+                                                      UINT64                                    ProcessDebuggingToken)
+{
+    //
+    // Enable the memory access logging
+    //
+    ConfigureInitializeExecTrapOnAllProcessors();
+
+    return TRUE;
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should not be called in vmx-root
  *
@@ -873,6 +907,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     ProcessDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
                                                                    TRUE,
                                                                    Is32Bit,
+                                                                   AttachRequest->CheckCallbackAtFirstInstruction,
                                                                    SourceProcess,
                                                                    PebAddressToMonitor,
                                                                    UsermodeReservedBuffer);
@@ -894,6 +929,15 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // *** attaching to the entrypoint of the process ***
         //
+
+        //
+        // Check whether any special initialization for thread safe features
+        // is needed or not
+        //
+        if (AttachRequest->CheckCallbackAtFirstInstruction)
+        {
+            AttachingCheckForSafeCallbackRequestedInitializations(AttachRequest, ProcessDebuggingToken);
+        }
 
         //
         // Waiting for #DB to be triggered
@@ -936,13 +980,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result                        = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-
-        //
-        // Operation was successful
-        //
-        AttachRequest->Token  = ProcessDebuggingToken;
-        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-        return TRUE;
     }
     else
     {
@@ -959,14 +996,14 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return FALSE;
         }
-
-        //
-        // Operation was successful
-        //
-        AttachRequest->Token  = ProcessDebuggingToken;
-        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-        return TRUE;
     }
+
+    //
+    // Operation was successful
+    //
+    AttachRequest->Token  = ProcessDebuggingToken;
+    AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    return TRUE;
 }
 
 /**

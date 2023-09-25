@@ -38,3 +38,9 @@ BroadcastChangeToMbecSupportedEptpOnAllProcessors();
 
 VOID
 BroadcastRestoreToNormalEptpOnAllProcessors();
+
+VOID
+BroadcasDisableMbecOnAllProcessors();
+
+VOID
+BroadcasEnableMbecOnAllProcessors();

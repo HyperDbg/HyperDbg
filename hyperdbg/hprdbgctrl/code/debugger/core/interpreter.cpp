@@ -734,6 +734,8 @@ InitializeCommandsDictionary()
     g_CommandsList["!sysret"]  = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
     g_CommandsList["!sysret2"] = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
 
+    g_CommandsList["!mode"] = {&CommandMode, &CommandModeHelp, DEBUGGER_COMMAND_MODE_ATTRIBUTES};
+
     g_CommandsList["!hide"] = {&CommandHide, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
 
     g_CommandsList["!unhide"] = {&CommandUnhide, &CommandUnhideHelp, DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES};
@@ -750,6 +752,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["i"]  = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
+
+    g_CommandsList["gu"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
 
     g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler,
                               &CommandReadMemoryAndDisassemblerHelp,
@@ -844,4 +848,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!track"] = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
     g_CommandsList["track"]  = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+
+    g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 }

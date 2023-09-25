@@ -470,13 +470,14 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId)
 
 /**
  * @brief Requests for single-context EPT invalidation
+ * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncInvalidateEptSingleContext()
+VmFuncInvalidateEptSingleContext(UINT32 CoreId)
 {
-    EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
+    EptInveptSingleContext(g_GuestState[CoreId].EptPointer.AsUInt);
 }
 
 /**
@@ -617,6 +618,28 @@ VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaul
 }
 
 /**
+ * @brief Inject interrupt/faults/exceptions
+ *
+ * @param InterruptionType
+ * @param Vector
+ * @param DeliverErrorCode
+ * @param ErrorCode
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventInjectInterruption(UINT32  InterruptionType,
+                              UINT32  Vector,
+                              BOOLEAN DeliverErrorCode,
+                              UINT32  ErrorCode)
+{
+    EventInjectInterruption(InterruptionType,
+                            Vector,
+                            DeliverErrorCode,
+                            ErrorCode);
+}
+
+/**
  * @brief Export for running VMX VMCALLs
  *
  * @param VmcallNumber
@@ -677,4 +700,30 @@ VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
 {
     EptHookAllocateExtraHookingPages(Count);
+}
+
+/**
+ * @brief VMX-root compatible strcmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32
+ */
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+{
+    VmxCompatibleStrcmp(Address1, Address2);
+}
+
+/**
+ * @brief VMX-root compatible wcscmp
+ * @param Address1
+ * @param Address2
+ *
+ * @return INT32
+ */
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+{
+    VmxCompatibleWcscmp(Address1, Address2);
 }

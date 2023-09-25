@@ -120,6 +120,9 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaultCode);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncEventInjectInterruption(UINT32 InterruptionType, UINT32 Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncVmxBroadcastInitialize();
 
 IMPORT_EXPORT_VMM VOID
@@ -132,7 +135,7 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncInvalidateEptSingleContext();
+VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptAllContexts();
@@ -181,6 +184,12 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
+
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
+
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
 
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
@@ -237,11 +246,17 @@ ConfigureDirtyLoggingUninitializeOnAllProcessors();
 IMPORT_EXPORT_VMM VOID
 ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
+IMPORT_EXPORT_VMM VOID
+ConfigureUninitializeExecTrapOnAllProcessors();
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureInitializeExecTrapOnAllProcessors();
+
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
+ConfigureEptHook2(UINT32 CoreId, PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
@@ -255,12 +270,11 @@ ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLE
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
-//////////////////////////////////////////////////
-//         Reversing Machine Functions 	   		//
-//////////////////////////////////////////////////
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
-IMPORT_EXPORT_VMM VOID
-ConfigureInitializeReversingMachineOnAllProcessors(PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST RevServiceRequest);
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
@@ -323,6 +337,9 @@ CheckAddressValidityUsingTsx(CHAR * Address);
 IMPORT_EXPORT_VMM BOOLEAN
 CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
 
+IMPORT_EXPORT_VMM BOOLEAN
+CheckAddressPhysical(UINT64 PAddr);
+
 IMPORT_EXPORT_VMM UINT32
 CheckAddressMaximumInstructionLength(PVOID Address);
 
@@ -338,6 +355,18 @@ LayoutGetExactGuestProcessCr3();
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//
 //////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// Cross Platform Memory Allocate/Free Functions
+//
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM PVOID
+CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
+
+IMPORT_EXPORT_VMM VOID
+CrsFreePool(PVOID BufferAddress);
 
 // ----------------------------------------------------------------------------
 // PTE-related Functions

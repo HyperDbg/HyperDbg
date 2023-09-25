@@ -631,12 +631,7 @@ MemoryMapperInitialize()
     //
     // Allocate the memory buffer structure
     //
-    g_MemoryMapper = ExAllocatePoolWithTag(NonPagedPool, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount, POOLTAG);
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_MemoryMapper, sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
+    g_MemoryMapper = CrsAllocateZeroedNonPagedPool(sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorCount);
 
     //
     // Set the core's id and initialize memory mapper
@@ -930,7 +925,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     UINT64                                 BufferToSaveMemory,
     SIZE_T                                 SizeToRead)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 
@@ -1236,7 +1231,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                    PCR3_TYPE                              TargetProcessCr3,
                                    UINT32                                 TargetProcessId)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 

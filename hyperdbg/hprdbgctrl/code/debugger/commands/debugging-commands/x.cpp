@@ -54,7 +54,7 @@ CommandX(vector<string> SplittedCommand, string Command)
     //
     // Remove x from it
     //
-    Command.erase(0, 1);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again

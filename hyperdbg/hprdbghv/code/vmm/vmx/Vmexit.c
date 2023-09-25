@@ -24,13 +24,12 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     ULONG                   ExitReason          = 0;
     BOOLEAN                 Result              = FALSE;
     BOOLEAN                 ShouldEmulateRdtscp = TRUE;
-    ULONG                   CoreId              = TRUE;
     VIRTUAL_MACHINE_STATE * VCpu                = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
-    VCpu = &g_GuestState[KeGetCurrentProcessorNumber()];
+    VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
     // Set the registers

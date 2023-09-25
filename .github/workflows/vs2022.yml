@@ -47,7 +47,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: recursive
@@ -67,7 +67,7 @@ jobs:
         Start-Process -FilePath $wdkSetupPath -ArgumentList "/quiet" -NoNewWindow -Wait     
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.1
       
     # - name: Build third-party dependencies (Release Mode)
     #   working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -78,7 +78,7 @@ jobs:
       run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
     
     - name: Upload build directory 
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: build_files_${{matrix.BUILD_CONFIGURATION}}
         path: ${{ env.BUILD_BIN_DIR }}
@@ -91,7 +91,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download build files from "build" job
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_files_release
           path: ${{ env.BUILD_BIN_DIR }}

@@ -26,7 +26,7 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     if (!g_GuestState)
     {
-        g_GuestState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
+        g_GuestState = CrsAllocateNonPagedPool(BufferSizeInByte);
 
         if (!g_GuestState)
         {
@@ -51,6 +51,6 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
 VOID
 GlobalGuestStateFreeMemory(VOID)
 {
-    ExFreePoolWithTag(g_GuestState, POOLTAG);
+    CrsFreePool(g_GuestState);
     g_GuestState = NULL;
 }

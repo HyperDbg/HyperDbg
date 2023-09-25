@@ -64,7 +64,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
     //
     // Remove .logopen from it
     //
-    Command.erase(0, 8);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again

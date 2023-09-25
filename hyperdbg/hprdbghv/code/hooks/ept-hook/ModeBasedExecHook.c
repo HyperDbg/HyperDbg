@@ -20,7 +20,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 {
     //
     // Set execute access for PML4s
@@ -31,6 +31,60 @@ ModeBasedExecHookDisableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
         // We only set the top-level PML4 for intercepting user-mode execution
         //
         EptTable->PML4[i].UserModeExecute = FALSE;
+    }
+
+    //
+    // Set execute access for PML3s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        EptTable->PML3[i].UserModeExecute = TRUE;
+    }
+
+    //
+    // Set execute access for PML2s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        {
+            EptTable->PML2[i][j].UserModeExecute = TRUE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Adjust (unset) kernel-mode execution bit of target page-table
+ * but allow user-mode execution
+ * @details should be called from vmx non-root mode
+ * @param EptTable
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
+{
+    //
+    // From Intel Manual:
+    // [Bit 2] If the "mode-based execute control for EPT" VM - execution control is 0, execute access;
+    // indicates whether instruction fetches are allowed from the 2-MByte page controlled by this entry.
+    // If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction
+    // fetches are allowed from supervisor - mode linear addresses in the 2 - MByte page controlled by this entry
+    //
+
+    //
+    // Set execute access for PML4s
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        EptTable->PML4[i].UserModeExecute = TRUE;
+
+        //
+        // We only set the top-level PML4 for intercepting kernel-mode execution
+        //
+        EptTable->PML4[i].ExecuteAccess = FALSE;
     }
 
     //
@@ -72,7 +126,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
         //
         // We only set the top-level PML4 for intercepting user-mode execution
         //
-        EptTable->PML4[i].UserModeExecute = FALSE;
+        EptTable->PML4[i].UserModeExecute = TRUE;
     }
 
     //
@@ -98,6 +152,30 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 }
 
 /**
+ * @brief Enable/disable MBEC
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ModeBasedExecHookEnableOrDisable(VIRTUAL_MACHINE_STATE * VCpu, UINT32 State)
+{
+    if (State == 0x0)
+    {
+        HvSetModeBasedExecutionEnableFlag(FALSE);
+
+        //
+        // MBEC is not enabled anymore!
+        //
+        VCpu->MbecEnabled = FALSE;
+    }
+    else
+    {
+        HvSetModeBasedExecutionEnableFlag(TRUE);
+    }
+}
+
+/**
  * @brief Initialize the needed structure for hooking mode execution
  * @details should be called from vmx non-root mode
  *
@@ -106,6 +184,13 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 BOOLEAN
 ModeBasedExecHookInitialize()
 {
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
     //
     // Check if MBEC supported by this processors
     //
@@ -133,7 +218,10 @@ ModeBasedExecHookInitialize()
     //
     // Enable EPT user-mode execution bit for the target EPTP
     //
-    ModeBasedExecHookEnableUsermodeExecution(g_EptState->EptPageTable);
+    for (size_t i = 0; i < ProcessorsCount; i++)
+    {
+        ModeBasedExecHookEnableUsermodeExecution(g_GuestState[i].EptPageTable);
+    }
 
     //
     // Invalidate ALL context on all cores (not necessary here because we will change
@@ -158,6 +246,11 @@ ModeBasedExecHookInitialize()
 VOID
 ModeBasedExecHookUninitialize()
 {
+    //
+    // Broadcast to disable MBEC on all cores
+    //
+    BroadcasDisableMbecOnAllProcessors();
+
     //
     // Indicate that MBEC is disabled
     //

@@ -110,6 +110,42 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
 }
 
 /**
+ * @brief Checks if the physical address is correct or not based on physical address width
+ *
+ * @param VAddr Physical address to check
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckAddressPhysical(UINT64 PAddr)
+{
+    UINT64 Addr = (UINT64)PAddr;
+    UINT64 MaxPA;
+
+    //
+    // Get processor's address width for PS
+    //
+    UINT32 AddrWidth = g_CompatibilityCheck.PhysicalAddressWidth;
+
+    //
+    // get max address for physical address
+    //
+    MaxPA = ((UINT64)1ull << (AddrWidth - 1)) - 1;
+
+    // LogInfo("Max physical address: %llx", MaxPA);
+
+    //
+    // Check to see if the address in a canonical address
+    //
+    if (Addr > MaxPA)
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Check the safety to access the memory
  * @param TargetAddress
  * @param Size

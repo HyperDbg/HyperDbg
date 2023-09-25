@@ -40,9 +40,6 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 int
 ReadCpuDetails();
 
-string
-ReadVendorString();
-
 VOID
 ShowMessages(const char * Fmt, ...);
 
@@ -107,6 +104,12 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
     BOOLEAN         Isx86_64,
     PBOOLEAN        IsRet);
 
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsRet(
+    unsigned char * BufferToDisassemble,
+    UINT64          BuffLength,
+    BOOLEAN         Isx86_64);
+
 VOID
 HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
                                  UINT64                       Address,
@@ -121,6 +124,9 @@ InitializeCommandsDictionary();
 
 VOID
 InitializeDebugger();
+
+VOID
+CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
 
 //////////////////////////////////////////////////
 //              Type of Commands                //
@@ -317,6 +323,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_SYSRET_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
+#define DEBUGGER_COMMAND_MODE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+
 #define DEBUGGER_COMMAND_HIDE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
 #define DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES NULL
@@ -383,11 +391,18 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
+// #define DEBUGGER_COMMAND_REV_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 #define DEBUGGER_COMMAND_REV_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_TRACK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_DUMP_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+
+#define DEBUGGER_COMMAND_GU_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 //////////////////////////////////////////////////
 //             Command Functions                //
@@ -486,6 +501,9 @@ CommandIoout(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandVmcall(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandMode(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandHide(vector<string> SplittedCommand, string Command);
@@ -636,3 +654,9 @@ CommandTrack(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandPagein(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandDump(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandGu(vector<string> SplittedCommand, string Command);

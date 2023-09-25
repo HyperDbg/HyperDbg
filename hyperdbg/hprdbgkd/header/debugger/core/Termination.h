@@ -53,6 +53,9 @@ VOID
 TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event);
 
 VOID
+TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event);
+
+VOID
 TerminateTscEvent(PDEBUGGER_EVENT Event);
 
 VOID

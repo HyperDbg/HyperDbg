@@ -91,7 +91,6 @@
 #include "memory/AddressCheck.h"
 #include "common/Bitwise.h"
 #include "common/Common.h"
-#include "components/optimizations/header/BinarySearch.h"
 #include "components/spinlock/header/Spinlock.h"
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"
@@ -126,12 +125,19 @@
 //
 // Headers for supporting the reversing machine (TRM)
 //
-#include "features/reversing/ReversingMachine.h"
+#include "hooks/ExecTrap.h"
 
 //
 // Headers for exporting functions to remove the driver
 //
 #include "common/UnloadDll.h"
+
+//
+// Optimization algorithms
+//
+#include "components/optimizations/header/AvlTree.h"
+#include "components/optimizations/header/BinarySearch.h"
+#include "components/optimizations/header/InsertionSort.h"
 
 //
 // Global Variables should be the last header to include

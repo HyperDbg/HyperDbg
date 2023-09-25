@@ -19,13 +19,17 @@
  * @brief Reserved MSR low range
  *
  */
-#define RESERVED_MSR_RANGE_LOW 0x40000000
+#ifndef RESERVED_MSR_RANGE_LOW
+#    define RESERVED_MSR_RANGE_LOW 0x40000000
+#endif // !RESERVED_MSR_RANGE_LOW
 
 /**
  * @brief Reserved MSR high range
  *
  */
-#define RESERVED_MSR_RANGE_HI 0x4000109F
+#ifndef RESERVED_MSR_RANGE_HI
+#    define RESERVED_MSR_RANGE_HI 0x4000109F
+#endif // !RESERVED_MSR_RANGE_HI
 
 /**
  * @brief Exception bitmap for masking all exceptions/faults/traps
@@ -71,7 +75,7 @@ typedef union _INTERRUPT_INFO
         UINT32 InterruptType : 3;
         UINT32 DeliverCode : 1; /* 0=Do not deliver, 1=Deliver */
         UINT32 Reserved : 19;
-        UINT32 Valid : 1;       /* 0=Not valid, 1=Valid. Must be checked first */
+        UINT32 Valid : 1; /* 0=Not valid, 1=Valid. Must be checked first */
     } Fields;
     UINT32 Flags;
 } INTERRUPT_INFO, *PINTERRUPT_INFO;

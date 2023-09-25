@@ -1,19 +1,23 @@
 # Contributors
 
-The list provided comprises individuals who made significant contributions to the <a href="https://hyperdbg.org">HyperDbg</a> project, but please be aware that not everyone may have been included and some may have been unintentionally omitted.
+The list provided comprises individuals who have made significant contributions to the [HyperDbg](https://hyperdbg.org) project. Please be aware that not everyone may have been included, and some may have been unintentionally omitted.
 
-## Credits
-- All of the <a href="https://github.com/HyperDbg/HyperDbg/graphs/contributors">contributors</a>  
-- Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
-- MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
-- Website by Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
-- Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
-- Michael Schwarz (<a href="https://twitter.com/misc0110">@misc0110</a>)
-- Soroush Meghdadizanjani (<a href="https://twitter.com/meSoroush">@meSoroush</a>)
-- Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
-- Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
-- Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
-- Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
-- Process Hacker Team (<a href="https://twitter.com/processhacker">@ProcessHacker</a>) for <a href="https://github.com/processhacker/phnt">phnt</a>  
-- Ddkwork (<a href="https://github.com/ddkwork">@ddkwork</a>)
+## Credits:
 
+The attributions listed on this credits page are acknowledged without any particular order.
+
+- All of the [contributors](https://github.com/HyperDbg/HyperDbg/graphs/contributors)
+- Sina Karvandi ([@Intel80x86](https://twitter.com/Intel80x86))
+- MH Gholamrezaei ([@mohoseinam](https://twitter.com/mohoseinam))
+- Mohammad Ataei ([@mammadataei](https://twitter.com/mammadataei)) for the website
+- Saleh Khalaj Monfared ([@S4l3hh](https://twitter.com/S4l3hh))
+- Michael Schwarz ([@misc0110](https://twitter.com/misc0110))
+- Soroush Meghdadizanjani ([@meSoroush](https://twitter.com/meSoroush))
+- Alee Amini ([@AleeAmini](https://twitter.com/AleeAmini))
+- Behrooz Abbassi ([@BehroozAbbassi](https://twitter.com/BehroozAbbassi))
+- Zyantific Team ([zyantific.com](https://zyantific.com)) for [Zydis](https://zydis.re) Disassembler
+- Petr Beneš ([@PetrBenes](https://twitter.com/PetrBenes)) for [ia32-doc](https://github.com/ia32-doc/ia32-doc), and [pdbex](https://github.com/wbenny/pdbex)
+- Process Hacker Team ([@ProcessHacker](https://twitter.com/processhacker)) for [phnt](https://github.com/processhacker/phnt)
+- Ddkwork ([@ddkwork](https://github.com/ddkwork)) for making GUI
+- Mohammad K. Fallah ([@mkfallah11](https://github.com/mkfallah11)) for implementing the optimization algorithms
+- Xandora Team ([xandora.io](https://www.xandora.io)) for [Keystone](https://github.com/keystone-engine/keystone) engine

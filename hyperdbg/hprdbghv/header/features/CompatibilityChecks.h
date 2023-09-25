@@ -27,7 +27,8 @@ typedef struct _COMPATIBILITY_CHECKS_STATUS
     BOOLEAN PmlSupport;                // check Page Modification Logging (PML) support
     BOOLEAN ModeBasedExecutionSupport; // check for mode based execution support (processors after Kaby Lake release will support this feature)
     BOOLEAN ExecuteOnlySupport;        // Support for execute-only pages (indicating that data accesses are not allowed while instruction fetches are allowed)
-    UINT32  VirtualAddressWidth;       // Virtual address width for x86 processorsVirtual address width for x86 processors
+    UINT32  VirtualAddressWidth;       // Virtual address width for x86 processors
+    UINT32  PhysicalAddressWidth;      // Physical address width for x86 processors
 
 } COMPATIBILITY_CHECKS_STATUS, *PCOMPATIBILITY_CHECKS_STATUS;
 

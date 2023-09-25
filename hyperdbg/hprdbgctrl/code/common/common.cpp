@@ -75,7 +75,7 @@ Replace(std::string & str, const std::string & from, const std::string & to)
     size_t start_pos = str.find(from);
     if (start_pos == std::string::npos)
         return FALSE;
-    str.replace(start_pos, from.length(), to);
+    str.replace(start_pos, from.size(), to);
     return TRUE;
 }
 
@@ -501,8 +501,8 @@ ValidateIP(const string & ip)
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-BOOLEAN
-VmxSupportDetection()
+HPRDBGCTRL_API bool
+HyperDbgVmxSupportDetection()
 {
     //
     // Call asm function
@@ -728,9 +728,9 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
 VOID
 StringToWString(std::wstring & ws, const std::string & s)
 {
-    std::wstring wsTmp(s.begin(), s.end());
+    std::wstring WsTmp(s.begin(), s.end());
 
-    ws = wsTmp;
+    ws = WsTmp;
 }
 
 /**

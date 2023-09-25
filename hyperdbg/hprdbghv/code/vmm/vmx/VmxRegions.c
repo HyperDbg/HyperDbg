@@ -169,14 +169,13 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate stack for the VM Exit Handler
     //
-    VCpu->VmmStack = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    VCpu->VmmStack = CrsAllocateZeroedNonPagedPool(VMM_STACK_SIZE);
+
     if (VCpu->VmmStack == NULL)
     {
         LogError("Err, insufficient memory in allocationg vmm stack");
         return FALSE;
     }
-
-    RtlZeroMemory(VCpu->VmmStack, VMM_STACK_SIZE);
 
     LogDebugInfo("VMM Stack for logical processor : 0x%llx", VCpu->VmmStack);
 
@@ -196,14 +195,14 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     // Allocate memory for MSR Bitmap
     // Should be aligned
     //
-    VCpu->MsrBitmapVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    VCpu->MsrBitmapVirtualAddress = CrsAllocateZeroedNonPagedPool(PAGE_SIZE);
+
     if (VCpu->MsrBitmapVirtualAddress == NULL)
     {
         LogError("Err, insufficient memory in allocationg MSR Bitmaps");
         return FALSE;
     }
 
-    RtlZeroMemory(VCpu->MsrBitmapVirtualAddress, PAGE_SIZE);
     VCpu->MsrBitmapPhysicalAddress = VirtualAddressToPhysicalAddress(VCpu->MsrBitmapVirtualAddress);
 
     LogDebugInfo("MSR Bitmap virtual address  : 0x%llx", VCpu->MsrBitmapVirtualAddress);
@@ -224,14 +223,14 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (A)
     //
-    VCpu->IoBitmapVirtualAddressA = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
+    VCpu->IoBitmapVirtualAddressA = CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+
     if (VCpu->IoBitmapVirtualAddressA == NULL)
     {
         LogError("Err, insufficient memory in allocationg I/O Bitmaps A");
         return FALSE;
     }
 
-    RtlZeroMemory(VCpu->IoBitmapVirtualAddressA, PAGE_SIZE);
     VCpu->IoBitmapPhysicalAddressA = VirtualAddressToPhysicalAddress(VCpu->IoBitmapVirtualAddressA);
 
     LogDebugInfo("I/O Bitmap A Virtual Address  : 0x%llx", VCpu->IoBitmapVirtualAddressA);
@@ -240,14 +239,14 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (B)
     //
-    VCpu->IoBitmapVirtualAddressB = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
+    VCpu->IoBitmapVirtualAddressB = CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+
     if (VCpu->IoBitmapVirtualAddressB == NULL)
     {
         LogError("Err, insufficient memory in allocationg I/O Bitmaps B");
         return FALSE;
     }
 
-    RtlZeroMemory(VCpu->IoBitmapVirtualAddressB, PAGE_SIZE);
     VCpu->IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress(VCpu->IoBitmapVirtualAddressB);
 
     LogDebugInfo("I/O Bitmap B virtual address  : 0x%llx", VCpu->IoBitmapVirtualAddressB);
@@ -266,14 +265,12 @@ VmxAllocateInvalidMsrBimap()
 {
     UINT64 * InvalidMsrBitmap;
 
-    InvalidMsrBitmap = ExAllocatePoolWithTag(NonPagedPool, 0x1000 / 0x8, POOLTAG);
+    InvalidMsrBitmap = CrsAllocateZeroedNonPagedPool(0x1000 / 0x8);
 
     if (InvalidMsrBitmap == NULL)
     {
         return NULL;
     }
-
-    RtlZeroMemory(InvalidMsrBitmap, 0x1000 / 0x8);
 
     for (size_t i = 0; i < 0x1000; ++i)
     {

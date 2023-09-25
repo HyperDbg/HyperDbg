@@ -300,6 +300,182 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
+ * @brief Handling debugger functions related to user-mode/kernel-mode execution trap events
+ *
+ * @param VCpu The virtual processor's state
+ * @param IsUserMode Whether the execution event caused by a switch from kernel-to-user
+ * or otherwise user-to-kernel
+ * @param HandleState whether the state should be handled by dispatcher or not
+ *
+ * @return VOID
+ */
+VOID
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode, BOOLEAN HandleState)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      (UINT64)TargetMode,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT && HandleState)
+        {
+            //
+            // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
+            //
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
+        }
+
+        //
+        // *** Post-event doesn't make sense for this kind of event ! ***
+        //
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // user-mode/kernel-mode execution trap normally
+        //
+        if (HandleState)
+        {
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
+        }
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to memory execution trap events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventMemoryTrap(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the memory execution trap event in the case of triggering event
+            //
+            // ExecTrapHandleRestoringToNormalState(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // memory execution trap normally
+        //
+        // ExecTrapHandleRestoringToNormalState(VCpu);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to mov 2 cr3 events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventMovToCr3(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    //
+    if (g_ExecTrapInitialized)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(CONTROL_REGISTER_3_MODIFIED,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      NULL,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the mov 2 cr3 event in the case of triggering event
+            //
+            // ExecTrapHandleRestoringToNormalState(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(CONTROL_REGISTER_3_MODIFIED,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     NULL,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the
+        // mov 2 cr3 normally
+        //
+        // ExecTrapHandleRestoringToNormalState(VCpu);
+    }
+}
+
+/**
  * @brief Handling debugger functions related to IO events
  *
  * @param VCpu The virtual processor's state

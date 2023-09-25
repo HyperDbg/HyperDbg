@@ -25,7 +25,7 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
     //
     // Allocate global variable to hold Debugging(s) state
     //
-    g_DbgState = ExAllocatePoolWithTag(NonPagedPool, BufferSizeInByte, POOLTAG);
+    g_DbgState = CrsAllocateZeroedNonPagedPool(BufferSizeInByte);
 
     if (!g_DbgState)
     {
@@ -36,11 +36,6 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
         LogInfo("err, insufficient memory for allocating debugging state\n");
         return FALSE;
     }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_DbgState, BufferSizeInByte);
 
     return TRUE;
 }
@@ -53,7 +48,7 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
 VOID
 GlobalDebuggingStateFreeMemory(VOID)
 {
-    ExFreePoolWithTag(g_DbgState, POOLTAG);
+    CrsFreePool(g_DbgState);
     g_DbgState = NULL;
 }
 
@@ -70,7 +65,7 @@ GlobalEventsAllocateZeroedMemory(VOID)
     //
     if (!g_Events)
     {
-        g_Events = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_CORE_EVENTS), POOLTAG);
+        g_Events = CrsAllocateNonPagedPool(sizeof(DEBUGGER_CORE_EVENTS));
     }
 
     if (g_Events)
@@ -94,7 +89,7 @@ GlobalEventsFreeMemory(VOID)
 {
     if (g_Events != NULL)
     {
-        ExFreePoolWithTag(g_Events, POOLTAG);
+        CrsFreePool(g_Events);
         g_Events = NULL;
     }
 

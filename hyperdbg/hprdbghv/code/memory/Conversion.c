@@ -140,8 +140,6 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 
     GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
 
-    UINT64 Temp = (UINT64)PhysicalAddress;
-
     return PhysicalAddressToVirtualAddressByCr3(PhysicalAddress, GuestCr3);
 }
 

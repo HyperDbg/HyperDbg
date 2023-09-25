@@ -85,14 +85,14 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
     LogInfo("Starting kernel-test process...");
 
     //
-    // Call wrapper for ExAllocatePoolWithTag
+    // Call wrapper for ExAllocatePool2
     //
-    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,                     // Tag1 = r14
-                                                            2,                     // Tag2 = r15
-                                                            ExAllocatePoolWithTag, // Target function
-                                                            NonPagedPool,          // PoolType
-                                                            PAGE_SIZE,             // NumberOfBytes
-                                                            POOLTAG,               // Tag
+    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,               // Tag1 = r14
+                                                            2,               // Tag2 = r15
+                                                            ExAllocatePool2, // Target function
+                                                            NonPagedPool,    // PoolType
+                                                            PAGE_SIZE,       // NumberOfBytes
+                                                            POOLTAG,         // Tag
                                                             NULL);
 
     if (TempPool != NULL)
@@ -100,7 +100,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         //
         // Free the previous pool
         //
-        ExFreePoolWithTag(TempPool, POOLTAG);
+        CrsFreePool(TempPool);
     }
 
     LogInfo("All the kernel events are triggered");
@@ -131,8 +131,8 @@ TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest)
     // ------------------------------------------------------
 
     Index                    = 0;
-    InfoRequest[Index].Value = ExAllocatePoolWithTag;
-    memcpy(&InfoRequest[Index].Tag, "ExAllocatePoolWithTag", strlen("ExAllocatePoolWithTag") + 1);
+    InfoRequest[Index].Value = ExAllocatePool2;
+    memcpy(&InfoRequest[Index].Tag, "ExAllocatePool2", strlen("ExAllocatePool2") + 1);
 
     // ------------------------------------------------------
 

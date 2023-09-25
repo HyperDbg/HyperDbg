@@ -23,13 +23,12 @@ PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
     //
     // Allocate global requesting variable
     //
-    g_RequestNewAllocation = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+    g_RequestNewAllocation = CrsAllocateZeroedNonPagedPool(NumberOfBytes);
+
     if (!g_RequestNewAllocation)
     {
         return FALSE;
     }
-
-    RtlZeroMemory(g_RequestNewAllocation, NumberOfBytes);
 
     return TRUE;
 }
@@ -37,7 +36,7 @@ PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
 VOID
 PlmgrFreeRequestNewAllocation(VOID)
 {
-    ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
+    CrsFreePool(g_RequestNewAllocation);
     g_RequestNewAllocation = NULL;
 }
 
@@ -53,6 +52,13 @@ PlmgrFreeRequestNewAllocation(VOID)
 BOOLEAN
 PoolManagerInitialize()
 {
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
     //
     // Allocate global requesting variable
     //
@@ -70,8 +76,9 @@ PoolManagerInitialize()
 
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5 * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
 
     //
     // Request pages to be allocated for paged hook details
@@ -108,7 +115,6 @@ VOID
 PoolManagerUninitialize()
 {
     PLIST_ENTRY ListTemp = 0;
-    UINT64      Address  = 0;
     ListTemp             = &g_ListOfAllocatedPoolsHead;
 
     SpinlockLock(&LockForReadingPool);
@@ -127,7 +133,7 @@ PoolManagerUninitialize()
         //
         if (!PoolTable->AlreadyFreed)
         {
-            ExFreePoolWithTag(PoolTable->Address, POOLTAG);
+            CrsFreePool(PoolTable->Address);
         }
 
         //
@@ -138,7 +144,7 @@ PoolManagerUninitialize()
         //
         // Free the record itself
         //
-        ExFreePoolWithTag(PoolTable, POOLTAG);
+        CrsFreePool(PoolTable);
     }
 
     SpinlockUnlock(&LockForReadingPool);
@@ -199,7 +205,6 @@ VOID
 PoolManagerShowPreAllocatedPools()
 {
     PLIST_ENTRY ListTemp = 0;
-    UINT64      Address  = 0;
     ListTemp             = &g_ListOfAllocatedPoolsHead;
 
     while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
@@ -279,7 +284,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
     {
         POOL_TABLE * SinglePool = NULL;
 
-        SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
+        SinglePool = CrsAllocateZeroedNonPagedPool(sizeof(POOL_TABLE));
 
         if (!SinglePool)
         {
@@ -287,22 +292,18 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
             return FALSE;
         }
 
-        RtlZeroMemory(SinglePool, sizeof(POOL_TABLE));
-
         //
         // Allocate the buffer
         //
-        SinglePool->Address = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
+        SinglePool->Address = CrsAllocateZeroedNonPagedPool(Size);
 
         if (!SinglePool->Address)
         {
-            ExFreePoolWithTag(SinglePool, POOLTAG);
+            CrsFreePool(SinglePool);
 
             LogError("Err, insufficient memory");
             return FALSE;
         }
-
-        RtlZeroMemory(SinglePool->Address, Size);
 
         SinglePool->Intention     = Intention;
         SinglePool->IsBusy        = FALSE;
@@ -330,7 +331,6 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
 {
     BOOLEAN     Result   = TRUE;
     PLIST_ENTRY ListTemp = 0;
-    UINT64      Address  = 0;
 
     //
     // let's make sure we're on vmx non-root and also we have new allocation
@@ -405,7 +405,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // This item should be freed
                 //
-                ExFreePoolWithTag(PoolTable->Address, POOLTAG);
+                CrsFreePool(PoolTable->Address);
 
                 //
                 // Now we should remove the entry from the g_ListOfAllocatedPoolsHead
@@ -415,7 +415,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // Free the structure pool
                 //
-                ExFreePoolWithTag(PoolTable, POOLTAG);
+                CrsFreePool(PoolTable);
             }
         }
 

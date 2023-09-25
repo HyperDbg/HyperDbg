@@ -94,6 +94,9 @@ typedef enum _VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
 typedef enum _VMM_EVENT_TYPE_ENUM
 {
 
+    //
+    // EPT Memory Monitoring Events
+    //
     HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
     HIDDEN_HOOK_READ_AND_WRITE,
     HIDDEN_HOOK_READ_AND_EXECUTE,
@@ -102,32 +105,69 @@ typedef enum _VMM_EVENT_TYPE_ENUM
     HIDDEN_HOOK_WRITE,
     HIDDEN_HOOK_EXECUTE,
 
+    //
+    // EPT Hook Events
+    //
     HIDDEN_HOOK_EXEC_DETOURS,
     HIDDEN_HOOK_EXEC_CC,
 
+    //
+    // System-call Events
+    //
     SYSCALL_HOOK_EFER_SYSCALL,
     SYSCALL_HOOK_EFER_SYSRET,
 
+    //
+    // CPUID Instruction Execution Events
+    //
     CPUID_INSTRUCTION_EXECUTION,
 
+    //
+    // Model-Specific Registers (MSRs) Reads/Modifications Events
+    //
     RDMSR_INSTRUCTION_EXECUTION,
     WRMSR_INSTRUCTION_EXECUTION,
 
+    //
+    // PMIO Events
+    //
     IN_INSTRUCTION_EXECUTION,
     OUT_INSTRUCTION_EXECUTION,
 
+    //
+    // Interrupts/Exceptions/Faults Events
+    //
     EXCEPTION_OCCURRED,
     EXTERNAL_INTERRUPT_OCCURRED,
 
+    //
+    // Debug Registers Events
+    //
     DEBUG_REGISTERS_ACCESSED,
 
+    //
+    // Timing & Performance Events
+    //
     TSC_INSTRUCTION_EXECUTION,
     PMC_INSTRUCTION_EXECUTION,
 
+    //
+    // VMCALL Instruction Execution Events
+    //
     VMCALL_INSTRUCTION_EXECUTION,
 
+    //
+    // Control Registers Events
+    //
     CONTROL_REGISTER_MODIFIED,
     CONTROL_REGISTER_READ,
+    CONTROL_REGISTER_3_MODIFIED,
+
+    //
+    // Execution Trap Events
+    //
+    TRAP_EXECUTION_MODE_CHANGED,
+    TRAP_EXECUTION_MEMORY,
 
 } VMM_EVENT_TYPE_ENUM;
 
@@ -157,6 +197,19 @@ typedef enum _DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE
 #define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
 
 /**
+ * @brief Type of mode change traps
+ *
+ */
+typedef enum _DEBUGGER_EVENT_MODE_TYPE
+{
+    DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE = 1,
+    DEBUGGER_EVENT_MODE_TYPE_USER_MODE                 = 3,
+    DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE               = 0,
+    DEBUGGER_EVENT_MODE_TYPE_INVALID                   = 0xffffffff,
+
+} DEBUGGER_EVENT_MODE_TYPE;
+
+/**
  * @brief different types of modifing events request (enable/disable/clear)
  *
  */
@@ -177,8 +230,8 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     UINT64 Tag;          // Tag of the target event that we want to modify
     UINT64 KernelStatus; // Kerenl put the status in this field
     DEBUGGER_MODIFY_EVENTS_TYPE
-    TypeOfAction;        // Determines what's the action (enable | disable | clear)
-    BOOLEAN IsEnabled;   // Determines what's the action (enable | disable | clear)
+    TypeOfAction;      // Determines what's the action (enable | disable | clear)
+    BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
 
@@ -277,22 +330,22 @@ typedef enum _PROTECTED_HV_RESOURCES_TYPE
 typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 {
     LIST_ENTRY
-    CommandsEventList;   // Linked-list of commands list (used for tracing purpose
-                         // in user mode)
+    CommandsEventList; // Linked-list of commands list (used for tracing purpose
+                       // in user mode)
 
     time_t CreationTime; // Date of creating this event
 
-    UINT32 CoreId;       // determines the core index to apply this event to, if it's
-                         // 0xffffffff means that we have to apply it to all cores
+    UINT32 CoreId; // determines the core index to apply this event to, if it's
+                   // 0xffffffff means that we have to apply it to all cores
 
-    UINT32 ProcessId;    // determines the process id to apply this to
-                         // only that 0xffffffff means that we have to
-                         // apply it to all processes
+    UINT32 ProcessId; // determines the process id to apply this to
+                      // only that 0xffffffff means that we have to
+                      // apply it to all processes
 
     BOOLEAN IsEnabled;
 
-    BOOLEAN EnableShortCircuiting;                    // indicates whether the short-circuiting event
-                                                      // is enabled or not for this event
+    BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
+                                   // is enabled or not for this event
 
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventStage; // reveals the calling stage of the event
     // (whether it's a all- pre- or post- event)

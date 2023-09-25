@@ -43,7 +43,7 @@ SyscallHookGetKernelBase(PULONG pImageSize)
         return NULL;
     }
 
-    pSystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)ExAllocatePool(NonPagedPool, SystemInfoBufferSize * 2);
+    pSystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
 
     if (!pSystemInfoBuffer)
     {
@@ -245,7 +245,7 @@ NtCreateFileHook(
         kFileHandle               = *FileHandle;
         kObjectName.Length        = ObjectAttributes->ObjectName->Length;
         kObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
-        kObjectName.Buffer        = ExAllocatePoolWithTag(NonPagedPool, kObjectName.MaximumLength, 0xA);
+        kObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(kObjectName.MaximumLength);
         RtlCopyUnicodeString(&kObjectName, ObjectAttributes->ObjectName);
 
         ConvertStatus = RtlUnicodeStringToAnsiString(&FileNameA, ObjectAttributes->ObjectName, TRUE);
@@ -257,7 +257,7 @@ NtCreateFileHook(
 
     if (kObjectName.Buffer)
     {
-        ExFreePoolWithTag(kObjectName.Buffer, 0xA);
+        CrsFreePool(kObjectName.Buffer);
     }
 
     return NtCreateFileOrig(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
@@ -295,7 +295,14 @@ SyscallHookTest()
     //
     // THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
     //
-    if (EptHook2(ApiLocationFromSSDTOfNtCreateFile, NtCreateFileHook, PsGetCurrentProcessId(), FALSE, FALSE, FALSE, TRUE))
+    if (EptHook2(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)],
+                 ApiLocationFromSSDTOfNtCreateFile,
+                 NtCreateFileHook,
+                 PsGetCurrentProcessId(),
+                 FALSE,
+                 FALSE,
+                 FALSE,
+                 TRUE))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }

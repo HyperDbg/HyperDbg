@@ -83,6 +83,7 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR
     BOOLEAN    SetRflagsIFBitOnMtf;
     BOOLEAN    AvoidReApplyBreakpoint;
     BOOLEAN    RemoveAfterHit;
+    BOOLEAN    CheckForCallbacks;
 
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 

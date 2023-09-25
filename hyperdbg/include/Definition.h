@@ -39,12 +39,6 @@
  */
 #define KERNEL_DEBUGGER_DRIVER_NAME "hprdbgkd"
 
-/**
- * @brief name of HyperDbg's Reversing Machine driver
- *
- */
-#define KERNEL_REVERSING_MACHINE_DRIVER_NAME "hprdbgrm"
-
 //////////////////////////////////////////////////
 //				   Test Cases                   //
 //////////////////////////////////////////////////

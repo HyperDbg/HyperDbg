@@ -21,7 +21,7 @@ CommandMonitorHelp()
 {
     ShowMessages("!monitor : monitors address range for read and writes.\n\n");
 
-    ShowMessages("syntax : \t!monitor [Mode (string)] [FromAddress (hex)] "
+    ShowMessages("syntax : \t!monitor [Attribute (string)] [FromAddress (hex)] "
                  "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
@@ -59,7 +59,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     UINT64                             OptionalParam2 = 0; // Set the 'to' target address
     BOOLEAN                            SetFrom        = FALSE;
     BOOLEAN                            SetTo          = FALSE;
-    BOOLEAN                            SetMode        = FALSE;
+    BOOLEAN                            SetAttributes  = FALSE;
     vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
@@ -106,43 +106,48 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         {
             continue;
         }
-        else if (!Section.compare("r") && !SetMode)
+        else if (!Section.compare("r") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
-        else if (!Section.compare("w") && !SetMode)
+        else if (!Section.compare("w") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_WRITE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
-        else if (!Section.compare("x") && !SetMode)
+        else if (!Section.compare("x") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_EXECUTE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("rw") || !Section.compare("wr")) && !SetMode)
+        else if ((!Section.compare("rw") || !Section.compare("wr")) && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
         else if ((!Section.compare("rx") || !Section.compare("xr")) &&
-                 !SetMode)
+                 !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_EXECUTE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
         else if ((!Section.compare("wx") || !Section.compare("xw")) &&
-                 !SetMode)
+                 !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_WRITE_AND_EXECUTE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("rwx") || !Section.compare("rxw") || !Section.compare("wrx") || !Section.compare("wxr") || !Section.compare("xrw") || !Section.compare("xwr")) &&
-                 !SetMode)
+        else if ((!Section.compare("rwx") ||
+                  !Section.compare("rxw") ||
+                  !Section.compare("wrx") ||
+                  !Section.compare("wxr") ||
+                  !Section.compare("xrw") ||
+                  !Section.compare("xwr")) &&
+                 !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE;
-            SetMode          = TRUE;
+            SetAttributes    = TRUE;
         }
         else
         {
@@ -216,11 +221,11 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if user set the mode of !monitor or not
+    // Check if user set the attributes of !monitor or not
     //
-    if (!SetMode)
+    if (!SetAttributes)
     {
-        ShowMessages("please specify the attribute(s) that you want to monitor (r, w, rw)\n");
+        ShowMessages("please specify the attribute(s) that you want to monitor (r, w, x, rw, rx, wx, rwx)\n");
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;

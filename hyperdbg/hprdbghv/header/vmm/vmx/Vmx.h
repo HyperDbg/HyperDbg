@@ -399,3 +399,9 @@ VmxCompatibleStrlen(const CHAR * S);
 
 UINT32
 VmxCompatibleWcslen(const wchar_t * S);
+
+INT32
+VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
+
+INT32
+VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);

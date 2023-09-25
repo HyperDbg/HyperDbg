@@ -142,6 +142,15 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
     //
     if (MemType == DEBUGGER_READ_PHYSICAL_ADDRESS)
     {
+        //
+        // Check whether the physical memory is valid or not
+        //
+        if (!CheckAddressPhysical(Address, Size))
+        {
+            ReadMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+
         MemoryMapperReadMemorySafeByPhysicalAddress(Address, UserBuffer, Size);
     }
     else if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
@@ -1122,7 +1131,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // We support up to MaximumSearchResults search results
     //
-    SearchResultsStorage = ExAllocatePoolWithTag(NonPagedPool, MaximumSearchResults * sizeof(UINT64), POOLTAG);
+    SearchResultsStorage = CrsAllocateZeroedNonPagedPool(MaximumSearchResults * sizeof(UINT64));
 
     if (SearchResultsStorage == NULL)
     {
@@ -1131,11 +1140,6 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
         //
         return STATUS_INSUFFICIENT_RESOURCES;
     }
-
-    //
-    // Make sure there is nothing else in the buffer
-    //
-    RtlZeroMemory(SearchResultsStorage, MaximumSearchResults * sizeof(UINT64));
 
     //
     // Call the wrapper
@@ -1183,7 +1187,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Free the results pool
     //
-    ExFreePoolWithTag(SearchResultsStorage, POOLTAG);
+    CrsFreePool(SearchResultsStorage);
 
     return STATUS_SUCCESS;
 }

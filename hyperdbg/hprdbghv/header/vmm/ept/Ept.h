@@ -25,32 +25,6 @@
 #define PAGE_ATTRIB_EXEC_HIDDEN_HOOK 0x10
 
 /**
- * @brief The number of 512GB PML4 entries in the page table
- *
- */
-#define VMM_EPT_PML4E_COUNT 512
-
-/**
- * @brief The number of 1GB PDPT entries in the page table per 512GB PML4 entry
- *
- */
-#define VMM_EPT_PML3E_COUNT 512
-
-/**
- * @brief Then number of 2MB Page Directory entries in the page table per 1GB
- *  PML3 entry
- *
- */
-#define VMM_EPT_PML2E_COUNT 512
-
-/**
- * @brief Then number of 4096 byte Page Table entries in the page table per 2MB PML2
- * entry when dynamically split
- *
- */
-#define VMM_EPT_PML1E_COUNT 512
-
-/**
  * @brief Integer 2MB
  *
  */
@@ -87,46 +61,8 @@
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
 //////////////////////////////////////////////////
-//	    			Variables 	 	            //
-//////////////////////////////////////////////////
-
-/**
- * @brief Vmx-root lock for changing EPT PML1 Entry and Invalidating TLB
- *
- */
-volatile LONG Pml1ModificationAndInvalidationLock;
-
-//////////////////////////////////////////////////
 //			     Structs Cont.                	//
 //////////////////////////////////////////////////
-
-/**
- * @brief Structure for saving EPT Table
- *
- */
-typedef struct _VMM_EPT_PAGE_TABLE
-{
-    /**
-     * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
-     */
-    DECLSPEC_ALIGN(PAGE_SIZE)
-    EPT_PML4_POINTER PML4[VMM_EPT_PML4E_COUNT];
-
-    /**
-     * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
-     */
-    DECLSPEC_ALIGN(PAGE_SIZE)
-    EPT_PML3_POINTER PML3[VMM_EPT_PML3E_COUNT];
-
-    /**
-     * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
-     * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
-     * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
-     */
-    DECLSPEC_ALIGN(PAGE_SIZE)
-    EPT_PML2_ENTRY PML2[VMM_EPT_PML3E_COUNT][VMM_EPT_PML2E_COUNT];
-
-} VMM_EPT_PAGE_TABLE, *PVMM_EPT_PAGE_TABLE;
 
 /**
  * @brief MTRR Range Descriptor
@@ -134,28 +70,35 @@ typedef struct _VMM_EPT_PAGE_TABLE
  */
 typedef struct _MTRR_RANGE_DESCRIPTOR
 {
-    SIZE_T PhysicalBaseAddress;
-    SIZE_T PhysicalEndAddress;
-    UCHAR  MemoryType;
+    SIZE_T  PhysicalBaseAddress;
+    SIZE_T  PhysicalEndAddress;
+    UCHAR   MemoryType;
+    BOOLEAN FixedRange;
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
+
+/**
+ * @brief Maximum range of MTRR descriptors
+ *
+ */
+#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 100
 
 /**
  * @brief Main structure for saving the state of EPT among the project
  *
  */
-#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
 typedef struct _EPT_STATE
 {
     LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
     MTRR_RANGE_DESCRIPTOR MemoryRanges[EPT_MTRR_RANGE_DESCRIPTOR_MAX]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
     ULONG                 NumberOfEnabledMemoryRanges;                 // Number of memory ranges specified in MemoryRanges
     PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
-    PVMM_EPT_PAGE_TABLE   ModeBasedEptPageTable;                       // Page table entries for hooks based on mode-based execution control bits
+    PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;           // Page table entries for hooks based on user-mode disabled mode-based execution control bits
+    PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable;         // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
     PVMM_EPT_PAGE_TABLE   ExecuteOnlyEptPageTable;                     // Page table entries for execute-only control bits
-    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
-    EPT_POINTER           ModeBasedEptPointer;                         // Extended-Page-Table Pointer for Mode-based execution
+    EPT_POINTER           ModeBasedUserDisabledEptPointer;             // Extended-Page-Table Pointer for user-disabled mode-based execution
+    EPT_POINTER           ModeBasedKernelDisabledEptPointer;           // Extended-Page-Table Pointer for kernel-disabled mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
-
+    UINT8                 DefaultMemoryType;
 } EPT_STATE, *PEPT_STATE;
 
 /**
@@ -198,7 +141,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 //
 
 static VOID
-EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
+EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
 
 static BOOLEAN
 EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
@@ -317,7 +260,8 @@ EptHandleMisconfiguration();
  * @return VOID
  */
 VOID
-EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
+EptSetPML1AndInvalidateTLB(_Inout_ VIRTUAL_MACHINE_STATE *      VCpu,
+                           _Out_ PEPT_PML1_ENTRY                EntryAddress,
                            _In_ EPT_PML1_ENTRY                  EntryValue,
                            _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
 
