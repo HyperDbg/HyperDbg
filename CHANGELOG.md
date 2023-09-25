@@ -4,11 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0.0] - 2023-XX-XX
+## [0.7.0.0] - 2023-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+
+### Changed
+
+## [0.6.0.0-beta] - 2023-09-25
+New release of the HyperDbg Debugger.
+
+### Added
 - **event_inject(InterruptionType, Vector)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject))
 - **event_inject_error_code(InterruptionType, Vector, ErrorCode)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject_error_code))
 - **.dump** - command is added to the debugger to dump the virtual memory into a file ([link](https://docs.hyperdbg.org/commands/meta-commands/.dump))

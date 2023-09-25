@@ -168,6 +168,11 @@ const unsigned char CompleteVersion[] = {
     VERSION_MINOR_INIT,
     '.',
     VERSION_PATCH_INIT,
+    '-',
+    'B',
+    'e',
+    't',
+    'a',
     '\0'};
 
 const unsigned char BuildVersion[] = {
