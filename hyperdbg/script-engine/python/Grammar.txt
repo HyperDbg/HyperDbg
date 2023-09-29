@@ -1,5 +1,5 @@
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code
+.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code memcmp
 
 
 # TwoOpFunc1 inputs are two numbers and returns a number.

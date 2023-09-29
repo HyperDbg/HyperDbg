@@ -405,3 +405,6 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 
 INT32
 VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+
+INT32
+VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
