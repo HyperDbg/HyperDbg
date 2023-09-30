@@ -191,6 +191,9 @@ VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
 
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
+
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
 //////////////////////////////////////////////////

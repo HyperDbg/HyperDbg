@@ -1562,3 +1562,26 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 
     return Result;
 }
+
+/**
+ * @brief Implementation of memcmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @parem Count
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t Count)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = memcmp(Address1, Address2, Count);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleMemcmp(Address1, Address2, Count);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
