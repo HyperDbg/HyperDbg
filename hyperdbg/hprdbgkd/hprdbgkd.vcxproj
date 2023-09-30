@@ -120,6 +120,7 @@
     <ClCompile Include="code\debugger\core\Debugger.c" />
     <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
     <ClCompile Include="code\debugger\core\DebuggerVmcalls.c" />
+    <ClCompile Include="code\debugger\core\HaltedCore.c" />
     <ClCompile Include="code\debugger\core\Termination.c" />
     <ClCompile Include="code\debugger\kernel-level\Kd.c" />
     <ClCompile Include="code\debugger\memory\Allocations.c" />
@@ -154,6 +155,7 @@
     <ClInclude Include="header\debugger\core\Debugger.h" />
     <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
     <ClInclude Include="header\debugger\core\DebuggerVmcalls.h" />
+    <ClInclude Include="header\debugger\core\HaltedCore.h" />
     <ClInclude Include="header\debugger\core\State.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />

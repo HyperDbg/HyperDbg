@@ -331,6 +331,27 @@ CommandTestQueryPreAllocPoolsState()
 }
 
 /**
+ * @brief test command for setting target tasks to halted cores
+ *
+ * @return VOID
+ */
+VOID
+CommandTestSetTargetTaskToHaltedCores()
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the target tasks to the halted cores
+    //
+    KdSendTestQueryPacketToDebuggee(TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES);
+}
+
+/**
  * @brief test command for turning on/off the breakpoints
  * @param State
  * @return VOID
@@ -395,6 +416,13 @@ CommandTest(vector<string> SplittedCommand, string Command)
         // Query the state of pre-allocated pools in debugger mode
         //
         CommandTestQueryPreAllocPoolsState();
+    }
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("task"))
+    {
+        //
+        // Send target task to the halted cores in debugger mode
+        //
+        CommandTestSetTargetTaskToHaltedCores();
     }
     else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("breakpoint"))
     {
