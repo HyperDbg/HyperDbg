@@ -316,10 +316,6 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
                      GetLastError());
         CloseHandle(PipeHandle);
 
-        //
-        // Error
-        //
-        CloseHandle(PipeHandle);
         return FALSE;
     }
     else
