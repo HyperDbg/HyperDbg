@@ -653,7 +653,7 @@ IsEmptyString(char * Text)
     Len = strlen(Text);
     for (size_t i = 0; i < Len; i++)
     {
-        if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != ' \n')
+        if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != '\n')
         {
             return FALSE;
         }
