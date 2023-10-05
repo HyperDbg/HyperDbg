@@ -175,9 +175,9 @@ HyperDbgInterpreter(char * Command)
             //
             // Disable the breakpoints and events while executing the command in the remote computer
             //
-            KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
+            KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
             KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, FALSE);
-            KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
+            KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
         }
 
         //
