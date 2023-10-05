@@ -271,8 +271,8 @@ typedef enum _DEBUGGER_TEST_QUERY_STATE
     TEST_QUERY_TRAP_STATE                                                   = 3, // Query trap state
     TEST_BREAKPOINT_TURN_OFF_BPS                                            = 4, // Turn off the breakpoints
     TEST_BREAKPOINT_TURN_ON_BPS                                             = 5, // Turn on the breakpoints
-    TEST_BREAKPOINT_TURN_OFF_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER = 6, // Turn off the breakpoints and events for executing the commands in the remote computer
-    TEST_BREAKPOINT_TURN_ON_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER  = 7, // Turn on the breakpoints and events for executing the commands in the remote computer
+    TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER = 6, // Turn off the breakpoints and events for executing the commands in the remote computer
+    TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER  = 7, // Turn on the breakpoints and events for executing the commands in the remote computer
 } DEBUGGER_TEST_QUERY_STATE;
 
 /**

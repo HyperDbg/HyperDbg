@@ -179,9 +179,9 @@ UINT64 g_KernelTestR12;
 BOOLEAN g_IsWaitingForUserModeProcessEntryToBeCalled;
 
 /**
-* @brief To avoid getting stuck from getting hit from the breakpoints while executing
-* the commands in the remote computer, for example, bp NtQuerySystemInformation and lm,
-* the debugger should intercept the breakponts and events.
-*
-*/
+ * @brief To avoid getting stuck from getting hit from the breakpoints while executing
+ * the commands in the remote computer, for example, bp NtQuerySystemInformation and lm,
+ * the debugger should intercept the breakponts and events.
+ *
+ */
 BOOLEAN g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer;

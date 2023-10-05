@@ -2215,7 +2215,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
-                case TEST_BREAKPOINT_TURN_OFF_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+                case TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
 
                     //
                     // Turn off the breakpoints and events interception before executing the commands in the remote computer
@@ -2226,7 +2226,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                     break;
 
-                case TEST_BREAKPOINT_TURN_ON_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+                case TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
 
                     //
                     // Turn on the breakpoints and events interception after finishing the commands in the remote computer
