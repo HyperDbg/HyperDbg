@@ -702,7 +702,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Check if triggering debugging actions are allowed or not
     //
-    if (!g_EnableDebuggerEvents)
+    if (!g_EnableDebuggerEvents || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
     {
         //
         // Debugger is not enabled

@@ -2207,9 +2207,31 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 case TEST_BREAKPOINT_TURN_ON_BPS:
 
                     //
-                    // Turn off the breakpoint interception
+                    // Turn on the breakpoint interception
                     //
                     g_InterceptBreakpoints = FALSE;
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_OFF_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+                    //
+                    // Turn off the breakpoints and events interception before executing the commands in the remote computer
+                    //
+                    g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = TRUE;
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_ON_BPS_ANS_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+                    //
+                    // Turn on the breakpoints and events interception after finishing the commands in the remote computer
+                    //
+                    g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = FALSE;
 
                     TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 

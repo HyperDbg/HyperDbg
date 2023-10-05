@@ -538,7 +538,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 //
                 // Check if we need to handle the breakpoint by user or just ignore handling it
                 //
-                if (!IgnoreUserHandling && !g_InterceptBreakpoints)
+                if (!IgnoreUserHandling && !g_InterceptBreakpoints && !g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
                 {
                     //
                     // *** It's not safe to access CurrentBreakpointDesc anymore as the
@@ -659,7 +659,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
             // , we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
             //
 
-            if (g_InterceptBreakpoints)
+            if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
             {
                 //
                 // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
