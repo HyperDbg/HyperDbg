@@ -852,6 +852,16 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
             //
             // Check for the module name
             //
+            if (strcmp((const char *)item->ModuleName, ExtractedModuleName.c_str()) == 0)
+            {
+                string ModuleName(item->ModuleName);
+                FinalModuleName = ModuleName + "!" + FunctionName;
+                break;
+            }
+
+            //
+            // Check for the alternative module name
+            //
             if (strcmp((const char *)item->ModuleAlternativeName, ExtractedModuleName.c_str()) == 0)
             {
                 //
