@@ -902,7 +902,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 > SrcVal0;
+        DesVal = (INT64)SrcVal1 > (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -928,7 +928,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 < SrcVal0;
+        DesVal = (INT64)SrcVal1 < (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -954,7 +954,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 >= SrcVal0;
+        DesVal = (INT64)SrcVal1 >= (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -981,7 +981,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 <= SrcVal0;
+        DesVal = (INT64)SrcVal1 <= (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
