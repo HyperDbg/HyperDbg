@@ -222,6 +222,9 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
       <Filter>code\components\optimizations</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\core\HaltedCore.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -328,6 +331,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
       <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\HaltedCore.h">
+      <Filter>header\debugger\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

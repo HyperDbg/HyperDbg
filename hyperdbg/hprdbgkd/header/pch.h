@@ -111,6 +111,7 @@
 #include "header/debugger/user-level/ThreadHolder.h"
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/core/DebuggerVmcalls.h"
+#include "header/debugger/core/HaltedCore.h"
 
 //
 // DPC Headers

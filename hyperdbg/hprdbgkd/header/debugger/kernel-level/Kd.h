@@ -227,6 +227,9 @@ KdIsGuestOnUsermode32Bit();
 VOID
 KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
 
+VOID
+KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
+
 BOOLEAN
 KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,
                                                           DEBUGGER_THREAD_PROCESS_TRACING TracingType);

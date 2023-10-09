@@ -1277,7 +1277,6 @@ KdHandleNmi(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Test
     //
-
     // LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
 
     //
@@ -1619,6 +1618,19 @@ KdQuerySystemState()
             LogInfo("Core : %d - not called from an NMI handler (through the immediate VM-exit mechanism)", i);
         }
     }
+}
+
+/**
+ * @brief unlock the target core
+ *
+ * @param DbgState The state of the debugger on the current core
+ *
+ * @return VOID
+ */
+VOID
+KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    SpinlockUnlock(&DbgState->Lock);
 }
 
 /**
@@ -2188,6 +2200,17 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     // Query state of pre-allocated pools
                     //
                     PoolManagerShowPreAllocatedPools();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+                    break;
+
+                case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES:
+
+                    //
+                    // Send request for the target task to the halted cores
+                    //
+                    HaltedCoreBroadcasTaskToAllCores(DbgState, 0x55, TRUE);
 
                     TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -2903,6 +2926,7 @@ StartAgain:
 
         ScopedSpinlock(
             DbgState->Lock,
+
             //
             // Check if it's a change core event or not
             //
@@ -2916,6 +2940,36 @@ StartAgain:
             }
 
         );
+
+        //
+        // Check if any task needs to be executed on this core or not
+        //
+        if (DbgState->HaltedCoreTask.PerformHaltedTask)
+        {
+            //
+            // Indicate that the halted core is no longer needed to execute a task
+            // as the current task is executed once
+            //
+            DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
+
+            //
+            // Perform the target task
+            //
+            HaltedCorePerformTargetTask(DbgState, DbgState->HaltedCoreTask.TargetTask);
+
+            //
+            // Check if the core needs to be locked again
+            //
+            if (DbgState->HaltedCoreTask.LockAgainAfterTask)
+            {
+                //
+                // Lock again
+                //
+                SpinlockLock(&DbgState->Lock);
+
+                goto StartAgain;
+            }
+        }
     }
 
     //
