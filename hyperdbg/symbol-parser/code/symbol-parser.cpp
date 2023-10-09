@@ -1099,7 +1099,7 @@ SymSearchSymbolForMask(const char * SearchMask)
     Ret = SymEnumSymbols(
         GetCurrentProcess(),           // Process handle of the current process
         SymbolInfo->ModuleBase,        // Base address of the module
-        SearchMask,                    // Mask (NULL -> all symbols)
+        NULL,                          // Mask (NULL -> all symbols)
         SymDisplayMaskSymbolsCallback, // The callback function
         NULL                           // A used-defined context can be passed here, if necessary
     );

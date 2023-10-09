@@ -11,6 +11,10 @@ New release of the HyperDbg Debugger.
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
 ### Changed
+- Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
+- Fix the problem checking for alternative name thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/276))
+- Fix the crash on turning off the breakpoints while a breakpoint is still active thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/273))
+- Fix the crash on reading symbols on remote debuggee thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/274))
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.

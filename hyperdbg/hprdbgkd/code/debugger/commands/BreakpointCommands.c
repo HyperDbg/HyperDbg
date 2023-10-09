@@ -655,8 +655,8 @@ BreakpointHandleBpTraps(UINT32 CoreId)
                                                                 FALSE))
         {
             //
-            // To avoid the computer crash situation from the Hyperdbg's breakpoint hitting while the interception is on
-            // , we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+            // To avoid the computer crash situation from the HyperDbg's breakpoint hitting while the interception is on
+            // we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
             //
 
             if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
