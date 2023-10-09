@@ -538,7 +538,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 //
                 // Check if we need to handle the breakpoint by user or just ignore handling it
                 //
-                if (!IgnoreUserHandling)
+                if (!IgnoreUserHandling && !g_InterceptBreakpoints && !g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
                 {
                     //
                     // *** It's not safe to access CurrentBreakpointDesc anymore as the
@@ -634,7 +634,7 @@ BreakpointHandleBpTraps(UINT32 CoreId)
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
     //
 
-    if (g_KernelDebuggerState && !g_InterceptBreakpoints)
+    if (g_KernelDebuggerState)
     {
         //
         // Kernel debugger is attached, let's halt everything
@@ -654,6 +654,19 @@ BreakpointHandleBpTraps(UINT32 CoreId)
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
                                                                 FALSE))
         {
+            //
+            // To avoid the computer crash situation from the Hyperdbg's breakpoint hitting while the interception is on
+            // , we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+            //
+
+            if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
+            {
+                //
+                // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
+                //
+                return FALSE;
+            }
+
             //
             // It's a random breakpoint byte
             //
