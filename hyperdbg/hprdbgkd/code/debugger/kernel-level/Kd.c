@@ -1591,7 +1591,7 @@ KdQuerySystemState()
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        if (g_DbgState[i].Lock)
+        if (SpinlockCheckLock(&g_DbgState[i].Lock))
         {
             LogInfo("Core : %d is locked", i);
         }
@@ -1623,7 +1623,7 @@ KdQuerySystemState()
 /**
  * @brief unlock the target core
  *
- * @param DbgState The state of the debugger on the current core
+ * @param DbgState The state of the debugger on the target core
  *
  * @return VOID
  */
@@ -1631,6 +1631,19 @@ VOID
 KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     SpinlockUnlock(&DbgState->Lock);
+}
+
+/**
+ * @brief check the lock state of the target core
+ *
+ * @param DbgState The state of the debugger on the target core
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    return SpinlockCheckLock(&DbgState->Lock);
 }
 
 /**
@@ -1677,6 +1690,126 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
         PageinRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         return TRUE;
+    }
+}
+
+/**
+ * @brief Perform the test packet's operation
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param TestQueryPacket test packet request
+ *
+ * @return VOID
+ */
+VOID
+KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
+                                DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER * TestQueryPacket)
+{
+    //
+    // Dispatch the request
+    //
+    switch (TestQueryPacket->RequestType)
+    {
+    case TEST_QUERY_HALTING_CORE_STATUS:
+
+        //
+        // Query state of the system
+        //
+        KdQuerySystemState();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_QUERY_TRAP_STATE:
+
+        //
+        // Query state of the trap
+        //
+        KdQueryRflagTrapState();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_QUERY_PREALLOCATED_POOL_STATE:
+
+        //
+        // Query state of pre-allocated pools
+        //
+        PoolManagerShowPreAllocatedPools();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS:
+    case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_ASYNCHRONOUS:
+
+        //
+        // Send request for the target task to the halted cores (synchronized and unsynchronized)
+        //
+        HaltedCoreBroadcastTaskToAllCores(DbgState,
+                                          0x55,
+                                          TRUE,
+                                          TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE);
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_OFF_BPS:
+
+        //
+        // Turn off the breakpoint interception
+        //
+        g_InterceptBreakpoints = TRUE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_ON_BPS:
+
+        //
+        // Turn on the breakpoint interception
+        //
+        g_InterceptBreakpoints = FALSE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+        //
+        // Turn off the breakpoints and events interception before executing the commands in the remote computer
+        //
+        g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = TRUE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+        //
+        // Turn on the breakpoints and events interception after finishing the commands in the remote computer
+        //
+        g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = FALSE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    default:
+
+        //
+        // Query index not found
+        //
+        TestQueryPacket->KernelStatus = DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED;
+
+        break;
     }
 }
 
@@ -2168,107 +2301,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Dispatch the request
+                // Perform the test packet operation
                 //
-                switch (TestQueryPacket->RequestType)
-                {
-                case TEST_QUERY_HALTING_CORE_STATUS:
-
-                    //
-                    // Query state of the system
-                    //
-                    KdQuerySystemState();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_QUERY_TRAP_STATE:
-
-                    //
-                    // Query state of the trap
-                    //
-                    KdQueryRflagTrapState();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_QUERY_PREALLOCATED_POOL_STATE:
-
-                    //
-                    // Query state of pre-allocated pools
-                    //
-                    PoolManagerShowPreAllocatedPools();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES:
-
-                    //
-                    // Send request for the target task to the halted cores
-                    //
-                    HaltedCoreBroadcasTaskToAllCores(DbgState, 0x55, TRUE);
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_OFF_BPS:
-
-                    //
-                    // Turn off the breakpoint interception
-                    //
-                    g_InterceptBreakpoints = TRUE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_ON_BPS:
-
-                    //
-                    // Turn on the breakpoint interception
-                    //
-                    g_InterceptBreakpoints = FALSE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
-
-                    //
-                    // Turn off the breakpoints and events interception before executing the commands in the remote computer
-                    //
-                    g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = TRUE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
-
-                    //
-                    // Turn on the breakpoints and events interception after finishing the commands in the remote computer
-                    //
-                    g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = FALSE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                default:
-
-                    //
-                    // Query index not found
-                    //
-                    TestQueryPacket->KernelStatus = DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED;
-
-                    break;
-                }
+                KdPerformTheTestPacketOperation(DbgState, TestQueryPacket);
 
                 //
                 // Send the result of query system state to the debuggee

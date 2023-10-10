@@ -391,6 +391,13 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE:
+        ShowMessages("err, you cannot specify process id while the debugger is paused in the debugger mode. "
+                     "You can use the '.process' or the '.thread' command to switch to the target process's "
+                     "memory layout (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

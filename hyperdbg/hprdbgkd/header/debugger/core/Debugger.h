@@ -220,10 +220,13 @@ BOOLEAN
 DebuggerQueryDebuggerStatus();
 
 BOOLEAN
-DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode);
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+                   UINT32                                BufferLength,
+                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode);
+DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn);
 
 BOOLEAN
 DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest);

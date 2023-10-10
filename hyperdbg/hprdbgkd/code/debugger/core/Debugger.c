@@ -2105,33 +2105,28 @@ DebuggerRemoveEvent(UINT64 Tag)
 }
 
 /**
- * @brief Routine for validating and parsing events
- * that came from user-mode
+ * @brief validating events
  *
  * @param EventDetails The structure that describes event that came
- * from the user-mode
+ * from the user-mode or VMX-root mode
  * @param BufferLength Length of the buffer
- * @param ResultsToReturnUsermode Result buffer that should be returned to
+ * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN TRUE if the event was valid an regisered without error,
  * otherwise returns FALSE
  */
 BOOLEAN
-DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
+DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+                      UINT32                                BufferLength,
+                      PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                      BOOLEAN                               InputFromVmxRoot)
 {
-    PDEBUGGER_EVENT Event;
-    UINT64          PagesBytes;
-    UINT32          TempPid;
-    UINT32          ProcessorCount;
-    BOOLEAN         ResultOfApplyingEvent = FALSE;
+    UINT32 ProcessorCount;
+    UINT32 TempPid;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // ----------------------------------------------------------------------------------
-    // ***                     Validating the Event's parameters                      ***
-    // ----------------------------------------------------------------------------------
-    //
 
     //
     // Check whether the event mode (calling stage)  to see whether
@@ -2143,8 +2138,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
          EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION) &&
         EventDetails->EnableShortCircuiting == TRUE)
     {
-        ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
         return FALSE;
     }
 
@@ -2163,8 +2158,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // CoreId is invalid (Set the error)
             //
 
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_CORE_ID;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_CORE_ID;
             return FALSE;
         }
     }
@@ -2176,13 +2171,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     if (EventDetails->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && EventDetails->ProcessId != 0)
     {
         //
-        // The used specified a special pid, let's check if it's valid or not
+        // Here we prefer not to validate the process id, if it's applied from VMX-root mode
         //
-        if (!CommonIsProcessExist(EventDetails->ProcessId))
+        if (!InputFromVmxRoot)
         {
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_PROCESS_ID;
-            return FALSE;
+            //
+            // The used specified a special pid, let's check if it's valid or not
+            //
+            if (!CommonIsProcessExist(EventDetails->ProcessId))
+            {
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+                return FALSE;
+            }
         }
     }
 
@@ -2199,8 +2200,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // more than 32 indexes we should use pin-based external interrupt
             // exiting which is completely different
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
     }
@@ -2215,8 +2216,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // The IDT Entry is either invalid or is not in the range
             // of the pin-based external interrupt exiting controls
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
             return FALSE;
         }
     }
@@ -2232,8 +2233,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // The execution mode is not correctly applied
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID;
             return FALSE;
         }
     }
@@ -2243,20 +2244,54 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // First check if the address are valid
         //
         TempPid = EventDetails->ProcessId;
+
         if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
         {
             TempPid = PsGetCurrentProcessId();
         }
 
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
+        //
+        // Check if input is coming from VMX-root or not
+        // If it's coming from VMX-root, then as switching
+        // to another process is not possible, we'll return
+        // an error
+        //
+        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
         {
-            //
-            // Address is invalid (Set the error)
-            //
-
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
             return FALSE;
+        }
+
+        //
+        // Check whether address is valid or not based on whether the event needs
+        // to be applied directly from VMX-root mode or not
+        //
+        if (InputFromVmxRoot)
+        {
+            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL)
+            {
+                //
+                // Address is invalid (Set the error)
+                //
+
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
+        }
+        else
+        {
+            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
+            {
+                //
+                // Address is invalid (Set the error)
+                //
+
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
         }
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE ||
@@ -2276,15 +2311,50 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             TempPid = PsGetCurrentProcessId();
         }
 
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL || VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
+        //
+        // Check if input is coming from VMX-root or not
+        // If it's coming from VMX-root, then as switching
+        // to another process is not possible, we'll return
+        // an error
+        //
+        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
         {
-            //
-            // Address is invalid (Set the error)
-            //
-
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
             return FALSE;
+        }
+
+        //
+        // Check whether address is valid or not based on whether the event needs
+        // to be applied directly from VMX-root mode or not
+        //
+        if (InputFromVmxRoot)
+        {
+            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL ||
+                VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam2) == NULL)
+            {
+                //
+                // Address is invalid (Set the error)
+                //
+
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
+        }
+        else
+        {
+            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL ||
+                VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
+            {
+                //
+                // Address is invalid (Set the error)
+                //
+
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
         }
 
         //
@@ -2292,15 +2362,61 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
         {
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
     }
 
     //
+    // As we reached, all the checks are passed and it means the event is valid
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Routine for parsing events
+ *
+ * @param EventDetails The structure that describes event that came
+ * from the user-mode
+ * @param BufferLength Length of the buffer
+ * @param ResultsToReturn Result buffer that should be returned to
+ * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return BOOLEAN TRUE if the event was valid an regisered without error,
+ * otherwise returns FALSE
+ */
+BOOLEAN
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+                   UINT32                                BufferLength,
+                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   BOOLEAN                               InputFromVmxRoot)
+{
+    PDEBUGGER_EVENT Event;
+    UINT64          PagesBytes;
+    BOOLEAN         ResultOfApplyingEvent = FALSE;
+
+    //
     // ----------------------------------------------------------------------------------
-    // Create Event
+    // ***                     Validating the Event's parameters                      ***
+    // ----------------------------------------------------------------------------------
+    //
+
+    //
+    // Validate the event parameters
+    //
+    if (!DebuggerValidateEvent(EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    {
+        //
+        // Input event is not valid
+        //
+        return FALSE;
+    }
+
+    //
+    // ----------------------------------------------------------------------------------
+    // ***                                Create Event                                ***
     // ----------------------------------------------------------------------------------
     //
 
@@ -2347,8 +2463,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Set the error
         //
-        ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
         return FALSE;
     }
 
@@ -2359,7 +2475,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
     //
     // ----------------------------------------------------------------------------------
-    // Apply & Enable Event
+    // ***                            Apply & Enable Event                            ***
     // ----------------------------------------------------------------------------------
     //
 
@@ -2447,8 +2563,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             default:
                 LogError("Err, Invalid monitor hook type");
 
-                ResultsToReturnUsermode->IsSuccessful = FALSE;
-                ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
 
                 goto ClearTheEventAfterCreatingEvent;
 
@@ -2500,8 +2616,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         if (!ResultOfApplyingEvent)
         {
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
 
             goto ClearTheEventAfterCreatingEvent;
         }
@@ -2528,8 +2644,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // There was an error applying this event, so we're setting
             // the event
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2561,8 +2677,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // There was an error applying this event, so we're setting
             // the event
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -3011,8 +3127,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Set the error
         //
-        ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
         goto ClearTheEventAfterCreatingEvent;
 
         break;
@@ -3046,8 +3162,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Set the status
     //
-    ResultsToReturnUsermode->IsSuccessful = TRUE;
-    ResultsToReturnUsermode->Error        = 0;
+    ResultsToReturn->IsSuccessful = TRUE;
+    ResultsToReturn->Error        = 0;
 
     //
     // Event was applied successfully
@@ -3075,13 +3191,13 @@ ClearTheEventAfterCreatingEvent:
  * @param Action Structure that describes the action that comes from the
  * user-mode
  * @param BufferLength Length of the buffer that comes from user-mode
- * @param ResultsToReturnUsermode The buffer address that should be returned
+ * @param ResultsToReturn The buffer address that should be returned
  * to the user-mode as the result
  * @return BOOLEAN if action was parsed and added successfully, return TRUE
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
+DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn)
 {
     //
     // Check if Tag is valid or not
@@ -3093,8 +3209,8 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Set the appropriate error
         //
-        ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_TAG_NOT_EXISTS;
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_TAG_NOT_EXISTS;
 
         //
         // Show that the
@@ -3112,8 +3228,8 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
             //
             // Set the appropriate error
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -3150,8 +3266,8 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
             //
             // Set the appropriate error
             //
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -3192,8 +3308,8 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Set the appropriate error
         //
-        ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         //
         // Show that the
@@ -3201,8 +3317,8 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         return FALSE;
     }
 
-    ResultsToReturnUsermode->IsSuccessful = TRUE;
-    ResultsToReturnUsermode->Error        = 0;
+    ResultsToReturn->IsSuccessful = TRUE;
+    ResultsToReturn->Error        = 0;
 
     return TRUE;
 }

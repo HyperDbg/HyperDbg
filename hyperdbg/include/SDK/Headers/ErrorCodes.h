@@ -422,6 +422,12 @@
  */
 #define DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID 0xc000003f
 
+/**
+ * @brief error, the process id cannot be specified while the debugger is in VMX-root mode
+ *
+ */
+#define DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE 0xc0000040
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

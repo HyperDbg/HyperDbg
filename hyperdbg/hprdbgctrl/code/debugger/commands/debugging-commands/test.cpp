@@ -332,11 +332,12 @@ CommandTestQueryPreAllocPoolsState()
 
 /**
  * @brief test command for setting target tasks to halted cores
+ * @param Synchronous
  *
  * @return VOID
  */
 VOID
-CommandTestSetTargetTaskToHaltedCores()
+CommandTestSetTargetTaskToHaltedCores(BOOLEAN Synchronous)
 {
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -348,7 +349,7 @@ CommandTestSetTargetTaskToHaltedCores()
     //
     // Send the target tasks to the halted cores
     //
-    KdSendTestQueryPacketToDebuggee(TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES);
+    KdSendTestQueryPacketToDebuggee(Synchronous ? TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS : TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_ASYNCHRONOUS);
 }
 
 /**
@@ -417,12 +418,19 @@ CommandTest(vector<string> SplittedCommand, string Command)
         //
         CommandTestQueryPreAllocPoolsState();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("task"))
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("sync-task"))
     {
         //
-        // Send target task to the halted cores in debugger mode
+        // Send target task to the halted cores in debugger mode (synchronous)
         //
-        CommandTestSetTargetTaskToHaltedCores();
+        CommandTestSetTargetTaskToHaltedCores(TRUE);
+    }
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("async-task"))
+    {
+        //
+        // Send target task to the halted cores in debugger mode (asynchronous)
+        //
+        CommandTestSetTargetTaskToHaltedCores(FALSE);
     }
     else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("breakpoint"))
     {

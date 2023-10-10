@@ -38,17 +38,30 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
  * @param DbgState The state of the debugger on the current core
  * @param TargetTask The target task
  * @param LockAgainAfterTask Lock the core after the task
+ * @param Synchronize Whether the function should wait for all cores to synchronize
+ * and lock again or not
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-HaltedCoreBroadcasTaskToAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                 UINT32                      TargetTask,
-                                 BOOLEAN                     LockAgainAfterTask)
+BOOLEAN
+HaltedCoreBroadcastTaskToAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                  UINT32                      TargetTask,
+                                  BOOLEAN                     LockAgainAfterTask,
+                                  BOOLEAN                     Synchronize)
 {
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Synchronization is not possible when the locking after the task is
+    // not expected
+    //
+    if (Synchronize && !LockAgainAfterTask)
+    {
+        LogWarning("Synchronization is not possible when the locking after the task is not expected");
+        return FALSE;
+    }
 
     //
     // Apply the task to all cores except current core
@@ -77,4 +90,41 @@ HaltedCoreBroadcasTaskToAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     // Perform the task for the current core
     //
     HaltedCorePerformTargetTask(DbgState, TargetTask);
+
+    //
+    // If synchronization is expected, we need to check to make sure
+    // all cores are synchronized (locked) at this point or not
+    //
+    if (Synchronize)
+    {
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            if (DbgState->CoreId != i)
+            {
+                //
+                // Wait until the core is locked again
+                //
+                while (TRUE)
+                {
+                    //
+                    // Keep checking to make sure the target core finished the
+                    // execution its task and locked again
+                    //
+                    if (KdCheckTheHaltedCore(&g_DbgState[i]) == FALSE)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    //
+    // All cores locked again
+    //
+    return TRUE;
 }
