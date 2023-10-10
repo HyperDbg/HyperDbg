@@ -2114,8 +2114,7 @@ DebuggerRemoveEvent(UINT64 Tag)
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
  *
- * @return BOOLEAN TRUE if the event was valid an regisered without error,
- * otherwise returns FALSE
+ * @return BOOLEAN TRUE if the event was valid otherwise returns FALSE
  */
 BOOLEAN
 DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
@@ -2123,10 +2122,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                       PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                       BOOLEAN                               InputFromVmxRoot)
 {
-    UINT32 ProcessorCount;
     UINT32 TempPid;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
     // Check whether the event mode (calling stage)  to see whether
@@ -2152,7 +2148,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         // Check if the core number is not invalid
         //
-        if (EventDetails->CoreId >= ProcessorCount)
+        if (!CommonValidateCoreNumber(EventDetails->CoreId))
         {
             //
             // CoreId is invalid (Set the error)
@@ -2375,109 +2371,26 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
 }
 
 /**
- * @brief Routine for parsing events
+ * @brief Applying events
  *
  * @param EventDetails The structure that describes event that came
- * from the user-mode
+ * from the user-mode or VMX-root mode
  * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
  *
- * @return BOOLEAN TRUE if the event was valid an regisered without error,
- * otherwise returns FALSE
+ * @return BOOLEAN TRUE if the event was applied otherwise returns FALSE
  */
 BOOLEAN
-DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
+                   PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                    UINT32                                BufferLength,
                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot)
 {
-    PDEBUGGER_EVENT Event;
-    UINT64          PagesBytes;
-    BOOLEAN         ResultOfApplyingEvent = FALSE;
-
-    //
-    // ----------------------------------------------------------------------------------
-    // ***                     Validating the Event's parameters                      ***
-    // ----------------------------------------------------------------------------------
-    //
-
-    //
-    // Validate the event parameters
-    //
-    if (!DebuggerValidateEvent(EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
-    {
-        //
-        // Input event is not valid
-        //
-        return FALSE;
-    }
-
-    //
-    // ----------------------------------------------------------------------------------
-    // ***                                Create Event                                ***
-    // ----------------------------------------------------------------------------------
-    //
-
-    //
-    // We initialize event with disabled mode as it doesn't have action yet
-    //
-    if (EventDetails->ConditionBufferSize != 0)
-    {
-        //
-        // Conditional Event
-        //
-        Event = DebuggerCreateEvent(FALSE,
-                                    EventDetails->CoreId,
-                                    EventDetails->ProcessId,
-                                    EventDetails->EventType,
-                                    EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
-                                    EventDetails->ConditionBufferSize,
-                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
-    }
-    else
-    {
-        //
-        // Unconditional Event
-        //
-        Event = DebuggerCreateEvent(FALSE,
-                                    EventDetails->CoreId,
-                                    EventDetails->ProcessId,
-                                    EventDetails->EventType,
-                                    EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
-                                    0,
-                                    NULL);
-    }
-
-    if (Event == NULL)
-    {
-        //
-        // Set the error
-        //
-        ResultsToReturn->IsSuccessful = FALSE;
-        ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
-        return FALSE;
-    }
-
-    //
-    // Register the event
-    //
-    DebuggerRegisterEvent(Event);
-
-    //
-    // ----------------------------------------------------------------------------------
-    // ***                            Apply & Enable Event                            ***
-    // ----------------------------------------------------------------------------------
-    //
+    UINT64  PagesBytes;
+    BOOLEAN ResultOfApplyingEvent = FALSE;
 
     //
     // Now we should configure the cpu to generate the events
@@ -3172,15 +3085,127 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
 
 ClearTheEventAfterCreatingEvent:
 
+    return FALSE;
+}
+
+/**
+ * @brief Routine for parsing events
+ *
+ * @param EventDetails The structure that describes event that came
+ * from the user-mode
+ * @param BufferLength Length of the buffer
+ * @param ResultsToReturn Result buffer that should be returned to
+ * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return BOOLEAN TRUE if the event was valid an regisered without error,
+ * otherwise returns FALSE
+ */
+BOOLEAN
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+                   UINT32                                BufferLength,
+                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   BOOLEAN                               InputFromVmxRoot)
+{
+    PDEBUGGER_EVENT Event;
+
     //
-    // Remove the event as it was not successfull
+    // ----------------------------------------------------------------------------------
+    // ***                     Validating the Event's parameters                      ***
+    // ----------------------------------------------------------------------------------
     //
-    if (Event != NULL)
+
+    //
+    // Validate the event parameters
+    //
+    if (!DebuggerValidateEvent(EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
     {
-        DebuggerRemoveEvent(Event->Tag);
+        //
+        // Input event is not valid
+        //
+        return FALSE;
     }
 
-    return FALSE;
+    //
+    // ----------------------------------------------------------------------------------
+    // ***                                Create Event                                ***
+    // ----------------------------------------------------------------------------------
+    //
+
+    //
+    // We initialize event with disabled mode as it doesn't have action yet
+    //
+    if (EventDetails->ConditionBufferSize != 0)
+    {
+        //
+        // Conditional Event
+        //
+        Event = DebuggerCreateEvent(FALSE,
+                                    EventDetails->CoreId,
+                                    EventDetails->ProcessId,
+                                    EventDetails->EventType,
+                                    EventDetails->Tag,
+                                    EventDetails->OptionalParam1,
+                                    EventDetails->OptionalParam2,
+                                    EventDetails->OptionalParam3,
+                                    EventDetails->OptionalParam4,
+                                    EventDetails->ConditionBufferSize,
+                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
+    }
+    else
+    {
+        //
+        // Unconditional Event
+        //
+        Event = DebuggerCreateEvent(FALSE,
+                                    EventDetails->CoreId,
+                                    EventDetails->ProcessId,
+                                    EventDetails->EventType,
+                                    EventDetails->Tag,
+                                    EventDetails->OptionalParam1,
+                                    EventDetails->OptionalParam2,
+                                    EventDetails->OptionalParam3,
+                                    EventDetails->OptionalParam4,
+                                    0,
+                                    NULL);
+    }
+
+    if (Event == NULL)
+    {
+        //
+        // Set the error
+        //
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
+        return FALSE;
+    }
+
+    //
+    // Register the event
+    //
+    DebuggerRegisterEvent(Event);
+
+    //
+    // ----------------------------------------------------------------------------------
+    // ***                            Apply & Enable Event                            ***
+    // ----------------------------------------------------------------------------------
+    //
+    if (DebuggerApplyEvent(Event, EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    {
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Remove the event as it was not successfull
+        //
+        if (Event != NULL)
+        {
+            DebuggerRemoveEvent(Event->Tag);
+        }
+
+        return FALSE;
+    }
 }
 
 /**

@@ -1749,12 +1749,36 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
         //
         // Send request for the target task to the halted cores (synchronized and unsynchronized)
         //
-        HaltedCoreBroadcastTaskToAllCores(DbgState,
-                                          0x55,
-                                          TRUE,
-                                          TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE);
+        HaltedCoreBroadcastTaskAllCores(DbgState,
+                                        0x55,
+                                        TRUE,
+                                        TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE);
 
         TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_SETTING_TARGET_TASKS_ON_TARGET_HALTED_CORES:
+
+        //
+        // Validate core number
+        //
+        if (!CommonValidateCoreNumber(TestQueryPacket->Context))
+        {
+            //
+            // Core number is invalid
+            //
+            TestQueryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_CORE_ID;
+        }
+        else
+        {
+            //
+            // Send request for the target task to the target halted core
+            //
+            HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context, 0x8585, TRUE);
+
+            TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
 
         break;
 

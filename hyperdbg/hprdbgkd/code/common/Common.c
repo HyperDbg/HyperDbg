@@ -243,3 +243,27 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     //
     return TRUE;
 }
+
+/**
+ * @brief Validate core number
+ * @param CoreNumber
+ *
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+CommonValidateCoreNumber(UINT32 CoreNumber)
+{
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    if (CoreNumber >= CoreCount)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}

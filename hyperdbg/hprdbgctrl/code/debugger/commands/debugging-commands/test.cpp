@@ -353,6 +353,28 @@ CommandTestSetTargetTaskToHaltedCores(BOOLEAN Synchronous)
 }
 
 /**
+ * @brief test command for setting target task to the specified core
+ * @param CoreNumber
+ *
+ * @return VOID
+ */
+VOID
+CommandTestSetTargetTaskToTargetCore(UINT32 CoreNumber)
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the target task to the target halted core
+    //
+    KdSendTestQueryPacketWithContextToDebuggee(TEST_SETTING_TARGET_TASKS_ON_TARGET_HALTED_CORES, (UINT64)CoreNumber);
+}
+
+/**
  * @brief test command for turning on/off the breakpoints
  * @param State
  * @return VOID
@@ -390,6 +412,8 @@ CommandTestSetBreakpointState(BOOLEAN State)
 VOID
 CommandTest(vector<string> SplittedCommand, string Command)
 {
+    UINT64 Context = NULL;
+
     if (SplittedCommand.size() == 1)
     {
         //
@@ -431,6 +455,19 @@ CommandTest(vector<string> SplittedCommand, string Command)
         // Send target task to the halted cores in debugger mode (asynchronous)
         //
         CommandTestSetTargetTaskToHaltedCores(FALSE);
+    }
+    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("target-core-task"))
+    {
+        if (!ConvertStringToUInt64(SplittedCommand.at(2), &Context))
+        {
+            ShowMessages("err, you should enter a valid hex number as the core id\n\n");
+            return;
+        }
+
+        //
+        // Send target task to the specific halted core in debugger mode
+        //
+        CommandTestSetTargetTaskToTargetCore((UINT32)Context);
     }
     else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("breakpoint"))
     {

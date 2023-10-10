@@ -835,7 +835,6 @@ BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
-    UINT32                  ProcessorCount;
     CR3_TYPE                GuestCr3;
     BOOLEAN                 IsAddress32Bit = FALSE;
 
@@ -860,10 +859,8 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Check if the core number is not invalid
     //
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
     if (BpDescriptorArg->Core != DEBUGGEE_BP_APPLY_TO_ALL_CORES &&
-        BpDescriptorArg->Core >= ProcessorCount)
+        !CommonValidateCoreNumber(BpDescriptorArg->Core))
     {
         //
         // Core is invalid (Set the error)
