@@ -122,6 +122,9 @@ BOOLEAN
 KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type);
 
 BOOLEAN
+KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT64 Context);
+
+BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);

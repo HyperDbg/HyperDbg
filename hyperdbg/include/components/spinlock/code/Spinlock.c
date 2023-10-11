@@ -159,3 +159,21 @@ SpinlockUnlock(volatile LONG * Lock)
 {
     *Lock = 0;
 }
+
+/**
+ * @brief Check the lock without changing the state
+ *
+ * @param LONG Lock variable
+ */
+BOOLEAN
+SpinlockCheckLock(volatile LONG * Lock)
+{
+    if (*Lock)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}

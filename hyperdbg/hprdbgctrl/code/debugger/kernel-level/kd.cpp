@@ -417,6 +417,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
  * @brief Send a test query request to the debuggee
  *
  * @param Type
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -425,6 +426,42 @@ KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
     DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
 
     TestQueryPacket.RequestType = Type;
+
+    //
+    // Send 'test query' command as query packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY,
+            (CHAR *)&TestQueryPacket,
+            sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of test query is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send a test query request to the debuggee with the specified context
+ *
+ * @param Type
+ * @param Context
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT64 Context)
+{
+    DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
+
+    TestQueryPacket.RequestType = Type;
+    TestQueryPacket.Context     = Context;
 
     //
     // Send 'test query' command as query packet

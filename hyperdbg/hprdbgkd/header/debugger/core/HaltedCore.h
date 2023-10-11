@@ -20,6 +20,12 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
                             UINT32                      TargetTask);
 
 VOID
-HaltedCoreBroadcasTaskToAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                 UINT32                      TargetTask,
-                                 BOOLEAN                     LockAgainAfterTask);
+HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
+                              UINT32  TargetTask,
+                              BOOLEAN LockAgainAfterTask);
+
+BOOLEAN
+HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                UINT32                      TargetTask,
+                                BOOLEAN                     LockAgainAfterTask,
+                                BOOLEAN                     Synchronize);

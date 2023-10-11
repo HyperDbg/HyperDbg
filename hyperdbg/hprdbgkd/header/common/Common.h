@@ -98,3 +98,6 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess);
 
 BOOLEAN
 CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
+
+BOOLEAN
+CommonValidateCoreNumber(UINT32 CoreNumber);

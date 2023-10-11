@@ -231,5 +231,8 @@ VOID
 KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
+KdCheckTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
+
+BOOLEAN
 KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,
                                                           DEBUGGER_THREAD_PROCESS_TRACING TracingType);
