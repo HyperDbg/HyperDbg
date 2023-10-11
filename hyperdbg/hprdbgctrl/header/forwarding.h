@@ -94,9 +94,9 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                              SOCKET *                       Socket);
 
 BOOLEAN
-ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
-                                 CHAR *                         Message,
-                                 UINT32                         MessageLength);
+ForwardingCheckAndPerformEventForwarding(UINT32 OperationCode,
+                                         CHAR * Message,
+                                         UINT32 MessageLength);
 
 BOOLEAN
 ForwardingWriteToFile(HANDLE FileHandle, CHAR * Message, UINT32 MessageLength);

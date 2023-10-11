@@ -1,5 +1,5 @@
 /**
- * @file forwarding.c
+ * @file forwarding.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Event source forwarding
  * @details
@@ -16,6 +16,7 @@
 //
 extern UINT64     g_OutputSourceTag;
 extern LIST_ENTRY g_OutputSources;
+extern LIST_ENTRY g_EventTrace;
 
 /**
  * @brief Get the output source tag and increase the
@@ -296,8 +297,7 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
     BOOLEAN     Result   = FALSE;
     PLIST_ENTRY TempList = 0;
 
-    for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent;
-         i++)
+    for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent; i++)
     {
         //
         // Check whether we reached to the end of the events
@@ -367,6 +367,67 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Check and send the event result to the corresponding sources
+ * @param OperationCode The target operation code or tag
+ * @param MessageLength Length of the message
+ * @details This function will not check whether the event has an
+ * output source or not, the caller if this function should make
+ * sure that the following event has valid output sources or not
+ *
+ * @return BOOLEAN whether sending results was successful or not
+ */
+BOOLEAN
+ForwardingCheckAndPerformEventForwarding(UINT32 OperationCode,
+                                         CHAR * Message,
+                                         UINT32 MessageLength)
+{
+    PLIST_ENTRY TempList;
+    BOOLEAN     OutputSourceFound = FALSE;
+
+    //
+    // We should check whether the following flag matches
+    // with an output or not, also this is not where we want to
+    // check output resources
+    //
+    TempList = &g_EventTrace;
+    while (&g_EventTrace != TempList->Blink)
+    {
+        TempList = TempList->Blink;
+
+        PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
+            TempList,
+            DEBUGGER_GENERAL_EVENT_DETAIL,
+            CommandsEventList);
+
+        if (EventDetail->HasCustomOutput && (UINT32)EventDetail->Tag == OperationCode)
+        {
+            //
+            // Output source found
+            //
+            OutputSourceFound = TRUE;
+
+            //
+            // Send the event to output sources
+            // Minus one (-1) is because we want to
+            // remove the null character at end of the message
+            //
+            if (!ForwardingPerformEventForwarding(
+                    EventDetail,
+                    Message,
+                    MessageLength))
+            {
+                ShowMessages("err, there was an error transferring the "
+                             "message to the remote sources\n");
+            }
+
+            break;
+        }
+    }
+
+    return OutputSourceFound;
 }
 
 /**

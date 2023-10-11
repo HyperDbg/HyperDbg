@@ -117,8 +117,6 @@ ReadIrpBasedBuffer()
     UINT32                 OperationCode;
     DWORD                  ErrorNum;
     HANDLE                 Handle;
-    BOOLEAN                OutputSourceFound;
-    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
@@ -352,60 +350,11 @@ ReadIrpBasedBuffer()
                 default:
 
                     //
-                    // Set output source to not found
-                    //
-                    OutputSourceFound = FALSE;
-
-                    //
                     // Check if there are available output sources
                     //
-                    if (g_OutputSourcesInitialized)
-                    {
-                        //
-                        // Now, we should check whether the following flag matches
-                        // with an output or not, also this is not where we want to
-                        // check output resources
-                        //
-                        TempList = &g_EventTrace;
-                        while (&g_EventTrace != TempList->Blink)
-                        {
-                            TempList = TempList->Blink;
-
-                            PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
-                                TempList,
-                                DEBUGGER_GENERAL_EVENT_DETAIL,
-                                CommandsEventList);
-
-                            if (EventDetail->HasCustomOutput)
-                            {
-                                //
-                                // Output source found
-                                //
-                                OutputSourceFound = TRUE;
-
-                                //
-                                // Send the event to output sources
-                                // Minus one (-1) is because we want to
-                                // remove the null character at end of the message
-                                //
-                                if (!ForwardingPerformEventForwarding(
-                                        EventDetail,
-                                        OutputBuffer + sizeof(UINT32),
-                                        ReturnedLength - sizeof(UINT32) - 1))
-                                {
-                                    ShowMessages("err, there was an error transferring the "
-                                                 "message to the remote sources\n");
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-
-                    //
-                    // Show the message if the source not found
-                    //
-                    if (!OutputSourceFound)
+                    if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(OperationCode,
+                                                                                                 OutputBuffer + sizeof(UINT32),
+                                                                                                 ReturnedLength - sizeof(UINT32) - 1))
                     {
                         if (g_BreakPrintingOutput)
                         {

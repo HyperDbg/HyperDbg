@@ -2395,6 +2395,19 @@ InterpretGeneralEventAndActionsFields(
                     }
 
                     //
+                    // Check to see the source state, whether it is opened or not
+                    //
+                    if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_STATE_NOT_OPENED)
+                    {
+                        //
+                        // Just show a message
+                        //
+                        ShowMessages("some of the output(s) are not opened, it's not an error, but please ensure "
+                                     "to open the output using the 'output' command to forward the results to the "
+                                     "target resource\n");
+                    }
+
+                    //
                     // Indicate that we found this item
                     //
                     OutputSourceFound = TRUE;

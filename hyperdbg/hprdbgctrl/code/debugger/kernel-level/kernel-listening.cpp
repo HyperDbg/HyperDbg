@@ -26,12 +26,12 @@ extern BOOLEAN                              g_IsDebuggeeRunning;
 extern BOOLEAN                              g_IgnoreNewLoggingMessages;
 extern BOOLEAN                              g_SharedEventStatus;
 extern BOOLEAN                              g_IsRunningInstruction32Bit;
+extern BOOLEAN                              g_OutputSourcesInitialized;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-              g_DebuggeeResultOfAddingActionsToEvent;
-extern UINT64 g_ResultOfEvaluatedExpression;
-extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent;
+extern UINT64                               g_ResultOfEvaluatedExpression;
+extern UINT32                               g_ErrorStateOfResultOfEvaluatedExpression;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -188,12 +188,20 @@ StartAgain:
             MessagePacket = (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
-            // We check g_IgnoreNewLoggingMessages here because we want to
-            // avoid messages when the debuggee is halted
+            // Check if there are available output sources
             //
-            if (!g_IgnoreNewLoggingMessages)
+            if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(MessagePacket->OperationCode,
+                                                                                         MessagePacket->Message,
+                                                                                         strlen(MessagePacket->Message)))
             {
-                ShowMessages("%s", MessagePacket->Message);
+                //
+                // We check g_IgnoreNewLoggingMessages here because we want to
+                // avoid messages when the debuggee is halted
+                //
+                if (!g_IgnoreNewLoggingMessages)
+                {
+                    ShowMessages("%s", MessagePacket->Message);
+                }
             }
 
             break;
