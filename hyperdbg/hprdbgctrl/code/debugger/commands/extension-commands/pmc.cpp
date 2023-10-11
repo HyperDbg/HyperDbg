@@ -21,9 +21,10 @@ CommandPmcHelp()
 {
     ShowMessages("!pmc : monitors execution of rdpmc instructions.\n\n");
 
-    ShowMessages("syntax : \t!pmc [pid ProcessId (hex)] [core CoreId (hex)] "
-                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+    ShowMessages("syntax : \t!pmc [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
+                 "[sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }] "
+                 "[output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !pmc\n");

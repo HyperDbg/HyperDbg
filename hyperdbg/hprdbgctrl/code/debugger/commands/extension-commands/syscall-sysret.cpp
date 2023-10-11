@@ -24,12 +24,14 @@ CommandSyscallHelp()
     ShowMessages("!syscall2 : monitors and hooks all execution of syscall "
                  "instructions (by emulating all #UDs).\n\n");
 
-    ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
-    ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+    ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+    ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !syscall\n");

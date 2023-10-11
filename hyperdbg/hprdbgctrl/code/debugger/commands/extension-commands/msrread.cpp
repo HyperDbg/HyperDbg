@@ -22,8 +22,9 @@ CommandMsrreadHelp()
     ShowMessages("!msrread : detects the execution of rdmsr instructions.\n\n");
 
     ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
+                 "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !msrread\n");
