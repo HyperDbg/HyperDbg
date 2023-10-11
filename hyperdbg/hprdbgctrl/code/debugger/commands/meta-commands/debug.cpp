@@ -119,15 +119,17 @@ CommandDebug(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("close"))
     {
-        if (!g_IsSerialConnectedToRemoteDebuggee &&
-            !g_IsSerialConnectedToRemoteDebugger)
+        //
+        // Check if the debugger is attached to a debuggee
+        //
+        if (g_IsSerialConnectedToRemoteDebuggee)
         {
-            ShowMessages(
-                "err, debugger is not attached to any instance of debuggee\n");
+            KdCloseConnection();
         }
         else
         {
-            KdCloseConnection();
+            ShowMessages(
+                "err, debugger is not attached to any instance of debuggee\n");
         }
         return;
     }
