@@ -88,6 +88,14 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         //
         return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
     }
+    else if (SourceDescriptor->Type == EVENT_FORWARDING_MODULE)
+    {
+        //
+        // Nothing special to do here, function is found previously
+        // and nothing should be called to open the module
+        //
+        return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
+    }
 
     return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
 }
@@ -170,6 +178,18 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         //
         return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
     }
+    else if (SourceDescriptor->Type == EVENT_FORWARDING_MODULE)
+    {
+        //
+        // Free the library
+        //
+        FreeLibrary(SourceDescriptor->Module);
+
+        //
+        // Return the status
+        //
+        return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
+    }
 
     return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
 }
@@ -179,6 +199,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
  * @param SourceType Type of the source
  * @param Description Description of the source
  * @param Socket Socket object in the case of TCP connection
+ * @param Module Module object in the case of loading modules
  *
  * @details If the target connection is a tcp connection then there
  * is no handle and instead there is a socket, this way we pass a
@@ -190,10 +211,11 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
  *
  * @return HANDLE returns handle of the source
  */
-HANDLE
+VOID *
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                              const string &                 Description,
-                             SOCKET *                       Socket)
+                             SOCKET *                       Socket,
+                             HMODULE *                      Module)
 {
     string IpPortDelimiter;
     string Ip;
@@ -210,7 +232,35 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         // The handle might be INVALID_HANDLE_VALUE which will be
         // checked by the caller
         //
-        return FileHandle;
+        return (void *)FileHandle;
+    }
+    else if (SourceType == EVENT_FORWARDING_MODULE)
+    {
+        HMODULE ModuleHandle = LoadLibraryA(Description.c_str());
+
+        if (ModuleHandle == NULL)
+        {
+            ShowMessages("err, unable to load the module\n");
+            return INVALID_HANDLE_VALUE;
+        }
+
+        hyperdbg_event_forwarding_t hyperdbg_event_forwarding = (hyperdbg_event_forwarding_t)GetProcAddress(ModuleHandle, "hyperdbg_event_forwarding");
+
+        if (hyperdbg_event_forwarding == NULL)
+        {
+            ShowMessages("err, unable to find the 'hyperdbg_event_forwarding' function\n");
+            return INVALID_HANDLE_VALUE;
+        }
+
+        //
+        // Set the module handle
+        //
+        *Module = ModuleHandle;
+
+        //
+        // The handle is the location of the hyperdbg_event_forwarding function
+        //
+        return (void *)hyperdbg_event_forwarding;
     }
     else if (SourceType == EVENT_FORWARDING_NAMEDPIPE)
     {
@@ -224,7 +274,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             return INVALID_HANDLE_VALUE;
         }
 
-        return PipeHandle;
+        return (void *)PipeHandle;
     }
     else if (SourceType == EVENT_FORWARDING_TCP)
     {
@@ -252,7 +302,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                 // because this functionality doesn't work with handlers; however,
                 // send 1 or TRUE is a valid handle
                 //
-                return (HANDLE)TRUE;
+                return (void *)TRUE;
             }
             else
             {
@@ -352,6 +402,12 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
                             CurrentOutputSourceDetails->Socket,
                             Message,
                             MessageLength);
+                        break;
+                    case EVENT_FORWARDING_MODULE:
+                        ((hyperdbg_event_forwarding_t)CurrentOutputSourceDetails->Handle)(
+                            Message,
+                            MessageLength);
+                        Result = TRUE;
                         break;
                     default:
                         break;
