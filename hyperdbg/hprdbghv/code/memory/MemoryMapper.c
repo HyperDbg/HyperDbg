@@ -878,7 +878,7 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
 _Use_decl_annotations_
 UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
-    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
     UINT64                                 AddressToRead)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
@@ -920,7 +920,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
 _Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
-    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
     UINT64                                 AddressToRead,
     UINT64                                 BufferToSaveMemory,
     SIZE_T                                 SizeToRead)
