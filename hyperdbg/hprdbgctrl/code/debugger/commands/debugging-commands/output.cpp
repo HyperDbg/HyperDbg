@@ -65,6 +65,13 @@ CommandOutput(vector<string> SplittedCommand, string Command)
     HMODULE                        Module            = NULL;
     vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
+    if (SplittedCommand.size() <= 2)
+    {
+        ShowMessages("incorrect use of the 'output'\n\n");
+        CommandOutputHelp();
+        return;
+    }
+
     //
     // Check if the user needs a list of outputs or not
     //
@@ -135,13 +142,6 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (SplittedCommand.size() <= 2)
-    {
-        ShowMessages("incorrect use of the 'output'\n\n");
-        CommandOutputHelp();
-        return;
-    }
-
     //
     // Check if it's a create, open, or close
     //
@@ -205,7 +205,6 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         // same name which we don't want to create two or more output
         // sources with the same name
         //
-
         if (g_OutputSourcesInitialized)
         {
             TempList = &g_OutputSources;
@@ -246,7 +245,6 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         // try to open the source and get the handle
         //
-
         DetailsOfSource = Command.substr(Command.find(SplittedCommandCaseSensitive.at(3)) +
                                              SplittedCommandCaseSensitive.at(3).size() + 1,
                                          Command.size());
@@ -344,6 +342,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
             ShowMessages("err, the name you entered, not found\n");
             return;
         }
+
         //
         // Now we should find the corresponding object in the memory and
         // pass it to the global open functions
