@@ -16,10 +16,12 @@
  * @brief Termination function for external-interrupts
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
+TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -95,10 +97,12 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for hidden hook read/write/execute
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     UINT64 PagesBytes;
     UINT64 TempOptionalParam1;
@@ -128,10 +132,12 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for hidden hook (hidden breakpoints)
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
@@ -154,10 +160,12 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for hidden hook (detours)
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
@@ -182,10 +190,12 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for msr read events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -261,10 +271,12 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for msr write events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -340,10 +352,12 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for exception events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExceptionEvent(PDEBUGGER_EVENT Event)
+TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -420,10 +434,12 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for IN instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -506,10 +522,12 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for OUT Instructions events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -592,10 +610,12 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for VMCALL Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->VmcallInstructionExecutionEventsHead) > 1)
     {
@@ -630,10 +650,12 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for user-mode, kernel-mode exec trap events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
+TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->TrapExecutionModeChangedEventsHead) > 1)
     {
@@ -676,10 +698,12 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for CPUID Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->CpuidInstructionExecutionEventsHead) > 1)
     {
@@ -714,10 +738,12 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for RDTSC/RDTSCP Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateTscEvent(PDEBUGGER_EVENT Event)
+TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -793,10 +819,12 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for RDPMC Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminatePmcEvent(PDEBUGGER_EVENT Event)
+TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -872,10 +900,12 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for MOV to control registers events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
+TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -951,10 +981,12 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for MOV to debug registers events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
+TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1030,10 +1062,12 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for SYSCALL Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
+TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1116,10 +1150,12 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for SYSRET Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
+TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList = 0;
 

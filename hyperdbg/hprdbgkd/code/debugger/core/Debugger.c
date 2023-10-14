@@ -247,9 +247,9 @@ DebuggerUninitialize()
     DebuggerEnableOrDisableAllEvents(FALSE);
 
     //
-    // Second, terminate all events
+    // Second, terminate all events (called from VMX non-root)
     //
-    DebuggerTerminateAllEvents();
+    DebuggerTerminateAllEvents(FALSE);
 
     //
     // Third, remove all events
@@ -372,7 +372,7 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
     //
     // Copy Options
     //
-    memcpy(&Event->Options, Options, sizeof(DEBUGGER_EVENT_OPTIONS));
+    memcpy(&Event->InitOptions, Options, sizeof(DEBUGGER_EVENT_OPTIONS));
 
     //
     // check if this event is conditional or not
@@ -1461,11 +1461,13 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
  * @brief Terminate effect and configuration to vmx-root
  * and non-root for all the events
  *
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if at least one event terminated then
  * it returns true, and otherwise false
  */
 BOOLEAN
-DebuggerTerminateAllEvents()
+DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
 {
     BOOLEAN     FindAtLeastOneEvent = FALSE;
     PLIST_ENTRY TempList            = 0;
@@ -1495,7 +1497,7 @@ DebuggerTerminateAllEvents()
             //
             // Terminate the current event
             //
-            DebuggerTerminateEvent(CurrentEvent->Tag);
+            DebuggerTerminateEvent(CurrentEvent->Tag, InputFromVmxRoot);
         }
     }
 
@@ -2369,8 +2371,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
 /**
  * @brief Applying events
  *
- * @param EventDetails The structure that describes event that came
- * from the user-mode or VMX-root mode
+ * @param Event The created event object
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -2379,17 +2380,17 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  */
 BOOLEAN
 DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
-                   PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot)
 {
+    UINT32  TempProcessId;
     UINT64  PagesBytes;
     BOOLEAN ResultOfApplyingEvent = FALSE;
 
     //
     // Now we should configure the cpu to generate the events
     //
-    switch (EventDetails->EventType)
+    switch (Event->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ_AND_WRITE:
@@ -2403,13 +2404,17 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
         }
 
-        PagesBytes = PAGE_ALIGN(EventDetails->Options.OptionalParam1);
-        PagesBytes = EventDetails->Options.OptionalParam2 - PagesBytes;
+        PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
+        PagesBytes = Event->InitOptions.OptionalParam2 - PagesBytes;
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
@@ -2419,13 +2424,13 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             // Also execute bit has the same conditions here, because if write is set
             // read should be also set
             //
-            switch (EventDetails->EventType)
+            switch (Event->EventType)
             {
             case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
             case HIDDEN_HOOK_READ_AND_EXECUTE:
 
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+                                                                                TempProcessId,
                                                                                 TRUE,
                                                                                 TRUE,
                                                                                 TRUE);
@@ -2433,8 +2438,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
 
             case HIDDEN_HOOK_WRITE_AND_EXECUTE:
 
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+                                                                                TempProcessId,
                                                                                 FALSE,
                                                                                 TRUE,
                                                                                 FALSE);
@@ -2442,8 +2447,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
 
             case HIDDEN_HOOK_READ_AND_WRITE:
             case HIDDEN_HOOK_READ:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+                                                                                TempProcessId,
                                                                                 TRUE,
                                                                                 TRUE,
                                                                                 FALSE);
@@ -2451,8 +2456,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 break;
 
             case HIDDEN_HOOK_WRITE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+                                                                                TempProcessId,
                                                                                 FALSE,
                                                                                 TRUE,
                                                                                 FALSE);
@@ -2460,8 +2465,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 break;
 
             case HIDDEN_HOOK_EXECUTE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+                                                                                TempProcessId,
                                                                                 FALSE,
                                                                                 FALSE,
                                                                                 TRUE);
@@ -2490,7 +2495,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 //
                 for (size_t j = 0; j < i; j++)
                 {
-                    ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->Options.OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
+                    ConfigureEptHookUnHookSingleAddress((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
                 }
 
                 break;
@@ -2513,10 +2518,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // vm-exit occurs and we have the physical address to compare in the case of
         // hidden hook rw events.
         //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, EventDetails->ProcessId);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, EventDetails->ProcessId);
-        Event->Options.OptionalParam3 = EventDetails->Options.OptionalParam1;
-        Event->Options.OptionalParam4 = EventDetails->Options.OptionalParam2;
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam2, TempProcessId);
+        Event->Options.OptionalParam3 = Event->InitOptions.OptionalParam1;
+        Event->Options.OptionalParam4 = Event->InitOptions.OptionalParam2;
 
         //
         // Check if we should restore the event if it was not successful
@@ -2537,15 +2542,19 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
         }
 
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook(EventDetails->Options.OptionalParam1, EventDetails->ProcessId))
+        if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2560,7 +2569,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2570,15 +2579,19 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
         // or if process id is 0 then we use the cr3 of current process
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
         }
 
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(PsGetCurrentProcessId(), EventDetails->Options.OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
+        if (!ConfigureEptHook2(PsGetCurrentProcessId(), Event->InitOptions.OptionalParam1, NULL, TempProcessId, FALSE, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2594,7 +2607,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // executed not for all hooks but for this special hook
         // Also, we are sure that this is not null because we checked it before
         //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, EventDetails->ProcessId);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->Options.OptionalParam1, TempProcessId);
 
         break;
     }
@@ -2609,25 +2622,25 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
             //
-            ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->Options.OptionalParam1);
+            ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeMsrBitmapReadOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
+            ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2642,25 +2655,25 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
             //
-            ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->Options.OptionalParam1);
+            ExtensionCommandChangeAllMsrBitmapWriteAllCores(Event->InitOptions.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeMsrBitmapWriteOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
+            ConfigureChangeMsrBitmapWriteOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2670,25 +2683,25 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
             //
-            ExtensionCommandIoBitmapChangeAllCores(EventDetails->Options.OptionalParam1);
+            ExtensionCommandIoBitmapChangeAllCores(Event->InitOptions.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeIoBitmapOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
+            ConfigureChangeIoBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2703,7 +2716,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2715,7 +2728,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableRdtscExitingOnSingleCore(EventDetails->CoreId);
+            ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
         }
 
         break;
@@ -2731,7 +2744,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2743,7 +2756,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableRdpmcExitingOnSingleCore(EventDetails->CoreId);
+            ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
         }
 
         break;
@@ -2759,7 +2772,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2771,7 +2784,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(EventDetails->CoreId);
+            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
         }
 
         break;
@@ -2787,13 +2800,13 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Setting an indicator to CR
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
-        Event->Options.OptionalParam2 = EventDetails->Options.OptionalParam2;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        Event->Options.OptionalParam2 = Event->InitOptions.OptionalParam2;
 
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2805,7 +2818,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableMovToControlRegisterExitingOnSingleCore(EventDetails->CoreId, &Event->Options);
+            ConfigureEnableMovToControlRegisterExitingOnSingleCore(Event->CoreId, &Event->Options);
         }
 
         break;
@@ -2822,25 +2835,25 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Let's see if it is for all cores or just one core
         //
 
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
             //
-            ExtensionCommandSetExceptionBitmapAllCores(EventDetails->Options.OptionalParam1);
+            ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureSetExceptionBitmapOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
+            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
         }
 
         //
         // Set the event's target exception
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2855,7 +2868,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2867,13 +2880,13 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureSetExternalInterruptExitingOnSingleCore(EventDetails->CoreId);
+            ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
         }
 
         //
         // Set the event's target interrupt
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
@@ -2890,11 +2903,11 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
         }
-        else if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        else if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
@@ -2902,7 +2915,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2914,14 +2927,14 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
+            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
         }
 
         //
         // Set the event's target syscall number and save the approach
         // of handling event details
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
         Event->Options.OptionalParam2 = SyscallHookType;
 
         break;
@@ -2939,11 +2952,11 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
         }
-        else if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        else if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
@@ -2951,7 +2964,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
             // All cores
@@ -2963,14 +2976,14 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
+            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
         }
 
         //
         // Set the event's target syscall number and save the approach
         // of handling event details
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
         Event->Options.OptionalParam2 = SyscallHookType;
 
         break;
@@ -2993,12 +3006,12 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Add the process to the watching list
         //
-        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
+        ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
 
         //
         // Set the event's mode of execution
         //
-        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         //
         // Enable triggering events for user-mode execution
@@ -3147,7 +3160,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
     // ***                            Apply & Enable Event                            ***
     // ----------------------------------------------------------------------------------
     //
-    if (DebuggerApplyEvent(Event, EventDetails, ResultsToReturn, InputFromVmxRoot))
+    if (DebuggerApplyEvent(Event, ResultsToReturn, InputFromVmxRoot))
     {
         //
         // *** Set the short-circuiting state ***
@@ -3340,11 +3353,13 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
  * be called BEFORE the removing function
  *
  * @param Tag Target event's tag
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if it was found and terminated without error
  * then it returns TRUE, otherwise FALSE
  */
 BOOLEAN
-DebuggerTerminateEvent(UINT64 Tag)
+DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
 
@@ -3371,7 +3386,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call external interrupt terminator
         //
-        TerminateExternalInterruptEvent(Event);
+        TerminateExternalInterruptEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3386,7 +3401,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call read and write and execute ept hook terminator
         //
-        TerminateHiddenHookReadAndWriteAndExecuteEvent(Event);
+        TerminateHiddenHookReadAndWriteAndExecuteEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3395,7 +3410,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call ept hook (hidden breakpoint) terminator
         //
-        TerminateHiddenHookExecCcEvent(Event);
+        TerminateHiddenHookExecCcEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3404,7 +3419,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call ept hook (hidden inline hook) terminator
         //
-        TerminateHiddenHookExecDetoursEvent(Event);
+        TerminateHiddenHookExecDetoursEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3413,7 +3428,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdmsr execution event terminator
         //
-        TerminateRdmsrExecutionEvent(Event);
+        TerminateRdmsrExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3422,7 +3437,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call wrmsr execution event terminator
         //
-        TerminateWrmsrExecutionEvent(Event);
+        TerminateWrmsrExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3431,7 +3446,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call exception events terminator
         //
-        TerminateExceptionEvent(Event);
+        TerminateExceptionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3440,7 +3455,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call IN instruction execution event terminator
         //
-        TerminateInInstructionExecutionEvent(Event);
+        TerminateInInstructionExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3449,7 +3464,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call OUT instruction execution event terminator
         //
-        TerminateOutInstructionExecutionEvent(Event);
+        TerminateOutInstructionExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3458,7 +3473,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call syscall hook event terminator
         //
-        TerminateSyscallHookEferEvent(Event);
+        TerminateSyscallHookEferEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3467,7 +3482,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call sysret hook event terminator
         //
-        TerminateSysretHookEferEvent(Event);
+        TerminateSysretHookEferEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3476,7 +3491,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call vmcall instruction execution event terminator
         //
-        TerminateVmcallExecutionEvent(Event);
+        TerminateVmcallExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3485,7 +3500,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mode execution trap event terminator
         //
-        TerminateExecTrapModeChangedEvent(Event);
+        TerminateExecTrapModeChangedEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3494,7 +3509,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdtsc/rdtscp instruction execution event terminator
         //
-        TerminateTscEvent(Event);
+        TerminateTscEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3503,7 +3518,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdtsc/rdtscp instructions execution event terminator
         //
-        TerminatePmcEvent(Event);
+        TerminatePmcEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3512,7 +3527,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mov to debugger register event terminator
         //
-        TerminateDebugRegistersEvent(Event);
+        TerminateDebugRegistersEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3521,7 +3536,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call cpuid instruction execution event terminator
         //
-        TerminateCpuidExecutionEvent(Event);
+        TerminateCpuidExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3530,7 +3545,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mov to control register event terminator
         //
-        TerminateControlRegistersEvent(Event);
+        TerminateControlRegistersEvent(Event, InputFromVmxRoot);
         break;
     }
     default:
@@ -3638,7 +3653,7 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Second, terminate all events
             //
-            DebuggerTerminateAllEvents();
+            DebuggerTerminateAllEvents(InputFromVmxRoot, InputFromVmxRoot);
 
             //
             // Third, remove all events
@@ -3668,7 +3683,7 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Second, terminate it
             //
-            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag);
+            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
 
             //
             // Third, remove it from the list
