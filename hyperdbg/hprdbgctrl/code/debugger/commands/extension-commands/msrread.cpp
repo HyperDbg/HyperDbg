@@ -124,7 +124,7 @@ CommandMsrread(vector<string> SplittedCommand, string Command)
     //
     // Set the target msr (if not specific then it means all msrs)
     //
-    Event->OptionalParam1 = SpecialTarget;
+    Event->Options.OptionalParam1 = SpecialTarget;
 
     //
     // Send the ioctl to the kernel for event registration

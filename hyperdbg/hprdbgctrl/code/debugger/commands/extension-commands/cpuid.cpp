@@ -127,11 +127,11 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     //
     // Set the target EAX (if not specific then it means all msrs)
     //
-    Event->OptionalParam1 = GetEax;
+    Event->Options.OptionalParam1 = GetEax;
 
     if (GetEax)
     {
-        Event->OptionalParam2 = SpecialTarget;
+        Event->Options.OptionalParam2 = SpecialTarget;
     }
 
     //

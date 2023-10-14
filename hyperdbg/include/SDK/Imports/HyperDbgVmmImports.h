@@ -226,7 +226,7 @@ IMPORT_EXPORT_VMM VOID
 ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption);
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask);
@@ -719,7 +719,7 @@ IMPORT_EXPORT_VMM VOID
 BroadcastDisableRdtscExitingForClearingEventsAllCores();
 
 IMPORT_EXPORT_VMM VOID
-BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores();
@@ -740,10 +740,10 @@ IMPORT_EXPORT_VMM VOID
 BroadcastResetExceptionBitmapAllCores();
 
 IMPORT_EXPORT_VMM VOID
-BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
-BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 BroadcastEnableMovDebugRegistersExitingAllCores();

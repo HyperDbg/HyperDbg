@@ -49,13 +49,13 @@ VOID
 DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
-DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2);
+DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
-DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2);
+DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
-DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2);
+DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
 DpcRoutineEnableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
@@ -109,7 +109,7 @@ VOID
 DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
-DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2);
+DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2);
 
 VOID
 DpcRoutineEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

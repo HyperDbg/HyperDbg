@@ -167,7 +167,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     // Set the first parameter to the required execution mode
     //
-    Event->OptionalParam1 = (UINT64)TargetInterceptionMode;
+    Event->Options.OptionalParam1 = (UINT64)TargetInterceptionMode;
 
     //
     // Send the ioctl to the kernel for event registration

@@ -313,7 +313,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // at the same place (not comming from the VMX-root mode)
             //
             DebuggerParseEvent(DebuggerNewEventRequest,
-                               InBuffLength,
                                (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer,
                                FALSE);
 
@@ -354,9 +353,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerParseActionFromUsermode(DebuggerNewActionRequest,
-                                            InBuffLength,
-                                            (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+            DebuggerParseAction(DebuggerNewActionRequest,
+                                (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer,
+                                FALSE);
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
             Status                    = STATUS_SUCCESS;
@@ -645,7 +644,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerParseEventsModificationFromUsermode(DebuggerModifyEventRequest);
+            DebuggerParseEventsModification(DebuggerModifyEventRequest, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_MODIFY_EVENTS;
             Status                    = STATUS_SUCCESS;

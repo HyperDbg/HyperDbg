@@ -124,12 +124,9 @@ typedef struct _DEBUGGER_EVENT
                                    // is enabled or not for this event
 
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
-    // of the event (whether it's a pre- or post- event)
+                                                     // of the event (whether it's a pre- or post- event)
 
-    UINT64 OptionalParam1; // Optional parameter to be used differently by events
-    UINT64 OptionalParam2; // Optional parameter to be used differently by events
-    UINT64 OptionalParam3; // Optional parameter to be used differently by events
-    UINT64 OptionalParam4; // Optional parameter to be used differently by events
+    DEBUGGER_EVENT_OPTIONS Options; // The options of the event
 
     UINT32 ConditionsBufferSize;   // if null, means uncoditional
     PVOID  ConditionBufferAddress; // Address of the condition buffer (most of the
@@ -195,10 +192,21 @@ VOID
 DebuggerUninitialize();
 
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, UINT32 ProcessId, VMM_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3, UINT64 OptionalParam4, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
+DebuggerCreateEvent(BOOLEAN                  Enabled,
+                    UINT32                   CoreId,
+                    UINT32                   ProcessId,
+                    VMM_EVENT_TYPE_ENUM      EventType,
+                    UINT64                   Tag,
+                    DEBUGGER_EVENT_OPTIONS * Options,
+                    UINT32                   ConditionsBufferSize,
+                    PVOID                    ConditionBuffer);
 
 PDEBUGGER_EVENT_ACTION
-DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
+DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
+                         DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
+                         BOOLEAN                                         SendTheResultsImmediately,
+                         PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
@@ -221,15 +229,17 @@ DebuggerQueryDebuggerStatus();
 
 BOOLEAN
 DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn);
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
+                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest);
+DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
+                                BOOLEAN                 InputFromVmxRoot);
 
 BOOLEAN
 DebuggerTerminateEvent(UINT64 Tag);

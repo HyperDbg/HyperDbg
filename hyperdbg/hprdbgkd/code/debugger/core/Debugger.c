@@ -331,17 +331,14 @@ DebuggerUninitialize()
  * object address when it's successful
  */
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN             Enabled,
-                    UINT32              CoreId,
-                    UINT32              ProcessId,
-                    VMM_EVENT_TYPE_ENUM EventType,
-                    UINT64              Tag,
-                    UINT64              OptionalParam1,
-                    UINT64              OptionalParam2,
-                    UINT64              OptionalParam3,
-                    UINT64              OptionalParam4,
-                    UINT32              ConditionsBufferSize,
-                    PVOID               ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN                  Enabled,
+                    UINT32                   CoreId,
+                    UINT32                   ProcessId,
+                    VMM_EVENT_TYPE_ENUM      EventType,
+                    UINT64                   Tag,
+                    DEBUGGER_EVENT_OPTIONS * Options,
+                    UINT32                   ConditionsBufferSize,
+                    PVOID                    ConditionBuffer)
 {
     //
     // As this function uses the memory allocation functions,
@@ -371,10 +368,11 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     Event->EventType      = EventType;
     Event->Tag            = Tag;
     Event->CountOfActions = 0; // currently there is no action
-    Event->OptionalParam1 = OptionalParam1;
-    Event->OptionalParam2 = OptionalParam2;
-    Event->OptionalParam3 = OptionalParam3;
-    Event->OptionalParam4 = OptionalParam4;
+
+    //
+    // Copy Options
+    //
+    memcpy(&Event->Options, Options, sizeof(DEBUGGER_EVENT_OPTIONS));
 
     //
     // check if this event is conditional or not
@@ -779,7 +777,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context is the physical address
             //
-            if (Context != CurrentEvent->OptionalParam1)
+            if (Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // The interrupt is not for this event
@@ -806,7 +804,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context should be checked in physical address
             //
-            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
+            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
             {
                 //
                 // The value is not withing our expected range
@@ -831,7 +829,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // the hook is triggered for the address described in
             // event, note that address in event is a virtual address
             //
-            if (Context != CurrentEvent->OptionalParam1)
+            if (Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the virtual address
@@ -858,7 +856,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
+            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -885,7 +883,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if MSR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The msr is not what we want
@@ -900,7 +898,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if exception is what we need or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The exception is not what we want
@@ -916,7 +914,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if I/O port is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The port is not what we want
@@ -938,7 +936,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check syscall number
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The syscall number is not what we want
@@ -953,7 +951,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CPUID is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->OptionalParam2 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->Options.OptionalParam2 != Context)
             {
                 //
                 // The CPUID is not what we want (and the user didn't intend to get all CPUIDs)
@@ -968,7 +966,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The CR is not what we want
@@ -983,11 +981,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if the debugger needs user-to-kernel or kernel-to-user events
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
             {
-                if ((CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+                if ((CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
                      Context == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE) ||
-                    (CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
+                    (CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
                      Context == DEBUGGER_EVENT_MODE_TYPE_USER_MODE))
                 {
                     continue;
@@ -1793,7 +1791,7 @@ DebuggerExceptionEventBitmapMask(UINT32 CoreIndex)
 
         if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES || CurrentEvent->CoreId == CoreIndex)
         {
-            ExceptionMask |= CurrentEvent->OptionalParam1;
+            ExceptionMask |= CurrentEvent->Options.OptionalParam1;
         }
     }
 
@@ -2109,7 +2107,6 @@ DebuggerRemoveEvent(UINT64 Tag)
  *
  * @param EventDetails The structure that describes event that came
  * from the user-mode or VMX-root mode
- * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -2118,7 +2115,6 @@ DebuggerRemoveEvent(UINT64 Tag)
  */
 BOOLEAN
 DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                      UINT32                                BufferLength,
                       PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                       BOOLEAN                               InputFromVmxRoot)
 {
@@ -2188,7 +2184,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 31)
+        if (EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->Options.OptionalParam1 >= 31)
         {
             //
             // We don't support entries other than first 32 IDT indexes,
@@ -2206,7 +2202,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         // Check if the exception entry is between 32 to 255
         //
-        if (!(EventDetails->OptionalParam1 >= 32 && EventDetails->OptionalParam1 <= 0xff))
+        if (!(EventDetails->Options.OptionalParam1 >= 32 && EventDetails->Options.OptionalParam1 <= 0xff))
         {
             //
             // The IDT Entry is either invalid or is not in the range
@@ -2222,9 +2218,9 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         // Check if the execution mode is valid or not
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
-            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
-            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+        if (EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+            EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
+            EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
         {
             //
             // The execution mode is not correctly applied
@@ -2265,7 +2261,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         if (InputFromVmxRoot)
         {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL)
+            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL)
             {
                 //
                 // Address is invalid (Set the error)
@@ -2278,7 +2274,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         }
         else
         {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
+            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL)
             {
                 //
                 // Address is invalid (Set the error)
@@ -2326,8 +2322,8 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         if (InputFromVmxRoot)
         {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL ||
-                VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam2) == NULL)
+            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL ||
+                VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam2) == NULL)
             {
                 //
                 // Address is invalid (Set the error)
@@ -2340,8 +2336,8 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         }
         else
         {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL ||
-                VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
+            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL ||
+                VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, TempPid) == NULL)
             {
                 //
                 // Address is invalid (Set the error)
@@ -2356,7 +2352,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         //
         // Check if the 'to' is greater that 'from'
         //
-        if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
+        if (EventDetails->Options.OptionalParam1 >= EventDetails->Options.OptionalParam2)
         {
             ResultsToReturn->IsSuccessful = FALSE;
             ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
@@ -2375,7 +2371,6 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  *
  * @param EventDetails The structure that describes event that came
  * from the user-mode or VMX-root mode
- * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -2385,7 +2380,6 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
 BOOLEAN
 DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                    PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot)
 {
@@ -2414,8 +2408,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             EventDetails->ProcessId = PsGetCurrentProcessId();
         }
 
-        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
-        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
+        PagesBytes = PAGE_ALIGN(EventDetails->Options.OptionalParam1);
+        PagesBytes = EventDetails->Options.OptionalParam2 - PagesBytes;
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
@@ -2430,7 +2424,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
             case HIDDEN_HOOK_READ_AND_EXECUTE:
 
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
                                                                                 EventDetails->ProcessId,
                                                                                 TRUE,
                                                                                 TRUE,
@@ -2439,7 +2433,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
 
             case HIDDEN_HOOK_WRITE_AND_EXECUTE:
 
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
                                                                                 EventDetails->ProcessId,
                                                                                 FALSE,
                                                                                 TRUE,
@@ -2448,7 +2442,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
 
             case HIDDEN_HOOK_READ_AND_WRITE:
             case HIDDEN_HOOK_READ:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
                                                                                 EventDetails->ProcessId,
                                                                                 TRUE,
                                                                                 TRUE,
@@ -2457,7 +2451,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 break;
 
             case HIDDEN_HOOK_WRITE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
                                                                                 EventDetails->ProcessId,
                                                                                 FALSE,
                                                                                 TRUE,
@@ -2466,7 +2460,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 break;
 
             case HIDDEN_HOOK_EXECUTE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->Options.OptionalParam1 + (i * PAGE_SIZE),
                                                                                 EventDetails->ProcessId,
                                                                                 FALSE,
                                                                                 FALSE,
@@ -2496,7 +2490,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
                 //
                 for (size_t j = 0; j < i; j++)
                 {
-                    ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
+                    ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->Options.OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
                 }
 
                 break;
@@ -2519,10 +2513,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // vm-exit occurs and we have the physical address to compare in the case of
         // hidden hook rw events.
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
-        Event->OptionalParam3 = EventDetails->OptionalParam1;
-        Event->OptionalParam4 = EventDetails->OptionalParam2;
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, EventDetails->ProcessId);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, EventDetails->ProcessId);
+        Event->Options.OptionalParam3 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam4 = EventDetails->Options.OptionalParam2;
 
         //
         // Check if we should restore the event if it was not successful
@@ -2551,7 +2545,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
+        if (!ConfigureEptHook(EventDetails->Options.OptionalParam1, EventDetails->ProcessId))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2566,7 +2560,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2584,7 +2578,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(PsGetCurrentProcessId(), EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
+        if (!ConfigureEptHook2(PsGetCurrentProcessId(), EventDetails->Options.OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -2600,7 +2594,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // executed not for all hooks but for this special hook
         // Also, we are sure that this is not null because we checked it before
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, EventDetails->ProcessId);
 
         break;
     }
@@ -2620,20 +2614,20 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // All cores
             //
-            ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
+            ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->Options.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeMsrBitmapReadOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
+            ConfigureChangeMsrBitmapReadOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2653,20 +2647,20 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // All cores
             //
-            ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->OptionalParam1);
+            ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->Options.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeMsrBitmapWriteOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
+            ConfigureChangeMsrBitmapWriteOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2681,20 +2675,20 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // All cores
             //
-            ExtensionCommandIoBitmapChangeAllCores(EventDetails->OptionalParam1);
+            ExtensionCommandIoBitmapChangeAllCores(EventDetails->Options.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureChangeIoBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
+            ConfigureChangeIoBitmapOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
         }
 
         //
         // Setting an indicator to MSR
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2793,8 +2787,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Setting an indicator to CR
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = EventDetails->OptionalParam2;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam2 = EventDetails->Options.OptionalParam2;
 
         //
         // Let's see if it is for all cores or just one core
@@ -2811,12 +2805,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // Just one core
             //
-            DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
-
-            BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
-            BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
-
-            ConfigureEnableMovToControlRegisterExitingOnSingleCore(EventDetails->CoreId, &BroadcastingOption);
+            ConfigureEnableMovToControlRegisterExitingOnSingleCore(EventDetails->CoreId, &Event->Options);
         }
 
         break;
@@ -2838,20 +2827,20 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
             //
             // All cores
             //
-            ExtensionCommandSetExceptionBitmapAllCores(EventDetails->OptionalParam1);
+            ExtensionCommandSetExceptionBitmapAllCores(EventDetails->Options.OptionalParam1);
         }
         else
         {
             //
             // Just one core
             //
-            ConfigureSetExceptionBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
+            ConfigureSetExceptionBitmapOnSingleCore(EventDetails->CoreId, EventDetails->Options.OptionalParam1);
         }
 
         //
         // Set the event's target exception
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2884,7 +2873,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Set the event's target interrupt
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         break;
     }
@@ -2901,11 +2890,11 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
         }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        else if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
@@ -2932,8 +2921,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Set the event's target syscall number and save the approach
         // of handling event details
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = SyscallHookType;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam2 = SyscallHookType;
 
         break;
     }
@@ -2950,11 +2939,11 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // whether it's a !syscall2 or !sysret2
         //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
         }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        else if (EventDetails->Options.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
         {
             SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
         }
@@ -2981,8 +2970,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         // Set the event's target syscall number and save the approach
         // of handling event details
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = SyscallHookType;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
+        Event->Options.OptionalParam2 = SyscallHookType;
 
         break;
     }
@@ -3009,7 +2998,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
         //
         // Set the event's mode of execution
         //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->Options.OptionalParam1 = EventDetails->Options.OptionalParam1;
 
         //
         // Enable triggering events for user-mode execution
@@ -3049,30 +3038,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
 
     //
-    // Set the short-circuiting state
-    //
-    Event->EnableShortCircuiting = EventDetails->EnableShortCircuiting;
-
-    //
-    // Set the event stage (pre- post- event)
-    //
-    if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
-    {
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
-    }
-    else if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION)
-    {
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
-    }
-    else
-    {
-        //
-        // Any other value results to be pre-event
-        //
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
-    }
-
-    //
     // Set the status
     //
     ResultsToReturn->IsSuccessful = TRUE;
@@ -3093,7 +3058,6 @@ ClearTheEventAfterCreatingEvent:
  *
  * @param EventDetails The structure that describes event that came
  * from the user-mode
- * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -3103,7 +3067,6 @@ ClearTheEventAfterCreatingEvent:
  */
 BOOLEAN
 DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot)
 {
@@ -3118,7 +3081,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
     //
     // Validate the event parameters
     //
-    if (!DebuggerValidateEvent(EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    if (!DebuggerValidateEvent(EventDetails, ResultsToReturn, InputFromVmxRoot))
     {
         //
         // Input event is not valid
@@ -3145,10 +3108,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                                     EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
+                                    &EventDetails->Options,
                                     EventDetails->ConditionBufferSize,
                                     (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
     }
@@ -3162,10 +3122,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                                     EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
+                                    &EventDetails->Options,
                                     0,
                                     NULL);
     }
@@ -3190,8 +3147,32 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
     // ***                            Apply & Enable Event                            ***
     // ----------------------------------------------------------------------------------
     //
-    if (DebuggerApplyEvent(Event, EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    if (DebuggerApplyEvent(Event, EventDetails, ResultsToReturn, InputFromVmxRoot))
     {
+        //
+        // *** Set the short-circuiting state ***
+        //
+        Event->EnableShortCircuiting = EventDetails->EnableShortCircuiting;
+
+        //
+        // Set the event stage (pre- post- event)
+        //
+        if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+        {
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+        }
+        else if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION)
+        {
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
+        }
+        else
+        {
+            //
+            // Any other value results to be pre-event
+            //
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
+        }
+
         return TRUE;
     }
     else
@@ -3215,14 +3196,17 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  *
  * @param Action Structure that describes the action that comes from the
  * user-mode
- * @param BufferLength Length of the buffer that comes from user-mode
  * @param ResultsToReturn The buffer address that should be returned
  * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if action was parsed and added successfully, return TRUE
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn)
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
+                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                    BOOLEAN                               InputFromVmxRoot)
 {
     //
     // Check if Tag is valid or not
@@ -3560,11 +3544,14 @@ DebuggerTerminateEvent(UINT64 Tag)
  * from the user-mode
  *
  * @param DebuggerEventModificationRequest event modification request details
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
  * an error
  */
 BOOLEAN
-DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest)
+DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
+                                BOOLEAN                 InputFromVmxRoot)
 {
     BOOLEAN IsForAllEvents = FALSE;
 
@@ -3728,83 +3715,3 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     DebuggerEventModificationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;
 }
-
-//
-//   //
-//   //---------------------------------------------------------------------------
-//   // Example of using events and actions
-//   //
-//
-//   //
-//   // Create condition buffer
-//   //
-//   char CondtionBuffer[8];
-//   CondtionBuffer[0] = 0x90; //nop
-//   CondtionBuffer[1] = 0x90; //nop
-//   CondtionBuffer[2] = 0xcc; //int 3
-//   CondtionBuffer[3] = 0x90; //nop
-//   CondtionBuffer[4] = 0xcc; //int 3
-//   CondtionBuffer[5] = 0x90; //nop
-//   CondtionBuffer[6] = 0x90; //nop
-//   CondtionBuffer[7] = 0xc3; // ret
-//
-//   //
-//   // Create event based on condition buffer
-//   //
-//   PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
-//
-//   if (!Event1)
-//   {
-//       LogError("Err, in creating event");
-//   }
-//
-//   //
-//   // *** Add Actions example ***
-//   //
-//
-//   //
-//   // Add action for RUN_SCRIPT
-//   //
-//   DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION LogConfiguration = {0};
-//   LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
-//   LogConfiguration.LogLength                               = 0x10;
-//   LogConfiguration.LogMask                                 = 0x1;
-//   LogConfiguration.LogValue                                = 0x4;
-//
-//   DebuggerAddActionToEvent(Event1, RUN_SCRIPT, TRUE, NULL, &LogConfiguration);
-//
-//   //
-//   // Add action for RUN_CUSTOM_CODE
-//   //
-//   DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
-//
-//   char CustomCodeBuffer[8];
-//   CustomCodeBuffer[0] = 0x90; //nop
-//   CustomCodeBuffer[1] = 0x90; //nop
-//   CustomCodeBuffer[2] = 0xcc; //int 3
-//   CustomCodeBuffer[3] = 0x90; //nop
-//   CustomCodeBuffer[4] = 0xcc; //int 3
-//   CustomCodeBuffer[5] = 0x90; //nop
-//   CustomCodeBuffer[6] = 0x90; //nop
-//   CustomCodeBuffer[7] = 0xc3; // ret
-//
-//   CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
-//   CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
-//   CustomCode.OptionalRequestedBufferSize = 0x100;
-//
-//   DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-//
-//   //
-//   // Add action for BREAK_TO_DEBUGGER
-//   //
-//   DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
-//
-//   //
-//   // Call to register
-//   //
-//   DebuggerRegisterEvent(Event1);
-//
-//   //
-//   //---------------------------------------------------------------------------
-//   //
-//

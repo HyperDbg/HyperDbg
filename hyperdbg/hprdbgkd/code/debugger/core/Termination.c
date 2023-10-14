@@ -113,10 +113,10 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
     // then it won't cause any problem for other hooks
     //
 
-    TempOptionalParam1 = Event->OptionalParam3;
+    TempOptionalParam1 = Event->Options.OptionalParam3;
 
     PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = Event->OptionalParam4 - PagesBytes;
+    PagesBytes = Event->Options.OptionalParam4 - PagesBytes;
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
@@ -147,7 +147,7 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    ConfigureEptHookUnHookSingleAddress(Event->OptionalParam1, NULL, Event->ProcessId);
+    ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1, NULL, Event->ProcessId);
 }
 
 /**
@@ -175,7 +175,7 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    ConfigureEptHookUnHookSingleAddress(NULL, Event->OptionalParam1, Event->ProcessId);
+    ConfigureEptHookUnHookSingleAddress(NULL, Event->Options.OptionalParam1, Event->ProcessId);
 }
 
 /**
@@ -231,14 +231,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    ExtensionCommandChangeAllMsrBitmapReadAllCores(CurrentEvent->OptionalParam1);
+                    ExtensionCommandChangeAllMsrBitmapReadAllCores(CurrentEvent->Options.OptionalParam1);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureChangeMsrBitmapReadOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    ConfigureChangeMsrBitmapReadOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
                 }
             }
         }
@@ -310,14 +310,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    ExtensionCommandChangeAllMsrBitmapWriteAllCores(CurrentEvent->OptionalParam1);
+                    ExtensionCommandChangeAllMsrBitmapWriteAllCores(CurrentEvent->Options.OptionalParam1);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureChangeMsrBitmapWriteOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    ConfigureChangeMsrBitmapWriteOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
                 }
             }
         }
@@ -390,14 +390,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    ExtensionCommandSetExceptionBitmapAllCores(CurrentEvent->OptionalParam1);
+                    ExtensionCommandSetExceptionBitmapAllCores(CurrentEvent->Options.OptionalParam1);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureSetExceptionBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    ConfigureSetExceptionBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
                 }
             }
         }
@@ -476,14 +476,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->OptionalParam1);
+                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->Options.OptionalParam1);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
                 }
             }
         }
@@ -562,14 +562,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->OptionalParam1);
+                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->Options.OptionalParam1);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
                 }
             }
         }
@@ -928,12 +928,7 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
                     //
                     // Just one core
                     //
-                    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
-
-                    BroadcastingOption.OptionalParam1 = CurrentEvent->OptionalParam1;
-                    BroadcastingOption.OptionalParam2 = CurrentEvent->OptionalParam2;
-
-                    ConfigureEnableMovToControlRegisterExitingOnSingleCore(CurrentEvent->CoreId, &BroadcastingOption);
+                    ConfigureEnableMovToControlRegisterExitingOnSingleCore(CurrentEvent->CoreId, &CurrentEvent->Options);
                 }
             }
         }
@@ -1091,14 +1086,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
                 }
             }
         }
@@ -1177,14 +1172,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
                     //
                     // All cores
                     //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
                 }
                 else
                 {
                     //
                     // Just one core
                     //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
                 }
             }
         }
