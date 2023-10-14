@@ -2116,9 +2116,9 @@ DebuggerRemoveEvent(UINT64 Tag)
  * @return BOOLEAN TRUE if the event was valid otherwise returns FALSE
  */
 BOOLEAN
-DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                      PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                      BOOLEAN                               InputFromVmxRoot)
+DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                      BOOLEAN                           InputFromVmxRoot)
 {
     UINT32 TempPid;
 
@@ -2379,9 +2379,9 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  * @return BOOLEAN TRUE if the event was applied otherwise returns FALSE
  */
 BOOLEAN
-DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot)
+DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                   BOOLEAN                           InputFromVmxRoot)
 {
     UINT32  TempProcessId;
     UINT64  PagesBytes;
@@ -2614,12 +2614,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case RDMSR_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
-        //
         // Let's see if it is for all cores or just one core
         //
         if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -2646,12 +2640,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case WRMSR_INSTRUCTION_EXECUTION:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         //
         // Let's see if it is for all cores or just one core
         //
@@ -2708,12 +2696,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case TSC_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
-        //
         // Let's see if it is for all cores or just one core
         //
         if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -2735,12 +2717,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case PMC_INSTRUCTION_EXECUTION:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         //
         // Let's see if it is for all cores or just one core
         //
@@ -2764,12 +2740,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case DEBUG_REGISTERS_ACCESSED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
-        //
         // Let's see if it is for all cores or just one core
         //
         if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -2791,12 +2761,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case CONTROL_REGISTER_MODIFIED:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         //
         // Setting an indicator to CR
         //
@@ -2826,15 +2790,8 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case EXCEPTION_OCCURRED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
-        //
         // Let's see if it is for all cores or just one core
         //
-
         if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
@@ -2859,12 +2816,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         //
         // Let's see if it is for all cores or just one core
         //
@@ -2892,12 +2843,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case SYSCALL_HOOK_EFER_SYSCALL:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
 
         //
@@ -2941,12 +2886,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     }
     case SYSCALL_HOOK_EFER_SYSRET:
     {
-        //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
-        //
-
         DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
 
         //
@@ -3079,9 +3018,9 @@ ClearTheEventAfterCreatingEvent:
  * otherwise returns FALSE
  */
 BOOLEAN
-DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot)
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                   BOOLEAN                           InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
 
@@ -3217,9 +3156,9 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
-                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                    BOOLEAN                               InputFromVmxRoot)
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                    BOOLEAN                           InputFromVmxRoot)
 {
     //
     // Check if Tag is valid or not

@@ -1727,8 +1727,8 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 {
     BOOL                                  Status;
     ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempRegResult;
+    DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
+    PDEBUGGER_EVENT_AND_ACTION_RESULT TempRegResult;
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -1745,7 +1745,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Move the buffer to local buffer
         //
-        memcpy(&ReturnedBuffer, TempRegResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+        memcpy(&ReturnedBuffer, TempRegResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
     }
     else
     {
@@ -1764,7 +1764,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                  Event,                                        // Input Buffer to driver.
                                  EventBufferLength,                            // Input buffer length
                                  &ReturnedBuffer,                              // Output Buffer from driver.
-                                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                 sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                                                // of
                                                                                // output
                                                                                // buffer
@@ -1849,8 +1849,8 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 {
     BOOL                                  Status;
     ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempAddingResult;
+    DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
+    PDEBUGGER_EVENT_AND_ACTION_RESULT TempAddingResult;
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -1873,7 +1873,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
 
         //
@@ -1891,7 +1891,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
 
         //
@@ -1909,7 +1909,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
     }
     else
@@ -1935,7 +1935,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                 ActionBreakToDebugger,                        // Input Buffer to driver.
                 ActionBreakToDebuggerLength,                  // Input buffer length
                 &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                               // of
                                                               // output
                                                               // buffer
@@ -1963,7 +1963,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                 ActionCustomCode,                             // Input Buffer to driver.
                 ActionCustomCodeLength,                       // Input buffer length
                 &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                               // of
                                                               // output
                                                               // buffer
@@ -1991,7 +1991,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                 ActionScript,                                 // Input Buffer to driver.
                 ActionScriptLength,                           // Input buffer length
                 &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                               // of
                                                               // output
                                                               // buffer

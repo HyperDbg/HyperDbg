@@ -280,13 +280,13 @@ HANDLE g_DebuggeeStopCommandEventHandle = NULL;
  * @brief Holds the result of registering events from the remote debuggee
  *
  */
-DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent = {0};
+DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent = {0};
 
 /**
  * @brief Holds the result of adding action to events from the remote debuggee
  *
  */
-DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
+DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent = {
     0};
 
 /**

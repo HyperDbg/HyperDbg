@@ -23,7 +23,8 @@
 VOID
 TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) > 1)
     {
@@ -58,23 +59,11 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandSetExternalInterruptExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureSetExternalInterruptExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -197,7 +186,8 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
 VOID
 TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->RdmsrInstructionExecutionEventsHead) > 1)
     {
@@ -232,23 +222,11 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandChangeAllMsrBitmapReadAllCores(CurrentEvent->Options.OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeMsrBitmapReadOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -278,7 +256,8 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->WrmsrInstructionExecutionEventsHead) > 1)
     {
@@ -313,23 +292,11 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandChangeAllMsrBitmapWriteAllCores(CurrentEvent->Options.OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeMsrBitmapWriteOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -359,7 +326,8 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ExceptionOccurredEventsHead) > 1)
     {
@@ -394,24 +362,11 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandSetExceptionBitmapAllCores(CurrentEvent->Options.OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureSetExceptionBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -441,7 +396,8 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for out instructions events too
@@ -483,23 +439,11 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->Options.OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -529,7 +473,8 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
 VOID
 TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for out instructions events too
@@ -571,23 +516,11 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->Options.OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->Options.OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -745,7 +678,8 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->TscInstructionExecutionEventsHead) > 1)
     {
@@ -780,23 +714,11 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableRdtscExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableRdtscExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -826,7 +748,8 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->PmcInstructionExecutionEventsHead) > 1)
     {
@@ -861,23 +784,11 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableRdpmcExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableRdpmcExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -907,7 +818,8 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ControlRegisterModifiedEventsHead) > 1)
     {
@@ -942,23 +854,11 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableMovControlRegisterExitingAllCores(CurrentEvent);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableMovToControlRegisterExitingOnSingleCore(CurrentEvent->CoreId, &CurrentEvent->Options);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -988,7 +888,8 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->DebugRegistersAccessedEventsHead) > 1)
     {
@@ -1023,23 +924,11 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableMovDebugRegistersExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableMovToDebugRegistersExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -1069,7 +958,8 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for sysret instructions events too
@@ -1111,23 +1001,11 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -1157,7 +1035,8 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for syscall instructions events too
@@ -1199,23 +1078,11 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->Options.OptionalParam2);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }

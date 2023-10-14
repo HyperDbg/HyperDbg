@@ -27,8 +27,8 @@ extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebuggee;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
@@ -626,9 +626,9 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
  * @param Event
  * @param EventBufferLength
  *
- * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ * @return PDEBUGGER_EVENT_AND_ACTION_RESULT
  */
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                     UINT32                         EventBufferLength)
 {
@@ -661,7 +661,7 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
            EventBufferLength);
 
     RtlZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send register event packet
@@ -693,9 +693,9 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  * @param GeneralAction
  * @param GeneralActionLength
  *
- * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ * @return PDEBUGGER_EVENT_AND_ACTION_RESULT
  */
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
                                        UINT32                   GeneralActionLength)
 {
@@ -728,7 +728,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
            GeneralActionLength);
 
     RtlZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send add action to event packet
@@ -2839,7 +2839,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
 {
     BOOL                                 Status;
     ULONG                                ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
@@ -2853,7 +2853,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
                         Length                                        // Input Buffer to driver.
                         ,                                             // Input buffer length
                         &ReturnedBuffer,                              // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                                       // of
                                                                       // output
                                                                       // buffer
@@ -2876,7 +2876,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     return KdSendGeneralBuffersFromDebuggeeToDebugger(
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
         &ReturnedBuffer,
-        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER),
+        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT),
         TRUE);
 }
 
@@ -2893,7 +2893,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 {
     BOOL                                 Status;
     ULONG                                ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
@@ -2903,7 +2903,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
                         ActionAddingBuffer,                           // Input Buffer to driver.
                         Length,                                       // Input buffer length
                         &ReturnedBuffer,                              // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                                       // of
                                                                       // output
                                                                       // buffer
@@ -2926,7 +2926,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     return KdSendGeneralBuffersFromDebuggeeToDebugger(
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
         &ReturnedBuffer,
-        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER),
+        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT),
         TRUE);
 }
 

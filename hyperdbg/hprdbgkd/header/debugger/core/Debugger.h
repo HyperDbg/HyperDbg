@@ -231,17 +231,17 @@ DebuggerQueryDebuggerStatus();
 
 BOOLEAN
 DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
 DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
 DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
-                    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                     BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
