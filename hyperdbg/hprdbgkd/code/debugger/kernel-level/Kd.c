@@ -472,13 +472,9 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Disable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, FALSE);
-
-        //
-        // Avoid future sets/unsets
-        //
-        DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = FALSE;
-        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+        ProcessEnableOrDisableThreadChangeMonitor(DbgState,
+                                                  FALSE,
+                                                  DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 
     //
@@ -489,13 +485,9 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Disable thread change alerts
         //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, FALSE);
-
-        //
-        // Avoid future sets/unsets
-        //
-        DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = FALSE;
-        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = FALSE;
+        ThreadEnableOrDisableThreadChangeMonitor(DbgState,
+                                                 FALSE,
+                                                 DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 }
 
@@ -522,28 +514,6 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
                           DbgState->HardwareDebugRegisterForStepping);
 
         DbgState->HardwareDebugRegisterForStepping = NULL;
-    }
-
-    //
-    // Check to apply mov to cr3 vm-exits
-    //
-    if (DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
-    {
-        //
-        // Enable process change detection
-        //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE);
-    }
-
-    //
-    // Check to apply thread change alerts
-    //
-    if (DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
-    {
-        //
-        // Enable alert for thread changes
-        //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE);
     }
 }
 
@@ -1750,9 +1720,10 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
         // Send request for the target task to the halted cores (synchronized and unsynchronized)
         //
         HaltedCoreBroadcastTaskAllCores(DbgState,
-                                        0x55,
+                                        DEBUGGER_HALTED_CORE_TASK_TEST,
                                         TRUE,
-                                        TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE);
+                                        TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE,
+                                        0x55);
 
         TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -1775,7 +1746,10 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
             //
             // Send request for the target task to the target halted core
             //
-            HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context, 0x8585, TRUE);
+            HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context,
+                                          DEBUGGER_HALTED_CORE_TASK_TEST,
+                                          TRUE,
+                                          0x85);
 
             TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         }
@@ -2433,7 +2407,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Interpret the process packet
                 //
-                ProcessInterpretProcess(ChangeProcessPacket);
+                ProcessInterpretProcess(DbgState, ChangeProcessPacket);
 
                 //
                 // Send the result of switching process back to the debuggee
@@ -2452,7 +2426,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Interpret the thread packet
                 //
-                ThreadInterpretThread(ChangeThreadPacket);
+                ThreadInterpretThread(DbgState, ChangeThreadPacket);
 
                 //
                 // Send the result of switching thread back to the debuggee
@@ -3014,7 +2988,9 @@ StartAgain:
             //
             // Perform the target task
             //
-            HaltedCorePerformTargetTask(DbgState, DbgState->HaltedCoreTask.TargetTask);
+            HaltedCorePerformTargetTask(DbgState,
+                                        DbgState->HaltedCoreTask.TargetTask,
+                                        DbgState->HaltedCoreTask.Context);
 
             //
             // Check if the core needs to be locked again

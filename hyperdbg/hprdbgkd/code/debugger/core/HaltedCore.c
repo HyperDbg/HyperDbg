@@ -13,22 +13,77 @@
 #include "pch.h"
 
 /**
+ * @brief Perform the test task on halted core
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param Context optional parameter passed to the functions
+ *
+ * @return VOID
+ */
+VOID
+HaltedCoreTaskTest(PROCESSOR_DEBUGGING_STATE * DbgState, PVOID Context)
+{
+    //
+    // Test target task
+    //
+    LogInfo("Target test task executed on halted core, context: %llx", Context);
+}
+
+/**
  * @brief Perform the task on halted core
  * @details This function should be called from VMX root-mode
  *
  * @param DbgState The state of the debugger on the current core
  * @param TargetTask The target task
+ * @param Context optional parameter passed to the functions
  *
  * @return VOID
  */
 VOID
 HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
-                            UINT32                      TargetTask)
+                            UINT32                      TargetTask,
+                            PVOID                       Context)
 {
-    //
-    // Test target task
-    //
-    LogInfo("Target task executed: %x", TargetTask);
+    switch (TargetTask)
+    {
+    case DEBUGGER_HALTED_CORE_TASK_TEST:
+    {
+        //
+        // Perform the test task
+        //
+        HaltedCoreTaskTest(DbgState, Context);
+        break;
+    }
+
+    case DEBUGGER_HALTED_CORE_TASK_RUN_VMCALL:
+    {
+        //
+        // Not yet implemented!
+        //
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION:
+    {
+        //
+        // Enable process change detection
+        //
+        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION:
+    {
+        //
+        // Enable alert for thread changes
+        //
+        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+
+        break;
+    }
+    default:
+        LogWarning("Warning, unknown broadcast on halted core received");
+        break;
+    }
 }
 
 /**
@@ -38,13 +93,15 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
  * @param TargetCoreId The target core's ID (to just run on this core)
  * @param TargetTask The target task
  * @param LockAgainAfterTask Lock the core after the task
+ * @param Context optional parameter passed to the functions
  *
  * @return VOID
  */
 VOID
 HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
                                 UINT32  TargetTask,
-                                BOOLEAN LockAgainAfterTask)
+                                BOOLEAN LockAgainAfterTask,
+                                PVOID   Context)
 {
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[TargetCoreId];
 
@@ -56,6 +113,7 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
     DbgState->HaltedCoreTask.KernelStatus       = NULL;
     DbgState->HaltedCoreTask.LockAgainAfterTask = LockAgainAfterTask;
     DbgState->HaltedCoreTask.TargetTask         = TargetTask;
+    DbgState->HaltedCoreTask.Context            = Context;
 
     //
     // Unlock halted core
@@ -70,13 +128,15 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
  * @param TargetCoreId The target core's ID (to just run on this core)
  * @param TargetTask The target task
  * @param LockAgainAfterTask Lock the core after the task
+ * @param Context optional parameter passed to the functions
  *
  * @return VOID
  */
 VOID
 HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
                               UINT32  TargetTask,
-                              BOOLEAN LockAgainAfterTask)
+                              BOOLEAN LockAgainAfterTask,
+                              PVOID   Context)
 {
     //
     // Check if the task needs to be executed for the current
@@ -87,7 +147,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
         //
         // *** Perform the task for the current core ***
         //
-        HaltedCorePerformTargetTask(&g_DbgState[TargetCoreId], TargetTask);
+        HaltedCorePerformTargetTask(&g_DbgState[TargetCoreId], TargetTask, Context);
     }
     else
     {
@@ -98,7 +158,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
         //
         // apply task to the target core
         //
-        HaltedCoreApplyTaskOnTargetCore(TargetCoreId, TargetTask, LockAgainAfterTask);
+        HaltedCoreApplyTaskOnTargetCore(TargetCoreId, TargetTask, LockAgainAfterTask, Context);
     }
 }
 
@@ -111,6 +171,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
  * @param LockAgainAfterTask Lock the core after the task
  * @param Synchronize Whether the function should wait for all cores to synchronize
  * and lock again or not
+ * @param Context optional parameter passed to the functions
  *
  * @return BOOLEAN
  */
@@ -118,7 +179,8 @@ BOOLEAN
 HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
                                 UINT32                      TargetTask,
                                 BOOLEAN                     LockAgainAfterTask,
-                                BOOLEAN                     Synchronize)
+                                BOOLEAN                     Synchronize,
+                                PVOID                       Context)
 {
     ULONG CoreCount;
 
@@ -144,14 +206,14 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
             //
             // apply task to the target core
             //
-            HaltedCoreApplyTaskOnTargetCore(i, TargetTask, LockAgainAfterTask);
+            HaltedCoreApplyTaskOnTargetCore(i, TargetTask, LockAgainAfterTask, Context);
         }
         else
         {
             //
             // Perform the task for the current core
             //
-            HaltedCorePerformTargetTask(DbgState, TargetTask);
+            HaltedCorePerformTargetTask(DbgState, TargetTask, Context);
         }
     }
 

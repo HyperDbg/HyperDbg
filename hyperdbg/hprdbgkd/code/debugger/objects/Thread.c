@@ -46,6 +46,8 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
 
 /**
  * @brief make evnvironment ready to change the thread
+ *
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadId
  * @param EThread
  * @param CheckByClockInterrupt
@@ -53,10 +55,11 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
  * @return BOOLEAN
  */
 BOOLEAN
-ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
+ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
+             UINT32                      ThreadId,
+             PETHREAD                    EThread,
+             BOOLEAN                     CheckByClockInterrupt)
 {
-    ULONG CoreCount = 0;
-
     //
     // Initialized with NULL
     //
@@ -94,15 +97,13 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
     }
 
     //
-    // Set the change thread alert for all the cores
+    // Send request for the target task to the halted cores (synchronized)
     //
-    CoreCount = KeQueryActiveProcessorCount(0);
-
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = TRUE;
-        g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = CheckByClockInterrupt;
-    }
+    HaltedCoreBroadcastTaskAllCores(DbgState,
+                                    DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION,
+                                    TRUE,
+                                    TRUE,
+                                    CheckByClockInterrupt);
 
     return TRUE;
 }
@@ -314,12 +315,15 @@ ReturnEnd:
 
 /**
  * @brief change the current thread
+ *
+ * @param DbgState The state of the debugger on the current core
  * @param TidRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
+ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
+                      PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
 {
     switch (TidRequest->ActionType)
     {
@@ -346,7 +350,10 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Perform the thread switch
         //
-        if (!ThreadSwitch(TidRequest->ThreadId, TidRequest->Thread, TidRequest->CheckByClockInterrupt))
+        if (!ThreadSwitch(DbgState,
+                          TidRequest->ThreadId,
+                          TidRequest->Thread,
+                          TidRequest->CheckByClockInterrupt))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
             break;
@@ -582,16 +589,33 @@ ThreadDetectChangeByInterceptingClockInterrupts(PROCESSOR_DEBUGGING_STATE * DbgS
  *
  * @param DbgState The state of the debugger on the current core
  * @param Enable
+ * @param IsSwitchByClockIntrrupt
+ *
  * @return VOID
  */
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                         BOOLEAN                     Enable)
+                                         BOOLEAN                     Enable,
+                                         BOOLEAN                     IsSwitchByClockIntrrupt)
 {
+    if (Enable)
+    {
+        DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = TRUE;
+        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = IsSwitchByClockIntrrupt;
+    }
+    else
+    {
+        //
+        // Avoid future sets/unsets
+        //
+        DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = FALSE;
+        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = FALSE;
+    }
+
     //
     // Check if it's a HW breakpoint on gs:[188] or a clock interception
     //
-    if (!DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt)
+    if (!IsSwitchByClockIntrrupt)
     {
         ThreadDetectChangeByDebugRegisterOnGs(DbgState, Enable);
     }

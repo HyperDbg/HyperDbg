@@ -17,11 +17,13 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
+ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
+                      PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
 
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                         BOOLEAN                     Enable);
+                                         BOOLEAN                     Enable,
+                                         BOOLEAN                     IsSwitchByClockIntrrupt);
 
 BOOLEAN
 ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState);
