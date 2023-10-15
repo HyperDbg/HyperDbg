@@ -2383,10 +2383,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                    BOOLEAN                           InputFromVmxRoot)
 {
-    UINT32  TempProcessId;
-    UINT64  PagesBytes;
-    BOOLEAN ResultOfApplyingEvent = FALSE;
-
     //
     // Now we should configure the cpu to generate the events
     //
@@ -2401,136 +2397,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
     case HIDDEN_HOOK_EXECUTE:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the monitor memory hook events
         //
-        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        if (!ApplyEventMonitorEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            TempProcessId = PsGetCurrentProcessId();
-        }
-        else
-        {
-            TempProcessId = Event->ProcessId;
-        }
-
-        PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
-        PagesBytes = Event->InitOptions.OptionalParam2 - PagesBytes;
-
-        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-        {
-            //
-            // In all the cases we should set both read/write, even if it's only
-            // read we should set the write too!
-            // Also execute bit has the same conditions here, because if write is set
-            // read should be also set
-            //
-            switch (Event->EventType)
-            {
-            case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
-            case HIDDEN_HOOK_READ_AND_EXECUTE:
-
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                TempProcessId,
-                                                                                TRUE,
-                                                                                TRUE,
-                                                                                TRUE);
-                break;
-
-            case HIDDEN_HOOK_WRITE_AND_EXECUTE:
-
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                TempProcessId,
-                                                                                FALSE,
-                                                                                TRUE,
-                                                                                FALSE);
-                break;
-
-            case HIDDEN_HOOK_READ_AND_WRITE:
-            case HIDDEN_HOOK_READ:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                TempProcessId,
-                                                                                TRUE,
-                                                                                TRUE,
-                                                                                FALSE);
-
-                break;
-
-            case HIDDEN_HOOK_WRITE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                TempProcessId,
-                                                                                FALSE,
-                                                                                TRUE,
-                                                                                FALSE);
-
-                break;
-
-            case HIDDEN_HOOK_EXECUTE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                                TempProcessId,
-                                                                                FALSE,
-                                                                                FALSE,
-                                                                                TRUE);
-                break;
-
-            default:
-                LogError("Err, Invalid monitor hook type");
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
-
-                goto ClearTheEventAfterCreatingEvent;
-
-                break;
-            }
-
-            if (!ResultOfApplyingEvent)
-            {
-                //
-                // The event is not applied, won't apply other EPT modifications
-                // as we want to remove this event
-                //
-
-                //
-                // Now we should restore the previously applied events (if any)
-                //
-                for (size_t j = 0; j < i; j++)
-                {
-                    ConfigureEptHookUnHookSingleAddress((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
-                }
-
-                break;
-            }
-            else
-            {
-                //
-                // We applied the hook and the pre-allocated buffers are used
-                // for this hook, as here is a safe PASSIVE_LEVEL we can force
-                // the Windows to reallocate some pools for us, thus, if this
-                // hook is continued to other pages, we still have pre-alloated
-                // buffers ready for our future hooks
-                //
-                PoolManagerCheckAndPerformAllocationAndDeallocation();
-            }
-        }
-
-        //
-        // We convert the Event's optional parameters physical address because
-        // vm-exit occurs and we have the physical address to compare in the case of
-        // hidden hook rw events.
-        //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam2, TempProcessId);
-        Event->Options.OptionalParam3 = Event->InitOptions.OptionalParam1;
-        Event->Options.OptionalParam4 = Event->InitOptions.OptionalParam2;
-
-        //
-        // Check if we should restore the event if it was not successful
-        //
-        if (!ResultOfApplyingEvent)
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
-
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2539,129 +2409,42 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
     case HIDDEN_HOOK_EXEC_CC:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the EPT hidden hook (hidden breakpoint) events
         //
-        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        if (!ApplyEventEptHookExecCcEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            TempProcessId = PsGetCurrentProcessId();
-        }
-        else
-        {
-            TempProcessId = Event->ProcessId;
-        }
-
-        //
-        // Invoke the hooker
-        //
-        if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
-        {
-            //
-            // There was an error applying this event, so we're setting
-            // the event
-            //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
-
-        //
-        // We set events OptionalParam1 here to make sure that our event is
-        // executed not for all hooks but for this special hook
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
         break;
     }
     case HIDDEN_HOOK_EXEC_DETOURS:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the EPT hook trampoline (inline hook) events
         //
-        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        if (!ApplyEventEpthookInlineEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            TempProcessId = PsGetCurrentProcessId();
-        }
-        else
-        {
-            TempProcessId = Event->ProcessId;
-        }
-
-        //
-        // Invoke the hooker
-        //
-        if (!ConfigureEptHook2(PsGetCurrentProcessId(), Event->InitOptions.OptionalParam1, NULL, TempProcessId, FALSE, FALSE, FALSE, TRUE))
-        {
-            //
-            // There was an error applying this event, so we're setting
-            // the event
-            //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
-
-        //
-        // We set events OptionalParam1 here to make sure that our event is
-        // executed not for all hooks but for this special hook
-        // Also, we are sure that this is not null because we checked it before
-        //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->Options.OptionalParam1, TempProcessId);
 
         break;
     }
     case RDMSR_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the RDMSR execution exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        ApplyEventRdmsrExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case WRMSR_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the WRMSR execution exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandChangeAllMsrBitmapWriteAllCores(Event->InitOptions.OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeMsrBitmapWriteOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        ApplyEventWrmsrExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
@@ -2669,310 +2452,108 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
     case OUT_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the IN/OUT instructions execution exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandIoBitmapChangeAllCores(Event->InitOptions.OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeIoBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        ApplyEventInOutExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case TSC_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the RDTSC/RDTSCP instructions execution exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableRdtscExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
-        }
+        ApplyEventTscExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case PMC_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the RDPMC instruction execution exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableRdpmcExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
-        }
+        ApplyEventRdpmcExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case DEBUG_REGISTERS_ACCESSED:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the mov 2 debug register exiting events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableMovDebugRegistersExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
-        }
+        ApplyEventMov2DebugRegExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case CONTROL_REGISTER_MODIFIED:
     {
         //
-        // Setting an indicator to CR
+        // Apply the control register access exiting events
         //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
-        Event->Options.OptionalParam2 = Event->InitOptions.OptionalParam2;
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableMovToControlRegisterExitingOnSingleCore(Event->CoreId, &Event->Options);
-        }
+        ApplyEventControlRegisterAccessedEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case EXCEPTION_OCCURRED:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the exception events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
-        }
-
-        //
-        // Set the event's target exception
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        ApplyEventExceptionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the interrupt events
         //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandSetExternalInterruptExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
-        }
-
-        //
-        // Set the event's target interrupt
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        ApplyEventInterruptEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case SYSCALL_HOOK_EFER_SYSCALL:
     {
-        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-
         //
-        // whether it's a !syscall2 or !sysret2
+        // Apply the EFER SYSCALL hook events
         //
-        if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-        }
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
-        }
-
-        //
-        // Set the event's target syscall number and save the approach
-        // of handling event details
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
-        Event->Options.OptionalParam2 = SyscallHookType;
+        ApplyEventEferSyscallHookEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case SYSCALL_HOOK_EFER_SYSRET:
     {
-        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-
         //
-        // whether it's a !syscall2 or !sysret2
+        // Apply the EFER SYSRET hook events
         //
-        if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (Event->InitOptions.OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-        }
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
-        }
-
-        //
-        // Set the event's target syscall number and save the approach
-        // of handling event details
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
-        Event->Options.OptionalParam2 = SyscallHookType;
+        ApplyEventEferSysretHookEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case VMCALL_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for VMCALLs
-        // This event doesn't support custom optional
-        // parameter(s) because it's unconditional
-        // users can use condition(s) to check for
-        // their custom optional parameters
+        // Apply the VMCALL instruction interception events
         //
-        VmFuncSetTriggerEventForVmcalls(TRUE);
+        ApplyEventVmcallExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // Add the process to the watching list
+        // Apply the trap mode change events
         //
-        ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
-
-        //
-        // Set the event's mode of execution
-        //
-        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
-
-        //
-        // Enable triggering events for user-mode execution
-        // traps. This event doesn't support custom optional
-        // parameter(s) because it's unconditional users can
-        // use condition(s) to check for their custom optional
-        // parameters
-        //
-        ConfigureInitializeExecTrapOnAllProcessors();
+        ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case CPUID_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for CPUIDs
-        // This event doesn't support custom optional
-        // parameter(s) because it's unconditional
-        // users can use condition(s) to check for
-        // their custom optional parameters
+        // Apply the CPUID instruction execution events
         //
-        VmFuncSetTriggerEventForCpuids(TRUE);
+        ApplyEventCpuidExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }

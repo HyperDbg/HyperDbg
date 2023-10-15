@@ -117,6 +117,7 @@
     <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
     <ClCompile Include="code\debugger\commands\ExtensionCommands.c" />
     <ClCompile Include="code\debugger\communication\SerialConnection.c" />
+    <ClCompile Include="code\debugger\core\ApplyEvents.c" />
     <ClCompile Include="code\debugger\core\Debugger.c" />
     <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
     <ClCompile Include="code\debugger\core\DebuggerVmcalls.c" />
@@ -152,6 +153,7 @@
     <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
     <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
     <ClInclude Include="header\debugger\communication\SerialConnection.h" />
+    <ClInclude Include="header\debugger\core\ApplyEvents.h" />
     <ClInclude Include="header\debugger\core\Debugger.h" />
     <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
     <ClInclude Include="header\debugger\core\DebuggerVmcalls.h" />

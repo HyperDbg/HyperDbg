@@ -225,6 +225,9 @@
     <ClCompile Include="code\debugger\core\HaltedCore.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\core\ApplyEvents.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -333,6 +336,9 @@
       <Filter>header\components\optimizations</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\HaltedCore.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\ApplyEvents.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
   </ItemGroup>

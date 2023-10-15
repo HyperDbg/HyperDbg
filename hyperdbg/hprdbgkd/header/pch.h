@@ -106,6 +106,7 @@
 #include "header/debugger/objects/Process.h"
 #include "header/debugger/objects/Thread.h"
 #include "header/debugger/user-level/Attaching.h"
+#include "header/debugger/core/ApplyEvents.h"
 #include "header/debugger/core/Termination.h"
 #include "header/debugger/user-level/UserAccess.h"
 #include "header/debugger/user-level/ThreadHolder.h"
