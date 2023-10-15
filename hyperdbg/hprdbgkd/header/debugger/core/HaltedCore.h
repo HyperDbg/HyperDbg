@@ -12,20 +12,51 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	 Functions  	      		//
+//			       	 Tasks  	         		//
 //////////////////////////////////////////////////
 
-VOID
-HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
-                            UINT32                      TargetTask);
+/**
+ * @brief Halted core task for testing purpose
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_TEST 0x00000001
 
-VOID
-HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
-                              UINT32  TargetTask,
-                              BOOLEAN LockAgainAfterTask);
+/**
+ * @brief Halted core task for running VMCALLs
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RUN_VMCALL 0x00000002
+
+/**
+ * @brief Halted core task for setting process interception
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION 0x00000003
+
+/**
+ * @brief Halted core task for setting thread interception
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION 0x00000004
+
+//////////////////////////////////////////////////
+//			    	 Functions  	      		//
+//////////////////////////////////////////////////
 
 BOOLEAN
 HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
                                 UINT32                      TargetTask,
                                 BOOLEAN                     LockAgainAfterTask,
-                                BOOLEAN                     Synchronize);
+                                BOOLEAN                     Synchronize,
+                                PVOID                       Context);
+
+VOID
+HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
+                              UINT32  TargetTask,
+                              BOOLEAN LockAgainAfterTask,
+                              PVOID   Context);
+
+VOID
+HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
+                            UINT32                      TargetTask,
+                            PVOID                       Context);

@@ -18,7 +18,8 @@
 
 VOID
 ProcessEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                          BOOLEAN                     Enable);
+                                          BOOLEAN                     Enable,
+                                          BOOLEAN                     IsSwitchByClockIntrrupt);
 
 VOID
 ProcessTriggerCr3ProcessChange(UINT32 CoreId);
@@ -27,7 +28,7 @@ BOOLEAN
 ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
-ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);
+ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);
 
 BOOLEAN
 ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset);
