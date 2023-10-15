@@ -373,7 +373,7 @@ ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
  * @return VOID
  */
 VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption)
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
 }

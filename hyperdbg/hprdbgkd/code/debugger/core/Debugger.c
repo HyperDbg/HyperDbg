@@ -247,9 +247,9 @@ DebuggerUninitialize()
     DebuggerEnableOrDisableAllEvents(FALSE);
 
     //
-    // Second, terminate all events
+    // Second, terminate all events (called from VMX non-root)
     //
-    DebuggerTerminateAllEvents();
+    DebuggerTerminateAllEvents(FALSE);
 
     //
     // Third, remove all events
@@ -331,17 +331,14 @@ DebuggerUninitialize()
  * object address when it's successful
  */
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN             Enabled,
-                    UINT32              CoreId,
-                    UINT32              ProcessId,
-                    VMM_EVENT_TYPE_ENUM EventType,
-                    UINT64              Tag,
-                    UINT64              OptionalParam1,
-                    UINT64              OptionalParam2,
-                    UINT64              OptionalParam3,
-                    UINT64              OptionalParam4,
-                    UINT32              ConditionsBufferSize,
-                    PVOID               ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN                  Enabled,
+                    UINT32                   CoreId,
+                    UINT32                   ProcessId,
+                    VMM_EVENT_TYPE_ENUM      EventType,
+                    UINT64                   Tag,
+                    DEBUGGER_EVENT_OPTIONS * Options,
+                    UINT32                   ConditionsBufferSize,
+                    PVOID                    ConditionBuffer)
 {
     //
     // As this function uses the memory allocation functions,
@@ -371,10 +368,11 @@ DebuggerCreateEvent(BOOLEAN             Enabled,
     Event->EventType      = EventType;
     Event->Tag            = Tag;
     Event->CountOfActions = 0; // currently there is no action
-    Event->OptionalParam1 = OptionalParam1;
-    Event->OptionalParam2 = OptionalParam2;
-    Event->OptionalParam3 = OptionalParam3;
-    Event->OptionalParam4 = OptionalParam4;
+
+    //
+    // Copy Options
+    //
+    memcpy(&Event->InitOptions, Options, sizeof(DEBUGGER_EVENT_OPTIONS));
 
     //
     // check if this event is conditional or not
@@ -779,7 +777,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context is the physical address
             //
-            if (Context != CurrentEvent->OptionalParam1)
+            if (Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // The interrupt is not for this event
@@ -806,7 +804,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context should be checked in physical address
             //
-            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
+            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
             {
                 //
                 // The value is not withing our expected range
@@ -831,7 +829,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // the hook is triggered for the address described in
             // event, note that address in event is a virtual address
             //
-            if (Context != CurrentEvent->OptionalParam1)
+            if (Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the virtual address
@@ -858,7 +856,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
+            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -885,7 +883,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if MSR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The msr is not what we want
@@ -900,7 +898,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if exception is what we need or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The exception is not what we want
@@ -916,7 +914,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if I/O port is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The port is not what we want
@@ -938,7 +936,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check syscall number
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The syscall number is not what we want
@@ -953,7 +951,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CPUID is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->OptionalParam2 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->Options.OptionalParam2 != Context)
             {
                 //
                 // The CPUID is not what we want (and the user didn't intend to get all CPUIDs)
@@ -968,7 +966,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CR exit is what we want or not
             //
-            if (CurrentEvent->OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != Context)
             {
                 //
                 // The CR is not what we want
@@ -983,11 +981,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if the debugger needs user-to-kernel or kernel-to-user events
             //
-            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
             {
-                if ((CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+                if ((CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
                      Context == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE) ||
-                    (CurrentEvent->OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
+                    (CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
                      Context == DEBUGGER_EVENT_MODE_TYPE_USER_MODE))
                 {
                     continue;
@@ -1463,11 +1461,13 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
  * @brief Terminate effect and configuration to vmx-root
  * and non-root for all the events
  *
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if at least one event terminated then
  * it returns true, and otherwise false
  */
 BOOLEAN
-DebuggerTerminateAllEvents()
+DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
 {
     BOOLEAN     FindAtLeastOneEvent = FALSE;
     PLIST_ENTRY TempList            = 0;
@@ -1497,7 +1497,7 @@ DebuggerTerminateAllEvents()
             //
             // Terminate the current event
             //
-            DebuggerTerminateEvent(CurrentEvent->Tag);
+            DebuggerTerminateEvent(CurrentEvent->Tag, InputFromVmxRoot);
         }
     }
 
@@ -1793,7 +1793,7 @@ DebuggerExceptionEventBitmapMask(UINT32 CoreIndex)
 
         if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES || CurrentEvent->CoreId == CoreIndex)
         {
-            ExceptionMask |= CurrentEvent->OptionalParam1;
+            ExceptionMask |= CurrentEvent->Options.OptionalParam1;
         }
     }
 
@@ -2109,7 +2109,6 @@ DebuggerRemoveEvent(UINT64 Tag)
  *
  * @param EventDetails The structure that describes event that came
  * from the user-mode or VMX-root mode
- * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -2117,13 +2116,10 @@ DebuggerRemoveEvent(UINT64 Tag)
  * @return BOOLEAN TRUE if the event was valid otherwise returns FALSE
  */
 BOOLEAN
-DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                      UINT32                                BufferLength,
-                      PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                      BOOLEAN                               InputFromVmxRoot)
+DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                      BOOLEAN                           InputFromVmxRoot)
 {
-    UINT32 TempPid;
-
     //
     // Check whether the event mode (calling stage)  to see whether
     // short-cicuiting event is used along with the post-event,
@@ -2183,185 +2179,99 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
         }
     }
 
-    if (EventDetails->EventType == EXCEPTION_OCCURRED)
+    //
+    // *** Event specific validations ***
+    //
+    switch (EventDetails->EventType)
+    {
+    case EXCEPTION_OCCURRED:
     {
         //
-        // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
+        // Check if exception parameters are valid
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 31)
+        if (!ValidateEventException(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // We don't support entries other than first 32 IDT indexes,
-            // it is because we use exception bitmaps and in order to support
-            // more than 32 indexes we should use pin-based external interrupt
-            // exiting which is completely different
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+    case EXTERNAL_INTERRUPT_OCCURRED:
     {
         //
-        // Check if the exception entry is between 32 to 255
+        // Check if interrupt parameters are valid
         //
-        if (!(EventDetails->OptionalParam1 >= 32 && EventDetails->OptionalParam1 <= 0xff))
+        if (!ValidateEventInterrupt(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // The IDT Entry is either invalid or is not in the range
-            // of the pin-based external interrupt exiting controls
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == TRAP_EXECUTION_MODE_CHANGED)
+    case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // Check if the execution mode is valid or not
+        // Check if trap exec mode parameters are valid
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
-            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
-            EventDetails->OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+        if (!ValidateEventTrapExec(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // The execution mode is not correctly applied
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    case HIDDEN_HOOK_EXEC_DETOURS:
+    case HIDDEN_HOOK_EXEC_CC:
     {
         //
-        // First check if the address are valid
+        // Check if EPT hook exec (hidden breakpoint and inline hook) parameters are valid
         //
-        TempPid = EventDetails->ProcessId;
-
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        if (!ValidateEventEptHookHiddenBreakpointAndInlineHooks(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
-            TempPid = PsGetCurrentProcessId();
-        }
-
-        //
-        // Check if input is coming from VMX-root or not
-        // If it's coming from VMX-root, then as switching
-        // to another process is not possible, we'll return
-        // an error
-        //
-        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
+            //
+            // Event parameters are not valid, let break the further execution at this stage
+            //
             return FALSE;
         }
 
-        //
-        // Check whether address is valid or not based on whether the event needs
-        // to be applied directly from VMX-root mode or not
-        //
-        if (InputFromVmxRoot)
-        {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
-        else
-        {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_WRITE_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ ||
-             EventDetails->EventType == HIDDEN_HOOK_WRITE ||
-             EventDetails->EventType == HIDDEN_HOOK_EXECUTE)
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ:
+    case HIDDEN_HOOK_WRITE:
+    case HIDDEN_HOOK_EXECUTE:
     {
         //
-        // First check if the address are valid
+        // Check if EPT memory monitor hook parameters are valid
         //
-        TempPid = EventDetails->ProcessId;
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        if (!ValidateEventMonitor(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
-            TempPid = PsGetCurrentProcessId();
-        }
-
-        //
-        // Check if input is coming from VMX-root or not
-        // If it's coming from VMX-root, then as switching
-        // to another process is not possible, we'll return
-        // an error
-        //
-        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
+            //
+            // Event parameters are not valid, let break the further execution at this stage
+            //
             return FALSE;
         }
 
-        //
-        // Check whether address is valid or not based on whether the event needs
-        // to be applied directly from VMX-root mode or not
-        //
-        if (InputFromVmxRoot)
-        {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam1) == NULL ||
-                VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->OptionalParam2) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
-        else
-        {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL ||
-                VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
+        break;
+    }
+    default:
 
         //
-        // Check if the 'to' is greater that 'from'
+        // Other not specified events doesn't have any special validation
         //
-        if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-            return FALSE;
-        }
+        break;
     }
 
     //
@@ -2373,9 +2283,7 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
 /**
  * @brief Applying events
  *
- * @param EventDetails The structure that describes event that came
- * from the user-mode or VMX-root mode
- * @param BufferLength Length of the buffer
+ * @param Event The created event object
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -2383,19 +2291,14 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  * @return BOOLEAN TRUE if the event was applied otherwise returns FALSE
  */
 BOOLEAN
-DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
-                   PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot)
+DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                   BOOLEAN                           InputFromVmxRoot)
 {
-    UINT64  PagesBytes;
-    BOOLEAN ResultOfApplyingEvent = FALSE;
-
     //
     // Now we should configure the cpu to generate the events
     //
-    switch (EventDetails->EventType)
+    switch (Event->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
     case HIDDEN_HOOK_READ_AND_WRITE:
@@ -2406,132 +2309,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case HIDDEN_HOOK_EXECUTE:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the monitor memory hook events
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (!ApplyEventMonitorEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
-        }
-
-        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
-        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
-
-        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-        {
-            //
-            // In all the cases we should set both read/write, even if it's only
-            // read we should set the write too!
-            // Also execute bit has the same conditions here, because if write is set
-            // read should be also set
-            //
-            switch (EventDetails->EventType)
-            {
-            case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
-            case HIDDEN_HOOK_READ_AND_EXECUTE:
-
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
-                                                                                TRUE,
-                                                                                TRUE,
-                                                                                TRUE);
-                break;
-
-            case HIDDEN_HOOK_WRITE_AND_EXECUTE:
-
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
-                                                                                FALSE,
-                                                                                TRUE,
-                                                                                FALSE);
-                break;
-
-            case HIDDEN_HOOK_READ_AND_WRITE:
-            case HIDDEN_HOOK_READ:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
-                                                                                TRUE,
-                                                                                TRUE,
-                                                                                FALSE);
-
-                break;
-
-            case HIDDEN_HOOK_WRITE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
-                                                                                FALSE,
-                                                                                TRUE,
-                                                                                FALSE);
-
-                break;
-
-            case HIDDEN_HOOK_EXECUTE:
-                ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                EventDetails->ProcessId,
-                                                                                FALSE,
-                                                                                FALSE,
-                                                                                TRUE);
-                break;
-
-            default:
-                LogError("Err, Invalid monitor hook type");
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
-
-                goto ClearTheEventAfterCreatingEvent;
-
-                break;
-            }
-
-            if (!ResultOfApplyingEvent)
-            {
-                //
-                // The event is not applied, won't apply other EPT modifications
-                // as we want to remove this event
-                //
-
-                //
-                // Now we should restore the previously applied events (if any)
-                //
-                for (size_t j = 0; j < i; j++)
-                {
-                    ConfigureEptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
-                }
-
-                break;
-            }
-            else
-            {
-                //
-                // We applied the hook and the pre-allocated buffers are used
-                // for this hook, as here is a safe PASSIVE_LEVEL we can force
-                // the Windows to reallocate some pools for us, thus, if this
-                // hook is continued to other pages, we still have pre-alloated
-                // buffers ready for our future hooks
-                //
-                PoolManagerCheckAndPerformAllocationAndDeallocation();
-            }
-        }
-
-        //
-        // We convert the Event's optional parameters physical address because
-        // vm-exit occurs and we have the physical address to compare in the case of
-        // hidden hook rw events.
-        //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
-        Event->OptionalParam3 = EventDetails->OptionalParam1;
-        Event->OptionalParam4 = EventDetails->OptionalParam2;
-
-        //
-        // Check if we should restore the event if it was not successful
-        //
-        if (!ResultOfApplyingEvent)
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
-
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2540,133 +2321,42 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case HIDDEN_HOOK_EXEC_CC:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the EPT hidden hook (hidden breakpoint) events
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (!ApplyEventEptHookExecCcEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
-        }
-
-        //
-        // Invoke the hooker
-        //
-        if (!ConfigureEptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
-        {
-            //
-            // There was an error applying this event, so we're setting
-            // the event
-            //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
-
-        //
-        // We set events OptionalParam1 here to make sure that our event is
-        // executed not for all hooks but for this special hook
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
 
         break;
     }
     case HIDDEN_HOOK_EXEC_DETOURS:
     {
         //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // Apply the EPT hook trampoline (inline hook) events
         //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || EventDetails->ProcessId == 0)
+        if (!ApplyEventEpthookInlineEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
-        }
-
-        //
-        // Invoke the hooker
-        //
-        if (!ConfigureEptHook2(PsGetCurrentProcessId(), EventDetails->OptionalParam1, NULL, EventDetails->ProcessId, FALSE, FALSE, FALSE, TRUE))
-        {
-            //
-            // There was an error applying this event, so we're setting
-            // the event
-            //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
-
-        //
-        // We set events OptionalParam1 here to make sure that our event is
-        // executed not for all hooks but for this special hook
-        // Also, we are sure that this is not null because we checked it before
-        //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
 
         break;
     }
     case RDMSR_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the RDMSR execution exiting events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeMsrBitmapReadOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        ApplyEventRdmsrExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case WRMSR_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the WRMSR execution exiting events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeMsrBitmapWriteOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        ApplyEventWrmsrExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
@@ -2674,364 +2364,108 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
     case OUT_INSTRUCTION_EXECUTION:
     {
         //
-        // Let's see if it is for all cores or just one core
+        // Apply the IN/OUT instructions execution exiting events
         //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandIoBitmapChangeAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureChangeIoBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
-        }
-
-        //
-        // Setting an indicator to MSR
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        ApplyEventInOutExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case TSC_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the RDTSC/RDTSCP instructions execution exiting events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableRdtscExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableRdtscExitingOnSingleCore(EventDetails->CoreId);
-        }
+        ApplyEventTscExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case PMC_INSTRUCTION_EXECUTION:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the RDPMC instruction execution exiting events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableRdpmcExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableRdpmcExitingOnSingleCore(EventDetails->CoreId);
-        }
+        ApplyEventRdpmcExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case DEBUG_REGISTERS_ACCESSED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the mov 2 debug register exiting events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableMovDebugRegistersExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(EventDetails->CoreId);
-        }
+        ApplyEventMov2DebugRegExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case CONTROL_REGISTER_MODIFIED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the control register access exiting events
         //
-
-        //
-        // Setting an indicator to CR
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = EventDetails->OptionalParam2;
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
-
-            BroadcastingOption.OptionalParam1 = Event->OptionalParam1;
-            BroadcastingOption.OptionalParam2 = Event->OptionalParam2;
-
-            ConfigureEnableMovToControlRegisterExitingOnSingleCore(EventDetails->CoreId, &BroadcastingOption);
-        }
+        ApplyEventControlRegisterAccessedEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case EXCEPTION_OCCURRED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the exception events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandSetExceptionBitmapAllCores(EventDetails->OptionalParam1);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureSetExceptionBitmapOnSingleCore(EventDetails->CoreId, EventDetails->OptionalParam1);
-        }
-
-        //
-        // Set the event's target exception
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        ApplyEventExceptionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the interrupt events
         //
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            ExtensionCommandSetExternalInterruptExitingAllCores();
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureSetExternalInterruptExitingOnSingleCore(EventDetails->CoreId);
-        }
-
-        //
-        // Set the event's target interrupt
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        ApplyEventInterruptEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case SYSCALL_HOOK_EFER_SYSCALL:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the EFER SYSCALL hook events
         //
-
-        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-
-        //
-        // whether it's a !syscall2 or !sysret2
-        //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-        }
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
-        }
-
-        //
-        // Set the event's target syscall number and save the approach
-        // of handling event details
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = SyscallHookType;
+        ApplyEventEferSyscallHookEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case SYSCALL_HOOK_EFER_SYSRET:
     {
         //
-        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
-        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
-        // CHANGE THE TERMINATION.C RELATED FUNCTION TOO
+        // Apply the EFER SYSRET hook events
         //
-
-        DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-
-        //
-        // whether it's a !syscall2 or !sysret2
-        //
-        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
-        }
-        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-        {
-            SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
-        }
-
-        //
-        // Let's see if it is for all cores or just one core
-        //
-        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-        {
-            //
-            // All cores
-            //
-            DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
-        }
-        else
-        {
-            //
-            // Just one core
-            //
-            ConfigureEnableEferSyscallHookOnSingleCore(EventDetails->CoreId, SyscallHookType);
-        }
-
-        //
-        // Set the event's target syscall number and save the approach
-        // of handling event details
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-        Event->OptionalParam2 = SyscallHookType;
+        ApplyEventEferSysretHookEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case VMCALL_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for VMCALLs
-        // This event doesn't support custom optional
-        // parameter(s) because it's unconditional
-        // users can use condition(s) to check for
-        // their custom optional parameters
+        // Apply the VMCALL instruction interception events
         //
-        VmFuncSetTriggerEventForVmcalls(TRUE);
+        ApplyEventVmcallExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // Add the process to the watching list
+        // Apply the trap mode change events
         //
-        ConfigureExecTrapAddProcessToWatchingList(EventDetails->ProcessId);
-
-        //
-        // Set the event's mode of execution
-        //
-        Event->OptionalParam1 = EventDetails->OptionalParam1;
-
-        //
-        // Enable triggering events for user-mode execution
-        // traps. This event doesn't support custom optional
-        // parameter(s) because it's unconditional users can
-        // use condition(s) to check for their custom optional
-        // parameters
-        //
-        ConfigureInitializeExecTrapOnAllProcessors();
+        ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
     case CPUID_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for CPUIDs
-        // This event doesn't support custom optional
-        // parameter(s) because it's unconditional
-        // users can use condition(s) to check for
-        // their custom optional parameters
+        // Apply the CPUID instruction execution events
         //
-        VmFuncSetTriggerEventForCpuids(TRUE);
+        ApplyEventCpuidExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }
@@ -3046,30 +2480,6 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
 
         break;
     }
-    }
-
-    //
-    // Set the short-circuiting state
-    //
-    Event->EnableShortCircuiting = EventDetails->EnableShortCircuiting;
-
-    //
-    // Set the event stage (pre- post- event)
-    //
-    if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
-    {
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
-    }
-    else if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION)
-    {
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
-    }
-    else
-    {
-        //
-        // Any other value results to be pre-event
-        //
-        Event->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
     }
 
     //
@@ -3093,7 +2503,6 @@ ClearTheEventAfterCreatingEvent:
  *
  * @param EventDetails The structure that describes event that came
  * from the user-mode
- * @param BufferLength Length of the buffer
  * @param ResultsToReturn Result buffer that should be returned to
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -3102,10 +2511,9 @@ ClearTheEventAfterCreatingEvent:
  * otherwise returns FALSE
  */
 BOOLEAN
-DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot)
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                   BOOLEAN                           InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
 
@@ -3118,7 +2526,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
     //
     // Validate the event parameters
     //
-    if (!DebuggerValidateEvent(EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    if (!DebuggerValidateEvent(EventDetails, ResultsToReturn, InputFromVmxRoot))
     {
         //
         // Input event is not valid
@@ -3145,10 +2553,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                                     EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
+                                    &EventDetails->Options,
                                     EventDetails->ConditionBufferSize,
                                     (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
     }
@@ -3162,10 +2567,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
                                     EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
-                                    EventDetails->OptionalParam1,
-                                    EventDetails->OptionalParam2,
-                                    EventDetails->OptionalParam3,
-                                    EventDetails->OptionalParam4,
+                                    &EventDetails->Options,
                                     0,
                                     NULL);
     }
@@ -3190,8 +2592,32 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
     // ***                            Apply & Enable Event                            ***
     // ----------------------------------------------------------------------------------
     //
-    if (DebuggerApplyEvent(Event, EventDetails, BufferLength, ResultsToReturn, InputFromVmxRoot))
+    if (DebuggerApplyEvent(Event, ResultsToReturn, InputFromVmxRoot))
     {
+        //
+        // *** Set the short-circuiting state ***
+        //
+        Event->EnableShortCircuiting = EventDetails->EnableShortCircuiting;
+
+        //
+        // Set the event stage (pre- post- event)
+        //
+        if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION)
+        {
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
+        }
+        else if (EventDetails->EventStage == VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION)
+        {
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
+        }
+        else
+        {
+            //
+            // Any other value results to be pre-event
+            //
+            Event->EventMode = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
+        }
+
         return TRUE;
     }
     else
@@ -3215,14 +2641,17 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
  *
  * @param Action Structure that describes the action that comes from the
  * user-mode
- * @param BufferLength Length of the buffer that comes from user-mode
  * @param ResultsToReturn The buffer address that should be returned
  * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if action was parsed and added successfully, return TRUE
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn)
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                    BOOLEAN                           InputFromVmxRoot)
 {
     //
     // Check if Tag is valid or not
@@ -3356,11 +2785,13 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
  * be called BEFORE the removing function
  *
  * @param Tag Target event's tag
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if it was found and terminated without error
  * then it returns TRUE, otherwise FALSE
  */
 BOOLEAN
-DebuggerTerminateEvent(UINT64 Tag)
+DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
 
@@ -3387,7 +2818,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call external interrupt terminator
         //
-        TerminateExternalInterruptEvent(Event);
+        TerminateExternalInterruptEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3402,7 +2833,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call read and write and execute ept hook terminator
         //
-        TerminateHiddenHookReadAndWriteAndExecuteEvent(Event);
+        TerminateHiddenHookReadAndWriteAndExecuteEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3411,7 +2842,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call ept hook (hidden breakpoint) terminator
         //
-        TerminateHiddenHookExecCcEvent(Event);
+        TerminateHiddenHookExecCcEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3420,7 +2851,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call ept hook (hidden inline hook) terminator
         //
-        TerminateHiddenHookExecDetoursEvent(Event);
+        TerminateHiddenHookExecDetoursEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3429,7 +2860,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdmsr execution event terminator
         //
-        TerminateRdmsrExecutionEvent(Event);
+        TerminateRdmsrExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3438,7 +2869,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call wrmsr execution event terminator
         //
-        TerminateWrmsrExecutionEvent(Event);
+        TerminateWrmsrExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3447,7 +2878,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call exception events terminator
         //
-        TerminateExceptionEvent(Event);
+        TerminateExceptionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3456,7 +2887,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call IN instruction execution event terminator
         //
-        TerminateInInstructionExecutionEvent(Event);
+        TerminateInInstructionExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3465,7 +2896,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call OUT instruction execution event terminator
         //
-        TerminateOutInstructionExecutionEvent(Event);
+        TerminateOutInstructionExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3474,7 +2905,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call syscall hook event terminator
         //
-        TerminateSyscallHookEferEvent(Event);
+        TerminateSyscallHookEferEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3483,7 +2914,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call sysret hook event terminator
         //
-        TerminateSysretHookEferEvent(Event);
+        TerminateSysretHookEferEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3492,7 +2923,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call vmcall instruction execution event terminator
         //
-        TerminateVmcallExecutionEvent(Event);
+        TerminateVmcallExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3501,7 +2932,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mode execution trap event terminator
         //
-        TerminateExecTrapModeChangedEvent(Event);
+        TerminateExecTrapModeChangedEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3510,7 +2941,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdtsc/rdtscp instruction execution event terminator
         //
-        TerminateTscEvent(Event);
+        TerminateTscEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3519,7 +2950,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call rdtsc/rdtscp instructions execution event terminator
         //
-        TerminatePmcEvent(Event);
+        TerminatePmcEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3528,7 +2959,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mov to debugger register event terminator
         //
-        TerminateDebugRegistersEvent(Event);
+        TerminateDebugRegistersEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3537,7 +2968,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call cpuid instruction execution event terminator
         //
-        TerminateCpuidExecutionEvent(Event);
+        TerminateCpuidExecutionEvent(Event, InputFromVmxRoot);
 
         break;
     }
@@ -3546,7 +2977,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         // Call mov to control register event terminator
         //
-        TerminateControlRegistersEvent(Event);
+        TerminateControlRegistersEvent(Event, InputFromVmxRoot);
         break;
     }
     default:
@@ -3560,11 +2991,14 @@ DebuggerTerminateEvent(UINT64 Tag)
  * from the user-mode
  *
  * @param DebuggerEventModificationRequest event modification request details
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
  * an error
  */
 BOOLEAN
-DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest)
+DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
+                                BOOLEAN                 InputFromVmxRoot)
 {
     BOOLEAN IsForAllEvents = FALSE;
 
@@ -3651,7 +3085,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             //
             // Second, terminate all events
             //
-            DebuggerTerminateAllEvents();
+            DebuggerTerminateAllEvents(InputFromVmxRoot, InputFromVmxRoot);
 
             //
             // Third, remove all events
@@ -3681,7 +3115,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             //
             // Second, terminate it
             //
-            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag);
+            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
 
             //
             // Third, remove it from the list
@@ -3728,83 +3162,3 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     DebuggerEventModificationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;
 }
-
-//
-//   //
-//   //---------------------------------------------------------------------------
-//   // Example of using events and actions
-//   //
-//
-//   //
-//   // Create condition buffer
-//   //
-//   char CondtionBuffer[8];
-//   CondtionBuffer[0] = 0x90; //nop
-//   CondtionBuffer[1] = 0x90; //nop
-//   CondtionBuffer[2] = 0xcc; //int 3
-//   CondtionBuffer[3] = 0x90; //nop
-//   CondtionBuffer[4] = 0xcc; //int 3
-//   CondtionBuffer[5] = 0x90; //nop
-//   CondtionBuffer[6] = 0x90; //nop
-//   CondtionBuffer[7] = 0xc3; // ret
-//
-//   //
-//   // Create event based on condition buffer
-//   //
-//   PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
-//
-//   if (!Event1)
-//   {
-//       LogError("Err, in creating event");
-//   }
-//
-//   //
-//   // *** Add Actions example ***
-//   //
-//
-//   //
-//   // Add action for RUN_SCRIPT
-//   //
-//   DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION LogConfiguration = {0};
-//   LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
-//   LogConfiguration.LogLength                               = 0x10;
-//   LogConfiguration.LogMask                                 = 0x1;
-//   LogConfiguration.LogValue                                = 0x4;
-//
-//   DebuggerAddActionToEvent(Event1, RUN_SCRIPT, TRUE, NULL, &LogConfiguration);
-//
-//   //
-//   // Add action for RUN_CUSTOM_CODE
-//   //
-//   DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
-//
-//   char CustomCodeBuffer[8];
-//   CustomCodeBuffer[0] = 0x90; //nop
-//   CustomCodeBuffer[1] = 0x90; //nop
-//   CustomCodeBuffer[2] = 0xcc; //int 3
-//   CustomCodeBuffer[3] = 0x90; //nop
-//   CustomCodeBuffer[4] = 0xcc; //int 3
-//   CustomCodeBuffer[5] = 0x90; //nop
-//   CustomCodeBuffer[6] = 0x90; //nop
-//   CustomCodeBuffer[7] = 0xc3; // ret
-//
-//   CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
-//   CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
-//   CustomCode.OptionalRequestedBufferSize = 0x100;
-//
-//   DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-//
-//   //
-//   // Add action for BREAK_TO_DEBUGGER
-//   //
-//   DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
-//
-//   //
-//   // Call to register
-//   //
-//   DebuggerRegisterEvent(Event1);
-//
-//   //
-//   //---------------------------------------------------------------------------
-//   //
-//

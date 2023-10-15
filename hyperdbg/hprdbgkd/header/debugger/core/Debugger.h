@@ -42,32 +42,32 @@ typedef struct _DEBUGGER_CORE_EVENTS
     //
     // Do not add any varialbes to this this list, just LIST_ENTRY is allowed
     //
-    LIST_ENTRY HiddenHookReadAndWriteAndExecuteEventsHead; // HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookReadAndWriteEventsHead;           // HIDDEN_HOOK_READ_AND_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookReadAndExecuteEventsHead;         // HIDDEN_HOOK_READ_AND_EXECUTE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookWriteAndExecuteEventsHead;        // HIDDEN_HOOK_WRITE_AND_EXECUTE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookReadEventsHead;                   // HIDDEN_HOOK_READ  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookWriteEventsHead;                  // HIDDEN_HOOK_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY HiddenHookExecuteEventsHead;                // HIDDEN_HOOK_EXECUTE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY EptHook2sExecDetourEventsHead;              // HIDDEN_HOOK_EXEC_DETOURS [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY EptHookExecCcEventsHead;                    // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY SyscallHooksEferSyscallEventsHead;          // SYSCALL_HOOK_EFER_SYSCALL [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY SyscallHooksEferSysretEventsHead;           // SYSCALL_HOOK_EFER_SYSRET [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY CpuidInstructionExecutionEventsHead;        // CPUID_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY RdmsrInstructionExecutionEventsHead;        // RDMSR_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY WrmsrInstructionExecutionEventsHead;        // WRMSR_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY ExceptionOccurredEventsHead;                // EXCEPTION_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY TscInstructionExecutionEventsHead;          // TSC_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY PmcInstructionExecutionEventsHead;          // PMC_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY InInstructionExecutionEventsHead;           // IN_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY OutInstructionExecutionEventsHead;          // OUT_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY DebugRegistersAccessedEventsHead;           // DEBUG_REGISTERS_ACCESSED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY ExternalInterruptOccurredEventsHead;        // EXTERNAL_INTERRUPT_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY VmcallInstructionExecutionEventsHead;       // VMCALL_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY TrapExecutionModeChangedEventsHead;         // TRAP_EXECUTION_MODE_CHANGED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY TrapExecutionMemoryEventsHead;              // TRAP_EXECUTION_MEMORY [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY HiddenHookReadAndWriteAndExecuteEventsHead; // HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE
+    LIST_ENTRY HiddenHookReadAndWriteEventsHead;           // HIDDEN_HOOK_READ_AND_WRITE
+    LIST_ENTRY HiddenHookReadAndExecuteEventsHead;         // HIDDEN_HOOK_READ_AND_EXECUTE
+    LIST_ENTRY HiddenHookWriteAndExecuteEventsHead;        // HIDDEN_HOOK_WRITE_AND_EXECUTE
+    LIST_ENTRY HiddenHookReadEventsHead;                   // HIDDEN_HOOK_READ
+    LIST_ENTRY HiddenHookWriteEventsHead;                  // HIDDEN_HOOK_WRITE
+    LIST_ENTRY HiddenHookExecuteEventsHead;                // HIDDEN_HOOK_EXECUTE
+    LIST_ENTRY EptHook2sExecDetourEventsHead;              // HIDDEN_HOOK_EXEC_DETOURS
+    LIST_ENTRY EptHookExecCcEventsHead;                    // HIDDEN_HOOK_EXEC_CC
+    LIST_ENTRY SyscallHooksEferSyscallEventsHead;          // SYSCALL_HOOK_EFER_SYSCALL
+    LIST_ENTRY SyscallHooksEferSysretEventsHead;           // SYSCALL_HOOK_EFER_SYSRET
+    LIST_ENTRY CpuidInstructionExecutionEventsHead;        // CPUID_INSTRUCTION_EXECUTION
+    LIST_ENTRY RdmsrInstructionExecutionEventsHead;        // RDMSR_INSTRUCTION_EXECUTION
+    LIST_ENTRY WrmsrInstructionExecutionEventsHead;        // WRMSR_INSTRUCTION_EXECUTION
+    LIST_ENTRY ExceptionOccurredEventsHead;                // EXCEPTION_OCCURRED
+    LIST_ENTRY TscInstructionExecutionEventsHead;          // TSC_INSTRUCTION_EXECUTION
+    LIST_ENTRY PmcInstructionExecutionEventsHead;          // PMC_INSTRUCTION_EXECUTION
+    LIST_ENTRY InInstructionExecutionEventsHead;           // IN_INSTRUCTION_EXECUTION
+    LIST_ENTRY OutInstructionExecutionEventsHead;          // OUT_INSTRUCTION_EXECUTION
+    LIST_ENTRY DebugRegistersAccessedEventsHead;           // DEBUG_REGISTERS_ACCESSED
+    LIST_ENTRY ExternalInterruptOccurredEventsHead;        // EXTERNAL_INTERRUPT_OCCURRED
+    LIST_ENTRY VmcallInstructionExecutionEventsHead;       // VMCALL_INSTRUCTION_EXECUTION
+    LIST_ENTRY TrapExecutionModeChangedEventsHead;         // TRAP_EXECUTION_MODE_CHANGED
+    LIST_ENTRY TrapExecutionMemoryEventsHead;              // TRAP_EXECUTION_MEMORY
+    LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED
+    LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 
@@ -124,12 +124,11 @@ typedef struct _DEBUGGER_EVENT
                                    // is enabled or not for this event
 
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
-    // of the event (whether it's a pre- or post- event)
+                                                     // of the event (whether it's a pre- or post- event)
 
-    UINT64 OptionalParam1; // Optional parameter to be used differently by events
-    UINT64 OptionalParam2; // Optional parameter to be used differently by events
-    UINT64 OptionalParam3; // Optional parameter to be used differently by events
-    UINT64 OptionalParam4; // Optional parameter to be used differently by events
+    DEBUGGER_EVENT_OPTIONS InitOptions; // The initial options of the event (used when event was created and sent)
+
+    DEBUGGER_EVENT_OPTIONS Options; // The options of the event (used when event is applied in the debugger)
 
     UINT32 ConditionsBufferSize;   // if null, means uncoditional
     PVOID  ConditionBufferAddress; // Address of the condition buffer (most of the
@@ -195,10 +194,21 @@ VOID
 DebuggerUninitialize();
 
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, UINT32 ProcessId, VMM_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3, UINT64 OptionalParam4, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
+DebuggerCreateEvent(BOOLEAN                  Enabled,
+                    UINT32                   CoreId,
+                    UINT32                   ProcessId,
+                    VMM_EVENT_TYPE_ENUM      EventType,
+                    UINT64                   Tag,
+                    DEBUGGER_EVENT_OPTIONS * Options,
+                    UINT32                   ConditionsBufferSize,
+                    PVOID                    ConditionBuffer);
 
 PDEBUGGER_EVENT_ACTION
-DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
+DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
+                         DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
+                         BOOLEAN                                         SendTheResultsImmediately,
+                         PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
@@ -221,18 +231,25 @@ DebuggerQueryDebuggerStatus();
 
 BOOLEAN
 DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
-                   UINT32                                BufferLength,
-                   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturn);
+DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
+                   PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                   BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest);
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                    BOOLEAN                               InputFromVmxRoot);
 
 BOOLEAN
-DebuggerTerminateEvent(UINT64 Tag);
+DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
+                                BOOLEAN                 InputFromVmxRoot);
+
+BOOLEAN
+DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot);
 
 BOOLEAN
 DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable);
@@ -241,7 +258,7 @@ BOOLEAN
 DebuggerRemoveAllEvents();
 
 BOOLEAN
-DebuggerTerminateAllEvents();
+DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot);
 
 UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);

@@ -235,8 +235,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     //
     // Set the optional parameters
     //
-    Event->OptionalParam1 = OptionalParam1;
-    Event->OptionalParam2 = OptionalParam2;
+    Event->Options.OptionalParam1 = OptionalParam1;
+    Event->Options.OptionalParam2 = OptionalParam2;
 
     //
     // Send the ioctl to the kernel for event registration
