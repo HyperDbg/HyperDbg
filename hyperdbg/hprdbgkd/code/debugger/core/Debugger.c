@@ -2120,8 +2120,6 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                       BOOLEAN                           InputFromVmxRoot)
 {
-    UINT32 TempPid;
-
     //
     // Check whether the event mode (calling stage)  to see whether
     // short-cicuiting event is used along with the post-event,
@@ -2181,185 +2179,99 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
         }
     }
 
-    if (EventDetails->EventType == EXCEPTION_OCCURRED)
+    //
+    // *** Event specific validations ***
+    //
+    switch (EventDetails->EventType)
+    {
+    case EXCEPTION_OCCURRED:
     {
         //
-        // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
+        // Check if exception parameters are valid
         //
-        if (EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->Options.OptionalParam1 >= 31)
+        if (!ValidateEventException(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // We don't support entries other than first 32 IDT indexes,
-            // it is because we use exception bitmaps and in order to support
-            // more than 32 indexes we should use pin-based external interrupt
-            // exiting which is completely different
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+    case EXTERNAL_INTERRUPT_OCCURRED:
     {
         //
-        // Check if the exception entry is between 32 to 255
+        // Check if interrupt parameters are valid
         //
-        if (!(EventDetails->Options.OptionalParam1 >= 32 && EventDetails->Options.OptionalParam1 <= 0xff))
+        if (!ValidateEventInterrupt(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // The IDT Entry is either invalid or is not in the range
-            // of the pin-based external interrupt exiting controls
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == TRAP_EXECUTION_MODE_CHANGED)
+    case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // Check if the execution mode is valid or not
+        // Check if trap exec mode parameters are valid
         //
-        if (EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
-            EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
-            EventDetails->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
+        if (!ValidateEventTrapExec(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
-            // The execution mode is not correctly applied
+            // Event parameters are not valid, let break the further execution at this stage
             //
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_MODE_EXECUTION_IS_INVALID;
             return FALSE;
         }
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    case HIDDEN_HOOK_EXEC_DETOURS:
+    case HIDDEN_HOOK_EXEC_CC:
     {
         //
-        // First check if the address are valid
+        // Check if EPT hook exec (hidden breakpoint and inline hook) parameters are valid
         //
-        TempPid = EventDetails->ProcessId;
-
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        if (!ValidateEventEptHookHiddenBreakpointAndInlineHooks(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
-            TempPid = PsGetCurrentProcessId();
-        }
-
-        //
-        // Check if input is coming from VMX-root or not
-        // If it's coming from VMX-root, then as switching
-        // to another process is not possible, we'll return
-        // an error
-        //
-        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
+            //
+            // Event parameters are not valid, let break the further execution at this stage
+            //
             return FALSE;
         }
 
-        //
-        // Check whether address is valid or not based on whether the event needs
-        // to be applied directly from VMX-root mode or not
-        //
-        if (InputFromVmxRoot)
-        {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
-        else
-        {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_WRITE_AND_EXECUTE ||
-             EventDetails->EventType == HIDDEN_HOOK_READ ||
-             EventDetails->EventType == HIDDEN_HOOK_WRITE ||
-             EventDetails->EventType == HIDDEN_HOOK_EXECUTE)
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ:
+    case HIDDEN_HOOK_WRITE:
+    case HIDDEN_HOOK_EXECUTE:
     {
         //
-        // First check if the address are valid
+        // Check if EPT memory monitor hook parameters are valid
         //
-        TempPid = EventDetails->ProcessId;
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        if (!ValidateEventMonitor(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
-            TempPid = PsGetCurrentProcessId();
-        }
-
-        //
-        // Check if input is coming from VMX-root or not
-        // If it's coming from VMX-root, then as switching
-        // to another process is not possible, we'll return
-        // an error
-        //
-        if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
+            //
+            // Event parameters are not valid, let break the further execution at this stage
+            //
             return FALSE;
         }
 
-        //
-        // Check whether address is valid or not based on whether the event needs
-        // to be applied directly from VMX-root mode or not
-        //
-        if (InputFromVmxRoot)
-        {
-            if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL ||
-                VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam2) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
-        else
-        {
-            if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL ||
-                VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, TempPid) == NULL)
-            {
-                //
-                // Address is invalid (Set the error)
-                //
-
-                ResultsToReturn->IsSuccessful = FALSE;
-                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-                return FALSE;
-            }
-        }
+        break;
+    }
+    default:
 
         //
-        // Check if the 'to' is greater that 'from'
+        // Other not specified events doesn't have any special validation
         //
-        if (EventDetails->Options.OptionalParam1 >= EventDetails->Options.OptionalParam2)
-        {
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-            return FALSE;
-        }
+        break;
     }
 
     //

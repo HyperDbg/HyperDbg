@@ -118,6 +118,12 @@
     <Filter Include="header\components\optimizations">
       <UniqueIdentifier>{0ef06d6f-58c3-42d7-b8a9-d128e483a4c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\events">
+      <UniqueIdentifier>{fa470a80-b7bd-43cf-ac25-f79001f61e32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\events">
+      <UniqueIdentifier>{d1ce4214-9c0e-44d6-a181-fcef5e26d8a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\driver\Driver.c">
@@ -166,12 +172,6 @@
       <Filter>code\debugger\communication</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\core\Debugger.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\DebuggerEvents.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\Termination.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\kernel-level\Kd.c">
@@ -225,8 +225,17 @@
     <ClCompile Include="code\debugger\core\HaltedCore.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\core\ApplyEvents.c">
-      <Filter>code\debugger\core</Filter>
+    <ClCompile Include="code\debugger\events\ApplyEvents.c">
+      <Filter>code\debugger\events</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\events\DebuggerEvents.c">
+      <Filter>code\debugger\events</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\events\Termination.c">
+      <Filter>code\debugger\events</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\events\ValidateEvents.c">
+      <Filter>code\debugger\events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -266,13 +275,7 @@
     <ClInclude Include="header\debugger\core\Debugger.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\core\DebuggerEvents.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\core\State.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Termination.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\kernel-level\Kd.h">
@@ -338,8 +341,17 @@
     <ClInclude Include="header\debugger\core\HaltedCore.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\core\ApplyEvents.h">
-      <Filter>header\debugger\core</Filter>
+    <ClInclude Include="header\debugger\events\ApplyEvents.h">
+      <Filter>header\debugger\events</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\events\DebuggerEvents.h">
+      <Filter>header\debugger\events</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\events\Termination.h">
+      <Filter>header\debugger\events</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\events\ValidateEvents.h">
+      <Filter>header\debugger\events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
