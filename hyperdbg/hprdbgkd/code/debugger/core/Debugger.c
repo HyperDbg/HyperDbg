@@ -497,6 +497,116 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
 }
 
 /**
+ * @brief Allocates buffer for requested safe buffer
+ *
+ * @param SizeOfRequestedSafeBuffer The size of the requested safe buffer
+ * @param ResultsToReturn The buffer address that should be returned
+ * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return PVOID
+ */
+PVOID
+DebuggerAllocateSafeRequestedBuffer(SIZE_T                            SizeOfRequestedSafeBuffer,
+                                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                                    BOOLEAN                           InputFromVmxRoot)
+{
+    PVOID RequestedBuffer = NULL;
+
+    //
+    // Check whether the buffer comes from VMX-root mode or non-root mode
+    //
+    if (InputFromVmxRoot)
+    {
+        //
+        // *** The buffer is coming from VMX-root mode ***
+        //
+
+        //
+        // If the requested safe buffer is smaller than regular safe buffers
+        //
+        if (REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER >= SizeOfRequestedSafeBuffer)
+        {
+            //
+            // The buffer fits into a regular safe requested buffer
+            //
+            RequestedBuffer = PoolManagerRequestPool(INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS, TRUE, REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+            if (!RequestedBuffer)
+            {
+                //
+                // Here we try again to see if we could store it into a big instant event safe requested buffer instead
+                //
+                RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+                if (!RequestedBuffer)
+                {
+                    //
+                    // Set the error
+                    //
+                    ResultsToReturn->IsSuccessful = FALSE;
+                    ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND;
+
+                    //
+                    // There is a problem with allocating requested safe buffer
+                    //
+                    return NULL;
+                }
+            }
+        }
+        else if (BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER >= SizeOfRequestedSafeBuffer)
+        {
+            //
+            // The buffer fits into a big instant requested safe buffer
+            //
+            RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+            if (!RequestedBuffer)
+            {
+                //
+                // Set the error
+                //
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND;
+
+                //
+                // There is a problem with allocating event
+                //
+                return NULL;
+            }
+        }
+        else
+        {
+            //
+            // The buffer doesn't fit into any of the regular or big safe requested buffers
+            //
+
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER;
+
+            return NULL;
+        }
+    }
+    else
+    {
+        RequestedBuffer = CrsAllocateZeroedNonPagedPool(SizeOfRequestedSafeBuffer);
+
+        if (!RequestedBuffer)
+        {
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER;
+
+            return NULL;
+        }
+    }
+
+    return RequestedBuffer;
+}
+
+/**
  * @brief Create an action and add the action to an event
  *
  * @param Event Target event object
@@ -522,6 +632,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
 {
     PDEBUGGER_EVENT_ACTION Action;
     SIZE_T                 ActionBufferSize;
+    PVOID                  RequestedBuffer = NULL;
 
     //
     // Allocate action + allocate code for custom code
@@ -664,7 +775,20 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK;
 
             return NULL;
         }
@@ -672,15 +796,25 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfCustomCode->OptionalRequestedBufferSize);
+        RequestedBuffer = DebuggerAllocateSafeRequestedBuffer(InTheCaseOfCustomCode->OptionalRequestedBufferSize, ResultsToReturn, InputFromVmxRoot);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
 
+            //
+            // Not need to set error as the above function already adjust the error
+            //
             return NULL;
         }
 
@@ -707,7 +841,20 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK;
 
             return NULL;
         }
@@ -715,15 +862,25 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfRunScript->OptionalRequestedBufferSize);
+        RequestedBuffer = DebuggerAllocateSafeRequestedBuffer(InTheCaseOfRunScript->OptionalRequestedBufferSize, ResultsToReturn, InputFromVmxRoot);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
 
+            //
+            // Not need to set error as the above function already adjust the error
+            //
             return NULL;
         }
 
@@ -745,7 +902,28 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+
+                if (RequestedBuffer != NULL)
+                {
+                    PoolManagerFreePool(RequestedBuffer);
+                }
+            }
+            else
+            {
+                CrsFreePool(Action);
+
+                if (RequestedBuffer != NULL)
+                {
+                    CrsFreePool(RequestedBuffer);
+                }
+            }
+
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+
             return NULL;
         }
 
@@ -773,9 +951,29 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL)
         {
             //
-            // Invalid configuration
+            // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+
+                if (RequestedBuffer != 0)
+                {
+                    PoolManagerFreePool(RequestedBuffer);
+                }
+            }
+            else
+            {
+                CrsFreePool(Action);
+
+                if (RequestedBuffer != 0)
+                {
+                    CrsFreePool(RequestedBuffer);
+                }
+            }
+
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             return NULL;
         }
@@ -2839,11 +3037,10 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
 }
 
 /**
- * @brief Routine for validating and parsing actions that are comming from
+ * @brief Routine for validating and parsing actions that are coming from
  * the user-mode
- * @details should be called in vmx root-mode
  *
- * @param Action Structure that describes the action that comes from the
+ * @param ActionDetails Structure that describes the action that comes from the
  * user-mode
  * @param ResultsToReturn The buffer address that should be returned
  * to the user-mode as the result

@@ -420,6 +420,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target action (%x)\n",
+                     Error);
+        break;
+
     case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
         ShowMessages("err, not enough pre-allocated buffer exists for storing the event's action. You can use the 'prealloc' "
                      "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
@@ -440,6 +445,41 @@ ShowErrorMessage(UINT32 Error)
                      "buffer size (%x)\nfor more information on how to resolve this issue, "
                      "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
                      Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK:
+        ShowMessages("err, the requested optional buffer is bigger than the debuggers send/receive stack, "
+                     "please select a smaller requested buffer for the target event (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, by default HyperDbg won't allocate requested safe buffers for instant events in "
+                     "the debugger mode. You can use the 'prealloc' command to allocate (regular) requested safe "
+                     "buffers before running this command (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested safe buffer is bigger than regular buffers. You can use the 'prealloc' "
+                     "command to allocate (big) requested safe buffers before running this command (%x)\n"
+                     "for more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, the requested buffer for storing safe buffers of the action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target requested safe buffer (%x)\n",
+                     Error);
+        break;
         break;
 
     default:
