@@ -59,8 +59,12 @@ KdInitializeKernelDebugger()
     // Initialize list of breakpoints and breakpoint id
     //
     g_MaximumBreakpointId = 0;
-
     InitializeListHead(&g_BreakpointsListHead);
+
+    //
+    // Initial the needed pools for instant events
+    //
+    KdInitializeInstantEventPools();
 
     //
     // Indicate that the kernel debugger is active
@@ -118,6 +122,63 @@ BOOLEAN
 KdCheckImmediateMessagingMechanism(UINT32 OperationCode)
 {
     return (g_KernelDebuggerState && !(OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT));
+}
+
+/**
+ * @brief Initialize the required pools for instant events
+ *
+ * @return VOID
+ */
+VOID
+KdInitializeInstantEventPools()
+{
+    //
+    // Request pages to be allocated for regular instant events
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for regular instant events's actions
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_ACTION_BUFFER);
+
+#if MAXIMUM_BIG_INSTANT_EVENTS >= 1
+
+    //
+    // Request pages to be allocated for big instant events
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for big instant events's actions
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_ACTION_BUFFER);
+
+#endif // MAXIMUM_BIG_INSTANT_EVENTS
+
+    /*
+    // -------------------------------------------------------------------------------------
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5 * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), 5, TRACKING_HOOKED_PAGES);
+
+    //
+    // Request pages to be allocated for Trampoline of Executable hooked pages
+    //
+    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 5, EXEC_TRAMPOLINE);
+
+    //
+    // Request pages to be allocated for detour hooked pages details
+    //
+    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
+    */
 }
 
 /**

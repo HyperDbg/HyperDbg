@@ -45,6 +45,14 @@ typedef enum _POOL_ALLOCATION_INTENTION
     BREAKPOINT_DEFINITION_STRUCTURE,
     PROCESS_THREAD_HOLDER,
 
+    //
+    // Instant event buffers
+    //
+    INSTANT_REGULAR_EVENT_BUFFER,
+    INSTANT_BIG_EVENT_BUFFER,
+    INSTANT_REGULAR_EVENT_ACTION_BUFFER,
+    INSTANT_BIG_EVENT_ACTION_BUFFER,
+
 } POOL_ALLOCATION_INTENTION;
 
 //////////////////////////////////////////////////
@@ -358,3 +366,16 @@ typedef struct _VMX_SEGMENT_SELECTOR
     UINT32                         Limit;
     UINT64                         Base;
 } VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
+
+/////////////////////////////////////////////////////////////////////
+
+#define MAXIMUM_REGULAR_INSTANT_EVENTS 20
+#define MAXIMUM_BIG_INSTANT_EVENTS     0
+
+#define REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER sizeof(DEBUGGER_EVENT) + 100
+
+#define BIG_INSTANT_EVENT_CONDITIONAL_BUFFER sizeof(DEBUGGER_EVENT) + PAGE_SIZE
+
+#define REGULAR_INSTANT_EVENT_ACTION_BUFFER sizeof(DEBUGGER_EVENT_ACTION) + (PAGE_SIZE * 2)
+
+#define BIG_INSTANT_EVENT_ACTION_BUFFER sizeof(DEBUGGER_EVENT_ACTION) + MaxSerialPacketSize

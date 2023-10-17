@@ -184,6 +184,9 @@ VOID
 KdUninitializeKernelDebugger();
 
 VOID
+KdInitializeInstantEventPools();
+
+VOID
 KdSendFormatsFunctionResult(UINT64 Value);
 
 VOID
