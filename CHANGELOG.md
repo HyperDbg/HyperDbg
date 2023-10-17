@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
+- HyperDbg now applies events immediately as implemented in the "instant events" mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events))
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - The Event Forwarding mechanism is now supported in the Debugger Mode ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
 - The Event Forwarding mechanism now supports external modules (DLLs) ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
