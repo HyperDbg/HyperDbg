@@ -210,7 +210,9 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
                          DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
                          BOOLEAN                                         SendTheResultsImmediately,
                          PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
-                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript,
+                         PDEBUGGER_EVENT_AND_ACTION_RESULT               ResultsToReturn,
+                         BOOLEAN                                         InputFromVmxRoot);
 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);

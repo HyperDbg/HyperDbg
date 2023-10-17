@@ -401,14 +401,14 @@ ShowErrorMessage(UINT32 Error)
     case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS:
         ShowMessages("err, the requested buffer for storing event and conditions is larger than the pre-allocated "
                      "buffer size (%x)\nfor more information on how to resolve this issue, "
-                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events",
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
                      Error);
         break;
 
     case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
         ShowMessages("err, not enough pre-allocated buffer exists for storing the event. You can use the 'prealloc' "
                      "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
-                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events",
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
                      Error);
         break;
 
@@ -416,7 +416,29 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, the requested event is considered as a \"big instant event\" and right now, there is no "
                      "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
                      "pre-allocating big instant event buffers (%x)\nfor more information "
-                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events",
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, not enough pre-allocated buffer exists for storing the event's action. You can use the 'prealloc' "
+                     "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested action is considered as a \"big instant event (action)\" and right now, there is no "
+                     "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
+                     "pre-allocating big instant event's action buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER:
+        ShowMessages("err, the requested buffer for storing action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
                      Error);
         break;
 

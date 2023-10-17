@@ -360,7 +360,7 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
         //
 
         //
-        // If the buffer is bigger than
+        // If the buffer is smaller than regular instant events
         //
         if (REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER >= EventBufferSize)
         {
@@ -499,14 +499,16 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
 /**
  * @brief Create an action and add the action to an event
  *
- * @details should NOT be called in vmx-root
- *
  * @param Event Target event object
  * @param ActionType Type of action
  * @param SendTheResultsImmediately whether the results should be received
  * by the user-mode immediately
  * @param InTheCaseOfCustomCode Custom code structure (if any)
  * @param InTheCaseOfRunScript Run script structure (if any)
+ * @param ResultsToReturn The buffer address that should be returned
+ * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return PDEBUGGER_EVENT_ACTION
  */
 PDEBUGGER_EVENT_ACTION
@@ -514,19 +516,12 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
                          DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
                          BOOLEAN                                         SendTheResultsImmediately,
                          PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
-                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript,
+                         PDEBUGGER_EVENT_AND_ACTION_RESULT               ResultsToReturn,
+                         BOOLEAN                                         InputFromVmxRoot)
 {
     PDEBUGGER_EVENT_ACTION Action;
-    SIZE_T                 Size;
-
-    //
-    // As this function uses the memory allocation functions,
-    // we have to make sure that it will not be called in vmx root
-    //
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
-        return NULL;
-    }
+    SIZE_T                 ActionBufferSize;
 
     //
     // Allocate action + allocate code for custom code
@@ -537,31 +532,121 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // We should allocate extra buffer for custom code
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
     }
     else if (InTheCaseOfRunScript != NULL)
     {
         //
         // We should allocate extra buffer for script
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
     }
     else
     {
         //
         // We shouldn't allocate extra buffer as there is no custom code
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION);
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION);
     }
 
-    Action = CrsAllocateZeroedNonPagedPool(Size);
+    //
+    // Allocate buffer for storing the action
+    //
 
-    if (Action == NULL)
+    if (InputFromVmxRoot)
     {
         //
-        // There was an error in allocation
+        // *** The buffer is coming from VMX-root mode ***
         //
-        return NULL;
+
+        //
+        // If the buffer is smaller than regular instant events's action
+        //
+        if (REGULAR_INSTANT_EVENT_ACTION_BUFFER >= ActionBufferSize)
+        {
+            //
+            // The buffer fits into a regular instant event's action
+            //
+            Action = PoolManagerRequestPool(INSTANT_REGULAR_EVENT_ACTION_BUFFER, TRUE, REGULAR_INSTANT_EVENT_ACTION_BUFFER);
+
+            if (!Action)
+            {
+                //
+                // Here we try again to see if we could store it into a big instant event's action buffer instead
+                //
+                Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+
+                if (!Action)
+                {
+                    //
+                    // Set the error
+                    //
+                    ResultsToReturn->IsSuccessful = FALSE;
+                    ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                    //
+                    // There is a problem with allocating event's action
+                    //
+                    return NULL;
+                }
+            }
+        }
+        else if (BIG_INSTANT_EVENT_ACTION_BUFFER >= ActionBufferSize)
+        {
+            //
+            // The buffer fits into a big instant event's action buffer
+            //
+            Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+
+            if (!Action)
+            {
+                //
+                // Set the error
+                //
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                //
+                // There is a problem with allocating event's action buffer
+                //
+                return NULL;
+            }
+        }
+        else
+        {
+            //
+            // The buffer doesn't fit into any of the regular or big event's action preallocated buffers
+            //
+
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER;
+
+            return NULL;
+        }
+    }
+    else
+    {
+        //
+        // If it's not coming from the VMX-root mode then we're allocating it from the OS buffers
+        //
+        Action = CrsAllocateZeroedNonPagedPool(ActionBufferSize);
+
+        if (Action == NULL)
+        {
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER;
+
+            //
+            // There was an error in allocation
+            //
+            return NULL;
+        }
     }
 
     //
@@ -580,6 +665,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             // There was an error
             //
             CrsFreePool(Action);
+
             return NULL;
         }
 
@@ -594,6 +680,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             // There was an error in allocation
             //
             CrsFreePool(Action);
+
             return NULL;
         }
 
@@ -621,6 +708,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             // There was an error
             //
             CrsFreePool(Action);
+
             return NULL;
         }
 
@@ -635,6 +723,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             // There was an error in allocation
             //
             CrsFreePool(Action);
+
             return NULL;
         }
 
@@ -687,6 +776,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             // Invalid configuration
             //
             CrsFreePool(Action);
+
             return NULL;
         }
 
@@ -2763,14 +2853,16 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          ActionDetails,
                     PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                     BOOLEAN                           InputFromVmxRoot)
 {
+    DEBUGGER_EVENT_ACTION * Action = NULL;
+
     //
     // Check if Tag is valid or not
     //
-    PDEBUGGER_EVENT Event = DebuggerGetEventByTag(Action->EventTag);
+    PDEBUGGER_EVENT Event = DebuggerGetEventByTag(ActionDetails->EventTag);
 
     if (Event == NULL)
     {
@@ -2786,12 +2878,12 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         return FALSE;
     }
 
-    if (Action->ActionType == RUN_CUSTOM_CODE)
+    if (ActionDetails->ActionType == RUN_CUSTOM_CODE)
     {
         //
         // Check if buffer is not invalid
         //
-        if (Action->CustomCodeBufferSize == 0)
+        if (ActionDetails->CustomCodeBufferSize == 0)
         {
             //
             // Set the appropriate error
@@ -2810,26 +2902,35 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         //
         DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
 
-        CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
-        CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        CustomCode.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
+        CustomCode.CustomCodeBufferSize        = ActionDetails->CustomCodeBufferSize;
+        CustomCode.CustomCodeBufferAddress     = (UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION);
+        CustomCode.OptionalRequestedBufferSize = ActionDetails->PreAllocatedBuffer;
 
         //
         // Add action to event
         //
-        DebuggerAddActionToEvent(Event, RUN_CUSTOM_CODE, Action->ImmediateMessagePassing, &CustomCode, NULL);
+        Action = DebuggerAddActionToEvent(Event,
+                                          RUN_CUSTOM_CODE,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          &CustomCode,
+                                          NULL,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
-    else if (Action->ActionType == RUN_SCRIPT)
+    else if (ActionDetails->ActionType == RUN_SCRIPT)
     {
         //
         // Check if buffer is not invalid
         //
-        if (Action->ScriptBufferSize == 0)
+        if (ActionDetails->ScriptBufferSize == 0)
         {
             //
             // Set the appropriate error
@@ -2847,29 +2948,47 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         // Add action for RUN_SCRIPT
         //
         DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = {0};
-        UserScriptConfig.ScriptBuffer                                   = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        UserScriptConfig.ScriptLength                                   = Action->ScriptBufferSize;
-        UserScriptConfig.ScriptPointer                                  = Action->ScriptBufferPointer;
-        UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
+        UserScriptConfig.ScriptBuffer                                   = (UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION);
+        UserScriptConfig.ScriptLength                                   = ActionDetails->ScriptBufferSize;
+        UserScriptConfig.ScriptPointer                                  = ActionDetails->ScriptBufferPointer;
+        UserScriptConfig.OptionalRequestedBufferSize                    = ActionDetails->PreAllocatedBuffer;
 
-        DebuggerAddActionToEvent(Event, RUN_SCRIPT, Action->ImmediateMessagePassing, NULL, &UserScriptConfig);
+        Action = DebuggerAddActionToEvent(Event,
+                                          RUN_SCRIPT,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          NULL,
+                                          &UserScriptConfig,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
-    else if (Action->ActionType == BREAK_TO_DEBUGGER)
+    else if (ActionDetails->ActionType == BREAK_TO_DEBUGGER)
     {
         //
         // Add action BREAK_TO_DEBUGGER to event
         //
-        DebuggerAddActionToEvent(Event, BREAK_TO_DEBUGGER, Action->ImmediateMessagePassing, NULL, NULL);
+        Action = DebuggerAddActionToEvent(Event,
+                                          BREAK_TO_DEBUGGER,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          NULL,
+                                          NULL,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
     else
     {
@@ -2880,10 +2999,15 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         //
-        // Show that the
+        // Show that there was an error
         //
         return FALSE;
     }
+
+    //
+    // Enable the event
+    //
+    DebuggerEnableEvent(Event->Tag);
 
     ResultsToReturn->IsSuccessful = TRUE;
     ResultsToReturn->Error        = 0;
