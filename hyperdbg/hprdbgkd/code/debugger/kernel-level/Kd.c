@@ -156,29 +156,22 @@ KdInitializeInstantEventPools()
 
 #endif // MAXIMUM_BIG_INSTANT_EVENTS
 
-    /*
-    // -------------------------------------------------------------------------------------
     //
-    // Request pages to be allocated for converting 2MB to 4KB pages
-    // Each core needs its own splitting page-tables
+    // Pre-allocate pools for possible EPT hooks
+    // Because there are possible init EPT hook structures, we only
+    // allocate the maximum number of regular instant event subtracted
+    // from the initial pages
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5 * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_REGULAR_INSTANT_EVENTS - MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
 
-    //
-    // Request pages to be allocated for paged hook details
-    //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), 5, TRACKING_HOOKED_PAGES);
+    if (PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
 
-    //
-    // Request pages to be allocated for Trampoline of Executable hooked pages
-    //
-    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 5, EXEC_TRAMPOLINE);
-
-    //
-    // Request pages to be allocated for detour hooked pages details
-    //
-    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
-    */
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
 }
 
 /**

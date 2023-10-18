@@ -1291,7 +1291,7 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
         //
         // Perform the allocations for !monitor command
         //
-        VmFuncEptHookAllocateExtraHookingPages(PreallocRequest->Count);
+        ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitors(PreallocRequest->Count);
 
         break;
 

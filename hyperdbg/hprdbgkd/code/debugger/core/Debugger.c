@@ -208,6 +208,20 @@ DebuggerInitialize()
         return FALSE;
     }
 
+    //
+    // Pre-allocate pools for possible EPT hooks
+    //
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
+
+    if (PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
+
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
+
     return TRUE;
 }
 

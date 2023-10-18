@@ -310,6 +310,16 @@ const unsigned char BuildSignature[] = {
 #define DebuggerScriptEngineMemcpyMovingBufferSize 64
 
 //////////////////////////////////////////////////
+//                   EPT Hook                   //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum number of initial pre-allocated EPT hooks
+ *
+ */
+#define MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS 5
+
+//////////////////////////////////////////////////
 //             Instant Event Configs            //
 //////////////////////////////////////////////////
 
@@ -444,7 +454,7 @@ const unsigned char BuildSignature[] = {
  * @brief maximum number of buffers to be allocated for a single
  * breakpoint
  */
-#define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+#define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 100
 
 /**
  * @brief maximum number of thread/process ids to be allocated for a simultaneous
