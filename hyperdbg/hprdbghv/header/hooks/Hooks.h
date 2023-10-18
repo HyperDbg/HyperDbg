@@ -334,15 +334,15 @@ PVOID
 EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
 
 /**
- * @brief Allocate (reserve) extra pages for storing details of page hooks for
- * memory monitor hooks
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
  *
  * @param Count
  *
  * @return VOID
  */
 VOID
-EptHookAllocateExtraHookingPagesForMemoryMonitors(UINT32 Count);
+EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
 
 /**
  * @brief Allocate pre-allocated pools for EPT hooks

@@ -174,16 +174,16 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, U
 
 /**
  * @brief Allocate (reserve) extra pages for storing details of page hooks
- * for memory monitors
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
  *
  * @param Count
  *
  * @return VOID
  */
 VOID
-ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitors(UINT32 Count)
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
 {
-    EptHookAllocateExtraHookingPagesForMemoryMonitors(Count);
+    EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(Count);
 }
 
 /**

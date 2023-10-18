@@ -158,9 +158,8 @@ KdInitializeInstantEventPools()
 
     //
     // Pre-allocate pools for possible EPT hooks
-    // Because there are possible init EPT hook structures, we only
-    // allocate the maximum number of regular instant event subtracted
-    // from the initial pages
+    // Because there are possible init EPT hook structures, we only allocate the
+    //  maximum number of regular instant event subtracted from the initial pages
     //
     ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_REGULAR_INSTANT_EVENTS - MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
 

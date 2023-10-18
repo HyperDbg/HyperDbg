@@ -1286,15 +1286,6 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
 {
     switch (PreallocRequest->Type)
     {
-    case DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR:
-
-        //
-        // Perform the allocations for !monitor command
-        //
-        ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitors(PreallocRequest->Count);
-
-        break;
-
     case DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION:
 
         //
@@ -1305,6 +1296,92 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
                                      PROCESS_THREAD_HOLDER);
 
         break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR:
+
+        //
+        // Perform the allocations for the '!monitor' command
+        //
+        ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(PreallocRequest->Count);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK:
+
+        //
+        // Perform the allocations for the '!epthook' command
+        //
+        ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(PreallocRequest->Count);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK2:
+
+        //
+        // All the prealloc requests of regular EPT hooks are needed for the '!epthook2'
+        //
+        ConfigureEptHookReservePreallocatedPoolsForEptHooks(PreallocRequest->Count);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_EVENT:
+
+        //
+        // Request pages to be allocated for regular instant events
+        //
+        PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_REGULAR_EVENT_BUFFER);
+
+        //
+        // Request pages to be allocated for regular instant events's actions
+        //
+        PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_ACTION_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_REGULAR_EVENT_ACTION_BUFFER);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_EVENT:
+
+        //
+        // Request pages to be allocated for big instant events
+        //
+        PoolManagerRequestAllocation(BIG_INSTANT_EVENT_CONDITIONAL_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_BIG_EVENT_BUFFER);
+
+        //
+        // Request pages to be allocated for big instant events's actions
+        //
+        PoolManagerRequestAllocation(BIG_INSTANT_EVENT_ACTION_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_BIG_EVENT_ACTION_BUFFER);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_SAFE_BUFFER:
+
+        //
+        // Request pages to be allocated for regular safe buffer ($buffer) for events
+        //
+        PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS);
+
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_SAFE_BUFFER:
+
+        //
+        // Request pages to be allocated for big safe buffer ($buffer) for events
+        //
+        PoolManagerRequestAllocation(BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER,
+                                     PreallocRequest->Count,
+                                     INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS);
+
+        break;
+
     default:
 
         PreallocRequest->KernelStatus = DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE;

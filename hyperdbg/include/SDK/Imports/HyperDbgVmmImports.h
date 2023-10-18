@@ -271,7 +271,7 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitors(UINT32 Count);
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureEptHookReservePreallocatedPoolsForEptHooks(UINT32 Count);
