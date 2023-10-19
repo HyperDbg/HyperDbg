@@ -109,6 +109,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_SET_RDPMC_EXITING:
+    {
+        //
+        // Enable rdpmc exiting
+        //
+        DirectVmcallEnableRdpmcExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING:
+    {
+        //
+        // Enable rdtsc/rdtscp exiting
+        //
+        DirectVmcallEnableRdtscpExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

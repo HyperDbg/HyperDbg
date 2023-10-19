@@ -23,3 +23,9 @@ HaltedRoutineChangeAllMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 Bit
 
 VOID
 HaltedRoutineChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port);
+
+VOID
+HaltedRoutineEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId);
+
+VOID
+HaltedRoutineEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId);

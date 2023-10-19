@@ -112,3 +112,57 @@ HaltedBroadcastChangeAllIoBitmapAllCores(UINT64 Port)
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts enable RDPMC exiting to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastEnableRdpmcExitingAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_SET_RDPMC_EXITING;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts enable rdtsc/rdtscp exiting to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastEnableRdtscExitingAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

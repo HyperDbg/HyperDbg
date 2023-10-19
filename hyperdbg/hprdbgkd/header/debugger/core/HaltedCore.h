@@ -57,6 +57,18 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP 0x00000007
 
+/**
+ * @brief Halted core task for enabling rdpmc exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_RDPMC_EXITING 0x00000008
+
+/**
+ * @brief Halted core task for enabling rdtsc/rdtscp exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING 0x00000009
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

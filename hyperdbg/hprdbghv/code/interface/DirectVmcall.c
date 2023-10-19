@@ -87,3 +87,41 @@ DirectVmcallChangeIoBitmap(UINT32                     CoreId,
     //
     VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for enabling rdpmc exiting
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallEnableRdpmcExiting(UINT32                     CoreId,
+                               DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDPMC_EXITING, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for enabling rdtsc/rdtscp exiting
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallEnableRdtscpExiting(UINT32                     CoreId,
+                                DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDTSC_EXITING, DirectVmcallOptions);
+}

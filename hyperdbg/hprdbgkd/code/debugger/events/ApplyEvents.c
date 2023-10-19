@@ -478,14 +478,28 @@ ApplyEventTscExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableRdtscExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableRdtscExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableRdtscExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableRdtscExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 
@@ -512,14 +526,28 @@ ApplyEventRdpmcExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableRdpmcExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 
