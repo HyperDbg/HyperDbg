@@ -213,7 +213,7 @@ DebuggerInitialize()
     //
     ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
 
-    if (PoolManagerCheckAndPerformAllocationAndDeallocation())
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
     {
         LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
 

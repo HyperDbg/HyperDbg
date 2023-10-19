@@ -163,7 +163,7 @@ KdInitializeInstantEventPools()
     //
     ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_REGULAR_INSTANT_EVENTS - MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
 
-    if (PoolManagerCheckAndPerformAllocationAndDeallocation())
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
     {
         LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
 
