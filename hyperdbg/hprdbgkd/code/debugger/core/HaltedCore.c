@@ -136,6 +136,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_SET_EXCEPTION_BITMAP:
+    {
+        //
+        // Set exception bitmap
+        //
+        DirectVmcallSetExceptionBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_ENABLE_EXTERNAL_INTERRUPT_EXITING:
+    {
+        //
+        // enable external interrupt exiting
+        //
+        DirectVmcallEnableExternalInterruptExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

@@ -75,6 +75,18 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_DEBUG_REGS_EXITING 0x0000000a
 
+/**
+ * @brief Halted core task for setting exception bitmap
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_EXCEPTION_BITMAP 0x0000000b
+
+/**
+ * @brief Halted core task for enabling external interrupt exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x0000000c
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

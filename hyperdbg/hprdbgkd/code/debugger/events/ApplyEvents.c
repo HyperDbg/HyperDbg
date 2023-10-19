@@ -662,14 +662,28 @@ ApplyEventExceptionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
@@ -701,14 +715,28 @@ ApplyEventInterruptEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandSetExternalInterruptExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableExternalInterruptExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandSetExternalInterruptExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableExternalInterruptExiting(Event->CoreId);
+        }
+        else
+        {
+            ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
+        }
     }
 
     //

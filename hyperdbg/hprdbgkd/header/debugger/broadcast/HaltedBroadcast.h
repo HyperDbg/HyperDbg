@@ -32,3 +32,9 @@ HaltedBroadcastEnableRdtscExitingAllCores();
 
 VOID
 HaltedBroadcastEnableMov2DebugRegsExitingAllCores();
+
+VOID
+HaltedBroadcastEnableExternalInterruptExitingAllCores();
+
+VOID
+HaltedBroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
