@@ -574,14 +574,28 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableMovDebugRegistersExitingAllCores();
+        if (ResultsToReturn)
+        {
+            HaltedBroadcastEnableMov2DebugRegsExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableMovDebugRegistersExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
+        if (ResultsToReturn)
+        {
+            HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 

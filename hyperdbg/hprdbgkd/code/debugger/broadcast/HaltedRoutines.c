@@ -173,3 +173,32 @@ HaltedRoutineEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
                                   TRUE,
                                   &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function performs running enable mov to debug registers exiting on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(UINT32 TargetCoreId)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_DEBUG_REGS_EXITING;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}

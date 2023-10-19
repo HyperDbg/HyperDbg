@@ -69,6 +69,12 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING 0x00000009
 
+/**
+ * @brief Halted core task for enabling mov to debug registers exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_DEBUG_REGS_EXITING 0x0000000a
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

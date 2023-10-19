@@ -29,3 +29,6 @@ HaltedBroadcastEnableRdpmcExitingAllCores();
 
 VOID
 HaltedBroadcastEnableRdtscExitingAllCores();
+
+VOID
+HaltedBroadcastEnableMov2DebugRegsExitingAllCores();

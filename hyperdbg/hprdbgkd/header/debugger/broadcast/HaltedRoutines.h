@@ -29,3 +29,6 @@ HaltedRoutineEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId);
 
 VOID
 HaltedRoutineEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId);
+
+VOID
+HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(UINT32 TargetCoreId);
