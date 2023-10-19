@@ -45,6 +45,20 @@ typedef enum _POOL_ALLOCATION_INTENTION
     BREAKPOINT_DEFINITION_STRUCTURE,
     PROCESS_THREAD_HOLDER,
 
+    //
+    // Instant event buffers
+    //
+    INSTANT_REGULAR_EVENT_BUFFER,
+    INSTANT_BIG_EVENT_BUFFER,
+    INSTANT_REGULAR_EVENT_ACTION_BUFFER,
+    INSTANT_BIG_EVENT_ACTION_BUFFER,
+
+    //
+    // Use for request safe buffers of the event
+    //
+    INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS,
+    INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS,
+
 } POOL_ALLOCATION_INTENTION;
 
 //////////////////////////////////////////////////

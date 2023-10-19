@@ -132,9 +132,6 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectBreakpoint();
 
 IMPORT_EXPORT_VMM VOID
-VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
-
-IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
@@ -272,6 +269,12 @@ ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLE
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureEptHookReservePreallocatedPoolsForEptHooks(UINT32 Count);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId);

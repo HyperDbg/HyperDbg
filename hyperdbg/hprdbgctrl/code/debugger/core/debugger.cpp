@@ -398,6 +398,90 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS:
+        ShowMessages("err, the requested buffer for storing event and conditions is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, not enough pre-allocated buffer exists for storing the event. You can use the 'prealloc' "
+                     "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_BIG_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested event is considered as a \"big instant event\" and right now, there is no "
+                     "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
+                     "pre-allocating big instant event buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target action (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, not enough pre-allocated buffer exists for storing the event's action. You can use the 'prealloc' "
+                     "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested action is considered as a \"big instant event (action)\" and right now, there is no "
+                     "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
+                     "pre-allocating big instant event's action buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER:
+        ShowMessages("err, the requested buffer for storing action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK:
+        ShowMessages("err, the requested optional buffer is bigger than the debuggers send/receive stack, "
+                     "please select a smaller requested buffer for the target event (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, by default HyperDbg won't allocate requested safe buffers for instant events in "
+                     "the debugger mode. You can use the 'prealloc' command to allocate (regular) requested safe "
+                     "buffers before running this command (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested safe buffer is bigger than regular buffers. You can use the 'prealloc' "
+                     "command to allocate (big) requested safe buffers before running this command (%x)\n"
+                     "for more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, the requested buffer for storing safe buffers of the action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target requested safe buffer (%x)\n",
+                     Error);
+        break;
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -1725,8 +1809,8 @@ BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32                         EventBufferLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
+    BOOL                              Status;
+    ULONG                             ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
     PDEBUGGER_EVENT_AND_ACTION_RESULT TempRegResult;
 
@@ -1759,19 +1843,19 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // Send IOCTL
         //
 
-        Status = DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                                 IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
-                                 Event,                                        // Input Buffer to driver.
-                                 EventBufferLength,                            // Input buffer length
-                                 &ReturnedBuffer,                              // Output Buffer from driver.
+        Status = DeviceIoControl(g_DeviceHandle,                           // Handle to device
+                                 IOCTL_DEBUGGER_REGISTER_EVENT,            // IO Control code
+                                 Event,                                    // Input Buffer to driver.
+                                 EventBufferLength,                        // Input buffer length
+                                 &ReturnedBuffer,                          // Output Buffer from driver.
                                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                                               // of
-                                                                               // output
-                                                                               // buffer
-                                                                               // in
-                                                                               // bytes.
-                                 &ReturnedLength,                              // Bytes placed in buffer.
-                                 NULL                                          // synchronous call
+                                                                           // of
+                                                                           // output
+                                                                           // buffer
+                                                                           // in
+                                                                           // bytes.
+                                 &ReturnedLength,                          // Bytes placed in buffer.
+                                 NULL                                      // synchronous call
         );
 
         if (!Status)
@@ -1847,8 +1931,8 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                       PDEBUGGER_GENERAL_ACTION       ActionScript,
                       UINT32                         ActionScriptLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
+    BOOL                              Status;
+    ULONG                             ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
     PDEBUGGER_EVENT_AND_ACTION_RESULT TempAddingResult;
 
@@ -1930,19 +2014,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionBreakToDebugger != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionBreakToDebugger,                        // Input Buffer to driver.
-                ActionBreakToDebuggerLength,                  // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                ActionBreakToDebugger,                    // Input Buffer to driver.
+                ActionBreakToDebuggerLength,              // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)
@@ -1958,19 +2042,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionCustomCode != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionCustomCode,                             // Input Buffer to driver.
-                ActionCustomCodeLength,                       // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                ActionCustomCode,                         // Input Buffer to driver.
+                ActionCustomCodeLength,                   // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)
@@ -1986,19 +2070,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionScript != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionScript,                                 // Input Buffer to driver.
-                ActionScriptLength,                           // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                ActionScript,                             // Input Buffer to driver.
+                ActionScriptLength,                       // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
                 sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)

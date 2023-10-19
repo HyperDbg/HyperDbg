@@ -208,6 +208,20 @@ DebuggerInitialize()
         return FALSE;
     }
 
+    //
+    // Pre-allocate pools for possible EPT hooks
+    //
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
+
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
+
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
+
     return TRUE;
 }
 
@@ -253,8 +267,12 @@ DebuggerUninitialize()
 
     //
     // Third, remove all events
+    // When the debugger is in the Debugger Mode, all events are applied
+    // as instant events thus, should be behaved differently for freeing
+    // buffers, so we send the state of the kernel debug (kd) as the
+    // input for event remover
     //
-    DebuggerRemoveAllEvents();
+    DebuggerRemoveAllEvents(g_KernelDebuggerState);
 
     //
     // Uninitialize kernel debugger
@@ -321,45 +339,128 @@ DebuggerUninitialize()
  * @param ProcessId The process id that this event is allowed to run
  * @param EventType The type of event
  * @param Tag User-mode generated unique tag (id) of the event
- * @param OptionalParam1 Optional parameter 1 for event
- * @param OptionalParam2 Optional parameter 2 for event
- * @param OptionalParam3 Optional parameter 3 for event
- * @param OptionalParam4 Optional parameter 4 for event
+ * @param Options Optional parameters for the event
  * @param ConditionsBufferSize Size of condition code buffer (if any)
  * @param ConditionBuffer Address of condition code buffer (if any)
+ * @param ResultsToReturn Result buffer that should be returned to
+ * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return PDEBUGGER_EVENT Returns null in the case of error and event
  * object address when it's successful
  */
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN                  Enabled,
-                    UINT32                   CoreId,
-                    UINT32                   ProcessId,
-                    VMM_EVENT_TYPE_ENUM      EventType,
-                    UINT64                   Tag,
-                    DEBUGGER_EVENT_OPTIONS * Options,
-                    UINT32                   ConditionsBufferSize,
-                    PVOID                    ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN                           Enabled,
+                    UINT32                            CoreId,
+                    UINT32                            ProcessId,
+                    VMM_EVENT_TYPE_ENUM               EventType,
+                    UINT64                            Tag,
+                    DEBUGGER_EVENT_OPTIONS *          Options,
+                    UINT32                            ConditionsBufferSize,
+                    PVOID                             ConditionBuffer,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                    BOOLEAN                           InputFromVmxRoot)
 {
-    //
-    // As this function uses the memory allocation functions,
-    // we have to make sure that it will not be called in vmx root
-    //
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
-        return NULL;
-    }
+    PDEBUGGER_EVENT Event           = NULL;
+    UINT32          EventBufferSize = sizeof(DEBUGGER_EVENT) + ConditionsBufferSize;
 
     //
     // Initialize the event structure
     //
-    PDEBUGGER_EVENT Event = CrsAllocateZeroedNonPagedPool(sizeof(DEBUGGER_EVENT) + ConditionsBufferSize);
-
-    if (!Event)
+    if (InputFromVmxRoot)
     {
         //
-        // There is a problem with allocating event
+        // *** The buffer is coming from VMX-root mode ***
         //
-        return NULL;
+
+        //
+        // If the buffer is smaller than regular instant events
+        //
+        if (REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER >= EventBufferSize)
+        {
+            //
+            // The buffer fits into a regular instant event
+            //
+            Event = PoolManagerRequestPool(INSTANT_REGULAR_EVENT_BUFFER, TRUE, REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER);
+
+            if (!Event)
+            {
+                //
+                // Here we try again to see if we could store it into a big instant event instead
+                //
+                Event = PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
+
+                if (!Event)
+                {
+                    //
+                    // Set the error
+                    //
+                    ResultsToReturn->IsSuccessful = FALSE;
+                    ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                    //
+                    // There is a problem with allocating event
+                    //
+                    return NULL;
+                }
+            }
+        }
+        else if (BIG_INSTANT_EVENT_CONDITIONAL_BUFFER >= EventBufferSize)
+        {
+            //
+            // The buffer fits into a big instant event
+            //
+            Event = PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
+
+            if (!Event)
+            {
+                //
+                // Set the error
+                //
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_BIG_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                //
+                // There is a problem with allocating event
+                //
+                return NULL;
+            }
+        }
+        else
+        {
+            //
+            // The buffer doesn't fit into any of the regular or big event's preallocated buffers
+            //
+
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS;
+
+            return NULL;
+        }
+    }
+    else
+    {
+        //
+        // If it's not coming from the VMX-root mode then we're allocating it from the OS buffers
+        //
+        Event = CrsAllocateZeroedNonPagedPool(EventBufferSize);
+
+        if (!Event)
+        {
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
+
+            //
+            // There is a problem with allocating event
+            //
+            return NULL;
+        }
     }
 
     Event->CoreId         = CoreId;
@@ -410,9 +511,117 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
 }
 
 /**
- * @brief Create an action and add the action to an event
+ * @brief Allocates buffer for requested safe buffer
  *
- * @details should NOT be called in vmx-root
+ * @param SizeOfRequestedSafeBuffer The size of the requested safe buffer
+ * @param ResultsToReturn The buffer address that should be returned
+ * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return PVOID
+ */
+PVOID
+DebuggerAllocateSafeRequestedBuffer(SIZE_T                            SizeOfRequestedSafeBuffer,
+                                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                                    BOOLEAN                           InputFromVmxRoot)
+{
+    PVOID RequestedBuffer = NULL;
+
+    //
+    // Check whether the buffer comes from VMX-root mode or non-root mode
+    //
+    if (InputFromVmxRoot)
+    {
+        //
+        // *** The buffer is coming from VMX-root mode ***
+        //
+
+        //
+        // If the requested safe buffer is smaller than regular safe buffers
+        //
+        if (REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER >= SizeOfRequestedSafeBuffer)
+        {
+            //
+            // The buffer fits into a regular safe requested buffer
+            //
+            RequestedBuffer = PoolManagerRequestPool(INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS, TRUE, REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+            if (!RequestedBuffer)
+            {
+                //
+                // Here we try again to see if we could store it into a big instant event safe requested buffer instead
+                //
+                RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+                if (!RequestedBuffer)
+                {
+                    //
+                    // Set the error
+                    //
+                    ResultsToReturn->IsSuccessful = FALSE;
+                    ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND;
+
+                    //
+                    // There is a problem with allocating requested safe buffer
+                    //
+                    return NULL;
+                }
+            }
+        }
+        else if (BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER >= SizeOfRequestedSafeBuffer)
+        {
+            //
+            // The buffer fits into a big instant requested safe buffer
+            //
+            RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+
+            if (!RequestedBuffer)
+            {
+                //
+                // Set the error
+                //
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND;
+
+                //
+                // There is a problem with allocating event
+                //
+                return NULL;
+            }
+        }
+        else
+        {
+            //
+            // The buffer doesn't fit into any of the regular or big safe requested buffers
+            //
+
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER;
+
+            return NULL;
+        }
+    }
+    else
+    {
+        RequestedBuffer = CrsAllocateZeroedNonPagedPool(SizeOfRequestedSafeBuffer);
+
+        if (!RequestedBuffer)
+        {
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER;
+
+            return NULL;
+        }
+    }
+
+    return RequestedBuffer;
+}
+
+/**
+ * @brief Create an action and add the action to an event
  *
  * @param Event Target event object
  * @param ActionType Type of action
@@ -420,6 +629,10 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
  * by the user-mode immediately
  * @param InTheCaseOfCustomCode Custom code structure (if any)
  * @param InTheCaseOfRunScript Run script structure (if any)
+ * @param ResultsToReturn The buffer address that should be returned
+ * to the user-mode as the result
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return PDEBUGGER_EVENT_ACTION
  */
 PDEBUGGER_EVENT_ACTION
@@ -427,19 +640,13 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
                          DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
                          BOOLEAN                                         SendTheResultsImmediately,
                          PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
-                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript,
+                         PDEBUGGER_EVENT_AND_ACTION_RESULT               ResultsToReturn,
+                         BOOLEAN                                         InputFromVmxRoot)
 {
     PDEBUGGER_EVENT_ACTION Action;
-    SIZE_T                 Size;
-
-    //
-    // As this function uses the memory allocation functions,
-    // we have to make sure that it will not be called in vmx root
-    //
-    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
-    {
-        return NULL;
-    }
+    SIZE_T                 ActionBufferSize;
+    PVOID                  RequestedBuffer = NULL;
 
     //
     // Allocate action + allocate code for custom code
@@ -450,31 +657,121 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // We should allocate extra buffer for custom code
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
     }
     else if (InTheCaseOfRunScript != NULL)
     {
         //
         // We should allocate extra buffer for script
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
     }
     else
     {
         //
         // We shouldn't allocate extra buffer as there is no custom code
         //
-        Size = sizeof(DEBUGGER_EVENT_ACTION);
+        ActionBufferSize = sizeof(DEBUGGER_EVENT_ACTION);
     }
 
-    Action = CrsAllocateZeroedNonPagedPool(Size);
+    //
+    // Allocate buffer for storing the action
+    //
 
-    if (Action == NULL)
+    if (InputFromVmxRoot)
     {
         //
-        // There was an error in allocation
+        // *** The buffer is coming from VMX-root mode ***
         //
-        return NULL;
+
+        //
+        // If the buffer is smaller than regular instant events's action
+        //
+        if (REGULAR_INSTANT_EVENT_ACTION_BUFFER >= ActionBufferSize)
+        {
+            //
+            // The buffer fits into a regular instant event's action
+            //
+            Action = PoolManagerRequestPool(INSTANT_REGULAR_EVENT_ACTION_BUFFER, TRUE, REGULAR_INSTANT_EVENT_ACTION_BUFFER);
+
+            if (!Action)
+            {
+                //
+                // Here we try again to see if we could store it into a big instant event's action buffer instead
+                //
+                Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+
+                if (!Action)
+                {
+                    //
+                    // Set the error
+                    //
+                    ResultsToReturn->IsSuccessful = FALSE;
+                    ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                    //
+                    // There is a problem with allocating event's action
+                    //
+                    return NULL;
+                }
+            }
+        }
+        else if (BIG_INSTANT_EVENT_ACTION_BUFFER >= ActionBufferSize)
+        {
+            //
+            // The buffer fits into a big instant event's action buffer
+            //
+            Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+
+            if (!Action)
+            {
+                //
+                // Set the error
+                //
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND;
+
+                //
+                // There is a problem with allocating event's action buffer
+                //
+                return NULL;
+            }
+        }
+        else
+        {
+            //
+            // The buffer doesn't fit into any of the regular or big event's action preallocated buffers
+            //
+
+            //
+            // Set the error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER;
+
+            return NULL;
+        }
+    }
+    else
+    {
+        //
+        // If it's not coming from the VMX-root mode then we're allocating it from the OS buffers
+        //
+        Action = CrsAllocateZeroedNonPagedPool(ActionBufferSize);
+
+        if (Action == NULL)
+        {
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER;
+
+            //
+            // There was an error in allocation
+            //
+            return NULL;
+        }
     }
 
     //
@@ -492,21 +789,46 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK;
+
             return NULL;
         }
 
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfCustomCode->OptionalRequestedBufferSize);
+        RequestedBuffer = DebuggerAllocateSafeRequestedBuffer(InTheCaseOfCustomCode->OptionalRequestedBufferSize, ResultsToReturn, InputFromVmxRoot);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Not need to set error as the above function already adjust the error
+            //
             return NULL;
         }
 
@@ -533,21 +855,46 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK;
+
             return NULL;
         }
 
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = CrsAllocateZeroedNonPagedPool(InTheCaseOfRunScript->OptionalRequestedBufferSize);
+        RequestedBuffer = DebuggerAllocateSafeRequestedBuffer(InTheCaseOfRunScript->OptionalRequestedBufferSize, ResultsToReturn, InputFromVmxRoot);
 
         if (!RequestedBuffer)
         {
             //
             // There was an error in allocation
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+            }
+            else
+            {
+                CrsFreePool(Action);
+            }
+
+            //
+            // Not need to set error as the above function already adjust the error
+            //
             return NULL;
         }
 
@@ -569,7 +916,28 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+
+                if (RequestedBuffer != NULL)
+                {
+                    PoolManagerFreePool(RequestedBuffer);
+                }
+            }
+            else
+            {
+                CrsFreePool(Action);
+
+                if (RequestedBuffer != NULL)
+                {
+                    CrsFreePool(RequestedBuffer);
+                }
+            }
+
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+
             return NULL;
         }
 
@@ -597,9 +965,30 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL)
         {
             //
-            // Invalid configuration
+            // There was an error
             //
-            CrsFreePool(Action);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(Action);
+
+                if (RequestedBuffer != 0)
+                {
+                    PoolManagerFreePool(RequestedBuffer);
+                }
+            }
+            else
+            {
+                CrsFreePool(Action);
+
+                if (RequestedBuffer != 0)
+                {
+                    CrsFreePool(RequestedBuffer);
+                }
+            }
+
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+
             return NULL;
         }
 
@@ -1512,11 +1901,13 @@ DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
  * it won't terminate their effects, so the events should
  * be terminated first then we can remove them
  *
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN if at least one event removed then
  * it returns true, and otherwise false
  */
 BOOLEAN
-DebuggerRemoveAllEvents()
+DebuggerRemoveAllEvents(BOOLEAN InputFromVmxRoot)
 {
     BOOLEAN     FindAtLeastOneEvent = FALSE;
     PLIST_ENTRY TempList            = 0;
@@ -1546,7 +1937,7 @@ DebuggerRemoveAllEvents()
             //
             // Remove the current event
             //
-            DebuggerRemoveEvent(CurrentEvent->Tag);
+            DebuggerRemoveEvent(CurrentEvent->Tag, InputFromVmxRoot);
         }
     }
 
@@ -1998,10 +2389,12 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
  * be terminated first then we can remove them *
  *
  * @param Event Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
 BOOLEAN
-DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
+DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     PLIST_ENTRY TempList  = 0;
     PLIST_ENTRY TempList2 = 0;
@@ -2026,7 +2419,14 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
             //
             // There is a buffer
             //
-            CrsFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
+            if (InputFromVmxRoot)
+            {
+                PoolManagerFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
+            }
+            else
+            {
+                CrsFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
+            }
         }
 
         //
@@ -2034,7 +2434,14 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
         // if it's a custom buffer then the buffer
         // is appended to the Action
         //
-        CrsFreePool(CurrentAction);
+        if (InputFromVmxRoot)
+        {
+            PoolManagerFreePool(CurrentAction);
+        }
+        else
+        {
+            CrsFreePool(CurrentAction);
+        }
     }
     //
     // Remember to free the pool
@@ -2046,15 +2453,16 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
  * @brief Remove the event by its tags and also remove its actions
  * and de-allocate their buffers
  *
- * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should
+ * @details it won't terminate their effects, so the events should
  * be terminated first then we can remove them
  *
  * @param Tag Target event tag
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
 BOOLEAN
-DebuggerRemoveEvent(UINT64 Tag)
+DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
     PLIST_ENTRY     TempList  = 0;
@@ -2090,7 +2498,7 @@ DebuggerRemoveEvent(UINT64 Tag)
     //
     // Remove all of the actions and free its pools
     //
-    DebuggerRemoveAllActionsFromEvent(Event);
+    DebuggerRemoveAllActionsFromEvent(Event, InputFromVmxRoot);
 
     //
     // Free the pools of Event, when we free the pool,
@@ -2099,7 +2507,14 @@ DebuggerRemoveEvent(UINT64 Tag)
     // are both allocate in a same pool ) so both of
     // them are freed
     //
-    CrsFreePool(Event);
+    if (InputFromVmxRoot)
+    {
+        PoolManagerFreePool(Event);
+    }
+    else
+    {
+        CrsFreePool(Event);
+    }
 
     return TRUE;
 }
@@ -2149,7 +2564,6 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
             //
             // CoreId is invalid (Set the error)
             //
-
             ResultsToReturn->IsSuccessful = FALSE;
             ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_CORE_ID;
             return FALSE;
@@ -2555,7 +2969,9 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                                     EventDetails->Tag,
                                     &EventDetails->Options,
                                     EventDetails->ConditionBufferSize,
-                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
+                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL),
+                                    ResultsToReturn,
+                                    InputFromVmxRoot);
     }
     else
     {
@@ -2569,16 +2985,16 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                                     EventDetails->Tag,
                                     &EventDetails->Options,
                                     0,
-                                    NULL);
+                                    NULL,
+                                    ResultsToReturn,
+                                    InputFromVmxRoot);
     }
 
     if (Event == NULL)
     {
         //
-        // Set the error
+        // Error is already set in the creation function
         //
-        ResultsToReturn->IsSuccessful = FALSE;
-        ResultsToReturn->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
         return FALSE;
     }
 
@@ -2627,7 +3043,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
         //
         if (Event != NULL)
         {
-            DebuggerRemoveEvent(Event->Tag);
+            DebuggerRemoveEvent(Event->Tag, InputFromVmxRoot);
         }
 
         return FALSE;
@@ -2635,11 +3051,10 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
 }
 
 /**
- * @brief Routine for validating and parsing actions that are comming from
+ * @brief Routine for validating and parsing actions that are coming from
  * the user-mode
- * @details should be called in vmx root-mode
  *
- * @param Action Structure that describes the action that comes from the
+ * @param ActionDetails Structure that describes the action that comes from the
  * user-mode
  * @param ResultsToReturn The buffer address that should be returned
  * to the user-mode as the result
@@ -2649,14 +3064,16 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
  * otherwise, returns FALSE
  */
 BOOLEAN
-DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          ActionDetails,
                     PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                     BOOLEAN                           InputFromVmxRoot)
 {
+    DEBUGGER_EVENT_ACTION * Action = NULL;
+
     //
     // Check if Tag is valid or not
     //
-    PDEBUGGER_EVENT Event = DebuggerGetEventByTag(Action->EventTag);
+    PDEBUGGER_EVENT Event = DebuggerGetEventByTag(ActionDetails->EventTag);
 
     if (Event == NULL)
     {
@@ -2672,12 +3089,12 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         return FALSE;
     }
 
-    if (Action->ActionType == RUN_CUSTOM_CODE)
+    if (ActionDetails->ActionType == RUN_CUSTOM_CODE)
     {
         //
         // Check if buffer is not invalid
         //
-        if (Action->CustomCodeBufferSize == 0)
+        if (ActionDetails->CustomCodeBufferSize == 0)
         {
             //
             // Set the appropriate error
@@ -2696,26 +3113,35 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         //
         DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
 
-        CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
-        CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        CustomCode.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
+        CustomCode.CustomCodeBufferSize        = ActionDetails->CustomCodeBufferSize;
+        CustomCode.CustomCodeBufferAddress     = (UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION);
+        CustomCode.OptionalRequestedBufferSize = ActionDetails->PreAllocatedBuffer;
 
         //
         // Add action to event
         //
-        DebuggerAddActionToEvent(Event, RUN_CUSTOM_CODE, Action->ImmediateMessagePassing, &CustomCode, NULL);
+        Action = DebuggerAddActionToEvent(Event,
+                                          RUN_CUSTOM_CODE,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          &CustomCode,
+                                          NULL,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
-    else if (Action->ActionType == RUN_SCRIPT)
+    else if (ActionDetails->ActionType == RUN_SCRIPT)
     {
         //
         // Check if buffer is not invalid
         //
-        if (Action->ScriptBufferSize == 0)
+        if (ActionDetails->ScriptBufferSize == 0)
         {
             //
             // Set the appropriate error
@@ -2733,29 +3159,47 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         // Add action for RUN_SCRIPT
         //
         DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = {0};
-        UserScriptConfig.ScriptBuffer                                   = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        UserScriptConfig.ScriptLength                                   = Action->ScriptBufferSize;
-        UserScriptConfig.ScriptPointer                                  = Action->ScriptBufferPointer;
-        UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
+        UserScriptConfig.ScriptBuffer                                   = (UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION);
+        UserScriptConfig.ScriptLength                                   = ActionDetails->ScriptBufferSize;
+        UserScriptConfig.ScriptPointer                                  = ActionDetails->ScriptBufferPointer;
+        UserScriptConfig.OptionalRequestedBufferSize                    = ActionDetails->PreAllocatedBuffer;
 
-        DebuggerAddActionToEvent(Event, RUN_SCRIPT, Action->ImmediateMessagePassing, NULL, &UserScriptConfig);
+        Action = DebuggerAddActionToEvent(Event,
+                                          RUN_SCRIPT,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          NULL,
+                                          &UserScriptConfig,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
-    else if (Action->ActionType == BREAK_TO_DEBUGGER)
+    else if (ActionDetails->ActionType == BREAK_TO_DEBUGGER)
     {
         //
         // Add action BREAK_TO_DEBUGGER to event
         //
-        DebuggerAddActionToEvent(Event, BREAK_TO_DEBUGGER, Action->ImmediateMessagePassing, NULL, NULL);
+        Action = DebuggerAddActionToEvent(Event,
+                                          BREAK_TO_DEBUGGER,
+                                          ActionDetails->ImmediateMessagePassing,
+                                          NULL,
+                                          NULL,
+                                          ResultsToReturn,
+                                          InputFromVmxRoot);
 
-        //
-        // Enable the event
-        //
-        DebuggerEnableEvent(Event->Tag);
+        if (!Action)
+        {
+            //
+            // Show that there was an error (error is set by the above function)
+            //
+            return FALSE;
+        }
     }
     else
     {
@@ -2766,10 +3210,15 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
         ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         //
-        // Show that the
+        // Show that there was an error
         //
         return FALSE;
     }
+
+    //
+    // Enable the event
+    //
+    DebuggerEnableEvent(Event->Tag);
 
     ResultsToReturn->IsSuccessful = TRUE;
     ResultsToReturn->Error        = 0;
@@ -3090,7 +3539,7 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Third, remove all events
             //
-            DebuggerRemoveAllEvents();
+            DebuggerRemoveAllEvents(InputFromVmxRoot);
         }
         else
         {
@@ -3120,7 +3569,7 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Third, remove it from the list
             //
-            DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag);
+            DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
         }
     }
     else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)

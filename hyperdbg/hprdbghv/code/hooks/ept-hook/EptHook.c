@@ -60,6 +60,79 @@ EptHookCalcBreakpointOffset(_In_ PVOID                    TargetAddress,
 }
 
 /**
+ * @brief Reserve pre-allocated pools for EPT hooks
+ *
+ * @param Count number of hooks
+ *
+ * @return VOID
+ */
+VOID
+EptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), Count * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), Count, TRACKING_HOOKED_PAGES);
+
+    //
+    // Request pages to be allocated for Trampoline of Executable hooked pages
+    //
+    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, Count, EXEC_TRAMPOLINE);
+
+    //
+    // Request pages to be allocated for detour hooked pages details
+    //
+    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), Count, DETOUR_HOOK_DETAILS);
+}
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
+ *
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
+                                 Count * ProcessorsCount,
+                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
+                                 Count,
+                                 TRACKING_HOOKED_PAGES);
+}
+
+/**
  * @brief Create EPT hook for the target page
  *
  * @param VCpu The virtual processor's state
@@ -1911,38 +1984,6 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     // guest normally
     //
     return CalledFrom;
-}
-
-/**
- * @brief Allocate (reserve) extra pages for storing details of page hooks
- * @param Count
- *
- * @return VOID
- */
-VOID
-EptHookAllocateExtraHookingPages(UINT32 Count)
-{
-    ULONG ProcessorsCount;
-
-    //
-    // Get number of processors
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Request pages to be allocated for converting 2MB to 4KB pages
-    // Each core needs its own splitting page-tables
-    //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
-                                 Count * ProcessorsCount,
-                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
-
-    //
-    // Request pages to be allocated for paged hook details
-    //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
-                                 Count,
-                                 TRACKING_HOOKED_PAGES);
 }
 
 /**

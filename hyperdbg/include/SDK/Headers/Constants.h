@@ -310,6 +310,68 @@ const unsigned char BuildSignature[] = {
 #define DebuggerScriptEngineMemcpyMovingBufferSize 64
 
 //////////////////////////////////////////////////
+//                   EPT Hook                   //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum number of initial pre-allocated EPT hooks
+ *
+ */
+#define MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS 5
+
+//////////////////////////////////////////////////
+//             Instant Event Configs            //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum number of (regular) instant events that are pre-allocated
+ *
+ */
+#define MAXIMUM_REGULAR_INSTANT_EVENTS 20
+
+/**
+ * @brief Maximum number of (big) instant events that are pre-allocated
+ *
+ */
+#define MAXIMUM_BIG_INSTANT_EVENTS 0
+
+/**
+ * @brief Pre-allocated size for a regular event + conditions buffer
+ *
+ */
+#define REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER sizeof(DEBUGGER_EVENT) + 100
+
+/**
+ * @brief Pre-allocated size for a big event + conditions buffer
+ *
+ */
+#define BIG_INSTANT_EVENT_CONDITIONAL_BUFFER sizeof(DEBUGGER_EVENT) + PAGE_SIZE
+
+/**
+ * @brief Pre-allocated size for a regular action + custom code or script buffer
+ *
+ */
+#define REGULAR_INSTANT_EVENT_ACTION_BUFFER sizeof(DEBUGGER_EVENT_ACTION) + (PAGE_SIZE * 2)
+
+/**
+ * @brief Pre-allocated size for a big action + custom code or script buffer
+ *
+ */
+#define BIG_INSTANT_EVENT_ACTION_BUFFER sizeof(DEBUGGER_EVENT_ACTION) + MaxSerialPacketSize
+
+/**
+ * @brief Pre-allocated size for a regular requested safe buffer
+ *
+ */
+#define REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER PAGE_SIZE
+
+/**
+ * @brief Pre-allocated size for a big requested safe buffer
+ *
+ */
+#define BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER MaxSerialPacketSize
+
+//////////////////////////////////////////////////
 //               Remote Connection              //
 //////////////////////////////////////////////////
 
@@ -392,7 +454,7 @@ const unsigned char BuildSignature[] = {
  * @brief maximum number of buffers to be allocated for a single
  * breakpoint
  */
-#define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+#define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 100
 
 /**
  * @brief maximum number of thread/process ids to be allocated for a simultaneous

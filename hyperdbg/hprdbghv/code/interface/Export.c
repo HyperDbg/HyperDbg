@@ -691,18 +691,6 @@ VmFuncEventInjectBreakpoint()
 }
 
 /**
- * @brief Allocate (reserve) extra pages for storing details of page hooks
- * @param Count
- *
- * @return VOID
- */
-VOID
-VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
-{
-    EptHookAllocateExtraHookingPages(Count);
-}
-
-/**
  * @brief VMX-root compatible strcmp
  * @param Address1
  * @param Address2

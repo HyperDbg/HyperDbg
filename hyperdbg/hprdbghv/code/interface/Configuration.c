@@ -173,6 +173,32 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, U
 }
 
 /**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
+ *
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
+{
+    EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(Count);
+}
+
+/**
+ * @brief Allocate (reserve) pages for storing EPT hooks page hooks
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
+{
+    EptHookReservePreallocatedPoolsForEptHooks(Count);
+}
+
+/**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
  *
  * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE

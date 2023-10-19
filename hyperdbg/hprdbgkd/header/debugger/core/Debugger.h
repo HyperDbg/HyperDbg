@@ -194,21 +194,25 @@ VOID
 DebuggerUninitialize();
 
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN                  Enabled,
-                    UINT32                   CoreId,
-                    UINT32                   ProcessId,
-                    VMM_EVENT_TYPE_ENUM      EventType,
-                    UINT64                   Tag,
-                    DEBUGGER_EVENT_OPTIONS * Options,
-                    UINT32                   ConditionsBufferSize,
-                    PVOID                    ConditionBuffer);
+DebuggerCreateEvent(BOOLEAN                           Enabled,
+                    UINT32                            CoreId,
+                    UINT32                            ProcessId,
+                    VMM_EVENT_TYPE_ENUM               EventType,
+                    UINT64                            Tag,
+                    DEBUGGER_EVENT_OPTIONS *          Options,
+                    UINT32                            ConditionsBufferSize,
+                    PVOID                             ConditionBuffer,
+                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                    BOOLEAN                           InputFromVmxRoot);
 
 PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
                          DEBUGGER_EVENT_ACTION_TYPE_ENUM                 ActionType,
                          BOOLEAN                                         SendTheResultsImmediately,
                          PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE             InTheCaseOfCustomCode,
-                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript);
+                         PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript,
+                         PDEBUGGER_EVENT_AND_ACTION_RESULT               ResultsToReturn,
+                         BOOLEAN                                         InputFromVmxRoot);
 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
@@ -224,25 +228,25 @@ PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag);
 
 BOOLEAN
-DebuggerRemoveEvent(UINT64 Tag);
+DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot);
 
 BOOLEAN
 DebuggerQueryDebuggerStatus();
 
 BOOLEAN
-DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL        EventDetails,
+DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot);
+                   BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
-DebuggerApplyEvent(PDEBUGGER_EVENT                       Event,
+DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
                    PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                   BOOLEAN                               InputFromVmxRoot);
+                   BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
-DebuggerParseAction(PDEBUGGER_GENERAL_ACTION              Action,
+DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
                     PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                    BOOLEAN                               InputFromVmxRoot);
+                    BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
 DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
@@ -255,7 +259,7 @@ BOOLEAN
 DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable);
 
 BOOLEAN
-DebuggerRemoveAllEvents();
+DebuggerRemoveAllEvents(BOOLEAN InputFromVmxRoot);
 
 BOOLEAN
 DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot);

@@ -59,8 +59,12 @@ KdInitializeKernelDebugger()
     // Initialize list of breakpoints and breakpoint id
     //
     g_MaximumBreakpointId = 0;
-
     InitializeListHead(&g_BreakpointsListHead);
+
+    //
+    // Initial the needed pools for instant events
+    //
+    KdInitializeInstantEventPools();
 
     //
     // Indicate that the kernel debugger is active
@@ -118,6 +122,55 @@ BOOLEAN
 KdCheckImmediateMessagingMechanism(UINT32 OperationCode)
 {
     return (g_KernelDebuggerState && !(OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT));
+}
+
+/**
+ * @brief Initialize the required pools for instant events
+ *
+ * @return VOID
+ */
+VOID
+KdInitializeInstantEventPools()
+{
+    //
+    // Request pages to be allocated for regular instant events
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for regular instant events's actions
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_ACTION_BUFFER);
+
+#if MAXIMUM_BIG_INSTANT_EVENTS >= 1
+
+    //
+    // Request pages to be allocated for big instant events
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for big instant events's actions
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_ACTION_BUFFER);
+
+#endif // MAXIMUM_BIG_INSTANT_EVENTS
+
+    //
+    // Pre-allocate pools for possible EPT hooks
+    // Because there are possible init EPT hook structures, we only allocate the
+    //  maximum number of regular instant event subtracted from the initial pages
+    //
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_REGULAR_INSTANT_EVENTS - MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
+
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
+
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
 }
 
 /**

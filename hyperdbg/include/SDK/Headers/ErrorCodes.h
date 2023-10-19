@@ -428,6 +428,78 @@
  */
 #define DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE 0xc0000040
 
+/**
+ * @brief error, the preallocated buffer is not enough for storing event+conditional buffer
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS 0xc0000041
+
+/**
+ * @brief error, the regular preallocated buffer not found
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND 0xc0000042
+
+/**
+ * @brief error, the big preallocated buffer not found
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_BIG_PREALLOCATED_BUFFER_NOT_FOUND 0xc0000043
+
+/**
+ * @brief error, enable to create action (cannot allocate buffer)
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER 0xc0000044
+
+/**
+ * @brief error, the regular preallocated buffer not found (for action)
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND 0xc0000045
+
+/**
+ * @brief error, the big preallocated buffer not found (for action)
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND 0xc0000046
+
+/**
+ * @brief error, the preallocated buffer is not enough for storing action buffer
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER 0xc0000047
+
+/**
+ * @brief error, the requested optional buffer is bigger than send/receive stack of the debugger
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK 0xc0000048
+
+/**
+ * @brief error, the requested safe buffer does not exist (regular)
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND 0xc0000049
+
+/**
+ * @brief error, the requested safe buffer does not exists (big)
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND 0xc000004a
+
+/**
+ * @brief error, the preallocated buffer is not enough for storing safe requested buffer
+ *
+ */
+#define DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER 0xc000004b
+
+/**
+ * @brief error, enable to create requested safe buffer (cannot allocate buffer)
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER 0xc000004c
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
