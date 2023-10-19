@@ -32,7 +32,7 @@ DirectVmcallTest(UINT32                     CoreId,
 }
 
 /**
- * @brief routines for test direct VMCALL
+ * @brief routines for changing MSR Bitmap (Read)
  * @details Should be called from VMX root-mode
  *
  * @param CoreId
@@ -48,4 +48,42 @@ DirectVmcallChangeMsrBitmapRead(UINT32                     CoreId,
     // Call the VMCALL handler (directly)
     //
     VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_READ, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for changing MSR Bitmap (Write)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallChangeMsrBitmapWrite(UINT32                     CoreId,
+                                 DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_WRITE, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for changing IO Bitmap
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallChangeIoBitmap(UINT32                     CoreId,
+                           DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
 }

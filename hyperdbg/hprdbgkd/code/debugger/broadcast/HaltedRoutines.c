@@ -45,3 +45,73 @@ HaltedRoutineChangeAllMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 Bitm
                                   TRUE,
                                   &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function performs running MSR changes (WRMSR) on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ * @param BitmapMask
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineChangeAllMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 BitmapMask)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_WRITE;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = BitmapMask;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function performs running changes to I/O bitmap on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ * @param Port
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = Port;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}

@@ -17,3 +17,9 @@
 
 VOID
 HaltedBroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask);
+
+VOID
+HaltedBroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask);
+
+VOID
+HaltedBroadcastChangeAllIoBitmapAllCores(UINT64 Port);

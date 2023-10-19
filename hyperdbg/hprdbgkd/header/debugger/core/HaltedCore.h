@@ -40,10 +40,22 @@
 #define DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION 0x00000004
 
 /**
- * @brief Halted core task for change MSR Bitmap Read
+ * @brief Halted core task for changing MSR Bitmap Read
  *
  */
 #define DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_READ 0x00000005
+
+/**
+ * @brief Halted core task for changing MSR Bitmap Write
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_WRITE 0x00000006
+
+/**
+ * @brief Halted core task for changing I/O Bitmaps (A & B)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP 0x00000007
 
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//

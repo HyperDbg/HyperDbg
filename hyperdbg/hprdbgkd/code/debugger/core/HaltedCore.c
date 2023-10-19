@@ -91,6 +91,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_WRITE:
+    {
+        //
+        // Change MSR bitmap for write (WRMSR)
+        //
+        DirectVmcallChangeMsrBitmapWrite(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP:
+    {
+        //
+        // Change I/O bitmap
+        //
+        DirectVmcallChangeIoBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;
