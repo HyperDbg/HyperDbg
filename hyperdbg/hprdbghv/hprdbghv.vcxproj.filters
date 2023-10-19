@@ -299,6 +299,9 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
       <Filter>code\components\optimizations</Filter>
     </ClCompile>
+    <ClCompile Include="code\interface\DirectVmcall.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -555,6 +558,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
       <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="header\interface\DirectVmcall.h">
+      <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

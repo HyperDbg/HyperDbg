@@ -112,6 +112,8 @@
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\debugger\broadcast\HaltedBroadcast.c" />
+    <ClCompile Include="code\debugger\broadcast\HaltedRoutines.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
     <ClCompile Include="code\debugger\commands\Callstack.c" />
     <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
@@ -149,6 +151,8 @@
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\debugger\broadcast\HaltedBroadcast.h" />
+    <ClInclude Include="header\debugger\broadcast\HaltedRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
     <ClInclude Include="header\debugger\commands\Callstack.h" />
     <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />

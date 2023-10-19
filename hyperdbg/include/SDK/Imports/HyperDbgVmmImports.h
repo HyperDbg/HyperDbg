@@ -283,6 +283,16 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
 //////////////////////////////////////////////////
+//           Direct VMCALL Functions 	   		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallTest(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallChangeMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+//////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////
 

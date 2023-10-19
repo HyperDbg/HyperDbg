@@ -58,8 +58,10 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
     case DEBUGGER_HALTED_CORE_TASK_RUN_VMCALL:
     {
         //
-        // Not yet implemented!
+        // Call the direct VMCALL test function
         //
+        DirectVmcallTest(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
         break;
     }
     case DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION:
@@ -77,6 +79,15 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         // Enable alert for thread changes
         //
         ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_READ:
+    {
+        //
+        // Change MSR bitmap for read (RDMSR)
+        //
+        DirectVmcallChangeMsrBitmapRead(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
 
         break;
     }

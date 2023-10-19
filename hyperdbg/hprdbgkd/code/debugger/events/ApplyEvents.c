@@ -319,14 +319,28 @@ ApplyEventRdmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineChangeAllMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
