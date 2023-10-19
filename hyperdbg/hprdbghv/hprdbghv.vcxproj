@@ -146,6 +146,7 @@
     <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
     <ClCompile Include="code\interface\Callback.c" />
     <ClCompile Include="code\interface\Configuration.c" />
+    <ClCompile Include="code\interface\DirectVmcall.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
     <ClCompile Include="code\memory\AddressCheck.c" />
@@ -245,6 +246,7 @@
     <ClInclude Include="header\hooks\ExecTrap.h" />
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\Configuration.h" />
+    <ClInclude Include="header\interface\DirectVmcall.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
     <ClInclude Include="header\memory\AddressCheck.h" />
     <ClInclude Include="header\memory\Conversion.h" />

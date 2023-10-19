@@ -283,6 +283,22 @@ typedef struct _REGISTER_NOTIFY_BUFFER
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
 
 //////////////////////////////////////////////////
+//                 Direct VMCALL                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Used for sending direct VMCALLs on the VMX root-mode
+ *
+ */
+typedef struct _DIRECT_VMCALL_PARAMETERS
+{
+    UINT64 OptionalParam1;
+    UINT64 OptionalParam2;
+    UINT64 OptionalParam3;
+
+} DIRECT_VMCALL_PARAMETERS, *PDIRECT_VMCALL_PARAMETERS;
+
+//////////////////////////////////////////////////
 //                  EPT Hook                    //
 //////////////////////////////////////////////////
 

@@ -39,6 +39,54 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION 0x00000004
 
+/**
+ * @brief Halted core task for changing MSR Bitmap Read
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_READ 0x00000005
+
+/**
+ * @brief Halted core task for changing MSR Bitmap Write
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_WRITE 0x00000006
+
+/**
+ * @brief Halted core task for changing I/O Bitmaps (A & B)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP 0x00000007
+
+/**
+ * @brief Halted core task for enabling rdpmc exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_RDPMC_EXITING 0x00000008
+
+/**
+ * @brief Halted core task for enabling rdtsc/rdtscp exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING 0x00000009
+
+/**
+ * @brief Halted core task for enabling mov to debug registers exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_DEBUG_REGS_EXITING 0x0000000a
+
+/**
+ * @brief Halted core task for setting exception bitmap
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_SET_EXCEPTION_BITMAP 0x0000000b
+
+/**
+ * @brief Halted core task for enabling external interrupt exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x0000000c
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

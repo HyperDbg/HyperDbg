@@ -319,14 +319,28 @@ ApplyEventRdmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandChangeAllMsrBitmapReadAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineChangeAllMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureChangeMsrBitmapReadOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
@@ -358,14 +372,28 @@ ApplyEventWrmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandChangeAllMsrBitmapWriteAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastChangeAllMsrBitmapWriteAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandChangeAllMsrBitmapWriteAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureChangeMsrBitmapWriteOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineChangeAllMsrBitmapWriteOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureChangeMsrBitmapWriteOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
@@ -397,14 +425,28 @@ ApplyEventInOutExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandIoBitmapChangeAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastChangeAllIoBitmapAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandIoBitmapChangeAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureChangeIoBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineChangeIoBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureChangeIoBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
@@ -436,14 +478,28 @@ ApplyEventTscExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableRdtscExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableRdtscExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableRdtscExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableRdtscExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableRdtscExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 
@@ -470,14 +526,28 @@ ApplyEventRdpmcExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableRdpmcExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableRdpmcExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 
@@ -504,14 +574,28 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableMovDebugRegistersExitingAllCores();
+        if (ResultsToReturn)
+        {
+            HaltedBroadcastEnableMov2DebugRegsExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandEnableMovDebugRegistersExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
+        if (ResultsToReturn)
+        {
+            HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableMovToDebugRegistersExitingOnSingleCore(Event->CoreId);
+        }
     }
 }
 
@@ -578,14 +662,28 @@ ApplyEventExceptionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ExtensionCommandSetExceptionBitmapAllCores(Event->InitOptions.OptionalParam1);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
+        else
+        {
+            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+        }
     }
 
     //
@@ -617,14 +715,28 @@ ApplyEventInterruptEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandSetExternalInterruptExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableExternalInterruptExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandSetExternalInterruptExitingAllCores();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableExternalInterruptExiting(Event->CoreId);
+        }
+        else
+        {
+            ConfigureSetExternalInterruptExitingOnSingleCore(Event->CoreId);
+        }
     }
 
     //

@@ -58,8 +58,10 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
     case DEBUGGER_HALTED_CORE_TASK_RUN_VMCALL:
     {
         //
-        // Not yet implemented!
+        // Call the direct VMCALL test function
         //
+        DirectVmcallTest(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
         break;
     }
     case DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION:
@@ -77,6 +79,78 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         // Enable alert for thread changes
         //
         ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_READ:
+    {
+        //
+        // Change MSR bitmap for read (RDMSR)
+        //
+        DirectVmcallChangeMsrBitmapRead(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_MSR_BITMAP_WRITE:
+    {
+        //
+        // Change MSR bitmap for write (WRMSR)
+        //
+        DirectVmcallChangeMsrBitmapWrite(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_CHANGE_IO_BITMAP:
+    {
+        //
+        // Change I/O bitmap
+        //
+        DirectVmcallChangeIoBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_RDPMC_EXITING:
+    {
+        //
+        // Enable rdpmc exiting
+        //
+        DirectVmcallEnableRdpmcExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_RDTSC_EXITING:
+    {
+        //
+        // Enable rdtsc/rdtscp exiting
+        //
+        DirectVmcallEnableRdtscpExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_DEBUG_REGS_EXITING:
+    {
+        //
+        // Enable mov to debug registers exiting
+        //
+        DirectVmcallEnableMov2DebugRegsExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_SET_EXCEPTION_BITMAP:
+    {
+        //
+        // Set exception bitmap
+        //
+        DirectVmcallSetExceptionBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_ENABLE_EXTERNAL_INTERRUPT_EXITING:
+    {
+        //
+        // enable external interrupt exiting
+        //
+        DirectVmcallEnableExternalInterruptExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
 
         break;
     }

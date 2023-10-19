@@ -237,6 +237,12 @@
     <ClCompile Include="code\debugger\events\ValidateEvents.c">
       <Filter>code\debugger\events</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\broadcast\HaltedBroadcast.c">
+      <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\broadcast\HaltedRoutines.c">
+      <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -352,6 +358,12 @@
     </ClInclude>
     <ClInclude Include="header\debugger\events\ValidateEvents.h">
       <Filter>header\debugger\events</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\broadcast\HaltedBroadcast.h">
+      <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\broadcast\HaltedRoutines.h">
+      <Filter>header\debugger\broadcast</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

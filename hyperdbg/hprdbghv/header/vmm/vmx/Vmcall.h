@@ -318,6 +318,21 @@ NTSTATUS
 VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 /**
+ * @brief Direct Vmcall Handler
+ *
+ * @param VCpu The virtual processor's state
+ * @param VmcallNumber The number of the VMCALL
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+_Use_decl_annotations_
+NTSTATUS
+VmxVmcallDirectVmcallHandler(VIRTUAL_MACHINE_STATE *    VCpu,
+                             UINT64                     VmcallNumber,
+                             DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+/**
  * @brief Main handler for VMCALLs
  *
  * @param VCpu
