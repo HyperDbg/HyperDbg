@@ -261,11 +261,11 @@ DebuggerUninitialize()
     //
     if (g_KernelDebuggerState && EnableInstantEventMechanism)
     {
-        DebuggerClearAllEvents(TRUE);
+        DebuggerClearAllEvents(FALSE, TRUE);
     }
     else
     {
-        DebuggerClearAllEvents(FALSE);
+        DebuggerClearAllEvents(FALSE, FALSE);
     }
 
     //
@@ -1895,13 +1895,14 @@ DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
  * it won't terminate their effects, so the events should
  * be terminated first then we can remove them
  *
- * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return BOOLEAN if at least one event removed then
  * it returns true, and otherwise false
  */
 BOOLEAN
-DebuggerRemoveAllEvents(BOOLEAN InputFromVmxRoot)
+DebuggerRemoveAllEvents(BOOLEAN PoolManagerAllocatedMemory)
 {
     BOOLEAN     FindAtLeastOneEvent = FALSE;
     PLIST_ENTRY TempList            = 0;
@@ -1931,7 +1932,7 @@ DebuggerRemoveAllEvents(BOOLEAN InputFromVmxRoot)
             //
             // Remove the current event
             //
-            DebuggerRemoveEvent(CurrentEvent->Tag, InputFromVmxRoot);
+            DebuggerRemoveEvent(CurrentEvent->Tag, PoolManagerAllocatedMemory);
         }
     }
 
@@ -2284,12 +2285,14 @@ DebuggerDisableEvent(UINT64 Tag)
  *
  * @param Tag Tag of target event
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return BOOLEAN
  *
  */
 BOOLEAN
-DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
+DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMemory)
 {
     //
     // Because we want to delete all the objects and buffers (pools)
@@ -2313,18 +2316,20 @@ DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
     //
     // Third, remove it from the list
     //
-    return DebuggerRemoveEvent(Tag, InputFromVmxRoot);
+    return DebuggerRemoveEvent(Tag, PoolManagerAllocatedMemory);
 }
 
 /**
  * @brief Clear all events
  *
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return VOID
  */
 VOID
-DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot)
+DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMemory)
 {
     //
     // Because we want to delete all the objects and buffers (pools)
@@ -2348,7 +2353,7 @@ DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot)
     //
     // Third, remove all events
     //
-    DebuggerRemoveAllEvents(InputFromVmxRoot);
+    DebuggerRemoveAllEvents(PoolManagerAllocatedMemory);
 }
 
 /**
@@ -2455,12 +2460,13 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
  * be terminated first then we can remove them *
  *
  * @param Event Event Object
- * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
 BOOLEAN
-DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
+DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllocatedMemory)
 {
     PLIST_ENTRY TempList  = 0;
     PLIST_ENTRY TempList2 = 0;
@@ -2485,7 +2491,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
             //
             // There is a buffer
             //
-            if (InputFromVmxRoot)
+            if (PoolManagerAllocatedMemory)
             {
                 PoolManagerFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
             }
@@ -2500,7 +2506,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
         // if it's a custom buffer then the buffer
         // is appended to the Action
         //
-        if (InputFromVmxRoot)
+        if (PoolManagerAllocatedMemory)
         {
             PoolManagerFreePool(CurrentAction);
         }
@@ -2523,12 +2529,13 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
  * be terminated first then we can remove them
  *
  * @param Tag Target event tag
- * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
 BOOLEAN
-DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
+DebuggerRemoveEvent(UINT64 Tag, BOOLEAN PoolManagerAllocatedMemory)
 {
     PDEBUGGER_EVENT Event;
     PLIST_ENTRY     TempList  = 0;
@@ -2564,7 +2571,7 @@ DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
     //
     // Remove all of the actions and free its pools
     //
-    DebuggerRemoveAllActionsFromEvent(Event, InputFromVmxRoot);
+    DebuggerRemoveAllActionsFromEvent(Event, PoolManagerAllocatedMemory);
 
     //
     // Free the pools of Event, when we free the pool,
@@ -2573,7 +2580,7 @@ DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
     // are both allocate in a same pool ) so both of
     // them are freed
     //
-    if (InputFromVmxRoot)
+    if (PoolManagerAllocatedMemory)
     {
         PoolManagerFreePool(Event);
     }
@@ -3106,6 +3113,11 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     {
         //
         // Remove the event as it was not successfull
+        // The same input as of input from VMX-root is
+        // selected here because we apply it directly in the
+        // above function and based on this input we can
+        // conclude whether the pool is allocated from the
+        // pool manager or not
         //
         if (Event != NULL)
         {
@@ -3507,13 +3519,16 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
  *
  * @param DebuggerEventModificationRequest event modification request details
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
+ * pool manager or original OS pools
  *
  * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
  * an error
  */
 BOOLEAN
 DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
-                                BOOLEAN                 InputFromVmxRoot)
+                                BOOLEAN                 InputFromVmxRoot,
+                                BOOLEAN                 PoolManagerAllocatedMemory)
 {
     BOOLEAN IsForAllEvents = FALSE;
 
@@ -3582,14 +3597,14 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Clear all events
             //
-            DebuggerClearAllEvents(InputFromVmxRoot);
+            DebuggerClearAllEvents(InputFromVmxRoot, PoolManagerAllocatedMemory);
         }
         else
         {
             //
             // Clear just one event
             //
-            DebuggerClearEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
+            DebuggerClearEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot, PoolManagerAllocatedMemory);
         }
     }
     else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)

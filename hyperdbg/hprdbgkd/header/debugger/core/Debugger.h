@@ -228,7 +228,7 @@ PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag);
 
 BOOLEAN
-DebuggerRemoveEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot);
+DebuggerRemoveEvent(UINT64 Tag, BOOLEAN PoolManagerAllocatedMemory);
 
 BOOLEAN
 DebuggerQueryDebuggerStatus();
@@ -250,7 +250,8 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          Action,
 
 BOOLEAN
 DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest,
-                                BOOLEAN                 InputFromVmxRoot);
+                                BOOLEAN                 InputFromVmxRoot,
+                                BOOLEAN                 PoolManagerAllocatedMemory);
 
 BOOLEAN
 DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot);
@@ -259,7 +260,7 @@ UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
 
 VOID
-DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot);
+DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMemory);
 
 BOOLEAN
 DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable);
@@ -286,7 +287,7 @@ BOOLEAN
 DebuggerDisableEvent(UINT64 Tag);
 
 BOOLEAN
-DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot);
+DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMemory);
 
 VOID
 DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE * DbgState, DEBUGGER_EVENT * Event, DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail);

@@ -2052,14 +2052,14 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
             //
             // Disable all events
             //
-            DebuggerClearAllEvents(TRUE);
+            DebuggerClearAllEvents(TRUE, TRUE);
         }
         else
         {
             //
             // Disable just one event
             //
-            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE);
+            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE, TRUE);
         }
 
         //

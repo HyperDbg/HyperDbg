@@ -751,7 +751,15 @@ ScriptEngineFunctionEventClear(UINT64 EventId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    if (!DebuggerClearEvent(EventId + DebuggerEventTagStartSeed, TRUE))
+
+    BOOLEAN PoolManagerAllocatedMemory = FALSE;
+
+    if (g_KernelDebuggerState && EnableInstantEventMechanism)
+    {
+        PoolManagerAllocatedMemory = TRUE;
+    }
+
+    if (!DebuggerClearEvent(EventId + DebuggerEventTagStartSeed, VmFuncVmxGetCurrentExecutionMode(), PoolManagerAllocatedMemory))
     {
         LogInfo("Invalid tag id (%x)", EventId);
     }
