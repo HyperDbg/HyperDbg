@@ -268,7 +268,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
     //
     // Invoke the hooker
     //
-    if (!ConfigureEptHook2(PsGetCurrentProcessId(), Event->InitOptions.OptionalParam1, NULL, TempProcessId, FALSE, FALSE, FALSE, TRUE))
+    if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL), Event->InitOptions.OptionalParam1, NULL, TempProcessId, FALSE, FALSE, FALSE, TRUE))
     {
         //
         // There was an error applying this event, so we're setting

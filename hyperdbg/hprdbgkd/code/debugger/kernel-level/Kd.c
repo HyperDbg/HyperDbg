@@ -1540,31 +1540,73 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
 /**
  * @brief Send event registration buffer to user-mode to register the event
  * @param EventDetailHeader
+ * @param DebuggerEventAndActionResult
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
-KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
+BOOLEAN
+KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader,
+                       DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult)
 {
+#if EnableInstantEventMechanism
+
+    DEBUGGER_GENERAL_EVENT_DETAIL * GeneralEventDetail = NULL;
+
+    GeneralEventDetail = (PDEBUGGER_GENERAL_EVENT_DETAIL)(EventDetailHeader +
+                                                          sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
+
+    //
+    // Parse event from the VMX-root mode
+    //
+    DebuggerParseEvent(GeneralEventDetail, DebuggerEventAndActionResult, TRUE);
+
+    return FALSE;
+
+#else
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                           ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           EventDetailHeader->Length,
                           TRUE);
+    return TRUE;
+
+#endif // EnableInstantEventMechanism
 }
 
 /**
  * @brief Send action buffer to user-mode to be added to the event
  * @param ActionDetailHeader
+ * @param DebuggerEventAndActionResult
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
-KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
+BOOLEAN
+KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader,
+                          DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult)
 {
+#if EnableInstantEventMechanism
+
+    DEBUGGER_GENERAL_ACTION * GeneralActionDetail = NULL;
+
+    GeneralActionDetail = (PDEBUGGER_GENERAL_ACTION)(ActionDetailHeader +
+                                                     sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
+
+    //
+    // Parse action from the VMX-root mode
+    //
+    DebuggerParseAction(GeneralActionDetail, DebuggerEventAndActionResult, TRUE);
+
+    return FALSE;
+
+#else
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                           ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           ActionDetailHeader->Length,
                           TRUE);
+    return TRUE;
+
+#endif // EnableInstantEventMechanism
 }
 
 /**
@@ -1897,12 +1939,13 @@ KdPerformSettingTheStateOfShortCircuiting(PROCESSOR_DEBUGGING_STATE * DbgState, 
  * @brief Perform modify and query events
  * @param ModifyAndQueryEvent
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
+BOOLEAN
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 {
-    BOOLEAN IsForAllEvents = FALSE;
+    BOOLEAN IsForAllEvents   = FALSE;
+    BOOLEAN ContinueDebugger = FALSE;
 
     //
     // Check if the tag is valid or not
@@ -1917,7 +1960,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         // Tag is invalid
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
-        return;
+        return FALSE;
     }
 
     //
@@ -2002,13 +2045,25 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
+#if EnableInstantEventMechanism
+
         //
-        // Send one byte buffer and operation codes
+        // Send the buffer to be applied from VMX-root mode
+        //
+        DebuggerParseEventsModification(ModifyAndQueryEvent, TRUE);
+
+#else
+        //
+        // Send one byte buffer and operation codes to the user-mode
         //
         LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
                               ModifyAndQueryEvent,
                               sizeof(DEBUGGER_MODIFY_EVENTS),
                               TRUE);
+
+        ContinueDebugger = TRUE;
+
+#endif //  EnableInstantEventMechanism
     }
     else
     {
@@ -2017,6 +2072,13 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
     }
+
+    //
+    // In all of the cases except clearing event while instant event
+    // mechanism is disabled, we shouldn't continue the debugger and
+    // keep the debugger in the halt state
+    //
+    return ContinueDebugger;
 }
 
 /**
@@ -2053,10 +2115,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
     PDEBUGGER_SHORT_CIRCUITING_EVENT                    ShortCircuitingEventPacket;
-    UINT32                                              SizeToSend         = 0;
-    BOOLEAN                                             UnlockTheNewCore   = FALSE;
-    size_t                                              ReturnSize         = 0;
-    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult = {0};
+    UINT32                                              SizeToSend                   = 0;
+    BOOLEAN                                             UnlockTheNewCore             = FALSE;
+    size_t                                              ReturnSize                   = 0;
+    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
 
     while (TRUE)
     {
@@ -2588,15 +2651,26 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the event buffer to user-mode debuggee
+                // Parsing the event either in the VMX-root mode or pass it to the user-mode
                 //
-                KdPerformRegisterEvent(EventRegPacket);
-
-                //
-                // Continue Debuggee
-                //
-                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
-                EscapeFromTheLoop = TRUE;
+                if (KdPerformRegisterEvent(EventRegPacket, &DebuggerEventAndActionResult))
+                {
+                    //
+                    // Continue Debuggee (Send the event buffer to user-mode debuggee)
+                    //
+                    KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
+                    EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event registeration to the debugger
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
+                                               &DebuggerEventAndActionResult,
+                                               sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                }
 
                 break;
 
@@ -2605,15 +2679,26 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the action buffer to user-mode debuggee
+                // Parsing the action either in the VMX-root mode or pass it to the user-mode
                 //
-                KdPerformAddActionToEvent(AddActionPacket);
-
-                //
-                // Continue Debuggee
-                //
-                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
-                EscapeFromTheLoop = TRUE;
+                if (KdPerformAddActionToEvent(AddActionPacket, &DebuggerEventAndActionResult))
+                {
+                    //
+                    // Continue Debuggee (Send the action buffer to user-mode debuggee)
+                    //
+                    KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
+                    EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event registeration to the debugger
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
+                                               &DebuggerEventAndActionResult,
+                                               sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                }
 
                 break;
 
@@ -2622,14 +2707,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 QueryAndModifyEventPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Perform the action
+                // Perform the action and check if we should continue the debuggee or not
                 //
-                KdPerformEventQueryAndModification(QueryAndModifyEventPacket);
-
-                //
-                // Only continue debuggee if it's a clear event action
-                //
-                if (QueryAndModifyEventPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
+                if (KdPerformEventQueryAndModification(QueryAndModifyEventPacket))
                 {
                     //
                     // Continue Debuggee

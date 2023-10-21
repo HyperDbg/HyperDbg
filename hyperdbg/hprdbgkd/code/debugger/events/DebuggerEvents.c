@@ -95,7 +95,7 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
     //
     // Perform the EPT Hook
     //
-    return ConfigureEptHook2(PsGetCurrentProcessId(), Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
+    return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL), Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
 }
 
 /**
