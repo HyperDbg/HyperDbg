@@ -165,14 +165,13 @@ ScriptEngineFunctionInterlockedCompareExchange(
     BOOL *               HasError);
 
 VOID
-ScriptEngineFunctionEnableEvent(UINT64  Tag,
-                                BOOLEAN ImmediateMessagePassing,
-                                UINT64  Value);
+ScriptEngineFunctionEventEnable(UINT64 EventId);
 
 VOID
-ScriptEngineFunctionDisableEvent(UINT64  Tag,
-                                 BOOLEAN ImmediateMessagePassing,
-                                 UINT64  Value);
+ScriptEngineFunctionEventDisable(UINT64 EventId);
+
+VOID
+ScriptEngineFunctionEventClear(UINT64 EventId);
 
 VOID
 ScriptEngineFunctionPause(

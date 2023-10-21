@@ -2047,10 +2047,25 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     {
 #if EnableInstantEventMechanism
 
+        if (IsForAllEvents)
+        {
+            //
+            // Disable all events
+            //
+            DebuggerClearAllEvents(TRUE);
+        }
+        else
+        {
+            //
+            // Disable just one event
+            //
+            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE);
+        }
+
         //
-        // Send the buffer to be applied from VMX-root mode
+        // The function was successful
         //
-        DebuggerParseEventsModification(ModifyAndQueryEvent, TRUE);
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
 #else
         //

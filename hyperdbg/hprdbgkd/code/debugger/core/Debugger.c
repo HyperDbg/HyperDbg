@@ -256,23 +256,17 @@ DebuggerUninitialize()
     g_EnableDebuggerEvents = FALSE;
 
     //
-    // First, disable all events
+    // Clear all events (Check if the kernel debugger is enable
+    // and whether the instant event mechanism is working or not)
     //
-    DebuggerEnableOrDisableAllEvents(FALSE);
-
-    //
-    // Second, terminate all events (called from VMX non-root)
-    //
-    DebuggerTerminateAllEvents(FALSE);
-
-    //
-    // Third, remove all events
-    // When the debugger is in the Debugger Mode, all events are applied
-    // as instant events thus, should be behaved differently for freeing
-    // buffers, so we send the state of the kernel debug (kd) as the
-    // input for event remover
-    //
-    DebuggerRemoveAllEvents(g_KernelDebuggerState);
+    if (g_KernelDebuggerState && EnableInstantEventMechanism)
+    {
+        DebuggerClearAllEvents(TRUE);
+    }
+    else
+    {
+        DebuggerClearAllEvents(FALSE);
+    }
 
     //
     // Uninitialize kernel debugger
@@ -2286,6 +2280,78 @@ DebuggerDisableEvent(UINT64 Tag)
 }
 
 /**
+ * @brief Clear an event by tag
+ *
+ * @param Tag Tag of target event
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return BOOLEAN
+ *
+ */
+BOOLEAN
+DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
+{
+    //
+    // Because we want to delete all the objects and buffers (pools)
+    // after we finished termination, the debugger might still use
+    // the buffers for events and action, for solving this problem
+    // we first disable the tag(s) and this way the debugger no longer
+    // use that event and this way we can safely remove and deallocate
+    // the buffers later after termination
+    //
+
+    //
+    // First, disable just one event
+    //
+    DebuggerDisableEvent(Tag);
+
+    //
+    // Second, terminate it
+    //
+    DebuggerTerminateEvent(Tag, InputFromVmxRoot);
+
+    //
+    // Third, remove it from the list
+    //
+    return DebuggerRemoveEvent(Tag, InputFromVmxRoot);
+}
+
+/**
+ * @brief Clear all events
+ *
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return VOID
+ */
+VOID
+DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot)
+{
+    //
+    // Because we want to delete all the objects and buffers (pools)
+    // after we finished termination, the debugger might still use
+    // the buffers for events and action, for solving this problem
+    // we first disable the tag(s) and this way the debugger no longer
+    // use that event and this way we can safely remove and deallocate
+    // the buffers later after termination
+    //
+
+    //
+    // First, disable all events
+    //
+    DebuggerEnableOrDisableAllEvents(FALSE);
+
+    //
+    // Second, terminate all events
+    //
+    DebuggerTerminateAllEvents(InputFromVmxRoot);
+
+    //
+    // Third, remove all events
+    //
+    DebuggerRemoveAllEvents(InputFromVmxRoot);
+}
+
+/**
  * @brief Detect whether the tag exists or not
  *
  * @param Tag Tag of target event
@@ -3516,60 +3582,14 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
             //
             // Clear all events
             //
-
-            //
-            // Because we want to delete all the objects and buffers (pools)
-            // after we finished termination, the debugger might still use
-            // the buffers for events and action, for solving this problem
-            // we first disable the tag(s) and this way the debugger no longer
-            // use that event and this way we can safely remove and deallocate
-            // the buffers later after termination
-            //
-
-            //
-            // First, disable all events
-            //
-            DebuggerEnableOrDisableAllEvents(FALSE);
-
-            //
-            // Second, terminate all events
-            //
-            DebuggerTerminateAllEvents(InputFromVmxRoot, InputFromVmxRoot);
-
-            //
-            // Third, remove all events
-            //
-            DebuggerRemoveAllEvents(InputFromVmxRoot);
+            DebuggerClearAllEvents(InputFromVmxRoot);
         }
         else
         {
             //
             // Clear just one event
             //
-
-            //
-            // Because we want to delete all the objects and buffers (pools)
-            // after we finished termination, the debugger might still use
-            // the buffers for events and action, for solving this problem
-            // we first disable the tag(s) and this way the debugger no longer
-            // use that event and this way we can safely remove and deallocate
-            // the buffers later after termination
-            //
-
-            //
-            // First, disable just one event
-            //
-            DebuggerDisableEvent(DebuggerEventModificationRequest->Tag);
-
-            //
-            // Second, terminate it
-            //
-            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
-
-            //
-            // Third, remove it from the list
-            //
-            DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
+            DebuggerClearEvent(DebuggerEventModificationRequest->Tag, InputFromVmxRoot);
         }
     }
     else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
