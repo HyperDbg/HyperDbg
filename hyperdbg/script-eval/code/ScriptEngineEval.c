@@ -1501,21 +1501,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
-    case FUNC_EVENT_DISABLE:
-
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
-        *Indx = *Indx + 1;
-        SrcVal0 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
-
-        ScriptEngineFunctionDisableEvent(
-            ActionDetail->Tag,
-            ActionDetail->ImmediatelySendTheResults,
-            SrcVal0);
-
-        break;
-
     case FUNC_EVENT_ENABLE:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -1524,10 +1509,31 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        ScriptEngineFunctionEnableEvent(
-            ActionDetail->Tag,
-            ActionDetail->ImmediatelySendTheResults,
-            SrcVal0);
+        ScriptEngineFunctionEventEnable(SrcVal0);
+
+        break;
+
+    case FUNC_EVENT_DISABLE:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        ScriptEngineFunctionEventDisable(SrcVal0);
+
+        break;
+
+    case FUNC_EVENT_CLEAR:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        ScriptEngineFunctionEventClear(SrcVal0);
 
         break;
 

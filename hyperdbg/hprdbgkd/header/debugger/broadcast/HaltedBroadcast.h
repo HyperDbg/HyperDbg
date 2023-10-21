@@ -38,3 +38,9 @@ HaltedBroadcastEnableExternalInterruptExitingAllCores();
 
 VOID
 HaltedBroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+
+VOID
+HaltedBroadcastEnableMovToCrExitingAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
+
+VOID
+HaltedBroadcastEnableEferSyscallHookAllCores();

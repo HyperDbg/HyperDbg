@@ -1212,7 +1212,6 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
          BOOLEAN                 EptHiddenHook2)
 {
     UINT32 PageHookMask = 0;
-    ULONG  LogicalCoreIndex;
 
     //
     // Check for the features to avoid EPT Violation problems
@@ -1244,11 +1243,6 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
 
         InitializeListHead(&g_EptHook2sDetourListHead);
     }
-
-    //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    LogicalCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
 
     if (SetHookForRead)
     {
@@ -1322,7 +1316,7 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
                                     SetHookForExec,
                                     EptHiddenHook2) == TRUE)
         {
-            LogInfo("Hook applied (VM has not launched)");
+            LogWarning("Hook applied (VM has not launched)");
             return TRUE;
         }
     }

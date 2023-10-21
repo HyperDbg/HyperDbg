@@ -13,14 +13,13 @@
 
 /**
  * @brief routines for !syscall command (enable syscall hook)
- * @param SyscallHookType
  *
  * @return VOID
  */
 VOID
-DebuggerEventEnableEferOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+DebuggerEventEnableEferOnAllProcessors()
 {
-    ConfigureEnableEferSyscallEventsOnAllProcessors(SyscallHookType);
+    ConfigureEnableEferSyscallEventsOnAllProcessors();
 }
 
 /**
@@ -96,7 +95,7 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
     //
     // Perform the EPT Hook
     //
-    return ConfigureEptHook2(PsGetCurrentProcessId(), Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
+    return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL), Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
 }
 
 /**

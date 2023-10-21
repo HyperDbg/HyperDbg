@@ -125,22 +125,12 @@ ConfigureDisableMovToCr3ExitingOnAllProcessors()
 
 /**
  * @brief routines for enabling syscall hooks on all cores
- * @param SyscallHookType
  *
  * @return VOID
  */
 VOID
-ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+ConfigureEnableEferSyscallEventsOnAllProcessors()
 {
-    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-    {
-        g_IsUnsafeSyscallOrSysretHandling = TRUE;
-    }
-    else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-    {
-        g_IsUnsafeSyscallOrSysretHandling = FALSE;
-    }
-
     BroadcastEnableEferSyscallEventsOnAllProcessors();
 }
 
@@ -305,12 +295,24 @@ ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
  * @brief routines for enabling EFER syscall hooks on a single core
  *
  * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
+{
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+}
+
+/**
+ * @brief routines for setting EFER syscall or sysret hooks type
+ *
  * @param SyscallHookType Type of hook
  *
  * @return VOID
  */
 VOID
-ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+ConfigureSetEferSyscallOrSysretHookType(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
 {
     if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
     {
@@ -320,8 +322,6 @@ ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_S
     {
         g_IsUnsafeSyscallOrSysretHandling = FALSE;
     }
-
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
 }
 
 /**

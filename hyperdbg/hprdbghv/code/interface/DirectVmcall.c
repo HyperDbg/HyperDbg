@@ -175,10 +175,48 @@ DirectVmcallSetExceptionBitmap(UINT32                     CoreId,
  */
 NTSTATUS
 DirectVmcallEnableExternalInterruptExiting(UINT32                     CoreId,
-                                                 DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+                                           DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
 {
     //
     // Call the VMCALL handler (directly)
     //
     VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for enabling mov to CR exiting
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallEnableMovToCrExiting(UINT32                     CoreId,
+                                 DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for enabling syscall hook using EFER SCE bit
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallEnableEferSyscall(UINT32                     CoreId,
+                              DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
 }

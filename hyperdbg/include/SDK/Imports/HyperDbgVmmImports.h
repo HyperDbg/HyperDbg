@@ -202,7 +202,7 @@ IMPORT_EXPORT_VMM VOID
 ConfigureDisableMovToCr3ExitingOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+ConfigureEnableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
 ConfigureDisableEferSyscallEventsOnAllProcessors();
@@ -235,7 +235,10 @@ IMPORT_EXPORT_VMM VOID
 ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureSetEferSyscallOrSysretHookType(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureDirtyLoggingInitializeOnAllProcessors();
@@ -312,6 +315,12 @@ DirectVmcallSetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectV
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallEnableExternalInterruptExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableMovToCrExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableEferSyscall(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

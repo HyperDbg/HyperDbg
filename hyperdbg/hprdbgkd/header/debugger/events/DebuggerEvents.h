@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 VOID
-DebuggerEventEnableEferOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+DebuggerEventEnableEferOnAllProcessors();
 
 VOID
 DebuggerEventDisableEferOnAllProcessors();
