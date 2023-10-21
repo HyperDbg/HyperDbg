@@ -87,6 +87,18 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x0000000c
 
+/**
+ * @brief Halted core task for enabling mov to CR exiting
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_CONTROL_REGS_EXITING 0x0000000d
+
+/**
+ * @brief Halted core task for enabling syscall hook using EFER SCE bit
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_ENABLE_SYSCALL_HOOK_EFER 0x0000000e
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

@@ -13,14 +13,13 @@
 
 /**
  * @brief routines for !syscall command (enable syscall hook)
- * @param SyscallHookType
  *
  * @return VOID
  */
 VOID
-DebuggerEventEnableEferOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+DebuggerEventEnableEferOnAllProcessors()
 {
-    ConfigureEnableEferSyscallEventsOnAllProcessors(SyscallHookType);
+    ConfigureEnableEferSyscallEventsOnAllProcessors();
 }
 
 /**

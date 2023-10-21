@@ -628,14 +628,28 @@ ApplyEventControlRegisterAccessedEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableMovToCrExitingAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableMovToControlRegisterExitingOnSingleCore(Event->CoreId, &Event->Options);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableMovToCrExitingOnSingleCore(Event->CoreId, &Event->Options);
+        }
+        else
+        {
+            ConfigureEnableMovToControlRegisterExitingOnSingleCore(Event->CoreId, &Event->Options);
+        }
     }
 }
 
@@ -775,6 +789,11 @@ ApplyEventEferSyscallHookEvent(PDEBUGGER_EVENT                   Event,
     }
 
     //
+    // Set hook type
+    //
+    ConfigureSetEferSyscallOrSysretHookType(SyscallHookType);
+
+    //
     // Let's see if it is for all cores or just one core
     //
     if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -782,14 +801,25 @@ ApplyEventEferSyscallHookEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableEferSyscallHookAllCores();
+        }
+        else
+        {
+            DebuggerEventEnableEferOnAllProcessors();
+        }
     }
     else
     {
-        //
-        // Just one core
-        //
-        ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableEferSyscallHookOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId);
+        }
     }
 
     //
@@ -830,6 +860,11 @@ ApplyEventEferSysretHookEvent(PDEBUGGER_EVENT                   Event,
     }
 
     //
+    // Set hook type
+    //
+    ConfigureSetEferSyscallOrSysretHookType(SyscallHookType);
+
+    //
     // Let's see if it is for all cores or just one core
     //
     if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -837,14 +872,28 @@ ApplyEventEferSysretHookEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        DebuggerEventEnableEferOnAllProcessors(SyscallHookType);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastEnableEferSyscallHookAllCores();
+        }
+        else
+        {
+            DebuggerEventEnableEferOnAllProcessors();
+        }
     }
     else
     {
         //
         // Just one core
         //
-        ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId, SyscallHookType);
+        if (InputFromVmxRoot)
+        {
+            HaltedRoutineEnableEferSyscallHookOnSingleCore(Event->CoreId);
+        }
+        else
+        {
+            ConfigureEnableEferSyscallHookOnSingleCore(Event->CoreId);
+        }
     }
 
     //

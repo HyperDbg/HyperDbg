@@ -38,3 +38,9 @@ HaltedRoutineEnableExternalInterruptExiting(UINT32 TargetCoreId);
 
 VOID
 HaltedRoutineSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 ExceptionIndex);
+
+VOID
+HaltedRoutineEnableMovToCrExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
+
+VOID
+HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId);

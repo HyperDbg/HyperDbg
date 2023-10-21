@@ -154,6 +154,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_CONTROL_REGS_EXITING:
+    {
+        //
+        // enable mov to CR exiting
+        //
+        DirectVmcallEnableMovToCrExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_ENABLE_SYSCALL_HOOK_EFER:
+    {
+        //
+        // enable syscall hook using EFER SCE bit
+        //
+        DirectVmcallEnableEferSyscall(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

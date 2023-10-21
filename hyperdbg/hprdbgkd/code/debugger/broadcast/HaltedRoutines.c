@@ -266,3 +266,68 @@ HaltedRoutineSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Exceptio
                                   TRUE,
                                   &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function performs running enable mov to CR exiting on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ * @param BroadcastingOption
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineEnableMovToCrExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_ENABLE_MOV_TO_CONTROL_REGS_EXITING;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = BroadcastingOption->OptionalParam1;
+    DirectVmcallOptions.OptionalParam2 = BroadcastingOption->OptionalParam2;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function performs running enable syscall hook using EFER SCE bit on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_ENABLE_SYSCALL_HOOK_EFER;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}
