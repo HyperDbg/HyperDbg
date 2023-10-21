@@ -73,4 +73,4 @@
  * @details for more information: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events
  *
  */
-#define EnableInstantEventMechanism TRUE
+#define EnableInstantEventMechanism FALSE
