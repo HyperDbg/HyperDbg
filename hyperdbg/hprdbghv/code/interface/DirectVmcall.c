@@ -28,7 +28,7 @@ DirectVmcallTest(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_TEST, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_TEST, DirectVmcallOptions);
 }
 
 /**
@@ -47,7 +47,7 @@ DirectVmcallChangeMsrBitmapRead(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_READ, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_READ, DirectVmcallOptions);
 }
 
 /**
@@ -66,7 +66,7 @@ DirectVmcallChangeMsrBitmapWrite(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_WRITE, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_WRITE, DirectVmcallOptions);
 }
 
 /**
@@ -85,7 +85,7 @@ DirectVmcallChangeIoBitmap(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
 }
 
 /**
@@ -104,7 +104,7 @@ DirectVmcallEnableRdpmcExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDPMC_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDPMC_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -123,7 +123,7 @@ DirectVmcallEnableRdtscpExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDTSC_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDTSC_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -142,7 +142,7 @@ DirectVmcallEnableMov2DebugRegsExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -161,7 +161,7 @@ DirectVmcallSetExceptionBitmap(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_EXCEPTION_BITMAP, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_EXCEPTION_BITMAP, DirectVmcallOptions);
 }
 
 /**
@@ -180,7 +180,7 @@ DirectVmcallEnableExternalInterruptExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -199,7 +199,7 @@ DirectVmcallEnableMovToCrExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -218,5 +218,5 @@ DirectVmcallEnableEferSyscall(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
 }

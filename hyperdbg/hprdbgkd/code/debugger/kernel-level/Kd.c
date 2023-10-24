@@ -1552,7 +1552,7 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 
     DEBUGGER_GENERAL_EVENT_DETAIL * GeneralEventDetail = NULL;
 
-    GeneralEventDetail = (PDEBUGGER_GENERAL_EVENT_DETAIL)(EventDetailHeader +
+    GeneralEventDetail = (PDEBUGGER_GENERAL_EVENT_DETAIL)(((CHAR *)EventDetailHeader) +
                                                           sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
 
     //
@@ -1588,7 +1588,7 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 
     DEBUGGER_GENERAL_ACTION * GeneralActionDetail = NULL;
 
-    GeneralActionDetail = (PDEBUGGER_GENERAL_ACTION)(ActionDetailHeader +
+    GeneralActionDetail = (PDEBUGGER_GENERAL_ACTION)(((CHAR *)ActionDetailHeader) +
                                                      sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
 
     //
