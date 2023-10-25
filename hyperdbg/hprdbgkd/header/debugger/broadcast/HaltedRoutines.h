@@ -44,3 +44,9 @@ HaltedRoutineEnableMovToCrExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVEN
 
 VOID
 HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId);
+
+VOID
+HaltedRoutineInvalidateEptAllContextsOnSingleCore(UINT32 TargetCoreId);
+
+VOID
+HaltedRoutineInvalidateSingleContextOnSingleCore(UINT32 TargetCoreId);

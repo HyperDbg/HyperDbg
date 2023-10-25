@@ -529,7 +529,8 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @brief This function invokes a VMCALL to set the hook and broadcast the exiting for
+ * the breakpoints on exception bitmap
  *
  * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
  * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
@@ -541,6 +542,7 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessId The process id to translate based on that process's cr3
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -559,6 +561,44 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         // Now we have to notify all the core to invalidate their EPT
         //
         BroadcastNotifyAllToInvalidateEptAllCores();
+
+        return TRUE;
+    }
+
+    //
+    // sth went wrong as we're here
+    //
+    return FALSE;
+}
+
+/**
+ * @brief This function invokes a direct VMCALL to setup the hook
+ *
+ * @details the caller of this function should make sure to 1) broadcast to
+ * all cores to intercept breakpoints (#BPs) and after calling this function
+ * 2) the caller should broadcast to all cores to invalidate their EPTPs
+ *
+ * @param TargetAddress The address of function or memory address to be hooked
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHookFromVmxRoot(PVOID TargetAddress)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+
+    //
+    // Set VMCALL options
+    //
+    DirectVmcallOptions.OptionalParam1 = TargetAddress;
+    DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Perform the direct VMCALL
+    //
+    if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+    {
+        LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
         return TRUE;
     }

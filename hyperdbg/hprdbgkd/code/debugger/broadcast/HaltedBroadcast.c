@@ -316,3 +316,57 @@ HaltedBroadcastEnableEferSyscallHookAllCores()
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts invalidate EPT (All Contexts) to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastInvalidateEptAllContextsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_INVEPT_ALL_CONTEXTS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts invalidate EPT (A Single Context) to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastInvalidateSingleContextAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

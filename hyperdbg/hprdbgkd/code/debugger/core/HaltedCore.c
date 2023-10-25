@@ -172,6 +172,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_INVEPT_ALL_CONTEXTS:
+    {
+        //
+        // invalidate EPT (All Contexts)
+        //
+        DirectVmcallInvalidateEptAllContexts(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT:
+    {
+        //
+        // invalidate EPT (A Single Context)
+        //
+        DirectVmcallInvalidateSingleContext(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

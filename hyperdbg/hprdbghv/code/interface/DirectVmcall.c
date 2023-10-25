@@ -220,3 +220,60 @@ DirectVmcallEnableEferSyscall(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for putting hidden breakpoints (using EPT)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallSetHiddenBreakpointHook(UINT32                     CoreId,
+                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_HIDDEN_CC_BREAKPOINT, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for invalidating EPT (All Contexts)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallInvalidateEptAllContexts(UINT32                     CoreId,
+                                     DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_INVEPT_ALL_CONTEXTS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for invalidating EPT (A Single Context)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallInvalidateSingleContext(UINT32                     CoreId,
+                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_INVEPT_SINGLE_CONTEXT, DirectVmcallOptions);
+}

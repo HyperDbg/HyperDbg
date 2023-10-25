@@ -192,31 +192,72 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
 {
     UINT32 TempProcessId;
 
-    //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr3 of current process
-    //
-    if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+    if (InputFromVmxRoot)
     {
-        TempProcessId = PsGetCurrentProcessId();
+        //
+        // *** apply the hook directly from VMX root-mode ***
+        //
+
+        //
+        // First, breakpoints have to be intercepted as the caller to the
+        // direct hook function have to broadcast it by its own
+        //
+        HaltedBroadcastSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHookFromVmxRoot(Event->InitOptions.OptionalParam1))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
+        else
+        {
+            //
+            // As the call to hook adjuster was successfull, we have to
+            // invalidate the TLB of EPT caches for all cores here
+            //
+            HaltedBroadcastInvalidateSingleContextAllCores();
+        }
     }
     else
     {
-        TempProcessId = Event->ProcessId;
-    }
+        //
+        // *** apply the hook from VMX non root-mode ***
+        //
 
-    //
-    // Invoke the hooker
-    //
-    if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
-    {
         //
-        // There was an error applying this event, so we're setting
-        // the event
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr3 of current process
         //
-        ResultsToReturn->IsSuccessful = FALSE;
-        ResultsToReturn->Error        = DebuggerGetLastError();
-        goto EventNotApplied;
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        {
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
+        }
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
     }
 
     //
@@ -977,8 +1018,8 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
             //
             // The mode exec trap is not initialized
             //
-            ResultsToReturn->Error        = DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED;
             ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED;
 
             return FALSE;
         }

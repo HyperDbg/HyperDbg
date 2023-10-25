@@ -262,6 +262,9 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookFromVmxRoot(PVOID TargetAddress);
+
+IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook2(UINT32 CoreId, PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
@@ -324,6 +327,15 @@ DirectVmcallEnableMovToCrExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * Direc
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallEnableEferSyscall(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetHiddenBreakpointHook(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateEptAllContexts(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

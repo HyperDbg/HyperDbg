@@ -44,3 +44,9 @@ HaltedBroadcastEnableMovToCrExitingAllCores(DEBUGGER_EVENT_OPTIONS * Broadcastin
 
 VOID
 HaltedBroadcastEnableEferSyscallHookAllCores();
+
+VOID
+HaltedBroadcastInvalidateEptAllContextsAllCores();
+
+VOID
+HaltedBroadcastInvalidateSingleContextAllCores();
