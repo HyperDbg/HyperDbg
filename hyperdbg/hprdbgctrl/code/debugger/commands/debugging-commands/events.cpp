@@ -698,7 +698,7 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
         //
         Status =
             DeviceIoControl(g_DeviceHandle,                // Handle to device
-                            IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control code
+                            IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control Code (IOCTL)
                             &ModifyEventRequest,           // Input Buffer to driver.
                             SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
                             &ModifyEventRequest,           // Output Buffer from driver.

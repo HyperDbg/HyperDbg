@@ -153,7 +153,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     Status = DeviceIoControl(
         g_DeviceHandle,                        // Handle to device
-        IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control code
+        IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control Code (IOCTL)
         &MsrWriteRequest,                      // Input Buffer to driver.
         SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Input buffer length
         NULL,                                  // Output Buffer from driver.

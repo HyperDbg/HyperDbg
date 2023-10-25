@@ -31,6 +31,11 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
                              PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                              BOOLEAN                           InputFromVmxRoot);
 
+BOOLEAN
+ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
+                              PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                              BOOLEAN                           InputFromVmxRoot);
+
 VOID
 ApplyEventRdmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
@@ -90,11 +95,6 @@ VOID
 ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
                                PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                BOOLEAN                           InputFromVmxRoot);
-
-VOID
-ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
-                              PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                              BOOLEAN                           InputFromVmxRoot);
 
 VOID
 ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,

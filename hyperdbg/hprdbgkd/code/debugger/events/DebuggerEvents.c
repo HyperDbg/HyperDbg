@@ -64,6 +64,7 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
  * @param EnableForRead
  * @param EnableForWrite
  * @param EnableForExecute
+ * @param ApplyDirectlyFromVmxRoot
  *
  * @return VOID
  */
@@ -72,7 +73,8 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
                                         UINT32  ProcessId,
                                         BOOLEAN EnableForRead,
                                         BOOLEAN EnableForWrite,
-                                        BOOLEAN EnableForExecute)
+                                        BOOLEAN EnableForExecute,
+                                        BOOLEAN ApplyDirectlyFromVmxRoot)
 {
     //
     // Check if the detail is ok for either read or write or both
@@ -95,7 +97,15 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
     //
     // Perform the EPT Hook
     //
-    return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL), Address, NULL, ProcessId, EnableForRead, EnableForWrite, EnableForExecute, FALSE);
+    return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
+                             Address,
+                             NULL,
+                             ProcessId,
+                             EnableForRead,
+                             EnableForWrite,
+                             EnableForExecute,
+                             FALSE,
+                             ApplyDirectlyFromVmxRoot);
 }
 
 /**

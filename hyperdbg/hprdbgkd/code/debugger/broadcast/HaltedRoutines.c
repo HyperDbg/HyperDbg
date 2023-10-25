@@ -331,3 +331,61 @@ HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
                                   TRUE,
                                   &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function performs running invalidate EPT (All Contexts) on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineInvalidateEptAllContextsOnSingleCore(UINT32 TargetCoreId)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_INVEPT_ALL_CONTEXTS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function performs running invalidate EPT (A Single Context) on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineInvalidateSingleContextOnSingleCore(UINT32 TargetCoreId)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}

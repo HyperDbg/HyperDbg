@@ -529,7 +529,8 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @brief This function invokes a VMCALL to set the hook and broadcast the exiting for
+ * the breakpoints on exception bitmap
  *
  * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
  * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
@@ -541,6 +542,7 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessId The process id to translate based on that process's cr3
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -559,6 +561,44 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         // Now we have to notify all the core to invalidate their EPT
         //
         BroadcastNotifyAllToInvalidateEptAllCores();
+
+        return TRUE;
+    }
+
+    //
+    // sth went wrong as we're here
+    //
+    return FALSE;
+}
+
+/**
+ * @brief This function invokes a direct VMCALL to setup the hook
+ *
+ * @details the caller of this function should make sure to 1) broadcast to
+ * all cores to intercept breakpoints (#BPs) and after calling this function
+ * 2) the caller should broadcast to all cores to invalidate their EPTPs
+ *
+ * @param TargetAddress The address of function or memory address to be hooked
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHookFromVmxRoot(PVOID TargetAddress)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+
+    //
+    // Set VMCALL options
+    //
+    DirectVmcallOptions.OptionalParam1 = TargetAddress;
+    DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
+
+    //
+    // Perform the direct VMCALL
+    //
+    if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+    {
+        LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
         return TRUE;
     }
@@ -1188,7 +1228,8 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- * @details this command uses hidden detours, this NOT be called from vmx-root mode
+ * @details this command uses hidden detours, if it calls from
+ * VMX root-mode directly, it should also invalidate EPT caches (by the caller)
  *
  * @param VCpu The virtual processor's state
  * @param TargetAddress The address of function or memory address to be hooked
@@ -1198,6 +1239,7 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
@@ -1209,7 +1251,8 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
          BOOLEAN                 SetHookForRead,
          BOOLEAN                 SetHookForWrite,
          BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2)
+         BOOLEAN                 EptHiddenHook2,
+         BOOLEAN                 ApplyDirectlyFromVmxRoot)
 {
     UINT32 PageHookMask = 0;
 
@@ -1269,35 +1312,20 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
-    if (VmxGetCurrentLaunchState())
+    //
+    // Move Attribute Mask to the upper 32 bits of the VMCALL Number
+    //
+    UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
+
+    if (ApplyDirectlyFromVmxRoot)
     {
-        //
-        // Move Attribute Mask to the upper 32 bits of the VMCALL Number
-        //
-        UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
+        DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+        DirectVmcallOptions.OptionalParam1           = TargetAddress;
+        DirectVmcallOptions.OptionalParam2           = HookFunction;
+        DirectVmcallOptions.OptionalParam3           = LayoutGetCurrentProcessCr3().Flags; // Process id is ignored while applied directly
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+        if (DirectVmcallPerformVmcall(VCpu->CoreId, VmcallNumber, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
-            //
-            // Test log
-            //
-            // LogInfo("Hook applied from VMX Root Mode");
-            //
-
-            if (VmxGetCurrentExecutionMode() == FALSE)
-            {
-                //
-                // Now we have to notify all the core to invalidate their EPT
-                //
-                BroadcastNotifyAllToInvalidateEptAllCores();
-            }
-            else
-            {
-                LogInfo("Err, unable to notify all cores to invalidate their TLB "
-                        "caches as you called hook on vmx-root mode, however, the "
-                        "hook is still works");
-            }
-
             return TRUE;
         }
         else
@@ -1307,17 +1335,51 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
     }
     else
     {
-        if (EptHookPerformPageHook2(VCpu,
-                                    TargetAddress,
-                                    HookFunction,
-                                    LayoutGetCr3ByProcessId(ProcessId),
-                                    SetHookForRead,
-                                    SetHookForWrite,
-                                    SetHookForExec,
-                                    EptHiddenHook2) == TRUE)
+        if (VmxGetCurrentLaunchState())
         {
-            LogWarning("Hook applied (VM has not launched)");
-            return TRUE;
+            if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+            {
+                //
+                // Test log
+                //
+                // LogInfo("Hook applied from VMX Root Mode");
+                //
+
+                if (VmxGetCurrentExecutionMode() == FALSE)
+                {
+                    //
+                    // Now we have to notify all the core to invalidate their EPT
+                    //
+                    BroadcastNotifyAllToInvalidateEptAllCores();
+                }
+                else
+                {
+                    LogInfo("Err, unable to notify all cores to invalidate their TLB "
+                            "caches as you called hook on vmx-root mode, however, the "
+                            "hook is still works");
+                }
+
+                return TRUE;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
+            if (EptHookPerformPageHook2(VCpu,
+                                        TargetAddress,
+                                        HookFunction,
+                                        LayoutGetCr3ByProcessId(ProcessId),
+                                        SetHookForRead,
+                                        SetHookForWrite,
+                                        SetHookForExec,
+                                        EptHiddenHook2) == TRUE)
+            {
+                LogWarning("Hook applied (VM has not launched)");
+                return TRUE;
+            }
         }
     }
 

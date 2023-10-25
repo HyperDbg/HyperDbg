@@ -1258,6 +1258,8 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 Context = ((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress;
             }
 
+            DbgBreakPoint();
+
             break;
 
         case RDMSR_INSTRUCTION_EXECUTION:
@@ -2943,7 +2945,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
         //
         // Apply the trap mode change events
         //
-        ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot);
+        if (!ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot))
+        {
+            goto ClearTheEventAfterCreatingEvent;
+        }
 
         break;
     }

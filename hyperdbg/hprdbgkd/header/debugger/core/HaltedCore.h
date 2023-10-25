@@ -99,6 +99,18 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_ENABLE_SYSCALL_HOOK_EFER 0x0000000e
 
+/**
+ * @brief Halted core task for invalidating EPT (All Contexts)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_INVEPT_ALL_CONTEXTS 0x0000000f
+
+/**
+ * @brief Halted core task for invalidating EPT (A Single Context)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT 0x00000010
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

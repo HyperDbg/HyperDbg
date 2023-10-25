@@ -28,7 +28,28 @@ DirectVmcallTest(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_TEST, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_TEST, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for performing a direct VMCALL
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param VmcallNumber
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallPerformVmcall(UINT32                     CoreId,
+                          UINT64                     VmcallNumber,
+                          DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VmcallNumber, DirectVmcallOptions);
 }
 
 /**
@@ -47,7 +68,7 @@ DirectVmcallChangeMsrBitmapRead(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_READ, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_READ, DirectVmcallOptions);
 }
 
 /**
@@ -66,7 +87,7 @@ DirectVmcallChangeMsrBitmapWrite(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_WRITE, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_MSR_BITMAP_WRITE, DirectVmcallOptions);
 }
 
 /**
@@ -85,7 +106,7 @@ DirectVmcallChangeIoBitmap(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_CHANGE_IO_BITMAP, DirectVmcallOptions);
 }
 
 /**
@@ -104,7 +125,7 @@ DirectVmcallEnableRdpmcExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDPMC_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDPMC_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -123,7 +144,7 @@ DirectVmcallEnableRdtscpExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDTSC_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_RDTSC_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -142,7 +163,7 @@ DirectVmcallEnableMov2DebugRegsExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -161,7 +182,7 @@ DirectVmcallSetExceptionBitmap(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_EXCEPTION_BITMAP, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_EXCEPTION_BITMAP, DirectVmcallOptions);
 }
 
 /**
@@ -180,7 +201,7 @@ DirectVmcallEnableExternalInterruptExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -199,7 +220,7 @@ DirectVmcallEnableMovToCrExiting(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, DirectVmcallOptions);
 }
 
 /**
@@ -218,5 +239,62 @@ DirectVmcallEnableEferSyscall(UINT32                     CoreId,
     //
     // Call the VMCALL handler (directly)
     //
-    VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_ENABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for putting hidden breakpoints (using EPT)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallSetHiddenBreakpointHook(UINT32                     CoreId,
+                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_SET_HIDDEN_CC_BREAKPOINT, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for invalidating EPT (All Contexts)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallInvalidateEptAllContexts(UINT32                     CoreId,
+                                     DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_INVEPT_ALL_CONTEXTS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for invalidating EPT (A Single Context)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallInvalidateSingleContext(UINT32                     CoreId,
+                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_INVEPT_SINGLE_CONTEXT, DirectVmcallOptions);
 }

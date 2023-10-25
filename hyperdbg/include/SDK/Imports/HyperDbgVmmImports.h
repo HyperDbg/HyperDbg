@@ -182,6 +182,9 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId);
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncQueryModeExecTrap();
+
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 
@@ -259,7 +262,18 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHook2(UINT32 CoreId, PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
+ConfigureEptHookFromVmxRoot(PVOID TargetAddress);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHook2(UINT32  CoreId,
+                  PVOID   TargetAddress,
+                  PVOID   HookFunction,
+                  UINT32  ProcessId,
+                  BOOLEAN SetHookForRead,
+                  BOOLEAN SetHookForWrite,
+                  BOOLEAN SetHookForExec,
+                  BOOLEAN EptHiddenHook2,
+                  BOOLEAN ApplyDirectlyFromVmxRoot);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
@@ -293,6 +307,9 @@ IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallTest(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallPerformVmcall(UINT32 CoreId, UINT64 VmcallNumber, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallChangeMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 IMPORT_EXPORT_VMM NTSTATUS
@@ -321,6 +338,15 @@ DirectVmcallEnableMovToCrExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * Direc
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallEnableEferSyscall(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetHiddenBreakpointHook(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateEptAllContexts(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

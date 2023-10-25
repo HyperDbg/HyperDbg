@@ -782,10 +782,10 @@ StartAgain:
                         "RAX=%016llx RBX=%016llx RCX=%016llx\n"
                         "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
                         "RIP=%016llx RSP=%016llx RBP=%016llx\n"
-                        "R8=%016llx  R9=%016llx  R10=%016llx\n"
+                        "R8 =%016llx R9 =%016llx R10=%016llx\n"
                         "R11=%016llx R12=%016llx R13=%016llx\n"
                         "R14=%016llx R15=%016llx IOPL=%02x\n"
-                        "%s  %s  %s  %s\n%s  %s  %s  %s  \n"
+                        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
                         "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
                         "RFLAGS=%016llx\n",
                         Regs->rax,

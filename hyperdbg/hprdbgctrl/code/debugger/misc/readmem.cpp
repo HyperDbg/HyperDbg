@@ -90,7 +90,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     ZeroMemory(OutputBuffer, SizeOfTargetBuffer);
 
     Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
-                             IOCTL_DEBUGGER_READ_MEMORY,  // IO Control code
+                             IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
                              &ReadMem,                    // Input Buffer to driver.
                              SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
                              OutputBuffer,                // Output Buffer from driver.

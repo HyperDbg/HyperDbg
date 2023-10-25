@@ -183,7 +183,7 @@ ReadIrpBasedBuffer()
 
                 Status = DeviceIoControl(
                     Handle,                    // Handle to device
-                    IOCTL_REGISTER_EVENT,      // IO Control code
+                    IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
                     &RegisterEvent,            // Input Buffer to driver.
                     SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
                                                // driver is x64 and has 64 bit values)
@@ -657,7 +657,7 @@ HyperDbgUnloadVmm()
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
-                             IOCTL_TERMINATE_VMX, // IO Control code
+                             IOCTL_TERMINATE_VMX, // IO Control Code (IOCTL)
                              NULL,                // Input Buffer to driver.
                              0,                   // Length of input buffer in bytes. (x 2 is bcuz
                                                   // as the driver is x64 and has 64 bit values)

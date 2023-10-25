@@ -53,6 +53,9 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
 NTSTATUS
 DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest);
 
+NTSTATUS
+DebuggerCommandPreactivateFunctionality(PDEBUGGER_PREACTIVATE_COMMAND PreactivateRequest);
+
 BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,

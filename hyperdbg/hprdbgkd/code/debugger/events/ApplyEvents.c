@@ -31,17 +31,24 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     UINT64  PagesBytes;
     BOOLEAN ResultOfApplyingEvent = FALSE;
 
-    //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr3 of current process
-    //
-    if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+    if (InputFromVmxRoot)
     {
-        TempProcessId = PsGetCurrentProcessId();
+        TempProcessId = NULL; // Process Id does not make sense in the Debugger Mode
     }
     else
     {
-        TempProcessId = Event->ProcessId;
+        //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr3 of current process
+        //
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        {
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
+        }
     }
 
     PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
@@ -64,7 +71,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                                                                             TempProcessId,
                                                                             TRUE,
                                                                             TRUE,
-                                                                            TRUE);
+                                                                            TRUE,
+                                                                            InputFromVmxRoot);
             break;
 
         case HIDDEN_HOOK_WRITE_AND_EXECUTE:
@@ -73,7 +81,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             TRUE,
-                                                                            FALSE);
+                                                                            FALSE,
+                                                                            InputFromVmxRoot);
             break;
 
         case HIDDEN_HOOK_READ_AND_WRITE:
@@ -82,7 +91,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                                                                             TempProcessId,
                                                                             TRUE,
                                                                             TRUE,
-                                                                            FALSE);
+                                                                            FALSE,
+                                                                            InputFromVmxRoot);
 
             break;
 
@@ -91,7 +101,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             TRUE,
-                                                                            FALSE);
+                                                                            FALSE,
+                                                                            InputFromVmxRoot);
 
             break;
 
@@ -100,7 +111,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             FALSE,
-                                                                            TRUE);
+                                                                            TRUE,
+                                                                            InputFromVmxRoot);
             break;
 
         default:
@@ -140,8 +152,21 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             // hook is continued to other pages, we still have pre-alloated
             // buffers ready for our future hooks
             //
-            PoolManagerCheckAndPerformAllocationAndDeallocation();
+            if (!InputFromVmxRoot)
+            {
+                PoolManagerCheckAndPerformAllocationAndDeallocation();
+            }
         }
+    }
+
+    //
+    // If applied directly from VMX root-mode,
+    // As the call to hook adjuster was successfull, we have to
+    // invalidate the TLB of EPT caches for all cores here
+    //
+    if (InputFromVmxRoot)
+    {
+        HaltedBroadcastInvalidateSingleContextAllCores();
     }
 
     //
@@ -149,8 +174,20 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     // vm-exit occurs and we have the physical address to compare in the case of
     // hidden hook rw events.
     //
-    Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
-    Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam2, TempProcessId);
+    if (InputFromVmxRoot)
+    {
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam1);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam2);
+    }
+    else
+    {
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam2, TempProcessId);
+    }
+
+    //
+    // The initial options are also recorded
+    //
     Event->Options.OptionalParam3 = Event->InitOptions.OptionalParam1;
     Event->Options.OptionalParam4 = Event->InitOptions.OptionalParam2;
 
@@ -192,31 +229,72 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
 {
     UINT32 TempProcessId;
 
-    //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr3 of current process
-    //
-    if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+    if (InputFromVmxRoot)
     {
-        TempProcessId = PsGetCurrentProcessId();
+        //
+        // *** apply the hook directly from VMX root-mode ***
+        //
+
+        //
+        // First, breakpoints have to be intercepted as the caller to the
+        // direct hook function have to broadcast it by its own
+        //
+        HaltedBroadcastSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHookFromVmxRoot(Event->InitOptions.OptionalParam1))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
+        else
+        {
+            //
+            // As the call to hook adjuster was successfull, we have to
+            // invalidate the TLB of EPT caches for all cores here
+            //
+            HaltedBroadcastInvalidateSingleContextAllCores();
+        }
     }
     else
     {
-        TempProcessId = Event->ProcessId;
-    }
+        //
+        // *** apply the hook from VMX non root-mode ***
+        //
 
-    //
-    // Invoke the hooker
-    //
-    if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
-    {
         //
-        // There was an error applying this event, so we're setting
-        // the event
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr3 of current process
         //
-        ResultsToReturn->IsSuccessful = FALSE;
-        ResultsToReturn->Error        = DebuggerGetLastError();
-        goto EventNotApplied;
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        {
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
+        }
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
     }
 
     //
@@ -252,31 +330,84 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
 {
     UINT32 TempProcessId;
 
-    //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr3 of current process
-    //
-    if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+    if (InputFromVmxRoot)
     {
-        TempProcessId = PsGetCurrentProcessId();
+        //
+        // *** apply the hook directly from VMX root-mode ***
+        //
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
+                               Event->InitOptions.OptionalParam1,
+                               NULL,
+                               NULL,
+                               FALSE,
+                               FALSE,
+                               FALSE,
+                               TRUE,
+                               TRUE // Apply directly from VMX root-mode
+                               ))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
+        else
+        {
+            //
+            // As the call to hook adjuster was successfull, we have to
+            // invalidate the TLB of EPT caches for all cores here
+            //
+            HaltedBroadcastInvalidateSingleContextAllCores();
+        }
     }
     else
     {
-        TempProcessId = Event->ProcessId;
-    }
+        //
+        // *** apply the hook from VMX non root-mode ***
+        //
 
-    //
-    // Invoke the hooker
-    //
-    if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL), Event->InitOptions.OptionalParam1, NULL, TempProcessId, FALSE, FALSE, FALSE, TRUE))
-    {
         //
-        // There was an error applying this event, so we're setting
-        // the event
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr3 of current process
         //
-        ResultsToReturn->IsSuccessful = FALSE;
-        ResultsToReturn->Error        = DebuggerGetLastError();
-        goto EventNotApplied;
+        if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
+        {
+            TempProcessId = PsGetCurrentProcessId();
+        }
+        else
+        {
+            TempProcessId = Event->ProcessId;
+        }
+
+        //
+        // Invoke the hooker
+        //
+        if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
+                               Event->InitOptions.OptionalParam1,
+                               NULL,
+                               TempProcessId,
+                               FALSE,
+                               FALSE,
+                               FALSE,
+                               TRUE,
+                               FALSE // Apply from VMX non root-mode
+                               ))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DebuggerGetLastError();
+            goto EventNotApplied;
+        }
     }
 
     //
@@ -920,10 +1051,8 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
                                BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Enable triggering events for VMCALLs
-    // This event doesn't support custom optional
-    // parameter(s) because it's unconditional
-    // users can use condition(s) to check for
+    // Enable triggering events for VMCALLs. This event doesn't support custom optional
+    // parameter(s) because it's unconditional users can use condition(s) to check for
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForVmcalls(TRUE);
@@ -937,31 +1066,78 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Add the process to the watching list
-    //
-    ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
-
-    //
     // Set the event's mode of execution
     //
     Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
+    if (InputFromVmxRoot)
+    {
+        //
+        // The event registeration is coming from VMX root-mode, we
+        // cannot initialize this event in VMX-root mode, so we need
+        // to check whether it's already activated (using the 'preactivate' command)
+        // or not and if it's activated then we can just add the current process
+        // to the watchlist, otherwise the user needs to preactivate this event
+        //
+
+        //
+        // Technically, it's possible to initiate this mechanism at this point
+        // but it involves preallocating huge buffers so we prefer not to allocate
+        // these amount of buffers by default in HyperDbg as the users might not
+        // really use this mechanism and it would be a waste of system resources
+        // so, if the user needs to use this mechanism, it can use the 'preactivate'
+        // command to first activate this mechanism and then use it
+        //
+        if (VmFuncQueryModeExecTrap())
+        {
+            //
+            // Add the process to the watching list
+            //
+            ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
+        }
+        else
+        {
+            //
+            // The mode exec trap is not initialized
+            //
+            ResultsToReturn->IsSuccessful = FALSE;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED;
+
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // The event registeration is coming from VMX non-root mode so we
+        // can initialize this mechanism if it's not already initialized
+        //
+
+        //
+        // Add the process to the watching list
+        //
+        ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
+
+        //
+        // Enable triggering events for user-mode execution traps. This event doesn't
+        // support custom optional parameter(s) because it's unconditional users can
+        // use condition(s) to check for their custom optional parameters
+        //
+        ConfigureInitializeExecTrapOnAllProcessors();
+    }
+
     //
-    // Enable triggering events for user-mode execution
-    // traps. This event doesn't support custom optional
-    // parameter(s) because it's unconditional users can
-    // use condition(s) to check for their custom optional
-    // parameters
+    // It was successfully applied
     //
-    ConfigureInitializeExecTrapOnAllProcessors();
+    return TRUE;
 }
 
 /**
@@ -980,10 +1156,8 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
                               BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Enable triggering events for CPUIDs
-    // This event doesn't support custom optional
-    // parameter(s) because it's unconditional
-    // users can use condition(s) to check for
+    // Enable triggering events for CPUIDs. This event doesn't support custom optional
+    // parameter(s) because it's unconditional users can use condition(s) to check for
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForCpuids(TRUE);

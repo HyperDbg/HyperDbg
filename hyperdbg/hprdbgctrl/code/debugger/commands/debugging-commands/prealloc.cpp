@@ -33,7 +33,7 @@ CommandPreallocHelp()
 
     ShowMessages("\n");
     ShowMessages("type of allocations:\n");
-    ShowMessages("\thread-interception: used for pre-allocations of the thread holders for the thread interception mechanism\n");
+    ShowMessages("\tthread-interception: used for pre-allocations of the thread holders for the thread interception mechanism\n");
     ShowMessages("\tmonitor: used for pre-allocations of the '!monitor' EPT hooks\n");
     ShowMessages("\tepthook: used for pre-allocations of the '!epthook' EPT hooks\n");
     ShowMessages("\tepthook2: used for pre-allocations of the '!epthook2' EPT hooks\n");
@@ -135,7 +135,7 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                    // Handle to device
-        IOCTL_RESERVE_PRE_ALLOCATED_POOLS, // IO Control code
+        IOCTL_RESERVE_PRE_ALLOCATED_POOLS, // IO Control Code (IOCTL)
         &PreallocRequest,                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_PREALLOC_COMMAND,  // Input buffer length
         &PreallocRequest,                  // Output Buffer from driver.
