@@ -920,10 +920,8 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
                                BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Enable triggering events for VMCALLs
-    // This event doesn't support custom optional
-    // parameter(s) because it's unconditional
-    // users can use condition(s) to check for
+    // Enable triggering events for VMCALLs. This event doesn't support custom optional
+    // parameter(s) because it's unconditional users can use condition(s) to check for
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForVmcalls(TRUE);
@@ -937,31 +935,78 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Add the process to the watching list
-    //
-    ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
-
-    //
     // Set the event's mode of execution
     //
     Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 
+    if (InputFromVmxRoot)
+    {
+        //
+        // The event registeration is coming from VMX root-mode, we
+        // cannot initialize this event in VMX-root mode, so we need
+        // to check whether it's already activated (using the 'preactivate' command)
+        // or not and if it's activated then we can just add the current process
+        // to the watchlist, otherwise the user needs to preactivate this event
+        //
+
+        //
+        // Technically, it's possible to initiate this mechanism at this point
+        // but it involves preallocating huge buffers so we prefer not to allocate
+        // these amount of buffers by default in HyperDbg as the users might not
+        // really use this mechanism and it would be a waste of system resources
+        // so, if the user needs to use this mechanism, it can use the 'preactivate'
+        // command to first activate this mechanism and then use it
+        //
+        if (VmFuncQueryModeExecTrap())
+        {
+            //
+            // Add the process to the watching list
+            //
+            ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
+        }
+        else
+        {
+            //
+            // The mode exec trap is not initialized
+            //
+            ResultsToReturn->Error        = DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED;
+            ResultsToReturn->IsSuccessful = FALSE;
+
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // The event registeration is coming from VMX non-root mode so we
+        // can initialize this mechanism if it's not already initialized
+        //
+
+        //
+        // Add the process to the watching list
+        //
+        ConfigureExecTrapAddProcessToWatchingList(Event->ProcessId);
+
+        //
+        // Enable triggering events for user-mode execution traps. This event doesn't
+        // support custom optional parameter(s) because it's unconditional users can
+        // use condition(s) to check for their custom optional parameters
+        //
+        ConfigureInitializeExecTrapOnAllProcessors();
+    }
+
     //
-    // Enable triggering events for user-mode execution
-    // traps. This event doesn't support custom optional
-    // parameter(s) because it's unconditional users can
-    // use condition(s) to check for their custom optional
-    // parameters
+    // It was successfully applied
     //
-    ConfigureInitializeExecTrapOnAllProcessors();
+    return TRUE;
 }
 
 /**
@@ -980,10 +1025,8 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
                               BOOLEAN                           InputFromVmxRoot)
 {
     //
-    // Enable triggering events for CPUIDs
-    // This event doesn't support custom optional
-    // parameter(s) because it's unconditional
-    // users can use condition(s) to check for
+    // Enable triggering events for CPUIDs. This event doesn't support custom optional
+    // parameter(s) because it's unconditional users can use condition(s) to check for
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForCpuids(TRUE);

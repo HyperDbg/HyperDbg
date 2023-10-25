@@ -81,7 +81,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
     //
     Status =
         DeviceIoControl(g_DeviceHandle,               // Handle to device
-                        IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control code
+                        IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control Code (IOCTL)
                         BufferToSendAsIoctl,          // Input Buffer to driver.
                         BufferToSendAsIoctlSize,      // Input buffer length
                         ResultsBuffer,                // Output Buffer from driver.

@@ -166,7 +166,7 @@ typedef enum _DEBUGGER_PREALLOC_COMMAND_TYPE
     sizeof(DEBUGGER_PREALLOC_COMMAND)
 
 /**
- * @brief requests for prealloc commands
+ * @brief requests for the 'prealloc' command
  *
  */
 typedef struct _DEBUGGER_PREALLOC_COMMAND
@@ -176,6 +176,33 @@ typedef struct _DEBUGGER_PREALLOC_COMMAND
     UINT32                         KernelStatus;
 
 } DEBUGGER_PREALLOC_COMMAND, *PDEBUGGER_PREALLOC_COMMAND;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief different types of preactivate requests
+ *
+ */
+typedef enum _DEBUGGER_PREACTIVATE_COMMAND_TYPE
+{
+    DEBUGGER_PREACTIVATE_COMMAND_TYPE_MODE,
+
+} DEBUGGER_PREACTIVATE_COMMAND_TYPE;
+
+#define SIZEOF_DEBUGGER_PREACTIVATE_COMMAND \
+    sizeof(DEBUGGER_PREACTIVATE_COMMAND)
+
+/**
+ * @brief requests for the 'preactivate' command
+ *
+ */
+typedef struct _DEBUGGER_PREACTIVATE_COMMAND
+{
+    DEBUGGER_PREACTIVATE_COMMAND_TYPE Type;
+    UINT32                            KernelStatus;
+
+} DEBUGGER_PREACTIVATE_COMMAND, *PDEBUGGER_PREACTIVATE_COMMAND;
 
 /* ==============================================================================================
  */

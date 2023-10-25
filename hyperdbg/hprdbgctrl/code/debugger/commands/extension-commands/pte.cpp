@@ -217,7 +217,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                                  // Handle to device
-            IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,  // IO Control code
+            IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,  // IO Control Code (IOCTL)
             &AddressDetails,                                 // Input Buffer to driver.
             SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Input buffer length
             &AddressDetails,                                 // Output Buffer from driver.

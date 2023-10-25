@@ -363,7 +363,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
     Status = DeviceIoControl(
         g_DeviceHandle,              // Handle to device
-        IOCTL_DEBUGGER_EDIT_MEMORY,  // IO Control code
+        IOCTL_DEBUGGER_EDIT_MEMORY,  // IO Control Code (IOCTL)
         FinalBuffer,                 // Input Buffer to driver.
         FinalSize,                   // Input buffer length
         &EditMemoryRequest,          // Output Buffer from driver.

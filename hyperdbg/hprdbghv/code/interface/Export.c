@@ -555,6 +555,17 @@ VmFuncVmxGetCurrentExecutionMode()
 }
 
 /**
+ * @brief Get the current state of mode exec trap mechanism
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncQueryModeExecTrap()
+{
+    return g_ExecTrapInitialized;
+}
+
+/**
  * @brief Set triggering events for VMCALLs
  *
  * @param Set Set or unset the trigger

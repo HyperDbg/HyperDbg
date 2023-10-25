@@ -1279,6 +1279,7 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
  * @brief Reserve and allocate pre-allocated buffers
  *
  * @param PreallocRequest Request details of needed buffers to be reserved
+ *
  * @return NTSTATUS
  */
 NTSTATUS
@@ -1394,6 +1395,38 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
     PreallocRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Preactivate a special functionality
+ *
+ * @param PreactivateRequest Request details of preactivation
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DebuggerCommandPreactivateFunctionality(PDEBUGGER_PREACTIVATE_COMMAND PreactivateRequest)
+{
+    switch (PreactivateRequest->Type)
+    {
+    case DEBUGGER_PREACTIVATE_COMMAND_TYPE_MODE:
+
+        //
+        // Request for allocating the mode mechanism
+        //
+        ConfigureInitializeExecTrapOnAllProcessors();
+
+        break;
+
+    default:
+
+        PreactivateRequest->KernelStatus = DEBUGGER_ERROR_COULD_NOT_FIND_PREACTIVATION_TYPE;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    PreactivateRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

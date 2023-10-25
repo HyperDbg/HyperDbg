@@ -837,8 +837,13 @@ InitializeCommandsDictionary()
 
     g_CommandsList["x"] = {&CommandX, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
 
-    g_CommandsList["prealloc"]    = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
-    g_CommandsList["preallocate"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["prealloc"]      = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocate"]   = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocation"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+
+    g_CommandsList["preactivate"]   = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactive"]     = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactivation"] = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
 
     g_CommandsList["k"]  = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
     g_CommandsList["kd"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};

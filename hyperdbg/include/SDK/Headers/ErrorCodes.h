@@ -500,6 +500,18 @@
  */
 #define DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER 0xc000004c
 
+/**
+ * @brief error, could not find the type of preactivation
+ *
+ */
+#define DEBUGGER_ERROR_COULD_NOT_FIND_PREACTIVATION_TYPE 0xc000004d
+
+/**
+ * @brief error, the mode exec trap is not already initialized
+ *
+ */
+#define DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED 0xc000004e
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

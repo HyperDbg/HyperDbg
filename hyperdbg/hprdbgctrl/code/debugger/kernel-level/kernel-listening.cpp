@@ -785,7 +785,7 @@ StartAgain:
                         "R8 =%016llx R9 =%016llx R10=%016llx\n"
                         "R11=%016llx R12=%016llx R13=%016llx\n"
                         "R14=%016llx R15=%016llx IOPL=%02x\n"
-                        "%s  %s  %s  %s\n%s  %s  %s  %s  \n"
+                        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
                         "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
                         "RFLAGS=%016llx\n",
                         Regs->rax,

@@ -2943,7 +2943,10 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
         //
         // Apply the trap mode change events
         //
-        ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot);
+        if (!ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot))
+        {
+            goto ClearTheEventAfterCreatingEvent;
+        }
 
         break;
     }

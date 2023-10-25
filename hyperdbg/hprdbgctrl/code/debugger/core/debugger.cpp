@@ -480,6 +480,18 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, unable to allocate buffer for the target requested safe buffer (%x)\n",
                      Error);
         break;
+
+    case DEBUGGER_ERROR_COULD_NOT_FIND_PREACTIVATION_TYPE:
+        ShowMessages("err, invalid type is specified for preactivation (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED:
+        ShowMessages("err, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
+                     "To avoid wasting system resources and performance issues we decided to use another "
+                     "command to initialize it first then use it. You can use the 'preactivate mode' command "
+                     "to preactivate this mechanism after that, you can use the '!mode' event (%x)\n",
+                     Error);
         break;
 
     default:
@@ -546,7 +558,7 @@ DebuggerPauseDebuggee()
     // Send a pause IOCTL
     //
     StatusIoctl = DeviceIoControl(g_DeviceHandle,                        // Handle to device
-                                  IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
+                                  IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control Code (IOCTL)
                                   &PauseRequest,                         // Input Buffer to driver.
                                   SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
                                                                          // length
@@ -1844,7 +1856,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
 
         Status = DeviceIoControl(g_DeviceHandle,                           // Handle to device
-                                 IOCTL_DEBUGGER_REGISTER_EVENT,            // IO Control code
+                                 IOCTL_DEBUGGER_REGISTER_EVENT,            // IO Control Code (IOCTL)
                                  Event,                                    // Input Buffer to driver.
                                  EventBufferLength,                        // Input buffer length
                                  &ReturnedBuffer,                          // Output Buffer from driver.
@@ -2015,7 +2027,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         {
             Status = DeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionBreakToDebugger,                    // Input Buffer to driver.
                 ActionBreakToDebuggerLength,              // Input buffer length
                 &ReturnedBuffer,                          // Output Buffer from driver.
@@ -2043,7 +2055,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         {
             Status = DeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionCustomCode,                         // Input Buffer to driver.
                 ActionCustomCodeLength,                   // Input buffer length
                 &ReturnedBuffer,                          // Output Buffer from driver.
@@ -2071,7 +2083,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         {
             Status = DeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control code
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionScript,                             // Input Buffer to driver.
                 ActionScriptLength,                       // Input buffer length
                 &ReturnedBuffer,                          // Output Buffer from driver.

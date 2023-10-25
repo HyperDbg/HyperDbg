@@ -64,7 +64,7 @@ CommandFlushRequestFlush()
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                        // Handle to device
-            IOCTL_DEBUGGER_FLUSH_LOGGING_BUFFERS,  // IO Control code
+            IOCTL_DEBUGGER_FLUSH_LOGGING_BUFFERS,  // IO Control Code (IOCTL)
             &FlushRequest,                         // Input Buffer to driver.
             SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS, // Input buffer length
             &FlushRequest,                         // Output Buffer from driver.

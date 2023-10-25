@@ -176,7 +176,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                           // Handle to device
-            IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control code
+            IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control Code (IOCTL)
             &AddressDetails,                          // Input Buffer to driver.
             SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Input buffer length
             &AddressDetails,                          // Output Buffer from driver.

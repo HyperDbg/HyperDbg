@@ -2450,7 +2450,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         StatusIoctl =
             DeviceIoControl(g_DeviceHandle,                   // Handle to device
-                            IOCTL_PREPARE_DEBUGGEE,           // IO Control code
+                            IOCTL_PREPARE_DEBUGGEE,           // IO Control Code (IOCTL)
                             DebuggeeRequest,                  // Input Buffer to driver.
                             SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, // Input buffer
                                                               // length
@@ -2667,7 +2667,7 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                                // Handle to device
-        IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER,           // IO Control code
+        IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER,           // IO Control Code (IOCTL)
         GeneralPacketFromDebuggeeToDebuggerRequest,                    // Input Buffer to driver.
         Length,                                                        // Input buffer
                                                                        // length
@@ -2848,7 +2848,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     //
     Status =
         DeviceIoControl(g_DeviceHandle,                // Handle to device
-                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control Code (IOCTL)
                         EventRegBuffer,
                         Length                                        // Input Buffer to driver.
                         ,                                             // Input buffer length
@@ -2899,7 +2899,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 
     Status =
         DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control Code (IOCTL)
                         ActionAddingBuffer,                           // Input Buffer to driver.
                         Length,                                       // Input buffer length
                         &ReturnedBuffer,                              // Output Buffer from driver.
@@ -2958,7 +2958,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
 
     Status = DeviceIoControl(g_DeviceHandle,                // Handle to device
-                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control code
+                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control Code (IOCTL)
                              ModifyEvent,                   // Input Buffer to driver.
                              SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
                              ModifyEvent,                   // Output Buffer from driver.
@@ -3019,7 +3019,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                                         // Handle to device
-            IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control code
+            IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control Code (IOCTL)
             &FinishExecutionRequest,                                // Input Buffer to driver.
             SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Input buffer
                                                                     // length
@@ -3075,7 +3075,7 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
 
     Status = DeviceIoControl(
         g_DeviceHandle,                           // Handle to device
-        IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
+        IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control Code (IOCTL)
         UsermodeMessageRequest,                   // Input Buffer to driver.
         SizeToSend,                               // Input buffer
                                                   // length

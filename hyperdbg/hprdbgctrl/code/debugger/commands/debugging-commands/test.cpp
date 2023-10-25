@@ -61,7 +61,7 @@ CommandTestPerformKernelTestsIoctl()
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                       // Handle to device
-        IOCTL_PERFROM_KERNEL_SIDE_TESTS,      // IO Control code
+        IOCTL_PERFROM_KERNEL_SIDE_TESTS,      // IO Control Code (IOCTL)
         &KernelTestRequest,                   // Input Buffer to driver.
         SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, // Input buffer length
         &KernelTestRequest,                   // Output Buffer from driver.
@@ -228,7 +228,7 @@ CommandTestInVmiMode()
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                   // Handle to device
-        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,      // IO Control code
+        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,      // IO Control Code (IOCTL)
         KernelSideTestInformationRequestArray,            // Input Buffer to driver.
         SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION, // Input buffer
                                                           // length
