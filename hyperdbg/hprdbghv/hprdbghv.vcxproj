@@ -245,7 +245,6 @@
     <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
     <ClInclude Include="header\hooks\ExecTrap.h" />
     <ClInclude Include="header\interface\Callback.h" />
-    <ClInclude Include="header\interface\Configuration.h" />
     <ClInclude Include="header\interface\DirectVmcall.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
     <ClInclude Include="header\memory\AddressCheck.h" />

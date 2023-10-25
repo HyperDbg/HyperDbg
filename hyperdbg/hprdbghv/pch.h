@@ -77,7 +77,6 @@
 #include "vmm/vmx/VmxBroadcast.h"
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
-#include "interface/Configuration.h"
 #include "common/Dpc.h"
 #include "vmm/vmx/HypervTlfs.h"
 #include "common/Msr.h"
