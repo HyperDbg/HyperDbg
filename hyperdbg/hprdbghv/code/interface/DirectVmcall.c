@@ -32,6 +32,27 @@ DirectVmcallTest(UINT32                     CoreId,
 }
 
 /**
+ * @brief routines for performing a direct VMCALL
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param VmcallNumber
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallPerformVmcall(UINT32                     CoreId,
+                          UINT64                     VmcallNumber,
+                          DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VmcallNumber, DirectVmcallOptions);
+}
+
+/**
  * @brief routines for changing MSR Bitmap (Read)
  * @details Should be called from VMX root-mode
  *

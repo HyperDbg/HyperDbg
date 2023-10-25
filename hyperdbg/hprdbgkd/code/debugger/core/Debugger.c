@@ -1258,6 +1258,8 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 Context = ((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress;
             }
 
+            DbgBreakPoint();
+
             break;
 
         case RDMSR_INSTRUCTION_EXECUTION:

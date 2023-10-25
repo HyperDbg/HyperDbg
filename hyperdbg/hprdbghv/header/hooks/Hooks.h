@@ -241,6 +241,7 @@ EptHookFromVmxRoot(PVOID TargetAddress);
  * @param SetHookForWrite
  * @param SetHookForExec
  * @param EptHiddenHook2
+ * @param ApplyDirectlyFromVmxRoot
  *
  * @return BOOLEAN
  */
@@ -252,7 +253,8 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
          BOOLEAN                 SetHookForRead,
          BOOLEAN                 SetHookForWrite,
          BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2);
+         BOOLEAN                 EptHiddenHook2,
+         BOOLEAN                 ApplyDirectlyFromVmxRoot);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode

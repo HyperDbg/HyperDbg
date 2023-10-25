@@ -240,6 +240,8 @@ ConfigureEptHookFromVmxRoot(PVOID TargetAddress)
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -250,9 +252,18 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForRead,
                   BOOLEAN SetHookForWrite,
                   BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2)
+                  BOOLEAN EptHiddenHook2,
+                  BOOLEAN ApplyDirectlyFromVmxRoot)
 {
-    return EptHook2(&g_GuestState[CoreId], TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec, EptHiddenHook2);
+    return EptHook2(&g_GuestState[CoreId],
+                    TargetAddress,
+                    HookFunction,
+                    ProcessId,
+                    SetHookForRead,
+                    SetHookForWrite,
+                    SetHookForExec,
+                    EptHiddenHook2,
+                    ApplyDirectlyFromVmxRoot);
 }
 
 /**
