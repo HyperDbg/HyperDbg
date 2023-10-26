@@ -240,7 +240,6 @@ ConfigureEptHookFromVmxRoot(PVOID TargetAddress)
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
- * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
@@ -252,8 +251,7 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForRead,
                   BOOLEAN SetHookForWrite,
                   BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2,
-                  BOOLEAN ApplyDirectlyFromVmxRoot)
+                  BOOLEAN EptHiddenHook2)
 {
     return EptHook2(&g_GuestState[CoreId],
                     TargetAddress,
@@ -262,8 +260,40 @@ ConfigureEptHook2(UINT32  CoreId,
                     SetHookForRead,
                     SetHookForWrite,
                     SetHookForExec,
-                    EptHiddenHook2,
-                    ApplyDirectlyFromVmxRoot);
+                    EptHiddenHook2);
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden detours, this should be called from vmx-root mode
+ *
+ *
+ * @param CoreId ID of the target core
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param SetHookForRead Hook READ Access
+ * @param SetHookForWrite Hook WRITE Access
+ * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2)
+{
+    return EptHook2FromVmxRoot(&g_GuestState[CoreId],
+                               TargetAddress,
+                               HookFunction,
+                               SetHookForRead,
+                               SetHookForWrite,
+                               SetHookForExec,
+                               EptHiddenHook2);
 }
 
 /**

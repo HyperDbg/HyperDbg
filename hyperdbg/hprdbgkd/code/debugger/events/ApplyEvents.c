@@ -339,16 +339,14 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
-                               Event->InitOptions.OptionalParam1,
-                               NULL,
-                               NULL,
-                               FALSE,
-                               FALSE,
-                               FALSE,
-                               TRUE,
-                               TRUE // Apply directly from VMX root-mode
-                               ))
+        if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
+                                          Event->InitOptions.OptionalParam1,
+                                          NULL,
+                                          NULL,
+                                          FALSE,
+                                          FALSE,
+                                          FALSE,
+                                          TRUE))
         {
             //
             // There was an error applying this event, so we're setting
@@ -396,9 +394,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
                                FALSE,
                                FALSE,
                                FALSE,
-                               TRUE,
-                               FALSE // Apply from VMX non root-mode
-                               ))
+                               TRUE))
         {
             //
             // There was an error applying this event, so we're setting

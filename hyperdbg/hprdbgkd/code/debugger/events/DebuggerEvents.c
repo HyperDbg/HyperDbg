@@ -97,15 +97,28 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
     //
     // Perform the EPT Hook
     //
-    return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
-                             Address,
-                             NULL,
-                             ProcessId,
-                             EnableForRead,
-                             EnableForWrite,
-                             EnableForExecute,
-                             FALSE,
-                             ApplyDirectlyFromVmxRoot);
+    if (ApplyDirectlyFromVmxRoot)
+    {
+        return ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
+                                            Address,
+                                            NULL,
+                                            ProcessId,
+                                            EnableForRead,
+                                            EnableForWrite,
+                                            EnableForExecute,
+                                            FALSE);
+    }
+    else
+    {
+        return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
+                                 Address,
+                                 NULL,
+                                 ProcessId,
+                                 EnableForRead,
+                                 EnableForWrite,
+                                 EnableForExecute,
+                                 FALSE);
+    }
 }
 
 /**

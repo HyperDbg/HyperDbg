@@ -272,8 +272,16 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForRead,
                   BOOLEAN SetHookForWrite,
                   BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2,
-                  BOOLEAN ApplyDirectlyFromVmxRoot);
+                  BOOLEAN EptHiddenHook2);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
