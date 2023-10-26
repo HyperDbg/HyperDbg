@@ -53,3 +53,6 @@ HaltedBroadcastInvalidateEptAllContextsAllCores();
 
 VOID
 HaltedBroadcastInvalidateSingleContextAllCores();
+
+VOID
+HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail);

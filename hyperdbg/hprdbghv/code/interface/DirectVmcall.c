@@ -317,3 +317,22 @@ DirectVmcallUnsetExceptionBitmap(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNSET_EXCEPTION_BITMAP, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for restoring a single EPT entry and invalidating EPT cache
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallUnhookSinglePage(UINT32                     CoreId,
+                             DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNHOOK_SINGLE_PAGE, DirectVmcallOptions);
+}

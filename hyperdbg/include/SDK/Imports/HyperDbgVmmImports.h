@@ -304,10 +304,9 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
                                     UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
-                                               UINT64    PhysAddress,
-                                               UINT64 *  TargetBasePhysicalAddress,
-                                               BOOLEAN * RemoveBreakpointExceptions);
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
@@ -372,6 +371,9 @@ DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * Di
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallUnsetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnhookSinglePage(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

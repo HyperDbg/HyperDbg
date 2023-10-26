@@ -52,7 +52,7 @@
 #define VMCALL_UNHOOK_ALL_PAGES 0x00000006
 
 /**
- * @brief VMCALL to remove a single physical address from hook list
+ * @brief VMCALL to restore a single EPT entry and invalidate EPT cache
  *
  */
 #define VMCALL_UNHOOK_SINGLE_PAGE 0x00000007

@@ -1636,10 +1636,12 @@ DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID Deferre
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
 
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail = (EPT_SINGLE_HOOK_UNHOOKING_DETAILS *)DeferredContext;
+
     //
     // Execute the VMCALL to remove the hook and invalidate
     //
-    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, DeferredContext, NULL, NULL);
+    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, UnhookingDetail->PhysicalAddress, UnhookingDetail->OriginalEntry, NULL);
 
     //
     // Wait for all DPCs to synchronize at this point

@@ -172,23 +172,19 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
  *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
- * @param TargetBasePhysicalAddress Target based address that should be used if the caller
- * directly calls this from VMX-root mode
- * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
- * not if applied directly from VMX-root mode
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
-                                               UINT64    PhysAddress,
-                                               UINT64 *  TargetBasePhysicalAddress,
-                                               BOOLEAN * RemoveBreakpointExceptions)
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     return EptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
                                                  PhysAddress,
-                                                 TargetBasePhysicalAddress,
-                                                 RemoveBreakpointExceptions);
+                                                 TargetUnhookingDetails);
 }
 
 /**

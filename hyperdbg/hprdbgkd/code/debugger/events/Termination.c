@@ -113,7 +113,14 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+        if (InputFromVmxRoot)
+        {
+            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL);
+        }
+        else
+        {
+            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+        }
     }
 }
 
@@ -128,9 +135,6 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
 VOID
 TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    BOOLEAN RemoveBreakpointExceptions = FALSE;
-    UINT64  PhysicalBaseAddressOfHook  = NULL;
-
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
@@ -147,23 +151,8 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     if (InputFromVmxRoot)
     {
-        ConfigureEptHookUnHookSingleAddressFromVmxRoot(Event->Options.OptionalParam1,
-                                                       NULL,
-                                                       &PhysicalBaseAddressOfHook,
-                                                       &RemoveBreakpointExceptions);
-
-        //
-        // It's the responsiblity of the caller to clear #BPs directly from
-        // VMX-root mode if applied from VMX-root mode
-        //
-        if (RemoveBreakpointExceptions)
-        {
-            //
-            // The hook was the last hook and we can broadcast to
-            // not intercept #BPs anymore
-            //
-            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
-        }
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(Event->Options.OptionalParam1,
+                                                                           NULL);
     }
     else
     {
@@ -198,7 +187,14 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    ConfigureEptHookUnHookSingleAddress(NULL, Event->Options.OptionalParam1, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL, Event->Options.OptionalParam1);
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(NULL, Event->Options.OptionalParam1, Event->ProcessId);
+    }
 }
 
 /**
@@ -1406,6 +1402,62 @@ TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                            
 
     //
     // Do not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 VirtualAddress,
+                                                                   UINT64 PhysAddress)
+{
+    BOOLEAN                           Result                 = FALSE;
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails = {0};
+
+    //
+    // Perform unhooking directly from VMX-root mode
+    //
+    Result = ConfigureEptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                            PhysAddress,
+                                                            &TargetUnhookingDetails);
+
+    if (Result == TRUE)
+    {
+        //
+        // It's the responsiblity of the caller to restore EPT entries and
+        // invalidate EPT caches
+        //
+        if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
+        {
+            HaltedBroadcastUnhookSinglePageAllCores(&TargetUnhookingDetails);
+        }
+
+        //
+        // It's the responsiblity of the caller to clear #BPs directly from
+        // VMX-root mode if applied from VMX-root mode
+        //
+        if (TargetUnhookingDetails.RemoveBreakpointInterception)
+        {
+            //
+            // The hook was the last hook and we can broadcast to
+            // not intercept #BPs anymore
+            //
+            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+        }
+
+        return TRUE;
+    }
+
+    //
+    // The result of removing EPT hook was not okay
     //
     return FALSE;
 }

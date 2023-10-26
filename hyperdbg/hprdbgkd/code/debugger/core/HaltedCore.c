@@ -199,6 +199,15 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE:
+    {
+        //
+        // restore a single EPT entry and invalidate EPT cache
+        //
+        DirectVmcallUnhookSinglePage(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

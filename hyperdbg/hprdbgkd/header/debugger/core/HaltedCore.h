@@ -117,6 +117,12 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP 0x00000011
 
+/**
+ * @brief Halted core task for restoring a single EPT entry and invalidating EPT cache
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE 0x00000012
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

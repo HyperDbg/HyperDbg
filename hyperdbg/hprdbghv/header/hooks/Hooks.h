@@ -75,6 +75,7 @@ typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
     LIST_ENTRY OtherHooksList;
     PVOID      HookedFunctionAddress;
     PVOID      ReturnAddress;
+
 } HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
 
 /**
@@ -302,11 +303,14 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
  *
  * @param VCpu
  * @param PhysicalAddress
+ * @param OriginalEntry
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu, SIZE_T PhysicalAddress);
+EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
+                                        SIZE_T                  PhysicalAddress,
+                                        UINT64                  OriginalEntry);
 
 /**
  * @brief Remove all hooks from the hooked pages lists (Should be called in vmx-root)
@@ -346,33 +350,14 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress,
  *
  * @param VirtualAddress
  * @param PhysAddress
- * @param TargetBasePhysicalAddress
- * @param RemoveBreakpointExceptions
+ * @param TargetUnhookingDetails
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
-                                      UINT64    PhysAddress,
-                                      UINT64 *  TargetBasePhysicalAddress,
-                                      BOOLEAN * RemoveBreakpointExceptions);
-
-/**
- * @brief Remove single hook from the hooked pages list and invalidate TLB
- * From VMX non-root mode
- *
- * @param VirtualAddress
- * @param PhysAddress
- * @param TargetBasePhysicalAddress
- * @param RemoveBreakpointExceptions
- *
- * @return BOOLEAN
- */
-BOOLEAN
-EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
-                                      UINT64    PhysAddress,
-                                      UINT64 *  TargetBasePhysicalAddress,
-                                      BOOLEAN * RemoveBreakpointExceptions);
+EptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                      UINT64                              PhysAddress,
+                                      EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
 
 /**
  * @brief get the length of active EPT hooks (!epthook and !epthook2)

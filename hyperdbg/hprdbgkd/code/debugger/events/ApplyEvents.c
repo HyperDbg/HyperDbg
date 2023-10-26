@@ -138,7 +138,17 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             //
             for (size_t j = 0; j < i; j++)
             {
-                ConfigureEptHookUnHookSingleAddress((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
+                if (InputFromVmxRoot)
+                {
+                    TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE),
+                                                                                       NULL);
+                }
+                else
+                {
+                    ConfigureEptHookUnHookSingleAddress((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE),
+                                                        NULL,
+                                                        Event->ProcessId);
+                }
             }
 
             break;
@@ -341,7 +351,6 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
                                           Event->InitOptions.OptionalParam1,
-                                          NULL,
                                           NULL,
                                           FALSE,
                                           FALSE,

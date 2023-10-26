@@ -654,15 +654,16 @@ EptHookFromVmxRoot(PVOID TargetAddress)
  *
  * @param VCpu The virtual processor's state
  * @param PhysicalAddress
+ * @param OriginalEntry
  *
  * @return BOOLEAN Return false if there was an error or returns true if it was successfull
  */
 BOOLEAN
-EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
-                                        SIZE_T                  PhysicalAddress)
+EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE *     VCpu,
+                                        SIZE_T                      PhysicalAddress,
+                                        UINT64 /* EPT_PML1_ENTRY */ OriginalEntry)
 {
-    PEPT_PML1_ENTRY          TargetPage;
-    EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
+    PEPT_PML1_ENTRY TargetPage;
 
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
@@ -671,20 +672,17 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
     {
         return FALSE;
     }
+    //
+    // Pointer to the page entry in the page table
+    //
+    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, PhysicalAddress);
 
-    HookedEntry = EptHookFindByPhysAddress(PAGE_ALIGN(PhysicalAddress));
-
-    if (HookedEntry != NULL)
+    if (TargetPage != NULL)
     {
-        //
-        // Pointer to the page entry in the page table
-        //
-        TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
-
         //
         // Apply the hook to EPT
         //
-        TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
+        TargetPage->AsUInt = OriginalEntry;
 
         //
         // Invalidate EPT Cache
@@ -695,7 +693,7 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
-    // Nothing found, probably the list is not found
+    // The PML1 entry not found
     //
     return FALSE;
 }
@@ -1739,24 +1737,38 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
  *
  * @param HookedEntry entry detail of hooked address
  * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it
  * was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
-                                  BOOLEAN                 ApplyDirectlyFromVmxRoot)
+EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
+                                  BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                  EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
+    //
+    // Set the unhooking details
+    //
+    TargetUnhookingDetails->PhysicalAddress = HookedEntry->PhysicalBaseAddress;
+    TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
+
     //
     // If applied directly from VMX-root mode, it's the responsiblity of the
     // caller to remove the hook and invalidate EPT caches for the target physical address
     //
-    if (!ApplyDirectlyFromVmxRoot)
+    if (ApplyDirectlyFromVmxRoot)
+    {
+        TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = TRUE;
+    }
+    else
     {
         //
         // Remove it in all the cores
         //
-        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+        TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
+        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
     }
 
     //
@@ -1851,17 +1863,17 @@ EptHookHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
  * @param HookedEntry entry detail of hooked address
  * @param VirtualAddress virtual address to unhook
  * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
- * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
- * not if applied directly from VMX-root mode
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it
  * was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
-                                           UINT64                  VirtualAddress,
-                                           BOOLEAN                 ApplyDirectlyFromVmxRoot,
-                                           BOOLEAN *               RemoveBreakpointExceptions)
+EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
+                                           UINT64                              VirtualAddress,
+                                           BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                           EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     UINT64 TargetAddressInFakePageContent;
     UINT32 CountOfEntriesWithSameAddr = 0;
@@ -1870,7 +1882,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
     // By default, the caller doesn't need to remove #BPs interceptions if directly
     // applied from VMX-root mode
     //
-    *RemoveBreakpointExceptions = FALSE;
+    TargetUnhookingDetails->RemoveBreakpointInterception = FALSE;
 
     //
     // It's a hidden breakpoint (we have to search through an array of addresses)
@@ -1889,15 +1901,29 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
             if (HookedEntry->CountOfBreakpoints == 1)
             {
                 //
+                // Set the unhooking details
+                //
+                TargetUnhookingDetails->PhysicalAddress = HookedEntry->PhysicalBaseAddress;
+                TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
+
+                //
                 // If applied directly from VMX-root mode, it's the responsiblity of the
                 // caller to remove the hook and invalidate EPT caches for the target physical address
                 //
-                if (!ApplyDirectlyFromVmxRoot)
+                if (ApplyDirectlyFromVmxRoot)
+                {
+                    //
+                    // The caller is responsibe for restoring EPT entry and invalidate caches
+                    //
+                    TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = TRUE;
+                }
+                else
                 {
                     //
                     // Remove the hook entirely on all cores
                     //
-                    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+                    TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
+                    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
                 }
 
                 //
@@ -1925,20 +1951,23 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
                     // If applied directly from VMX-root mode, it's the responsiblity of the
                     // caller to broadcast to disable breakpoint exceptions on all cores
                     //
-                    if (!ApplyDirectlyFromVmxRoot)
+                    if (ApplyDirectlyFromVmxRoot)
+                    {
+                        //
+                        // Set whether it was the last hook (and the caller if applied from VMX-root needed
+                        // to broadcast to disable #BPs interception on exception bitmaps or not)
+                        //
+                        TargetUnhookingDetails->RemoveBreakpointInterception = TRUE;
+                    }
+                    else
                     {
                         //
                         // Did not find any entry, let's disable the breakpoints vm-exits
                         // on exception bitmaps
                         //
+                        TargetUnhookingDetails->RemoveBreakpointInterception = FALSE;
                         BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
                     }
-
-                    //
-                    // Set whether it was the last hook (and the caller if applied from VMX-root needed
-                    // to broadcast to disable #BPs interception on exception bitmaps or not)
-                    //
-                    *RemoveBreakpointExceptions = TRUE;
                 }
 
                 return TRUE;
@@ -2012,20 +2041,17 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
  * @param ProcessId The process id of target process
  * (in unhooking for some hooks only physical address is availables)
  * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
- * @param TargetBasePhysicalAddress Target based address that should be used if the caller
- * directly calls this from VMX-root mode
- * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
- * not if applied directly from VMX-root mode
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
-                                  UINT64    PhysAddress,
-                                  UINT32    ProcessId,
-                                  BOOLEAN   ApplyDirectlyFromVmxRoot,
-                                  UINT64 *  TargetBasePhysicalAddress,
-                                  BOOLEAN * RemoveBreakpointExceptions)
+EptHookPerformUnHookSingleAddress(UINT64                              VirtualAddress,
+                                  UINT64                              PhysAddress,
+                                  UINT32                              ProcessId,
+                                  BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                  EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     SIZE_T PhysicalAddress;
 
@@ -2060,12 +2086,6 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, CurrEntity)
     {
         //
-        // Set the actual physical base address so if the caller needs to manually (directly from
-        // VMX root-mode) remove the hook, can use it as the base physical address
-        //
-        *TargetBasePhysicalAddress = CurrEntity->PhysicalBaseAddress;
-
-        //
         // Check if it's a hidden breakpoint or hidden detours
         //
         if (CurrEntity->IsHiddenBreakpoint)
@@ -2080,7 +2100,7 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
                     return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity,
                                                                       VirtualAddress,
                                                                       ApplyDirectlyFromVmxRoot,
-                                                                      RemoveBreakpointExceptions);
+                                                                      TargetUnhookingDetails);
                 }
             }
         }
@@ -2091,7 +2111,9 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
             //
             if (CurrEntity->PhysicalBaseAddress == PhysicalAddress)
             {
-                return EptHookUnHookSingleAddressDetours(CurrEntity, ApplyDirectlyFromVmxRoot);
+                return EptHookUnHookSingleAddressDetours(CurrEntity,
+                                                         ApplyDirectlyFromVmxRoot,
+                                                         TargetUnhookingDetails);
             }
         }
     }
@@ -2118,8 +2140,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress,
                            UINT64 PhysAddress,
                            UINT32 ProcessId)
 {
-    UINT64  BasePhysicalAddress;        // not used
-    BOOLEAN RemoveBreakpointExceptions; // not used
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails; // not used
 
     //
     // Should be called from VMX non-root
@@ -2133,8 +2154,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress,
                                              PhysAddress,
                                              ProcessId,
                                              FALSE,
-                                             &BasePhysicalAddress,
-                                             &RemoveBreakpointExceptions);
+                                             &TargetUnhookingDetails);
 }
 
 /**
@@ -2143,18 +2163,15 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress,
  *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
- * @param TargetBasePhysicalAddress Target based address that should be used if the caller
- * directly calls this from VMX-root mode
- * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
- * not if applied directly from VMX-root mode
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
-                                      UINT64    PhysAddress,
-                                      UINT64 *  TargetBasePhysicalAddress,
-                                      BOOLEAN * RemoveBreakpointExceptions)
+EptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                      UINT64                              PhysAddress,
+                                      EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     //
     // Should be called from VMX root-mode
@@ -2168,8 +2185,7 @@ EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
                                              PhysAddress,
                                              NULL,
                                              TRUE,
-                                             TargetBasePhysicalAddress,
-                                             RemoveBreakpointExceptions);
+                                             TargetUnhookingDetails);
 }
 
 /**

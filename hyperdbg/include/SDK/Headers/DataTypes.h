@@ -312,6 +312,19 @@ typedef struct _EPT_HOOKS_CONTEXT
     UINT64 VirtualAddress;
 } EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
 
+/**
+ * @brief Details of unhooking single EPT hooks
+ *
+ */
+typedef struct _EPT_SINGLE_HOOK_UNHOOKING_DETAILS
+{
+    BOOLEAN                     CallerNeedsToRestoreEntryAndInvalidateEpt;
+    BOOLEAN                     RemoveBreakpointInterception;
+    SIZE_T                      PhysicalAddress;
+    UINT64 /* EPT_PML1_ENTRY */ OriginalEntry;
+
+} EPT_SINGLE_HOOK_UNHOOKING_DETAILS, *PEPT_SINGLE_HOOK_UNHOOKING_DETAILS;
+
 //////////////////////////////////////////////////
 //                 Segment Types                //
 //////////////////////////////////////////////////

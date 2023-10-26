@@ -404,3 +404,38 @@ HaltedBroadcastInvalidateSingleContextAllCores()
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts restore a single EPT entry and invalidate EPT cache to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @param UnhookingDetail
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = UnhookingDetail->PhysicalAddress;
+    DirectVmcallOptions.OptionalParam2 = UnhookingDetail->OriginalEntry;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
