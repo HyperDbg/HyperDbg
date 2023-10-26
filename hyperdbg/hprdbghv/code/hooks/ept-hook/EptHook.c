@@ -1879,7 +1879,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
     // is the HookedEntry that should be remove (not the first one as it has the
     // correct PreviousByte)
     //
-    for (size_t i = HookedEntry->CountOfBreakpoints; i > 0; i--)
+    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -1973,7 +1973,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
 
                 //
                 // Remove just that special entry
-                // Btw, No need to remove it, it will be replaced automatically
+                // BTW, No need to remove it, it will be replaced automatically
                 //
                 HookedEntry->BreakpointAddresses[i]                = NULL;
                 HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
@@ -1982,7 +1982,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry,
                 // all addresses to a lower array index (because one entry is
                 // missing and might) be in the middle of the array
                 //
-                for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
+                for (int j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
                 {
                     HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
                     HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
@@ -2045,7 +2045,7 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
     {
         if (ApplyDirectlyFromVmxRoot)
         {
-            PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(VirtualAddress, ProcessId));
+            PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(VirtualAddress));
         }
         else
         {
@@ -2073,10 +2073,16 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
             //
             // It's a hidden breakpoint
             //
-            return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity,
-                                                              VirtualAddress,
-                                                              ApplyDirectlyFromVmxRoot,
-                                                              RemoveBreakpointExceptions);
+            for (size_t i = 0; i < CurrEntity->CountOfBreakpoints; i++)
+            {
+                if (CurrEntity->BreakpointAddresses[i] == VirtualAddress)
+                {
+                    return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity,
+                                                                      VirtualAddress,
+                                                                      ApplyDirectlyFromVmxRoot,
+                                                                      RemoveBreakpointExceptions);
+                }
+            }
         }
         else
         {
@@ -2098,7 +2104,7 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
- * @details Should be called from vmx non-root
+ * @details Should be called from VMX non-root
  *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
@@ -2108,13 +2114,15 @@ EptHookPerformUnHookSingleAddress(UINT64    VirtualAddress,
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
+EptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                           UINT64 PhysAddress,
+                           UINT32 ProcessId)
 {
     UINT64  BasePhysicalAddress;        // not used
     BOOLEAN RemoveBreakpointExceptions; // not used
 
     //
-    // Should be called from vmx non-root
+    // Should be called from VMX non-root
     //
     if (VmxGetCurrentExecutionMode() == TRUE)
     {
@@ -2127,6 +2135,41 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
                                              FALSE,
                                              &BasePhysicalAddress,
                                              &RemoveBreakpointExceptions);
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from VMX root-mode
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param TargetBasePhysicalAddress Target based address that should be used if the caller
+ * directly calls this from VMX-root mode
+ * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
+ * not if applied directly from VMX-root mode
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
+                                      UINT64    PhysAddress,
+                                      UINT64 *  TargetBasePhysicalAddress,
+                                      BOOLEAN * RemoveBreakpointExceptions)
+{
+    //
+    // Should be called from VMX root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformUnHookSingleAddress(VirtualAddress,
+                                             PhysAddress,
+                                             NULL,
+                                             TRUE,
+                                             TargetBasePhysicalAddress,
+                                             RemoveBreakpointExceptions);
 }
 
 /**

@@ -298,3 +298,22 @@ DirectVmcallInvalidateSingleContext(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_INVEPT_SINGLE_CONTEXT, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for unsetting exception bitmap on VMCS
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallUnsetExceptionBitmap(UINT32                     CoreId,
+                                 DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNSET_EXCEPTION_BITMAP, DirectVmcallOptions);
+}

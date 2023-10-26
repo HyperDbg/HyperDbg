@@ -190,6 +190,15 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP:
+    {
+        //
+        // unset exception bitmap on VMCS
+        //
+        DirectVmcallUnsetExceptionBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

@@ -328,6 +328,7 @@ EptHookUnHookAll();
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * From VMX non-root mode
  *
  * @param VirtualAddress
  * @param PhysAddress
@@ -335,7 +336,43 @@ EptHookUnHookAll();
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+EptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                           UINT64 PhysAddress,
+                           UINT32 ProcessId);
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * From VMX root-mode
+ *
+ * @param VirtualAddress
+ * @param PhysAddress
+ * @param TargetBasePhysicalAddress
+ * @param RemoveBreakpointExceptions
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
+                                      UINT64    PhysAddress,
+                                      UINT64 *  TargetBasePhysicalAddress,
+                                      BOOLEAN * RemoveBreakpointExceptions);
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * From VMX non-root mode
+ *
+ * @param VirtualAddress
+ * @param PhysAddress
+ * @param TargetBasePhysicalAddress
+ * @param RemoveBreakpointExceptions
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
+                                      UINT64    PhysAddress,
+                                      UINT64 *  TargetBasePhysicalAddress,
+                                      BOOLEAN * RemoveBreakpointExceptions);
 
 /**
  * @brief get the length of active EPT hooks (!epthook and !epthook2)

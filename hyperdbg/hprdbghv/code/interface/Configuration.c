@@ -157,9 +157,38 @@ ConfigureDisableEferSyscallEventsOnAllProcessors()
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId)
 {
     return EptHookUnHookSingleAddress(VirtualAddress, PhysAddress, ProcessId);
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode and it's the responsiblity
+ * of caller to broadcast to all cores to remove the target physical address
+ * and invalidate EPT and modify exception bitmap (#BPs) if needed
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param TargetBasePhysicalAddress Target based address that should be used if the caller
+ * directly calls this from VMX-root mode
+ * @param RemoveBreakpointExceptions whether the caller should remove breakpoint exception or
+ * not if applied directly from VMX-root mode
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
+                                               UINT64    PhysAddress,
+                                               UINT64 *  TargetBasePhysicalAddress,
+                                               BOOLEAN * RemoveBreakpointExceptions)
+{
+    return EptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                 PhysAddress,
+                                                 TargetBasePhysicalAddress,
+                                                 RemoveBreakpointExceptions);
 }
 
 /**

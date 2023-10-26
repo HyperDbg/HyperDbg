@@ -284,16 +284,30 @@ ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
                              BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
+                                            PVOID   PhysicalAddress,
+                                            BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageReadState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyPageReadState(UINT32  CoreId,
+                                    PVOID   PhysicalAddress,
+                                    BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
+                                     PVOID   PhysicalAddress,
+                                     BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64    VirtualAddress,
+                                               UINT64    PhysAddress,
+                                               UINT64 *  TargetBasePhysicalAddress,
+                                               BOOLEAN * RemoveBreakpointExceptions);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
@@ -355,6 +369,9 @@ DirectVmcallInvalidateEptAllContexts(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * D
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnsetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

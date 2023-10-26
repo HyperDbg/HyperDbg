@@ -111,6 +111,12 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT 0x00000010
 
+/**
+ * @brief Halted core task for unsetting exception bitmap on VMCS
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP 0x00000011
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

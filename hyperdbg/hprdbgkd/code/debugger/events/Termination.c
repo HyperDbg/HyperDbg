@@ -128,6 +128,9 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
 VOID
 TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
+    BOOLEAN RemoveBreakpointExceptions = FALSE;
+    UINT64  PhysicalBaseAddressOfHook  = NULL;
+
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
@@ -142,7 +145,30 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1, NULL, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        ConfigureEptHookUnHookSingleAddressFromVmxRoot(Event->Options.OptionalParam1,
+                                                       NULL,
+                                                       &PhysicalBaseAddressOfHook,
+                                                       &RemoveBreakpointExceptions);
+
+        //
+        // It's the responsiblity of the caller to clear #BPs directly from
+        // VMX-root mode if applied from VMX-root mode
+        //
+        if (RemoveBreakpointExceptions)
+        {
+            //
+            // The hook was the last hook and we can broadcast to
+            // not intercept #BPs anymore
+            //
+            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+        }
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1, NULL, Event->ProcessId);
+    }
 }
 
 /**
