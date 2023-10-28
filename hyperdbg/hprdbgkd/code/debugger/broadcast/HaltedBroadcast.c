@@ -659,3 +659,67 @@ HaltedBroadcastDisableEferSyscallEventsAllCores()
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts clear mov 2 hw dr exiting bit ONLY in the case of
+ * disabling the events for !dr command to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts clear mov 2 cr exiting bit ONLY in the case of disabling
+ * the events for !crwrite command to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @param BroadcastingOption
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = BroadcastingOption->OptionalParam1;
+    DirectVmcallOptions.OptionalParam2 = BroadcastingOption->OptionalParam2;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

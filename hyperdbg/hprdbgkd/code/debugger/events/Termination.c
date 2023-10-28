@@ -966,7 +966,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1007,7 +1014,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
     }
 }
 
@@ -1036,7 +1050,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1077,7 +1098,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
     }
 }
 

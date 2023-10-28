@@ -489,3 +489,43 @@ DirectVmcallDisableEferSyscallEvents(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for clearing mov 2 hw dr exiting bit ONLY in the case of disabling
+ * the events for !dr command
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallDisableMov2DrExitingForClearingDrEvents(UINT32                     CoreId,
+                                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for clearing mov 2 cr exiting bit ONLY in the case of disabling
+ * the events for !crwrite command
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallDisableMov2CrExitingForClearingCrEvents(UINT32                     CoreId,
+                                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS, DirectVmcallOptions);
+}

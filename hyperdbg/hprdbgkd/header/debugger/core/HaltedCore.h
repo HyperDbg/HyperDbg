@@ -172,6 +172,20 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER 0x0000001a
 
+/**
+ * @brief Halted core task for clearing mov 2 hw dr exiting bit ONLY in the case of
+ * disabling the events for !dr command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x0000001b
+
+/**
+ * @brief Halted core task for clearing mov 2 cr exiting bit ONLY in the case of disabling
+ * the events for !crwrite command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS 0x0000001c
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

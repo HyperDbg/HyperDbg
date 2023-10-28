@@ -280,6 +280,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS:
+    {
+        //
+        // clear mov 2 hw dr exiting bit ONLY in the case of disabling the events for !dr command
+        //
+        DirectVmcallDisableMov2DrExitingForClearingDrEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS:
+    {
+        //
+        // clear mov 2 cr exiting bit ONLY in the case of disabling the events for !crwrite command
+        //
+        DirectVmcallDisableMov2CrExitingForClearingCrEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

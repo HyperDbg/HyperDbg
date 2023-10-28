@@ -80,3 +80,9 @@ HaltedBroadcastDisableRdpmcExitingAllCores();
 
 VOID
 HaltedBroadcastDisableEferSyscallEventsAllCores();
+
+VOID
+HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+
+VOID
+HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
