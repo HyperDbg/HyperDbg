@@ -129,11 +129,14 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
     {
         if (InputFromVmxRoot)
         {
-            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL);
+            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                                               NULL);
         }
         else
         {
-            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                NULL,
+                                                Event->ProcessId);
         }
     }
 }
@@ -170,7 +173,9 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     }
     else
     {
-        ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1, NULL, Event->ProcessId);
+        ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1,
+                                            NULL,
+                                            Event->ProcessId);
     }
 }
 
@@ -203,11 +208,14 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     //
     if (InputFromVmxRoot)
     {
-        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL, Event->Options.OptionalParam1);
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL,
+                                                                           Event->Options.OptionalParam1);
     }
     else
     {
-        ConfigureEptHookUnHookSingleAddress(NULL, Event->Options.OptionalParam1, Event->ProcessId);
+        ConfigureEptHookUnHookSingleAddress(NULL,
+                                            Event->Options.OptionalParam1,
+                                            Event->ProcessId);
     }
 }
 
@@ -722,8 +730,16 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
 
         //
         // We have to uninitialize the event
+        // If the debugger is in the Debugger Mode, we prefer not to uninitialize the
+        // exec mode trap because re-activating it needs a special command (preactivate)
+        // to be used so if the user needs to re-create such a functionality again
+        // after removing it, then it's not needed to re-run the 'preactivate' command
+        // again
         //
-        ConfigureUninitializeExecTrapOnAllProcessors();
+        if (!InputFromVmxRoot)
+        {
+            ConfigureUninitializeExecTrapOnAllProcessors();
+        }
 
         //
         // Remove the process id from the watching list
