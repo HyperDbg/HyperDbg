@@ -390,6 +390,12 @@ DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(UINT32 CoreId, DIR
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallResetIoBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdtscExitingForClearingTscEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdpmcExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////

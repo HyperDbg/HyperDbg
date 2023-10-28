@@ -575,3 +575,59 @@ HaltedBroadcastResetIoBitmapAllCores()
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts clear rdtsc exiting bit ONLY in the case of disabling
+ * the events for !tsc command to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts disable rdpmc exiting in primary cpu-based
+ * controls to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastDisableRdpmcExitingAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

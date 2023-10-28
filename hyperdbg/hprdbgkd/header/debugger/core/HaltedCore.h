@@ -153,6 +153,19 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP 0x00000017
 
+/**
+ * @brief Halted core task for clearing rdtsc exiting bit ONLY in the case of disabling
+ * the events for !tsc command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x00000018
+
+/**
+ * @brief Halted core task for disabling rdpmc exiting in primary cpu-based controls
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING 0x00000019
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

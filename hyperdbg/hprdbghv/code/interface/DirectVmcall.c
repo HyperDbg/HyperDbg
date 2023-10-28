@@ -431,3 +431,42 @@ DirectVmcallResetIoBitmap(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_RESET_IO_BITMAP, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for clearing rdtsc exiting bit ONLY in the case of disabling
+ * the events for !tsc command
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallDisableRdtscExitingForClearingTscEvents(UINT32                     CoreId,
+                                                    DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for disabling rdpmc exiting in primary cpu-based controls
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallDisableRdpmcExiting(UINT32                     CoreId,
+                                DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNSET_RDPMC_EXITING, DirectVmcallOptions);
+}

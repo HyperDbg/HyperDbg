@@ -253,6 +253,24 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS:
+    {
+        //
+        // clear rdtsc exiting bit ONLY in the case of disabling the events for !tsc command
+        //
+        DirectVmcallDisableRdtscExitingForClearingTscEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING:
+    {
+        //
+        // disable rdpmc exiting in primary cpu-based controls
+        //
+        DirectVmcallDisableRdpmcExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

@@ -798,7 +798,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -839,7 +846,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
     }
 }
 
@@ -868,7 +882,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -909,7 +930,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all the cores
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
     }
 }
 

@@ -71,3 +71,9 @@ HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
 
 VOID
 HaltedBroadcastResetIoBitmapAllCores();
+
+VOID
+HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+
+VOID
+HaltedBroadcastDisableRdpmcExitingAllCores();
