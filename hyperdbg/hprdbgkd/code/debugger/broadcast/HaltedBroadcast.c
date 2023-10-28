@@ -631,3 +631,31 @@ HaltedBroadcastDisableRdpmcExitingAllCores()
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts disable syscall hook using EFER SCE bit
+ * controls to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastDisableEferSyscallEventsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

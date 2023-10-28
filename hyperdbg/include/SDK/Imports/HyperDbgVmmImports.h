@@ -396,6 +396,9 @@ DirectVmcallDisableRdtscExitingForClearingTscEvents(UINT32 CoreId, DIRECT_VMCALL
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallDisableRdpmcExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableEferSyscallEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////

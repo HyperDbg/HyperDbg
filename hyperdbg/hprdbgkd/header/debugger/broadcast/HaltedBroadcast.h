@@ -77,3 +77,6 @@ HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
 
 VOID
 HaltedBroadcastDisableRdpmcExitingAllCores();
+
+VOID
+HaltedBroadcastDisableEferSyscallEventsAllCores();

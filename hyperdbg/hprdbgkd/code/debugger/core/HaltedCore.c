@@ -271,6 +271,15 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER:
+    {
+        //
+        // disable syscall hook using EFER SCE bit
+        //
+        DirectVmcallDisableEferSyscallEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

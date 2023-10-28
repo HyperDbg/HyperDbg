@@ -1113,7 +1113,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1154,7 +1161,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 
@@ -1190,7 +1204,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1231,7 +1252,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 

@@ -166,6 +166,12 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING 0x00000019
 
+/**
+ * @brief Halted core task for disabling syscall hook using EFER SCE bit
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER 0x0000001a
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

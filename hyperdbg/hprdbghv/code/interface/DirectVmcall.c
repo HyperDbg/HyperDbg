@@ -470,3 +470,22 @@ DirectVmcallDisableRdpmcExiting(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNSET_RDPMC_EXITING, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for disabling syscall hook using EFER SCE bit
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallDisableEferSyscallEvents(UINT32                     CoreId,
+                                     DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_SYSCALL_HOOK_EFER, DirectVmcallOptions);
+}
