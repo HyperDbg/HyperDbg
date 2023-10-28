@@ -208,6 +208,51 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS:
+    {
+        //
+        // disable external interrupt exiting only to clear !interrupt commands
+        //
+        DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_READ:
+    {
+        //
+        // reset MSR Bitmap Read
+        //
+        DirectVmcallResetMsrBitmapRead(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_WRITE:
+    {
+        //
+        // reset MSR Bitmap Write
+        //
+        DirectVmcallResetMsrBitmapWrite(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS:
+    {
+        //
+        // reset exception bitmap on VMCS
+        //
+        DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP:
+    {
+        //
+        // reset I/O Bitmaps (A & B)
+        //
+        DirectVmcallResetIoBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

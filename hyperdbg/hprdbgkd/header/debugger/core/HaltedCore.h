@@ -123,6 +123,36 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE 0x00000012
 
+/**
+ * @brief Halted core task for disabling external interrupt exiting only to clear !interrupt commands
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS 0x00000013
+
+/**
+ * @brief Halted core task for resetting MSR Bitmap Read
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_READ 0x00000014
+
+/**
+ * @brief Halted core task for resetting MSR Bitmap Write
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_WRITE 0x00000015
+
+/**
+ * @brief Halted core task for resetting exception bitmap on VMCS
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x00000016
+
+/**
+ * @brief Halted core task for resetting I/O Bitmaps (A & B)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP 0x00000017
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

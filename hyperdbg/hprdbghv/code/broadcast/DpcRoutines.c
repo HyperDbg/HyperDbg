@@ -1133,7 +1133,7 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
     //
     // Reset Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, NULL, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

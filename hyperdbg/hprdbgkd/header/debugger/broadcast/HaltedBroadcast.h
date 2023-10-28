@@ -56,3 +56,18 @@ HaltedBroadcastInvalidateSingleContextAllCores();
 
 VOID
 HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail);
+
+VOID
+HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+
+VOID
+HaltedBroadcastResetMsrBitmapReadAllCores();
+
+VOID
+HaltedBroadcastResetMsrBitmapWriteAllCores();
+
+VOID
+HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+
+VOID
+HaltedBroadcastResetIoBitmapAllCores();

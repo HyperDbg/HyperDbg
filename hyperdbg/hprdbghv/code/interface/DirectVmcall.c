@@ -336,3 +336,98 @@ DirectVmcallUnhookSinglePage(UINT32                     CoreId,
     //
     return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_UNHOOK_SINGLE_PAGE, DirectVmcallOptions);
 }
+
+/**
+ * @brief routines for disabling external interrupt exiting only to clear !interrupt commands
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(UINT32                     CoreId,
+                                                                            DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for resetting MSR Bitmap Read
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallResetMsrBitmapRead(UINT32                     CoreId,
+                               DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_RESET_MSR_BITMAP_READ, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for resetting MSR Bitmap Write
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallResetMsrBitmapWrite(UINT32                     CoreId,
+                                DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_RESET_MSR_BITMAP_WRITE, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for resetting exception bitmap on VMCS
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(UINT32                     CoreId,
+                                                              DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, DirectVmcallOptions);
+}
+
+/**
+ * @brief routines for resetting I/O Bitmaps (A & B)
+ * @details Should be called from VMX root-mode
+ *
+ * @param CoreId
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+NTSTATUS
+DirectVmcallResetIoBitmap(UINT32                     CoreId,
+                          DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions)
+{
+    //
+    // Call the VMCALL handler (directly)
+    //
+    return VmxVmcallDirectVmcallHandler(&g_GuestState[CoreId], VMCALL_RESET_IO_BITMAP, DirectVmcallOptions);
+}

@@ -37,7 +37,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -78,7 +85,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to disable on all cores
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
     }
 }
 
@@ -222,7 +236,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -263,7 +284,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
     }
 }
 
@@ -292,7 +320,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -333,7 +368,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
     }
 }
 
@@ -362,7 +404,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -403,7 +452,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset exception bitmap on all cores
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
     }
 }
 
@@ -439,7 +495,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -480,7 +543,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 
@@ -516,7 +586,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -557,7 +634,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 

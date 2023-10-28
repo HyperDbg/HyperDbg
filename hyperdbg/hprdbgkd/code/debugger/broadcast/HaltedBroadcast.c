@@ -439,3 +439,139 @@ HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * Unho
                                     TRUE,
                                     &DirectVmcallOptions);
 }
+
+/**
+ * @brief This function broadcasts disable external interrupt exiting only to clear !interrupt commands to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts reset MSR Bitmap Read to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastResetMsrBitmapReadAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_READ;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts reset MSR Bitmap Write to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastResetMsrBitmapWriteAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_WRITE;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts reset exception bitmap on VMCS to all cores
+ * @details Should be called from VMX root-mode
+ * THIS VMCALL SHOULD BE USED ONLY IN RESETING (CLEARING) EXCEPTION EVENTS
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}
+
+/**
+ * @brief This function broadcasts reset I/O Bitmaps (A & B) to all cores
+ * @details Should be called from VMX root-mode
+ *
+ * @return VOID
+ */
+VOID
+HaltedBroadcastResetIoBitmapAllCores()
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+                                    HaltedCoreTask,
+                                    TRUE,
+                                    TRUE,
+                                    &DirectVmcallOptions);
+}

@@ -375,6 +375,21 @@ DirectVmcallUnsetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * Direc
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallUnhookSinglePage(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapWrite(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetIoBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
 //////////////////////////////////////////////////
 //                General Functions 	   		//
 //////////////////////////////////////////////////
