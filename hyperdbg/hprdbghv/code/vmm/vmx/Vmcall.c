@@ -223,7 +223,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_UNHOOK_SINGLE_PAGE:
     {
-        if (EptHookRestoreSingleHookToOriginalEntry(VCpu, OptionalParam1))
+        if (EptHookRestoreSingleHookToOriginalEntry(VCpu, OptionalParam1, OptionalParam2))
             VmcallStatus = STATUS_SUCCESS;
         else
             VmcallStatus = STATUS_UNSUCCESSFUL;

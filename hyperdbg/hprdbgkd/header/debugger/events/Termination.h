@@ -71,6 +71,10 @@ VOID
 TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);
 
 BOOLEAN
+TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 VirtualAddress,
+                                                                   UINT64 PhysAddress);
+
+BOOLEAN
 TerminateQueryDebuggerResource(UINT32                               CoreId,
                                PROTECTED_HV_RESOURCES_TYPE          ResourceType,
                                PVOID                                Context,

@@ -40,6 +40,9 @@ VOID
 HaltedBroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
 
 VOID
+HaltedBroadcastUnSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+
+VOID
 HaltedBroadcastEnableMovToCrExitingAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
 
 VOID
@@ -50,3 +53,36 @@ HaltedBroadcastInvalidateEptAllContextsAllCores();
 
 VOID
 HaltedBroadcastInvalidateSingleContextAllCores();
+
+VOID
+HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail);
+
+VOID
+HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+
+VOID
+HaltedBroadcastResetMsrBitmapReadAllCores();
+
+VOID
+HaltedBroadcastResetMsrBitmapWriteAllCores();
+
+VOID
+HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+
+VOID
+HaltedBroadcastResetIoBitmapAllCores();
+
+VOID
+HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+
+VOID
+HaltedBroadcastDisableRdpmcExitingAllCores();
+
+VOID
+HaltedBroadcastDisableEferSyscallEventsAllCores();
+
+VOID
+HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+
+VOID
+HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption);

@@ -37,7 +37,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -78,7 +85,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to disable on all cores
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
     }
 }
 
@@ -113,7 +127,17 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+        if (InputFromVmxRoot)
+        {
+            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                                               NULL);
+        }
+        else
+        {
+            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                NULL,
+                                                Event->ProcessId);
+        }
     }
 }
 
@@ -142,7 +166,17 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1, NULL, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(Event->Options.OptionalParam1,
+                                                                           NULL);
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1,
+                                            NULL,
+                                            Event->ProcessId);
+    }
 }
 
 /**
@@ -172,7 +206,17 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    ConfigureEptHookUnHookSingleAddress(NULL, Event->Options.OptionalParam1, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL,
+                                                                           Event->Options.OptionalParam1);
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(NULL,
+                                            Event->Options.OptionalParam1,
+                                            Event->ProcessId);
+    }
 }
 
 /**
@@ -200,7 +244,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -241,7 +292,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
     }
 }
 
@@ -270,7 +328,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -311,7 +376,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
     }
 }
 
@@ -340,7 +412,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -381,7 +460,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Broadcast to reset exception bitmap on all cores
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
     }
 }
 
@@ -417,7 +503,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -458,7 +551,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 
@@ -494,7 +594,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -535,7 +642,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 
@@ -616,8 +730,16 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
 
         //
         // We have to uninitialize the event
+        // If the debugger is in the Debugger Mode, we prefer not to uninitialize the
+        // exec mode trap because re-activating it needs a special command (preactivate)
+        // to be used so if the user needs to re-create such a functionality again
+        // after removing it, then it's not needed to re-run the 'preactivate' command
+        // again
         //
-        ConfigureUninitializeExecTrapOnAllProcessors();
+        if (!InputFromVmxRoot)
+        {
+            ConfigureUninitializeExecTrapOnAllProcessors();
+        }
 
         //
         // Remove the process id from the watching list
@@ -692,7 +814,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -733,7 +862,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
     }
 }
 
@@ -762,7 +898,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -803,7 +946,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all the cores
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
     }
 }
 
@@ -832,7 +982,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -873,7 +1030,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
     }
 }
 
@@ -902,7 +1066,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -943,7 +1114,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
     }
 }
 
@@ -979,7 +1157,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1020,7 +1205,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 
@@ -1056,7 +1248,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1097,7 +1296,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 
@@ -1380,6 +1586,62 @@ TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                            
 
     //
     // Do not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 VirtualAddress,
+                                                                   UINT64 PhysAddress)
+{
+    BOOLEAN                           Result                 = FALSE;
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails = {0};
+
+    //
+    // Perform unhooking directly from VMX-root mode
+    //
+    Result = ConfigureEptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                            PhysAddress,
+                                                            &TargetUnhookingDetails);
+
+    if (Result == TRUE)
+    {
+        //
+        // It's the responsiblity of the caller to restore EPT entries and
+        // invalidate EPT caches
+        //
+        if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
+        {
+            HaltedBroadcastUnhookSinglePageAllCores(&TargetUnhookingDetails);
+        }
+
+        //
+        // It's the responsiblity of the caller to clear #BPs directly from
+        // VMX-root mode if applied from VMX-root mode
+        //
+        if (TargetUnhookingDetails.RemoveBreakpointInterception)
+        {
+            //
+            // The hook was the last hook and we can broadcast to
+            // not intercept #BPs anymore
+            //
+            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+        }
+
+        return TRUE;
+    }
+
+    //
+    // The result of removing EPT hook was not okay
     //
     return FALSE;
 }

@@ -75,6 +75,7 @@ typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
     LIST_ENTRY OtherHooksList;
     PVOID      HookedFunctionAddress;
     PVOID      ReturnAddress;
+
 } HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
 
 /**
@@ -231,7 +232,7 @@ BOOLEAN
 EptHookFromVmxRoot(PVOID TargetAddress);
 
 /**
- * @brief Hook in VMX Non Root Mode (hidden detours)
+ * @brief Hook in VMX non-root mode (hidden detours)
  *
  * @param VCpu
  * @param TargetAddress
@@ -241,7 +242,6 @@ EptHookFromVmxRoot(PVOID TargetAddress);
  * @param SetHookForWrite
  * @param SetHookForExec
  * @param EptHiddenHook2
- * @param ApplyDirectlyFromVmxRoot
  *
  * @return BOOLEAN
  */
@@ -253,8 +253,29 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
          BOOLEAN                 SetHookForRead,
          BOOLEAN                 SetHookForWrite,
          BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2,
-         BOOLEAN                 ApplyDirectlyFromVmxRoot);
+         BOOLEAN                 EptHiddenHook2);
+
+/**
+ * @brief Hook in VMX root-mode (hidden detours)
+ *
+ * @param VCpu
+ * @param TargetAddress
+ * @param HookFunction
+ * @param SetHookForRead
+ * @param SetHookForWrite
+ * @param SetHookForExec
+ * @param EptHiddenHook2
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
+                    PVOID                   TargetAddress,
+                    PVOID                   HookFunction,
+                    BOOLEAN                 SetHookForRead,
+                    BOOLEAN                 SetHookForWrite,
+                    BOOLEAN                 SetHookForExec,
+                    BOOLEAN                 EptHiddenHook2);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode
@@ -282,11 +303,14 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
  *
  * @param VCpu
  * @param PhysicalAddress
+ * @param OriginalEntry
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu, SIZE_T PhysicalAddress);
+EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
+                                        SIZE_T                  PhysicalAddress,
+                                        UINT64                  OriginalEntry);
 
 /**
  * @brief Remove all hooks from the hooked pages lists (Should be called in vmx-root)
@@ -308,6 +332,7 @@ EptHookUnHookAll();
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * From VMX non-root mode
  *
  * @param VirtualAddress
  * @param PhysAddress
@@ -315,7 +340,24 @@ EptHookUnHookAll();
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+EptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                           UINT64 PhysAddress,
+                           UINT32 ProcessId);
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * From VMX root-mode
+ *
+ * @param VirtualAddress
+ * @param PhysAddress
+ * @param TargetUnhookingDetails
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                      UINT64                              PhysAddress,
+                                      EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
 
 /**
  * @brief get the length of active EPT hooks (!epthook and !epthook2)

@@ -268,6 +268,41 @@ HaltedRoutineSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Exceptio
 }
 
 /**
+ * @brief This function performs running unset exception bitmap on VMCS on a single core
+ * @details Should be called from VMX root-mode
+ *
+ * @param TargetCoreId The target core's ID (to just run on this core)
+ * @param ExceptionIndex
+ *
+ * @return VOID
+ */
+VOID
+HaltedRoutineUnSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 ExceptionIndex)
+{
+    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+    UINT64                   HaltedCoreTask      = NULL;
+
+    //
+    // Set the target task
+    //
+    HaltedCoreTask = DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP;
+
+    //
+    // Set the parameters for the direct VMCALL
+    //
+    DirectVmcallOptions.OptionalParam1 = ExceptionIndex;
+
+    //
+    // Send request for the target task to the halted cores (synchronized)
+    //
+    HaltedCoreRunTaskOnSingleCore(TargetCoreId,
+                                  HaltedCoreTask,
+                                  TRUE,
+                                  TRUE,
+                                  &DirectVmcallOptions);
+}
+
+/**
  * @brief This function performs running enable mov to CR exiting on a single core
  * @details Should be called from VMX root-mode
  *

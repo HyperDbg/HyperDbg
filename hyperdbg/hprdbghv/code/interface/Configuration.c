@@ -157,9 +157,34 @@ ConfigureDisableEferSyscallEventsOnAllProcessors()
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId)
 {
     return EptHookUnHookSingleAddress(VirtualAddress, PhysAddress, ProcessId);
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode and it's the responsiblity
+ * of caller to broadcast to all cores to remove the target physical address
+ * and invalidate EPT and modify exception bitmap (#BPs) if needed
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+{
+    return EptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                 PhysAddress,
+                                                 TargetUnhookingDetails);
 }
 
 /**
@@ -240,7 +265,6 @@ ConfigureEptHookFromVmxRoot(PVOID TargetAddress)
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
- * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
@@ -252,8 +276,7 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForRead,
                   BOOLEAN SetHookForWrite,
                   BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2,
-                  BOOLEAN ApplyDirectlyFromVmxRoot)
+                  BOOLEAN EptHiddenHook2)
 {
     return EptHook2(&g_GuestState[CoreId],
                     TargetAddress,
@@ -262,8 +285,40 @@ ConfigureEptHook2(UINT32  CoreId,
                     SetHookForRead,
                     SetHookForWrite,
                     SetHookForExec,
-                    EptHiddenHook2,
-                    ApplyDirectlyFromVmxRoot);
+                    EptHiddenHook2);
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden detours, this should be called from vmx-root mode
+ *
+ *
+ * @param CoreId ID of the target core
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param SetHookForRead Hook READ Access
+ * @param SetHookForWrite Hook WRITE Access
+ * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2)
+{
+    return EptHook2FromVmxRoot(&g_GuestState[CoreId],
+                               TargetAddress,
+                               HookFunction,
+                               SetHookForRead,
+                               SetHookForWrite,
+                               SetHookForExec,
+                               EptHiddenHook2);
 }
 
 /**

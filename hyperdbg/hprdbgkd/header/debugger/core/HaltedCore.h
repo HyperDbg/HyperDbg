@@ -111,6 +111,81 @@
  */
 #define DEBUGGER_HALTED_CORE_TASK_INVEPT_SINGLE_CONTEXT 0x00000010
 
+/**
+ * @brief Halted core task for unsetting exception bitmap on VMCS
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP 0x00000011
+
+/**
+ * @brief Halted core task for restoring a single EPT entry and invalidating EPT cache
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE 0x00000012
+
+/**
+ * @brief Halted core task for disabling external interrupt exiting only to clear !interrupt commands
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS 0x00000013
+
+/**
+ * @brief Halted core task for resetting MSR Bitmap Read
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_READ 0x00000014
+
+/**
+ * @brief Halted core task for resetting MSR Bitmap Write
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_WRITE 0x00000015
+
+/**
+ * @brief Halted core task for resetting exception bitmap on VMCS
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x00000016
+
+/**
+ * @brief Halted core task for resetting I/O Bitmaps (A & B)
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP 0x00000017
+
+/**
+ * @brief Halted core task for clearing rdtsc exiting bit ONLY in the case of disabling
+ * the events for !tsc command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x00000018
+
+/**
+ * @brief Halted core task for disabling rdpmc exiting in primary cpu-based controls
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING 0x00000019
+
+/**
+ * @brief Halted core task for disabling syscall hook using EFER SCE bit
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER 0x0000001a
+
+/**
+ * @brief Halted core task for clearing mov 2 hw dr exiting bit ONLY in the case of
+ * disabling the events for !dr command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x0000001b
+
+/**
+ * @brief Halted core task for clearing mov 2 cr exiting bit ONLY in the case of disabling
+ * the events for !crwrite command
+ *
+ */
+#define DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS 0x0000001c
+
 //////////////////////////////////////////////////
 //			    	 Functions  	      		//
 //////////////////////////////////////////////////

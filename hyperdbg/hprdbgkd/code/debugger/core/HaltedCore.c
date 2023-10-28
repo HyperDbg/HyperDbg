@@ -190,6 +190,114 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
 
         break;
     }
+    case DEBUGGER_HALTED_CORE_TASK_UNSET_EXCEPTION_BITMAP:
+    {
+        //
+        // unset exception bitmap on VMCS
+        //
+        DirectVmcallUnsetExceptionBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_UNHOOK_SINGLE_PAGE:
+    {
+        //
+        // restore a single EPT entry and invalidate EPT cache
+        //
+        DirectVmcallUnhookSinglePage(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS:
+    {
+        //
+        // disable external interrupt exiting only to clear !interrupt commands
+        //
+        DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_READ:
+    {
+        //
+        // reset MSR Bitmap Read
+        //
+        DirectVmcallResetMsrBitmapRead(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_MSR_BITMAP_WRITE:
+    {
+        //
+        // reset MSR Bitmap Write
+        //
+        DirectVmcallResetMsrBitmapWrite(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS:
+    {
+        //
+        // reset exception bitmap on VMCS
+        //
+        DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_RESET_IO_BITMAP:
+    {
+        //
+        // reset I/O Bitmaps (A & B)
+        //
+        DirectVmcallResetIoBitmap(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS:
+    {
+        //
+        // clear rdtsc exiting bit ONLY in the case of disabling the events for !tsc command
+        //
+        DirectVmcallDisableRdtscExitingForClearingTscEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_UNSET_RDPMC_EXITING:
+    {
+        //
+        // disable rdpmc exiting in primary cpu-based controls
+        //
+        DirectVmcallDisableRdpmcExiting(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_SYSCALL_HOOK_EFER:
+    {
+        //
+        // disable syscall hook using EFER SCE bit
+        //
+        DirectVmcallDisableEferSyscallEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS:
+    {
+        //
+        // clear mov 2 hw dr exiting bit ONLY in the case of disabling the events for !dr command
+        //
+        DirectVmcallDisableMov2DrExitingForClearingDrEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
+    case DEBUGGER_HALTED_CORE_TASK_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS:
+    {
+        //
+        // clear mov 2 cr exiting bit ONLY in the case of disabling the events for !crwrite command
+        //
+        DirectVmcallDisableMov2CrExitingForClearingCrEvents(DbgState->CoreId, (DIRECT_VMCALL_PARAMETERS *)Context);
+
+        break;
+    }
     default:
         LogWarning("Warning, unknown broadcast on halted core received");
         break;

@@ -302,8 +302,7 @@ SyscallHookTest()
                  FALSE,
                  FALSE,
                  FALSE,
-                 TRUE,
-                 FALSE))
+                 TRUE))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }

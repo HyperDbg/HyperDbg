@@ -272,20 +272,41 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForRead,
                   BOOLEAN SetHookForWrite,
                   BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2,
-                  BOOLEAN ApplyDirectlyFromVmxRoot);
+                  BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageReadState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
+                                            PVOID   PhysicalAddress,
+                                            BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyPageReadState(UINT32  CoreId,
+                                    PVOID   PhysicalAddress,
+                                    BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
+                                     PVOID   PhysicalAddress,
+                                     BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
@@ -347,6 +368,42 @@ DirectVmcallInvalidateEptAllContexts(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * D
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnsetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnhookSinglePage(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapWrite(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetIoBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdtscExitingForClearingTscEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdpmcExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableEferSyscallEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableMov2DrExitingForClearingDrEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableMov2CrExitingForClearingCrEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
