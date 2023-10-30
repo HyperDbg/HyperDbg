@@ -162,7 +162,7 @@ BOOLEAN g_ExecTrapUnInitializationStarted;
 USER_KERNEL_EXECUTION_TRAP_STATE g_ExecTrapState;
 
 /**
- * @brief Test value for intercepting memory
+ * @brief Test value for intercepting instructions
  *
  */
-BOOLEAN g_IsInterceptingMemory;
+BOOLEAN g_IsInterceptingInstructions;

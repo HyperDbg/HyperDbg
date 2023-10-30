@@ -76,5 +76,3 @@ ExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 BOOLEAN
 ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
 
-VOID
-ExecTrapRemoveMemoryInterception(VIRTUAL_MACHINE_STATE * VCpu);
