@@ -759,6 +759,12 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         // Change EPT to kernel disabled
         //
         ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
+
+        //
+        // Test should be removed
+        //
+        // HvEnableMtfAndChangeExternalInterruptState(VCpu);
+        // VCpu->TracingMode = TRUE;
     }
     else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
@@ -849,11 +855,12 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
 VOID
 ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
     //
-    // Restore non-readable/writeable EPTP
+    // No longer looking for a trace
     //
-    // ExecTrapChangeToExecuteOnlyEptp(VCpu);
-    ExecTrapRestoreToNormalEptp(VCpu);
+    VCpu->TracingMode = FALSE;
 }
 
 /**
