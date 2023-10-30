@@ -75,7 +75,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check for MBEC Hooks
     //
-    if (VCpu->RestoreNonReadableWriteEptp)
+    if (VCpu->TracingMode)
     {
         //
         // MTF is handled

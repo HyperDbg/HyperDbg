@@ -94,7 +94,6 @@ typedef struct _EPT_STATE
     PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
     PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;           // Page table entries for hooks based on user-mode disabled mode-based execution control bits
     PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable;         // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
-    PVMM_EPT_PAGE_TABLE   ExecuteOnlyEptPageTable;                     // Page table entries for execute-only control bits
     EPT_POINTER           ModeBasedUserDisabledEptPointer;             // Extended-Page-Table Pointer for user-disabled mode-based execution
     EPT_POINTER           ModeBasedKernelDisabledEptPointer;           // Extended-Page-Table Pointer for kernel-disabled mode-based execution
     EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
