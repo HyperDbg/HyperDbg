@@ -27,8 +27,8 @@ extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebuggee;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
@@ -417,6 +417,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
  * @brief Send a test query request to the debuggee
  *
  * @param Type
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -425,6 +426,42 @@ KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
     DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
 
     TestQueryPacket.RequestType = Type;
+
+    //
+    // Send 'test query' command as query packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY,
+            (CHAR *)&TestQueryPacket,
+            sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of test query is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send a test query request to the debuggee with the specified context
+ *
+ * @param Type
+ * @param Context
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT64 Context)
+{
+    DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
+
+    TestQueryPacket.RequestType = Type;
+    TestQueryPacket.Context     = Context;
 
     //
     // Send 'test query' command as query packet
@@ -589,9 +626,9 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
  * @param Event
  * @param EventBufferLength
  *
- * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ * @return PDEBUGGER_EVENT_AND_ACTION_RESULT
  */
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                     UINT32                         EventBufferLength)
 {
@@ -624,7 +661,7 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
            EventBufferLength);
 
     RtlZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send register event packet
@@ -656,9 +693,9 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  * @param GeneralAction
  * @param GeneralActionLength
  *
- * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ * @return PDEBUGGER_EVENT_AND_ACTION_RESULT
  */
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
                                        UINT32                   GeneralActionLength)
 {
@@ -691,7 +728,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
            GeneralActionLength);
 
     RtlZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send add action to event packet
@@ -2413,7 +2450,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         StatusIoctl =
             DeviceIoControl(g_DeviceHandle,                   // Handle to device
-                            IOCTL_PREPARE_DEBUGGEE,           // IO Control code
+                            IOCTL_PREPARE_DEBUGGEE,           // IO Control Code (IOCTL)
                             DebuggeeRequest,                  // Input Buffer to driver.
                             SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, // Input buffer
                                                               // length
@@ -2630,7 +2667,7 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                                // Handle to device
-        IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER,           // IO Control code
+        IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER,           // IO Control Code (IOCTL)
         GeneralPacketFromDebuggeeToDebuggerRequest,                    // Input Buffer to driver.
         Length,                                                        // Input buffer
                                                                        // length
@@ -2802,7 +2839,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
 {
     BOOL                                 Status;
     ULONG                                ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
@@ -2811,12 +2848,12 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     //
     Status =
         DeviceIoControl(g_DeviceHandle,                // Handle to device
-                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control Code (IOCTL)
                         EventRegBuffer,
                         Length                                        // Input Buffer to driver.
                         ,                                             // Input buffer length
                         &ReturnedBuffer,                              // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                                       // of
                                                                       // output
                                                                       // buffer
@@ -2839,7 +2876,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     return KdSendGeneralBuffersFromDebuggeeToDebugger(
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
         &ReturnedBuffer,
-        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER),
+        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT),
         TRUE);
 }
 
@@ -2856,17 +2893,17 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 {
     BOOL                                 Status;
     ULONG                                ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
         DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control Code (IOCTL)
                         ActionAddingBuffer,                           // Input Buffer to driver.
                         Length,                                       // Input buffer length
                         &ReturnedBuffer,                              // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
                                                                       // of
                                                                       // output
                                                                       // buffer
@@ -2889,7 +2926,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     return KdSendGeneralBuffersFromDebuggeeToDebugger(
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
         &ReturnedBuffer,
-        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER),
+        sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT),
         TRUE);
 }
 
@@ -2921,7 +2958,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
 
     Status = DeviceIoControl(g_DeviceHandle,                // Handle to device
-                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control code
+                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control Code (IOCTL)
                              ModifyEvent,                   // Input Buffer to driver.
                              SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
                              ModifyEvent,                   // Output Buffer from driver.
@@ -2982,7 +3019,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                                         // Handle to device
-            IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control code
+            IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control Code (IOCTL)
             &FinishExecutionRequest,                                // Input Buffer to driver.
             SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Input buffer
                                                                     // length
@@ -3038,7 +3075,7 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
 
     Status = DeviceIoControl(
         g_DeviceHandle,                           // Handle to device
-        IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
+        IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control Code (IOCTL)
         UsermodeMessageRequest,                   // Input Buffer to driver.
         SizeToSend,                               // Input buffer
                                                   // length

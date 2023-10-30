@@ -555,6 +555,17 @@ VmFuncVmxGetCurrentExecutionMode()
 }
 
 /**
+ * @brief Get the current state of mode exec trap mechanism
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncQueryModeExecTrap()
+{
+    return g_ExecTrapInitialized;
+}
+
+/**
  * @brief Set triggering events for VMCALLs
  *
  * @param Set Set or unset the trigger
@@ -691,18 +702,6 @@ VmFuncEventInjectBreakpoint()
 }
 
 /**
- * @brief Allocate (reserve) extra pages for storing details of page hooks
- * @param Count
- *
- * @return VOID
- */
-VOID
-VmFuncEptHookAllocateExtraHookingPages(UINT32 Count)
-{
-    EptHookAllocateExtraHookingPages(Count);
-}
-
-/**
  * @brief VMX-root compatible strcmp
  * @param Address1
  * @param Address2
@@ -726,4 +725,18 @@ IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 {
     VmxCompatibleWcscmp(Address1, Address2);
+}
+
+/**
+ * @brief VMX-root compatible memcmp
+ * @param Address1
+ * @param Address2
+ * @param Count
+ *
+ * @return INT32
+ */
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+{
+    VmxCompatibleMemcmp(Address1, Address2, Count);
 }

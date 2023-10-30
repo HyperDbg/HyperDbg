@@ -424,7 +424,6 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
     //
-
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
         if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
@@ -448,70 +447,6 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
             }
         }
     }
-
-    return TRUE;
-}
-
-/**
- * @brief Initialize the needed structure for execute-only pages
- * @details should be called from vmx non-root mode
- *
- * @return BOOLEAN
- */
-BOOLEAN
-ExecTrapAllocateExecuteOnlyEptPageTable()
-{
-    PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
-    EPT_POINTER         EPTP = {0};
-
-    //
-    // Allocate another EPT page table
-    //
-    ModeBasedEptTable = EptAllocateAndCreateIdentityPageTable();
-
-    if (ModeBasedEptTable == NULL)
-    {
-        //
-        // There was an error allocating MBEC page tables
-        //
-        return FALSE;
-    }
-
-    //
-    // Enable all execute-only bit
-    //
-    ExecTrapEnableExecuteOnlyPages(ModeBasedEptTable);
-
-    //
-    // Set the global address for execute only EPT page table
-    //
-    g_EptState->ExecuteOnlyEptPageTable = ModeBasedEptTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We won't utilize the 'access' and 'dirty' flags
-    //
-    EPTP.EnableAccessAndDirtyFlags = FALSE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&ModeBasedEptTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->ExecuteOnlyEptPointer.AsUInt = EPTP.AsUInt;
 
     return TRUE;
 }
@@ -617,30 +552,6 @@ ExecTrapInitialize()
     }
 
     //
-    // Allocate execute-only EPT page-table
-    //
-    // if (!ExecTrapAllocateExecuteOnlyEptPageTable())
-    // {
-    //     //
-    //     // Free the user-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-    //     g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // Free the kernel-disabled page-table buffer
-    //     //
-    //     MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
-    //     g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-    //
-    //     //
-    //     // There was an error allocating execute-only page table for EPT tables
-    //     //
-    //     return FALSE;
-    // }
-    //
-
-    //
     // Call the function responsible for initializing Mode-based hooks
     //
     if (ModeBasedExecHookInitialize() == FALSE)
@@ -656,15 +567,6 @@ ExecTrapInitialize()
         //
         MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
         g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-
-        //
-        // Free the execute-only page-table buffer
-        //
-        if (g_EptState->ExecuteOnlyEptPageTable)
-        {
-            MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
-            g_EptState->ExecuteOnlyEptPageTable = NULL;
-        }
 
         //
         // The initialization was not successfull
@@ -757,15 +659,6 @@ ExecTrapUninitialize()
     {
         MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
         g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-    }
-
-    //
-    // Free Identity Page Table for execute-only hooks
-    //
-    if (g_EptState->ExecuteOnlyEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ExecuteOnlyEptPageTable);
-        g_EptState->ExecuteOnlyEptPageTable = NULL;
     }
 }
 
@@ -866,6 +759,12 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         // Change EPT to kernel disabled
         //
         ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
+
+        //
+        // Test should be removed
+        //
+        // HvEnableMtfAndChangeExternalInterruptState(VCpu);
+        // VCpu->TracingMode = TRUE;
     }
     else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
@@ -897,24 +796,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         return FALSE;
     }
 
-    if (!ViolationQualification->EptExecutable || !ViolationQualification->ExecuteAccess)
-    {
-        //
-        // For test purposes
-        //
-        // LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
-
-        //
-        // Supress the RIP increment
-        //
-        HvSuppressRipIncrement(VCpu);
-
-        //
-        // Trigger the event
-        //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
-    }
-    else if (ViolationQualification->EptExecutable && !ViolationQualification->EptExecutableForUserMode)
+    if (!ViolationQualification->EptExecutableForUserMode && ViolationQualification->ExecuteAccess)
     {
         //
         // For test purposes
@@ -933,6 +815,23 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
 
         return TRUE;
     }
+    else if (!ViolationQualification->EptExecutable && ViolationQualification->ExecuteAccess)
+    {
+        //
+        // For test purposes
+        //
+        // LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
+
+        //
+        // Supress the RIP increment
+        //
+        HvSuppressRipIncrement(VCpu);
+
+        //
+        // Trigger the event
+        //
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
+    }
     else
     {
         //
@@ -945,6 +844,23 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
     // It successfully handled by MBEC hooks
     //
     return TRUE;
+}
+
+/**
+ * @brief Callback for handling VM-exits for MTF in the case of exec trap hooks
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
+    //
+    // No longer looking for a trace
+    //
+    VCpu->TracingMode = FALSE;
 }
 
 /**
@@ -982,7 +898,7 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, FALSE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
     }
     else if (VCpu->MbecEnabled)
     {

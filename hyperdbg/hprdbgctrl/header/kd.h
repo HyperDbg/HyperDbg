@@ -122,6 +122,9 @@ BOOLEAN
 KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type);
 
 BOOLEAN
+KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT64 Context);
+
+BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
@@ -132,11 +135,11 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem);
 BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size);
 
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                     UINT32                         EventBufferLength);
 
-PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+PDEBUGGER_EVENT_AND_ACTION_RESULT
 KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
                                        UINT32                   GeneralActionLength);
 

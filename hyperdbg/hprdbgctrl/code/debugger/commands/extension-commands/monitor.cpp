@@ -24,7 +24,8 @@ CommandMonitorHelp()
     ShowMessages("syntax : \t!monitor [Attribute (string)] [FromAddress (hex)] "
                  "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
@@ -234,8 +235,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     //
     // Set the optional parameters
     //
-    Event->OptionalParam1 = OptionalParam1;
-    Event->OptionalParam2 = OptionalParam2;
+    Event->Options.OptionalParam1 = OptionalParam1;
+    Event->Options.OptionalParam2 = OptionalParam2;
 
     //
     // Send the ioctl to the kernel for event registration

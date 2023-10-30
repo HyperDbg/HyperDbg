@@ -967,7 +967,9 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachRequest->ProcessId,
             TRUE,
             TRUE,
-            FALSE);
+            FALSE,
+            FALSE // Applied from VMX non-root mode
+        );
 
         if (!ResultOfApplyingEvent)
         {

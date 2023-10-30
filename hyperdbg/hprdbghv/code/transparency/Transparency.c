@@ -233,15 +233,8 @@ TransparentRandn(int Average, int Sigma)
 {
     int U1, r1, U2, r2, W, Mult;
     int X1, X2 = 0, XS1;
-    int State   = 0;
     int LogTemp = 0;
-
-    if (State == 1)
-    {
-        State = !State;
-        return (Average + Sigma * X2);
-    }
-
+    
     do
     {
         r1 = TransparentGetRand();
@@ -262,8 +255,6 @@ TransparentRandn(int Average, int Sigma)
     XS1 = U1 * Mult;
 
     X2 = U2 * Mult / MY_RAND_MAX;
-
-    State = !State;
 
     return (Average + (Sigma * XS1) / MY_RAND_MAX);
 }

@@ -271,7 +271,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
             //
             Status = DeviceIoControl(
                 g_DeviceHandle,                                    // Handle to device
-                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES,           // IO Control code
+                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES,           // IO Control Code (IOCTL)
                 &QueryCountOfActiveThreadsOrProcessesRequest,      // Input Buffer to driver.
                 SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, // Input buffer length
                 Entries,                                           // Output Buffer from driver.

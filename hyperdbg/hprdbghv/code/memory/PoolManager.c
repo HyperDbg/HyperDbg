@@ -52,13 +52,6 @@ PlmgrFreeRequestNewAllocation(VOID)
 BOOLEAN
 PoolManagerInitialize()
 {
-    ULONG ProcessorsCount;
-
-    //
-    // Get number of processors
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
     //
     // Allocate global requesting variable
     //
@@ -75,35 +68,14 @@ PoolManagerInitialize()
     InitializeListHead(&g_ListOfAllocatedPoolsHead);
 
     //
-    // Request pages to be allocated for converting 2MB to 4KB pages
-    // Each core needs its own splitting page-tables
-    //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5 * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
-
-    //
-    // Request pages to be allocated for paged hook details
-    //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), 5, TRACKING_HOOKED_PAGES);
-
-    //
-    // Request pages to be allocated for Trampoline of Executable hooked pages
-    //
-    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 5, EXEC_TRAMPOLINE);
-
-    //
-    // Request pages to be allocated for detour hooked pages details
-    //
-    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
-
-    //
     // Nothing to deallocate
     //
     g_IsNewRequestForDeAllocation = FALSE;
 
     //
-    // Let's start the allocations
+    // Initialized successfully
     //
-    return PoolManagerCheckAndPerformAllocationAndDeallocation();
+    return TRUE;
 }
 
 /**

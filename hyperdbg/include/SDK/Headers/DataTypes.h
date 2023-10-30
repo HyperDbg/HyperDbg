@@ -45,6 +45,20 @@ typedef enum _POOL_ALLOCATION_INTENTION
     BREAKPOINT_DEFINITION_STRUCTURE,
     PROCESS_THREAD_HOLDER,
 
+    //
+    // Instant event buffers
+    //
+    INSTANT_REGULAR_EVENT_BUFFER,
+    INSTANT_BIG_EVENT_BUFFER,
+    INSTANT_REGULAR_EVENT_ACTION_BUFFER,
+    INSTANT_BIG_EVENT_ACTION_BUFFER,
+
+    //
+    // Use for request safe buffers of the event
+    //
+    INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS,
+    INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS,
+
 } POOL_ALLOCATION_INTENTION;
 
 //////////////////////////////////////////////////
@@ -269,6 +283,22 @@ typedef struct _REGISTER_NOTIFY_BUFFER
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
 
 //////////////////////////////////////////////////
+//                 Direct VMCALL                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Used for sending direct VMCALLs on the VMX root-mode
+ *
+ */
+typedef struct _DIRECT_VMCALL_PARAMETERS
+{
+    UINT64 OptionalParam1;
+    UINT64 OptionalParam2;
+    UINT64 OptionalParam3;
+
+} DIRECT_VMCALL_PARAMETERS, *PDIRECT_VMCALL_PARAMETERS;
+
+//////////////////////////////////////////////////
 //                  EPT Hook                    //
 //////////////////////////////////////////////////
 
@@ -281,6 +311,19 @@ typedef struct _EPT_HOOKS_CONTEXT
     UINT64 PhysicalAddress;
     UINT64 VirtualAddress;
 } EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
+
+/**
+ * @brief Details of unhooking single EPT hooks
+ *
+ */
+typedef struct _EPT_SINGLE_HOOK_UNHOOKING_DETAILS
+{
+    BOOLEAN                     CallerNeedsToRestoreEntryAndInvalidateEpt;
+    BOOLEAN                     RemoveBreakpointInterception;
+    SIZE_T                      PhysicalAddress;
+    UINT64 /* EPT_PML1_ENTRY */ OriginalEntry;
+
+} EPT_SINGLE_HOOK_UNHOOKING_DETAILS, *PEPT_SINGLE_HOOK_UNHOOKING_DETAILS;
 
 //////////////////////////////////////////////////
 //                 Segment Types                //

@@ -12,11 +12,11 @@
 
 HyperDbg Debugger is an open-source, community-driven, hypervisor-assisted, user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing, and reversing.
 
-Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases, and join **[Telegram](https://t.me/HyperDbg)** group to connect with the community of developers and debugging enthusiasts and get your questions about **HyperDbg** answered!
+You can follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases, or join the HyperDbg **[Telegram](https://t.me/HyperDbg)** group, where you can ask developers and open-source reversing enthusiasts for help with setting up and running HyperDbg.
 
 ## Description
 
-HyperDbg is designed with a focus on using modern hardware technologies to provide new features to the debuggers' world. It operates on top of Windows by virtualizing an already running system using Intel VT-x and Intel PT. This debugger aims not to use any APIs and software debugging mechanisms, but instead, it uses Second Layer Page Table (a.k.a. Extended Page Table or EPT) extensively to monitor both kernel and user executions.
+**HyperDbg** is designed with a focus on using modern hardware technologies to provide new features to the debuggers' world. It operates on top of Windows by virtualizing an already running system using Intel VT-x and Intel PT. This debugger aims not to use any APIs and software debugging mechanisms, but instead, it uses Second Layer Page Table (a.k.a. Extended Page Table or EPT) extensively to monitor both kernel and user executions.
 <p align="center"><a href="https://hyperdbg.org/"><img align="center" width="600" height="500" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/Artboard%201.png" alt="HyperDbg Debugger"></a></br>
 </p>
 HyperDbg comes with features like hidden hooks, which are as fast as old inline hooks, but also stealth. It mimics hardware debug registers for (read & write) to a specific location, but this time entirely invisible for both Windows kernel and the programs, and of course, without any limitation in size or count!
@@ -107,6 +107,9 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 
 ### Sixth Release (v0.6.0.0)
 * Injecting Custom Interrupts/Exceptions/Faults [<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject_error_code" target="_blank">link</a>]
+
+### Seventh Release (v0.7.0.0)
+* Instant events in the Debugger Mode [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events" target="_blank">link</a>]
 
 ## How does it work?
 

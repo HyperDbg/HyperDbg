@@ -90,8 +90,6 @@
 // Debugger Sub-types
 //
 #include "header/debugger/tests/KernelTests.h"
-#include "header/debugger/broadcast/DpcRoutines.h"
-#include "header/debugger/core/DebuggerEvents.h"
 #include "header/debugger/script-engine/ScriptEngine.h"
 #include "header/debugger/memory/Memory.h"
 #include "header/common/Common.h"
@@ -106,16 +104,30 @@
 #include "header/debugger/objects/Process.h"
 #include "header/debugger/objects/Thread.h"
 #include "header/debugger/user-level/Attaching.h"
-#include "header/debugger/core/Termination.h"
 #include "header/debugger/user-level/UserAccess.h"
 #include "header/debugger/user-level/ThreadHolder.h"
-#include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/core/DebuggerVmcalls.h"
+#include "header/debugger/core/HaltedCore.h"
+
+//
+// Broadcast functions
+//
+#include "header/debugger/broadcast/DpcRoutines.h"
+#include "header/debugger/broadcast/HaltedRoutines.h"
+#include "header/debugger/broadcast/HaltedBroadcast.h"
 
 //
 // DPC Headers
 //
 #include "header/common/Dpc.h"
+
+//
+// Events
+//
+#include "header/debugger/events/ApplyEvents.h"
+#include "header/debugger/events/Termination.h"
+#include "header/debugger/events/DebuggerEvents.h"
+#include "header/debugger/events/ValidateEvents.h"
 
 //
 // Script engine headers

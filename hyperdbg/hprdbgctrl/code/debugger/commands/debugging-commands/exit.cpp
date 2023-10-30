@@ -14,7 +14,9 @@
 //
 // Global Variables
 //
-extern HANDLE g_DeviceHandle;
+extern HANDLE  g_DeviceHandle;
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of the exit command
@@ -47,12 +49,27 @@ CommandExit(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    //
-    // unload and exit if the vmm module is loaded
-    //
-    if (g_DeviceHandle)
+    if (g_IsConnectedToHyperDbgLocally)
     {
-        HyperDbgUnloadVmm();
+        //
+        // It is in VMI mode
+        //
+
+        //
+        // unload and exit if the vmm module is loaded
+        //
+        if (g_DeviceHandle)
+        {
+            HyperDbgUnloadVmm();
+        }
+    }
+    else if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // It is in debugger mode
+        //
+
+        KdCloseConnection();
     }
 
     exit(0);

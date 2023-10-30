@@ -24,7 +24,8 @@ CommandEptHook2Help()
     ShowMessages(
         "syntax : \t!epthook2 [Address (hex)] [pid ProcessId (hex)] "
         "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
-        "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+        "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }] "
+        "[output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !epthook2 nt!ExAllocatePoolWithTag\n");
@@ -155,7 +156,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     //
     // Set the optional parameters
     //
-    Event->OptionalParam1 = OptionalParam1;
+    Event->Options.OptionalParam1 = OptionalParam1;
 
     //
     // Send the ioctl to the kernel for event registration

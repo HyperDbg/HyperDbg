@@ -1,5 +1,5 @@
 /**
- * @file forwarding.c
+ * @file forwarding.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Event source forwarding
  * @details
@@ -16,6 +16,7 @@
 //
 extern UINT64     g_OutputSourceTag;
 extern LIST_ENTRY g_OutputSources;
+extern LIST_ENTRY g_EventTrace;
 
 /**
  * @brief Get the output source tag and increase the
@@ -84,6 +85,14 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         // Nothing special to do here, tcp socket is opened with
         // CommunicationClientConnectToServer and nothing should be
         // called to open the socket
+        //
+        return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
+    }
+    else if (SourceDescriptor->Type == EVENT_FORWARDING_MODULE)
+    {
+        //
+        // Nothing special to do here, function is found previously
+        // and nothing should be called to open the module
         //
         return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
     }
@@ -169,6 +178,18 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         //
         return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
     }
+    else if (SourceDescriptor->Type == EVENT_FORWARDING_MODULE)
+    {
+        //
+        // Free the library
+        //
+        FreeLibrary(SourceDescriptor->Module);
+
+        //
+        // Return the status
+        //
+        return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
+    }
 
     return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
 }
@@ -178,6 +199,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
  * @param SourceType Type of the source
  * @param Description Description of the source
  * @param Socket Socket object in the case of TCP connection
+ * @param Module Module object in the case of loading modules
  *
  * @details If the target connection is a tcp connection then there
  * is no handle and instead there is a socket, this way we pass a
@@ -189,10 +211,11 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
  *
  * @return HANDLE returns handle of the source
  */
-HANDLE
+VOID *
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                              const string &                 Description,
-                             SOCKET *                       Socket)
+                             SOCKET *                       Socket,
+                             HMODULE *                      Module)
 {
     string IpPortDelimiter;
     string Ip;
@@ -209,7 +232,35 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         // The handle might be INVALID_HANDLE_VALUE which will be
         // checked by the caller
         //
-        return FileHandle;
+        return (void *)FileHandle;
+    }
+    else if (SourceType == EVENT_FORWARDING_MODULE)
+    {
+        HMODULE ModuleHandle = LoadLibraryA(Description.c_str());
+
+        if (ModuleHandle == NULL)
+        {
+            ShowMessages("err, unable to load the module\n");
+            return INVALID_HANDLE_VALUE;
+        }
+
+        hyperdbg_event_forwarding_t hyperdbg_event_forwarding = (hyperdbg_event_forwarding_t)GetProcAddress(ModuleHandle, "hyperdbg_event_forwarding");
+
+        if (hyperdbg_event_forwarding == NULL)
+        {
+            ShowMessages("err, unable to find the 'hyperdbg_event_forwarding' function\n");
+            return INVALID_HANDLE_VALUE;
+        }
+
+        //
+        // Set the module handle
+        //
+        *Module = ModuleHandle;
+
+        //
+        // The handle is the location of the hyperdbg_event_forwarding function
+        //
+        return (void *)hyperdbg_event_forwarding;
     }
     else if (SourceType == EVENT_FORWARDING_NAMEDPIPE)
     {
@@ -223,7 +274,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             return INVALID_HANDLE_VALUE;
         }
 
-        return PipeHandle;
+        return (void *)PipeHandle;
     }
     else if (SourceType == EVENT_FORWARDING_TCP)
     {
@@ -251,7 +302,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                 // because this functionality doesn't work with handlers; however,
                 // send 1 or TRUE is a valid handle
                 //
-                return (HANDLE)TRUE;
+                return (void *)TRUE;
             }
             else
             {
@@ -296,8 +347,7 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
     BOOLEAN     Result   = FALSE;
     PLIST_ENTRY TempList = 0;
 
-    for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent;
-         i++)
+    for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent; i++)
     {
         //
         // Check whether we reached to the end of the events
@@ -353,6 +403,12 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
                             Message,
                             MessageLength);
                         break;
+                    case EVENT_FORWARDING_MODULE:
+                        ((hyperdbg_event_forwarding_t)CurrentOutputSourceDetails->Handle)(
+                            Message,
+                            MessageLength);
+                        Result = TRUE;
+                        break;
                     default:
                         break;
                     }
@@ -367,6 +423,67 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Check and send the event result to the corresponding sources
+ * @param OperationCode The target operation code or tag
+ * @param MessageLength Length of the message
+ * @details This function will not check whether the event has an
+ * output source or not, the caller if this function should make
+ * sure that the following event has valid output sources or not
+ *
+ * @return BOOLEAN whether sending results was successful or not
+ */
+BOOLEAN
+ForwardingCheckAndPerformEventForwarding(UINT32 OperationCode,
+                                         CHAR * Message,
+                                         UINT32 MessageLength)
+{
+    PLIST_ENTRY TempList;
+    BOOLEAN     OutputSourceFound = FALSE;
+
+    //
+    // We should check whether the following flag matches
+    // with an output or not, also this is not where we want to
+    // check output resources
+    //
+    TempList = &g_EventTrace;
+    while (&g_EventTrace != TempList->Blink)
+    {
+        TempList = TempList->Blink;
+
+        PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
+            TempList,
+            DEBUGGER_GENERAL_EVENT_DETAIL,
+            CommandsEventList);
+
+        if (EventDetail->HasCustomOutput && (UINT32)EventDetail->Tag == OperationCode)
+        {
+            //
+            // Output source found
+            //
+            OutputSourceFound = TRUE;
+
+            //
+            // Send the event to output sources
+            // Minus one (-1) is because we want to
+            // remove the null character at end of the message
+            //
+            if (!ForwardingPerformEventForwarding(
+                    EventDetail,
+                    Message,
+                    MessageLength))
+            {
+                ShowMessages("err, there was an error transferring the "
+                             "message to the remote sources\n");
+            }
+
+            break;
+        }
+    }
+
+    return OutputSourceFound;
 }
 
 /**

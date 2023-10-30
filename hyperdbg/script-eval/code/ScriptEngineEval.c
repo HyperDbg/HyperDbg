@@ -902,7 +902,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 > SrcVal0;
+        DesVal = (INT64)SrcVal1 > (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -928,7 +928,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 < SrcVal0;
+        DesVal = (INT64)SrcVal1 < (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -954,7 +954,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 >= SrcVal0;
+        DesVal = (INT64)SrcVal1 >= (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -981,7 +981,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = SrcVal1 <= SrcVal0;
+        DesVal = (INT64)SrcVal1 <= (INT64)SrcVal0;
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -1501,21 +1501,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
-    case FUNC_EVENT_DISABLE:
-
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
-        *Indx = *Indx + 1;
-        SrcVal0 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
-
-        ScriptEngineFunctionDisableEvent(
-            ActionDetail->Tag,
-            ActionDetail->ImmediatelySendTheResults,
-            SrcVal0);
-
-        break;
-
     case FUNC_EVENT_ENABLE:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -1524,10 +1509,31 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        ScriptEngineFunctionEnableEvent(
-            ActionDetail->Tag,
-            ActionDetail->ImmediatelySendTheResults,
-            SrcVal0);
+        ScriptEngineFunctionEventEnable(SrcVal0);
+
+        break;
+
+    case FUNC_EVENT_DISABLE:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        ScriptEngineFunctionEventDisable(SrcVal0);
+
+        break;
+
+    case FUNC_EVENT_CLEAR:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        ScriptEngineFunctionEventClear(SrcVal0);
 
         break;
 
@@ -1655,6 +1661,43 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionWcscmp((const wchar_t *)SrcVal1, (const wchar_t *)SrcVal0);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        break;
+
+    case FUNC_MEMCMP:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal2 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionMemcmp((const char *)SrcVal2, (const char *)SrcVal1, SrcVal0);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 

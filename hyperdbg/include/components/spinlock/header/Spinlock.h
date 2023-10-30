@@ -18,6 +18,9 @@
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock);
 
+BOOLEAN
+SpinlockCheckLock(volatile LONG * Lock);
+
 void
 SpinlockLock(volatile LONG * Lock);
 

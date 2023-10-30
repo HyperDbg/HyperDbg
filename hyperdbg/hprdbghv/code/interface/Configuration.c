@@ -125,22 +125,12 @@ ConfigureDisableMovToCr3ExitingOnAllProcessors()
 
 /**
  * @brief routines for enabling syscall hooks on all cores
- * @param SyscallHookType
  *
  * @return VOID
  */
 VOID
-ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+ConfigureEnableEferSyscallEventsOnAllProcessors()
 {
-    if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
-    {
-        g_IsUnsafeSyscallOrSysretHandling = TRUE;
-    }
-    else if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
-    {
-        g_IsUnsafeSyscallOrSysretHandling = FALSE;
-    }
-
     BroadcastEnableEferSyscallEventsOnAllProcessors();
 }
 
@@ -167,13 +157,65 @@ ConfigureDisableEferSyscallEventsOnAllProcessors()
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId)
 {
     return EptHookUnHookSingleAddress(VirtualAddress, PhysAddress, ProcessId);
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode and it's the responsiblity
+ * of caller to broadcast to all cores to remove the target physical address
+ * and invalidate EPT and modify exception bitmap (#BPs) if needed
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+{
+    return EptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                 PhysAddress,
+                                                 TargetUnhookingDetails);
+}
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
+ *
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
+{
+    EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(Count);
+}
+
+/**
+ * @brief Allocate (reserve) pages for storing EPT hooks page hooks
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
+{
+    EptHookReservePreallocatedPoolsForEptHooks(Count);
+}
+
+/**
+ * @brief This function invokes a VMCALL to set the hook and broadcast the exiting for
+ * the breakpoints on exception bitmap
  *
  * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
  * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
@@ -194,6 +236,23 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId)
 }
 
 /**
+ * @brief This function invokes a direct VMCALL to setup the hook
+ *
+ * @details the caller of this function should make sure to 1) broadcast to
+ * all cores to intercept breakpoints (#BPs) and after calling this function
+ * 2) the caller should broadcast to all cores to invalidate their EPTPs
+ *
+ * @param TargetAddress The address of function or memory address to be hooked
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHookFromVmxRoot(PVOID TargetAddress)
+{
+    return EptHookFromVmxRoot(TargetAddress);
+}
+
+/**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
  * @details this command uses hidden detours, this NOT be called from vmx-root mode
  *
@@ -206,6 +265,7 @@ ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
@@ -218,7 +278,47 @@ ConfigureEptHook2(UINT32  CoreId,
                   BOOLEAN SetHookForExec,
                   BOOLEAN EptHiddenHook2)
 {
-    return EptHook2(&g_GuestState[CoreId], TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec, EptHiddenHook2);
+    return EptHook2(&g_GuestState[CoreId],
+                    TargetAddress,
+                    HookFunction,
+                    ProcessId,
+                    SetHookForRead,
+                    SetHookForWrite,
+                    SetHookForExec,
+                    EptHiddenHook2);
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden detours, this should be called from vmx-root mode
+ *
+ *
+ * @param CoreId ID of the target core
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param SetHookForRead Hook READ Access
+ * @param SetHookForWrite Hook WRITE Access
+ * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2)
+{
+    return EptHook2FromVmxRoot(&g_GuestState[CoreId],
+                               TargetAddress,
+                               HookFunction,
+                               SetHookForRead,
+                               SetHookForWrite,
+                               SetHookForExec,
+                               EptHiddenHook2);
 }
 
 /**
@@ -279,12 +379,24 @@ ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
  * @brief routines for enabling EFER syscall hooks on a single core
  *
  * @param TargetCoreId The target core's ID (to just run on this core)
+ *
+ * @return VOID
+ */
+VOID
+ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
+{
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+}
+
+/**
+ * @brief routines for setting EFER syscall or sysret hooks type
+ *
  * @param SyscallHookType Type of hook
  *
  * @return VOID
  */
 VOID
-ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
+ConfigureSetEferSyscallOrSysretHookType(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType)
 {
     if (SyscallHookType == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
     {
@@ -294,8 +406,6 @@ ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_S
     {
         g_IsUnsafeSyscallOrSysretHandling = FALSE;
     }
-
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
 }
 
 /**
@@ -373,7 +483,7 @@ ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
  * @return VOID
  */
 VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption)
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
     DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
 }

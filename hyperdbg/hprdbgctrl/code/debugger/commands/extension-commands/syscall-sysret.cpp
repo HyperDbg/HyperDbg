@@ -24,12 +24,14 @@ CommandSyscallHelp()
     ShowMessages("!syscall2 : monitors and hooks all execution of syscall "
                  "instructions (by emulating all #UDs).\n\n");
 
-    ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
-    ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+    ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+    ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !syscall\n");
@@ -210,7 +212,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
         //
         // Set the target syscall
         //
-        Event->OptionalParam1 = SpecialTarget;
+        Event->Options.OptionalParam1 = SpecialTarget;
     }
 
     //
@@ -221,14 +223,14 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
         //
         // It's a !syscall2 or !sysret2
         //
-        Event->OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
+        Event->Options.OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
     }
     else
     {
         //
         // It's a !syscall or !sysret
         //
-        Event->OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
+        Event->Options.OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
     }
 
     //

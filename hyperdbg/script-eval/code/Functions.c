@@ -693,51 +693,75 @@ ScriptEngineFunctionInterlockedCompareExchange(
 }
 
 /**
- * @brief Implementation of enable_event function
+ * @brief Implementation of event_enable function
  *
- * @param Tag
- * @param ImmediateMessagePassing
- * @param Value
+ * @param EventId
+ *
  * @return VOID
  */
 VOID
-ScriptEngineFunctionEnableEvent(UINT64  Tag,
-                                BOOLEAN ImmediateMessagePassing,
-                                UINT64  Value)
+ScriptEngineFunctionEventEnable(UINT64 EventId)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, enabling events is not possible in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    if (!DebuggerEnableEvent(Value + DebuggerEventTagStartSeed))
+    if (!DebuggerEnableEvent(EventId + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x)", Value);
+        LogInfo("Invalid tag id (%x)", EventId);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
 /**
- * @brief Implementation of disable_event function
+ * @brief Implementation of event_disable function
  *
- * @param Tag
- * @param ImmediateMessagePassing
- * @param Value
+ * @param EventId
+ *
  * @return VOID
  */
 VOID
-ScriptEngineFunctionDisableEvent(UINT64  Tag,
-                                 BOOLEAN ImmediateMessagePassing,
-                                 UINT64  Value)
+ScriptEngineFunctionEventDisable(UINT64 EventId)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, disabling events is not possible in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    if (!DebuggerDisableEvent(Value + DebuggerEventTagStartSeed))
+    if (!DebuggerDisableEvent(EventId + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x)", Value);
+        LogInfo("Invalid tag id (%x)", EventId);
+    }
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of event_clear function
+ *
+ * @param EventId
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventClear(UINT64 EventId)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, disabling events is not possible in user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    BOOLEAN PoolManagerAllocatedMemory = FALSE;
+
+    if (g_KernelDebuggerState && EnableInstantEventMechanism)
+    {
+        PoolManagerAllocatedMemory = TRUE;
+    }
+
+    if (!DebuggerClearEvent(EventId + DebuggerEventTagStartSeed, VmFuncVmxGetCurrentExecutionMode(), PoolManagerAllocatedMemory))
+    {
+        LogInfo("Invalid tag id (%x)", EventId);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1558,6 +1582,29 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     Result = VmFuncVmxCompatibleWcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of memcmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @parem Count
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t Count)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = memcmp(Address1, Address2, Count);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleMemcmp(Address1, Address2, Count);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;

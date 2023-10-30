@@ -59,8 +59,12 @@ KdInitializeKernelDebugger()
     // Initialize list of breakpoints and breakpoint id
     //
     g_MaximumBreakpointId = 0;
-
     InitializeListHead(&g_BreakpointsListHead);
+
+    //
+    // Initial the needed pools for instant events
+    //
+    KdInitializeInstantEventPools();
 
     //
     // Indicate that the kernel debugger is active
@@ -118,6 +122,55 @@ BOOLEAN
 KdCheckImmediateMessagingMechanism(UINT32 OperationCode)
 {
     return (g_KernelDebuggerState && !(OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT));
+}
+
+/**
+ * @brief Initialize the required pools for instant events
+ *
+ * @return VOID
+ */
+VOID
+KdInitializeInstantEventPools()
+{
+    //
+    // Request pages to be allocated for regular instant events
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for regular instant events's actions
+    //
+    PoolManagerRequestAllocation(REGULAR_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_REGULAR_INSTANT_EVENTS, INSTANT_REGULAR_EVENT_ACTION_BUFFER);
+
+#if MAXIMUM_BIG_INSTANT_EVENTS >= 1
+
+    //
+    // Request pages to be allocated for big instant events
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_CONDITIONAL_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_BUFFER);
+
+    //
+    // Request pages to be allocated for big instant events's actions
+    //
+    PoolManagerRequestAllocation(BIG_INSTANT_EVENT_ACTION_BUFFER, MAXIMUM_BIG_INSTANT_EVENTS, INSTANT_BIG_EVENT_ACTION_BUFFER);
+
+#endif // MAXIMUM_BIG_INSTANT_EVENTS
+
+    //
+    // Pre-allocate pools for possible EPT hooks
+    // Because there are possible init EPT hook structures, we only allocate the
+    //  maximum number of regular instant event subtracted from the initial pages
+    //
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_REGULAR_INSTANT_EVENTS - MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
+
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
+
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
 }
 
 /**
@@ -472,13 +525,9 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Disable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, FALSE);
-
-        //
-        // Avoid future sets/unsets
-        //
-        DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = FALSE;
-        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+        ProcessEnableOrDisableThreadChangeMonitor(DbgState,
+                                                  FALSE,
+                                                  DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 
     //
@@ -489,13 +538,9 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Disable thread change alerts
         //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, FALSE);
-
-        //
-        // Avoid future sets/unsets
-        //
-        DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = FALSE;
-        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = FALSE;
+        ThreadEnableOrDisableThreadChangeMonitor(DbgState,
+                                                 FALSE,
+                                                 DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 }
 
@@ -522,28 +567,6 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
                           DbgState->HardwareDebugRegisterForStepping);
 
         DbgState->HardwareDebugRegisterForStepping = NULL;
-    }
-
-    //
-    // Check to apply mov to cr3 vm-exits
-    //
-    if (DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
-    {
-        //
-        // Enable process change detection
-        //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE);
-    }
-
-    //
-    // Check to apply thread change alerts
-    //
-    if (DbgState->ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
-    {
-        //
-        // Enable alert for thread changes
-        //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE);
     }
 }
 
@@ -1277,7 +1300,6 @@ KdHandleNmi(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Test
     //
-
     // LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
 
     //
@@ -1518,31 +1540,73 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
 /**
  * @brief Send event registration buffer to user-mode to register the event
  * @param EventDetailHeader
+ * @param DebuggerEventAndActionResult
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
-KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
+BOOLEAN
+KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader,
+                       DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult)
 {
+#if EnableInstantEventMechanism
+
+    DEBUGGER_GENERAL_EVENT_DETAIL * GeneralEventDetail = NULL;
+
+    GeneralEventDetail = (PDEBUGGER_GENERAL_EVENT_DETAIL)(((CHAR *)EventDetailHeader) +
+                                                          sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
+
+    //
+    // Parse event from the VMX-root mode
+    //
+    DebuggerParseEvent(GeneralEventDetail, DebuggerEventAndActionResult, TRUE);
+
+    return FALSE;
+
+#else
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                           ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           EventDetailHeader->Length,
                           TRUE);
+    return TRUE;
+
+#endif // EnableInstantEventMechanism
 }
 
 /**
  * @brief Send action buffer to user-mode to be added to the event
  * @param ActionDetailHeader
+ * @param DebuggerEventAndActionResult
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
-KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
+BOOLEAN
+KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader,
+                          DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult)
 {
+#if EnableInstantEventMechanism
+
+    DEBUGGER_GENERAL_ACTION * GeneralActionDetail = NULL;
+
+    GeneralActionDetail = (PDEBUGGER_GENERAL_ACTION)(((CHAR *)ActionDetailHeader) +
+                                                     sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
+
+    //
+    // Parse action from the VMX-root mode
+    //
+    DebuggerParseAction(GeneralActionDetail, DebuggerEventAndActionResult, TRUE);
+
+    return FALSE;
+
+#else
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                           ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           ActionDetailHeader->Length,
                           TRUE);
+    return TRUE;
+
+#endif // EnableInstantEventMechanism
 }
 
 /**
@@ -1592,7 +1656,7 @@ KdQuerySystemState()
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        if (g_DbgState[i].Lock)
+        if (SpinlockCheckLock(&g_DbgState[i].Lock))
         {
             LogInfo("Core : %d is locked", i);
         }
@@ -1619,6 +1683,32 @@ KdQuerySystemState()
             LogInfo("Core : %d - not called from an NMI handler (through the immediate VM-exit mechanism)", i);
         }
     }
+}
+
+/**
+ * @brief unlock the target core
+ *
+ * @param DbgState The state of the debugger on the target core
+ *
+ * @return VOID
+ */
+VOID
+KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    SpinlockUnlock(&DbgState->Lock);
+}
+
+/**
+ * @brief check the lock state of the target core
+ *
+ * @param DbgState The state of the debugger on the target core
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    return SpinlockCheckLock(&DbgState->Lock);
 }
 
 /**
@@ -1669,6 +1759,154 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
 }
 
 /**
+ * @brief Perform the test packet's operation
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param TestQueryPacket test packet request
+ *
+ * @return VOID
+ */
+VOID
+KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
+                                DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER * TestQueryPacket)
+{
+    //
+    // Dispatch the request
+    //
+    switch (TestQueryPacket->RequestType)
+    {
+    case TEST_QUERY_HALTING_CORE_STATUS:
+
+        //
+        // Query state of the system
+        //
+        KdQuerySystemState();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_QUERY_TRAP_STATE:
+
+        //
+        // Query state of the trap
+        //
+        KdQueryRflagTrapState();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_QUERY_PREALLOCATED_POOL_STATE:
+
+        //
+        // Query state of pre-allocated pools
+        //
+        PoolManagerShowPreAllocatedPools();
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS:
+    case TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_ASYNCHRONOUS:
+
+        //
+        // Send request for the target task to the halted cores (synchronized and unsynchronized)
+        //
+        HaltedCoreBroadcastTaskAllCores(DbgState,
+                                        DEBUGGER_HALTED_CORE_TASK_TEST,
+                                        TRUE,
+                                        TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE,
+                                        0x55);
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_SETTING_TARGET_TASKS_ON_TARGET_HALTED_CORES:
+
+        //
+        // Validate core number
+        //
+        if (!CommonValidateCoreNumber(TestQueryPacket->Context))
+        {
+            //
+            // Core number is invalid
+            //
+            TestQueryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_CORE_ID;
+        }
+        else
+        {
+            //
+            // Send request for the target task to the target halted core
+            //
+            HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context,
+                                          DEBUGGER_HALTED_CORE_TASK_TEST,
+                                          TRUE,
+                                          0x85);
+
+            TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_OFF_BPS:
+
+        //
+        // Turn off the breakpoint interception
+        //
+        g_InterceptBreakpoints = TRUE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_ON_BPS:
+
+        //
+        // Turn on the breakpoint interception
+        //
+        g_InterceptBreakpoints = FALSE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+        //
+        // Turn off the breakpoints and events interception before executing the commands in the remote computer
+        //
+        g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = TRUE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER:
+
+        //
+        // Turn on the breakpoints and events interception after finishing the commands in the remote computer
+        //
+        g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer = FALSE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    default:
+
+        //
+        // Query index not found
+        //
+        TestQueryPacket->KernelStatus = DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED;
+
+        break;
+    }
+}
+
+/**
  * @brief Perform modify the state of short-circuiting
  *
  * @param DbgState The state of the debugger on the current core
@@ -1701,12 +1939,13 @@ KdPerformSettingTheStateOfShortCircuiting(PROCESSOR_DEBUGGING_STATE * DbgState, 
  * @brief Perform modify and query events
  * @param ModifyAndQueryEvent
  *
- * @return VOID
+ * @return BOOLEAN Shows whether the debuggee should be continued or not
  */
-VOID
+BOOLEAN
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 {
-    BOOLEAN IsForAllEvents = FALSE;
+    BOOLEAN IsForAllEvents   = FALSE;
+    BOOLEAN ContinueDebugger = FALSE;
 
     //
     // Check if the tag is valid or not
@@ -1721,7 +1960,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         // Tag is invalid
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
-        return;
+        return FALSE;
     }
 
     //
@@ -1806,13 +2045,40 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
+#if EnableInstantEventMechanism
+
+        if (IsForAllEvents)
+        {
+            //
+            // Disable all events
+            //
+            DebuggerClearAllEvents(TRUE, TRUE);
+        }
+        else
+        {
+            //
+            // Disable just one event
+            //
+            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE, TRUE);
+        }
+
         //
-        // Send one byte buffer and operation codes
+        // The function was successful
+        //
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+#else
+        //
+        // Send one byte buffer and operation codes to the user-mode
         //
         LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
                               ModifyAndQueryEvent,
                               sizeof(DEBUGGER_MODIFY_EVENTS),
                               TRUE);
+
+        ContinueDebugger = TRUE;
+
+#endif //  EnableInstantEventMechanism
     }
     else
     {
@@ -1821,6 +2087,13 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
     }
+
+    //
+    // In all of the cases except clearing event while instant event
+    // mechanism is disabled, we shouldn't continue the debugger and
+    // keep the debugger in the halt state
+    //
+    return ContinueDebugger;
 }
 
 /**
@@ -1857,10 +2130,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
     PDEBUGGER_SHORT_CIRCUITING_EVENT                    ShortCircuitingEventPacket;
-    UINT32                                              SizeToSend         = 0;
-    BOOLEAN                                             UnlockTheNewCore   = FALSE;
-    size_t                                              ReturnSize         = 0;
-    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult = {0};
+    UINT32                                              SizeToSend                   = 0;
+    BOOLEAN                                             UnlockTheNewCore             = FALSE;
+    size_t                                              ReturnSize                   = 0;
+    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
+    DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
 
     while (TRUE)
     {
@@ -2156,74 +2430,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Dispatch the request
+                // Perform the test packet operation
                 //
-                switch (TestQueryPacket->RequestType)
-                {
-                case TEST_QUERY_HALTING_CORE_STATUS:
-
-                    //
-                    // Query state of the system
-                    //
-                    KdQuerySystemState();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_QUERY_TRAP_STATE:
-
-                    //
-                    // Query state of the trap
-                    //
-                    KdQueryRflagTrapState();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_QUERY_PREALLOCATED_POOL_STATE:
-
-                    //
-                    // Query state of pre-allocated pools
-                    //
-                    PoolManagerShowPreAllocatedPools();
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_OFF_BPS:
-
-                    //
-                    // Turn off the breakpoint interception
-                    //
-                    g_InterceptBreakpoints = TRUE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                case TEST_BREAKPOINT_TURN_ON_BPS:
-
-                    //
-                    // Turn off the breakpoint interception
-                    //
-                    g_InterceptBreakpoints = FALSE;
-
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-                    break;
-
-                default:
-
-                    //
-                    // Query index not found
-                    //
-                    TestQueryPacket->KernelStatus = DEBUGGER_ERROR_UNKNOWN_TEST_QUERY_RECEIVED;
-
-                    break;
-                }
+                KdPerformTheTestPacketOperation(DbgState, TestQueryPacket);
 
                 //
                 // Send the result of query system state to the debuggee
@@ -2329,7 +2538,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Interpret the process packet
                 //
-                ProcessInterpretProcess(ChangeProcessPacket);
+                ProcessInterpretProcess(DbgState, ChangeProcessPacket);
 
                 //
                 // Send the result of switching process back to the debuggee
@@ -2348,7 +2557,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Interpret the thread packet
                 //
-                ThreadInterpretThread(ChangeThreadPacket);
+                ThreadInterpretThread(DbgState, ChangeThreadPacket);
 
                 //
                 // Send the result of switching thread back to the debuggee
@@ -2457,15 +2666,26 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the event buffer to user-mode debuggee
+                // Parsing the event either in the VMX-root mode or pass it to the user-mode
                 //
-                KdPerformRegisterEvent(EventRegPacket);
-
-                //
-                // Continue Debuggee
-                //
-                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
-                EscapeFromTheLoop = TRUE;
+                if (KdPerformRegisterEvent(EventRegPacket, &DebuggerEventAndActionResult))
+                {
+                    //
+                    // Continue Debuggee (Send the event buffer to user-mode debuggee)
+                    //
+                    KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
+                    EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event registeration to the debugger
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
+                                               &DebuggerEventAndActionResult,
+                                               sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                }
 
                 break;
 
@@ -2474,15 +2694,26 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the action buffer to user-mode debuggee
+                // Parsing the action either in the VMX-root mode or pass it to the user-mode
                 //
-                KdPerformAddActionToEvent(AddActionPacket);
-
-                //
-                // Continue Debuggee
-                //
-                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
-                EscapeFromTheLoop = TRUE;
+                if (KdPerformAddActionToEvent(AddActionPacket, &DebuggerEventAndActionResult))
+                {
+                    //
+                    // Continue Debuggee (Send the action buffer to user-mode debuggee)
+                    //
+                    KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
+                    EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event registeration to the debugger
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
+                                               &DebuggerEventAndActionResult,
+                                               sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                }
 
                 break;
 
@@ -2491,14 +2722,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 QueryAndModifyEventPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Perform the action
+                // Perform the action and check if we should continue the debuggee or not
                 //
-                KdPerformEventQueryAndModification(QueryAndModifyEventPacket);
-
-                //
-                // Only continue debuggee if it's a clear event action
-                //
-                if (QueryAndModifyEventPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
+                if (KdPerformEventQueryAndModification(QueryAndModifyEventPacket))
                 {
                     //
                     // Continue Debuggee
@@ -2881,6 +3107,7 @@ StartAgain:
 
         ScopedSpinlock(
             DbgState->Lock,
+
             //
             // Check if it's a change core event or not
             //
@@ -2894,6 +3121,38 @@ StartAgain:
             }
 
         );
+
+        //
+        // Check if any task needs to be executed on this core or not
+        //
+        if (DbgState->HaltedCoreTask.PerformHaltedTask)
+        {
+            //
+            // Indicate that the halted core is no longer needed to execute a task
+            // as the current task is executed once
+            //
+            DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
+
+            //
+            // Perform the target task
+            //
+            HaltedCorePerformTargetTask(DbgState,
+                                        DbgState->HaltedCoreTask.TargetTask,
+                                        DbgState->HaltedCoreTask.Context);
+
+            //
+            // Check if the core needs to be locked again
+            //
+            if (DbgState->HaltedCoreTask.LockAgainAfterTask)
+            {
+                //
+                // Lock again
+                //
+                SpinlockLock(&DbgState->Lock);
+
+                goto StartAgain;
+            }
+        }
     }
 
     //

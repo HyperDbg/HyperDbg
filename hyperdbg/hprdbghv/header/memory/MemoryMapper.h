@@ -66,7 +66,7 @@ typedef struct _PAGE_ENTRY
         PML4E_64     Pml4;
         PDPTE_1GB_64 PdptLarge; // 1GB
         PDPTE_64     Pdpt;
-        PDE_2MB_64   PdLarge;   // 2MB
+        PDE_2MB_64   PdLarge; // 2MB
         PDE_64       Pd;
         PTE_64       Pt;
 
@@ -101,8 +101,8 @@ typedef struct _PAGE_ENTRY
  */
 typedef struct _MEMORY_MAPPER_ADDRESSES
 {
-    UINT64 PteVirtualAddressForRead;  // The virtual address of PTE for read operations
-    UINT64 VirualAddressForRead;      // The actual kernel virtual address to read
+    UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
+    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
 
     UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
     UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write
@@ -162,15 +162,15 @@ MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
 
 static UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
-    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    _In_ UINT64                                 AddressToRead);
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
+    _In_ UINT64                                AddressToRead);
 
 static BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
-    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    _In_ UINT64                                 AddressToRead,
-    _Inout_ UINT64                              BufferToSaveMemory,
-    _In_ SIZE_T                                 SizeToRead);
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
+    _In_ UINT64                                AddressToRead,
+    _Inout_ UINT64                             BufferToSaveMemory,
+    _In_ SIZE_T                                SizeToRead);
 
 static UINT64
 MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,

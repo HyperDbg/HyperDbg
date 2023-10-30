@@ -32,11 +32,12 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER                   RegBufferResult;
+    PDEBUGGER_EVENT_AND_ACTION_RESULT                       RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
+    PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
@@ -226,7 +227,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, DebuggerReadOrWriteMsrRequest, &ReturnSize);
@@ -270,7 +271,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerPteRequest = (PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place (it's not in vmx-root)
             //
             ExtensionCommandPte(DebuggerPteRequest, FALSE);
@@ -309,14 +310,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerNewEventRequest = (PDEBUGGER_GENERAL_EVENT_DETAIL)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place (not coming from the VMX-root mode)
             //
-            DebuggerParseEventFromUsermode(DebuggerNewEventRequest,
-                                           InBuffLength,
-                                           (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+            DebuggerParseEvent(DebuggerNewEventRequest,
+                               (PDEBUGGER_EVENT_AND_ACTION_RESULT)Irp->AssociatedIrp.SystemBuffer,
+                               FALSE);
 
-            Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
+            Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT);
             Status                    = STATUS_SUCCESS;
 
             //
@@ -350,14 +351,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerNewActionRequest = (PDEBUGGER_GENERAL_ACTION)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
-            DebuggerParseActionFromUsermode(DebuggerNewActionRequest,
-                                            InBuffLength,
-                                            (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+            DebuggerParseAction(DebuggerNewActionRequest,
+                                (PDEBUGGER_EVENT_AND_ACTION_RESULT)Irp->AssociatedIrp.SystemBuffer,
+                                FALSE);
 
-            Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
+            Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT);
             Status                    = STATUS_SUCCESS;
 
             //
@@ -476,7 +477,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerVa2paAndPa2vaRequest = (PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place (we're not in vmx-root here)
             //
             ExtensionCommandVa2paAndPa2va(DebuggerVa2paAndPa2vaRequest, FALSE);
@@ -531,7 +532,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerCommandEditMemory(DebuggerEditMemoryRequest);
@@ -590,7 +591,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             if (DebuggerCommandSearchMemory(DebuggerSearchMemoryRequest) != STATUS_SUCCESS)
@@ -641,10 +642,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerModifyEventRequest = (PDEBUGGER_MODIFY_EVENTS)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
-            DebuggerParseEventsModificationFromUsermode(DebuggerModifyEventRequest);
+            DebuggerParseEventsModification(DebuggerModifyEventRequest, FALSE, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_MODIFY_EVENTS;
             Status                    = STATUS_SUCCESS;
@@ -678,7 +679,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerFlushBuffersRequest = (PDEBUGGER_FLUSH_LOGGING_BUFFERS)Irp->AssociatedIrp.SystemBuffer;
@@ -720,7 +721,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerAttachOrDetachToThreadRequest = (PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)Irp->AssociatedIrp.SystemBuffer;
@@ -762,7 +763,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggeeRequest = (PDEBUGGER_PREPARE_DEBUGGEE)Irp->AssociatedIrp.SystemBuffer;
@@ -804,7 +805,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerPauseKernelRequest = (PDEBUGGER_PAUSE_PACKET_RECEIVED)Irp->AssociatedIrp.SystemBuffer;
@@ -846,7 +847,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerCommandExecutionFinishedRequest = (PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL)Irp->AssociatedIrp.SystemBuffer;
@@ -888,7 +889,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerSendUsermodeMessageRequest = (PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)Irp->AssociatedIrp.SystemBuffer;
@@ -939,7 +940,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerSendBufferFromDebuggeeToDebuggerRequest = (PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)Irp->AssociatedIrp.SystemBuffer;
@@ -990,7 +991,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerKernelSideTestInformationRequest = (PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
@@ -1032,7 +1033,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerKernelTestRequest = (PDEBUGGER_PERFORM_KERNEL_TESTS)Irp->AssociatedIrp.SystemBuffer;
@@ -1074,7 +1075,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerReservePreallocPoolRequest = (PDEBUGGER_PREALLOC_COMMAND)Irp->AssociatedIrp.SystemBuffer;
@@ -1085,6 +1086,48 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandReservePreallocatedPools(DebuggerReservePreallocPoolRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREALLOC_COMMAND;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_RESERVE_PREACTIVATE_FUNCTIONALITY:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PREACTIVATE_COMMAND || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            DebuggerPreactivationRequest = (PDEBUGGER_PREACTIVATE_COMMAND)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the activation of the functionality
+            //
+            DebuggerCommandPreactivateFunctionality(DebuggerPreactivationRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREACTIVATE_COMMAND;
             Status                    = STATUS_SUCCESS;
 
             //
@@ -1116,7 +1159,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerUdCommandRequest = (PDEBUGGER_UD_COMMAND_PACKET)Irp->AssociatedIrp.SystemBuffer;
@@ -1188,7 +1231,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerUsermodeModulesRequest = (PUSERMODE_LOADED_MODULE_DETAILS)Irp->AssociatedIrp.SystemBuffer;
@@ -1230,7 +1273,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerUsermodeProcessOrThreadQueryRequest = (PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)Irp->AssociatedIrp.SystemBuffer;
@@ -1279,7 +1322,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             DebuggerUsermodeProcessOrThreadQueryRequest = (PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)Irp->AssociatedIrp.SystemBuffer;
@@ -1332,7 +1375,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             GetInformationThreadRequest = (PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)Irp->AssociatedIrp.SystemBuffer;
@@ -1374,7 +1417,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             GetInformationProcessRequest = (PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET)Irp->AssociatedIrp.SystemBuffer;
@@ -1416,7 +1459,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
             RevServiceRequest = (PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST)Irp->AssociatedIrp.SystemBuffer;
@@ -1460,7 +1503,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerPageinRequest = (PDEBUGGER_PAGE_IN_REQUEST)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Both usermode and to send to usermode and the comming buffer are
+            // Both usermode and to send to usermode and the coming buffer are
             // at the same place (it's in VMI-mode)
             //
             DebuggerCommandBringPagein(DebuggerPageinRequest);

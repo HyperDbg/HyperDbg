@@ -60,6 +60,79 @@ EptHookCalcBreakpointOffset(_In_ PVOID                    TargetAddress,
 }
 
 /**
+ * @brief Reserve pre-allocated pools for EPT hooks
+ *
+ * @param Count number of hooks
+ *
+ * @return VOID
+ */
+VOID
+EptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), Count * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), Count, TRACKING_HOOKED_PAGES);
+
+    //
+    // Request pages to be allocated for Trampoline of Executable hooked pages
+    //
+    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, Count, EXEC_TRAMPOLINE);
+
+    //
+    // Request pages to be allocated for detour hooked pages details
+    //
+    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), Count, DETOUR_HOOK_DETAILS);
+}
+
+/**
+ * @brief Allocate (reserve) extra pages for storing details of page hooks
+ * for memory monitor and regular hidden breakpoit exec EPT hooks
+ *
+ * @param Count
+ *
+ * @return VOID
+ */
+VOID
+EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Get number of processors
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Request pages to be allocated for converting 2MB to 4KB pages
+    // Each core needs its own splitting page-tables
+    //
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
+                                 Count * ProcessorsCount,
+                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+    //
+    // Request pages to be allocated for paged hook details
+    //
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
+                                 Count,
+                                 TRACKING_HOOKED_PAGES);
+}
+
+/**
  * @brief Create EPT hook for the target page
  *
  * @param VCpu The virtual processor's state
@@ -456,38 +529,58 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- *
- * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
- * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
- * clear here, if we want to broadcast to enable exception bitmaps on all cores when vmlaunch is not executed
- * then that's ok but a user might call this function when we didn't configure the vmcs, it's a problem! we
- * can solve it by giving a hint to vmcs configure function to make it ok for future configuration but that
- * sounds stupid, I think it's better to not support this feature. Btw, debugger won't use this function in
- * the above mentioned method, so we won't have any problem with this :)
+ * @brief This function invokes a VMCALL to set the hook and broadcast the exiting for
+ * the breakpoints on exception bitmap
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessId The process id to translate based on that process's cr3
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook(PVOID TargetAddress, UINT32 ProcessId)
+EptHookPerformHook(PVOID   TargetAddress,
+                   UINT32  ProcessId,
+                   BOOLEAN ApplyDirectlyFromVmxRoot)
 {
-    //
-    // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
-    //
-    BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
-
-    if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, LayoutGetCr3ByProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
+    if (ApplyDirectlyFromVmxRoot)
     {
-        LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+        DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
 
         //
-        // Now we have to notify all the core to invalidate their EPT
+        // Set VMCALL options
         //
-        BroadcastNotifyAllToInvalidateEptAllCores();
+        DirectVmcallOptions.OptionalParam1 = TargetAddress;
+        DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
 
-        return TRUE;
+        //
+        // Perform the direct VMCALL
+        //
+        if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+        {
+            LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+
+            return TRUE;
+        }
+    }
+    else
+    {
+        //
+        // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
+        //
+        BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
+
+        if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, LayoutGetCr3ByProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
+        {
+            LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+
+            //
+            // Now we have to notify all the core to invalidate their EPT
+            //
+            BroadcastNotifyAllToInvalidateEptAllCores();
+
+            return TRUE;
+        }
     }
 
     //
@@ -497,21 +590,80 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 }
 
 /**
+ * @brief This function invokes a VMCALL to set the hook and broadcast the exiting for
+ * the breakpoints on exception bitmap
+ *
+ * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
+ * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
+ * clear here, if we want to broadcast to enable exception bitmaps on all cores when vmlaunch is not executed
+ * then that's ok but a user might call this function when we didn't configure the vmcs, it's a problem! we
+ * can solve it by giving a hint to vmcs configure function to make it ok for future configuration but that
+ * sounds stupid, I think it's better to not support this feature. Btw, debugger won't use this function in
+ * the above mentioned method, so we won't have any problem with this
+ * This function should be called from VMX non-root mode
+ *
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param ProcessId The process id to translate based on that process's cr3
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHook(PVOID TargetAddress, UINT32 ProcessId)
+{
+    //
+    // Should be called from vmx non-root
+    //
+    if (VmxGetCurrentExecutionMode() == TRUE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformHook(TargetAddress, ProcessId, FALSE);
+}
+
+/**
+ * @brief This function invokes a direct VMCALL to setup the hook
+ *
+ * @details the caller of this function should make sure to 1) broadcast to
+ * all cores to intercept breakpoints (#BPs) and after calling this function
+ * 2) the caller should broadcast to all cores to invalidate their EPTPs
+ * This function should be called from VMX root-mode
+ *
+ * @param TargetAddress The address of function or memory address to be hooked
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHookFromVmxRoot(PVOID TargetAddress)
+{
+    //
+    // Should be called from VMX root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformHook(TargetAddress, NULL, TRUE);
+}
+
+/**
  * @brief Remove and Invalidate Hook in TLB (Hidden Detours and if counter of hidden breakpoint is zero)
  * @warning This function won't remove entries from LIST_ENTRY,
  *  just invalidate the paging, use EptHookUnHookSingleAddress instead
  *
  * @param VCpu The virtual processor's state
  * @param PhysicalAddress
+ * @param OriginalEntry
  *
  * @return BOOLEAN Return false if there was an error or returns true if it was successfull
  */
 BOOLEAN
-EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
-                                        SIZE_T                  PhysicalAddress)
+EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE *     VCpu,
+                                        SIZE_T                      PhysicalAddress,
+                                        UINT64 /* EPT_PML1_ENTRY */ OriginalEntry)
 {
-    PEPT_PML1_ENTRY          TargetPage;
-    EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
+    PEPT_PML1_ENTRY TargetPage;
 
     //
     // Should be called from vmx-root, for calling from vmx non-root use the corresponding VMCALL
@@ -520,20 +672,17 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
     {
         return FALSE;
     }
+    //
+    // Pointer to the page entry in the page table
+    //
+    TargetPage = EptGetPml1Entry(VCpu->EptPageTable, PhysicalAddress);
 
-    HookedEntry = EptHookFindByPhysAddress(PAGE_ALIGN(PhysicalAddress));
-
-    if (HookedEntry != NULL)
+    if (TargetPage != NULL)
     {
-        //
-        // Pointer to the page entry in the page table
-        //
-        TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
-
         //
         // Apply the hook to EPT
         //
-        TargetPage->AsUInt = HookedEntry->OriginalEntry.AsUInt;
+        TargetPage->AsUInt = OriginalEntry;
 
         //
         // Invalidate EPT Cache
@@ -544,7 +693,7 @@ EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
-    // Nothing found, probably the list is not found
+    // The PML1 entry not found
     //
     return FALSE;
 }
@@ -1115,7 +1264,8 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- * @details this command uses hidden detours, this NOT be called from vmx-root mode
+ * @details this command uses hidden detours, if it calls from
+ * VMX root-mode directly, it should also invalidate EPT caches (by the caller)
  *
  * @param VCpu The virtual processor's state
  * @param TargetAddress The address of function or memory address to be hooked
@@ -1125,21 +1275,22 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
-         PVOID                   TargetAddress,
-         PVOID                   HookFunction,
-         UINT32                  ProcessId,
-         BOOLEAN                 SetHookForRead,
-         BOOLEAN                 SetHookForWrite,
-         BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2)
+EptHook2PerformHook(VIRTUAL_MACHINE_STATE * VCpu,
+                    PVOID                   TargetAddress,
+                    PVOID                   HookFunction,
+                    UINT32                  ProcessId,
+                    BOOLEAN                 SetHookForRead,
+                    BOOLEAN                 SetHookForWrite,
+                    BOOLEAN                 SetHookForExec,
+                    BOOLEAN                 EptHiddenHook2,
+                    BOOLEAN                 ApplyDirectlyFromVmxRoot)
 {
     UINT32 PageHookMask = 0;
-    ULONG  LogicalCoreIndex;
 
     //
     // Check for the features to avoid EPT Violation problems
@@ -1172,11 +1323,6 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
         InitializeListHead(&g_EptHook2sDetourListHead);
     }
 
-    //
-    // Check whether we are in VMX Root Mode or Not
-    //
-    LogicalCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
-
     if (SetHookForRead)
     {
         PageHookMask |= PAGE_ATTRIB_READ;
@@ -1202,35 +1348,20 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
-    if (VmxGetCurrentLaunchState())
+    //
+    // Move Attribute Mask to the upper 32 bits of the VMCALL Number
+    //
+    UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
+
+    if (ApplyDirectlyFromVmxRoot)
     {
-        //
-        // Move Attribute Mask to the upper 32 bits of the VMCALL Number
-        //
-        UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
+        DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+        DirectVmcallOptions.OptionalParam1           = TargetAddress;
+        DirectVmcallOptions.OptionalParam2           = HookFunction;
+        DirectVmcallOptions.OptionalParam3           = LayoutGetCurrentProcessCr3().Flags; // Process id is ignored while applied directly
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+        if (DirectVmcallPerformVmcall(VCpu->CoreId, VmcallNumber, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
-            //
-            // Test log
-            //
-            // LogInfo("Hook applied from VMX Root Mode");
-            //
-
-            if (VmxGetCurrentExecutionMode() == FALSE)
-            {
-                //
-                // Now we have to notify all the core to invalidate their EPT
-                //
-                BroadcastNotifyAllToInvalidateEptAllCores();
-            }
-            else
-            {
-                LogInfo("Err, unable to notify all cores to invalidate their TLB "
-                        "caches as you called hook on vmx-root mode, however, the "
-                        "hook is still works");
-            }
-
             return TRUE;
         }
         else
@@ -1240,17 +1371,51 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
     }
     else
     {
-        if (EptHookPerformPageHook2(VCpu,
-                                    TargetAddress,
-                                    HookFunction,
-                                    LayoutGetCr3ByProcessId(ProcessId),
-                                    SetHookForRead,
-                                    SetHookForWrite,
-                                    SetHookForExec,
-                                    EptHiddenHook2) == TRUE)
+        if (VmxGetCurrentLaunchState())
         {
-            LogInfo("Hook applied (VM has not launched)");
-            return TRUE;
+            if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+            {
+                //
+                // Test log
+                //
+                // LogInfo("Hook applied from VMX Root Mode");
+                //
+
+                if (VmxGetCurrentExecutionMode() == FALSE)
+                {
+                    //
+                    // Now we have to notify all the core to invalidate their EPT
+                    //
+                    BroadcastNotifyAllToInvalidateEptAllCores();
+                }
+                else
+                {
+                    LogInfo("Err, unable to notify all cores to invalidate their TLB "
+                            "caches as you called hook on vmx-root mode, however, the "
+                            "hook is still works");
+                }
+
+                return TRUE;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
+            if (EptHookPerformPageHook2(VCpu,
+                                        TargetAddress,
+                                        HookFunction,
+                                        LayoutGetCr3ByProcessId(ProcessId),
+                                        SetHookForRead,
+                                        SetHookForWrite,
+                                        SetHookForExec,
+                                        EptHiddenHook2) == TRUE)
+            {
+                LogWarning("Hook applied (VM has not launched)");
+                return TRUE;
+            }
         }
     }
 
@@ -1260,6 +1425,92 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
     LogWarning("Err, hook was not applied");
 
     return FALSE;
+}
+
+/**
+ * @brief This function applies EPT hook2 and monitor hooks to the target EPT table
+ * @details this function should be called from VMX non-root mode
+ *
+ * @param VCpu The virtual processor's state
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param ProcessId The process id to translate based on that process's cr3
+ * @param SetHookForRead Hook READ Access
+ * @param SetHookForWrite Hook WRITE Access
+ * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
+         PVOID                   TargetAddress,
+         PVOID                   HookFunction,
+         UINT32                  ProcessId,
+         BOOLEAN                 SetHookForRead,
+         BOOLEAN                 SetHookForWrite,
+         BOOLEAN                 SetHookForExec,
+         BOOLEAN                 EptHiddenHook2)
+{
+    //
+    // Should be called from vmx non-root
+    //
+    if (VmxGetCurrentExecutionMode() == TRUE)
+    {
+        return FALSE;
+    }
+
+    return EptHook2PerformHook(VCpu,
+                               TargetAddress,
+                               HookFunction,
+                               ProcessId,
+                               SetHookForRead,
+                               SetHookForWrite,
+                               SetHookForExec,
+                               EptHiddenHook2,
+                               FALSE);
+}
+
+/**
+ * @brief This function applies EPT hook2 and monitor hooks to the target EPT table
+ * @details this function should be called from VMX root-mode
+ *
+ * @param VCpu The virtual processor's state
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param SetHookForRead Hook READ Access
+ * @param SetHookForWrite Hook WRITE Access
+ * @param SetHookForExec Hook EXECUTE Access
+ * @param EptHiddenHook2 epthook2 style hook
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
+                    PVOID                   TargetAddress,
+                    PVOID                   HookFunction,
+                    BOOLEAN                 SetHookForRead,
+                    BOOLEAN                 SetHookForWrite,
+                    BOOLEAN                 SetHookForExec,
+                    BOOLEAN                 EptHiddenHook2)
+{
+    //
+    // Should be called from vmx root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHook2PerformHook(VCpu,
+                               TargetAddress,
+                               HookFunction,
+                               NULL,
+                               SetHookForRead,
+                               SetHookForWrite,
+                               SetHookForExec,
+                               EptHiddenHook2,
+                               TRUE);
 }
 
 /**
@@ -1483,19 +1734,42 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
 
 /**
  * @brief Remove single hook of detours type
- * @details Should be called from vmx non-root
  *
  * @param HookedEntry entry detail of hooked address
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
+ *
  * @return BOOLEAN If unhook was successful it returns true or if it
  * was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
+EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
+                                  BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                  EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     //
-    // Remove it in all the cores
+    // Set the unhooking details
     //
-    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+    TargetUnhookingDetails->PhysicalAddress = HookedEntry->PhysicalBaseAddress;
+    TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
+
+    //
+    // If applied directly from VMX-root mode, it's the responsiblity of the
+    // caller to remove the hook and invalidate EPT caches for the target physical address
+    //
+    if (ApplyDirectlyFromVmxRoot)
+    {
+        TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = TRUE;
+    }
+    else
+    {
+        //
+        // Remove it in all the cores
+        //
+        TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
+        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
+    }
 
     //
     // Now that we removed this hidden detours hook, it is
@@ -1585,18 +1859,30 @@ EptHookHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 
 /**
  * @brief Remove single hook of hidden breakpoint type
- * @details Should be called from vmx non-root
  *
  * @param HookedEntry entry detail of hooked address
  * @param VirtualAddress virtual address to unhook
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
+ *
  * @return BOOLEAN If unhook was successful it returns true or if it
  * was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, UINT64 VirtualAddress)
+EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
+                                           UINT64                              VirtualAddress,
+                                           BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                           EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     UINT64 TargetAddressInFakePageContent;
     UINT32 CountOfEntriesWithSameAddr = 0;
+
+    //
+    // By default, the caller doesn't need to remove #BPs interceptions if directly
+    // applied from VMX-root mode
+    //
+    TargetUnhookingDetails->RemoveBreakpointInterception = FALSE;
 
     //
     // It's a hidden breakpoint (we have to search through an array of addresses)
@@ -1605,7 +1891,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
     // is the HookedEntry that should be remove (not the first one as it has the
     // correct PreviousByte)
     //
-    for (size_t i = HookedEntry->CountOfBreakpoints; i > 0; i--)
+    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -1615,9 +1901,30 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
             if (HookedEntry->CountOfBreakpoints == 1)
             {
                 //
-                // Remove the hook entirely on all cores
+                // Set the unhooking details
                 //
-                KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+                TargetUnhookingDetails->PhysicalAddress = HookedEntry->PhysicalBaseAddress;
+                TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
+
+                //
+                // If applied directly from VMX-root mode, it's the responsiblity of the
+                // caller to remove the hook and invalidate EPT caches for the target physical address
+                //
+                if (ApplyDirectlyFromVmxRoot)
+                {
+                    //
+                    // The caller is responsibe for restoring EPT entry and invalidate caches
+                    //
+                    TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = TRUE;
+                }
+                else
+                {
+                    //
+                    // Remove the hook entirely on all cores
+                    //
+                    TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
+                    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
+                }
 
                 //
                 // remove the entry from the list
@@ -1641,10 +1948,26 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
                 if (EptHookGetCountOfEpthooks(FALSE) == 0)
                 {
                     //
-                    // Did not find any entry, let's disable the breakpoints vm-exits
-                    // on exception bitmaps
+                    // If applied directly from VMX-root mode, it's the responsiblity of the
+                    // caller to broadcast to disable breakpoint exceptions on all cores
                     //
-                    BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
+                    if (ApplyDirectlyFromVmxRoot)
+                    {
+                        //
+                        // Set whether it was the last hook (and the caller if applied from VMX-root needed
+                        // to broadcast to disable #BPs interception on exception bitmaps or not)
+                        //
+                        TargetUnhookingDetails->RemoveBreakpointInterception = TRUE;
+                    }
+                    else
+                    {
+                        //
+                        // Did not find any entry, let's disable the breakpoints vm-exits
+                        // on exception bitmaps
+                        //
+                        TargetUnhookingDetails->RemoveBreakpointInterception = FALSE;
+                        BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
+                    }
                 }
 
                 return TRUE;
@@ -1679,7 +2002,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
 
                 //
                 // Remove just that special entry
-                // Btw, No need to remove it, it will be replaced automatically
+                // BTW, No need to remove it, it will be replaced automatically
                 //
                 HookedEntry->BreakpointAddresses[i]                = NULL;
                 HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
@@ -1688,7 +2011,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
                 // all addresses to a lower array index (because one entry is
                 // missing and might) be in the middle of the array
                 //
-                for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
+                for (int j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
                 {
                     HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
                     HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
@@ -1712,29 +2035,31 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
- * @details Should be called from vmx non-root
  *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
  * @param ProcessId The process id of target process
- * @details in unhooking for some hooks only physical address is availables
+ * (in unhooking for some hooks only physical address is availables)
+ * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
  *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
+EptHookPerformUnHookSingleAddress(UINT64                              VirtualAddress,
+                                  UINT64                              PhysAddress,
+                                  UINT32                              ProcessId,
+                                  BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                  EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     SIZE_T PhysicalAddress;
 
     //
-    // Should be called from vmx non-root
+    // Once applied directly from VMX-root mode, the process id should be the same process Id
+    // on current process
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
-    {
-        return FALSE;
-    }
-
-    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
+    if (ApplyDirectlyFromVmxRoot || ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
     {
         ProcessId = PsGetCurrentProcessId();
     }
@@ -1744,7 +2069,14 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
     //
     if (PhysAddress == NULL)
     {
-        PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
+        if (ApplyDirectlyFromVmxRoot)
+        {
+            PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(VirtualAddress));
+        }
+        else
+        {
+            PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
+        }
     }
     else
     {
@@ -1761,8 +2093,16 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
             //
             // It's a hidden breakpoint
             //
-
-            return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity, VirtualAddress);
+            for (size_t i = 0; i < CurrEntity->CountOfBreakpoints; i++)
+            {
+                if (CurrEntity->BreakpointAddresses[i] == VirtualAddress)
+                {
+                    return EptHookUnHookSingleAddressHiddenBreakpoint(CurrEntity,
+                                                                      VirtualAddress,
+                                                                      ApplyDirectlyFromVmxRoot,
+                                                                      TargetUnhookingDetails);
+                }
+            }
         }
         else
         {
@@ -1771,7 +2111,9 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
             //
             if (CurrEntity->PhysicalBaseAddress == PhysicalAddress)
             {
-                return EptHookUnHookSingleAddressDetours(CurrEntity);
+                return EptHookUnHookSingleAddressDetours(CurrEntity,
+                                                         ApplyDirectlyFromVmxRoot,
+                                                         TargetUnhookingDetails);
             }
         }
     }
@@ -1780,6 +2122,70 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
     // Nothing found , probably the list is not found
     //
     return FALSE;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from VMX non-root
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param ProcessId The process id of target process
+ * @details in unhooking for some hooks only physical address is availables
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                           UINT64 PhysAddress,
+                           UINT32 ProcessId)
+{
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails; // not used
+
+    //
+    // Should be called from VMX non-root
+    //
+    if (VmxGetCurrentExecutionMode() == TRUE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformUnHookSingleAddress(VirtualAddress,
+                                             PhysAddress,
+                                             ProcessId,
+                                             FALSE,
+                                             &TargetUnhookingDetails);
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from VMX root-mode
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ * @param TargetUnhookingDetails Target data for the caller to restore EPT entry and
+ * invalidate EPT caches. Only when applied in VMX-root mode directly
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                      UINT64                              PhysAddress,
+                                      EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+{
+    //
+    // Should be called from VMX root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformUnHookSingleAddress(VirtualAddress,
+                                             PhysAddress,
+                                             NULL,
+                                             TRUE,
+                                             TargetUnhookingDetails);
 }
 
 /**
@@ -1911,38 +2317,6 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     // guest normally
     //
     return CalledFrom;
-}
-
-/**
- * @brief Allocate (reserve) extra pages for storing details of page hooks
- * @param Count
- *
- * @return VOID
- */
-VOID
-EptHookAllocateExtraHookingPages(UINT32 Count)
-{
-    ULONG ProcessorsCount;
-
-    //
-    // Get number of processors
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Request pages to be allocated for converting 2MB to 4KB pages
-    // Each core needs its own splitting page-tables
-    //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
-                                 Count * ProcessorsCount,
-                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
-
-    //
-    // Request pages to be allocated for paged hook details
-    //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
-                                 Count,
-                                 TRACKING_HOOKED_PAGES);
 }
 
 /**

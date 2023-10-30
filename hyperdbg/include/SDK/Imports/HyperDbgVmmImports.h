@@ -132,9 +132,6 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectBreakpoint();
 
 IMPORT_EXPORT_VMM VOID
-VmFuncEptHookAllocateExtraHookingPages(UINT32 Count);
-
-IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
@@ -185,11 +182,17 @@ VmFuncNmiBroadcastInvalidateEptAllContexts(UINT32 CoreId);
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncVmxGetCurrentExecutionMode();
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncQueryModeExecTrap();
+
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
 
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
@@ -202,7 +205,7 @@ IMPORT_EXPORT_VMM VOID
 ConfigureDisableMovToCr3ExitingOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableEferSyscallEventsOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+ConfigureEnableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
 ConfigureDisableEferSyscallEventsOnAllProcessors();
@@ -223,7 +226,7 @@ IMPORT_EXPORT_VMM VOID
 ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_BROADCASTING_OPTIONS * BroadcastingOption);
+ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask);
@@ -235,7 +238,10 @@ IMPORT_EXPORT_VMM VOID
 ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port);
 
 IMPORT_EXPORT_VMM VOID
-ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureSetEferSyscallOrSysretHookType(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
 
 IMPORT_EXPORT_VMM VOID
 ConfigureDirtyLoggingInitializeOnAllProcessors();
@@ -256,25 +262,148 @@ IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHook(PVOID TargetAddress, UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHook2(UINT32 CoreId, PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec, BOOLEAN EptHiddenHook2);
+ConfigureEptHookFromVmxRoot(PVOID TargetAddress);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyInstructionFetchState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHook2(UINT32  CoreId,
+                  PVOID   TargetAddress,
+                  PVOID   HookFunction,
+                  UINT32  ProcessId,
+                  BOOLEAN SetHookForRead,
+                  BOOLEAN SetHookForWrite,
+                  BOOLEAN SetHookForExec,
+                  BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageReadState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
+                             PVOID   TargetAddress,
+                             PVOID   HookFunction,
+                             BOOLEAN SetHookForRead,
+                             BOOLEAN SetHookForWrite,
+                             BOOLEAN SetHookForExec,
+                             BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookModifyPageWriteState(UINT32 CoreId, PVOID PhysicalAddress, BOOLEAN IsUnset);
+ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
+                                            PVOID   PhysicalAddress,
+                                            BOOLEAN IsUnset);
 
 IMPORT_EXPORT_VMM BOOLEAN
-ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
+ConfigureEptHookModifyPageReadState(UINT32  CoreId,
+                                    PVOID   PhysicalAddress,
+                                    BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
+                                     PVOID   PhysicalAddress,
+                                     BOOLEAN IsUnset);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
+                                    UINT64 PhysAddress,
+                                    UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookUnHookSingleAddressFromVmxRoot(UINT64                              VirtualAddress,
+                                               UINT64                              PhysAddress,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureEptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count);
+
+IMPORT_EXPORT_VMM VOID
+ConfigureEptHookReservePreallocatedPoolsForEptHooks(UINT32 Count);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
+
+//////////////////////////////////////////////////
+//           Direct VMCALL Functions 	   		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallTest(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallPerformVmcall(UINT32 CoreId, UINT64 VmcallNumber, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallChangeMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallChangeMsrBitmapWrite(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallChangeIoBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableRdpmcExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableRdtscpExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableMov2DebugRegsExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableExternalInterruptExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableMovToCrExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallEnableEferSyscall(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetHiddenBreakpointHook(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateEptAllContexts(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallInvalidateSingleContext(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnsetExceptionBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallUnhookSinglePage(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallSetDisableExternalInterruptExitingOnlyOnClearingInterruptEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapRead(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetMsrBitmapWrite(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetExceptionBitmapOnlyOnClearingExceptionEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallResetIoBitmap(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdtscExitingForClearingTscEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableRdpmcExiting(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableEferSyscallEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableMov2DrExitingForClearingDrEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+IMPORT_EXPORT_VMM NTSTATUS
+DirectVmcallDisableMov2CrExitingForClearingCrEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//
@@ -716,7 +845,7 @@ IMPORT_EXPORT_VMM VOID
 BroadcastDisableRdtscExitingForClearingEventsAllCores();
 
 IMPORT_EXPORT_VMM VOID
-BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores();
@@ -737,10 +866,10 @@ IMPORT_EXPORT_VMM VOID
 BroadcastResetExceptionBitmapAllCores();
 
 IMPORT_EXPORT_VMM VOID
-BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
-BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption);
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption);
 
 IMPORT_EXPORT_VMM VOID
 BroadcastEnableMovDebugRegistersExitingAllCores();

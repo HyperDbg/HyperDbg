@@ -1,5 +1,5 @@
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code
+.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code memcmp
 
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
@@ -14,7 +14,7 @@
 .OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats event_enable event_disable test_statement spinlock_lock spinlock_unlock event_sc
+.OneOpFunc2->print formats event_enable event_disable event_clear test_statement spinlock_lock spinlock_unlock event_sc
 
 .ZeroOpFunc1->pause flush
 

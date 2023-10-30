@@ -130,6 +130,20 @@ typedef struct _DEBUGGER_TRAP_FLAG_STATE
 } DEBUGGER_TRAP_FLAG_STATE, *PDEBUGGER_TRAP_FLAG_STATE;
 
 /**
+ * @brief Details of setting tasks for the locked (halted) cores
+ *
+ */
+typedef struct _DEBUGGEE_HALTED_CORE_TASK
+{
+    BOOLEAN PerformHaltedTask;
+    BOOLEAN LockAgainAfterTask;
+    UINT32  TargetTask;
+    PVOID   Context;
+    UINT64  KernelStatus;
+
+} DEBUGGEE_HALTED_CORE_TASK, *PDEBUGGEE_HALTED_CORE_TASK;
+
+/**
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.
@@ -149,6 +163,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
     KD_NMI_STATE                               NmiState;
+    DEBUGGEE_HALTED_CORE_TASK                  HaltedCoreTask;
     BOOLEAN                                    BreakStarterCore;
     UINT16                                     InstructionLengthHint;
     UINT64                                     HardwareDebugRegisterForStepping;

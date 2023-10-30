@@ -246,18 +246,22 @@ typedef struct _DEBUGGER_SHORT_CIRCUITING_EVENT
 
 } DEBUGGER_SHORT_CIRCUITING_EVENT, *PDEBUGGER_SHORT_CIRCUITING_EVENT;
 
+//////////////////////////////////////////////////
+//                Event Options                 //
+//////////////////////////////////////////////////
+
 /**
  * @brief request for performing a short-circuiting event
  *
  */
-typedef struct _DEBUGGER_BROADCASTING_OPTIONS
+typedef struct _DEBUGGER_EVENT_OPTIONS
 {
     UINT64 OptionalParam1; // Optional parameter
     UINT64 OptionalParam2; // Optional parameter
     UINT64 OptionalParam3; // Optional parameter
     UINT64 OptionalParam4; // Optional parameter
 
-} DEBUGGER_BROADCASTING_OPTIONS, *PDEBUGGER_BROADCASTING_OPTIONS;
+} DEBUGGER_EVENT_OPTIONS, *PDEBUGGER_EVENT_OPTIONS;
 
 //////////////////////////////////////////////////
 //    Enums For Event And Debugger Resources    //
@@ -369,10 +373,7 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
     UINT64              Tag; // is same as operation code
     VMM_EVENT_TYPE_ENUM EventType;
 
-    UINT64 OptionalParam1;
-    UINT64 OptionalParam2;
-    UINT64 OptionalParam3;
-    UINT64 OptionalParam4;
+    DEBUGGER_EVENT_OPTIONS Options;
 
     PVOID CommandStringBuffer;
 
@@ -403,11 +404,11 @@ typedef struct _DEBUGGER_GENERAL_ACTION
  * @brief Status of register buffers
  *
  */
-typedef struct _DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+typedef struct _DEBUGGER_EVENT_AND_ACTION_RESULT
 {
     BOOLEAN IsSuccessful;
     UINT32  Error; // If IsSuccessful was, FALSE
 
-} DEBUGGER_EVENT_AND_ACTION_REG_BUFFER, *PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER;
+} DEBUGGER_EVENT_AND_ACTION_RESULT, *PDEBUGGER_EVENT_AND_ACTION_RESULT;
 
 #define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)

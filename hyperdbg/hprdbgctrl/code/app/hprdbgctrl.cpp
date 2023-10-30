@@ -117,8 +117,6 @@ ReadIrpBasedBuffer()
     UINT32                 OperationCode;
     DWORD                  ErrorNum;
     HANDLE                 Handle;
-    BOOLEAN                OutputSourceFound;
-    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
@@ -185,7 +183,7 @@ ReadIrpBasedBuffer()
 
                 Status = DeviceIoControl(
                     Handle,                    // Handle to device
-                    IOCTL_REGISTER_EVENT,      // IO Control code
+                    IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
                     &RegisterEvent,            // Input Buffer to driver.
                     SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
                                                // driver is x64 and has 64 bit values)
@@ -352,60 +350,11 @@ ReadIrpBasedBuffer()
                 default:
 
                     //
-                    // Set output source to not found
-                    //
-                    OutputSourceFound = FALSE;
-
-                    //
                     // Check if there are available output sources
                     //
-                    if (g_OutputSourcesInitialized)
-                    {
-                        //
-                        // Now, we should check whether the following flag matches
-                        // with an output or not, also this is not where we want to
-                        // check output resources
-                        //
-                        TempList = &g_EventTrace;
-                        while (&g_EventTrace != TempList->Blink)
-                        {
-                            TempList = TempList->Blink;
-
-                            PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
-                                TempList,
-                                DEBUGGER_GENERAL_EVENT_DETAIL,
-                                CommandsEventList);
-
-                            if (EventDetail->HasCustomOutput)
-                            {
-                                //
-                                // Output source found
-                                //
-                                OutputSourceFound = TRUE;
-
-                                //
-                                // Send the event to output sources
-                                // Minus one (-1) is because we want to
-                                // remove the null character at end of the message
-                                //
-                                if (!ForwardingPerformEventForwarding(
-                                        EventDetail,
-                                        OutputBuffer + sizeof(UINT32),
-                                        ReturnedLength - sizeof(UINT32) - 1))
-                                {
-                                    ShowMessages("err, there was an error transferring the "
-                                                 "message to the remote sources\n");
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-
-                    //
-                    // Show the message if the source not found
-                    //
-                    if (!OutputSourceFound)
+                    if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(OperationCode,
+                                                                                                 OutputBuffer + sizeof(UINT32),
+                                                                                                 ReturnedLength - sizeof(UINT32) - 1))
                     {
                         if (g_BreakPrintingOutput)
                         {
@@ -708,7 +657,7 @@ HyperDbgUnloadVmm()
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
-                             IOCTL_TERMINATE_VMX, // IO Control code
+                             IOCTL_TERMINATE_VMX, // IO Control Code (IOCTL)
                              NULL,                // Input Buffer to driver.
                              0,                   // Length of input buffer in bytes. (x 2 is bcuz
                                                   // as the driver is x64 and has 64 bit values)

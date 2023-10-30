@@ -138,7 +138,7 @@ BOOLEAN g_TriggerEventForVmcalls;
 BOOLEAN g_TriggerEventForCpuids;
 
 //////////////////////////////////////////////////
-//  	Global Variable (Reversing Machine)	    //
+//  	Global Variable (Execution Trap)	    //
 //////////////////////////////////////////////////
 
 /**
@@ -160,3 +160,9 @@ BOOLEAN g_ExecTrapUnInitializationStarted;
  *
  */
 USER_KERNEL_EXECUTION_TRAP_STATE g_ExecTrapState;
+
+/**
+ * @brief Test value for intercepting instructions
+ *
+ */
+BOOLEAN g_IsInterceptingInstructions;

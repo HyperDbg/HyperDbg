@@ -22,8 +22,9 @@ CommandMsrreadHelp()
     ShowMessages("!msrread : detects the execution of rdmsr instructions.\n\n");
 
     ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
+                 "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !msrread\n");
@@ -123,7 +124,7 @@ CommandMsrread(vector<string> SplittedCommand, string Command)
     //
     // Set the target msr (if not specific then it means all msrs)
     //
-    Event->OptionalParam1 = SpecialTarget;
+    Event->Options.OptionalParam1 = SpecialTarget;
 
     //
     // Send the ioctl to the kernel for event registration

@@ -224,7 +224,7 @@ BroadcastDisableRdtscExitingForClearingEventsAllCores()
  * @return VOID
  */
 VOID
-BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores
@@ -324,7 +324,7 @@ BroadcastResetExceptionBitmapAllCores()
  * @return VOID
  */
 VOID
-BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores
@@ -338,7 +338,7 @@ BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS 
  * @return VOID
  */
 VOID
-BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_BROADCASTING_OPTIONS BroadcastingOption)
+BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT_OPTIONS BroadcastingOption)
 {
     //
     // Broadcast to all cores

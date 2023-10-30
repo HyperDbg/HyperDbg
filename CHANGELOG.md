@@ -8,9 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
+- HyperDbg now applies events immediately as implemented in the "instant events" mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events))
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+- The Event Forwarding mechanism is now supported in the Debugger Mode ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
+- The Event Forwarding mechanism now supports external modules (DLLs) ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
+- **event_clear(EventId)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_clear))
 
 ### Changed
+- Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
+- Fix the problem checking for alternative name thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/276))
+- Fix the crash on turning off the breakpoints while a breakpoint is still active thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/273))
+- Fix the crash on reading symbols on remote debuggee thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/274))
+- The 'prealloc' command is updated with new instant-event preallocated pools ([link](https://docs.hyperdbg.org/commands/debugging-commands/prealloc))
+- Fix wrong removing of EPT Hook (hidden breakpoints)
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.

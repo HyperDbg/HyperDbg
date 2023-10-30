@@ -16,22 +16,22 @@
 // Global Variables
 //
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
-extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
-extern HANDLE                               g_SerialRemoteComPortHandle;
-extern BOOLEAN                              g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN                              g_IsDebuggeeRunning;
-extern BOOLEAN                              g_IgnoreNewLoggingMessages;
-extern BOOLEAN                              g_SharedEventStatus;
-extern BOOLEAN                              g_IsRunningInstruction32Bit;
-extern ULONG                                g_CurrentRemoteCore;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
-extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-              g_DebuggeeResultOfAddingActionsToEvent;
-extern UINT64 g_ResultOfEvaluatedExpression;
-extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
+                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
+extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
+extern HANDLE                           g_SerialRemoteComPortHandle;
+extern BOOLEAN                          g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                          g_IsDebuggeeRunning;
+extern BOOLEAN                          g_IgnoreNewLoggingMessages;
+extern BOOLEAN                          g_SharedEventStatus;
+extern BOOLEAN                          g_IsRunningInstruction32Bit;
+extern BOOLEAN                          g_OutputSourcesInitialized;
+extern ULONG                            g_CurrentRemoteCore;
+extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent;
+extern UINT64                           g_ResultOfEvaluatedExpression;
+extern UINT32                           g_ErrorStateOfResultOfEvaluatedExpression;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -49,7 +49,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
     PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
     PDEBUGGEE_FORMATS_PACKET                    FormatsPacket;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER       EventAndActionPacket;
+    PDEBUGGER_EVENT_AND_ACTION_RESULT           EventAndActionPacket;
     PDEBUGGER_UPDATE_SYMBOL_TABLE               SymbolUpdatePacket;
     PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
     PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
@@ -188,12 +188,20 @@ StartAgain:
             MessagePacket = (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
-            // We check g_IgnoreNewLoggingMessages here because we want to
-            // avoid messages when the debuggee is halted
+            // Check if there are available output sources
             //
-            if (!g_IgnoreNewLoggingMessages)
+            if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(MessagePacket->OperationCode,
+                                                                                         MessagePacket->Message,
+                                                                                         strlen(MessagePacket->Message)))
             {
-                ShowMessages("%s", MessagePacket->Message);
+                //
+                // We check g_IgnoreNewLoggingMessages here because we want to
+                // avoid messages when the debuggee is halted
+                //
+                if (!g_IgnoreNewLoggingMessages)
+                {
+                    ShowMessages("%s", MessagePacket->Message);
+                }
             }
 
             break;
@@ -659,12 +667,12 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
 
-            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
             //
-            memcpy(&g_DebuggeeResultOfRegisteringEvent, EventAndActionPacket, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&g_DebuggeeResultOfRegisteringEvent, EventAndActionPacket, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
             //
             // Signal the event relating to receiving result of register event
@@ -675,12 +683,12 @@ StartAgain:
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
 
-            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            EventAndActionPacket = (DEBUGGER_EVENT_AND_ACTION_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Move the buffer to the global variable
             //
-            memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
             //
             // Signal the event relating to receiving result of adding action to event
@@ -774,10 +782,10 @@ StartAgain:
                         "RAX=%016llx RBX=%016llx RCX=%016llx\n"
                         "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
                         "RIP=%016llx RSP=%016llx RBP=%016llx\n"
-                        "R8=%016llx  R9=%016llx  R10=%016llx\n"
+                        "R8 =%016llx R9 =%016llx R10=%016llx\n"
                         "R11=%016llx R12=%016llx R13=%016llx\n"
                         "R14=%016llx R15=%016llx IOPL=%02x\n"
-                        "%s  %s  %s  %s\n%s  %s  %s  %s  \n"
+                        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
                         "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
                         "RFLAGS=%016llx\n",
                         Regs->rax,

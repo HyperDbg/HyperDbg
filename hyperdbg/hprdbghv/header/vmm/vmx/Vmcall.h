@@ -52,7 +52,7 @@
 #define VMCALL_UNHOOK_ALL_PAGES 0x00000006
 
 /**
- * @brief VMCALL to remove a single physical address from hook list
+ * @brief VMCALL to restore a single EPT entry and invalidate EPT cache
  *
  */
 #define VMCALL_UNHOOK_SINGLE_PAGE 0x00000007
@@ -316,6 +316,21 @@ VmxHypervVmcallHandler(_Inout_ VIRTUAL_MACHINE_STATE * VCpu, _Inout_ PGUEST_REGS
  */
 NTSTATUS
 VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Direct Vmcall Handler
+ *
+ * @param VCpu The virtual processor's state
+ * @param VmcallNumber The number of the VMCALL
+ * @param DirectVmcallOptions
+ *
+ * @return NTSTATUS
+ */
+_Use_decl_annotations_
+NTSTATUS
+VmxVmcallDirectVmcallHandler(VIRTUAL_MACHINE_STATE *    VCpu,
+                             UINT64                     VmcallNumber,
+                             DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
 
 /**
  * @brief Main handler for VMCALLs

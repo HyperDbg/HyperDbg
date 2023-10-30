@@ -16,12 +16,15 @@
  * @brief Termination function for external-interrupts
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
+TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) > 1)
     {
@@ -34,7 +37,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -56,23 +66,11 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandSetExternalInterruptExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureSetExternalInterruptExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -87,7 +85,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to disable on all cores
         //
-        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
+        }
     }
 }
 
@@ -95,10 +100,12 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for hidden hook read/write/execute
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     UINT64 PagesBytes;
     UINT64 TempOptionalParam1;
@@ -113,14 +120,24 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
     // then it won't cause any problem for other hooks
     //
 
-    TempOptionalParam1 = Event->OptionalParam3;
+    TempOptionalParam1 = Event->Options.OptionalParam3;
 
     PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = Event->OptionalParam4 - PagesBytes;
+    PagesBytes = Event->Options.OptionalParam4 - PagesBytes;
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
+        if (InputFromVmxRoot)
+        {
+            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                                               NULL);
+        }
+        else
+        {
+            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+                                                NULL,
+                                                Event->ProcessId);
+        }
     }
 }
 
@@ -128,10 +145,12 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for hidden hook (hidden breakpoints)
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
@@ -147,17 +166,29 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    ConfigureEptHookUnHookSingleAddress(Event->OptionalParam1, NULL, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(Event->Options.OptionalParam1,
+                                                                           NULL);
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1,
+                                            NULL,
+                                            Event->ProcessId);
+    }
 }
 
 /**
  * @brief Termination function for hidden hook (detours)
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
+TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
@@ -175,19 +206,32 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    ConfigureEptHookUnHookSingleAddress(NULL, Event->OptionalParam1, Event->ProcessId);
+    if (InputFromVmxRoot)
+    {
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL,
+                                                                           Event->Options.OptionalParam1);
+    }
+    else
+    {
+        ConfigureEptHookUnHookSingleAddress(NULL,
+                                            Event->Options.OptionalParam1,
+                                            Event->ProcessId);
+    }
 }
 
 /**
  * @brief Termination function for msr read events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->RdmsrInstructionExecutionEventsHead) > 1)
     {
@@ -200,7 +244,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -222,23 +273,11 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandChangeAllMsrBitmapReadAllCores(CurrentEvent->OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeMsrBitmapReadOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -253,7 +292,14 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapReadAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetChangeAllMsrBitmapReadAllCores();
+        }
     }
 }
 
@@ -261,12 +307,15 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for msr write events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->WrmsrInstructionExecutionEventsHead) > 1)
     {
@@ -279,7 +328,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -301,23 +357,11 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandChangeAllMsrBitmapWriteAllCores(CurrentEvent->OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeMsrBitmapWriteOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -332,7 +376,14 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to reset msr bitmap on all cores
         //
-        ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetMsrBitmapWriteAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetAllMsrBitmapWriteAllCores();
+        }
     }
 }
 
@@ -340,12 +391,15 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for exception events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExceptionEvent(PDEBUGGER_EVENT Event)
+TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ExceptionOccurredEventsHead) > 1)
     {
@@ -358,7 +412,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -380,24 +441,11 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandSetExceptionBitmapAllCores(CurrentEvent->OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureSetExceptionBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -412,7 +460,14 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to reset exception bitmap on all cores
         //
-        ExtensionCommandResetExceptionBitmapAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandResetExceptionBitmapAllCores();
+        }
     }
 }
 
@@ -420,12 +475,15 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for IN instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for out instructions events too
@@ -445,7 +503,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -467,23 +532,11 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -498,7 +551,14 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 
@@ -506,12 +566,15 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for OUT Instructions events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for out instructions events too
@@ -531,7 +594,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -553,23 +623,11 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandIoBitmapChangeAllCores(CurrentEvent->OptionalParam1);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureChangeIoBitmapOnSingleCore(CurrentEvent->CoreId, CurrentEvent->OptionalParam1);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -584,7 +642,14 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to reset i/o bitmap on all cores
         //
-        ExtensionCommandIoBitmapResetAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastResetIoBitmapAllCores();
+        }
+        else
+        {
+            ExtensionCommandIoBitmapResetAllCores();
+        }
     }
 }
 
@@ -592,10 +657,12 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for VMCALL Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->VmcallInstructionExecutionEventsHead) > 1)
     {
@@ -630,10 +697,12 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for user-mode, kernel-mode exec trap events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
+TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->TrapExecutionModeChangedEventsHead) > 1)
     {
@@ -661,8 +730,16 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
 
         //
         // We have to uninitialize the event
+        // If the debugger is in the Debugger Mode, we prefer not to uninitialize the
+        // exec mode trap because re-activating it needs a special command (preactivate)
+        // to be used so if the user needs to re-create such a functionality again
+        // after removing it, then it's not needed to re-run the 'preactivate' command
+        // again
         //
-        ConfigureUninitializeExecTrapOnAllProcessors();
+        if (!InputFromVmxRoot)
+        {
+            ConfigureUninitializeExecTrapOnAllProcessors();
+        }
 
         //
         // Remove the process id from the watching list
@@ -676,10 +753,12 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for CPUID Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
+TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
     if (DebuggerEventListCount(&g_Events->CpuidInstructionExecutionEventsHead) > 1)
     {
@@ -714,12 +793,15 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for RDTSC/RDTSCP Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateTscEvent(PDEBUGGER_EVENT Event)
+TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->TscInstructionExecutionEventsHead) > 1)
     {
@@ -732,7 +814,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -754,23 +843,11 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableRdtscExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableRdtscExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -785,7 +862,14 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+        }
     }
 }
 
@@ -793,12 +877,15 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for RDPMC Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminatePmcEvent(PDEBUGGER_EVENT Event)
+TerminatePmcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->PmcInstructionExecutionEventsHead) > 1)
     {
@@ -811,7 +898,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -833,23 +927,11 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableRdpmcExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableRdpmcExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -864,7 +946,14 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all the cores
         //
-        ExtensionCommandDisableRdpmcExitingAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableRdpmcExitingAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableRdpmcExitingAllCores();
+        }
     }
 }
 
@@ -872,12 +961,15 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for MOV to control registers events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
+TerminateControlRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->ControlRegisterModifiedEventsHead) > 1)
     {
@@ -890,7 +982,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -912,28 +1011,11 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableMovControlRegisterExitingAllCores(CurrentEvent);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    DEBUGGER_BROADCASTING_OPTIONS BroadcastingOption = {0};
-
-                    BroadcastingOption.OptionalParam1 = CurrentEvent->OptionalParam1;
-                    BroadcastingOption.OptionalParam2 = CurrentEvent->OptionalParam2;
-
-                    ConfigureEnableMovToControlRegisterExitingOnSingleCore(CurrentEvent->CoreId, &BroadcastingOption);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -948,7 +1030,14 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(&Event->Options);
+        }
+        else
+        {
+            ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+        }
     }
 }
 
@@ -956,12 +1045,15 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for MOV to debug registers events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
+TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     if (DebuggerEventListCount(&g_Events->DebugRegistersAccessedEventsHead) > 1)
     {
@@ -974,7 +1066,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -996,23 +1095,11 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    ExtensionCommandEnableMovDebugRegistersExitingAllCores();
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableMovToDebugRegistersExitingOnSingleCore(CurrentEvent->CoreId);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -1027,7 +1114,14 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores();
+        }
+        else
+        {
+            ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+        }
     }
 }
 
@@ -1035,12 +1129,15 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for SYSCALL Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
+TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for sysret instructions events too
@@ -1060,7 +1157,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1082,23 +1186,11 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -1113,7 +1205,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 
@@ -1121,12 +1220,15 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
  * @brief Termination function for SYSRET Instruction events
  *
  * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
  * @return VOID
  */
 VOID
-TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
+TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                      TempList        = 0;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
 
     //
     // For this event we should also check for syscall instructions events too
@@ -1146,7 +1248,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -1168,23 +1277,11 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
                 //
                 // re-apply the event
                 //
+                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
 
-                //
-                // Let's see if it is for all cores or just one core
-                //
-                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                if (!ResultsToReturn.IsSuccessful)
                 {
-                    //
-                    // All cores
-                    //
-                    DebuggerEventEnableEferOnAllProcessors((DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
-                }
-                else
-                {
-                    //
-                    // Just one core
-                    //
-                    ConfigureEnableEferSyscallHookOnSingleCore(CurrentEvent->CoreId, (DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE)CurrentEvent->OptionalParam2);
+                    LogInfo("Err, unable to re-apply previous events");
                 }
             }
         }
@@ -1199,7 +1296,14 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        DebuggerEventDisableEferOnAllProcessors();
+        if (InputFromVmxRoot)
+        {
+            HaltedBroadcastDisableEferSyscallEventsAllCores();
+        }
+        else
+        {
+            DebuggerEventDisableEferOnAllProcessors();
+        }
     }
 }
 
@@ -1482,6 +1586,62 @@ TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                            
 
     //
     // Do not terminate
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx root-mode
+ *
+ * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 VirtualAddress,
+                                                                   UINT64 PhysAddress)
+{
+    BOOLEAN                           Result                 = FALSE;
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails = {0};
+
+    //
+    // Perform unhooking directly from VMX-root mode
+    //
+    Result = ConfigureEptHookUnHookSingleAddressFromVmxRoot(VirtualAddress,
+                                                            PhysAddress,
+                                                            &TargetUnhookingDetails);
+
+    if (Result == TRUE)
+    {
+        //
+        // It's the responsiblity of the caller to restore EPT entries and
+        // invalidate EPT caches
+        //
+        if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
+        {
+            HaltedBroadcastUnhookSinglePageAllCores(&TargetUnhookingDetails);
+        }
+
+        //
+        // It's the responsiblity of the caller to clear #BPs directly from
+        // VMX-root mode if applied from VMX-root mode
+        //
+        if (TargetUnhookingDetails.RemoveBreakpointInterception)
+        {
+            //
+            // The hook was the last hook and we can broadcast to
+            // not intercept #BPs anymore
+            //
+            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+        }
+
+        return TRUE;
+    }
+
+    //
+    // The result of removing EPT hook was not okay
     //
     return FALSE;
 }

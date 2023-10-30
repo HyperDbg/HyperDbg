@@ -23,7 +23,7 @@ CommandModeHelp()
 
     ShowMessages("syntax : \t!mode [Mode (string)] [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
-                 "[condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !mode u pid 1c0\n");
@@ -167,7 +167,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     // Set the first parameter to the required execution mode
     //
-    Event->OptionalParam1 = (UINT64)TargetInterceptionMode;
+    Event->Options.OptionalParam1 = (UINT64)TargetInterceptionMode;
 
     //
     // Send the ioctl to the kernel for event registration

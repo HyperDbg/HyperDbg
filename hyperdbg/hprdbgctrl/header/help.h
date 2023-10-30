@@ -250,6 +250,9 @@ VOID
 CommandPreallocHelp();
 
 VOID
+CommandPreactivateHelp();
+
+VOID
 CommandDtHelp();
 
 VOID

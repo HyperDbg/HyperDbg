@@ -63,6 +63,8 @@ ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
 
 /**
  * @brief make evnvironment ready to change the process
+ *
+ * @param DbgState The state of the debugger on the current core
  * @param ProcessId
  * @param EProcess
  * @param IsSwitchByClockIntrrupt
@@ -70,10 +72,11 @@ ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
  * @return BOOLEAN
  */
 BOOLEAN
-ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrrupt)
+ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
+              UINT32                      ProcessId,
+              PEPROCESS                   EProcess,
+              BOOLEAN                     IsSwitchByClockIntrrupt)
 {
-    ULONG CoreCount = 0;
-
     //
     // Initialized with NULL
     //
@@ -110,33 +113,14 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
         g_ProcessSwitch.ProcessId = ProcessId;
     }
 
-    CoreCount = KeQueryActiveProcessorCount(0);
-
     //
-    // Check the switching method
+    // Send request for the target task to the halted cores (synchronized)
     //
-    if (!IsSwitchByClockIntrrupt)
-    {
-        //
-        // Set mov-cr3 vmexit for all the cores
-        //
-        for (size_t i = 0; i < CoreCount; i++)
-        {
-            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
-            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
-        }
-    }
-    else
-    {
-        //
-        // This is based on clk interrupt
-        //
-        for (size_t i = 0; i < CoreCount; i++)
-        {
-            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
-            g_DbgState[i].ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = TRUE;
-        }
-    }
+    HaltedCoreBroadcastTaskAllCores(DbgState,
+                                    DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION,
+                                    TRUE,
+                                    TRUE,
+                                    IsSwitchByClockIntrrupt);
 
     return TRUE;
 }
@@ -228,17 +212,37 @@ ProcessDetectChangeByMov2Cr3Vmexits(PROCESSOR_DEBUGGING_STATE * DbgState,
  *
  * @param DbgState The state of the debugger on the current core
  * @param Enable
+ * @param IsSwitchByClockIntrrupt
+ *
  * @return VOID
  */
 VOID
 ProcessEnableOrDisableThreadChangeMonitor(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                          BOOLEAN                     Enable)
+                                          BOOLEAN                     Enable,
+                                          BOOLEAN                     IsSwitchByClockIntrrupt)
 {
+    if (Enable)
+    {
+        //
+        // Set indicator process interception on the target core
+        //
+        DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
+        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = IsSwitchByClockIntrrupt;
+    }
+    else
+    {
+        //
+        // Avoid future sets/unsets
+        //
+        DbgState->ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = FALSE;
+        DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+    }
+
     //
     // Check whether we should intercept mov-to-cr3 vm-exits or intercept
     // the clock interrupts
     //
-    if (!DbgState->ThreadOrProcessTracingDetails.InitialSetByClockInterrupt)
+    if (!IsSwitchByClockIntrrupt)
     {
         ProcessDetectChangeByMov2Cr3Vmexits(DbgState, Enable);
     }
@@ -512,12 +516,13 @@ ReturnEnd:
  * @brief change the current process
  * @detail ONLY TO BE USED IN KD STUFFS
  *
+ * @param DbgState The state of the debugger on the current core
  * @param PidRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
+ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
 {
     switch (PidRequest->ActionType)
     {
@@ -542,7 +547,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Perform the process switch
         //
-        if (!ProcessSwitch(PidRequest->ProcessId, PidRequest->Process, PidRequest->IsSwitchByClkIntr))
+        if (!ProcessSwitch(DbgState, PidRequest->ProcessId, PidRequest->Process, PidRequest->IsSwitchByClkIntr))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;

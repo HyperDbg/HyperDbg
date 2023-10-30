@@ -391,6 +391,109 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE:
+        ShowMessages("err, you cannot specify process id while the debugger is paused in the debugger mode. "
+                     "You can use the '.process' or the '.thread' command to switch to the target process's "
+                     "memory layout (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS:
+        ShowMessages("err, the requested buffer for storing event and conditions is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, not enough pre-allocated buffer exists for storing the event. You can use the 'prealloc' "
+                     "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_BIG_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested event is considered as a \"big instant event\" and right now, there is no "
+                     "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
+                     "pre-allocating big instant event buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_CREATE_ACTION_CANNOT_ALLOCATE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target action (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_REGULAR_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, not enough pre-allocated buffer exists for storing the event's action. You can use the 'prealloc' "
+                     "command to fix this issue by pre-allocating more buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_ACTION_BIG_PREALLOCATED_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested action is considered as a \"big instant event (action)\" and right now, there is no "
+                     "pre-allocated buffer for storing it. You can use the 'prealloc' command to fix this issue by "
+                     "pre-allocating big instant event's action buffers (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_ACTION_BUFFER:
+        ShowMessages("err, the requested buffer for storing action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REQUESTED_OPTIONAL_BUFFER_IS_BIGGER_THAN_DEBUGGERS_SEND_RECEIVE_STACK:
+        ShowMessages("err, the requested optional buffer is bigger than the debuggers send/receive stack, "
+                     "please select a smaller requested buffer for the target event (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_REGULAR_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, by default HyperDbg won't allocate requested safe buffers for instant events in "
+                     "the debugger mode. You can use the 'prealloc' command to allocate (regular) requested safe "
+                     "buffers before running this command (%x)\nfor more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_BIG_REQUESTED_SAFE_BUFFER_NOT_FOUND:
+        ShowMessages("err, the requested safe buffer is bigger than regular buffers. You can use the 'prealloc' "
+                     "command to allocate (big) requested safe buffers before running this command (%x)\n"
+                     "for more information "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, the requested buffer for storing safe buffers of the action is larger than the pre-allocated "
+                     "buffer size (%x)\nfor more information on how to resolve this issue, "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_ALLOCATE_REQUESTED_SAFE_BUFFER:
+        ShowMessages("err, unable to allocate buffer for the target requested safe buffer (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_COULD_NOT_FIND_PREACTIVATION_TYPE:
+        ShowMessages("err, invalid type is specified for preactivation (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED:
+        ShowMessages("err, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
+                     "To avoid wasting system resources and performance issues we decided to use another "
+                     "command to initialize it first then use it. You can use the 'preactivate mode' command "
+                     "to preactivate this mechanism after that, you can use the '!mode' event (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -455,7 +558,7 @@ DebuggerPauseDebuggee()
     // Send a pause IOCTL
     //
     StatusIoctl = DeviceIoControl(g_DeviceHandle,                        // Handle to device
-                                  IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
+                                  IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control Code (IOCTL)
                                   &PauseRequest,                         // Input Buffer to driver.
                                   SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
                                                                          // length
@@ -1718,10 +1821,10 @@ BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32                         EventBufferLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempRegResult;
+    BOOL                              Status;
+    ULONG                             ReturnedLength;
+    DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
+    PDEBUGGER_EVENT_AND_ACTION_RESULT TempRegResult;
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -1738,7 +1841,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Move the buffer to local buffer
         //
-        memcpy(&ReturnedBuffer, TempRegResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+        memcpy(&ReturnedBuffer, TempRegResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
     }
     else
     {
@@ -1752,19 +1855,19 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // Send IOCTL
         //
 
-        Status = DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                                 IOCTL_DEBUGGER_REGISTER_EVENT,                // IO Control code
-                                 Event,                                        // Input Buffer to driver.
-                                 EventBufferLength,                            // Input buffer length
-                                 &ReturnedBuffer,                              // Output Buffer from driver.
-                                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                               // of
-                                                                               // output
-                                                                               // buffer
-                                                                               // in
-                                                                               // bytes.
-                                 &ReturnedLength,                              // Bytes placed in buffer.
-                                 NULL                                          // synchronous call
+        Status = DeviceIoControl(g_DeviceHandle,                           // Handle to device
+                                 IOCTL_DEBUGGER_REGISTER_EVENT,            // IO Control Code (IOCTL)
+                                 Event,                                    // Input Buffer to driver.
+                                 EventBufferLength,                        // Input buffer length
+                                 &ReturnedBuffer,                          // Output Buffer from driver.
+                                 sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
+                                                                           // of
+                                                                           // output
+                                                                           // buffer
+                                                                           // in
+                                                                           // bytes.
+                                 &ReturnedLength,                          // Bytes placed in buffer.
+                                 NULL                                      // synchronous call
         );
 
         if (!Status)
@@ -1840,10 +1943,10 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                       PDEBUGGER_GENERAL_ACTION       ActionScript,
                       UINT32                         ActionScriptLength)
 {
-    BOOL                                  Status;
-    ULONG                                 ReturnedLength;
-    DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempAddingResult;
+    BOOL                              Status;
+    ULONG                             ReturnedLength;
+    DEBUGGER_EVENT_AND_ACTION_RESULT  ReturnedBuffer = {0};
+    PDEBUGGER_EVENT_AND_ACTION_RESULT TempAddingResult;
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -1866,7 +1969,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
 
         //
@@ -1884,7 +1987,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
 
         //
@@ -1902,7 +2005,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Move the buffer to local buffer
             //
-            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+            memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
         }
     }
     else
@@ -1923,19 +2026,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionBreakToDebugger != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionBreakToDebugger,                        // Input Buffer to driver.
-                ActionBreakToDebuggerLength,                  // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
+                ActionBreakToDebugger,                    // Input Buffer to driver.
+                ActionBreakToDebuggerLength,              // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)
@@ -1951,19 +2054,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionCustomCode != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionCustomCode,                             // Input Buffer to driver.
-                ActionCustomCodeLength,                       // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
+                ActionCustomCode,                         // Input Buffer to driver.
+                ActionCustomCodeLength,                   // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)
@@ -1979,19 +2082,19 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (ActionScript != NULL)
         {
             Status = DeviceIoControl(
-                g_DeviceHandle,                               // Handle to device
-                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control code
-                ActionScript,                                 // Input Buffer to driver.
-                ActionScriptLength,                           // Input buffer length
-                &ReturnedBuffer,                              // Output Buffer from driver.
-                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                              // of
-                                                              // output
-                                                              // buffer
-                                                              // in
-                                                              // bytes.
-                &ReturnedLength,                              // Bytes placed in buffer.
-                NULL                                          // synchronous call
+                g_DeviceHandle,                           // Handle to device
+                IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
+                ActionScript,                             // Input Buffer to driver.
+                ActionScriptLength,                       // Input buffer length
+                &ReturnedBuffer,                          // Output Buffer from driver.
+                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+                &ReturnedLength,                          // Bytes placed in buffer.
+                NULL                                      // synchronous call
             );
 
             if (!Status)
@@ -2385,6 +2488,19 @@ InterpretGeneralEventAndActionsFields(
                         ShowMessages("err, output source already closed\n");
                         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_SOURCE_ALREADY_CLOSED;
                         return FALSE;
+                    }
+
+                    //
+                    // Check to see the source state, whether it is opened or not
+                    //
+                    if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_STATE_NOT_OPENED)
+                    {
+                        //
+                        // Just show a message
+                        //
+                        ShowMessages("some of the output(s) are not opened, it's not an error, but please ensure "
+                                     "to open the output using the 'output' command to forward the results to the "
+                                     "target resource\n");
                     }
 
                     //

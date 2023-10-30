@@ -327,7 +327,7 @@ DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC * Dpc, PVOID DeferredCont
  * @return VOID
  */
 VOID
-DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
@@ -336,7 +336,7 @@ DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, DEBUGGER_BROADCAS
     //
     // enable Mov to Control Registers Exitings
     //
-    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
+    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
     //
     // As this function is designed for a single,
@@ -970,14 +970,14 @@ DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID Defe
  * @return VOID
  */
 VOID
-DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
     //
     // Disables mov 2 control regs exiting ONLY for clearing events
     //
-    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS, Event->OptionalParam1, Event->OptionalParam2, 0);
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1133,7 +1133,7 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
     //
     // Reset Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, NULL, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1187,14 +1187,14 @@ DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContex
  * @return VOID
  */
 VOID
-DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
     //
     // Enables mov control registers exitings in primary cpu-based controls
     //
-    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
+    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1217,14 +1217,14 @@ DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCAST
  * @return VOID
  */
 VOID
-DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_BROADCASTING_OPTIONS * Event, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPTIONS * EventOptions, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
 
     //
     // Disable mov control registers exitings in primary cpu-based controls
     //
-    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1636,10 +1636,12 @@ DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID Deferre
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
 
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail = (EPT_SINGLE_HOOK_UNHOOKING_DETAILS *)DeferredContext;
+
     //
     // Execute the VMCALL to remove the hook and invalidate
     //
-    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, DeferredContext, NULL, NULL);
+    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, UnhookingDetail->PhysicalAddress, UnhookingDetail->OriginalEntry, NULL);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1680,6 +1682,7 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
         //
         AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].EptPointer.AsUInt, NULL, NULL);
     }
+
     //
     // Wait for all DPCs to synchronize at this point
     //

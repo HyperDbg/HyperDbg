@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 VOID
-DebuggerEventEnableEferOnAllProcessors(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType);
+DebuggerEventEnableEferOnAllProcessors();
 
 VOID
 DebuggerEventDisableEferOnAllProcessors();
@@ -32,7 +32,8 @@ DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
                                         UINT32  ProcessId,
                                         BOOLEAN EnableForRead,
                                         BOOLEAN EnableForWrite,
-                                        BOOLEAN EnableForExecute);
+                                        BOOLEAN EnableForExecute,
+                                        BOOLEAN ApplyDirectlyFromVmxRoot);
 
 BOOLEAN
 DebuggerCheckProcessOrThreadChange(_In_ UINT32 CoreId);

@@ -940,7 +940,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     // Send IOCTL
     //
     Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                             IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control code
+                             IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control Code (IOCTL)
                              &CommandPacket,                     // Input Buffer to driver.
                              sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
                              &CommandPacket,                     // Output Buffer from driver.

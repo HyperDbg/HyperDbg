@@ -37,6 +37,8 @@ CommandOutputHelp()
     ShowMessages("\t\te.g : output create MyOutputName2 tcp 192.168.1.10:8080\n");
     ShowMessages("\t\te.g : output create MyOutputName3 namedpipe "
                  "\\\\.\\Pipe\\HyperDbgOutput\n");
+    ShowMessages("\t\te.g : output create MyOutputName1 module "
+                 "c:\\rev\\event_forwarding.dll\n");
     ShowMessages("\t\te.g : output open MyOutputName1\n");
     ShowMessages("\t\te.g : output close MyOutputName1\n");
 }
@@ -60,7 +62,15 @@ CommandOutput(vector<string> SplittedCommand, string Command)
     BOOLEAN                        OutputSourceFound = FALSE;
     HANDLE                         SourceHandle      = INVALID_HANDLE_VALUE;
     SOCKET                         Socket            = NULL;
+    HMODULE                        Module            = NULL;
     vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+
+    if (SplittedCommand.size() <= 2)
+    {
+        ShowMessages("incorrect use of the 'output'\n\n");
+        CommandOutputHelp();
+        return;
+    }
 
     //
     // Check if the user needs a list of outputs or not
@@ -116,6 +126,10 @@ CommandOutput(vector<string> SplittedCommand, string Command)
                 {
                     TempTypeString = "tcp      ";
                 }
+                else if (CurrentOutputSourceDetails->Type == EVENT_FORWARDING_MODULE)
+                {
+                    TempTypeString = "module   ";
+                }
 
                 ShowMessages("%x  %s   %s\t%s\n", IndexToShowList, TempTypeString.c_str(), TempStateString.c_str(), CurrentOutputSourceDetails->Name);
             }
@@ -125,13 +139,6 @@ CommandOutput(vector<string> SplittedCommand, string Command)
             ShowMessages("output forwarding list is empty\n");
         }
 
-        return;
-    }
-
-    if (SplittedCommand.size() <= 2)
-    {
-        ShowMessages("incorrect use of the 'output'\n\n");
-        CommandOutputHelp();
         return;
     }
 
@@ -169,6 +176,10 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         {
             Type = EVENT_FORWARDING_TCP;
         }
+        else if (!SplittedCommand.at(3).compare("module"))
+        {
+            Type = EVENT_FORWARDING_MODULE;
+        }
         else
         {
             ShowMessages("incorrect type near '%s'\n\n",
@@ -194,7 +205,6 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         // same name which we don't want to create two or more output
         // sources with the same name
         //
-
         if (g_OutputSourcesInitialized)
         {
             TempList = &g_OutputSources;
@@ -235,12 +245,11 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         // try to open the source and get the handle
         //
-
         DetailsOfSource = Command.substr(Command.find(SplittedCommandCaseSensitive.at(3)) +
                                              SplittedCommandCaseSensitive.at(3).size() + 1,
                                          Command.size());
 
-        SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource, &Socket);
+        SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource, &Socket, &Module);
 
         //
         // Check if it's a valid handle or not
@@ -283,10 +292,20 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
         //
         // Set the handle or in the case of TCP, set the socket
+        // or if it's a module the set the module handle
         //
         if (Type == EVENT_FORWARDING_TCP)
         {
             EventForwardingObject->Socket = Socket;
+        }
+        else if (Type == EVENT_FORWARDING_MODULE)
+        {
+            EventForwardingObject->Module = Module;
+
+            //
+            // Handle is the function address
+            //
+            EventForwardingObject->Handle = SourceHandle;
         }
         else
         {
@@ -323,6 +342,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
             ShowMessages("err, the name you entered, not found\n");
             return;
         }
+
         //
         // Now we should find the corresponding object in the memory and
         // pass it to the global open functions

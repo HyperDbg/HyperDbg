@@ -45,6 +45,9 @@ VOID
 ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 ExecTrapChangeToUserDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
@@ -54,7 +57,7 @@ VOID
 ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsKernelToUser);
+ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode);
 
 VOID
 ExecTrapUninitialize();
@@ -72,3 +75,4 @@ ExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
 BOOLEAN
 ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
+

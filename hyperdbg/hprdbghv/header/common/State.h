@@ -282,10 +282,9 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
     BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
     BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
-    BOOLEAN      RestoreNonReadableWriteEptp;                                   // Shows that the EPTP should be changed to NON-readable/Writeable EPTP for one MTF
+    BOOLEAN      TracingMode;                                                   // Indicate that the target processor is on the tracing mode or not
     BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is on the normal EPTP or not
     BOOLEAN      MbecEnabled;                                                   // Indicate that the target processor is on MBEC-enabled mode or not
-    BOOLEAN      ExecuteOnlyEptp;                                               // Indicate that the target processor is on execute-only EPTP
     PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
     BOOLEAN      Test;                                                          // Used for test purposes
     UINT64       TestNumber;                                                    // Used for test purposes (Number)

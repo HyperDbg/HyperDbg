@@ -140,16 +140,18 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
 static VOID
 KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
 
-static VOID
-KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader);
+static BOOLEAN
+KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader,
+                       DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult);
 
-static VOID
-KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader);
+static BOOLEAN
+KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader,
+                          DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult);
 
 static VOID
 KdQuerySystemState();
 
-static VOID
+static BOOLEAN
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent);
 
 static VOID
@@ -182,6 +184,9 @@ KdInitializeKernelDebugger();
 
 VOID
 KdUninitializeKernelDebugger();
+
+VOID
+KdInitializeInstantEventPools();
 
 VOID
 KdSendFormatsFunctionResult(UINT64 Value);
@@ -226,6 +231,12 @@ KdIsGuestOnUsermode32Bit();
 
 VOID
 KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
+
+VOID
+KdUnlockTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
+
+BOOLEAN
+KdCheckTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,

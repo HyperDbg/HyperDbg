@@ -24,8 +24,23 @@ CommandPreallocHelp()
     ShowMessages("syntax : \tprealloc  [Type (string)] [Count (hex)]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : prealloc monitor 10\n");
     ShowMessages("\t\te.g : prealloc thread-interception 8\n");
+    ShowMessages("\t\te.g : prealloc monitor 10\n");
+    ShowMessages("\t\te.g : prealloc epthook 5\n");
+    ShowMessages("\t\te.g : prealloc epthook2 3\n");
+    ShowMessages("\t\te.g : prealloc regular-event 12\n");
+    ShowMessages("\t\te.g : prealloc big-safe-buffert 1\n");
+
+    ShowMessages("\n");
+    ShowMessages("type of allocations:\n");
+    ShowMessages("\tthread-interception: used for pre-allocations of the thread holders for the thread interception mechanism\n");
+    ShowMessages("\tmonitor: used for pre-allocations of the '!monitor' EPT hooks\n");
+    ShowMessages("\tepthook: used for pre-allocations of the '!epthook' EPT hooks\n");
+    ShowMessages("\tepthook2: used for pre-allocations of the '!epthook2' EPT hooks\n");
+    ShowMessages("\tregular-event: used for pre-allocations of regular instant events\n");
+    ShowMessages("\tbig-event: used for pre-allocations of big instant events\n");
+    ShowMessages("\tregular-safe-buffer: used for pre-allocations of the regular event safe buffers ($buffer) for instant events\n");
+    ShowMessages("\tbig-safe-buffer: used for pre-allocations of the big event safe buffers ($buffer) for instant events\n");
 }
 
 /**
@@ -53,13 +68,37 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
     //
     // Set the type of pre-allocation
     //
-    if (!SplittedCommand.at(1).compare("monitor"))
+    if (!SplittedCommand.at(1).compare("thread-interception"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION;
+    }
+    else if (!SplittedCommand.at(1).compare("monitor") || !SplittedCommand.at(1).compare("!monitor"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR;
     }
-    else if (!SplittedCommand.at(1).compare("thread-interception"))
+    else if (!SplittedCommand.at(1).compare("epthook") || !SplittedCommand.at(1).compare("!epthook"))
     {
-        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION;
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK;
+    }
+    else if (!SplittedCommand.at(1).compare("epthook2") || !SplittedCommand.at(1).compare("!epthook2"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK2;
+    }
+    else if (!SplittedCommand.at(1).compare("regular-event"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_EVENT;
+    }
+    else if (!SplittedCommand.at(1).compare("big-event"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_EVENT;
+    }
+    else if (!SplittedCommand.at(1).compare("regular-safe-buffer"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_SAFE_BUFFER;
+    }
+    else if (!SplittedCommand.at(1).compare("big-safe-buffer"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_SAFE_BUFFER;
     }
     else
     {
@@ -96,7 +135,7 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                    // Handle to device
-        IOCTL_RESERVE_PRE_ALLOCATED_POOLS, // IO Control code
+        IOCTL_RESERVE_PRE_ALLOCATED_POOLS, // IO Control Code (IOCTL)
         &PreallocRequest,                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_PREALLOC_COMMAND,  // Input buffer length
         &PreallocRequest,                  // Output Buffer from driver.

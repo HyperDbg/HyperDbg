@@ -22,8 +22,9 @@ CommandCrwriteHelp()
     ShowMessages("!crwrite : monitors modification of control registers (CR0 / CR4).\n\n");
 
     ShowMessages("syntax : \t!crwrite [Cr (hex)] [mask Mask (hex)] [pid ProcessId (hex)] "
-                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
+                 "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !crwrite 0\n");
@@ -158,12 +159,12 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
     //
     // Set the target control register
     //
-    Event->OptionalParam1 = TargetRegister;
+    Event->Options.OptionalParam1 = TargetRegister;
 
     //
     // Set the mask to filter control register bits
     //
-    Event->OptionalParam2 = MaskRegister;
+    Event->Options.OptionalParam2 = MaskRegister;
 
     //
     // Send the ioctl to the kernel for event registration

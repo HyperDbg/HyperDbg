@@ -218,7 +218,7 @@ CommandPageinRequest(UINT64               TargetVirtualAddr,
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                  // Handle to device
-            IOCTL_DEBUGGER_BRING_PAGES_IN,   // IO Control code
+            IOCTL_DEBUGGER_BRING_PAGES_IN,   // IO Control Code (IOCTL)
             &PageFaultRequest,               // Input Buffer to driver.
             SIZEOF_DEBUGGER_PAGE_IN_REQUEST, // Input buffer length
             &PageFaultRequest,               // Output Buffer from driver.

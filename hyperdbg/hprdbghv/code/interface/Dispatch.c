@@ -352,7 +352,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         if (HandleState)
         {
-            ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
         }
     }
 }
