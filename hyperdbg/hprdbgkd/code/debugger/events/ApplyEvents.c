@@ -1064,7 +1064,7 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
 }
 
 /**
- * @brief Applying trap mode change and single instruction trace events
+ * @brief Applying trap mode change events
  *
  * @param Event The created event object
  * @param ResultsToReturn Result buffer that should be returned to
@@ -1074,9 +1074,9 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
  * @return BOOLEAN
  */
 BOOLEAN
-ApplyEventTrapModeChangeAndSingleInstructionTraceEvent(PDEBUGGER_EVENT                   Event,
-                                                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                                                       BOOLEAN                           InputFromVmxRoot)
+ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
+                              PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                              BOOLEAN                           InputFromVmxRoot)
 {
     //
     // Set the event's mode of execution

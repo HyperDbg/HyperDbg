@@ -694,7 +694,7 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 }
 
 /**
- * @brief Termination function for user-mode, kernel-mode exec trap and instruction traces events
+ * @brief Termination function for user-mode, kernel-mode exec trap events
  *
  * @param Event Target Event Object
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
@@ -702,9 +702,9 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
  * @return VOID
  */
 VOID
-TerminateExecTrapModeChangedAndInstructionTracingEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
+TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    if (DebuggerEventListCount(&g_Events->TrapExecutionModeChangedAndTraceInstructionsEventsHead) > 1)
+    if (DebuggerEventListCount(&g_Events->TrapExecutionModeChangedEventsHead) > 1)
     {
         //
         // There are still other events in the queue (list), we should only remove

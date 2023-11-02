@@ -53,7 +53,7 @@ VOID
 TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);
 
 VOID
-TerminateExecTrapModeChangedAndInstructionTracingEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);
+TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);
 
 VOID
 TerminateTscEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);

@@ -65,7 +65,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            TRAP_EXECUTION_MODE_CHANGED,
+            TRAP_EXECUTION_MODE_CHANGED1,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,

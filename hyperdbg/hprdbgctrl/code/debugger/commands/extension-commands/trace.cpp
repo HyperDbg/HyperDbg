@@ -65,7 +65,7 @@ CommandTrace(vector<string> SplittedCommand, string Command)
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            TRAP_EXECUTION_SINGLE_INSTRUCTION,
+            TRAP_EXECUTION_SINGLE_INSTRUCTION1,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,
@@ -80,24 +80,12 @@ CommandTrace(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check here to make sure that the user didn't specified the calling stages for this mode change execution trap
-    //
-    if (Event->EventStage != VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION)
-    {
-        ShowMessages("the utilization of 'post' or 'all' event calling stages is not meaningful "
-                     "for the mode (user-mode/kernel-mode) change traps; therefore, this command does not support them\n");
-
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;
-    }
-
-    //
     // Check for size
     //
     if (SplittedCommand.size() > 2)
     {
-        ShowMessages("incorrect use of the '!mode'\n");
-        CommandModeHelp();
+        ShowMessages("incorrect use of the '!trace'\n");
+        CommandTraceHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
@@ -108,7 +96,7 @@ CommandTrace(vector<string> SplittedCommand, string Command)
     //
     for (auto Section : SplittedCommand)
     {
-        if (!Section.compare("!mode"))
+        if (!Section.compare("!trace"))
         {
             continue;
         }
@@ -135,7 +123,7 @@ CommandTrace(vector<string> SplittedCommand, string Command)
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
                          Section.c_str());
 
-            CommandModeHelp();
+            CommandTraceHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         }

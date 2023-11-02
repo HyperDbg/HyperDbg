@@ -107,7 +107,8 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
-    InitializeListHead(&g_Events->TrapExecutionModeChangedAndTraceInstructionsEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionModeChangedEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionTraceInstructionEventsHead);
     InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
@@ -1360,8 +1361,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
-        case TRAP_EXECUTION_MODE_CHANGED:
-        case TRAP_EXECUTION_SINGLE_INSTRUCTION:
+        case TRAP_EXECUTION_MODE_CHANGED1:
 
             //
             // check if the debugger needs user-to-kernel or kernel-to-user events
@@ -2063,9 +2063,11 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case VMCALL_INSTRUCTION_EXECUTION:
         ResultList = &g_Events->VmcallInstructionExecutionEventsHead;
         break;
-    case TRAP_EXECUTION_MODE_CHANGED:
-    case TRAP_EXECUTION_SINGLE_INSTRUCTION:
-        ResultList = &g_Events->TrapExecutionModeChangedAndTraceInstructionsEventsHead;
+    case TRAP_EXECUTION_MODE_CHANGED1:
+        ResultList = &g_Events->TrapExecutionModeChangedEventsHead;
+        break;
+    case TRAP_EXECUTION_SINGLE_INSTRUCTION1:
+        ResultList = &g_Events->TrapExecutionTraceInstructionEventsHead;
         break;
     case CONTROL_REGISTER_3_MODIFIED:
         ResultList = &g_Events->ControlRegister3ModifiedEventsHead;
@@ -2711,13 +2713,12 @@ DebuggerValidateEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
 
         break;
     }
-    case TRAP_EXECUTION_MODE_CHANGED:
-    case TRAP_EXECUTION_SINGLE_INSTRUCTION:
+    case TRAP_EXECUTION_MODE_CHANGED1:
     {
         //
-        // Check if trap exec mode and the single instruction trap parameters are valid
+        // Check if trap exec mode parameters are valid
         //
-        if (!ValidateEventTrapExecAndSingleInstructionTrace(EventDetails, ResultsToReturn, InputFromVmxRoot))
+        if (!ValidateEventTrapExec(EventDetails, ResultsToReturn, InputFromVmxRoot))
         {
             //
             // Event parameters are not valid, let break the further execution at this stage
@@ -2949,13 +2950,12 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
 
         break;
     }
-    case TRAP_EXECUTION_MODE_CHANGED:
-    case TRAP_EXECUTION_SINGLE_INSTRUCTION:
+    case TRAP_EXECUTION_MODE_CHANGED1:
     {
         //
         // Apply the trap mode change and single instruction trace events
         //
-        if (!ApplyEventTrapModeChangeAndSingleInstructionTraceEvent(Event, ResultsToReturn, InputFromVmxRoot))
+        if (!ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
             goto ClearTheEventAfterCreatingEvent;
         }
@@ -3469,13 +3469,12 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
 
         break;
     }
-    case TRAP_EXECUTION_MODE_CHANGED:
-    case TRAP_EXECUTION_SINGLE_INSTRUCTION:
+    case TRAP_EXECUTION_MODE_CHANGED1:
     {
         //
         // Call mode execution trap event terminator
         //
-        TerminateExecTrapModeChangedAndInstructionTracingEvent(Event, InputFromVmxRoot);
+        TerminateExecTrapModeChangedEvent(Event, InputFromVmxRoot);
 
         break;
     }

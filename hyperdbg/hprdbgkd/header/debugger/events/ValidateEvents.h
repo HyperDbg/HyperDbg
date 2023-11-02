@@ -32,9 +32,9 @@ ValidateEventInterrupt(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                        BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
-ValidateEventTrapExecAndSingleInstructionTrace(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
-                                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                                               BOOLEAN                           InputFromVmxRoot);
+ValidateEventTrapExec(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                      BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
 ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,

@@ -173,7 +173,7 @@ ValidateEventInterrupt(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
 }
 
 /**
- * @brief Validating trap exec and signle instruction tracing events
+ * @brief Validating trap exec events
  *
  * @param Event The created event object
  * @param ResultsToReturn Result buffer that should be returned to
@@ -183,9 +183,9 @@ ValidateEventInterrupt(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
  * @return BOOLEAN
  */
 BOOLEAN
-ValidateEventTrapExecAndSingleInstructionTrace(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
-                                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                                               BOOLEAN                           InputFromVmxRoot)
+ValidateEventTrapExec(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
+                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                      BOOLEAN                           InputFromVmxRoot)
 {
     //
     // Check if the execution mode is valid or not
