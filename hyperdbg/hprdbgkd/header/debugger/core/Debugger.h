@@ -42,32 +42,31 @@ typedef struct _DEBUGGER_CORE_EVENTS
     //
     // Do not add any varialbes to this this list, just LIST_ENTRY is allowed
     //
-    LIST_ENTRY HiddenHookReadAndWriteAndExecuteEventsHead; // HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE
-    LIST_ENTRY HiddenHookReadAndWriteEventsHead;           // HIDDEN_HOOK_READ_AND_WRITE
-    LIST_ENTRY HiddenHookReadAndExecuteEventsHead;         // HIDDEN_HOOK_READ_AND_EXECUTE
-    LIST_ENTRY HiddenHookWriteAndExecuteEventsHead;        // HIDDEN_HOOK_WRITE_AND_EXECUTE
-    LIST_ENTRY HiddenHookReadEventsHead;                   // HIDDEN_HOOK_READ
-    LIST_ENTRY HiddenHookWriteEventsHead;                  // HIDDEN_HOOK_WRITE
-    LIST_ENTRY HiddenHookExecuteEventsHead;                // HIDDEN_HOOK_EXECUTE
-    LIST_ENTRY EptHook2sExecDetourEventsHead;              // HIDDEN_HOOK_EXEC_DETOURS
-    LIST_ENTRY EptHookExecCcEventsHead;                    // HIDDEN_HOOK_EXEC_CC
-    LIST_ENTRY SyscallHooksEferSyscallEventsHead;          // SYSCALL_HOOK_EFER_SYSCALL
-    LIST_ENTRY SyscallHooksEferSysretEventsHead;           // SYSCALL_HOOK_EFER_SYSRET
-    LIST_ENTRY CpuidInstructionExecutionEventsHead;        // CPUID_INSTRUCTION_EXECUTION
-    LIST_ENTRY RdmsrInstructionExecutionEventsHead;        // RDMSR_INSTRUCTION_EXECUTION
-    LIST_ENTRY WrmsrInstructionExecutionEventsHead;        // WRMSR_INSTRUCTION_EXECUTION
-    LIST_ENTRY ExceptionOccurredEventsHead;                // EXCEPTION_OCCURRED
-    LIST_ENTRY TscInstructionExecutionEventsHead;          // TSC_INSTRUCTION_EXECUTION
-    LIST_ENTRY PmcInstructionExecutionEventsHead;          // PMC_INSTRUCTION_EXECUTION
-    LIST_ENTRY InInstructionExecutionEventsHead;           // IN_INSTRUCTION_EXECUTION
-    LIST_ENTRY OutInstructionExecutionEventsHead;          // OUT_INSTRUCTION_EXECUTION
-    LIST_ENTRY DebugRegistersAccessedEventsHead;           // DEBUG_REGISTERS_ACCESSED
-    LIST_ENTRY ExternalInterruptOccurredEventsHead;        // EXTERNAL_INTERRUPT_OCCURRED
-    LIST_ENTRY VmcallInstructionExecutionEventsHead;       // VMCALL_INSTRUCTION_EXECUTION
-    LIST_ENTRY TrapExecutionModeChangedEventsHead;         // TRAP_EXECUTION_MODE_CHANGED
-    LIST_ENTRY TrapExecutionMemoryEventsHead;              // TRAP_EXECUTION_MEMORY
-    LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED
-    LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED
+    LIST_ENTRY HiddenHookReadAndWriteAndExecuteEventsHead;             // HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE
+    LIST_ENTRY HiddenHookReadAndWriteEventsHead;                       // HIDDEN_HOOK_READ_AND_WRITE
+    LIST_ENTRY HiddenHookReadAndExecuteEventsHead;                     // HIDDEN_HOOK_READ_AND_EXECUTE
+    LIST_ENTRY HiddenHookWriteAndExecuteEventsHead;                    // HIDDEN_HOOK_WRITE_AND_EXECUTE
+    LIST_ENTRY HiddenHookReadEventsHead;                               // HIDDEN_HOOK_READ
+    LIST_ENTRY HiddenHookWriteEventsHead;                              // HIDDEN_HOOK_WRITE
+    LIST_ENTRY HiddenHookExecuteEventsHead;                            // HIDDEN_HOOK_EXECUTE
+    LIST_ENTRY EptHook2sExecDetourEventsHead;                          // HIDDEN_HOOK_EXEC_DETOURS
+    LIST_ENTRY EptHookExecCcEventsHead;                                // HIDDEN_HOOK_EXEC_CC
+    LIST_ENTRY SyscallHooksEferSyscallEventsHead;                      // SYSCALL_HOOK_EFER_SYSCALL
+    LIST_ENTRY SyscallHooksEferSysretEventsHead;                       // SYSCALL_HOOK_EFER_SYSRET
+    LIST_ENTRY CpuidInstructionExecutionEventsHead;                    // CPUID_INSTRUCTION_EXECUTION
+    LIST_ENTRY RdmsrInstructionExecutionEventsHead;                    // RDMSR_INSTRUCTION_EXECUTION
+    LIST_ENTRY WrmsrInstructionExecutionEventsHead;                    // WRMSR_INSTRUCTION_EXECUTION
+    LIST_ENTRY ExceptionOccurredEventsHead;                            // EXCEPTION_OCCURRED
+    LIST_ENTRY TscInstructionExecutionEventsHead;                      // TSC_INSTRUCTION_EXECUTION
+    LIST_ENTRY PmcInstructionExecutionEventsHead;                      // PMC_INSTRUCTION_EXECUTION
+    LIST_ENTRY InInstructionExecutionEventsHead;                       // IN_INSTRUCTION_EXECUTION
+    LIST_ENTRY OutInstructionExecutionEventsHead;                      // OUT_INSTRUCTION_EXECUTION
+    LIST_ENTRY DebugRegistersAccessedEventsHead;                       // DEBUG_REGISTERS_ACCESSED
+    LIST_ENTRY ExternalInterruptOccurredEventsHead;                    // EXTERNAL_INTERRUPT_OCCURRED
+    LIST_ENTRY VmcallInstructionExecutionEventsHead;                   // VMCALL_INSTRUCTION_EXECUTION
+    LIST_ENTRY TrapExecutionModeChangedAndTraceInstructionsEventsHead; // TRAP_EXECUTION_MODE_CHANGED & TRAP_EXECUTION_SINGLE_INSTRUCTION
+    LIST_ENTRY ControlRegister3ModifiedEventsHead;                     // CONTROL_REGISTER_3_MODIFIED
+    LIST_ENTRY ControlRegisterModifiedEventsHead;                      // CONTROL_REGISTER_MODIFIED
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 

@@ -866,7 +866,6 @@ ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // No longer looking for a trace
     //
-
     if (InterlockedIncrement64(&g_TestNumber) != 10000)
     {
         VCpu->IgnoreMtfUnset = TRUE;

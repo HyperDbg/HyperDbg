@@ -35,7 +35,7 @@ VOID
 DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode, BOOLEAN HandleState);
 
 VOID
-DispatchEventMemoryTrap(VIRTUAL_MACHINE_STATE * VCpu);
+DispatchEventSingleInstructionTrap(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventMovToCr3(VIRTUAL_MACHINE_STATE * VCpu);

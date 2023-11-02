@@ -32,9 +32,9 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
                              BOOLEAN                           InputFromVmxRoot);
 
 BOOLEAN
-ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
-                              PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
-                              BOOLEAN                           InputFromVmxRoot);
+ApplyEventTrapModeChangeAndSingleInstructionTraceEvent(PDEBUGGER_EVENT                   Event,
+                                                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                                                       BOOLEAN                           InputFromVmxRoot);
 
 VOID
 ApplyEventRdmsrExecutionEvent(PDEBUGGER_EVENT                   Event,

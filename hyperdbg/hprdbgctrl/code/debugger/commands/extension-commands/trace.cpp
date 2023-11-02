@@ -1,10 +1,10 @@
 /**
- * @file mode.cpp
+ * @file trace.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !mode command
+ * @brief !trace command
  * @details
- * @version 0.6
- * @date 2023-09-13
+ * @version 0.7
+ * @date 2023-11-02
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -12,16 +12,16 @@
 #include "pch.h"
 
 /**
- * @brief help of the !mode command
+ * @brief help of the !trace command
  *
  * @return VOID
  */
 VOID
-CommandModeHelp()
+CommandTraceHelp()
 {
-    ShowMessages("!mode : traps (and possibly blocks) the execution of user-mode/kernel-mode instructions.\n\n");
+    ShowMessages("!trace : traces the execution of user-mode/kernel-mode instructions.\n\n");
 
-    ShowMessages("syntax : \t!mode [Mode (string)] [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
+    ShowMessages("syntax : \t!trace [Mode (string)] [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
                  "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
@@ -36,14 +36,14 @@ CommandModeHelp()
 }
 
 /**
- * @brief !mode command handler
+ * @brief !trace command handler
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandMode(vector<string> SplittedCommand, string Command)
+CommandTrace(vector<string> SplittedCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -65,7 +65,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            TRAP_EXECUTION_MODE_CHANGED,
+            TRAP_EXECUTION_SINGLE_INSTRUCTION,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,

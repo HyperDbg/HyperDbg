@@ -358,61 +358,47 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
 }
 
 /**
- * @brief Handling debugger functions related to memory execution trap events
+ * @brief Handling debugger functions related to traps for single instruction events
  *
  * @param VCpu The virtual processor's state
  * @return VOID
  */
 VOID
-DispatchEventMemoryTrap(VIRTUAL_MACHINE_STATE * VCpu)
+DispatchEventSingleInstructionTrap(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 
     //
-    // As the context to event trigger, we send NULL
+    // Triggering the pre-event
     //
-    if (g_ExecTrapInitialized)
+    EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_SINGLE_INSTRUCTION,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  NULL, // As the context to event trigger, we send NULL
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    //
+    // Check whether we need to short-circuiting event emulation or not
+    //
+    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
         //
-        // Triggering the pre-event
+        // Handle vm-exit and perform changes
         //
-        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
-                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      NULL,
-                                                      &PostEventTriggerReq,
-                                                      VCpu->Regs);
-
-        //
-        // Check whether we need to short-circuiting event emulation or not
-        //
-        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
-        {
-            //
-            // Handle the memory execution trap event in the case of triggering event
-            //
-            // ExecTrapHandleRestoringToNormalState(VCpu);
-        }
-
-        //
-        // Check for the post-event triggering needs
-        //
-        if (PostEventTriggerReq)
-        {
-            VmmCallbackTriggerEvents(TRAP_EXECUTION_MEMORY,
-                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     NULL,
-                                     NULL,
-                                     VCpu->Regs);
-        }
+        // MsrHandleRdmsrVmexit(VCpu->Regs);
     }
-    else
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
     {
-        //
-        // Otherwise and if there is no event, we should handle the
-        // memory execution trap normally
-        //
-        // ExecTrapHandleRestoringToNormalState(VCpu);
+        VmmCallbackTriggerEvents(TRAP_EXECUTION_SINGLE_INSTRUCTION,
+                                 VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                 NULL,
+                                 NULL,
+                                 VCpu->Regs);
     }
 }
 
