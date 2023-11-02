@@ -1,9 +1,9 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 152
+#define RULES_COUNT 154
 #define TERMINAL_COUNT 83
-#define NONETERMINAL_COUNT 34
+#define NONETERMINAL_COUNT 35
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
 #define KEYWORD_LIST_LENGTH 76
@@ -12,11 +12,14 @@
 #define REGISTER_MAP_LIST_LENGTH 120
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 14
 #define SEMANTIC_RULES_MAP_LIST_LENGTH 115
-#define THREEOPFUNC1_LENGTH 4
-#define TWOOPFUNC1_LENGTH 7
+#define THREEOPFUNC1_LENGTH 3
+#define TWOOPFUNC1_LENGTH 6
 #define TWOOPFUNC2_LENGTH 2
-#define ONEOPFUNC1_LENGTH 20
+#define ONEOPFUNC1_LENGTH 19
 #define ONEOPFUNC2_LENGTH 9
+#define ONEOPFUNC3_LENGTH 1
+#define TWOOPFUNC3_LENGTH 1
+#define THREEOPFUNC3_LENGTH 1
 #define ZEROOPFUNC1_LENGTH 2
 #define VARARGFUNC1_LENGTH 1
 extern const struct _TOKEN Lhs[RULES_COUNT];
@@ -33,6 +36,9 @@ extern const char* TwoOpFunc1[];
 extern const char* TwoOpFunc2[];
 extern const char* OneOpFunc1[];
 extern const char* OneOpFunc2[];
+extern const char* OneOpFunc3[];
+extern const char* TwoOpFunc3[];
+extern const char* ThreeOpFunc3[];
 extern const char* ZeroOpFunc1[];
 extern const char* VarArgFunc1[];
 extern const SYMBOL_MAP SemanticRulesMapList[];
@@ -40,11 +46,11 @@ extern const SYMBOL_MAP RegisterMapList[];
 extern const SYMBOL_MAP PseudoRegisterMapList[];
 
 
-#define LALR_RULES_COUNT 75
-#define LALR_TERMINAL_COUNT 60
-#define LALR_NONTERMINAL_COUNT 15
+#define LALR_RULES_COUNT 79
+#define LALR_TERMINAL_COUNT 61
+#define LALR_NONTERMINAL_COUNT 17
 #define LALR_MAX_RHS_LEN 9
-#define LALR_STATE_COUNT 212
+#define LALR_STATE_COUNT 217
 extern const struct _TOKEN LalrLhs[RULES_COUNT];
 extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];

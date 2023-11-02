@@ -703,6 +703,66 @@ IsType8Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is OneOpFunc3
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType9Func(PTOKEN Operator)
+{
+    unsigned int n = ONEOPFUNC3_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, OneOpFunc3[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Checks whether this Token type is TwoOpFunc3
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType10Func(PTOKEN Operator)
+{
+    unsigned int n = TWOOPFUNC3_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, TwoOpFunc3[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Checks whether this Token type is ThreeOpFunc3
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType11Func(PTOKEN Operator)
+{
+    unsigned int n = THREEOPFUNC3_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ThreeOpFunc3[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *
