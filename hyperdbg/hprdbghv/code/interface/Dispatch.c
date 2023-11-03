@@ -323,7 +323,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         // Triggering the pre-event
         //
-        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED1,
+        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
                                                       (UINT64)TargetMode,
                                                       &PostEventTriggerReq,
@@ -372,7 +372,7 @@ DispatchEventSingleInstructionTrap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Triggering the pre-event
     //
-    EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_SINGLE_INSTRUCTION1,
+    EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
                                                   NULL, // As the context to event trigger, we send NULL
                                                   &PostEventTriggerReq,
@@ -394,7 +394,7 @@ DispatchEventSingleInstructionTrap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (PostEventTriggerReq)
     {
-        VmmCallbackTriggerEvents(TRAP_EXECUTION_SINGLE_INSTRUCTION1,
+        VmmCallbackTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
                                  NULL,
                                  NULL,
