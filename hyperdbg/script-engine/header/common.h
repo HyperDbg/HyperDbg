@@ -213,6 +213,15 @@ char
 IsType8Func(PTOKEN Operator);
 
 char
+IsType9Func(PTOKEN Operator);
+
+char
+IsType10Func(PTOKEN Operator);
+
+char
+IsType11Func(PTOKEN Operator);
+
+char
 IsTwoOperandOperator(PTOKEN Operator);
 
 char

@@ -1250,8 +1250,18 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        SrcVal0 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+        if (Src0->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src0->Value)) /
+                         sizeof(SYMBOL));
+            SrcVal0 = (UINT64)&Src0->Value;
+        }
+        else
+        {
+            SrcVal0 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+        }
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -1615,16 +1625,36 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        SrcVal0 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+        if (Src0->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src0->Value)) /
+                         sizeof(SYMBOL));
+            SrcVal0 = (UINT64)&Src0->Value;
+        }
+        else
+        {
+            SrcVal0 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+        }
 
         Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
 
         *Indx = *Indx + 1;
 
-        SrcVal1 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+        if (Src1->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src1->Value)) /
+                         sizeof(SYMBOL));
+            SrcVal1 = (UINT64)&Src1->Value;
+        }
+        else
+        {
+            SrcVal1 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+        }
 
         Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -1681,16 +1711,36 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        SrcVal1 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+        if (Src1->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src1->Value)) /
+                         sizeof(SYMBOL));
+            SrcVal1 = (UINT64)&Src1->Value;
+        }
+        else
+        {
+            SrcVal1 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+        }
 
         Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
 
         *Indx = *Indx + 1;
 
-        SrcVal2 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
+        if (Src2->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src2->Value)) /
+                         sizeof(SYMBOL));
+            SrcVal2 = (UINT64)&Src2->Value;
+        }
+        else
+        {
+            SrcVal2 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
+        }
 
         Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
