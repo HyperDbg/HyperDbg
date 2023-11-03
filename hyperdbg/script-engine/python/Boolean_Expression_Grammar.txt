@@ -2,11 +2,19 @@
 .OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
-.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add strcmp wcscmp
+.TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add wcscmp
 
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcmp
+.ThreeOpFunc1->interlocked_compare_exchange
 
+# OneOpFunc3 input is a number or a string and returns a number.
+.OneOpFunc3->strlen
+
+# TwoOpFunc3 inputs are two numbers or two strings and returns a number.
+.TwoOpFunc3->strcmp
+
+# ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
+.ThreeOpFunc3->memcmp
 
 .OperatorsOneOperand->inc dec reference dereference
 
@@ -69,6 +77,9 @@ E10->& E12 @REFERENCE
 E12->.OneOpFunc1 ( EXP ) @.OneOpFunc1
 E12->.TwoOpFunc1 ( EXP , EXP ) @.TwoOpFunc2
 E12->.ThreeOpFunc1 ( EXP , EXP , EXP ) @.ThreeOpFunc1
+E12->.OneOpFunc3 ( StringNumber ) @.OneOpFunc3
+E12->.TwoOpFunc3 ( StringNumber , StringNumber ) @.TwoOpFunc3
+E12->.ThreeOpFunc3 ( StringNumber , StringNumber , EXP ) @.ThreeOpFunc3
 
 E12->( BE )
 
@@ -85,3 +96,9 @@ E12->_decimal @PUSH
 E12->_octal @PUSH
 E12->_binary @PUSH
 E12->_pseudo_register @PUSH
+
+
+STRING->_string @PUSH
+
+StringNumber->EXP
+StringNumber->STRING

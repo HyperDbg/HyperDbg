@@ -108,7 +108,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->TrapExecutionModeChangedEventsHead);
-    InitializeListHead(&g_Events->TrapExecutionMemoryEventsHead);
+    InitializeListHead(&g_Events->TrapExecutionInstructionTraceEventsHead);
     InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
@@ -1834,8 +1834,18 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
 
             //
             // Enable or disable event
+            // (We could directly modify the "enabled" flag here, however
+            // in the case of any possible callback for enabling/disabling let's
+            // modify the state of being enable all of them in a single place)
             //
-            CurrentEvent->Enabled = IsEnable;
+            if (IsEnable)
+            {
+                DebuggerEnableEvent(CurrentEvent->Tag);
+            }
+            else
+            {
+                DebuggerDisableEvent(CurrentEvent->Tag);
+            }
         }
     }
 
@@ -2056,8 +2066,8 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
     case TRAP_EXECUTION_MODE_CHANGED:
         ResultList = &g_Events->TrapExecutionModeChangedEventsHead;
         break;
-    case TRAP_EXECUTION_MEMORY:
-        ResultList = &g_Events->TrapExecutionMemoryEventsHead;
+    case TRAP_EXECUTION_INSTRUCTION_TRACE:
+        ResultList = &g_Events->TrapExecutionInstructionTraceEventsHead;
         break;
     case CONTROL_REGISTER_3_MODIFIED:
         ResultList = &g_Events->ControlRegister3ModifiedEventsHead;
@@ -2943,7 +2953,7 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
     case TRAP_EXECUTION_MODE_CHANGED:
     {
         //
-        // Apply the trap mode change events
+        // Apply the trap mode change and single instruction trace events
         //
         if (!ApplyEventTrapModeChangeEvent(Event, ResultsToReturn, InputFromVmxRoot))
         {
@@ -2958,6 +2968,15 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
         // Apply the CPUID instruction execution events
         //
         ApplyEventCpuidExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
+
+        break;
+    }
+    case TRAP_EXECUTION_INSTRUCTION_TRACE:
+    {
+        //
+        // Apply the tracing events
+        //
+        ApplyEventTracingEvent(Event, ResultsToReturn, InputFromVmxRoot);
 
         break;
     }

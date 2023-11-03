@@ -302,6 +302,9 @@
     <ClCompile Include="code\interface\DirectVmcall.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="code\features\Tracing.c">
+      <Filter>code\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -558,6 +561,9 @@
     </ClInclude>
     <ClInclude Include="header\interface\DirectVmcall.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\Tracing.h">
+      <Filter>header\features</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

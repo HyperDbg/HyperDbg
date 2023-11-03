@@ -73,7 +73,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Check for MBEC Hooks
+    // Check for tracing instructions
     //
     if (VCpu->TracingMode)
     {
@@ -83,9 +83,9 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         IsMtfHandled = TRUE;
 
         //
-        // Handle callback for the MBEC hooks
+        // Handle callback for tracing instructions
         //
-        ExecTrapHandleMtfVmexit(VCpu);
+        TracingHandleMtfVmexit(VCpu);
     }
 
     //

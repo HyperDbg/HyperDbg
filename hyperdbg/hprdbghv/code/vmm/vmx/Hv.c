@@ -1065,6 +1065,7 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  *
  * @param VCpu The virtual processor's state
  * @param Set Set or unset the External Interrupt Exiting
+ *
  * @return VOID
  */
 VOID

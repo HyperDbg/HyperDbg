@@ -1,10 +1,10 @@
 /**
- * @file mode.cpp
+ * @file trace.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !mode command
+ * @brief !trace command
  * @details
- * @version 0.6
- * @date 2023-09-13
+ * @version 0.7
+ * @date 2023-11-02
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -12,38 +12,41 @@
 #include "pch.h"
 
 /**
- * @brief help of the !mode command
+ * @brief help of the !trace command
  *
  * @return VOID
  */
 VOID
-CommandModeHelp()
+CommandTraceHelp()
 {
-    ShowMessages("!mode : traps (and possibly blocks) the execution of user-mode/kernel-mode instructions.\n\n");
+    ShowMessages("!trace : traces the execution of user-mode/kernel-mode instructions.\n\n");
 
-    ShowMessages("syntax : \t!mode [Mode (string)] [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
+    ShowMessages("syntax : \t!trace [TraceType (string)] [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
                  "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !mode u pid 1c0\n");
-    ShowMessages("\t\te.g : !mode k pid 1c0\n");
-    ShowMessages("\t\te.g : !mode ku pid 1c0\n");
-    ShowMessages("\t\te.g : !mode ku core 2 pid 400\n");
+    ShowMessages("\t\te.g : !trace step-out\n");
+    ShowMessages("\t\te.g : !trace step-in pid 1c0\n");
+    ShowMessages("\t\te.g : !trace instrument-step core 2 pid 400\n");
 
     ShowMessages("\n");
-    ShowMessages("note: this event applies to the target process; thus, you need to specify the process id\n");
+    ShowMessages("valid trace types: \n");
+
+    ShowMessages("\tstep-in : single step-in (regular)\n");
+    ShowMessages("\tstep-out : single step-out (regular)\n");
+    ShowMessages("\tinstrument-step : single step-in (instrumentation)\n");
 }
 
 /**
- * @brief !mode command handler
+ * @brief !trace command handler
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandMode(vector<string> SplittedCommand, string Command)
+CommandTrace(vector<string> SplittedCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -55,8 +58,8 @@ CommandMode(vector<string> SplittedCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
-    BOOLEAN                            SetMode                = FALSE;
-    DEBUGGER_EVENT_MODE_TYPE           TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_INVALID;
+    BOOLEAN                            SetTraceType = FALSE;
+    DEBUGGER_EVENT_TRACE_TYPE          TargetTrace  = DEBUGGER_EVENT_TRACE_TYPE_INVALID;
 
     //
     // Interpret and fill the general event and action fields
@@ -65,7 +68,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
             &SplittedCommandCaseSensitive,
-            TRAP_EXECUTION_MODE_CHANGED,
+            TRAP_EXECUTION_INSTRUCTION_TRACE,
             &Event,
             &EventLength,
             &ActionBreakToDebugger,
@@ -80,24 +83,12 @@ CommandMode(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check here to make sure that the user didn't specified the calling stages for this mode change execution trap
-    //
-    if (Event->EventStage != VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION)
-    {
-        ShowMessages("the utilization of 'post' or 'all' event calling stages is not meaningful "
-                     "for the mode (user-mode/kernel-mode) change traps; therefore, this command does not support them\n");
-
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;
-    }
-
-    //
     // Check for size
     //
     if (SplittedCommand.size() > 2)
     {
-        ShowMessages("incorrect use of the '!mode'\n");
-        CommandModeHelp();
+        ShowMessages("incorrect use of the '!trace'\n");
+        CommandTraceHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
@@ -108,24 +99,27 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     for (auto Section : SplittedCommand)
     {
-        if (!Section.compare("!mode"))
+        if (!Section.compare("!trace"))
         {
             continue;
         }
-        else if (!Section.compare("u") && !SetMode)
+        else if ((!Section.compare("step-in") || !Section.compare("stepin") || !Section.compare("step")) && !SetTraceType)
         {
-            TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_USER_MODE;
-            SetMode                = TRUE;
+            TargetTrace  = DEBUGGER_EVENT_TRACE_TYPE_STEP_IN;
+            SetTraceType = TRUE;
         }
-        else if (!Section.compare("k") && !SetMode)
+        else if ((!Section.compare("step-out") || !Section.compare("stepout")) && !SetTraceType)
         {
-            TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE;
-            SetMode                = TRUE;
+            TargetTrace  = DEBUGGER_EVENT_TRACE_TYPE_STEP_OUT;
+            SetTraceType = TRUE;
         }
-        else if ((!Section.compare("uk") || !Section.compare("ku")) && !SetMode)
+        else if ((!Section.compare("step-instrument") || !Section.compare("instrument-step") ||
+                  !Section.compare("instrumentstep") ||
+                  !Section.compare("instrument-step-in")) &&
+                 !SetTraceType)
         {
-            TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE;
-            SetMode                = TRUE;
+            TargetTrace  = DEBUGGER_EVENT_TRACE_TYPE_INSTRUMENTATION_STEP_IN;
+            SetTraceType = TRUE;
         }
         else
         {
@@ -135,7 +129,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
                          Section.c_str());
 
-            CommandModeHelp();
+            CommandTraceHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         }
@@ -144,9 +138,9 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     // Check if user specified the execution mode or not
     //
-    if (!SetMode)
+    if (!SetTraceType)
     {
-        ShowMessages("please specify the mode(s) that you want to intercept their execution (u, k, ku)\n");
+        ShowMessages("please specify the trace type\n");
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
@@ -165,9 +159,9 @@ CommandMode(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Set the first parameter to the required execution mode
+    // Set the first parameter to the required trace type
     //
-    Event->Options.OptionalParam1 = (UINT64)TargetInterceptionMode;
+    Event->Options.OptionalParam1 = (UINT64)SetTraceType;
 
     //
     // Send the ioctl to the kernel for event registration

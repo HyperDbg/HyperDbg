@@ -759,12 +759,6 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         // Change EPT to kernel disabled
         //
         ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
-
-        //
-        // Test should be removed
-        //
-        // HvEnableMtfAndChangeExternalInterruptState(VCpu);
-        // VCpu->TracingMode = TRUE;
     }
     else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
@@ -844,23 +838,6 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
     // It successfully handled by MBEC hooks
     //
     return TRUE;
-}
-
-/**
- * @brief Callback for handling VM-exits for MTF in the case of exec trap hooks
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
-    //
-    // No longer looking for a trace
-    //
-    VCpu->TracingMode = FALSE;
 }
 
 /**

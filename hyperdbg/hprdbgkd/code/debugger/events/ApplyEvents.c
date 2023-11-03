@@ -1167,3 +1167,29 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
     //
     VmFuncSetTriggerEventForCpuids(TRUE);
 }
+
+/**
+ * @brief Applying trace events
+ *
+ * @param Event The created event object
+ * @param ResultsToReturn Result buffer that should be returned to
+ * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return VOID
+ */
+VOID
+ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
+                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                       BOOLEAN                           InputFromVmxRoot)
+{
+    //
+    // This is a dependant-event thus, it will be activated later by
+    // another event and nothing needs to be initiated at this stage
+    //
+
+    //
+    // Save the type of the trace
+    //
+    Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+}

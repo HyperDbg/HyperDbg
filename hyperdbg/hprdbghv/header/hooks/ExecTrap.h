@@ -45,9 +45,6 @@ VOID
 ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
 ExecTrapChangeToUserDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
@@ -75,4 +72,3 @@ ExecTrapAddProcessToWatchingList(UINT32 ProcessId);
 
 BOOLEAN
 ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId);
-
