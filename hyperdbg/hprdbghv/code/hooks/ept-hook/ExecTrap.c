@@ -12,9 +12,6 @@
  */
 #include "pch.h"
 
-volatile UINT64  g_TestNumber = 0;
-volatile BOOLEAN g_Test       = FALSE;
-
 /**
  * @brief This function gets virtual address and returns its PTE of the virtual address
  * based on the specific cr3 but without switching to the target address
@@ -762,15 +759,6 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         // Change EPT to kernel disabled
         //
         ExecTrapChangeToKernelDisabledMbecEptp(VCpu);
-
-        //
-        // Test should be removed
-        //
-        if (g_Test == FALSE)
-        {
-            VCpu->TracingMode = TRUE;
-            HvEnableMtfAndChangeExternalInterruptState(VCpu);
-        }
     }
     else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
@@ -850,37 +838,6 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
     // It successfully handled by MBEC hooks
     //
     return TRUE;
-}
-
-/**
- * @brief Callback for handling VM-exits for MTF in the case of exec trap hooks
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    // DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
-    //
-    // No longer looking for a trace
-    //
-    if (InterlockedIncrement64(&g_TestNumber) != 10000)
-    {
-        VCpu->IgnoreMtfUnset = TRUE;
-        // LogInfo("%d", g_TestNumber);
-    }
-    else
-    {
-        g_Test = TRUE;
-
-        //
-        // Check for reenabling external interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-        VCpu->TracingMode = FALSE;
-    }
 }
 
 /**

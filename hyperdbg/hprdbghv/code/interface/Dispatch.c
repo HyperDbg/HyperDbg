@@ -341,7 +341,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         }
 
         //
-        // *** Post-event doesn't make sense for this kind of event ! ***
+        // *** Post-event doesn't make sense for this kind of event! ***
         //
     }
     else
@@ -354,51 +354,6 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         {
             ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
         }
-    }
-}
-
-/**
- * @brief Handling debugger functions related to traps for single instruction events
- *
- * @param VCpu The virtual processor's state
- * @return VOID
- */
-VOID
-DispatchEventSingleInstructionTrap(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                                   PostEventTriggerReq = FALSE;
-
-    //
-    // Triggering the pre-event
-    //
-    EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
-                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  NULL, // As the context to event trigger, we send NULL
-                                                  &PostEventTriggerReq,
-                                                  VCpu->Regs);
-
-    //
-    // Check whether we need to short-circuiting event emulation or not
-    //
-    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
-    {
-        //
-        // Handle vm-exit and perform changes
-        //
-        // MsrHandleRdmsrVmexit(VCpu->Regs);
-    }
-
-    //
-    // Check for the post-event triggering needs
-    //
-    if (PostEventTriggerReq)
-    {
-        VmmCallbackTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
-                                 VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 NULL,
-                                 NULL,
-                                 VCpu->Regs);
     }
 }
 
@@ -1461,4 +1416,44 @@ DispatchEventHiddenHookPageReadWriteExecExecutePostEvent(VIRTUAL_MACHINE_STATE *
                              Context,
                              NULL,
                              VCpu->Regs);
+}
+
+/**
+ * @brief Handling debugger functions related to instrumentation trace events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventInstrumentationTrace(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // Handle system-state after handling single instrumentation step-in
+    //
+    TracingRestoreSystemState(VCpu);
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
+                                                  VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                  DEBUGGER_EVENT_TRACE_TYPE_INSTRUMENTATION_STEP_IN,
+                                                  &PostEventTriggerReq,
+                                                  VCpu->Regs);
+
+    //
+    // Check whether the steps needs to be continued or not
+    //
+    TracingCheckForContinuingSteps(VCpu);
+
+    //
+    // *** short-circuiting doesn't make sense for this kind of event! ***
+    //
+
+    //
+    // *** Post-event doesn't make sense for this kind of event! ***
+    //
 }
