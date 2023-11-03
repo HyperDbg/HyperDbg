@@ -10,3 +10,6 @@
 [submodule "hyperdbg/dependencies/zydis"]
 	path = hyperdbg/dependencies/zydis
 	url = https://github.com/HyperDbg/zydis
+[submodule "hyperdbg/script-engine/modules/script-engine-test"]
+	path = hyperdbg/script-engine/modules/script-engine-test
+	url = https://github.com/HyperDbg/script-engine-test.git
