@@ -12,6 +12,9 @@
  */
 #include "pch.h"
 
+volatile UINT64  g_TestNumber = 0;
+volatile BOOLEAN g_Test       = FALSE;
+
 /**
  * @brief This function gets virtual address and returns its PTE of the virtual address
  * based on the specific cr3 but without switching to the target address
@@ -763,8 +766,11 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         //
         // Test should be removed
         //
-        // HvEnableMtfAndChangeExternalInterruptState(VCpu);
-        // VCpu->TracingMode = TRUE;
+        if (g_Test == FALSE)
+        {
+            VCpu->TracingMode = TRUE;
+            HvEnableMtfAndChangeExternalInterruptState(VCpu);
+        }
     }
     else if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE)
     {
@@ -855,12 +861,26 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
 VOID
 ExecTrapHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+    // DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
 
     //
     // No longer looking for a trace
     //
-    VCpu->TracingMode = FALSE;
+    if (InterlockedIncrement64(&g_TestNumber) != 10000)
+    {
+        VCpu->IgnoreMtfUnset = TRUE;
+        // LogInfo("%d", g_TestNumber);
+    }
+    else
+    {
+        g_Test = TRUE;
+
+        //
+        // Check for reenabling external interrupts
+        //
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+        VCpu->TracingMode = FALSE;
+    }
 }
 
 /**

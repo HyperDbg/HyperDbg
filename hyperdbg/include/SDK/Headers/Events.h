@@ -167,7 +167,7 @@ typedef enum _VMM_EVENT_TYPE_ENUM
     // Execution Trap Events
     //
     TRAP_EXECUTION_MODE_CHANGED,
-    TRAP_EXECUTION_MEMORY,
+    TRAP_EXECUTION_INSTRUCTION_TRACE,
 
 } VMM_EVENT_TYPE_ENUM;
 
@@ -208,6 +208,19 @@ typedef enum _DEBUGGER_EVENT_MODE_TYPE
     DEBUGGER_EVENT_MODE_TYPE_INVALID                   = 0xffffffff,
 
 } DEBUGGER_EVENT_MODE_TYPE;
+
+/**
+ * @brief Type of tracing events
+ *
+ */
+typedef enum _DEBUGGER_EVENT_TRACE_TYPE
+{
+    DEBUGGER_EVENT_TRACE_TYPE_INVALID                 = 0,
+    DEBUGGER_EVENT_TRACE_TYPE_STEP_IN                 = 1,
+    DEBUGGER_EVENT_TRACE_TYPE_STEP_OUT                = 2,
+    DEBUGGER_EVENT_TRACE_TYPE_INSTRUMENTATION_STEP_IN = 3,
+
+} DEBUGGER_EVENT_TRACE_TYPE;
 
 /**
  * @brief different types of modifing events request (enable/disable/clear)

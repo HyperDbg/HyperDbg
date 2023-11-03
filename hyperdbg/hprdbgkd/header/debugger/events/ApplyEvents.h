@@ -100,3 +100,8 @@ VOID
 ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot);
+
+VOID
+ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
+                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                       BOOLEAN                           InputFromVmxRoot);

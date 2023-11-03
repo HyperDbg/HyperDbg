@@ -65,7 +65,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
     LIST_ENTRY ExternalInterruptOccurredEventsHead;        // EXTERNAL_INTERRUPT_OCCURRED
     LIST_ENTRY VmcallInstructionExecutionEventsHead;       // VMCALL_INSTRUCTION_EXECUTION
     LIST_ENTRY TrapExecutionModeChangedEventsHead;         // TRAP_EXECUTION_MODE_CHANGED
-    LIST_ENTRY TrapExecutionMemoryEventsHead;              // TRAP_EXECUTION_MEMORY
+    LIST_ENTRY TrapExecutionInstructionTraceEventsHead;    // TRAP_EXECUTION_INSTRUCTION_TRACE
     LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED
     LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED
 
