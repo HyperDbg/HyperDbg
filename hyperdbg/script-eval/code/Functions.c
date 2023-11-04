@@ -1609,3 +1609,25 @@ ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t 
 
     return Result;
 }
+
+/**
+ * @brief Implementation of event_trace_instrumentation_step function
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventTraceInstrumentationStep()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call event_trace_instrumentation_step function in the user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Call instrumentation step in
+    //
+    VmFuncTracingCheckForContinuingSteps();
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}

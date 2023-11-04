@@ -23,3 +23,6 @@ TracingRestoreSystemState(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 TracingCheckForContinuingSteps(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+TracingPerformInstrumentationStepIn(VIRTUAL_MACHINE_STATE * VCpu);

@@ -112,6 +112,9 @@ VOID
 CommandModeHelp();
 
 VOID
+CommandTraceHelp();
+
+VOID
 CommandHideHelp();
 
 VOID

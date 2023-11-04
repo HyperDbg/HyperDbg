@@ -23,7 +23,7 @@
 # ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
 .ThreeOpFunc3->memcmp
 
-.ZeroOpFunc1->pause flush
+.ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in
 
 .VarArgFunc1->printf 
 

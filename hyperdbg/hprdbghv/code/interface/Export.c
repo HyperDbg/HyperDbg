@@ -740,3 +740,14 @@ VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t C
 {
     VmxCompatibleMemcmp(Address1, Address2, Count);
 }
+
+/**
+ * @brief Perform tracing instrumentation step-in
+ *
+ * @return VOID
+ */
+IMPORT_EXPORT_VMM VOID
+VmFuncTracingCheckForContinuingSteps()
+{
+    TracingCheckForContinuingSteps(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)]);
+}

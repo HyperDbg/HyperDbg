@@ -745,6 +745,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!mode"] = {&CommandMode, &CommandModeHelp, DEBUGGER_COMMAND_MODE_ATTRIBUTES};
 
+    g_CommandsList["!trace"] = {&CommandTrace, &CommandTraceHelp, DEBUGGER_COMMAND_TRACE_ATTRIBUTES};
+
     g_CommandsList["!hide"] = {&CommandHide, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
 
     g_CommandsList["!unhide"] = {&CommandUnhide, &CommandUnhideHelp, DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES};

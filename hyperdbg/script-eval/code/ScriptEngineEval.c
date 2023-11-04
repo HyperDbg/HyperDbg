@@ -550,6 +550,23 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
+    case FUNC_EVENT_TRACE_INSTRUMENTATION_STEP:
+    case FUNC_EVENT_TRACE_INSTRUMENTATION_STEP_IN:
+
+        ScriptEngineFunctionEventTraceInstrumentationStep();
+
+        break;
+
+    case FUNC_EVENT_TRACE_STEP:
+    case FUNC_EVENT_TRACE_STEP_IN:
+    case FUNC_EVENT_TRACE_STEP_OUT:
+
+        //
+        // To be implemented!
+        //
+
+        break;
+
     case FUNC_EVENT_SC:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

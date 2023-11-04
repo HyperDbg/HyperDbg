@@ -147,18 +147,6 @@ CommandTrace(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if user specified the process id or not
-    //
-    if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-    {
-        ShowMessages("this event only applies to the selected process(es). please specify "
-                     "the 'pid' or the process id of the target process that you want to trap its execution\n");
-
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;
-    }
-
-    //
     // Set the first parameter to the required trace type
     //
     Event->Options.OptionalParam1 = (UINT64)SetTraceType;

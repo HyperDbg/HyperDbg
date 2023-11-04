@@ -325,6 +325,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_MODE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
+#define DEBUGGER_COMMAND_TRACE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+
 #define DEBUGGER_COMMAND_HIDE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
 #define DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES NULL
@@ -506,6 +508,9 @@ CommandVmcall(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandMode(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandTrace(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandHide(vector<string> SplittedCommand, string Command);
