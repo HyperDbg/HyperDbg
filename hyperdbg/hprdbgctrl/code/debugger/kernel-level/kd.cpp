@@ -21,12 +21,12 @@ extern HANDLE                g_SerialListeningThreadHandle;
 extern HANDLE                g_SerialRemoteComPortHandle;
 extern HANDLE                g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
-extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
-extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
-extern OVERLAPPED                           g_OverlappedIoStructureForReadDebuggee;
+                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
+extern BOOLEAN                          g_IsConnectedToHyperDbgLocally;
+extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
+extern OVERLAPPED                       g_OverlappedIoStructureForReadDebuggee;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
@@ -2837,8 +2837,8 @@ BOOLEAN
 KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
                           UINT32                         Length)
 {
-    BOOL                                 Status;
-    ULONG                                ReturnedLength;
+    BOOL                             Status;
+    ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
@@ -2850,17 +2850,17 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
         DeviceIoControl(g_DeviceHandle,                // Handle to device
                         IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control Code (IOCTL)
                         EventRegBuffer,
-                        Length                                        // Input Buffer to driver.
-                        ,                                             // Input buffer length
-                        &ReturnedBuffer,                              // Output Buffer from driver.
+                        Length                                    // Input Buffer to driver.
+                        ,                                         // Input buffer length
+                        &ReturnedBuffer,                          // Output Buffer from driver.
                         sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                                      // of
-                                                                      // output
-                                                                      // buffer
-                                                                      // in
-                                                                      // bytes.
-                        &ReturnedLength,                              // Bytes placed in buffer.
-                        NULL                                          // synchronous call
+                                                                  // of
+                                                                  // output
+                                                                  // buffer
+                                                                  // in
+                                                                  // bytes.
+                        &ReturnedLength,                          // Bytes placed in buffer.
+                        NULL                                      // synchronous call
         );
 
     if (!Status)
@@ -2891,26 +2891,26 @@ BOOLEAN
 KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
                              UINT32                   Length)
 {
-    BOOL                                 Status;
-    ULONG                                ReturnedLength;
+    BOOL                             Status;
+    ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
-        DeviceIoControl(g_DeviceHandle,                               // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,           // IO Control Code (IOCTL)
-                        ActionAddingBuffer,                           // Input Buffer to driver.
-                        Length,                                       // Input buffer length
-                        &ReturnedBuffer,                              // Output Buffer from driver.
+        DeviceIoControl(g_DeviceHandle,                           // Handle to device
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
+                        ActionAddingBuffer,                       // Input Buffer to driver.
+                        Length,                                   // Input buffer length
+                        &ReturnedBuffer,                          // Output Buffer from driver.
                         sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), // Length
-                                                                      // of
-                                                                      // output
-                                                                      // buffer
-                                                                      // in
-                                                                      // bytes.
-                        &ReturnedLength,                              // Bytes placed in buffer.
-                        NULL                                          // synchronous call
+                                                                  // of
+                                                                  // output
+                                                                  // buffer
+                                                                  // in
+                                                                  // bytes.
+                        &ReturnedLength,                          // Bytes placed in buffer.
+                        NULL                                      // synchronous call
         );
 
     if (!Status)
@@ -2931,13 +2931,14 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 }
 
 /**
- * @brief Modify event ioctl in the debuggee
+ * @brief Modify the event ioctl in the debuggee
  * @param ModifyEvent
+ * @param SendTheResultBackToDebugger
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
+KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendTheResultBackToDebugger)
 {
     BOOLEAN Status;
     ULONG   ReturnedLength;
@@ -2977,11 +2978,18 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
     // Send the buffer back to debugger
     //
-    return KdSendGeneralBuffersFromDebuggeeToDebugger(
-        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
-        ModifyEvent,
-        sizeof(DEBUGGER_MODIFY_EVENTS),
-        TRUE);
+    if (SendTheResultBackToDebugger)
+    {
+        return KdSendGeneralBuffersFromDebuggeeToDebugger(
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+            ModifyEvent,
+            sizeof(DEBUGGER_MODIFY_EVENTS),
+            TRUE);
+    }
+    else
+    {
+        return TRUE;
+    }
 }
 
 /**
