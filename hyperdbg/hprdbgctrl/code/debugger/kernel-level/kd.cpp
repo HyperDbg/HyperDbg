@@ -2980,15 +2980,15 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendThe
     //
     if (SendTheResultBackToDebugger)
     {
-        return TRUE;
-    }
-    else
-    {
         return KdSendGeneralBuffersFromDebuggeeToDebugger(
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
             ModifyEvent,
             sizeof(DEBUGGER_MODIFY_EVENTS),
             TRUE);
+    }
+    else
+    {
+        return TRUE;
     }
 }
 
