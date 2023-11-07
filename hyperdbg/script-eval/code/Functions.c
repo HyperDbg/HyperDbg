@@ -1627,7 +1627,7 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
     //
     // Call instrumentation step in
     //
-    VmFuncTracingCheckForContinuingSteps();
+    VmFuncTracingPerformInstrumentationStepIn();
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

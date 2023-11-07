@@ -307,7 +307,16 @@ ReadIrpBasedBuffer()
                 case OPERATION_DEBUGGEE_CLEAR_EVENTS:
 
                     KdSendModifyEventInDebuggee(
-                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)));
+                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
+                        TRUE);
+
+                    break;
+
+                case OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER:
+
+                    KdSendModifyEventInDebuggee(
+                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
+                        FALSE);
 
                     break;
 

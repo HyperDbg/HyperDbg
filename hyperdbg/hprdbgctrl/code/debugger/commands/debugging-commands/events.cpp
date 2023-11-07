@@ -516,8 +516,7 @@ CommandEventsHandleModifiedEvent(
                              "can't apply it to the user-mode structures\n");
             }
         }
-        else if (ModifyEventRequest->TypeOfAction ==
-                 DEBUGGER_MODIFY_EVENTS_DISABLE)
+        else if (ModifyEventRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
         {
             if (!CommandEventDisableEvent(Tag))
             {
@@ -561,8 +560,7 @@ CommandEventsHandleModifiedEvent(
                 }
             }
         }
-        else if (ModifyEventRequest->TypeOfAction ==
-                 DEBUGGER_MODIFY_EVENTS_CLEAR)
+        else if (ModifyEventRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
         {
             if (!CommandEventClearEvent(Tag))
             {

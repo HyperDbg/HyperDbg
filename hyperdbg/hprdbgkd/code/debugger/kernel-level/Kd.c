@@ -2047,20 +2047,48 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     {
 #if EnableInstantEventMechanism
 
+        //
+        // For clearing events, we just disable them here and after that
+        // we'll send a DPC to the user-mode to clear the event
+        //
+        // This is because we want to make sure that no other core is in middle
+        // of handling anything (so the structures and the track of the debugger
+        // might be lost)
+        //
+        // For example, the debugger might be (and will be) paused while other cores
+        // are halted but in the middle of handling an EPT, and if we remove the EPT
+        // hook directly, it might break the operation of the other cores, but when
+        // we disable it then we're sure no other cores get a chance to trigger the
+        // event
+        //
         if (IsForAllEvents)
         {
             //
             // Disable all events
             //
-            DebuggerClearAllEvents(TRUE, TRUE);
+            DebuggerEnableOrDisableAllEvents(FALSE);
         }
         else
         {
             //
             // Disable just one event
             //
-            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE, TRUE);
+            DebuggerDisableEvent(ModifyAndQueryEvent->Tag);
         }
+
+        //
+        // Send the DPC to remove the event at next run
+        //
+
+        //
+        // Send one byte buffer and operation codes to the user-mode
+        // This buffer won't notify the debugger and silently removes
+        // the event(s)
+        //
+        LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER,
+                              ModifyAndQueryEvent,
+                              sizeof(DEBUGGER_MODIFY_EVENTS),
+                              TRUE);
 
         //
         // The function was successful
