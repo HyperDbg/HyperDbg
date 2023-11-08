@@ -52,6 +52,9 @@ LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
                       _In_ BOOLEAN                         Priority);
 
 IMPORT_EXPORT_HYPERLOG BOOLEAN
+LogCallbackCheckIfBufferIsFull(BOOLEAN Priority);
+
+IMPORT_EXPORT_HYPERLOG BOOLEAN
 LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
 IMPORT_EXPORT_HYPERLOG NTSTATUS

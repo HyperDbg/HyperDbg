@@ -197,6 +197,9 @@ VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t C
 IMPORT_EXPORT_VMM VOID
 VmFuncTracingCheckForContinuingSteps();
 
+IMPORT_EXPORT_VMM VOID
+VmFuncTracingPerformInstrumentationStepIn();
+
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
 //////////////////////////////////////////////////

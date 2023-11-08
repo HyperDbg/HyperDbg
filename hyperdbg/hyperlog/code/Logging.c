@@ -247,6 +247,89 @@ LogUnInitialize()
 }
 
 /**
+ * @brief Checks whether the priority or regular buffer is full or not
+ *
+ * @param Priority Whether the buffer has priority
+ * @return BOOLEAN Returns true if the buffer is full, otherwise, return false
+ */
+BOOLEAN
+LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
+{
+    UINT32  Index;
+    BOOLEAN IsVmxRoot;
+    UINT32  CurrentIndexToWrite;
+    UINT32  CurrentIndexToWritePriority;
+
+    //
+    // Check that if we're in vmx root-mode
+    //
+    IsVmxRoot = LogCheckVmxOperation();
+
+    if (IsVmxRoot)
+    {
+        //
+        // Set the index
+        //
+        Index = 1;
+    }
+    else
+    {
+        //
+        // Set the index
+        //
+        Index = 0;
+    }
+
+    //
+    // check if the buffer is filled to it's maximum index or not
+    //
+    if (Priority)
+    {
+        CurrentIndexToWritePriority = MessageBufferInformation[Index].CurrentIndexToWritePriority;
+
+        if (MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
+        {
+            //
+            // start from the beginning
+            //
+            CurrentIndexToWritePriority = 0;
+        }
+    }
+    else
+    {
+        CurrentIndexToWrite = MessageBufferInformation[Index].CurrentIndexToWrite;
+
+        if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
+        {
+            //
+            // start from the beginning
+            //
+            CurrentIndexToWrite = 0;
+        }
+    }
+
+    //
+    // Compute the start of the buffer header
+    //
+    BUFFER_HEADER * Header;
+
+    if (Priority)
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
+    else
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
+
+    //
+    // If the next item is valid, then it means the buffer is full and the next
+    // item will replace the previous (not served items)
+    //
+    return Header->Valid;
+}
+
+/**
  * @brief Save buffer to the pool
  *
  * @param OperationCode The operation code that will be send to user mode

@@ -751,3 +751,14 @@ VmFuncTracingCheckForContinuingSteps()
 {
     TracingCheckForContinuingSteps(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)]);
 }
+
+/**
+ * @brief Perform tracing instrumentation step-in
+ *
+ * @return VOID
+ */
+IMPORT_EXPORT_VMM VOID
+VmFuncTracingPerformInstrumentationStepIn()
+{
+    TracingPerformInstrumentationStepIn(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)]);
+}

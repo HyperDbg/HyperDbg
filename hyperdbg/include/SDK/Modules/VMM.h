@@ -43,6 +43,12 @@ typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                         
                                             _In_ BOOLEAN                         Priority);
 
 /**
+ * @brief A function that checks whether the priority or regular buffer is full or not
+ *
+ */
+typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
+
+/**
  * @brief A function that handles trigger events
  *
  */
@@ -179,6 +185,7 @@ typedef struct _VMM_CALLBACKS
     LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogCallbackPrepareAndSendMessageToQueueWrapper; // Fixed
     LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;                  // Fixed
     LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;                          // Fixed
+    LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;                 // Fixed
 
     //
     // VMM callbacks

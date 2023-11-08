@@ -56,6 +56,7 @@ typedef enum TOKEN_TYPE
     EPSILON,
     TEMP,
     STRING,
+    WSTRING,
     UNKNOWN
 } TOKEN_TYPE;
 
@@ -97,6 +98,9 @@ PrintToken(PTOKEN Token);
 
 void
 Append(PTOKEN Token, char c);
+
+void
+AppendWchar(PTOKEN Token, wchar_t c);
 
 PTOKEN
 CopyToken(PTOKEN Token);
@@ -220,6 +224,12 @@ IsType10Func(PTOKEN Operator);
 
 char
 IsType11Func(PTOKEN Operator);
+
+char
+IsType12Func(PTOKEN Operator);
+
+char
+IsType13Func(PTOKEN Operator);
 
 char
 IsTwoOperandOperator(PTOKEN Operator);

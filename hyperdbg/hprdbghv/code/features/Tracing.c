@@ -21,6 +21,8 @@
 VOID
 TracingPerformInstrumentationStepIn(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
+
     VCpu->TracingMode = TRUE;
     HvEnableMtfAndChangeExternalInterruptState(VCpu);
 }
@@ -34,8 +36,6 @@ TracingPerformInstrumentationStepIn(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 TracingHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    // DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, FALSE);
-
     //
     // Dispatch and trigger the related events
     //

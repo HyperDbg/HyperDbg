@@ -645,7 +645,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
-            DebuggerParseEventsModification(DebuggerModifyEventRequest, FALSE, FALSE);
+            DebuggerParseEventsModification(DebuggerModifyEventRequest, FALSE, EnableInstantEventMechanism ? g_KernelDebuggerState : FALSE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_MODIFY_EVENTS;
             Status                    = STATUS_SUCCESS;
