@@ -781,6 +781,25 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
 }
 
 /**
+ * @brief Check the user-mode priority buffer
+ *
+ * @return VOID
+ */
+VOID
+KdCheckUserModePriorityBuffers()
+{
+    //
+    // Check if the priority buffer is full or not
+    //
+    if (LogCallbackCheckIfBufferIsFull(TRUE))
+    {
+        LogWarning("Warning, the user-mode priority buffers are full, thus the new action replaces "
+                   "previously unserviced actions. As the result, some functionalities might not work correctly!\n"
+                   "For more information please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n");
+    }
+}
+
+/**
  * @brief Notify user-mode to unload the debuggee and close the connections
  *
  * @return VOID
@@ -788,6 +807,11 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
 VOID
 KdCloseConnectionAndUnloadDebuggee()
 {
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     //
     // Send one byte buffer and operation codes
     //
@@ -808,6 +832,11 @@ VOID
 KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
 {
     //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
+    //
     // Send one byte buffer and operation codes
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
@@ -827,6 +856,11 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
 VOID
 KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len)
 {
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     //
     // Send user-input buffer along with operation code to
     // the user-mode
@@ -1564,6 +1598,11 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 
 #else
 
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                           ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           EventDetailHeader->Length,
@@ -1599,6 +1638,11 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
     return FALSE;
 
 #else
+
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
 
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                           ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
@@ -2047,27 +2091,73 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     {
 #if EnableInstantEventMechanism
 
+        //
+        // For clearing events, we just disable them here and after that
+        // we'll send a DPC to the user-mode to clear the event
+        //
+        // This is because we want to make sure that no other core is in middle
+        // of handling anything (so the structures and the track of the debugger
+        // might be lost)
+        //
+        // For example, the debugger might be (and will be) paused while other cores
+        // are halted but in the middle of handling an EPT, and if we remove the EPT
+        // hook directly, it might break the operation of the other cores, but when
+        // we disable it then we're sure no other cores get a chance to trigger the
+        // event
+        //
         if (IsForAllEvents)
         {
             //
             // Disable all events
             //
-            DebuggerClearAllEvents(TRUE, TRUE);
+            DebuggerEnableOrDisableAllEvents(FALSE);
         }
         else
         {
             //
             // Disable just one event
             //
-            DebuggerClearEvent(ModifyAndQueryEvent->Tag, TRUE, TRUE);
+            DebuggerDisableEvent(ModifyAndQueryEvent->Tag);
         }
 
         //
-        // The function was successful
+        // Send the DPC to remove the event at next run
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        //
+        // Send one byte buffer and operation codes to the user-mode
+        // This buffer won't notify the debugger and silently removes
+        // the event(s)
+        //
+        if (!LogCallbackCheckIfBufferIsFull(TRUE))
+        {
+            LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER,
+                                  ModifyAndQueryEvent,
+                                  sizeof(DEBUGGER_MODIFY_EVENTS),
+                                  TRUE);
+
+            //
+            // The function was successful
+            //
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
+        else
+        {
+            //
+            // The event is already disabled, but we cannot deliver the user-mode
+            // to clear the buffer because the buffers are either not served or
+            // too much buffers are added to queue
+            //
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL;
+        }
 
 #else
+
+        //
+        // Check if the priority buffer is full or not
+        //
+        KdCheckUserModePriorityBuffers();
+
         //
         // Send one byte buffer and operation codes to the user-mode
         //

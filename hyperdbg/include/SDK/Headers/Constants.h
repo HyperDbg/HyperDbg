@@ -226,7 +226,7 @@ const unsigned char BuildSignature[] = {
  * @brief Default buffer count of packets for message tracing
  * @details number of packets storage for priority buffers
  */
-#define MaximumPacketsCapacityPriority 10
+#define MaximumPacketsCapacityPriority 50
 
 /**
  * @brief Size of normal OS (processor) pages
@@ -435,16 +435,17 @@ const unsigned char BuildSignature[] = {
 #define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT \
     0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xa | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS                            0xa | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER 0xb | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED \
-    0xb | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
     0xc | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
+#define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
     0xd | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
+    0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 #define OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE \
-    0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xf | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //       Breakpoints & Debug Breakpoints        //

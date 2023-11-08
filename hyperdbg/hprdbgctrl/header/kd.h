@@ -197,7 +197,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
                              UINT32                   Length);
 
 BOOLEAN
-KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent);
+KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendTheResultBackToDebugger);
 
 BOOLEAN
 KdSendGeneralBuffersFromDebuggeeToDebugger(

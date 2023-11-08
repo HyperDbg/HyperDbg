@@ -494,6 +494,18 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL:
+        ShowMessages("err, The event(s) that you've requested are disabled, yet HyperDbg cannot remove (clear) them in "
+                     "the subsequent run due to the user-mode priority buffers being at full capacity. "
+                     "This typically occurs when you attempt to clear numerous events without resuming the debuggee. "
+                     "Since these unserviced events remain in the queue, HyperDbg is unable to clear them. "
+                     "To address this issue, you can resume the debuggee, allowing all queued events to be cleared (usually 2 to 10 seconds). "
+                     "Afterward, you can pause the debuggee again and request the removal of new events (%x)\n"
+                     "for more information on how to resolve this issue "
+                     "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

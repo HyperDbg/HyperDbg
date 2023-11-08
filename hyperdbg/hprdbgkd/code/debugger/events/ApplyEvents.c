@@ -347,6 +347,13 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
 
         //
+        // We set events OptionalParam1 here to make sure that our event is
+        // executed not for all hooks but for this special hook
+        // Also, we are sure that this is not null because we checked it before
+        //
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam1);
+
+        //
         // Invoke the hooker
         //
         if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
@@ -394,6 +401,13 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         }
 
         //
+        // We set events OptionalParam1 here to make sure that our event is
+        // executed not for all hooks but for this special hook
+        // Also, we are sure that this is not null because we checked it before
+        //
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
+
+        //
         // Invoke the hooker
         //
         if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
@@ -414,13 +428,6 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
             goto EventNotApplied;
         }
     }
-
-    //
-    // We set events OptionalParam1 here to make sure that our event is
-    // executed not for all hooks but for this special hook
-    // Also, we are sure that this is not null because we checked it before
-    //
-    Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->Options.OptionalParam1, TempProcessId);
 
     //
     // Applying event was successful

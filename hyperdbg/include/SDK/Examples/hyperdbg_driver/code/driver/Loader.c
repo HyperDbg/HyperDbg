@@ -39,6 +39,7 @@ LoaderInitVmmAndReversingMachine()
     VmmCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueueWrapper;
     VmmCallbacks.LogCallbackSendMessageToQueue                  = LogCallbackSendMessageToQueue;
     VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
+    VmmCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
 
     //
     // Fill the VMM callbacks
