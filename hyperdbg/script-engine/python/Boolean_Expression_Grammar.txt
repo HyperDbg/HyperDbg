@@ -10,11 +10,17 @@
 # OneOpFunc3 input is a number or a string and returns a number.
 .OneOpFunc3->strlen
 
-# TwoOpFunc3 inputs are two numbers or two strings and returns a number.
+# TwoOpFunc3 inputs are numbers or strings and returns a number.
 .TwoOpFunc3->strcmp
 
 # ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
 .ThreeOpFunc3->memcmp
+
+# OneOpFunc4 input is a number or a wstring and returns a number.
+.OneOpFunc4->wcslen
+
+# TwoOpFunc4 inputs are numbers or wstrings and returns a number.
+.TwoOpFunc4->wcscmp
 
 .OperatorsOneOperand->inc dec reference dereference
 
@@ -80,6 +86,8 @@ E12->.ThreeOpFunc1 ( EXP , EXP , EXP ) @.ThreeOpFunc1
 E12->.OneOpFunc3 ( StringNumber ) @.OneOpFunc3
 E12->.TwoOpFunc3 ( StringNumber , StringNumber ) @.TwoOpFunc3
 E12->.ThreeOpFunc3 ( StringNumber , StringNumber , EXP ) @.ThreeOpFunc3
+E12->.OneOpFunc4 ( WstringNumber ) @.OneOpFunc4
+E12->.TwoOpFunc4 ( WstringNumber , WstringNumber ) @.TwoOpFunc4
 
 E12->( BE )
 
@@ -99,6 +107,10 @@ E12->_pseudo_register @PUSH
 
 
 STRING->_string @PUSH
+WSTRING->_wstring @PUSH
 
 StringNumber->EXP
 StringNumber->STRING
+
+WstringNumber->EXP
+WstringNumber->WSTRING

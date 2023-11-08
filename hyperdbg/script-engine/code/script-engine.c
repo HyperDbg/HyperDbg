@@ -1540,6 +1540,52 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 break;
             }
         }
+        else if (IsType12Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Temp = NewTemp(Error);
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            FreeTemp(Op0);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
+        else if (IsType13Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+
+            Temp = NewTemp(Error);
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+        }
         else
         {
             *Error = SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE;
@@ -1849,6 +1895,23 @@ NewStringSymbol(char * value)
 }
 
 /**
+ * @brief Allocates a new SYMBOL with wstring type and returns the reference to it
+ *
+ * @param value
+ * @return PSYMBOL
+ */
+PSYMBOL
+NewWstringSymbol(wchar_t * value)
+{
+    PSYMBOL Symbol;
+    int     BufferSize = (sizeof(unsigned long long) + 2 * (wcslen(value))) / sizeof(SYMBOL) + 1;
+    Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
+    wcscpy(&Symbol->Value, value);
+    SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
+    return Symbol;
+}
+
+/**
  * @brief Returns the number of SYMBOL objects (16 bytes) allocated by string sybmol
  *
  * @param Symbol
@@ -1858,6 +1921,19 @@ unsigned int
 GetStringSymbolSize(PSYMBOL Symbol)
 {
     int Temp = (sizeof(unsigned long long) + (strlen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
+    return Temp;
+}
+
+/**
+ * @brief Returns the number of SYMBOL objects (16 bytes) allocated by wstring sybmol
+ *
+ * @param Symbol
+ * @return unsigned int
+ */
+unsigned int
+GetWstringSymbolSize(PSYMBOL Symbol)
+{
+    int Temp = (sizeof(unsigned long long) + 2 * (wcslen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -1952,6 +2028,10 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     case STRING:
         RemoveSymbol(&Symbol);
         return NewStringSymbol(Token->Value);
+
+    case WSTRING:
+        RemoveSymbol(&Symbol);
+        return NewWstringSymbol(Token->Value);
 
     default:
         *Error        = SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE;
@@ -2053,6 +2133,52 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         WriteAddr       = (PSYMBOL)((uintptr_t)SymbolBuffer->Head + (uintptr_t)Pointer * (uintptr_t)sizeof(SYMBOL));
         WriteAddr->Type = Symbol->Type;
         strcpy((char *)&WriteAddr->Value, (char *)&Symbol->Value);
+    }
+    else if (Symbol->Type == SYMBOL_WSTRING_TYPE)
+    {
+        //
+        // Update Pointer
+        //
+        SymbolBuffer->Pointer += GetWstringSymbolSize(Symbol);
+
+        //
+        // Handle Overflow
+        //
+        if (SymbolBuffer->Pointer >= SymbolBuffer->Size - 2)
+        {
+            //
+            // Calculate new size for the symbol B
+            //
+            int NewSize = SymbolBuffer->Size;
+            do
+            {
+                NewSize *= 2;
+            } while (NewSize <= SymbolBuffer->Pointer);
+
+            //
+            // Allocate a new buffer for string list with doubled length
+            //
+            PSYMBOL NewHead = (PSYMBOL)malloc(NewSize * sizeof(SYMBOL));
+
+            //
+            // Copy old buffer to new buffer
+            //
+            memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
+
+            //
+            // Free old buffer
+            //
+            free(SymbolBuffer->Head);
+
+            //
+            // Upadate Head and size of SymbolBuffer
+            //
+            SymbolBuffer->Size = NewSize;
+            SymbolBuffer->Head = NewHead;
+        }
+        WriteAddr       = (PSYMBOL)((uintptr_t)SymbolBuffer->Head + (uintptr_t)Pointer * (uintptr_t)sizeof(SYMBOL));
+        WriteAddr->Type = Symbol->Type;
+        wcscpy((wchar_t *)&WriteAddr->Value, (wchar_t *)&Symbol->Value);
     }
     else
     {
@@ -2419,6 +2545,10 @@ LalrIsOperandType(PTOKEN Token)
         return TRUE;
     }
     else if (Token->Type == STRING)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == WSTRING)
     {
         return TRUE;
     }
