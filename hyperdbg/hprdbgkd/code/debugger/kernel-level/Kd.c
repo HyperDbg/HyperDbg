@@ -781,6 +781,25 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
 }
 
 /**
+ * @brief Check the user-mode priority buffer
+ *
+ * @return VOID
+ */
+VOID
+KdCheckUserModePriorityBuffers()
+{
+    //
+    // Check if the priority buffer is full or not
+    //
+    if (LogCallbackCheckIfBufferIsFull(TRUE))
+    {
+        LogWarning("Warning, the user-mode priority buffers are full, thus the new action replaces "
+                   "previously unserviced actions. As the result, some functionalities might not work correctly!\n"
+                   "For more information please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n");
+    }
+}
+
+/**
  * @brief Notify user-mode to unload the debuggee and close the connections
  *
  * @return VOID
@@ -788,6 +807,11 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
 VOID
 KdCloseConnectionAndUnloadDebuggee()
 {
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     //
     // Send one byte buffer and operation codes
     //
@@ -808,6 +832,11 @@ VOID
 KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
 {
     //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
+    //
     // Send one byte buffer and operation codes
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
@@ -827,6 +856,11 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
 VOID
 KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len)
 {
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     //
     // Send user-input buffer along with operation code to
     // the user-mode
@@ -1564,6 +1598,11 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 
 #else
 
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
+
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                           ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
                           EventDetailHeader->Length,
@@ -1599,6 +1638,11 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
     return FALSE;
 
 #else
+
+    //
+    // Check if the priority buffer is full or not
+    //
+    KdCheckUserModePriorityBuffers();
 
     LogCallbackSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                           ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
@@ -2108,6 +2152,12 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         }
 
 #else
+
+        //
+        // Check if the priority buffer is full or not
+        //
+        KdCheckUserModePriorityBuffers();
+
         //
         // Send one byte buffer and operation codes to the user-mode
         //
