@@ -2085,15 +2085,27 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         // This buffer won't notify the debugger and silently removes
         // the event(s)
         //
-        LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER,
-                              ModifyAndQueryEvent,
-                              sizeof(DEBUGGER_MODIFY_EVENTS),
-                              TRUE);
+        if (!LogCallbackCheckIfBufferIsFull(TRUE))
+        {
+            LogCallbackSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER,
+                                  ModifyAndQueryEvent,
+                                  sizeof(DEBUGGER_MODIFY_EVENTS),
+                                  TRUE);
 
-        //
-        // The function was successful
-        //
-        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+            //
+            // The function was successful
+            //
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
+        else
+        {
+            //
+            // The event is already disabled, but we cannot deliver the user-mode
+            // to clear the buffer because the buffers are either not served or
+            // too much buffers are added to queue
+            //
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL;
+        }
 
 #else
         //

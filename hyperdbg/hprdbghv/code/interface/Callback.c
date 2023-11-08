@@ -90,6 +90,27 @@ LogCallbackSendMessageToQueue(UINT32  OperationCode,
 }
 
 /**
+ * @brief routines callback for checking if buffer is full
+ *
+ * @param Priority
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
+{
+    if (g_Callbacks.LogCallbackCheckIfBufferIsFull == NULL)
+    {
+        //
+        // Ignore sending message to queue
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.LogCallbackCheckIfBufferIsFull(Priority);
+}
+
+/**
  * @brief routines callback for sending buffer
  * @param OperationCode
  * @param Buffer

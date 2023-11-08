@@ -512,6 +512,13 @@
  */
 #define DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED 0xc000004e
 
+/**
+ * @brief error, the target event(s) is/are disabled but cannot clear them because the buffer of the user-mode
+ * priority is full
+ *
+ */
+#define DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL 0xc000004f
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

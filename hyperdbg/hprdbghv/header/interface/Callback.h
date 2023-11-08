@@ -32,6 +32,9 @@ LogCallbackSendMessageToQueue(UINT32  OperationCode,
                               BOOLEAN Priority);
 
 BOOLEAN
+LogCallbackCheckIfBufferIsFull(BOOLEAN Priority);
+
+BOOLEAN
 LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
                       _In_reads_bytes_(BufferLength) PVOID Buffer,
                       _In_ UINT32                          BufferLength,
