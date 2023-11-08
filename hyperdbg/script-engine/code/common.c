@@ -238,7 +238,7 @@ AppendWchar(PTOKEN Token, wchar_t c)
     //
     // Append the new charcter to the string
     //
-    wcscat(Token->Value, &c, 1);
+    wcscat(Token->Value, &c);
     Token->Len += 2;
 }
 
