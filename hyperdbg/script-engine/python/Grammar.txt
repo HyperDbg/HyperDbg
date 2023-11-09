@@ -1,8 +1,8 @@
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy
+.ThreeOpFunc1->interlocked_compare_exchange
 
 # ThreeOpFunc2 inputs are three numbers and returns no value.
-.ThreeOpFunc2->event_inject_error_code
+.ThreeOpFunc2->event_inject_error_code memcpy
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
 .TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add

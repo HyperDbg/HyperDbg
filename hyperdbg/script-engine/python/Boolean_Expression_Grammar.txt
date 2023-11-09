@@ -5,7 +5,7 @@
 .TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add wcscmp
 
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy
+.ThreeOpFunc1->interlocked_compare_exchange
 
 # OneOpFunc3 input is a number or a string and returns a number.
 .OneOpFunc3->strlen
