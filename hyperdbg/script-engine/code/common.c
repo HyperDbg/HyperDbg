@@ -156,6 +156,9 @@ PrintToken(PTOKEN Token)
     case STRING:
         printf(" STRING>\n");
         break;
+    case WSTRING:
+        printf(" WSTRING>\n");
+        break;
     case TEMP:
         printf(" TEMP>\n");
         break;
@@ -202,6 +205,41 @@ Append(PTOKEN Token, char c)
     //
     strncat(Token->Value, &c, 1);
     Token->Len++;
+}
+
+/**
+ * @brief Appends wchar_t to the token value
+ *
+ * @param Token
+ * @param char
+ */
+void
+AppendWchar(PTOKEN Token, wchar_t c)
+{
+    //
+    // Check overflow of the string
+    //
+    if (Token->Len >= Token->MaxLen - 2)
+    {
+        //
+        // Double the length of the allocated space for the wstring
+        //
+        Token->MaxLen *= 2;
+        char * NewValue = (char *)calloc(Token->MaxLen + 2, sizeof(char));
+
+        //
+        // Free Old buffer and update the pointer
+        //
+        wcsncpy(NewValue, Token->Value, Token->Len / 2);
+        free(Token->Value);
+        Token->Value = NewValue;
+    }
+
+    //
+    // Append the new charcter to the string
+    //
+    wcscat(Token->Value, &c);
+    Token->Len += 2;
 }
 
 /**
@@ -763,6 +801,46 @@ IsType11Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is OneOpFunc4
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType12Func(PTOKEN Operator)
+{
+    unsigned int n = ONEOPFUNC4_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, OneOpFunc4[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Checks whether this Token type is TwoOpFunc4
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType13Func(PTOKEN Operator)
+{
+    unsigned int n = TWOOPFUNC4_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, TwoOpFunc4[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *
@@ -883,7 +961,13 @@ GetTerminalId(PTOKEN Token)
                 return i;
             }
         }
-
+        else if (Token->Type == WSTRING)
+        {
+            if (!strcmp("_wstring", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
         else // Keyword
         {
             if (!strcmp(Token->Value, TerminalMap[i]))
@@ -982,7 +1066,13 @@ LalrGetTerminalId(PTOKEN Token)
                 return i;
             }
         }
-
+        else if (Token->Type == WSTRING)
+        {
+            if (!strcmp("_wstring", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
         else // Keyword
         {
             if (!strcmp(Token->Value, LalrTerminalMap[i]))
