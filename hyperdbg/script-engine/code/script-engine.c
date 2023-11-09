@@ -779,8 +779,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            PTOKEN  Op2       = Pop(MatchedStack);
-            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
 
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
@@ -802,6 +802,32 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             {
                 break;
             }
+        }
+        else if (IsType14Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op2Symbol);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+            FreeTemp(Op2);
         }
         else if (IsTwoOperandOperator(Operator))
         {

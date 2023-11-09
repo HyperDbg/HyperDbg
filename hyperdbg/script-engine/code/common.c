@@ -841,6 +841,26 @@ IsType13Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is ThreeOpFunc2
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType14Func(PTOKEN Operator)
+{
+    unsigned int n = THREEOPFUNC2_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ThreeOpFunc2[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *

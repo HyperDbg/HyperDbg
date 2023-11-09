@@ -1,6 +1,8 @@
 # ThreeOpFunc1 inputs are three numbers and returns a number.
-.ThreeOpFunc1->interlocked_compare_exchange memcpy event_inject_error_code
+.ThreeOpFunc1->interlocked_compare_exchange memcpy
 
+# ThreeOpFunc2 inputs are three numbers and returns no value.
+.ThreeOpFunc2->event_inject_error_code
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
 .TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add
@@ -17,7 +19,7 @@
 # OneOpFunc3 input is a number or a string and returns a number.
 .OneOpFunc3->strlen
 
-# TwoOpFunc3 inputs are numbers or strings and returns a number.
+# TwoOpFunc3 the two inputs are numbers or strings and returns a number.
 .TwoOpFunc3->strcmp
 
 # ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
@@ -26,7 +28,7 @@
 # OneOpFunc4 input is a number or a wstring and returns a number.
 .OneOpFunc4->wcslen
 
-# TwoOpFunc4 inputs are numbers or wstrings and returns a number.
+# TwoOpFunc4 the two inputs are numbers or wstrings and returns a number.
 .TwoOpFunc4->wcscmp
 
 .ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in
@@ -74,6 +76,7 @@ CALL_FUNC_STATEMENT->.TwoOpFunc3 ( StringNumber , StringNumber @.TwoOpFunc3 ) @I
 CALL_FUNC_STATEMENT->.ThreeOpFunc3 ( StringNumber , StringNumber , EXPRESSION @.ThreeOpFunc3 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.OneOpFunc4 ( WstringNumber @.OneOpFunc4 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.TwoOpFunc4 ( WstringNumber , WstringNumber @.TwoOpFunc4 ) @IGNORE_LVALUE
+CALL_FUNC_STATEMENT->.ThreeOpFunc2 ( EXPRESSION , EXPRESSION , EXPRESSION @.ThreeOpFunc2 )
 
 VA->, EXPRESSION VA
 VA->eps
