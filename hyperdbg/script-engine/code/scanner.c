@@ -519,42 +519,207 @@ GetToken(char * c, char * str)
             return Token;
         }
 
-    default:
-        if (*c >= '0' && *c <= '9')
+    case 'L':
+        if (*(str + InputIdx) == '"')
         {
+            InputIdx++;
             do
             {
-                if (*c != '`')
-                    Append(Token, *c);
                 *c = sgetc(str);
-            } while (IsHex(*c) || *c == '`');
-            Token->Type = HEX;
-            return Token;
-        }
-        else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_') || (*c == '!'))
-        {
-            uint8_t NotHex = 0;
-            do
-            {
-                if (*c != '`')
-                    Append(Token, *c);
 
-                *c = sgetc(str);
-                if (IsHex(*c) || *c == '`')
+                if (*c == '\\')
                 {
-                    // Nothing
+                    *c = sgetc(str);
+                    if (*c == 'n')
+                    {
+                        AppendWchar(Token, L'\n');
+                        continue;
+                    }
+                    if (*c == '\\')
+                    {
+                        AppendWchar(Token, L'\\');
+                        continue;
+                    }
+                    else if (*c == 't')
+                    {
+                        AppendWchar(Token, L'\t');
+                        continue;
+                    }
+                    else if (*c == '"')
+                    {
+                        AppendWchar(Token, L'"');
+                        continue;
+                    }
+                    else
+                    {
+                        Token->Type = UNKNOWN;
+                        *c          = sgetc(str);
+                        return Token;
+                    }
                 }
-                else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z'))
+                else if (*c == '"')
                 {
-                    NotHex = 1;
                     break;
                 }
                 else
                 {
-                    break;
+                    AppendWchar(Token, (wchar_t)*c);
                 }
             } while (1);
-            if (NotHex)
+
+            Token->Type = WSTRING;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+
+        default:
+            if (*c >= '0' && *c <= '9')
+            {
+                do
+                {
+                    if (*c != '`')
+                        Append(Token, *c);
+                    *c = sgetc(str);
+                } while (IsHex(*c) || *c == '`');
+                Token->Type = HEX;
+                return Token;
+            }
+            else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_') || (*c == '!'))
+            {
+                uint8_t NotHex = 0;
+                do
+                {
+                    if (*c != '`')
+                        Append(Token, *c);
+
+                    *c = sgetc(str);
+                    if (IsHex(*c) || *c == '`')
+                    {
+                        // Nothing
+                    }
+                    else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z'))
+                    {
+                        NotHex = 1;
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                } while (1);
+                if (NotHex)
+                {
+                    do
+                    {
+                        if (*c != '`')
+                            Append(Token, *c);
+                        *c = sgetc(str);
+                    } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
+                    if (IsKeyword(Token->Value))
+                    {
+                        Token->Type = KEYWORD;
+                    }
+                    else if (IsRegister(Token->Value))
+                    {
+                        Token->Type = REGISTER;
+                    }
+                    else
+                    {
+                        BOOLEAN WasFound = FALSE;
+                        BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                        UINT64  Address  = 0;
+
+                        if (HasBang)
+                        {
+                            Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                        }
+
+                        if (WasFound)
+                        {
+                            RemoveToken(&Token);
+                            char str[20] = {0};
+                            sprintf(str, "%llx", Address);
+                            Token = NewToken(HEX, str);
+                        }
+                        else
+                        {
+                            if (HasBang)
+                            {
+                                Token->Type = UNKNOWN;
+                                return Token;
+                            }
+                            else
+                            {
+                                if (GetLocalIdentifierVal(Token) != -1)
+                                {
+                                    Token->Type = LOCAL_ID;
+                                }
+                                else
+                                {
+                                    Token->Type = LOCAL_UNRESOLVED_ID;
+                                }
+                            }
+                        }
+                    }
+                    return Token;
+                }
+                else
+                {
+                    if (IsKeyword(Token->Value))
+                    {
+                        Token->Type = KEYWORD;
+                    }
+                    else if (IsRegister(Token->Value))
+                    {
+                        Token->Type = REGISTER;
+                    }
+                    else if (IsId(Token->Value))
+                    {
+                        BOOLEAN WasFound = FALSE;
+                        BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                        UINT64  Address  = 0;
+
+                        if (HasBang)
+                        {
+                            Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                        }
+
+                        if (WasFound)
+                        {
+                            RemoveToken(&Token);
+                            char str[20] = {0};
+                            sprintf(str, "%llx", Address);
+                            Token = NewToken(HEX, str);
+                        }
+                        else
+                        {
+                            if (HasBang)
+                            {
+                                Token->Type = UNKNOWN;
+                                return Token;
+                            }
+                            else
+                            {
+                                if (GetLocalIdentifierVal(Token) != -1)
+                                {
+                                    Token->Type = LOCAL_ID;
+                                }
+                                else
+                                {
+                                    Token->Type = LOCAL_UNRESOLVED_ID;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Token->Type = HEX;
+                    }
+                    return Token;
+                }
+            }
+            else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z') || (*c == '_') || (*c == '!'))
             {
                 do
                 {
@@ -610,117 +775,6 @@ GetToken(char * c, char * str)
                 }
                 return Token;
             }
-            else
-            {
-                if (IsKeyword(Token->Value))
-                {
-                    Token->Type = KEYWORD;
-                }
-                else if (IsRegister(Token->Value))
-                {
-                    Token->Type = REGISTER;
-                }
-                else if (IsId(Token->Value))
-                {
-                    BOOLEAN WasFound = FALSE;
-                    BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-                    UINT64  Address  = 0;
-
-                    if (HasBang)
-                    {
-                        Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
-                    }
-
-                    if (WasFound)
-                    {
-                        RemoveToken(&Token);
-                        char str[20] = {0};
-                        sprintf(str, "%llx", Address);
-                        Token = NewToken(HEX, str);
-                    }
-                    else
-                    {
-                        if (HasBang)
-                        {
-                            Token->Type = UNKNOWN;
-                            return Token;
-                        }
-                        else
-                        {
-                            if (GetLocalIdentifierVal(Token) != -1)
-                            {
-                                Token->Type = LOCAL_ID;
-                            }
-                            else
-                            {
-                                Token->Type = LOCAL_UNRESOLVED_ID;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Token->Type = HEX;
-                }
-                return Token;
-            }
-        }
-        else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z') || (*c == '_') || (*c == '!'))
-        {
-            do
-            {
-                if (*c != '`')
-                    Append(Token, *c);
-                *c = sgetc(str);
-            } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
-            if (IsKeyword(Token->Value))
-            {
-                Token->Type = KEYWORD;
-            }
-            else if (IsRegister(Token->Value))
-            {
-                Token->Type = REGISTER;
-            }
-            else
-            {
-                BOOLEAN WasFound = FALSE;
-                BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-                UINT64  Address  = 0;
-
-                if (HasBang)
-                {
-                    Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
-                }
-
-                if (WasFound)
-                {
-                    RemoveToken(&Token);
-                    char str[20] = {0};
-                    sprintf(str, "%llx", Address);
-                    Token = NewToken(HEX, str);
-                }
-                else
-                {
-                    if (HasBang)
-                    {
-                        Token->Type = UNKNOWN;
-                        return Token;
-                    }
-                    else
-                    {
-                        if (GetLocalIdentifierVal(Token) != -1)
-                        {
-                            Token->Type = LOCAL_ID;
-                        }
-                        else
-                        {
-                            Token->Type = LOCAL_UNRESOLVED_ID;
-                        }
-                    }
-                }
-            }
-            return Token;
-        }
 
         Token->Type = UNKNOWN;
         *c          = sgetc(str);

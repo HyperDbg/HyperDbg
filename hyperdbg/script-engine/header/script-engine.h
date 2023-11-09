@@ -67,8 +67,14 @@ NewSymbol(void);
 PSYMBOL
 NewStringSymbol(char * value);
 
+PSYMBOL
+NewWstringSymbol(wchar_t * value);
+
 unsigned int
 GetStringSymbolSize(PSYMBOL Symbol);
+
+unsigned int
+GetWstringSymbolSize(PSYMBOL Symbol);
 
 void
 RemoveSymbol(PSYMBOL * Symbol);
