@@ -21,3 +21,4 @@ The attributions listed on this credits page are acknowledged without any partic
 - Ddkwork ([@ddkwork](https://github.com/ddkwork)) for making GUI
 - Mohammad K. Fallah ([@mkfallah11](https://github.com/mkfallah11)) for implementing the optimization algorithms
 - Xandora Team ([xandora.io](https://www.xandora.io)) for [Keystone](https://github.com/keystone-engine/keystone) engine
+- xmaple555 ([@xmaple555](https://github.com/xmaple555)) for contributions in HyperDbg core and the script engine
