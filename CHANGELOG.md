@@ -17,11 +17,12 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
-- Fix the problem checking for alternative name thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/276))
-- Fix the crash on turning off the breakpoints while a breakpoint is still active thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/273))
+- Fix the problem checking for alternative names thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/276))
+- Fix the crash by turning off the breakpoints while a breakpoint is still active thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/273))
 - Fix the crash on reading symbols on remote debuggee thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/274))
 - The 'prealloc' command is updated with new instant-event preallocated pools ([link](https://docs.hyperdbg.org/commands/debugging-commands/prealloc))
 - Fix wrong removing of EPT Hook (hidden breakpoints)
+- The 'event' command, no longer continues debuggee for clearing events, instead just disables the event and removes the effects of the event when debuggee continues ([link](https://docs.hyperdbg.org/commands/debugging-commands/events))
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.
@@ -53,9 +54,9 @@ New release of the HyperDbg Debugger.
 - The debugger and the debuggee now perform a version/build check to prevent version mismatch 
 - Fix the 'eb' command's parsing issue with '0xeb' hex bytes ([link](https://github.com/HyperDbg/HyperDbg/commit/b7dc237d7fd72b6f0130f86eb3b30f9f490917d6))
 - Fix the connection problem with serial (checksum error) over two VMs 
-- Fix the 't' command's indicator of trap flags and simulatenous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
+- Fix the 't' command's indicator of trap flags and simultaneous stepping of multiple threads ([link](https://github.com/HyperDbg/HyperDbg/pull/249))
 - Fix the problem with the '.kill' and '.restart' commands
-- Show the stage of event once the debugger is paused
+- Show the stage of the event once the debugger is paused
 - Fix sending context, tag, and registers once '!epthook2' wants to halt the debugger
 
 ## [0.4.0.0] - 2023-07-18
@@ -68,7 +69,7 @@ New release of the HyperDbg Debugger.
 ### Changed
 - The '.start' command's mechanism for finding the entrypoint is changed to address issues ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 - The buffer overlap error in hyperlog in multi-core systems is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/1fa06c0b5a8b93656803fdc455025f59aadd0adb))
-- The implementation of 'dd' (define dwrod, 32-bit), and 'dw' (define word, 16-bit) is changed ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
+- The implementation of 'dd' (define dword, 32-bit), and 'dw' (define word, 16-bit) is changed ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
 - The problem with unloading driver (#238) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/238))
 - The symbol files for 32-bit modules are now loaded based on SysWOW64, and the issue (#243) is fixed ([link](https://github.com/HyperDbg/HyperDbg/issues/243))
 - New alias names for u, !u as u64, !u64 and for u2, !u2 as u32, !u32 ([link](https://docs.hyperdbg.org/commands/extension-commands/u))([link](https://docs.hyperdbg.org/commands/debugging-commands/u))
@@ -99,7 +100,7 @@ The patch for fixing bugs of the second (2nd) release of HyperDbg Debugger.
 
 ### Changed
 - Fixing bugs!
-- The parameters of !cpuid extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+- The parameters of the '!cpuid' extension command is changed, and a new EAX index parameter is added ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
 - The problem with removing EPT hooks (!monitor and !epthook) is fixed ([link](https://github.com/HyperDbg/HyperDbg/commit/e2ea08ac35834ff869512c3c450004bc50a06390))
 
 ## [0.2.0.0] - 2023-05-03
@@ -111,7 +112,7 @@ The second (2nd) release of the HyperDbg Debugger.
 - **memcpy()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcpy))
 
 ### Changed
-- Global code refactor and fixing bugs!
+- Global code refactoring and fixing bugs!
 - Compiling HyperDbg by using the latest Windows 11 WDK
 - **enable_event** function name changed to **event_enable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_enable))
 - **disable_event** function name changed to **event_disable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_disable))
