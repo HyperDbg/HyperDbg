@@ -426,9 +426,6 @@ VOID
 CommandConnect(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandConnect(vector<string> SplittedCommand, string Command);
-
-VOID
 CommandLoad(vector<string> SplittedCommand, string Command);
 
 VOID
