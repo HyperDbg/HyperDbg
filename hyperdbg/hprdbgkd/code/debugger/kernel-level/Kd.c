@@ -1123,46 +1123,61 @@ _Use_decl_annotations_
 VOID
 KdHandleRegisteredMtfCallback(UINT32 CoreId)
 {
-    //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
-    // and corrupt other variables, that's why we get 64bit
-    //
-    UINT64                           CsSel         = NULL;
-    PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
-    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
-    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
     //
-    // Check if the cs selector changed or not, which indicates that the
-    // execution changed from user-mode to kernel-mode or kernel-mode to
-    // user-mode
+    // Check for tracing instructions
     //
-    CsSel = VmFuncGetCsSelector();
-
-    KdCheckGuestOperatingModeChanges(DbgState->InstrumentationStepInTrace.CsSel,
-                                     (UINT16)CsSel);
-
-    //
-    //  Unset the MTF flag and previous cs selector
-    //
-    DbgState->InstrumentationStepInTrace.CsSel = 0;
-
-    //
-    // Check and handle if there is a software defined breakpoint
-    //
-    if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
-                                                            LastVmexitRip,
-                                                            DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                            TRUE))
+    if (DbgState->TracingMode)
     {
         //
-        // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
-        // as a tracking mechanism, so we'll change the reason for that)
+        // Handle callback for tracing instructions
         //
-        TargetContext.Context = LastVmexitRip;
-        KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                              DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                              &TargetContext);
+        TracingHandleMtf(DbgState);
+    }
+    else
+    {
+        //
+        // Only 16 bit is needed howerver, vmwrite might write on other bits
+        // and corrupt other variables, that's why we get 64bit
+        //
+        UINT64                           CsSel         = NULL;
+        PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
+        UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+
+        //
+        // Check if the cs selector changed or not, which indicates that the
+        // execution changed from user-mode to kernel-mode or kernel-mode to
+        // user-mode
+        //
+        CsSel = VmFuncGetCsSelector();
+
+        KdCheckGuestOperatingModeChanges(DbgState->InstrumentationStepInTrace.CsSel,
+                                         (UINT16)CsSel);
+
+        //
+        //  Unset the MTF flag and previous cs selector
+        //
+        DbgState->InstrumentationStepInTrace.CsSel = 0;
+
+        //
+        // Check and handle if there is a software defined breakpoint
+        //
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
+                                                                LastVmexitRip,
+                                                                DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                                TRUE))
+        {
+            //
+            // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
+            // as a tracking mechanism, so we'll change the reason for that)
+            //
+            TargetContext.Context = LastVmexitRip;
+            KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                  DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                  &TargetContext);
+        }
     }
 }
 

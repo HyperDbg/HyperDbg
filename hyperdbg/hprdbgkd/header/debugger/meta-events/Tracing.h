@@ -16,13 +16,13 @@
 //////////////////////////////////////////////////
 
 VOID
-TracingHandleMtfVmexit(VIRTUAL_MACHINE_STATE * VCpu);
+TracingHandleMtf(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
-TracingRestoreSystemState(VIRTUAL_MACHINE_STATE * VCpu);
+TracingRestoreSystemState(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
-TracingCheckForContinuingSteps(VIRTUAL_MACHINE_STATE * VCpu);
+TracingCheckForContinuingSteps(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
-TracingPerformInstrumentationStepIn(VIRTUAL_MACHINE_STATE * VCpu);
+TracingPerformInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState);

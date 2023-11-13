@@ -138,7 +138,6 @@
     <ClCompile Include="code\disassembler\ZydisKernel.c" />
     <ClCompile Include="code\features\CompatibilityChecks.c" />
     <ClCompile Include="code\features\DirtyLogging.c" />
-    <ClCompile Include="code\features\Tracing.c" />
     <ClCompile Include="code\globals\GlobalVariableManagement.c" />
     <ClCompile Include="code\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
@@ -240,7 +239,6 @@
     <ClInclude Include="header\disassembler\Disassembler.h" />
     <ClInclude Include="header\features\CompatibilityChecks.h" />
     <ClInclude Include="header\features\DirtyLogging.h" />
-    <ClInclude Include="header\features\Tracing.h" />
     <ClInclude Include="header\globals\GlobalVariableManagement.h" />
     <ClInclude Include="header\globals\GlobalVariables.h" />
     <ClInclude Include="header\hooks\Hooks.h" />

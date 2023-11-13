@@ -73,22 +73,6 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Check for tracing instructions
-    //
-    if (VCpu->TracingMode)
-    {
-        //
-        // MTF is handled
-        //
-        IsMtfHandled = TRUE;
-
-        //
-        // Handle callback for tracing instructions
-        //
-        TracingHandleMtfVmexit(VCpu);
-    }
-
-    //
     // Check for insturmentation step-in
     //
     if (VCpu->RegisterBreakOnMtf)

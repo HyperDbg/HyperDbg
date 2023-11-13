@@ -122,12 +122,14 @@
 #include "header/common/Dpc.h"
 
 //
-// Events
+// Events & Meta events
 //
 #include "header/debugger/events/ApplyEvents.h"
 #include "header/debugger/events/Termination.h"
 #include "header/debugger/events/DebuggerEvents.h"
 #include "header/debugger/events/ValidateEvents.h"
+#include "header/debugger/meta-events/Tracing.h"
+#include "header/debugger/meta-events/MetaDispatch.h"
 
 //
 // Script engine headers

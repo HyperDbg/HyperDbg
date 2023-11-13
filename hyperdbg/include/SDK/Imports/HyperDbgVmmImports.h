@@ -140,6 +140,12 @@ VmFuncInvalidateEptAllContexts();
 IMPORT_EXPORT_VMM VOID
 VmFuncUninitVmm();
 
+IMPORT_EXPORT_VMM VOID
+VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId);
+
 IMPORT_EXPORT_VMM UINT16
 VmFuncGetCsSelector();
 
@@ -193,12 +199,6 @@ VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
 
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
-
-IMPORT_EXPORT_VMM VOID
-VmFuncTracingCheckForContinuingSteps();
-
-IMPORT_EXPORT_VMM VOID
-VmFuncTracingPerformInstrumentationStepIn();
 
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
@@ -410,6 +410,19 @@ DirectVmcallDisableMov2DrExitingForClearingDrEvents(UINT32 CoreId, DIRECT_VMCALL
 
 IMPORT_EXPORT_VMM NTSTATUS
 DirectVmcallDisableMov2CrExitingForClearingCrEvents(UINT32 CoreId, DIRECT_VMCALL_PARAMETERS * DirectVmcallOptions);
+
+//////////////////////////////////////////////////
+//                 Disassembler 	    		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM BOOLEAN
+DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM BOOLEAN
+DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerShowOneInstructionInVmxRootMode(PVOID Address, BOOLEAN Is32Bit);
 
 //////////////////////////////////////////////////
 //                General Functions 	   		//

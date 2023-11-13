@@ -124,6 +124,12 @@
     <Filter Include="header\debugger\events">
       <UniqueIdentifier>{d1ce4214-9c0e-44d6-a181-fcef5e26d8a5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\meta-events">
+      <UniqueIdentifier>{6e725bf2-9cdc-4f3a-985e-a94cfa40ddbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\meta-events">
+      <UniqueIdentifier>{f308a8ae-1e28-465b-ae2f-4d307fa48177}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\driver\Driver.c">
@@ -242,6 +248,12 @@
     </ClCompile>
     <ClCompile Include="code\debugger\broadcast\HaltedRoutines.c">
       <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\meta-events\Tracing.c">
+      <Filter>code\debugger\meta-events</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\meta-events\MetaDispatch.c">
+      <Filter>code\debugger\meta-events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -364,6 +376,12 @@
     </ClInclude>
     <ClInclude Include="header\debugger\broadcast\HaltedRoutines.h">
       <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\meta-events\Tracing.h">
+      <Filter>header\debugger\meta-events</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\meta-events\MetaDispatch.h">
+      <Filter>header\debugger\meta-events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

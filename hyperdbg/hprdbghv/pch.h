@@ -108,7 +108,6 @@
 #include "hooks/ModeBasedExecHook.h"
 #include "interface/Callback.h"
 #include "features/DirtyLogging.h"
-#include "features/Tracing.h"
 #include "features/CompatibilityChecks.h"
 
 //

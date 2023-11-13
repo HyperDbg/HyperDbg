@@ -1624,10 +1624,12 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+
     //
     // Call instrumentation step in
     //
-    VmFuncTracingPerformInstrumentationStepIn();
+    TracingPerformInstrumentationStepIn(&g_DbgState[CurrentProcessorIndex]);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

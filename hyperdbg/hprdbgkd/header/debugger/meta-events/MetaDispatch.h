@@ -1,21 +1,19 @@
 /**
- * @file Disassembler.h
+ * @file MetaDispatch.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Header for disassembler in kernel
+ * @brief Headers for meta dispatching functions
  * @details
- *
- * @version 0.3
- * @date 2023-06-06
+ * @version 0.7
+ * @date 2023-11-13
  *
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "pch.h"
+#pragma once
 
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
 
-//
-// Most of the functions are defined and exported
-//
+VOID
+MetaDispatchEventInstrumentationTrace(PROCESSOR_DEBUGGING_STATE * DbgState);

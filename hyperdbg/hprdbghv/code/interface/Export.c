@@ -708,7 +708,7 @@ VmFuncEventInjectBreakpoint()
  *
  * @return INT32
  */
-IMPORT_EXPORT_VMM INT32
+INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
     VmxCompatibleStrcmp(Address1, Address2);
@@ -721,7 +721,7 @@ VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
  *
  * @return INT32
  */
-IMPORT_EXPORT_VMM INT32
+INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 {
     VmxCompatibleWcscmp(Address1, Address2);
@@ -735,30 +735,33 @@ VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  *
  * @return INT32
  */
-IMPORT_EXPORT_VMM INT32
+INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 {
     VmxCompatibleMemcmp(Address1, Address2, Count);
 }
 
 /**
- * @brief Perform tracing instrumentation step-in
+ * @brief Enables MTF and adjust external interrupt state
+ * @param UINT32 CoreId
  *
  * @return VOID
  */
-IMPORT_EXPORT_VMM VOID
-VmFuncTracingCheckForContinuingSteps()
+VOID
+VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId)
 {
-    TracingCheckForContinuingSteps(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)]);
+    HvEnableMtfAndChangeExternalInterruptState(&g_GuestState[CoreId]);
 }
 
 /**
- * @brief Perform tracing instrumentation step-in
+ * @brief Checks to enable and reinject previous interrupts
+ *
+ * @param UINT32 CoreId
  *
  * @return VOID
  */
-IMPORT_EXPORT_VMM VOID
-VmFuncTracingPerformInstrumentationStepIn()
+VOID
+VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId)
 {
-    TracingPerformInstrumentationStepIn(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)]);
+    HvEnableAndCheckForPreviousExternalInterrupts(&g_GuestState[CoreId]);
 }

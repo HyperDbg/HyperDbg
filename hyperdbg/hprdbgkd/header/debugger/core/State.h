@@ -161,6 +161,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
+    BOOLEAN                                    TracingMode; // Indicate that the target processor is on the tracing mode or not
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
     KD_NMI_STATE                               NmiState;
     DEBUGGEE_HALTED_CORE_TASK                  HaltedCoreTask;
