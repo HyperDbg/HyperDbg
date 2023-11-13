@@ -367,7 +367,10 @@ GetToken(char * c, char * str)
         *c = sgetc(str);
         if (IsLetter(*c))
         {
-            while (IsLetter(*c) || IsDecimal(*c))
+            //
+            // Append valid characters for pseudo registers' name
+            //
+            while (IsLetter(*c) || IsDecimal(*c) || *c == '_')
             {
                 Append(Token, *c);
                 *c = sgetc(str);
