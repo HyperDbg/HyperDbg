@@ -1918,6 +1918,28 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
 
         break;
 
+    case TEST_BREAKPOINT_TURN_OFF_DBS:
+
+        //
+        // Turn off the debug break interception
+        //
+        g_InterceptDebugBreaks = TRUE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
+    case TEST_BREAKPOINT_TURN_ON_DBS:
+
+        //
+        // Turn on the debug break interception
+        //
+        g_InterceptDebugBreaks = FALSE;
+
+        TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+        break;
+
     default:
 
         //

@@ -109,10 +109,16 @@ BOOLEAN g_KernelDebuggerState;
 BOOLEAN g_UserDebuggerState;
 
 /**
- * @brief shows whether the debugger should intercept breakpoints (int3) or not
+ * @brief shows whether the debugger should intercept breakpoints (#BP) or not
  *
  */
 BOOLEAN g_InterceptBreakpoints;
+
+/**
+ * @brief shows whether the debugger should intercept breakpoints (#DB) or not
+ *
+ */
+BOOLEAN g_InterceptDebugBreaks;
 
 /**
  * @brief Reason that the debuggee is halted

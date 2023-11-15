@@ -17,6 +17,7 @@ New release of the HyperDbg Debugger.
 - New semantic tests for the script engine (50 to 59) is added mainly for testing new string and memory comparison functions ([link](https://github.com/HyperDbg/script-engine-test))
 - **strlen** and **wcslen** functions now support string and wide-character string as the input ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strlen))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcslen))
 - **strcmp(Str1, Str2)**, **wcscmp(WStr1, WStr2)** and **memcmp(Ptr1, Ptr2, Num)** functions in script engine thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strcmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcscmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcmp))
+- The debug break interception (\#DB) manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 
 ### Changed
 - Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
@@ -31,6 +32,7 @@ New release of the HyperDbg Debugger.
 - **$stage** pseudo-register changed to **$event_stage** ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 - Fix adding pseudo-registers with underscore in the script engine ([link](https://github.com/HyperDbg/HyperDbg/pull/313))
 - Fix the boolean expression interpretation in **if** conditions in the script engine ([link](https://github.com/HyperDbg/HyperDbg/issues/311))
+- HyperDbg now intercepts all debug breaks (\#DBs) if it's not explicitly asked not to by using the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.
@@ -88,7 +90,7 @@ New release of the HyperDbg Debugger.
 ### Added
 - The event short-circuiting mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-short-circuiting))
 - New pseudo-registers (**$tag**, **$id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
-- The breakpoint interception manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
+- The breakpoint interception manipulation (\#BP) option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
 - The '!track' command to create the tracking records of function CALLs and RETs along with registers ([link](https://docs.hyperdbg.org/commands/extension-commands/track))
 - **disassemble_len(Address)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len))
 - **disassemble_len32(Address)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len32))

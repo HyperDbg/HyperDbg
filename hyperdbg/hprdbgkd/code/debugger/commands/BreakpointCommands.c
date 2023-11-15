@@ -77,7 +77,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     {
         //
         // As it's not set by the debugger (not found in our list), it means the program or
-        // a debugger already set the trap flag, we'll inject #DB to the debugger
+        // a debugger already set the trap flag, we'll return FALSE
         //
         // LogInfo("Caution: The process (pid:%x, tid:%x, name:%s) is utilizing a trap flag, "
         //         "which was not previously adjusted by HyperDbg. This occurrence could indicate "
@@ -234,72 +234,125 @@ BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 {
     BOOLEAN                     TrapSetByDebugger;
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-    BOOLEAN                     Result   = TRUE;
+    PROCESSOR_DEBUGGING_STATE * DbgState                  = &g_DbgState[CoreId];
+    BOOLEAN                     HandledByDebuggerRoutines = TRUE;
 
     //
-    // Check whether anything should be changed with trap-flags
+    // *** Check whether anything should be changed with trap-flags
+    // and also it indicates whether the debugger itself set this trap
+    // flag or it's not supposed to be set by the debugger ***
     //
-    if (!BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(),
-                                                     PsGetCurrentThreadId(),
-                                                     &TrapSetByDebugger))
+    if (BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(),
+                                                    PsGetCurrentThreadId(),
+                                                    &TrapSetByDebugger))
     {
-        //
-        // Inject #DB as it's not supposed to be handled by HyperDbg
-        //
-        Result = FALSE;
-    }
-    else if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-    {
-        //
-        // This check was to show whether it is because of thread change detection or not
-        //
+        if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        {
+            //
+            // This check was to show whether it is because of thread change detection or not
+            //
 
-        // This way of handling has a problem, if the user set to change
-        // the thread and instead of using 'g', it pressed the 'p' to
-        // set or a trap happens somewhere then will be ignored
-        // it because we don't know the origin of this debug breakpoint
-        // and it only happens on '.thread2' command, the correct way
-        // to handle it is to find the exact hw debug register that caused
-        // this vm-exit, but it's a really rare case, so we left it without
-        // handling this case
-        //
-        ThreadHandleThreadChange(DbgState);
-    }
-    else if (g_UserDebuggerState == TRUE &&
-             (g_IsWaitingForUserModeProcessEntryToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
-    {
-        //
-        // Handle for user-mode attaching mechanism
-        //
-        AttachingHandleEntrypointInterception(DbgState);
-    }
-    else if (g_KernelDebuggerState == TRUE)
-    {
-        //
-        // Handle debug events (breakpoint, traps, hardware debug register when kernel
-        // debugger is attached.)
-        //
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
-    }
-    else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                       NULL))
-    {
-        //
-        // if the above function returns true, no need for further action
-        // it's handled in the user debugger
-        //
+            // This way of handling has a problem, if the user set to change
+            // the thread and instead of using 'g', it pressed the 'p' to
+            // set or a trap happens somewhere then will be ignored
+            // it because we don't know the origin of this debug breakpoint
+            // and it only happens on '.thread2' command, the correct way
+            // to handle it is to find the exact hw debug register that caused
+            // this vm-exit, but it's a really rare case, so we left it without
+            // handling this case
+            //
+            ThreadHandleThreadChange(DbgState);
+        }
+        else if (g_UserDebuggerState == TRUE &&
+                 (g_IsWaitingForUserModeProcessEntryToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
+        {
+            //
+            // Handle for user-mode attaching mechanism
+            //
+            AttachingHandleEntrypointInterception(DbgState);
+        }
+        else if (g_KernelDebuggerState == TRUE)
+        {
+            //
+            // Here we added the handler for the kernel because we want
+            // stepping routines to work, even if the debugger masks the
+            // traps by using 'test trap off', so stepping still works
+            //
+
+            //
+            // Handle debug events (breakpoint, traps, hardware debug register when kernel
+            // debugger is attached)
+            //
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
+        }
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                                           NULL))
+        {
+            //
+            // if the above function returns true, no need for further action
+            // it's handled in the user debugger
+            //
+        }
+        else
+        {
+            //
+            // Here it means that the trap is supposed to be handled by
+            // HyperDbg but, we couldn't find any routines that gonna
+            // handle it (it's probably an error)
+            //
+            HandledByDebuggerRoutines = FALSE;
+            LogError("Err, trap is supposed to be handled by the debugger, but none of routines handled it");
+        }
     }
     else
     {
         //
-        // Not handled by the debugger
+        // *** it's not supposed to be handled by the debugger routines, the guest
+        // or the target debuggee throws a debug break (#DB) ***
         //
-        Result = FALSE;
+
+        //
+        // It means that it's not handled by the debugger routines
+        // By default HyperDbg intercepts all #DBs and break the debugger if
+        // it's attached to the debugger, otherwise injects to the guest VM
+        //
+        if (g_InterceptDebugBreaks)
+        {
+            //
+            // The user explicitly told the debugger not to intercept any
+            // traps (e.g., by using 'test trap off')
+            //
+            HandledByDebuggerRoutines = FALSE;
+        }
+        else if (g_KernelDebuggerState == TRUE)
+        {
+            //
+            // Handle debug events (breakpoint, traps, hardware debug register when kernel
+            // debugger is attached)
+            //
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
+        }
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                                           NULL))
+        {
+            //
+            // if the above function returns true, no need for further action
+            // it's handled in the user debugger
+            //
+        }
+        else
+        {
+            //
+            // Inject to back to the guest as it's not either handled by the kernel debugger
+            // routines or the user debugger
+            //
+            HandledByDebuggerRoutines = FALSE;
+        }
     }
 
-    return Result;
+    return HandledByDebuggerRoutines;
 }
 
 /**
@@ -624,7 +677,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointHandleBpTraps(UINT32 CoreId)
+BreakpointHandleBreakpoints(UINT32 CoreId)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
     UINT64                           GuestRip      = 0;

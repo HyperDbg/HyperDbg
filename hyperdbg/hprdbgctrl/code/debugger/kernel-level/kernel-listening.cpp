@@ -599,14 +599,36 @@ StartAgain:
 
             if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_OFF_BPS)
+                switch (TestQueryPacket->RequestType)
                 {
-                    ShowMessages("breakpoint interception is deactivated\n"
+                case TEST_BREAKPOINT_TURN_OFF_BPS:
+
+                    ShowMessages("breakpoint interception (#BP) is deactivated\n"
                                  "from now, the breakpoints will be re-injected into the guest debuggee\n");
-                }
-                else if (TestQueryPacket->RequestType == TEST_BREAKPOINT_TURN_ON_BPS)
-                {
-                    ShowMessages("breakpoint interception is activated\n");
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_ON_BPS:
+
+                    ShowMessages("breakpoint interception (#BP) is activated\n");
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_OFF_DBS:
+
+                    ShowMessages("debug break interception (#DB) is deactivated\n"
+                                 "from now, the breakpoints will be re-injected into the guest debuggee\n");
+
+                    break;
+
+                case TEST_BREAKPOINT_TURN_ON_DBS:
+
+                    ShowMessages("debug break interception (#DB) is activated\n");
+
+                    break;
+
+                default:
+                    break;
                 }
             }
             else
