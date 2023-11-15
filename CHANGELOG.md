@@ -26,6 +26,11 @@ New release of the HyperDbg Debugger.
 - The 'prealloc' command is updated with new instant-event preallocated pools ([link](https://docs.hyperdbg.org/commands/debugging-commands/prealloc))
 - Fix wrong removing of EPT Hook (hidden breakpoints)
 - The 'event' command, no longer continues debuggee for clearing events, instead just disables the event and removes the effects of the event when debuggee continues ([link](https://docs.hyperdbg.org/commands/debugging-commands/events))
+- **$id** pseudo-register changed to **$event_id** ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- **$tag** pseudo-register changed to **$event_tag** ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- **$stage** pseudo-register changed to **$event_stage** ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- Fix adding pseudo-registers with underscore in the script engine ([link](https://github.com/HyperDbg/HyperDbg/pull/313))
+- Fix the boolean expression interpretation in **if** conditions in the script engine ([link](https://github.com/HyperDbg/HyperDbg/issues/311))
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.
