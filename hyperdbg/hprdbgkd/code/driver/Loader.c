@@ -56,7 +56,7 @@ LoaderInitVmmAndDebugger()
     //
     // Fill the debugging callbacks
     //
-    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBpTraps;
+    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBreakpoints;
     VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
     VmmCallbacks.UdCheckForCommand                                         = UdCheckForCommand;

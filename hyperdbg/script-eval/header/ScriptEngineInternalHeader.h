@@ -204,6 +204,12 @@ ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * H
 VOID
 ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError);
 
+VOID
+ScriptEngineFunctionEventTraceInstrumentationStep();
+
+VOID
+ScriptEngineFunctionEventTraceStepIn();
+
 UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
 
@@ -212,6 +218,3 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2);
 
 UINT64
 ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t Count);
-
-VOID
-ScriptEngineFunctionEventTraceInstrumentationStep();

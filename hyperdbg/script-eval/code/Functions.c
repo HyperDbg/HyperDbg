@@ -1633,3 +1633,27 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of event_trace_step_in function
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionEventTraceStepIn()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call event_trace_instrumentation_step function in the user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+
+    //
+    // Call instrumentation step in
+    //
+    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentProcessorIndex]);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
