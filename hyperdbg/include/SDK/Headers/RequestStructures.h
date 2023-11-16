@@ -303,13 +303,15 @@ typedef enum _DEBUGGER_TEST_QUERY_STATE
     TEST_QUERY_HALTING_CORE_STATUS                                          = 1,  // Query constant to show detail of halting of core
     TEST_QUERY_PREALLOCATED_POOL_STATE                                      = 2,  // Query pre-allocated pool state
     TEST_QUERY_TRAP_STATE                                                   = 3,  // Query trap state
-    TEST_BREAKPOINT_TURN_OFF_BPS                                            = 4,  // Turn off the breakpoints
-    TEST_BREAKPOINT_TURN_ON_BPS                                             = 5,  // Turn on the breakpoints
+    TEST_BREAKPOINT_TURN_OFF_BPS                                            = 4,  // Turn off the breakpoints (#BP)
+    TEST_BREAKPOINT_TURN_ON_BPS                                             = 5,  // Turn on the breakpoints (#BP)
     TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER = 6,  // Turn off the breakpoints and events for executing the commands in the remote computer
     TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER  = 7,  // Turn on the breakpoints and events for executing the commands in the remote computer
     TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS                   = 8,  // For testing synchronized event
     TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_ASYNCHRONOUS                  = 9,  // For testing unsynchronized event
     TEST_SETTING_TARGET_TASKS_ON_TARGET_HALTED_CORES                        = 10, // Send the task to the halted core
+    TEST_BREAKPOINT_TURN_OFF_DBS                                            = 11, // Turn off the debug breaks (#DB)
+    TEST_BREAKPOINT_TURN_ON_DBS                                             = 12, // Turn on the debug breaks (#DB)
 
 } DEBUGGER_TEST_QUERY_STATE;
 

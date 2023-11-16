@@ -32,11 +32,13 @@ CommandTestHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
-    ShowMessages("\t\te.g : test trap\n");
+    ShowMessages("\t\te.g : test trap-status\n");
     ShowMessages("\t\te.g : test pool\n");
     ShowMessages("\t\te.g : test query\n");
     ShowMessages("\t\te.g : test breakpoint on\n");
     ShowMessages("\t\te.g : test breakpoint off\n");
+    ShowMessages("\t\te.g : test trap on\n");
+    ShowMessages("\t\te.g : test trap off\n");
 }
 
 /**
@@ -375,7 +377,7 @@ CommandTestSetTargetTaskToTargetCore(UINT32 CoreNumber)
 }
 
 /**
- * @brief test command for turning on/off the breakpoints
+ * @brief test command for turning on/off the breakpoints (#DB)
  * @param State
  * @return VOID
  */
@@ -399,6 +401,34 @@ CommandTestSetBreakpointState(BOOLEAN State)
     else
     {
         KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS);
+    }
+}
+
+/**
+ * @brief test command for turning on/off the debug breaks (#DB)
+ * @param State
+ * @return VOID
+ */
+VOID
+CommandTestSetDebugBreakState(BOOLEAN State)
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the debug break settings to the debuggee
+    //
+    if (State)
+    {
+        KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_DBS);
+    }
+    else
+    {
+        KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_DBS);
     }
 }
 
@@ -428,7 +458,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
         //
         CommandTestQueryState();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("trap"))
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("trap-status"))
     {
         //
         // Query the state of trap flag in debugger mode
@@ -481,6 +511,25 @@ CommandTest(vector<string> SplittedCommand, string Command)
         else if (!SplittedCommand.at(2).compare("off"))
         {
             CommandTestSetBreakpointState(FALSE);
+        }
+        else
+        {
+            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplittedCommand.at(2).c_str());
+            return;
+        }
+    }
+    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("trap"))
+    {
+        //
+        // Change debug break state
+        //
+        if (!SplittedCommand.at(2).compare("on"))
+        {
+            CommandTestSetDebugBreakState(TRUE);
+        }
+        else if (!SplittedCommand.at(2).compare("off"))
+        {
+            CommandTestSetDebugBreakState(FALSE);
         }
         else
         {

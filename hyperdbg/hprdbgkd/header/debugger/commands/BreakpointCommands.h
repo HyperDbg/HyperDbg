@@ -35,7 +35,7 @@ BOOLEAN
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
 
 BOOLEAN
-BreakpointHandleBpTraps(UINT32 CoreId);
+BreakpointHandleBreakpoints(UINT32 CoreId);
 
 BOOLEAN
 BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * DbgState,

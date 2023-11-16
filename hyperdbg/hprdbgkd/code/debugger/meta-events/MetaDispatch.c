@@ -29,7 +29,7 @@ MetaDispatchEventInstrumentationTrace(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     EventTriggerResult = DebuggerTriggerEvents(TRAP_EXECUTION_INSTRUCTION_TRACE,
                                                VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                               DEBUGGER_EVENT_TRACE_TYPE_INSTRUMENTATION_STEP_IN,
+                                               DEBUGGER_EVENT_TRACE_TYPE_STEP_IN,
                                                &PostEventTriggerReq,
                                                DbgState->Regs);
 
