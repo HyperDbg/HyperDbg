@@ -538,7 +538,7 @@ IMPORT_EXPORT_VMM PVOID
 MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
                                     _In_ PAGING_LEVEL Level);
 
-IMPORT_EXPORT_VMM PVOID
+IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level);
 
 IMPORT_EXPORT_VMM PVOID
@@ -623,6 +623,9 @@ MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(_In_ PVOID Va);
 
 //////////////////////////////////////////////////
 //				Memory Manager		    		//

@@ -166,3 +166,32 @@ USER_KERNEL_EXECUTION_TRAP_STATE g_ExecTrapState;
  *
  */
 BOOLEAN g_IsInterceptingInstructions;
+
+//////////////////////////////////////////////////
+//   Global Variable (page-fault injection)	    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Shows whether the the VMM is waiting to inject a page-fault
+ * or not
+ *
+ */
+BOOLEAN g_WaitingForInterruptWindowToInjectPageFault;
+
+/**
+ * @brief The (from) address for page-fault injection
+ *
+ */
+UINT64 g_PageFaultInjectionAddressFrom;
+
+/**
+ * @brief The (to) address for page-fault injection
+ *
+ */
+UINT64 g_PageFaultInjectionAddressTo;
+
+/**
+ * @brief The error code for page-fault injection
+ *
+ */
+UINT64 g_PageFaultInjectionErrorCode;

@@ -1497,6 +1497,11 @@ VOID
 KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     TracingPerformRegularStepInInstruction(DbgState);
+
+    //
+    // Unset the trap flag on the next VM-exit
+    //
+    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
 }
 
 /**
