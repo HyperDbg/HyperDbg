@@ -108,7 +108,10 @@ VOID
 EventInjectBreakpoint();
 
 VOID
-EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode);
+EventInjectInterruption(INTERRUPT_TYPE    InterruptionType,
+                        EXCEPTION_VECTORS Vector,
+                        BOOLEAN           DeliverErrorCode,
+                        UINT32            ErrorCode);
 
 VOID
 EventInjectGeneralProtection();
@@ -124,3 +127,9 @@ EventInjectDebugBreakpoint();
 
 VOID
 EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address, UINT32 PageFaultCode);
+
+VOID
+EventInjectPageFaultRangeAddress(VIRTUAL_MACHINE_STATE * VCpu,
+                                 UINT64                  AddressFrom,
+                                 UINT64                  AddressTo,
+                                 UINT32                  PageFaultCode);

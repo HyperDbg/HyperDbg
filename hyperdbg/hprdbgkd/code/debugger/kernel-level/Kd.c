@@ -1752,11 +1752,12 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
               PDEBUGGER_PAGE_IN_REQUEST   PageinRequest)
 {
     //
-    // Inject page-fault
+    // Inject page-fault range
     //
-    VmFuncEventInjectPageFaultWithCr2(DbgState->CoreId,
-                                      PageinRequest->VirtualAddress,
-                                      PageinRequest->PageFaultErrorCode);
+    VmFuncEventInjectPageFaultRangeAddress(DbgState->CoreId,
+                                           PageinRequest->VirtualAddressFrom,
+                                           PageinRequest->VirtualAddressTo,
+                                           PageinRequest->PageFaultErrorCode);
 
     //
     // Also, set the RFLAGS.TF to intercept the process (thread) again after inject #PF
