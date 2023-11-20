@@ -629,6 +629,26 @@ VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaul
 }
 
 /**
+ * @brief Inject a range of page-faults
+ *
+ * @param CoreId Target core's ID
+ * @param AddressFrom Page-fault address (from)
+ * @param AddressTo Page-fault address (to)
+ * @param Address Page-fault address
+ * @param PageFaultCode Page-fault error code
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventInjectPageFaultRangeAddress(UINT32 CoreId,
+                                       UINT64 AddressFrom,
+                                       UINT64 AddressTo,
+                                       UINT32 PageFaultCode)
+{
+    EventInjectPageFaultRangeAddress(&g_GuestState[CoreId], AddressFrom, AddressTo, PageFaultCode);
+}
+
+/**
  * @brief Inject interrupt/faults/exceptions
  *
  * @param InterruptionType

@@ -28,6 +28,7 @@ EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vecto
     Inject.Fields.InterruptType = InterruptionType;
     Inject.Fields.Vector        = Vector;
     Inject.Fields.DeliverCode   = DeliverErrorCode;
+
     __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, Inject.Flags);
 
     if (DeliverErrorCode)
@@ -205,7 +206,51 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 }
 
 /**
- * @brief re-inject interrupt or exception to the guest
+ * @brief Inject a range of page-faults
+ *
+ * @param VCpu The virtual processor's state
+ * @param AddressFrom Page-fault address (from)
+ * @param AddressTo Page-fault address (to)
+ * @param Address Page-fault address
+ * @param PageFaultCode Page-fault error code
+ *
+ * @return VOID
+ */
+VOID
+EventInjectPageFaultRangeAddress(VIRTUAL_MACHINE_STATE * VCpu,
+                                 UINT64                  AddressFrom,
+                                 UINT64                  AddressTo,
+                                 UINT32                  PageFaultCode)
+{
+    //
+    // Indicate that the VMM is waiting for interrupt-window to
+    // be openned to inject page-fault
+    //
+    g_WaitingForInterruptWindowToInjectPageFault = TRUE;
+
+    //
+    // Set the (from) address for page-fault injection
+    //
+    g_PageFaultInjectionAddressFrom = AddressFrom;
+
+    //
+    // Set the (to) address for page-fault injection
+    //
+    g_PageFaultInjectionAddressTo = AddressTo;
+
+    //
+    // Set the error code for page-fault injection
+    //
+    g_PageFaultInjectionErrorCode = PageFaultCode;
+
+    //
+    // Set interrupt-window exiting to TRUE
+    //
+    HvSetInterruptWindowExiting(TRUE);
+}
+
+/**
+ * @brief Inject page-fault with an address as cr2
  *
  * @param VCpu The virtual processor's state
  * @param Address Page-fault address

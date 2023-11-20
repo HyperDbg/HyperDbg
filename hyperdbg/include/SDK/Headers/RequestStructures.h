@@ -71,7 +71,8 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
  */
 typedef struct _DEBUGGER_PAGE_IN_REQUEST
 {
-    UINT64 VirtualAddress;
+    UINT64 VirtualAddressFrom;
+    UINT64 VirtualAddressTo;
     UINT32 ProcessId;
     UINT32 PageFaultErrorCode;
     UINT32 KernelStatus;

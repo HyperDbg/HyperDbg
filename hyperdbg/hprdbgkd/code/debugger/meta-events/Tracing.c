@@ -121,11 +121,6 @@ TracingPerformRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     VmFuncSetRflagTrapFlag(TRUE);
 
     //
-    // Unset the trap flag on the next VM-exit
-    //
-    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
-
-    //
     // During testing single-step, we realized that after single-stepping
     // on 'STI' instruction, after one instruction, the guest (target core)
     // starts Invalid Guest State (0x21) vm-exits, after some searches we

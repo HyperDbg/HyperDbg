@@ -18,6 +18,7 @@ New release of the HyperDbg Debugger.
 - **strlen** and **wcslen** functions now support string and wide-character string as the input ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strlen))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcslen))
 - **strcmp(Str1, Str2)**, **wcscmp(WStr1, WStr2)** and **memcmp(Ptr1, Ptr2, Num)** functions in script engine thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strcmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcscmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcmp))
 - The debug break interception (\#DB) manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
+- The '.pagein' command, now supports a range of addresses to bring them into the RAM ([link](https://docs.hyperdbg.org/commands/meta-commands/.pagein))
 
 ### Changed
 - Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
