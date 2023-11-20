@@ -646,8 +646,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 break;
             }
 
-            PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                                         (unsigned long long)(CodeBuffer->Pointer * sizeof(SYMBOL)));
+            unsigned int FirstArgPointer = CodeBuffer->Pointer;
 
             PSYMBOL Symbol;
             int     ArgCount = TempStack->Pointer;
@@ -656,6 +655,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 Symbol = TempStack->Head + i;
                 PushSymbol(CodeBuffer, Symbol);
             }
+            PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                                         (unsigned long long)(FirstArgPointer * sizeof(SYMBOL)));
             RemoveSymbolBuffer(TempStack);
 
             UINT32 i   = 0;
@@ -2170,7 +2171,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         //
         // Handle Overflow
         //
-        if (SymbolBuffer->Pointer >= SymbolBuffer->Size - 2)
+        if (SymbolBuffer->Pointer >= SymbolBuffer->Size - 1)
         {
             //
             // Calculate new size for the symbol B
@@ -2221,7 +2222,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         //
         // Handle Overflow
         //
-        if (Pointer == SymbolBuffer->Size - 1)
+        if (Pointer >= SymbolBuffer->Size - 1)
         {
             //
             // Allocate a new buffer for string list with doubled length
