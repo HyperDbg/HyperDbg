@@ -171,7 +171,7 @@ MemoryMapperGetPteVaOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
  * @return BOOLEAN Is present or not
  */
 _Use_decl_annotations_
-PVOID
+BOOLEAN
 MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
 {
     PPAGE_ENTRY PageEntry = NULL;
@@ -469,7 +469,7 @@ MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
  *
  * @param Va Virtual Address
  * @param TargetCr3 kernel cr3 of target process
- * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -497,6 +497,56 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     PageEntry = MemoryMapperGetPteVa(Va, PagingLevelPageTable);
 
     if (PageEntry != NULL && !PageEntry->Fields.ExecuteDisable)
+    {
+        Result = TRUE;
+    }
+    else
+    {
+        Result = FALSE;
+    }
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    return Result;
+}
+
+/**
+ * @brief This function checks target process to see
+ * if the PDE is a large page or not
+ *
+ * @param Va Virtual Address
+ * @param TargetCr3 kernel cr3 of target process
+ * @return BOOLEAN
+ */
+_Use_decl_annotations_
+BOOLEAN
+MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(PVOID Va)
+{
+    BOOLEAN     Result;
+    CR3_TYPE    GuestCr3;
+    PPAGE_ENTRY PageEntry;
+    CR3_TYPE    CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+
+    //
+    // Find the current process cr3
+    //
+    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+
+    CurrentProcessCr3 = SwitchToProcessMemoryLayoutByCr3(GuestCr3);
+
+    //
+    // Find the page table entry (PDE)
+    //
+    PageEntry = MemoryMapperGetPteVa(Va, PagingLevelPageDirectory);
+
+    if (PageEntry != NULL && PageEntry->Fields.LargePage)
     {
         Result = TRUE;
     }
@@ -879,7 +929,7 @@ _Use_decl_annotations_
 UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
-    UINT64                                 AddressToRead)
+    UINT64                                AddressToRead)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -921,9 +971,9 @@ _Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
-    UINT64                                 AddressToRead,
-    UINT64                                 BufferToSaveMemory,
-    SIZE_T                                 SizeToRead)
+    UINT64                                AddressToRead,
+    UINT64                                BufferToSaveMemory,
+    SIZE_T                                SizeToRead)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;

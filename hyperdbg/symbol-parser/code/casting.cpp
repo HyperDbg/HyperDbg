@@ -376,8 +376,7 @@ main()
         my_var =  cast<PSTUPID_STRUCT2>(@rcx)->StupidStruct1->Flag64;
         // my_var = 0x6464
 
-        my_var =
-     cast<STUPID_STRUCT2>(*@rcx).StupidStruct1->StringValue->MaximumLength;
+        my_var = cast<STUPID_STRUCT2>(*@rcx).StupidStruct1->StringValue->MaximumLength;
         // my_var = 0x3c
 
         printf("Result is : %ws\n", cast<PSTUPID_STRUCT2>(@rcx)->UnicodeStr->Buffer );

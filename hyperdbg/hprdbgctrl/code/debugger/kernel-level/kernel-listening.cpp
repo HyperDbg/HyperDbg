@@ -617,7 +617,7 @@ StartAgain:
                 case TEST_BREAKPOINT_TURN_OFF_DBS:
 
                     ShowMessages("debug break interception (#DB) is deactivated\n"
-                                 "from now, the breakpoints will be re-injected into the guest debuggee\n");
+                                 "from now, the debug breaks will be re-injected into the guest debuggee\n");
 
                     break;
 

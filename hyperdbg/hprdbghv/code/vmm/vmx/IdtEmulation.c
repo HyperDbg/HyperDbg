@@ -318,6 +318,44 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
+ * @brief Injects a page-fault when interrupt window is open
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+BOOLEAN
+IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(_Inout_ VIRTUAL_MACHINE_STATE *        VCpu,
+                                                      _Inout_ VMEXIT_INTERRUPT_INFORMATION * InterruptInfo)
+{
+    //
+    // Check if all the injections are done or not
+    //
+    if (g_PageFaultInjectionAddressFrom > g_PageFaultInjectionAddressTo)
+    {
+        g_WaitingForInterruptWindowToInjectPageFault = FALSE;
+        return FALSE;
+    }
+
+    //
+    // Inject the page-fault (by cr2)
+    //
+    EventInjectPageFaultWithCr2(VCpu,
+                                g_PageFaultInjectionAddressFrom,
+                                g_PageFaultInjectionErrorCode);
+
+    if (MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(g_PageFaultInjectionAddressFrom))
+    {
+        g_PageFaultInjectionAddressFrom = g_PageFaultInjectionAddressFrom + SIZE_2_MB;
+    }
+    else
+    {
+        g_PageFaultInjectionAddressFrom = g_PageFaultInjectionAddressFrom + PAGE_SIZE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Handle interrupt-window exitings
  *
  * @param VCpu The virtual processor's state
@@ -326,61 +364,57 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit = {0};
-    ULONG                        ErrorCode     = 0;
+    VMEXIT_INTERRUPT_INFORMATION InterruptExit   = {0};
+    ULONG                        ErrorCode       = 0;
+    BOOLEAN                      InjectPageFault = FALSE;
 
     //
-    // Find the pending interrupt to inject
+    // Check if page-fault needs to be injected or not
     //
-
-    for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    if (g_WaitingForInterruptWindowToInjectPageFault)
     {
-        //
-        // Find an empty space
-        //
-        if (VCpu->PendingExternalInterrupts[i] != NULL)
+        InjectPageFault = IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(VCpu, &InterruptExit);
+    }
+
+    //
+    // Check if another interrupt (page-fault) needed to injected or not
+    //
+    if (!InjectPageFault)
+    {
+        for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
         {
             //
-            // Save it for re-injection (interrupt-window exiting)
+            // Find an empty space
             //
-            InterruptExit.AsUInt = VCpu->PendingExternalInterrupts[i];
+            if (VCpu->PendingExternalInterrupts[i] != NULL)
+            {
+                //
+                // Save it for re-injection (interrupt-window exiting)
+                //
+                InterruptExit.AsUInt = VCpu->PendingExternalInterrupts[i];
 
-            //
-            // Free the entry
-            //
-            VCpu->PendingExternalInterrupts[i] = NULL;
-            break;
+                //
+                // Free the entry
+                //
+                VCpu->PendingExternalInterrupts[i] = NULL;
+                break;
+            }
         }
-    }
 
-    if (InterruptExit.AsUInt == 0)
-    {
-        //
-        // Nothing left in pending state, let's disable the interrupt window exiting
-        //
-        HvSetInterruptWindowExiting(FALSE);
-    }
-    else
-    {
-        //
-        // Re-inject the interrupt/exception
-        //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
-
-        //
-        // re-write error code (if any)
-        //
-        if (InterruptExit.ErrorCodeValid)
+        if (InterruptExit.AsUInt == 0)
         {
             //
-            // Read the error code
+            // Nothing left in pending state, let's disable the interrupt window exiting
             //
-            __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+            HvSetInterruptWindowExiting(FALSE);
+        }
+        else
+        {
+            //
+            // Inject the interrupt/exception
+            //
 
-            //
-            // Write the error code
-            //
-            __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+            EventInjectInterruptOrException(InterruptExit);
         }
     }
 

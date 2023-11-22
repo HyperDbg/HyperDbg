@@ -1369,6 +1369,11 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     g_TransparentMode = FALSE;
 
     //
+    // Not waiting for the interrupt-window to inject page-faults
+    //
+    g_WaitingForInterruptWindowToInjectPageFault = FALSE;
+
+    //
     // Initializes VMX
     //
     return VmxInitialize();

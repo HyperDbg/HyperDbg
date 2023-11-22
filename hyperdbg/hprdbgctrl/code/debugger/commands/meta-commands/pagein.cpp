@@ -27,20 +27,22 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddress (hex)]\n");
+    ShowMessages("syntax : \t.pagein [Mode (string)] [l Length (hex)]\n");
+    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
+    ShowMessages("\t\te.g : .pagein 00007ff8349f2224 l 1a000\n");
     ShowMessages("\t\te.g : .pagein u 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein w 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein f 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein pw 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
-    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
-    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 6000\n");
     ShowMessages("\t\te.g : .pagein pf @rax\n");
     ShowMessages("\t\te.g : .pagein uf @rip+@rcx\n");
     ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
+    ShowMessages("\t\te.g : .pagein pwu @rax l 2000\n");
 
     ShowMessages("\n");
     ShowMessages("valid mode formats: \n");
@@ -158,12 +160,17 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
 /**
  * @brief request to bring the page(s) in
  *
- * @param SplittedCommand
- * @param Command
+ * @param TargetVirtualAddrFrom
+ * @param TargetVirtualAddrTo
+ * @param PageFaultErrorCode
+ * @param Pid
+ * @param Length
+ *
  * @return VOID
  */
 VOID
-CommandPageinRequest(UINT64               TargetVirtualAddr,
+CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
+                     UINT64               TargetVirtualAddrTo,
                      PAGE_FAULT_EXCEPTION PageFaultErrorCode,
                      UINT32               Pid,
                      UINT32               Length)
@@ -176,8 +183,9 @@ CommandPageinRequest(UINT64               TargetVirtualAddr,
     // Prepare the buffer
     // We use same buffer for input and output
     //
-    PageFaultRequest.VirtualAddress = TargetVirtualAddr;
-    PageFaultRequest.ProcessId      = Pid; // null in debugger mode
+    PageFaultRequest.VirtualAddressFrom = TargetVirtualAddrFrom;
+    PageFaultRequest.VirtualAddressTo   = TargetVirtualAddrTo;
+    PageFaultRequest.ProcessId          = Pid; // null in debugger mode
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -257,12 +265,13 @@ CommandPageinRequest(UINT64               TargetVirtualAddr,
 VOID
 CommandPagein(vector<string> SplittedCommand, string Command)
 {
-    UINT32               Pid             = 0;
-    UINT32               Length          = 0;
-    UINT64               TargetAddress   = 0;
-    BOOLEAN              IsNextProcessId = FALSE;
-    BOOLEAN              IsFirstCommand  = TRUE;
-    BOOLEAN              IsNextLength    = FALSE;
+    UINT32               Pid               = 0;
+    UINT32               Length            = 0;
+    UINT64               TargetAddressFrom = NULL;
+    UINT64               TargetAddressTo   = NULL;
+    BOOLEAN              IsNextProcessId   = FALSE;
+    BOOLEAN              IsFirstCommand    = TRUE;
+    BOOLEAN              IsNextLength      = FALSE;
     vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32               IndexInCommandCaseSensitive = 0;
     PAGE_FAULT_EXCEPTION PageFaultErrorCode          = {0};
@@ -337,10 +346,10 @@ CommandPagein(vector<string> SplittedCommand, string Command)
         {
             continue;
         }
-        else if (TargetAddress == 0)
+        else if (TargetAddressFrom == 0)
         {
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                                  &TargetAddress))
+                                                  &TargetAddressFrom))
             {
                 //
                 // Couldn't resolve or unkonwn parameter
@@ -362,7 +371,7 @@ CommandPagein(vector<string> SplittedCommand, string Command)
         }
     }
 
-    if (!TargetAddress)
+    if (!TargetAddressFrom)
     {
         //
         // User inserts two address
@@ -380,11 +389,24 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // If the user didn't specified a range, then only one page will be
+    // paged-in; so we use the same AddressFrom and AddressTo
+    //
+    if (Length == 0)
+    {
+        TargetAddressTo = TargetAddressFrom;
+    }
+    else
+    {
+        TargetAddressTo = TargetAddressFrom + Length;
+    }
+
+    //
     // Send the request
     //
-
-    // ShowMessages(".pagin address: %llx, page-fault code: 0x%x, pid: %x, length: 0x%x",
-    //              TargetAddress,
+    // ShowMessages(".pagin address from: %llx -> to %llx, page-fault code: 0x%x, pid: %x, length: 0x%x",
+    //              TargetAddressFrom,
+    //              TargetAddressTo,
     //              PageFaultErrorCode.AsUInt,
     //              Pid,
     //              Length);
@@ -392,7 +414,8 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     //
     // Request the page-in
     //
-    CommandPageinRequest(TargetAddress,
+    CommandPageinRequest(TargetAddressFrom,
+                         TargetAddressTo,
                          PageFaultErrorCode,
                          Pid,
                          Length);

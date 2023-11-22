@@ -120,7 +120,16 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectPageFaultWithCr2(UINT32 CoreId, UINT64 Address, UINT32 PageFaultCode);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncEventInjectInterruption(UINT32 InterruptionType, UINT32 Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode);
+VmFuncEventInjectPageFaultRangeAddress(UINT32 CoreId,
+                                       UINT64 AddressFrom,
+                                       UINT64 AddressTo,
+                                       UINT32 PageFaultCode);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncEventInjectInterruption(UINT32  InterruptionType,
+                              UINT32  Vector,
+                              BOOLEAN DeliverErrorCode,
+                              UINT32  ErrorCode);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncVmxBroadcastInitialize();
@@ -538,7 +547,7 @@ IMPORT_EXPORT_VMM PVOID
 MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
                                     _In_ PAGING_LEVEL Level);
 
-IMPORT_EXPORT_VMM PVOID
+IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level);
 
 IMPORT_EXPORT_VMM PVOID
@@ -623,6 +632,9 @@ MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
 
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(_In_ PVOID Va);
 
 //////////////////////////////////////////////////
 //				Memory Manager		    		//
