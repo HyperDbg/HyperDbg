@@ -4,12 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0.0] - 2023-XX-XX
+## [0.7.0.0] - 2023-11-22
 New release of the HyperDbg Debugger.
 
 ### Added
 - HyperDbg now applies events immediately as implemented in the "instant events" mechanism ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events))
-- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 - The Event Forwarding mechanism is now supported in the Debugger Mode ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
 - The Event Forwarding mechanism now supports external modules (DLLs) ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))
 - **event_clear(EventId)** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_clear))
@@ -18,7 +17,7 @@ New release of the HyperDbg Debugger.
 - **strlen** and **wcslen** functions now support string and wide-character string as the input ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strlen))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcslen))
 - **strcmp(Str1, Str2)**, **wcscmp(WStr1, WStr2)** and **memcmp(Ptr1, Ptr2, Num)** functions in script engine thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strcmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcscmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcmp))
 - The debug break interception (\#DB) manipulation option is added to the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
-- The '.pagein' command, now supports a range of addresses to bring them into the RAM ([link](https://docs.hyperdbg.org/commands/meta-commands/.pagein))
+- The '.pagein' command, now supports address ranges (length in bytes) to bring multiple pages into the RAM ([link](https://docs.hyperdbg.org/commands/meta-commands/.pagein))
 
 ### Changed
 - Fix the problem with the "less than" and the "greater than" operators for signed numbers thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/279))
@@ -34,6 +33,7 @@ New release of the HyperDbg Debugger.
 - Fix adding pseudo-registers with underscore in the script engine ([link](https://github.com/HyperDbg/HyperDbg/pull/313))
 - Fix the boolean expression interpretation in **if** conditions in the script engine ([link](https://github.com/HyperDbg/HyperDbg/issues/311))
 - HyperDbg now intercepts all debug breaks (\#DBs) if it's not explicitly asked not to by using the 'test' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/test))
+- Fix '%d' bug in script engine ([link](https://github.com/HyperDbg/HyperDbg/pull/318))
 
 ## [0.6.0.0-beta] - 2023-09-25
 New release of the HyperDbg Debugger.

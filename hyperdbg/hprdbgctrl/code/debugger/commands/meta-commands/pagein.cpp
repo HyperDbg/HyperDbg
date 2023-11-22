@@ -27,22 +27,22 @@ CommandPageinHelp()
 {
     ShowMessages(".pagein : brings the page in, making it available in the RAM.\n\n");
 
-    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddress (hex)]\n");
-    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddressFrom (hex)] [VirtualAddressTo (hex)]\n");
+    ShowMessages("syntax : \t.pagein [Mode (string)] [l Length (hex)]\n");
+    ShowMessages("syntax : \t.pagein [Mode (string)] [VirtualAddress (hex)] [l Length (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pagein fffff801deadbeef\n");
-    ShowMessages("\t\te.g : .pagein 00007ff8349f2224 00007ff8349f8224\n");
+    ShowMessages("\t\te.g : .pagein 00007ff8349f2224 l 1a000\n");
     ShowMessages("\t\te.g : .pagein u 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein w 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein f 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein pw 00007ff8349f2224\n");
     ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224\n");
-    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 00007ff8349f9224\n");
+    ShowMessages("\t\te.g : .pagein wu 00007ff8349f2224 l 6000\n");
     ShowMessages("\t\te.g : .pagein pf @rax\n");
     ShowMessages("\t\te.g : .pagein uf @rip+@rcx\n");
     ShowMessages("\t\te.g : .pagein pwu @rax+5\n");
-    ShowMessages("\t\te.g : .pagein pwu @rax @rax+(2*4096)\n");
+    ShowMessages("\t\te.g : .pagein pwu @rax l 2000\n");
 
     ShowMessages("\n");
     ShowMessages("valid mode formats: \n");
@@ -359,19 +359,6 @@ CommandPagein(vector<string> SplittedCommand, string Command)
                 return;
             }
         }
-        else if (TargetAddressTo == 0)
-        {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                                  &TargetAddressTo))
-            {
-                //
-                // Couldn't resolve or unkonwn parameter
-                //
-                ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
-                return;
-            }
-        }
         else
         {
             //
@@ -405,9 +392,13 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     // If the user didn't specified a range, then only one page will be
     // paged-in; so we use the same AddressFrom and AddressTo
     //
-    if (TargetAddressTo == 0)
+    if (Length == 0)
     {
         TargetAddressTo = TargetAddressFrom;
+    }
+    else
+    {
+        TargetAddressTo = TargetAddressFrom + Length;
     }
 
     //
