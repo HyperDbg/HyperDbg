@@ -65,7 +65,7 @@ PSYMBOL
 NewSymbol(void);
 
 PSYMBOL
-NewStringSymbol(char * value);
+NewStringSymbol(PTOKEN Token);
 
 PSYMBOL
 NewWstringSymbol(wchar_t * value);

@@ -179,7 +179,7 @@ PrintToken(PTOKEN Token)
  * @param char
  */
 void
-Append(PTOKEN Token, char c)
+AppendByte(PTOKEN Token, char c)
 {
     //
     // Check overflow of the string
@@ -195,7 +195,7 @@ Append(PTOKEN Token, char c)
         //
         // Free Old buffer and update the pointer
         //
-        strncpy(NewValue, Token->Value, Token->Len);
+        memcpy(NewValue, Token->Value, Token->Len);
         free(Token->Value);
         Token->Value = NewValue;
     }
@@ -203,7 +203,7 @@ Append(PTOKEN Token, char c)
     //
     // Append the new charcter to the string
     //
-    strncat(Token->Value, &c, 1);
+    Token->Value[Token->Len] = c;
     Token->Len++;
 }
 
