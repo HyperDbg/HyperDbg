@@ -35,22 +35,50 @@ GetToken(char * c, char * str)
                 *c = sgetc(str);
                 if (*c == 'n')
                 {
-                    Append(Token, '\n');
+                    AppendByte(Token, '\n');
                     continue;
                 }
                 if (*c == '\\')
                 {
-                    Append(Token, '\\');
+                    AppendByte(Token, '\\');
                     continue;
                 }
                 else if (*c == 't')
                 {
-                    Append(Token, '\t');
+                    AppendByte(Token, '\t');
                     continue;
+                }
+                else if (*c == 'x')
+                {
+                    *c = sgetc(str);
+                    if (('0' <= *c && *c <= '9') || ('a' <= *c && *c <= 'f') || ('A' <= *c && *c <= 'F'))
+                    {
+                        char byte[3]       = {NULL};
+                        char NextCharacter = *(str + InputIdx);
+                        if (('0' <= NextCharacter && NextCharacter <= '9') || ('a' <= NextCharacter && NextCharacter <= 'f') || ('A' <= NextCharacter && NextCharacter <= 'F'))
+                        {
+                            InputIdx++;
+                            byte[0] = *c;
+                            byte[1] = NextCharacter;
+                        }
+                        else
+                        {
+                            byte[0] = '0';
+                            byte[1] = *c;
+                        }
+                        char num = strtol(byte, NULL, 16);
+                        AppendByte(Token, num);
+                    }
+                    else
+                    {
+                        Token->Type = UNKNOWN;
+                        *c          = sgetc(str);
+                        return Token;
+                    }
                 }
                 else if (*c == '"')
                 {
-                    Append(Token, '"');
+                    AppendByte(Token, '"');
                     continue;
                 }
                 else
@@ -66,10 +94,11 @@ GetToken(char * c, char * str)
             }
             else
             {
-                Append(Token, *c);
+                AppendByte(Token, *c);
             }
         } while (1);
 
+        Token->Len++;
         Token->Type = STRING;
         *c          = sgetc(str);
         return Token;
@@ -349,7 +378,7 @@ GetToken(char * c, char * str)
         {
             while (IsLetter(*c) || IsDecimal(*c))
             {
-                Append(Token, *c);
+                AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             if (RegisterToInt(Token->Value) != INVALID)
@@ -372,7 +401,7 @@ GetToken(char * c, char * str)
             //
             while (IsLetter(*c) || IsDecimal(*c) || *c == '_')
             {
-                Append(Token, *c);
+                AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             if (PseudoRegToInt(Token->Value) != INVALID)
@@ -388,13 +417,13 @@ GetToken(char * c, char * str)
         }
 
     case '.':
-        Append(Token, *c);
+        AppendByte(Token, *c);
         *c = sgetc(str);
         if (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'))
         {
             do
             {
-                Append(Token, *c);
+                AppendByte(Token, *c);
                 *c = sgetc(str);
             } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
 
@@ -461,7 +490,7 @@ GetToken(char * c, char * str)
             while (IsHex(*c) || *c == '`')
             {
                 if (*c != '`')
-                    Append(Token, *c);
+                    AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             Token->Type = HEX;
@@ -473,7 +502,7 @@ GetToken(char * c, char * str)
             while (IsOctal(*c) || *c == '`')
             {
                 if (*c != '`')
-                    Append(Token, *c);
+                    AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             Token->Type = OCTAL;
@@ -485,7 +514,7 @@ GetToken(char * c, char * str)
             while (IsDecimal(*c) || *c == '`')
             {
                 if (*c != '`')
-                    Append(Token, *c);
+                    AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             Token->Type = DECIMAL;
@@ -497,7 +526,7 @@ GetToken(char * c, char * str)
             while (IsBinary(*c) || *c == '`')
             {
                 if (*c != '`')
-                    Append(Token, *c);
+                    AppendByte(Token, *c);
                 *c = sgetc(str);
             }
             Token->Type = BINARY;
@@ -509,7 +538,7 @@ GetToken(char * c, char * str)
             do
             {
                 if (*c != '`')
-                    Append(Token, *c);
+                    AppendByte(Token, *c);
                 *c = sgetc(str);
             } while (IsHex(*c) || *c == '`');
             Token->Type = HEX;
@@ -582,7 +611,7 @@ GetToken(char * c, char * str)
                 do
                 {
                     if (*c != '`')
-                        Append(Token, *c);
+                        AppendByte(Token, *c);
                     *c = sgetc(str);
                 } while (IsHex(*c) || *c == '`');
                 Token->Type = HEX;
@@ -594,7 +623,7 @@ GetToken(char * c, char * str)
                 do
                 {
                     if (*c != '`')
-                        Append(Token, *c);
+                        AppendByte(Token, *c);
 
                     *c = sgetc(str);
                     if (IsHex(*c) || *c == '`')
@@ -616,7 +645,7 @@ GetToken(char * c, char * str)
                     do
                     {
                         if (*c != '`')
-                            Append(Token, *c);
+                            AppendByte(Token, *c);
                         *c = sgetc(str);
                     } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
                     if (IsKeyword(Token->Value))
@@ -727,7 +756,7 @@ GetToken(char * c, char * str)
                 do
                 {
                     if (*c != '`')
-                        Append(Token, *c);
+                        AppendByte(Token, *c);
                     *c = sgetc(str);
                 } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
                 if (IsKeyword(Token->Value))

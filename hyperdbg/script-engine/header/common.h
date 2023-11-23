@@ -97,7 +97,7 @@ void
 PrintToken(PTOKEN Token);
 
 void
-Append(PTOKEN Token, char c);
+AppendByte(PTOKEN Token, char c);
 
 void
 AppendWchar(PTOKEN Token, wchar_t c);

@@ -1900,6 +1900,7 @@ NewSymbol(void)
     PSYMBOL Symbol;
     Symbol        = (PSYMBOL)malloc(sizeof(SYMBOL));
     Symbol->Value = 0;
+    Symbol->Len   = 0;
     Symbol->Type  = 0;
     return Symbol;
 }
@@ -1911,13 +1912,14 @@ NewSymbol(void)
  * @return PSYMBOL
  */
 PSYMBOL
-NewStringSymbol(char * value)
+NewStringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
-    int     BufferSize = (sizeof(unsigned long long) + (strlen(value))) / sizeof(SYMBOL) + 1;
-    Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
-    strcpy(&Symbol->Value, value);
+    int     BufferSize = (2 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
+    Symbol             = (unsigned long long)calloc(sizeof(SYMBOL), BufferSize);
+    memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
+    Symbol->Len = Token->Len;
     return Symbol;
 }
 
@@ -1931,7 +1933,7 @@ PSYMBOL
 NewWstringSymbol(wchar_t * value)
 {
     PSYMBOL Symbol;
-    int     BufferSize = (sizeof(unsigned long long) + 2 * (wcslen(value))) / sizeof(SYMBOL) + 1;
+    int     BufferSize = (2 * sizeof(unsigned long long) + 2 * (wcslen(value))) / sizeof(SYMBOL) + 1;
     Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
     wcscpy(&Symbol->Value, value);
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
@@ -1947,7 +1949,7 @@ NewWstringSymbol(wchar_t * value)
 unsigned int
 GetStringSymbolSize(PSYMBOL Symbol)
 {
-    int Temp = (sizeof(unsigned long long) + (strlen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
+    int Temp = (2 * sizeof(unsigned long long) + Symbol->Len) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -1960,7 +1962,7 @@ GetStringSymbolSize(PSYMBOL Symbol)
 unsigned int
 GetWstringSymbolSize(PSYMBOL Symbol)
 {
-    int Temp = (sizeof(unsigned long long) + 2 * (wcslen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
+    int Temp = (2 * sizeof(unsigned long long) + 2 * (wcslen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -2054,7 +2056,7 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 
     case STRING:
         RemoveSymbol(&Symbol);
-        return NewStringSymbol(Token->Value);
+        return NewStringSymbol(Token);
 
     case WSTRING:
         RemoveSymbol(&Symbol);
@@ -2159,7 +2161,8 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         }
         WriteAddr       = (PSYMBOL)((uintptr_t)SymbolBuffer->Head + (uintptr_t)Pointer * (uintptr_t)sizeof(SYMBOL));
         WriteAddr->Type = Symbol->Type;
-        strcpy((char *)&WriteAddr->Value, (char *)&Symbol->Value);
+        WriteAddr->Len  = Symbol->Len;
+        memcpy((char *)&WriteAddr->Value, (char *)&Symbol->Value, Symbol->Len);
     }
     else if (Symbol->Type == SYMBOL_WSTRING_TYPE)
     {

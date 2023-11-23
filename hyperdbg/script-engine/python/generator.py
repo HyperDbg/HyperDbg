@@ -40,6 +40,7 @@ class Generator():
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 typedef struct SYMBOL {
 	long long unsigned Type;
+    long long unsigned Len;
 	long long unsigned Value;
 } SYMBOL, * PSYMBOL;
 typedef struct SYMBOL_BUFFER {
