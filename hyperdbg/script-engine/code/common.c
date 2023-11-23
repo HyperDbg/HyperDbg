@@ -230,15 +230,15 @@ AppendWchar(PTOKEN Token, wchar_t c)
         //
         // Free Old buffer and update the pointer
         //
-        wcsncpy(NewValue, Token->Value, Token->Len / 2);
+        memcpy(NewValue, Token->Value, Token->Len);
         free(Token->Value);
         Token->Value = NewValue;
     }
 
     //
-    // Append the new charcter to the string
+    // Append the new charcter to the wstring
     //
-    wcsncat(Token->Value, &c, 1);
+    *((wchar_t *)(Token->Value) + Token->Len/2) = c;
     Token->Len += 2;
 }
 
@@ -1289,4 +1289,22 @@ BinaryToInt(char * str)
         Acc += (str[i] - '0');
     }
     return Acc;
+}
+
+/**
+* @brief Rotate a character array to the left by one time
+*
+* @param str
+*/
+void
+RotateLeftStringOnce(char * str)
+{
+    int  length = strlen(str);
+    char temp   = str[0];
+    for (int i = 0; i < (length - 1); i++)
+    {
+        str[i] = str[i + 1];
+    }
+    str[length - 1] = temp;
+
 }
