@@ -68,13 +68,10 @@ PSYMBOL
 NewStringSymbol(PTOKEN Token);
 
 PSYMBOL
-NewWstringSymbol(wchar_t * value);
+NewWstringSymbol(PTOKEN Token);
 
 unsigned int
-GetStringSymbolSize(PSYMBOL Symbol);
-
-unsigned int
-GetWstringSymbolSize(PSYMBOL Symbol);
+GetSymbolHeapSize(PSYMBOL Symbol);
 
 void
 RemoveSymbol(PSYMBOL * Symbol);

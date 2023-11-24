@@ -1930,39 +1930,27 @@ NewStringSymbol(PTOKEN Token)
  * @return PSYMBOL
  */
 PSYMBOL
-NewWstringSymbol(wchar_t * value)
+NewWstringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
-    int     BufferSize = (2 * sizeof(unsigned long long) + 2 * (wcslen(value))) / sizeof(SYMBOL) + 1;
+    int     BufferSize = (2 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
     Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
-    wcscpy(&Symbol->Value, value);
+    memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
+    Symbol->Len = Token->Len;
     return Symbol;
 }
 
 /**
- * @brief Returns the number of SYMBOL objects (16 bytes) allocated by string sybmol
+ * @brief Returns the number of SYMBOL objects (24 bytes) allocated by string or wstring sybmol
  *
  * @param Symbol
  * @return unsigned int
  */
 unsigned int
-GetStringSymbolSize(PSYMBOL Symbol)
+GetSymbolHeapSize(PSYMBOL Symbol)
 {
     int Temp = (2 * sizeof(unsigned long long) + Symbol->Len) / sizeof(SYMBOL) + 1;
-    return Temp;
-}
-
-/**
- * @brief Returns the number of SYMBOL objects (16 bytes) allocated by wstring sybmol
- *
- * @param Symbol
- * @return unsigned int
- */
-unsigned int
-GetWstringSymbolSize(PSYMBOL Symbol)
-{
-    int Temp = (2 * sizeof(unsigned long long) + 2 * (wcslen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -2060,7 +2048,7 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 
     case WSTRING:
         RemoveSymbol(&Symbol);
-        return NewWstringSymbol(Token->Value);
+        return NewWstringSymbol(Token);
 
     default:
         *Error        = SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE;
@@ -2117,12 +2105,12 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
     uintptr_t Pointer   = (uintptr_t)SymbolBuffer->Pointer;
     PSYMBOL   WriteAddr = (PSYMBOL)(Head + Pointer * sizeof(SYMBOL));
 
-    if (Symbol->Type == SYMBOL_STRING_TYPE)
+    if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
     {
         //
         // Update Pointer
         //
-        SymbolBuffer->Pointer += GetStringSymbolSize(Symbol);
+        SymbolBuffer->Pointer += GetSymbolHeapSize(Symbol);
 
         //
         // Handle Overflow
@@ -2163,52 +2151,6 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         WriteAddr->Type = Symbol->Type;
         WriteAddr->Len  = Symbol->Len;
         memcpy((char *)&WriteAddr->Value, (char *)&Symbol->Value, Symbol->Len);
-    }
-    else if (Symbol->Type == SYMBOL_WSTRING_TYPE)
-    {
-        //
-        // Update Pointer
-        //
-        SymbolBuffer->Pointer += GetWstringSymbolSize(Symbol);
-
-        //
-        // Handle Overflow
-        //
-        if (SymbolBuffer->Pointer >= SymbolBuffer->Size - 1)
-        {
-            //
-            // Calculate new size for the symbol B
-            //
-            int NewSize = SymbolBuffer->Size;
-            do
-            {
-                NewSize *= 2;
-            } while (NewSize <= SymbolBuffer->Pointer);
-
-            //
-            // Allocate a new buffer for string list with doubled length
-            //
-            PSYMBOL NewHead = (PSYMBOL)malloc(NewSize * sizeof(SYMBOL));
-
-            //
-            // Copy old buffer to new buffer
-            //
-            memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
-
-            //
-            // Free old buffer
-            //
-            free(SymbolBuffer->Head);
-
-            //
-            // Upadate Head and size of SymbolBuffer
-            //
-            SymbolBuffer->Size = NewSize;
-            SymbolBuffer->Head = NewHead;
-        }
-        WriteAddr       = (PSYMBOL)((uintptr_t)SymbolBuffer->Head + (uintptr_t)Pointer * (uintptr_t)sizeof(SYMBOL));
-        WriteAddr->Type = Symbol->Type;
-        wcscpy((wchar_t *)&WriteAddr->Value, (wchar_t *)&Symbol->Value);
     }
     else
     {
@@ -2268,9 +2210,9 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 
         printf("%8x:", i);
         PrintSymbol(Symbol);
-        if (Symbol->Type == SYMBOL_STRING_TYPE)
+        if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
         {
-            int temp = GetStringSymbolSize(Symbol);
+            int temp = GetSymbolHeapSize(Symbol);
             i += temp;
         }
         else

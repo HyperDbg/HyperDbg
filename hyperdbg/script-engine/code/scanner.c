@@ -50,30 +50,30 @@ GetToken(char * c, char * str)
                 }
                 else if (*c == 'x')
                 {
-                    *c = sgetc(str);
-                    if (('0' <= *c && *c <= '9') || ('a' <= *c && *c <= 'f') || ('A' <= *c && *c <= 'F'))
+                    char ByteString[] = "000";
+                    int  len           = strlen(ByteString);
+                    int  i             = 0;
+                    for (; i < len; i++)
                     {
-                        char byte[3]       = {NULL};
-                        char NextCharacter = *(str + InputIdx);
-                        if (('0' <= NextCharacter && NextCharacter <= '9') || ('a' <= NextCharacter && NextCharacter <= 'f') || ('A' <= NextCharacter && NextCharacter <= 'F'))
-                        {
-                            InputIdx++;
-                            byte[0] = *c;
-                            byte[1] = NextCharacter;
-                        }
-                        else
-                        {
-                            byte[0] = '0';
-                            byte[1] = *c;
-                        }
-                        char num = strtol(byte, NULL, 16);
-                        AppendByte(Token, num);
+                        *c = sgetc(str);
+                        if (!IsHex(*c))
+                            break;
+
+                        RotateLeftStringOnce(ByteString);
+                        ByteString[len-1] = *c;
                     }
-                    else
+
+                    if (i == 0 || i == 3)
                     {
                         Token->Type = UNKNOWN;
                         *c          = sgetc(str);
                         return Token;
+                    }
+                    else
+                    {
+                        InputIdx--;
+                        char num = strtol(ByteString, NULL, 16);
+                        AppendByte(Token, num);
                     }
                 }
                 else if (*c == '"')
@@ -577,6 +577,34 @@ GetToken(char * c, char * str)
                         AppendWchar(Token, L'\t');
                         continue;
                     }
+                    else if (*c == 'x')
+                    {
+                        char ByteString[] = "00000";
+                        int  len          = strlen(ByteString);
+                        int  i            = 0;
+                        for (; i < len; i++)
+                        {
+                            *c = sgetc(str);
+                            if (!IsHex(*c))
+                                break;
+
+                            RotateLeftStringOnce(ByteString);
+                            ByteString[len - 1] = *c;
+                        }
+
+                        if (i == 0 || i == 5)
+                        {
+                            Token->Type = UNKNOWN;
+                            *c          = sgetc(str);
+                            return Token;
+                        }
+                        else
+                        {
+                            InputIdx--;
+                            wchar_t num = strtol(ByteString, NULL, 16);
+                            AppendWchar(Token, num);
+                        }
+                    }
                     else if (*c == '"')
                     {
                         AppendWchar(Token, L'"');
@@ -599,6 +627,7 @@ GetToken(char * c, char * str)
                 }
             } while (1);
 
+            Token->Len += 2;
             Token->Type = WSTRING;
             *c          = sgetc(str);
             return Token;
