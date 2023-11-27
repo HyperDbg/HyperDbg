@@ -164,7 +164,6 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
  * @param TargetVirtualAddrTo
  * @param PageFaultErrorCode
  * @param Pid
- * @param Length
  *
  * @return VOID
  */
@@ -172,8 +171,7 @@ VOID
 CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
                      UINT64               TargetVirtualAddrTo,
                      PAGE_FAULT_EXCEPTION PageFaultErrorCode,
-                     UINT32               Pid,
-                     UINT32               Length)
+                     UINT32               Pid)
 {
     BOOL                     Status;
     ULONG                    ReturnedLength;
@@ -266,7 +264,7 @@ VOID
 CommandPagein(vector<string> SplittedCommand, string Command)
 {
     UINT32               Pid               = 0;
-    UINT32               Length            = 0;
+    UINT64               Length            = 0;
     UINT64               TargetAddressFrom = NULL;
     UINT64               TargetAddressTo   = NULL;
     BOOLEAN              IsNextProcessId   = FALSE;
@@ -317,7 +315,7 @@ CommandPagein(vector<string> SplittedCommand, string Command)
 
         if (IsNextLength == TRUE)
         {
-            if (!ConvertStringToUInt32(Section, &Length))
+            if (!SymbolConvertNameOrExprToAddress(Section, &Length))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -404,7 +402,7 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     //
     // Send the request
     //
-    // ShowMessages(".pagin address from: %llx -> to %llx, page-fault code: 0x%x, pid: %x, length: 0x%x",
+    // ShowMessages(".pagin address from: %llx -> to %llx, page-fault code: 0x%x, pid: %x, length: 0x%llx",
     //              TargetAddressFrom,
     //              TargetAddressTo,
     //              PageFaultErrorCode.AsUInt,
@@ -417,6 +415,5 @@ CommandPagein(vector<string> SplittedCommand, string Command)
     CommandPageinRequest(TargetAddressFrom,
                          TargetAddressTo,
                          PageFaultErrorCode,
-                         Pid,
-                         Length);
+                         Pid);
 }
