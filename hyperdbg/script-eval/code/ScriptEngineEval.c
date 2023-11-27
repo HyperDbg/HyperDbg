@@ -1343,7 +1343,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (Src0->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((2 * sizeof(unsigned long long) + 2 * wcslen((wchar_t *)&Src0->Value)) /
+                *Indx + ((2 * sizeof(unsigned long long) + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1709,7 +1709,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (Src0->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((2 * sizeof(unsigned long long) + 2 * wcslen((wchar_t *)&Src0->Value)) /
+                *Indx + ((2 * sizeof(unsigned long long) + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1727,7 +1727,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         if (Src1->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((2 * sizeof(unsigned long long) + 2 * wcslen((wchar_t *)&Src1->Value)) /
+                *Indx + ((2 * sizeof(unsigned long long) + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
