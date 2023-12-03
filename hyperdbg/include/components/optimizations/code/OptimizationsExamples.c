@@ -55,5 +55,4 @@ OptimizationExampleInsertionSortAndBinarySearch()
 
     BinarySearchPrintArray(Arr, NumberOfItems);
 
-    return 0;
 }

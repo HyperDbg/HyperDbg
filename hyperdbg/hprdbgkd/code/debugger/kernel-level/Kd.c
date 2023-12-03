@@ -2906,7 +2906,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Perform bringing the pages in (it's in vmx-root)
                 //
-                KdBringPagein(DbgState, PageinPacket, TRUE);
+                KdBringPagein(DbgState, PageinPacket);
 
                 //
                 // Send the result of the '.pagein' back to the debuggee
