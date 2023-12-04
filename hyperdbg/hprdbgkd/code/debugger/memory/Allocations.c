@@ -92,6 +92,4 @@ GlobalEventsFreeMemory(VOID)
         CrsFreePool(g_Events);
         g_Events = NULL;
     }
-
-    return g_Events == NULL;
 }

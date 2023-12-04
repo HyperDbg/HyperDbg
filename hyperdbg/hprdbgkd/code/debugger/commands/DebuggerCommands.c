@@ -145,7 +145,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         //
         // Check whether the physical memory is valid or not
         //
-        if (!CheckAddressPhysical(Address, Size))
+        if (!CheckAddressPhysical(Address))
         {
             ReadMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;

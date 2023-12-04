@@ -42,7 +42,6 @@ HaltedRoutineChangeAllMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 Bitm
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -76,7 +75,6 @@ HaltedRoutineChangeAllMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 Bit
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
@@ -112,7 +110,6 @@ HaltedRoutineChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -140,7 +137,6 @@ HaltedRoutineEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
@@ -170,7 +166,6 @@ HaltedRoutineEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -199,7 +194,6 @@ HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(UINT32 TargetCoreId)
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -227,7 +221,6 @@ HaltedRoutineEnableExternalInterruptExiting(UINT32 TargetCoreId)
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
@@ -263,7 +256,6 @@ HaltedRoutineSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Exceptio
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -297,7 +289,6 @@ HaltedRoutineUnSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Except
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
@@ -334,7 +325,6 @@ HaltedRoutineEnableMovToCrExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVEN
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -362,7 +352,6 @@ HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
@@ -392,7 +381,6 @@ HaltedRoutineInvalidateEptAllContextsOnSingleCore(UINT32 TargetCoreId)
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
                                   TRUE,
-                                  TRUE,
                                   &DirectVmcallOptions);
 }
 
@@ -420,7 +408,6 @@ HaltedRoutineInvalidateSingleContextOnSingleCore(UINT32 TargetCoreId)
     //
     HaltedCoreRunTaskOnSingleCore(TargetCoreId,
                                   HaltedCoreTask,
-                                  TRUE,
                                   TRUE,
                                   &DirectVmcallOptions);
 }
