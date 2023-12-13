@@ -87,19 +87,26 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Handle software breakpoints
         //
-        if (!EptCheckAndHandleBreakpoint(VCpu))
         {
-            if (!DebuggingCallbackHandleBreakpointException(VCpu->CoreId))
-            {
-                //
-                // Don't increment rip
-                //
-                HvSuppressRipIncrement(VCpu);
+            UINT64 GuestRip  = NULL;
+            BYTE   TargetMem = NULL;
 
-                //
-                // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
-                //
-                EventInjectBreakpoint();
+            __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+            MemoryMapperReadMemorySafe(GuestRip, &TargetMem, sizeof(BYTE));
+            if (!EptCheckAndHandleBreakpoint(VCpu) || TargetMem == 0xcc)
+            {
+                if (!DebuggingCallbackHandleBreakpointException(VCpu->CoreId))
+                {
+                    //
+                    // Don't increment rip
+                    //
+                    HvSuppressRipIncrement(VCpu);
+
+                    //
+                    // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
+                    //
+                    EventInjectBreakpoint();
+                }
             }
         }
 
