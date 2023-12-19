@@ -32,12 +32,12 @@ CommandGuHelp()
         "gu : executes a single instruction (step-out) and optionally displays the "
         "resulting values of all registers and flags.\n\n");
 
-    ShowMessages("syntax : \tg\n");
-    ShowMessages("syntax : \tgur\n");
+    ShowMessages("syntax : \tgu\n");
+    ShowMessages("syntax : \tgu [Count (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : gu\n");
-    ShowMessages("\t\te.g : gur\n");
+    ShowMessages("\t\te.g : gu 10000\n");
 }
 
 /**
@@ -50,13 +50,14 @@ CommandGuHelp()
 VOID
 CommandGu(vector<string> SplittedCommand, string Command)
 {
-    UINT32                           CallInstructionSize;
+    UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
+    BOOLEAN                          BreakOnNextInstruction = FALSE;
 
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 1)
+    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'gu'\n\n");
         CommandGuHelp();
@@ -64,9 +65,26 @@ CommandGu(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Set type of step
+    // Set type of request
     //
     RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU;
+
+    //
+    // Check if the command has a counter parameter
+    //
+    if (SplittedCommand.size() == 2)
+    {
+        if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount))
+        {
+            ShowMessages("please specify a correct hex value for [count]\n\n");
+            CommandGuHelp();
+            return;
+        }
+    }
+    else
+    {
+        StepCount = DEBUGGER_REMOTE_TRACKING_DEFAULT_COUNT_OF_STEPPING;
+    }
 
     //
     // Check if the remote serial debuggee or user debugger are paused or not
@@ -88,18 +106,30 @@ CommandGu(vector<string> SplittedCommand, string Command)
         //
         g_IsInstrumentingInstructions = TRUE;
 
-        //
-        // Send gu until the current instruction is ret
-        //
-        while (1)
+        for (size_t i = 0; i < StepCount; i++)
         {
+            //
+            // For logging purpose
+            //
+            // ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
+            //   (float)StepCount), i);
+            //
+
+            //
+            // Check if the current instruction is 'ret' or not
+            //
             if (HyperDbgCheckWhetherTheCurrentInstructionIsRet(
                     g_CurrentRunningInstruction,
                     MAXIMUM_INSTR_SIZE,
-                    g_IsRunningInstruction32Bit ? FALSE : TRUE, // equals to !g_IsRunningInstruction32Bit
-                    &CallInstructionSize))
+                    g_IsRunningInstruction32Bit ? FALSE : TRUE // equals to !g_IsRunningInstruction32Bit
+                    ))
             {
-                break;
+                BreakOnNextInstruction = TRUE;
+
+                //
+                // It's the last instruction, so we gonna show the instruction
+                //
+                RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION;
             }
 
             if (g_IsSerialConnectedToRemoteDebuggee)
@@ -126,38 +156,13 @@ CommandGu(vector<string> SplittedCommand, string Command)
             {
                 break;
             }
-        }
 
-        //
-        // Send a step-in after the ret instruction if we are instrumenting instructions
-        //
-        if (g_IsInstrumentingInstructions)
-        {
-            RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN;
-
-            if (g_IsSerialConnectedToRemoteDebuggee)
+            //
+            // Check if we see 'ret' in the previous instruction or not
+            //
+            if (BreakOnNextInstruction)
             {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
-
-            if (!SplittedCommand.at(0).compare("gur"))
-            {
-                //
-                // Show registers
-                //
-                ShowAllRegisters();
+                break;
             }
         }
 
@@ -168,7 +173,7 @@ CommandGu(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("err, stepping (gu) is not valid in the current context, you "
+        ShowMessages("err, going up (gu) is not valid in the current context, you "
                      "should connect to a debuggee\n");
     }
 }

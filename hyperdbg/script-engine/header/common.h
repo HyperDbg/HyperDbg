@@ -97,7 +97,7 @@ void
 PrintToken(PTOKEN Token);
 
 void
-Append(PTOKEN Token, char c);
+AppendByte(PTOKEN Token, char c);
 
 void
 AppendWchar(PTOKEN Token, wchar_t c);
@@ -191,7 +191,10 @@ OctalToInt(char * str);
 unsigned long long int
 BinaryToInt(char * str);
 
-////////////////////////////////////////////////////
+void
+RotateLeftStringOnce(char * str);
+
+    ////////////////////////////////////////////////////
 //	       Semantic Rule Related Functions		  //
 ////////////////////////////////////////////////////
 
