@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1.0] - 2023-12-20
+New release of the HyperDbg Debugger.
+
+### Changed
+- Fix the single core broadcasting events issue ([link](https://github.com/HyperDbg/HyperDbg/commit/ab95cd76285ef9aad084560c5c9dc8970bba84b7))
+- Evaluate the '.pagin' ranges as expressions ([link](https://github.com/HyperDbg/HyperDbg/commit/ab95cd76285ef9aad084560c5c9dc8970bba84b7))
+- Add hexadecimal escape sequence as string parameter for string functions ([link](https://github.com/HyperDbg/HyperDbg/commit/60fbec6936330643d8de1ec7b548f651ac8f106d))
+- Add hexadecimal escape sequence as wstring parameter for wstring functions ([link](https://github.com/HyperDbg/HyperDbg/commit/e6dbc3f49e2d20a51d2f20120316fd0392067fa2))
+- Fix breakpoint and the '!epthook' problems in the same address ([link](https://github.com/HyperDbg/HyperDbg/pull/326))
+
 ## [0.7.0.0] - 2023-11-22
 New release of the HyperDbg Debugger.
 

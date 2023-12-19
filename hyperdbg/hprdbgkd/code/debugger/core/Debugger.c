@@ -1187,7 +1187,8 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context should be checked in physical address
             //
-            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 && ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
+            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 &&
+                  ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
             {
                 //
                 // The value is not withing our expected range
