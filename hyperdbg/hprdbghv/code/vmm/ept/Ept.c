@@ -194,35 +194,26 @@ EptBuildMtrrMap()
     //
     // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is
     // divided into 8-bit fields that are used to specify the memory type for each of the sub-ranges the register controls:
-    //  • Register IA32_MTRR_FIX64K_00000 — Maps the 512-KByte address range from 0H to 7FFFFH. This range
+    //  â€¢ Register IA32_MTRR_FIX64K_00000 â€” Maps the 512-KByte address range from 0H to 7FFFFH. This range
     //  is divided into eight 64-KByte sub-ranges.
     //
-    //  • Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 — Maps the two 128-KByte
+    //  â€¢ Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 â€” Maps the two 128-KByte
     //  address ranges from 80000H to BFFFFH. This range is divided into sixteen 16-KByte sub-ranges, 8 ranges per
     //  register.
     //
-    //  • Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 — Maps eight 32-KByte
+    //  â€¢ Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 â€” Maps eight 32-KByte
     //  address ranges from C0000H to FFFFFH. This range is divided into sixty-four 4-KByte sub-ranges, 8 ranges per
     //  register.
     //
     if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
     {
-        typedef union _IA32_MTRR_FIXED_RANGE_TYPE
-        {
-            UINT64 AsUInt;
-            struct
-            {
-                UINT8 Types[8];
-            };
-        } IA32_MTRR_FIXED_RANGE_TYPE;
-
         const ULONG                K64Base  = 0x0;
         const ULONG                K64Size  = 0x10000;
         IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
         for (unsigned int i = 0; i < 8; i++)
         {
             Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-            Descriptor->MemoryType          = K64Types.Types[i];
+            Descriptor->MemoryType          = K64Types.s.Types[i];
             Descriptor->PhysicalBaseAddress = K64Base + (K64Size * i);
             Descriptor->PhysicalEndAddress  = K64Base + (K64Size * i) + (K64Size - 1);
             Descriptor->FixedRange          = TRUE;
@@ -236,7 +227,7 @@ EptBuildMtrrMap()
             for (unsigned int j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-                Descriptor->MemoryType          = K16Types.Types[i];
+                Descriptor->MemoryType          = K16Types.s.Types[i];
                 Descriptor->PhysicalBaseAddress = K16Base + (K16Size * i);
                 Descriptor->PhysicalEndAddress  = K16Base + (K16Size * i) + (K16Size - 1);
                 Descriptor->FixedRange          = TRUE;
@@ -252,7 +243,7 @@ EptBuildMtrrMap()
             for (unsigned int j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-                Descriptor->MemoryType          = K4Types.Types[j];
+                Descriptor->MemoryType          = K4Types.s.Types[j];
                 Descriptor->PhysicalBaseAddress = (K4Base + (i * K4Size * 8)) + (K4Size * j);
                 Descriptor->PhysicalEndAddress  = (K4Base + (i * K4Size * 8)) + (K4Size * j) + (K4Size - 1);
                 Descriptor->FixedRange          = TRUE;
@@ -536,7 +527,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     // Point back to the entry in the dynamic split for easy reference for which entry that
     // dynamic split is for
     //
-    NewSplit->Entry = TargetEntry;
+    NewSplit->u.Entry = TargetEntry;
 
     //
     // Make a template for RWX
