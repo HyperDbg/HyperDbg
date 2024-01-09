@@ -21,9 +21,9 @@
 UCHAR
 EptInvept(_In_ UINT32 Type, _In_ INVEPT_DESCRIPTOR * Descriptor)
 {
+    INVEPT_DESCRIPTOR ZeroDescriptor = {0};
     if (!Descriptor)
     {
-        INVEPT_DESCRIPTOR ZeroDescriptor = {0};
         Descriptor                       = &ZeroDescriptor;
     }
 
