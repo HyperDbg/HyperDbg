@@ -18,7 +18,7 @@
  * @return BOOLEAN Shows whether EPT is supported in this machine or not
  */
 BOOLEAN
-EptCheckFeatures()
+EptCheckFeatures(VOID)
 {
     IA32_VMX_EPT_VPID_CAP_REGISTER VpidRegister;
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
@@ -71,7 +71,7 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
     SIZE_T                  StartAddressOfPage;
     SIZE_T                  EndAddressOfPage;
     SIZE_T                  CurrentMtrrRange;
-    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
+    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange;
 
     StartAddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber * PAGE_SIZE;
     EndAddressOfPage   = IsLargePage ? StartAddressOfPage + SIZE_2_MB - 1 : StartAddressOfPage + PAGE_SIZE - 1;
@@ -132,7 +132,7 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
  * @return BOOLEAN
  */
 BOOLEAN
-EptBuildMtrrMap()
+EptBuildMtrrMap(VOID)
 {
     IA32_MTRR_CAPABILITIES_REGISTER MTRRCap;
     IA32_MTRR_PHYSBASE_REGISTER     CurrentPhysBase;
@@ -194,14 +194,14 @@ EptBuildMtrrMap()
     //
     // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is
     // divided into 8-bit fields that are used to specify the memory type for each of the sub-ranges the register controls:
-    //  • Register IA32_MTRR_FIX64K_00000 — Maps the 512-KByte address range from 0H to 7FFFFH. This range
+    //  - Register IA32_MTRR_FIX64K_00000 - Maps the 512-KByte address range from 0H to 7FFFFH. This range
     //  is divided into eight 64-KByte sub-ranges.
     //
-    //  • Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 — Maps the two 128-KByte
+    //  - Registers IA32_MTRR_FIX16K_80000 and IA32_MTRR_FIX16K_A0000 - Maps the two 128-KByte
     //  address ranges from 80000H to BFFFFH. This range is divided into sixteen 16-KByte sub-ranges, 8 ranges per
     //  register.
     //
-    //  • Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 — Maps eight 32-KByte
+    //  - Registers IA32_MTRR_FIX4K_C0000 through IA32_MTRR_FIX4K_F8000 - Maps eight 32-KByte
     //  address ranges from C0000H to FFFFFH. This range is divided into sixty-four 4-KByte sub-ranges, 8 ranges per
     //  register.
     //
@@ -356,7 +356,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     //
     // If it is, translate to the PML1 pointer
     //
-    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((PVOID)(PML2Pointer->PageFrameNumber * PAGE_SIZE));
+    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress(PML2Pointer->PageFrameNumber * PAGE_SIZE);
 
     if (!PML1)
     {
@@ -421,7 +421,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
     //
     // If it is, translate to the PML1 pointer
     //
-    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((PVOID)(PML2Pointer->PageFrameNumber * PAGE_SIZE));
+    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress(PML2Pointer->PageFrameNumber * PAGE_SIZE);
 
     if (!PML1)
     {
@@ -507,7 +507,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
         // As it's a large page and we request a pool for it, we need to
         // free the pool because it's not used anymore
         //
-        PoolManagerFreePool(PreAllocatedBuffer);
+        PoolManagerFreePool((UINT64)PreAllocatedBuffer);
 
         return TRUE;
     }
@@ -589,7 +589,7 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
 {
     SIZE_T                  StartAddressOfPage = PageFrameNumber * SIZE_2_MB;
     SIZE_T                  EndAddressOfPage   = StartAddressOfPage + (SIZE_2_MB - 1);
-    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
+    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange;
     SIZE_T                  CurrentMtrrRange;
 
     for (CurrentMtrrRange = 0; CurrentMtrrRange < g_EptState->NumberOfEnabledMemoryRanges; CurrentMtrrRange++)
@@ -616,7 +616,7 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
  * @param PageFrameNumber PFN (Physical Address)
  * @return VOID
  */
-VOID
+BOOLEAN
 EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 {
     PVOID TargetBuffer;
@@ -637,7 +637,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     }
     else
     {
-        TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
         if (!TargetBuffer)
         {
             VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
@@ -654,7 +654,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
  * @return PVMM_EPT_PAGE_TABLE identity map page-table
  */
 PVMM_EPT_PAGE_TABLE
-EptAllocateAndCreateIdentityPageTable()
+EptAllocateAndCreateIdentityPageTable(VOID)
 {
     PVMM_EPT_PAGE_TABLE PageTable;
     EPT_PML3_POINTER    RWXTemplate;
@@ -665,8 +665,6 @@ EptAllocateAndCreateIdentityPageTable()
     //
     // Allocate all paging structures as 4KB aligned pages
     //
-
-    PVOID Output;
 
     //
     // Allocate address anywhere in the OS's memory space and
@@ -773,7 +771,7 @@ EptAllocateAndCreateIdentityPageTable()
  * @return BOOLEAN
  */
 BOOLEAN
-EptLogicalProcessorInitialize()
+EptLogicalProcessorInitialize(VOID)
 {
     ULONG               LogicalProcessorsCount;
     PVMM_EPT_PAGE_TABLE PageTable;
@@ -863,16 +861,16 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       UINT64                               GuestPhysicalAddr)
 {
     BOOLEAN ResultOfHandlingHook;
-    BOOLEAN IsHandled               = FALSE;
+    BOOLEAN IsHandled;
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
-    PVOID   TargetPage              = NULL;
+    PVOID   TargetPage;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
-        if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
+        if (HookedEntry->PhysicalBaseAddress == (SIZE_T)PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
             // *** We found an address that matches the details ***
@@ -968,7 +966,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             // from the VCpu
             //
             CurrentRip               = HvGetRip();
-            CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(CurrentRip, CommonIsGuestOnUsermode32Bit());
+            CurrentInstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess((PVOID)CurrentRip, CommonIsGuestOnUsermode32Bit());
 
             CurrentRip = CurrentRip + CurrentInstructionLength;
 
@@ -1041,7 +1039,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-EptHandleMisconfiguration()
+EptHandleMisconfiguration(VOID)
 {
     UINT64 GuestPhysicalAddr = 0;
 
@@ -1108,8 +1106,8 @@ EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
 BOOLEAN
 EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRip)
 {
-    PVOID       TargetPage         = NULL;
-    PLIST_ENTRY TempList           = 0;
+    PVOID       TargetPage;
+    PLIST_ENTRY TempList;
     BOOLEAN     IsHandledByEptHook = FALSE;
 
     //
@@ -1140,7 +1138,7 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     // As the context to event trigger, we send the rip
                     // of where triggered this event
                     //
-                    DispatchEventHiddenHookExecCc(VCpu, GuestRip);
+                    DispatchEventHiddenHookExecCc(VCpu, (PVOID)GuestRip);
 
                     //
                     // Pointer to the page entry in the page table
@@ -1208,8 +1206,8 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
 BOOLEAN
 EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT64  GuestRip           = NULL;
-    BOOLEAN IsHandledByEptHook = FALSE;
+    UINT64  GuestRip = 0;
+    BOOLEAN IsHandledByEptHook;
 
     //
     // Reading guest's RIP
