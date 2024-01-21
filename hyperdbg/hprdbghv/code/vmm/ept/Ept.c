@@ -2,6 +2,7 @@
  * @file Ept.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Gbps
+ * @author Matthijs Lavrijsen (mattiwatti@gmail.com)
  * @brief The implementation of functions relating to the Extended Page Table (a.k.a. EPT)
  * @details Some of the codes are re-used from Gbps/gbhv (https://github.com/Gbps/gbhv)
  * @version 0.1
@@ -68,15 +69,13 @@ UINT8
 EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
 {
     UINT8                   TargetMemoryType;
-    SIZE_T                  StartAddressOfPage;
-    SIZE_T                  EndAddressOfPage;
+    SIZE_T                  AddressOfPage;
     SIZE_T                  CurrentMtrrRange;
     MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange;
 
-    StartAddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber * PAGE_SIZE;
-    EndAddressOfPage   = IsLargePage ? StartAddressOfPage + SIZE_2_MB - 1 : StartAddressOfPage + PAGE_SIZE - 1;
+    AddressOfPage = IsLargePage ? PageFrameNumber * SIZE_2_MB : PageFrameNumber * PAGE_SIZE;
 
-    TargetMemoryType = g_EptState->DefaultMemoryType;
+    TargetMemoryType = (UINT8)-1;
 
     //
     // For each MTRR range
@@ -86,22 +85,15 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
         CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
 
         //
-        // If this page's address is below or equal to the max physical address of the range
-        // And this page's last address is above or equal to the base physical address of the range
+        // If the physical address is described by this MTRR
         //
-        if (StartAddressOfPage <= CurrentMemoryRange->PhysicalEndAddress &&
-            EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress)
+        if (AddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress &&
+            AddressOfPage < CurrentMemoryRange->PhysicalEndAddress)
         {
-            //
-            // If we're here, this page fell within one of the ranges specified by the variable MTRRs
-            // Therefore, we must mark this page as the same cache type exposed by the MTRR
-            //
-            TargetMemoryType = CurrentMemoryRange->MemoryType;
-
-            // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
+            // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, g_EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, g_EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
 
             //
-            // 11.11.4.1 MTRR Precedences
+            // 12.11.4.1 MTRR Precedences
             //
             if (CurrentMemoryRange->FixedRange)
             {
@@ -109,6 +101,7 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
                 // When the fixed-range MTRRs are enabled, they take priority over the variable-range
                 // MTRRs when overlaps in ranges occur.
                 //
+                TargetMemoryType = CurrentMemoryRange->MemoryType;
                 break;
             }
 
@@ -116,11 +109,39 @@ EptGetMemoryType(SIZE_T PageFrameNumber, BOOLEAN IsLargePage)
             {
                 //
                 // If this is going to be marked uncacheable, then we stop the search as UC always
-                // takes precedent
+                // takes precedence
                 //
+                TargetMemoryType = CurrentMemoryRange->MemoryType;
                 break;
             }
+
+            if (TargetMemoryType == MEMORY_TYPE_WRITE_THROUGH || CurrentMemoryRange->MemoryType == MEMORY_TYPE_WRITE_THROUGH)
+            {
+                if (TargetMemoryType == MEMORY_TYPE_WRITE_BACK)
+                {
+                    //
+                    // If two or more MTRRs overlap and describe the same region, and at least one is WT and
+                    // the other one(s) is/are WB, use WT. However, continue looking, as other MTRRs
+                    // may still specify the address as UC, which always takes precedence
+                    //
+                    TargetMemoryType = MEMORY_TYPE_WRITE_THROUGH;
+                    continue;
+                }
+            }
+
+            //
+            // Otherwise, just use the last MTRR that describes this address
+            //
+            TargetMemoryType = CurrentMemoryRange->MemoryType;
         }
+    }
+
+    //
+    // If no MTRR was found, return the default memory type
+    //
+    if (TargetMemoryType == (UINT8)-1)
+    {
+        TargetMemoryType = g_EptState->DefaultMemoryType;
     }
 
     return TargetMemoryType;
