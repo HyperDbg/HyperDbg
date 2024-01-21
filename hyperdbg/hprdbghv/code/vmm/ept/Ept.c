@@ -199,7 +199,7 @@ EptBuildMtrrMap(VOID)
         CurrentPhysBase.AsUInt = __readmsr(IA32_SMRR_PHYSBASE);
         CurrentPhysMask.AsUInt = __readmsr(IA32_SMRR_PHYSMASK);
 
-        if (CurrentPhysMask.Valid && CurrentPhysBase.Type != MTRRDefType.DefaultMemoryType)
+        if (CurrentPhysMask.Valid)
         {
             Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
             Descriptor->PhysicalBaseAddress = CurrentPhysBase.PageFrameNumber * PAGE_SIZE;
@@ -283,7 +283,7 @@ EptBuildMtrrMap(VOID)
         //
         // Is the range enabled?
         //
-        if (CurrentPhysMask.Valid && CurrentPhysBase.Type != MTRRDefType.DefaultMemoryType)
+        if (CurrentPhysMask.Valid)
         {
             //
             // We only need to read these once because the ISA dictates that MTRRs are
@@ -314,14 +314,6 @@ EptBuildMtrrMap(VOID)
 
             Descriptor->FixedRange = FALSE;
 
-            if (Descriptor->MemoryType == MEMORY_TYPE_WRITE_BACK)
-            {
-                //
-                // This is already our default, so no need to store this range.
-                // Simply 'free' the range we just wrote.
-                //
-                g_EptState->NumberOfEnabledMemoryRanges--;
-            }
             LogDebugInfo("MTRR Range: Base=0x%llx End=0x%llx Type=0x%x", Descriptor->PhysicalBaseAddress, Descriptor->PhysicalEndAddress, Descriptor->MemoryType);
         }
     }
