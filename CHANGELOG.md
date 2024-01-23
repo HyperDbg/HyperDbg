@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2.0] - 2024-01-23
+New release of the HyperDbg Debugger thanks to [@mattiwatti](https://github.com/Mattiwatti) and [@cutecatsandvirtualmachines](https://github.com/cutecatsandvirtualmachines).
+
+### Changed
+- Fix INVEPT invalidation using out of scope descriptor ([link](https://github.com/HyperDbg/HyperDbg/commit/94b3a052a9b84bb7cf64114eba9fc2fe71d0eccf))
+- Fix MTRR initialization crash ([link](https://github.com/HyperDbg/HyperDbg/pull/329))
+
 ## [0.7.1.0] - 2023-12-20
 New release of the HyperDbg Debugger.
 

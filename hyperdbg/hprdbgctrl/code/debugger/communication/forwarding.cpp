@@ -509,6 +509,8 @@ ForwardingWriteToFile(HANDLE FileHandle, CHAR * Message, UINT32 MessageLength)
                           &BytesWritten, // number of bytes that were written
                           NULL);         // no overlapped structure
 
+    return TRUE;
+
     if (ErrorFlag == FALSE)
     {
         //
