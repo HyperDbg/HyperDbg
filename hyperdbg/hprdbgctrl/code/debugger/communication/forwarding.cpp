@@ -497,27 +497,15 @@ ForwardingCheckAndPerformEventForwarding(UINT32 OperationCode,
  *
  * @return BOOLEAN whether the writing to the file was successful or not
  */
-bool is_true = false;
 BOOLEAN
 ForwardingWriteToFile(HANDLE FileHandle, CHAR * Message, UINT32 MessageLength)
 {
     DWORD BytesWritten = 0;
     BOOL  ErrorFlag    = FALSE;
 
-    if (!is_true)
-    {
-        is_true = true;
-    }
-    else
-    {
-        return TRUE;
-    }
-
-    char Hi[] = {"1003\n1006\n1009\n100A\n100B\n100D\n100F\n1013\n1016\n101A\n101D\n1021\n1024\n1028\n102B\n102F\n1032\n1036\n1039\n103D\n1040\n1044"};
-
     ErrorFlag = WriteFile(FileHandle,    // open file handle
-                          Hi,            // start of data to write
-                          strlen(Hi),    // number of bytes to write
+                          Message,       // start of data to write
+                          MessageLength, // number of bytes to write
                           &BytesWritten, // number of bytes that were written
                           NULL);         // no overlapped structure
 

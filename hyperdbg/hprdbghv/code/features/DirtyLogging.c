@@ -192,7 +192,7 @@ DirtyLoggingUninitialize()
     BroadcastDisablePmlOnAllProcessors();
 
     //
-    // Free the allocated pool buffers'o
+    // Free the allocated pool buffers
     //
     for (size_t i = 0; i < CoreCount; i++)
     {
