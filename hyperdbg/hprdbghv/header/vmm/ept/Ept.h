@@ -34,38 +34,38 @@
  * @brief Offset into the 1st paging structure (4096 byte)
  *
  */
-#define ADDRMASK_EPT_PML1_OFFSET(_VAR_) (_VAR_ & 0xFFFULL)
+#define ADDRMASK_EPT_PML1_OFFSET(_VAR_) ((_VAR_) & 0xFFFULL)
 
 /**
  * @brief Index of the 1st paging structure (4096 byte)
  *
  */
-#define ADDRMASK_EPT_PML1_INDEX(_VAR_) ((_VAR_ & 0x1FF000ULL) >> 12)
+#define ADDRMASK_EPT_PML1_INDEX(_VAR_) (((_VAR_) & 0x1FF000ULL) >> 12)
 
 /**
  * @brief Index of the 2nd paging structure (2MB)
  *
  */
-#define ADDRMASK_EPT_PML2_INDEX(_VAR_) ((_VAR_ & 0x3FE00000ULL) >> 21)
+#define ADDRMASK_EPT_PML2_INDEX(_VAR_) (((_VAR_) & 0x3FE00000ULL) >> 21)
 
 /**
  * @brief Index of the 3rd paging structure (1GB)
  *
  */
-#define ADDRMASK_EPT_PML3_INDEX(_VAR_) ((_VAR_ & 0x7FC0000000ULL) >> 30)
+#define ADDRMASK_EPT_PML3_INDEX(_VAR_) (((_VAR_) & 0x7FC0000000ULL) >> 30)
 
 /**
  * @brief Index of the 4th paging structure (512GB)
  *
  */
-#define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
+#define ADDRMASK_EPT_PML4_INDEX(_VAR_) (((_VAR_) & 0xFF8000000000ULL) >> 39)
 
 //////////////////////////////////////////////////
 //			     Structs Cont.                	//
 //////////////////////////////////////////////////
 
 /**
- * @brief MTRR Range Descriptor
+ * @brief MTRR Descriptor
  *
  */
 typedef struct _MTRR_RANGE_DESCRIPTOR
@@ -77,10 +77,37 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
 /**
- * @brief Maximum range of MTRR descriptors
+ * @brief Fixed range MTRR
  *
  */
-#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 100
+typedef union _IA32_MTRR_FIXED_RANGE_TYPE
+{
+    UINT64 AsUInt;
+    struct
+    {
+        UINT8 Types[8];
+    } s;
+} IA32_MTRR_FIXED_RANGE_TYPE;
+
+/**
+ * @brief Architecturally defined number of variable range MTRRs
+ *
+ */
+#define MAX_VARIABLE_RANGE_MTRRS 255
+
+/**
+ * @brief Architecturally defined number of fixed range MTRRs. 1 register for 64k, 2
+ * registers for 16k, 8 registers for 4k, and each register has 8 ranges as per
+ * "Fixed Range MTRRs" states.
+ *
+ */
+#define NUM_FIXED_RANGE_MTRRS ((1 + 2 + 8) * RTL_NUMBER_OF_FIELD(IA32_MTRR_FIXED_RANGE_TYPE, s.Types)) // = 88
+
+/**
+ * @brief Total number of MTRR descriptors to store
+ *
+ */
+#define NUM_MTRR_ENTRIES (MAX_VARIABLE_RANGE_MTRRS + NUM_FIXED_RANGE_MTRRS) // = 343
 
 /**
  * @brief Main structure for saving the state of EPT among the project
@@ -88,15 +115,15 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
  */
 typedef struct _EPT_STATE
 {
-    LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
-    MTRR_RANGE_DESCRIPTOR MemoryRanges[EPT_MTRR_RANGE_DESCRIPTOR_MAX]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
-    ULONG                 NumberOfEnabledMemoryRanges;                 // Number of memory ranges specified in MemoryRanges
-    PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
-    PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;           // Page table entries for hooks based on user-mode disabled mode-based execution control bits
-    PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable;         // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
-    EPT_POINTER           ModeBasedUserDisabledEptPointer;             // Extended-Page-Table Pointer for user-disabled mode-based execution
-    EPT_POINTER           ModeBasedKernelDisabledEptPointer;           // Extended-Page-Table Pointer for kernel-disabled mode-based execution
-    EPT_POINTER           ExecuteOnlyEptPointer;                       // Extended-Page-Table Pointer for execute-only execution
+    LIST_ENTRY            HookedPagesList;                     // A list of the details about hooked pages
+    MTRR_RANGE_DESCRIPTOR MemoryRanges[NUM_MTRR_ENTRIES];      // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
+    ULONG                 NumberOfEnabledMemoryRanges;         // Number of memory ranges specified in MemoryRanges
+    PVMM_EPT_PAGE_TABLE   EptPageTable;                        // Page table entries for EPT operation
+    PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;   // Page table entries for hooks based on user-mode disabled mode-based execution control bits
+    PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable; // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
+    EPT_POINTER           ModeBasedUserDisabledEptPointer;     // Extended-Page-Table Pointer for user-disabled mode-based execution
+    EPT_POINTER           ModeBasedKernelDisabledEptPointer;   // Extended-Page-Table Pointer for kernel-disabled mode-based execution
+    EPT_POINTER           ExecuteOnlyEptPointer;               // Extended-Page-Table Pointer for execute-only execution
     UINT8                 DefaultMemoryType;
 } EPT_STATE, *PEPT_STATE;
 
@@ -121,7 +148,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     {
         PEPT_PML2_ENTRY   Entry;
         PEPT_PML2_POINTER Pointer;
-    };
+    } u;
 
     /**
      * @brief Linked list entries for each dynamic split
@@ -139,10 +166,10 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 // Private Interfaces
 //
 
-static VOID
+BOOLEAN
 EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
 
-static BOOLEAN
+BOOLEAN
 EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
                       _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       _In_ UINT64                               GuestPhysicalAddr);
@@ -157,7 +184,7 @@ EptHandlePageHookExit(_Inout_ VIRTUAL_MACHINE_STATE *           VCpu,
  * @return BOOLEAN
  */
 BOOLEAN
-EptCheckFeatures();
+EptCheckFeatures(VOID);
 
 /**
  * @brief Build MTRR Map
@@ -165,7 +192,7 @@ EptCheckFeatures();
  * @return BOOLEAN
  */
 BOOLEAN
-EptBuildMtrrMap();
+EptBuildMtrrMap(VOID);
 
 /**
  * @brief Allocates page maps and create identity page table
@@ -173,7 +200,7 @@ EptBuildMtrrMap();
  * @return PVMM_EPT_PAGE_TABLE identity map page-table
  */
 PVMM_EPT_PAGE_TABLE
-EptAllocateAndCreateIdentityPageTable();
+EptAllocateAndCreateIdentityPageTable(VOID);
 
 /**
  * @brief Convert 2MB pages to 4KB pages
@@ -206,7 +233,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
  * @return BOOLEAN
  */
 BOOLEAN
-EptLogicalProcessorInitialize();
+EptLogicalProcessorInitialize(VOID);
 
 /**
  * @brief Handle EPT Violation
@@ -247,7 +274,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
  * @return VOID
  */
 VOID
-EptHandleMisconfiguration();
+EptHandleMisconfiguration(VOID);
 
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then
