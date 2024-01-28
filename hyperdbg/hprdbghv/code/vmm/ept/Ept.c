@@ -248,9 +248,9 @@ EptBuildMtrrMap(VOID)
             for (unsigned int j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-                Descriptor->MemoryType          = K16Types.s.Types[j];
-                Descriptor->PhysicalBaseAddress = (K16Base + (i * K16Size * 8)) + (K16Size * j);
-                Descriptor->PhysicalEndAddress  = (K16Base + (i * K16Size * 8)) + (K16Size * j) + (K16Size - 1);
+                Descriptor->MemoryType          = K16Types.s.Types[i];
+                Descriptor->PhysicalBaseAddress = K16Base + (K16Size * i);
+                Descriptor->PhysicalEndAddress  = K16Base + (K16Size * i) + (K16Size - 1);
                 Descriptor->FixedRange          = TRUE;
             }
         }

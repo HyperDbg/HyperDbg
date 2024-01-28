@@ -76,15 +76,15 @@ CommandPreactivate(vector<string> SplittedCommand, string Command)
     // Send IOCTL
     //
     Status = DeviceIoControl(
-        g_DeviceHandle,                      // Handle to device
-        IOCTL_PREACTIVATE_FUNCTIONALITY,     // IO Control Code (IOCTL)
-        &PreactivateRequest,                 // Input Buffer to driver.
-        SIZEOF_DEBUGGER_PREACTIVATE_COMMAND, // Input buffer length
-        &PreactivateRequest,                 // Output Buffer from driver.
-        SIZEOF_DEBUGGER_PREACTIVATE_COMMAND, // Length of output
-                                             // buffer in bytes.
-        &ReturnedLength,                     // Bytes placed in buffer.
-        NULL                                 // synchronous call
+        g_DeviceHandle,                          // Handle to device
+        IOCTL_RESERVE_PREACTIVATE_FUNCTIONALITY, // IO Control Code (IOCTL)
+        &PreactivateRequest,                     // Input Buffer to driver.
+        SIZEOF_DEBUGGER_PREACTIVATE_COMMAND,     // Input buffer length
+        &PreactivateRequest,                     // Output Buffer from driver.
+        SIZEOF_DEBUGGER_PREACTIVATE_COMMAND,     // Length of output
+                                                 // buffer in bytes.
+        &ReturnedLength,                         // Bytes placed in buffer.
+        NULL                                     // synchronous call
     );
 
     if (!Status)
