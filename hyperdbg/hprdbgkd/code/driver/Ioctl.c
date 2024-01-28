@@ -1095,7 +1095,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
-        case IOCTL_RESERVE_PREACTIVATE_FUNCTIONALITY:
+        case IOCTL_PREACTIVATE_FUNCTIONALITY:
 
             //
             // First validate the parameters.
