@@ -183,36 +183,6 @@ EptBuildMtrrMap(VOID)
     g_EptState->DefaultMemoryType = MTRRDefType.DefaultMemoryType;
 
     //
-    // If IA32_MTRRCAP[bit 11] is set, the processor supports the SMRR interface to restrict access to a specified
-    // memory address range used by system-management mode (SMM) software (see Section 31.4.2.1). If the SMRR
-    // interface is supported, SMM software is strongly encouraged to use it to protect the SMI code and data stored by
-    // SMI handler in the SMRAM region.
-    //
-    // The system-management range registers consist of a pair of MSRs (see Figure 11-8). The IA32_SMRR_PHYSBASE
-    // MSR defines the base address for the SMRAM memory range and the memory type used to access it in SMM. The
-    // IA32_SMRR_PHYSMASK MSR contains a valid bit and a mask that determines the SMRAM address range protected
-    // by the SMRR interface. These MSRs may be written only in SMM;
-    // an attempt to write them outside of SMM causes a general-protection exception.
-    //
-    if (MTRRCap.SmrrSupported)
-    {
-        CurrentPhysBase.AsUInt = __readmsr(IA32_SMRR_PHYSBASE);
-        CurrentPhysMask.AsUInt = __readmsr(IA32_SMRR_PHYSMASK);
-
-        if (CurrentPhysMask.Valid)
-        {
-            Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
-            Descriptor->PhysicalBaseAddress = CurrentPhysBase.PageFrameNumber * PAGE_SIZE;
-
-            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
-
-            Descriptor->PhysicalEndAddress = Descriptor->PhysicalBaseAddress + ((1ULL << NumberOfBitsInMask) - 1ULL);
-            Descriptor->MemoryType         = CurrentPhysBase.Type;
-            Descriptor->FixedRange         = FALSE;
-        }
-    }
-
-    //
     // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is
     // divided into 8-bit fields that are used to specify the memory type for each of the sub-ranges the register controls:
     //  - Register IA32_MTRR_FIX64K_00000 - Maps the 512-KByte address range from 0H to 7FFFFH. This range
