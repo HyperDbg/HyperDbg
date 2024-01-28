@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0.0] - 2024-XX-XX
 New release of the HyperDbg Debugger thanks to [@mattiwatti](https://github.com/Mattiwatti) and [@cutecatsandvirtualmachines](https://github.com/cutecatsandvirtualmachines).
 
+### Changed
+- Fix miscalculating MTRRs in 13th gen processors 
+
 ### Added
 - The **!mode** event command is added to detect kernel-to-user and user-to-kernel transitions ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 - The 'preactivate' command is added to support initializing special functionalities in the Debugger Mode ([link](https://docs.hyperdbg.org/commands/debugging-commands/preactivate))
