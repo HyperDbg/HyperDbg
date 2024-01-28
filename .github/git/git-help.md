@@ -1,3 +1,4 @@
+## Removing submodules
 To remove a submodule you need to:
 
 - Delete the relevant section from the `.gitmodules` file.
@@ -41,4 +42,17 @@ git reset
 To remove the effects of `git add .` and `git commit -m "test"` or just `git add .` without modifying (removing) the changes in the source code:
 ```
 git reset --soft HEAD~1
+```
+
+---------------
+
+## Releasing instructions
+```
+git checkout master 
+git pull
+git tag -a v0.1.0 -m "HyperDbg releases" 
+git push origin master v0.1.0
+git checkout dev
+git rebase master
+git push
 ```
