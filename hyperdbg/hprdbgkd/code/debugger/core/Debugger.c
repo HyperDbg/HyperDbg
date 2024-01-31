@@ -1188,9 +1188,11 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             EptContext = (PEPT_HOOKS_CONTEXT)Context;
 
             //
-            // Context should be checked in physical address
+            // Context should be checked with hooking tag
+            // The hooking tag is same as the event tag if both
+            // of them match together
             //
-            if (!(EptContext->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 && EptContext->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
+            if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
                 // The value is not withing our expected range

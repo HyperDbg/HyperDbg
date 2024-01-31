@@ -1530,9 +1530,7 @@ EptHookInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
                                             NULL,
                                             ProcessId,
                                             TRUE,
-                                            FALSE
-
-    );
+                                            FALSE);
 }
 
 /**
@@ -1635,7 +1633,7 @@ EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
 }
 
 /**
- * @brief Handles page hooks
+ * @brief Handles page hooks (trigger events)
  *
  * @param VCpu The virtual processor's state
  * @param HookedEntryDetails The entry that describes the hooked page
@@ -1677,6 +1675,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     //
     // Set the last context
     //
+    LastContext->HookingTag      = HookedEntryDetails->HookingTag;
     LastContext->PhysicalAddress = PhysicalAddress;
     LastContext->VirtualAddress  = ExactAccessedVirtualAddress;
 

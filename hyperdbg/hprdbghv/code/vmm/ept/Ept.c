@@ -843,13 +843,13 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN ResultOfHandlingHook;
-    BOOLEAN IsHandled;
-    BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
-    BOOLEAN IsExecViolation         = FALSE;
     PVOID   TargetPage;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
+    BOOLEAN IsHandled;
+    BOOLEAN ResultOfHandlingHook    = FALSE;
+    BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
+    BOOLEAN IsExecViolation         = FALSE;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -865,13 +865,32 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,
-                                                           HookedEntry,
-                                                           ViolationQualification,
-                                                           GuestPhysicalAddr,
-                                                           &HookedEntry->LastContextState,
-                                                           &IgnoreReadOrWriteOrExec,
-                                                           &IsExecViolation);
+
+            //
+            // Reaching here means that the hooks was actually caused VM-exit because of
+            // our configurations, but here we double whether the hook needs to trigger
+            // any event or not becuase the hooking address (physical) might not be in the
+            // target range. For example we might hook 0x123b000 to 0x123b300 but the hook
+            // happens on 0x123b4600, so we perform the necessary checks here
+            //
+            if (GuestPhysicalAddr >= HookedEntry->StartOfTargetPhysicalAddress && GuestPhysicalAddr <= HookedEntry->EndOfTargetPhysicalAddress)
+            {
+                ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,
+                                                               HookedEntry,
+                                                               ViolationQualification,
+                                                               GuestPhysicalAddr,
+                                                               &HookedEntry->LastContextState,
+                                                               &IgnoreReadOrWriteOrExec,
+                                                               &IsExecViolation);
+            }
+            else
+            {
+                //
+                // Here we assume the hook is handled as the hook needs to be
+                // restored (just not within the range)
+                //
+                ResultOfHandlingHook = TRUE;
+            }
 
             if (ResultOfHandlingHook)
             {

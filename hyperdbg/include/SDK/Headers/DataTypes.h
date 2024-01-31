@@ -308,6 +308,7 @@ typedef struct _DIRECT_VMCALL_PARAMETERS
  */
 typedef struct _EPT_HOOKS_CONTEXT
 {
+    UINT64 HookingTag; // This is same as the event tag
     UINT64 PhysicalAddress;
     UINT64 VirtualAddress;
 } EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
