@@ -27,11 +27,14 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
-    UINT32  TempProcessId;
-    UINT64  PagesBytes;
-    UINT32  HookRemainedSize;
-    UINT64  StartOfHookingAddress, EndOfHookingAddress;
-    BOOLEAN ResultOfApplyingEvent = FALSE;
+    UINT32                                       TempProcessId;
+    BOOLEAN                                      ResultOfApplyingEvent = FALSE;
+    UINT64                                       RemainingSize;
+    UINT64                                       PagesBytes;
+    UINT64                                       ConstEndAddress;
+    UINT64                                       TempStartAddress;
+    UINT64                                       TempEndAddress;
+    EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR HookingAddresses = {0};
 
     if (InputFromVmxRoot)
     {
@@ -53,14 +56,46 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         }
     }
 
-    PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
-    PagesBytes = Event->InitOptions.OptionalParam2 - PagesBytes;
+    //
+    // Set the tag
+    //
+    HookingAddresses.Tag = Event->Tag;
 
-    HookRemainedSize = Event->InitOptions.OptionalParam2 - Event->InitOptions.OptionalParam1;
+    TempStartAddress = Event->InitOptions.OptionalParam1;
+    TempEndAddress   = Event->InitOptions.OptionalParam2;
+    ConstEndAddress  = TempEndAddress;
 
-    for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+    PagesBytes = (UINT64)PAGE_ALIGN(TempStartAddress);
+    PagesBytes = TempEndAddress - PagesBytes;
+    PagesBytes = PagesBytes / PAGE_SIZE;
+
+    RemainingSize = TempEndAddress - TempStartAddress;
+
+    // LogInfo("Start address: %llx, end address: %llx", TempStartAddress, TempEndAddress, RemainingSize);
+
+    for (size_t i = 0; i <= PagesBytes; i++)
     {
-        StartOfHookingAddress = (UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE);
+        if (RemainingSize >= PAGE_SIZE)
+        {
+            TempEndAddress = (TempStartAddress + ((UINT64)PAGE_ALIGN(TempStartAddress + PAGE_SIZE) - TempStartAddress)) - 1;
+            RemainingSize  = ConstEndAddress - TempEndAddress - 1;
+        }
+        else
+        {
+            TempEndAddress = TempStartAddress + RemainingSize;
+            RemainingSize  = 0;
+        }
+
+        // LogInfo("Start address: %llx, end address: %llx, remaining size: %llx",
+        //         TempStartAddress,
+        //         TempEndAddress,
+        //         RemainingSize);
+
+        //
+        // Setup hooking addresses
+        //
+        HookingAddresses.StartAddress = TempStartAddress;
+        HookingAddresses.EndAddress   = TempEndAddress;
 
         //
         // In all the cases we should set both read/write, even if it's only
@@ -73,7 +108,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
         case HIDDEN_HOOK_READ_AND_EXECUTE:
 
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
                                                                             TempProcessId,
                                                                             TRUE,
                                                                             TRUE,
@@ -83,7 +118,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
         case HIDDEN_HOOK_WRITE_AND_EXECUTE:
 
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             TRUE,
@@ -93,7 +128,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
         case HIDDEN_HOOK_READ_AND_WRITE:
         case HIDDEN_HOOK_READ:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
                                                                             TempProcessId,
                                                                             TRUE,
                                                                             TRUE,
@@ -103,7 +138,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             break;
 
         case HIDDEN_HOOK_WRITE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             TRUE,
@@ -113,7 +148,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             break;
 
         case HIDDEN_HOOK_EXECUTE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
                                                                             TempProcessId,
                                                                             FALSE,
                                                                             FALSE,
@@ -173,6 +208,11 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                 PoolManagerCheckAndPerformAllocationAndDeallocation();
             }
         }
+
+        //
+        // Swap the temporary start address and temporary end address
+        //
+        TempStartAddress = TempEndAddress + 1;
     }
 
     //

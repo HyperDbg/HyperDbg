@@ -313,6 +313,32 @@ typedef struct _EPT_HOOKS_CONTEXT
 } EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
 
 /**
+ * @brief Setting details for EPT Hooks (!monitor)
+ *
+ */
+typedef struct _EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR
+{
+    UINT64  StartAddress;
+    UINT64  EndAddress;
+    BOOLEAN SetHookForRead;
+    BOOLEAN SetHookForWrite;
+    BOOLEAN SetHookForExec;
+    UINT64  Tag;
+
+} EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR, *PEPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR;
+
+/**
+ * @brief Setting details for EPT Hooks (!epthook2)
+ *
+ */
+typedef struct _EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2
+{
+    PVOID TargetAddress;
+    PVOID HookFunction;
+
+} EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2, *PEPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2;
+
+/**
  * @brief Details of unhooking single EPT hooks
  *
  */

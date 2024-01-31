@@ -143,7 +143,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     //
     if (VmcallNumber > TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER && VmcallNumber <= TOP_LEVEL_DRIVERS_VMCALL_ENDING_NUMBER)
     {
-        if (VmmCallbackVmcallHandler(VCpu->CoreId, VmcallNumber & 0xffffffff, OptionalParam1, OptionalParam2, OptionalParam3))
+        if (VmmCallbackVmcallHandler(VCpu->CoreId, VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3))
         {
             return STATUS_SUCCESS;
         }
@@ -156,7 +156,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Only 32bit of Vmcall is valid, this way we can use the upper 32 bit of the Vmcall
     //
-    switch (VmcallNumber & 0xffffffff)
+    switch (VmcallNumber)
     {
     case VMCALL_TEST:
     {
@@ -172,32 +172,14 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_PAGE_ATTRIB:
     {
-        //
-        // Mask is the upper 32 bits to this Vmcall
-        // Upper 32 bits of the Vmcall contains the attribute mask
-        //
-        UINT32  AttributeMask        = (UINT32)((VmcallNumber & 0xFFFFFFFF00000000LL) >> 32);
-        BOOLEAN HookResult           = FALSE;
-        BOOLEAN UnsetExec            = FALSE;
-        BOOLEAN UnsetExecHiddenHook2 = FALSE;
-        BOOLEAN UnsetRead            = FALSE;
-        BOOLEAN UnsetWrite           = FALSE;
-
-        UnsetRead            = (AttributeMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
-        UnsetWrite           = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
-        UnsetExec            = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
-        UnsetExecHiddenHook2 = (AttributeMask & PAGE_ATTRIB_EXEC_HIDDEN_HOOK) ? TRUE : FALSE;
+        BOOLEAN HookResult = FALSE;
 
         CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};
 
-        HookResult = EptHookPerformPageHook2(VCpu,
-                                             OptionalParam1 /* TargetAddress */,
-                                             OptionalParam2 /* Hook Function*/,
-                                             ProcCr3 /* Process cr3 */,
-                                             UnsetRead,
-                                             UnsetWrite,
-                                             UnsetExec,
-                                             UnsetExecHiddenHook2);
+        HookResult = EptHookPerformPageHookMonitorAndInlineHook(VCpu,
+                                                                OptionalParam1 /* hook details */,
+                                                                ProcCr3 /* Process cr3 */,
+                                                                OptionalParam2 /* PageHookMask */);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 

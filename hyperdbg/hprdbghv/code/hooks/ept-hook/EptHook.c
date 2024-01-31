@@ -974,38 +974,41 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
  * This function have to be called through a VMCALL in VMX Root Mode
  *
  * @param VCpu The virtual processor's state
- * @param TargetAddress The address of function or memory address to be hooked
- * @param HookFunction The function that will be called when hook triggered
+ * @param HookingDetails The address of function or memory address to be hooked
  * @param ProcessCr3 The process cr3 to translate based on that process's cr3
- * @param UnsetRead Hook READ Access
- * @param UnsetWrite Hook WRITE Access
- * @param UnsetExecute Hook EXECUTE Access
- * @param EptHiddenHook !epthook2-like events
+ * @param PageHookMask Mask hook of the page
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
-                        PVOID                   TargetAddress,
-                        PVOID                   HookFunction,
-                        CR3_TYPE                ProcessCr3,
-                        BOOLEAN                 UnsetRead,
-                        BOOLEAN                 UnsetWrite,
-                        BOOLEAN                 UnsetExecute,
-                        BOOLEAN                 EptHiddenHook)
+EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                                           PVOID                   HookingDetails,
+                                           CR3_TYPE                ProcessCr3,
+                                           UINT32                  PageHookMask)
 {
     ULONG                   ProcessorsCount;
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
     SIZE_T                  PhysicalBaseAddress;
-    PVOID                   VirtualTarget;
+    PVOID                   AlignedTargetVa;
     PVOID                   TargetBuffer;
+    PVOID                   TargetAddress;
+    PVOID                   HookFunction;
     UINT64                  TargetAddressInSafeMemory;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     CR3_TYPE                Cr3OfCurrentProcess;
-    PLIST_ENTRY             TempList    = 0;
-    PEPT_HOOKED_PAGE_DETAIL HookedEntry = NULL;
+    PLIST_ENTRY             TempList      = 0;
+    PEPT_HOOKED_PAGE_DETAIL HookedEntry   = NULL;
+    BOOLEAN                 UnsetExecute  = FALSE;
+    BOOLEAN                 UnsetRead     = FALSE;
+    BOOLEAN                 UnsetWrite    = FALSE;
+    BOOLEAN                 EptHiddenHook = FALSE;
+
+    UnsetRead     = (PageHookMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
+    UnsetWrite    = (PageHookMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
+    UnsetExecute  = (PageHookMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
+    EptHiddenHook = (PageHookMask & PAGE_ATTRIB_EXEC_HIDDEN_HOOK) ? TRUE : FALSE;
 
     //
     // Get number of processors
@@ -1017,7 +1020,16 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
     // This function will return NULL if the physical address was not already mapped in
     // virtual memory.
     //
-    VirtualTarget = PAGE_ALIGN(TargetAddress);
+    if (EptHiddenHook)
+    {
+        TargetAddress = ((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->TargetAddress;
+    }
+    else
+    {
+        TargetAddress = ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress;
+    }
+
+    AlignedTargetVa = PAGE_ALIGN(TargetAddress);
 
     //
     // Here we have to change the CR3, it is because we are in SYSTEM process
@@ -1026,9 +1038,9 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
     //
 
     //
-    // Find cr3 of target core
+    // based on the CR3 of target core
     //
-    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(VirtualTarget, ProcessCr3);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(AlignedTargetVa, ProcessCr3);
 
     if (!PhysicalBaseAddress)
     {
@@ -1079,6 +1091,48 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
     HookedPage->PhysicalBaseAddress = PhysicalBaseAddress;
 
     //
+    // If it's a monitor hook, then we need to hold the address of the start
+    // physical address as well as the end physical address, plus tagging information
+    //
+    if (!EptHiddenHook)
+    {
+        //
+        // Save the target tag
+        //
+        HookedPage->HookingTag = ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->Tag;
+
+        //
+        // Save the start of the target physical address
+        //
+        HookedPage->StartOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
+            ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress,
+            ProcessCr3);
+
+        if (!HookedPage->StartOfTargetPhysicalAddress)
+        {
+            PoolManagerFreePool(HookedPage);
+
+            VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+            return FALSE;
+        }
+
+        //
+        // Save the end of the target physical address
+        //
+        HookedPage->EndOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
+            ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->EndAddress,
+            ProcessCr3);
+
+        if (!HookedPage->EndOfTargetPhysicalAddress)
+        {
+            PoolManagerFreePool(HookedPage);
+
+            VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+            return FALSE;
+        }
+    }
+
+    //
     // Fake page content physical address
     //
     HookedPage->PhysicalBaseAddressOfFakePageContents = (SIZE_T)VirtualAddressToPhysicalAddress(&HookedPage->FakePageContents[0]) / PAGE_SIZE;
@@ -1100,7 +1154,7 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
         // The following line can't be used in user mode addresses
         // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
         //
-        MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
+        MemoryMapperReadMemorySafe(AlignedTargetVa, &HookedPage->FakePageContents, PAGE_SIZE);
 
         //
         // Restore to original process
@@ -1118,9 +1172,13 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
         // Make sure if handler function is valid or if it's default
         // then we set it to the default hanlder
         //
-        if (HookFunction == NULL)
+        if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->HookFunction == NULL)
         {
             HookFunction = AsmGeneralDetourHook;
+        }
+        else
+        {
+            HookFunction = ((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->HookFunction;
         }
 
         //
@@ -1268,78 +1326,94 @@ EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
  * VMX root-mode directly, it should also invalidate EPT caches (by the caller)
  *
  * @param VCpu The virtual processor's state
- * @param TargetAddress The address of function or memory address to be hooked
- * @param HookFunction The function that will be called when hook triggered
+ * @param EptHook2AddressDetails The address details for inline EPT hooks
+ * @param MemoryAddressDetails The address details for monitor EPT hooks
  * @param ProcessId The process id to translate based on that process's cr3
- * @param SetHookForRead Hook READ Access
- * @param SetHookForWrite Hook WRITE Access
- * @param SetHookForExec Hook EXECUTE Access
  * @param EptHiddenHook2 epthook2 style hook
  * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2PerformHook(VIRTUAL_MACHINE_STATE * VCpu,
-                    PVOID                   TargetAddress,
-                    PVOID                   HookFunction,
-                    UINT32                  ProcessId,
-                    BOOLEAN                 SetHookForRead,
-                    BOOLEAN                 SetHookForWrite,
-                    BOOLEAN                 SetHookForExec,
-                    BOOLEAN                 EptHiddenHook2,
-                    BOOLEAN                 ApplyDirectlyFromVmxRoot)
+EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        VCpu,
+                                 EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *       EptHook2AddressDetails,
+                                 EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails,
+                                 UINT32                                         ProcessId,
+                                 BOOLEAN                                        EptHiddenHook2,
+                                 BOOLEAN                                        ApplyDirectlyFromVmxRoot)
 {
-    UINT32 PageHookMask = 0;
+    UINT32 PageHookMask        = 0;
+    PVOID  HookDetailsToVmcall = NULL;
 
     //
     // Check for the features to avoid EPT Violation problems
     //
-    if (SetHookForExec && !g_CompatibilityCheck.ExecuteOnlySupport)
+    if (MemoryAddressDetails != NULL)
+    {
+        HookDetailsToVmcall = MemoryAddressDetails;
+
+        if (MemoryAddressDetails->SetHookForExec &&
+            !g_CompatibilityCheck.ExecuteOnlySupport)
+        {
+            //
+            // In the current design of hyperdbg we use execute-only pages
+            // to implement hidden hooks for exec page, so your processor doesn't
+            // have this feature and you have to implment it in other ways :(
+            //
+            return FALSE;
+        }
+
+        if (!MemoryAddressDetails->SetHookForWrite && MemoryAddressDetails->SetHookForRead)
+        {
+            //
+            // The hidden hook with Write Enable and Read Disabled will cause EPT violation!
+            // fixed
+            return FALSE;
+        }
+
+        if (MemoryAddressDetails->SetHookForRead)
+        {
+            PageHookMask |= PAGE_ATTRIB_READ;
+        }
+        if (MemoryAddressDetails->SetHookForWrite)
+        {
+            PageHookMask |= PAGE_ATTRIB_WRITE;
+        }
+        if (MemoryAddressDetails->SetHookForExec)
+        {
+            PageHookMask |= PAGE_ATTRIB_EXEC;
+        }
+    }
+    else if (EptHook2AddressDetails != NULL)
+    {
+        HookDetailsToVmcall = EptHook2AddressDetails;
+
+        if (EptHiddenHook2)
+        {
+            PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
+        }
+
+        //
+        // Initialize the list of ept hook detours if it's not already initialized
+        //
+        if (!g_IsEptHook2sDetourListInitialized)
+        {
+            g_IsEptHook2sDetourListInitialized = TRUE;
+
+            InitializeListHead(&g_EptHook2sDetourListHead);
+        }
+    }
+    else
     {
         //
-        // In the current design of hyperdbg we use execute-only pages
-        // to implement hidden hooks for exec page, so your processor doesn't
-        // have this feature and you have to implment it in other ways :(
+        // No details provided
         //
         return FALSE;
     }
 
-    if (!SetHookForWrite && SetHookForRead)
-    {
-        //
-        // The hidden hook with Write Enable and Read Disabled will cause EPT violation!
-        // fixed
-        return FALSE;
-    }
-
     //
-    // Initialize the list of ept hook detours if it's not already initialized
+    // Check if mask is valid or not
     //
-    if (!g_IsEptHook2sDetourListInitialized)
-    {
-        g_IsEptHook2sDetourListInitialized = TRUE;
-
-        InitializeListHead(&g_EptHook2sDetourListHead);
-    }
-
-    if (SetHookForRead)
-    {
-        PageHookMask |= PAGE_ATTRIB_READ;
-    }
-    if (SetHookForWrite)
-    {
-        PageHookMask |= PAGE_ATTRIB_WRITE;
-    }
-    if (SetHookForExec)
-    {
-        PageHookMask |= PAGE_ATTRIB_EXEC;
-    }
-    if (EptHiddenHook2)
-    {
-        PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
-    }
-
     if (PageHookMask == 0)
     {
         //
@@ -1348,19 +1422,14 @@ EptHook2PerformHook(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
-    //
-    // Move Attribute Mask to the upper 32 bits of the VMCALL Number
-    //
-    UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
-
     if (ApplyDirectlyFromVmxRoot)
     {
         DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-        DirectVmcallOptions.OptionalParam1           = TargetAddress;
-        DirectVmcallOptions.OptionalParam2           = HookFunction;
+        DirectVmcallOptions.OptionalParam1           = HookDetailsToVmcall;
+        DirectVmcallOptions.OptionalParam2           = PageHookMask;
         DirectVmcallOptions.OptionalParam3           = LayoutGetCurrentProcessCr3().Flags; // Process id is ignored while applied directly
 
-        if (DirectVmcallPerformVmcall(VCpu->CoreId, VmcallNumber, &DirectVmcallOptions) == STATUS_SUCCESS)
+        if (DirectVmcallPerformVmcall(VCpu->CoreId, VMCALL_CHANGE_PAGE_ATTRIB, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
             return TRUE;
         }
@@ -1373,7 +1442,7 @@ EptHook2PerformHook(VIRTUAL_MACHINE_STATE * VCpu,
     {
         if (VmxGetCurrentLaunchState())
         {
-            if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+            if (AsmVmxVmcall(VMCALL_CHANGE_PAGE_ATTRIB, HookDetailsToVmcall, PageHookMask, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
             {
                 //
                 // Test log
@@ -1404,14 +1473,10 @@ EptHook2PerformHook(VIRTUAL_MACHINE_STATE * VCpu,
         }
         else
         {
-            if (EptHookPerformPageHook2(VCpu,
-                                        TargetAddress,
-                                        HookFunction,
-                                        LayoutGetCr3ByProcessId(ProcessId),
-                                        SetHookForRead,
-                                        SetHookForWrite,
-                                        SetHookForExec,
-                                        EptHiddenHook2) == TRUE)
+            if (EptHookPerformPageHookMonitorAndInlineHook(VCpu,
+                                                           HookDetailsToVmcall,
+                                                           LayoutGetCr3ByProcessId(ProcessId),
+                                                           PageHookMask) == TRUE)
             {
                 LogWarning("Hook applied (VM has not launched)");
                 return TRUE;
@@ -1460,15 +1525,15 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
-    return EptHook2PerformHook(VCpu,
-                               TargetAddress,
-                               HookFunction,
-                               ProcessId,
-                               SetHookForRead,
-                               SetHookForWrite,
-                               SetHookForExec,
-                               EptHiddenHook2,
-                               FALSE);
+    return EptHookPerformMemoryOrInlineHook(VCpu,
+                                            TargetAddress,
+                                            HookFunction,
+                                            ProcessId,
+                                            SetHookForRead,
+                                            SetHookForWrite,
+                                            SetHookForExec,
+                                            EptHiddenHook2,
+                                            FALSE);
 }
 
 /**
@@ -1502,15 +1567,15 @@ EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
-    return EptHook2PerformHook(VCpu,
-                               TargetAddress,
-                               HookFunction,
-                               NULL,
-                               SetHookForRead,
-                               SetHookForWrite,
-                               SetHookForExec,
-                               EptHiddenHook2,
-                               TRUE);
+    return EptHookPerformMemoryOrInlineHook(VCpu,
+                                            TargetAddress,
+                                            HookFunction,
+                                            NULL,
+                                            SetHookForRead,
+                                            SetHookForWrite,
+                                            SetHookForExec,
+                                            EptHiddenHook2,
+                                            TRUE);
 }
 
 /**

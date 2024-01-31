@@ -191,24 +191,16 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu, PVOID TargetAddress, CR3_TY
  * (A pre-allocated buffer should be available)
  *
  * @param VCpu
- * @param TargetAddress
- * @param HookFunction
+ * @param HookingDetails
  * @param ProcessCr3
- * @param UnsetRead
- * @param UnsetWrite
- * @param EptHiddenHook
- * @param UnsetExecute
+ * @param PageHookMask
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
-                        PVOID                   TargetAddress,
-                        PVOID                   HookFunction,
-                        CR3_TYPE                ProcessCr3,
-                        BOOLEAN                 UnsetRead,
-                        BOOLEAN                 UnsetWrite,
-                        BOOLEAN                 UnsetExecute,
-                        BOOLEAN                 EptHiddenHook);
+EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                                           PVOID                   HookingDetails,
+                                           CR3_TYPE                ProcessCr3,
+                                           UINT32                  PageHookMask);
 
 /**
  * @brief Hook in VMX non-root Mode (hidden breakpoint)

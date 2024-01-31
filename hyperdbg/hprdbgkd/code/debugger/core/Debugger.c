@@ -1195,12 +1195,6 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // The value is not withing our expected range
                 //
-                LogInfo("NOT Trigger VA: %llx | target physical address: %llx | Options: %llx <> %llx",
-                        EptContext->VirtualAddress,
-                        EptContext->PhysicalAddress,
-                        CurrentEvent->Options.OptionalParam1,
-                        CurrentEvent->Options.OptionalParam2);
-
                 continue;
             }
             else
@@ -1209,7 +1203,6 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 // Fix the context to virtual address
                 //
                 Context = EptContext->VirtualAddress;
-                LogInfo("Trigger");
             }
 
             break;

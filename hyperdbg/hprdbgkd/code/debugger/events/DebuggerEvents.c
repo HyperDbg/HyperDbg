@@ -59,7 +59,7 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
  * @brief Event for address, we don't use address range here,
  * address ranges should be check in event section
  *
- * @param Address
+ * @param HookingDetails
  * @param ProcessId
  * @param EnableForRead
  * @param EnableForWrite
@@ -69,12 +69,12 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
  * @return VOID
  */
 BOOLEAN
-DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
-                                        UINT32  ProcessId,
-                                        BOOLEAN EnableForRead,
-                                        BOOLEAN EnableForWrite,
-                                        BOOLEAN EnableForExecute,
-                                        BOOLEAN ApplyDirectlyFromVmxRoot)
+DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                                        UINT32                                         ProcessId,
+                                        BOOLEAN                                        EnableForRead,
+                                        BOOLEAN                                        EnableForWrite,
+                                        BOOLEAN                                        EnableForExecute,
+                                        BOOLEAN                                        ApplyDirectlyFromVmxRoot)
 {
     //
     // Check if the detail is ok for either read or write or both
