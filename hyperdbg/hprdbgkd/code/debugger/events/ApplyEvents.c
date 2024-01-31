@@ -29,6 +29,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 {
     UINT32  TempProcessId;
     UINT64  PagesBytes;
+    UINT32  HookRemainedSize;
+    UINT64  StartOfHookingAddress, EndOfHookingAddress;
     BOOLEAN ResultOfApplyingEvent = FALSE;
 
     if (InputFromVmxRoot)
@@ -54,8 +56,12 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
     PagesBytes = Event->InitOptions.OptionalParam2 - PagesBytes;
 
+    HookRemainedSize = Event->InitOptions.OptionalParam2 - Event->InitOptions.OptionalParam1;
+
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
+        StartOfHookingAddress = (UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE);
+
         //
         // In all the cases we should set both read/write, even if it's only
         // read we should set the write too!
