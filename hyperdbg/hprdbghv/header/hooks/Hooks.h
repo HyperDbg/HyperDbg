@@ -248,6 +248,21 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
          BOOLEAN                 EptHiddenHook2);
 
 /**
+ * @brief This function applies monitor hooks to the target EPT table
+ * @details this function should be called from VMX non-root mode
+ *
+ * @param VCpu
+ * @param HookingDetails
+ * @param ProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookMonitorHook(VIRTUAL_MACHINE_STATE *                        VCpu,
+                   EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                   UINT32                                         ProcessId);
+
+/**
  * @brief Hook in VMX root-mode (hidden detours)
  *
  * @param VCpu
@@ -268,6 +283,19 @@ EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
                     BOOLEAN                 SetHookForWrite,
                     BOOLEAN                 SetHookForExec,
                     BOOLEAN                 EptHiddenHook2);
+
+/**
+ * @brief This function applies EPT monitor hooks to the target EPT table
+ * @details this function should be called from VMX root-mode
+ *
+ * @param VCpu
+ * @param MemoryAddressDetails
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
+                          EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode

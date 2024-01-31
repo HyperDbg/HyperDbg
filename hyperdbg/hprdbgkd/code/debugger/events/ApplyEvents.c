@@ -55,6 +55,66 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             TempProcessId = Event->ProcessId;
         }
     }
+    //
+    // In all the cases we should set both read/write, even if it's only
+    // read we should set the write too!
+    // Also execute bit has the same conditions here, because if write is set
+    // read should be also set
+    //
+    switch (Event->EventType)
+    {
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = TRUE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = TRUE;
+
+        break;
+
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ:
+
+        HookingAddresses.SetHookForRead  = TRUE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_WRITE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = FALSE;
+        HookingAddresses.SetHookForExec  = TRUE;
+
+        break;
+
+    default:
+        LogError("Err, Invalid monitor hook type");
+
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+
+        goto EventNotApplied;
+
+        break;
+    }
 
     //
     // Set the tag
@@ -98,74 +158,11 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         HookingAddresses.EndAddress   = TempEndAddress;
 
         //
-        // In all the cases we should set both read/write, even if it's only
-        // read we should set the write too!
-        // Also execute bit has the same conditions here, because if write is set
-        // read should be also set
+        // Apply the hook
         //
-        switch (Event->EventType)
-        {
-        case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
-        case HIDDEN_HOOK_READ_AND_EXECUTE:
-
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
-                                                                            TempProcessId,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        case HIDDEN_HOOK_WRITE_AND_EXECUTE:
-
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        case HIDDEN_HOOK_READ_AND_WRITE:
-        case HIDDEN_HOOK_READ:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
-                                                                            TempProcessId,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-
-            break;
-
-        case HIDDEN_HOOK_WRITE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-
-            break;
-
-        case HIDDEN_HOOK_EXECUTE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        default:
-            LogError("Err, Invalid monitor hook type");
-
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
-
-            goto EventNotApplied;
-
-            break;
-        }
+        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
+                                                                        TempProcessId,
+                                                                        InputFromVmxRoot);
 
         if (!ResultOfApplyingEvent)
         {

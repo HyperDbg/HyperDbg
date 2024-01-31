@@ -299,6 +299,15 @@ ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
                              BOOLEAN EptHiddenHook2);
 
 IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookMonitor(UINT32                                         CoreId,
+                        EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                        UINT32                                         ProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ConfigureEptHookMonitorFromVmxRoot(UINT32                                         CoreId,
+                                   EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails);
+
+IMPORT_EXPORT_VMM BOOLEAN
 ConfigureEptHookModifyInstructionFetchState(UINT32  CoreId,
                                             PVOID   PhysicalAddress,
                                             BOOLEAN IsUnset);

@@ -290,6 +290,27 @@ ConfigureEptHook2(UINT32  CoreId,
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden detours, this NOT be called from vmx-root mode
+ *
+ *
+ * @param CoreId ID of the target core
+ * @param HookingDetails Monitor hooking detail
+ * @param ProcessId The process id to translate based on that process's cr3
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHookMonitor(UINT32                                         CoreId,
+                        EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                        UINT32                                         ProcessId)
+{
+    return EptHookMonitorHook(&g_GuestState[CoreId],
+                              HookingDetails,
+                              ProcessId);
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
  * @details this command uses hidden detours, this should be called from vmx-root mode
  *
  *
@@ -319,6 +340,23 @@ ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
                                SetHookForWrite,
                                SetHookForExec,
                                EptHiddenHook2);
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden detours, this should be called from vmx-root mode
+ *
+ *
+ * @param CoreId ID of the target core
+ * @param MemoryAddressDetails Monitor hooking details
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+ConfigureEptHookMonitorFromVmxRoot(UINT32                                         CoreId,
+                                   EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails)
+{
+    return EptHookMonitorFromVmxRoot(&g_GuestState[CoreId], MemoryAddressDetails);
 }
 
 /**

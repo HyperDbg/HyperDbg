@@ -970,14 +970,14 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         // both start and the end are at the same address
         // because it hooks an entire page anyway
         //
-        EptHookDetails.EndAddress = PebAddressToMonitor;
+        EptHookDetails.EndAddress      = PebAddressToMonitor;
+        EptHookDetails.SetHookForRead  = TRUE;
+        EptHookDetails.SetHookForWrite = TRUE;
+        EptHookDetails.SetHookForExec  = FALSE;
 
         ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(
             &EptHookDetails,
             AttachRequest->ProcessId,
-            TRUE,
-            TRUE,
-            FALSE,
             FALSE // Applied from VMX non-root mode
         );
 

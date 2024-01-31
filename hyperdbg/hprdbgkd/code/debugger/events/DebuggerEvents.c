@@ -56,14 +56,10 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief Event for address, we don't use address range here,
- * address ranges should be check in event section
+ * @brief Apply monitor ept hook events for address
  *
  * @param HookingDetails
  * @param ProcessId
- * @param EnableForRead
- * @param EnableForWrite
- * @param EnableForExecute
  * @param ApplyDirectlyFromVmxRoot
  *
  * @return VOID
@@ -71,15 +67,12 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 BOOLEAN
 DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
                                         UINT32                                         ProcessId,
-                                        BOOLEAN                                        EnableForRead,
-                                        BOOLEAN                                        EnableForWrite,
-                                        BOOLEAN                                        EnableForExecute,
                                         BOOLEAN                                        ApplyDirectlyFromVmxRoot)
 {
     //
     // Check if the detail is ok for either read or write or both
     //
-    if (!EnableForRead && !EnableForWrite && !EnableForExecute)
+    if (!HookingDetails->SetHookForRead && !HookingDetails->SetHookForWrite && !HookingDetails->SetHookForExec)
     {
         return FALSE;
     }
@@ -89,9 +82,9 @@ DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MON
     // such a thing, we will enable the Read silently here if, this problem will be
     // solved when the trigger works, the trigger routines won't enable reads
     //
-    if (EnableForWrite)
+    if (HookingDetails->SetHookForWrite)
     {
-        EnableForRead = TRUE;
+        HookingDetails->SetHookForRead = TRUE;
     }
 
     //
@@ -99,24 +92,14 @@ DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MON
     //
     if (ApplyDirectlyFromVmxRoot)
     {
-        return ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
-                                            Address,
-                                            NULL,
-                                            EnableForRead,
-                                            EnableForWrite,
-                                            EnableForExecute,
-                                            FALSE);
+        return ConfigureEptHookMonitorFromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
+                                                  HookingDetails);
     }
     else
     {
-        return ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
-                                 Address,
-                                 NULL,
-                                 ProcessId,
-                                 EnableForRead,
-                                 EnableForWrite,
-                                 EnableForExecute,
-                                 FALSE);
+        return ConfigureEptHookMonitor(KeGetCurrentProcessorNumberEx(NULL),
+                                       HookingDetails,
+                                       ProcessId);
     }
 }
 

@@ -1537,7 +1537,38 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
 }
 
 /**
- * @brief This function applies EPT hook2 and monitor hooks to the target EPT table
+ * @brief This function applies monitor hooks to the target EPT table
+ * @details this function should be called from VMX non-root mode
+ *
+ * @param VCpu The virtual processor's state
+ * @param HookingDetails Monitor hooking details
+ * @param ProcessId The process id to translate based on that process's cr3
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHookMonitorHook(VIRTUAL_MACHINE_STATE *                        VCpu,
+                   EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                   UINT32                                         ProcessId)
+{
+    //
+    // Should be called from vmx non-root
+    //
+    if (VmxGetCurrentExecutionMode() == TRUE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformMemoryOrInlineHook(VCpu,
+                                            NULL,
+                                            HookingDetails,
+                                            ProcessId,
+                                            FALSE,
+                                            FALSE);
+}
+
+/**
+ * @brief This function applies EPT inline to the target EPT table
  * @details this function should be called from VMX root-mode
  *
  * @param VCpu The virtual processor's state
@@ -1575,6 +1606,35 @@ EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
                                             SetHookForWrite,
                                             SetHookForExec,
                                             EptHiddenHook2,
+                                            TRUE);
+}
+
+/**
+ * @brief This function applies EPT monitor hooks to the target EPT table
+ * @details this function should be called from VMX root-mode
+ *
+ * @param VCpu The virtual processor's state
+ * @param MemoryAddressDetails details of the target memory
+ *
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
+ */
+BOOLEAN
+EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
+                          EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails)
+{
+    //
+    // Should be called from vmx root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformMemoryOrInlineHook(VCpu,
+                                            NULL,
+                                            MemoryAddressDetails,
+                                            NULL,
+                                            FALSE,
                                             TRUE);
 }
 
