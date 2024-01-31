@@ -107,11 +107,15 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
+    UINT64 RemainingSize;
     UINT64 PagesBytes;
-    UINT64 TempOptionalParam1;
+    UINT64 ConstEndAddress;
+    UINT64 TempStartAddress = Event->Options.OptionalParam3;
+    UINT64 TempEndAddress   = Event->Options.OptionalParam4;
+    ConstEndAddress         = TempEndAddress;
 
     //
-    // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
+    // Because there are different EPT hooks, like READ, WRITE, EXECUTE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
     // unhooked with a same routine, we will not check whther the list of
     // all of them is empty or not and instead, we remove just a single
@@ -120,24 +124,46 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
     // then it won't cause any problem for other hooks
     //
 
-    TempOptionalParam1 = Event->Options.OptionalParam3;
+    PagesBytes = (UINT64)PAGE_ALIGN(TempStartAddress);
+    PagesBytes = TempEndAddress - PagesBytes;
+    PagesBytes = PagesBytes / PAGE_SIZE;
 
-    PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = Event->Options.OptionalParam4 - PagesBytes;
+    RemainingSize = TempEndAddress - TempStartAddress;
 
-    for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+    // LogInfo("Monitor termination, Start address: %llx, end address: %llx\n\n\n",
+    //         TempStartAddress,
+    //         TempEndAddress,
+    //         RemainingSize);
+
+    for (size_t i = 0; i <= PagesBytes; i++)
     {
+        if (RemainingSize >= PAGE_SIZE)
+        {
+            TempEndAddress = (TempStartAddress + ((UINT64)PAGE_ALIGN(TempStartAddress + PAGE_SIZE) - TempStartAddress)) - 1;
+            RemainingSize  = ConstEndAddress - TempEndAddress - 1;
+        }
+        else
+        {
+            TempEndAddress = TempStartAddress + RemainingSize;
+            RemainingSize  = 0;
+        }
+
         if (InputFromVmxRoot)
         {
-            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempStartAddress,
                                                                                NULL);
         }
         else
         {
-            ConfigureEptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE),
+            ConfigureEptHookUnHookSingleAddress((UINT64)TempStartAddress,
                                                 NULL,
                                                 Event->ProcessId);
         }
+
+        //
+        // Swap the temporary start address and temporary end address
+        //
+        TempStartAddress = TempEndAddress + 1;
     }
 }
 

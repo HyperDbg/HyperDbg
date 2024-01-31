@@ -172,9 +172,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_PAGE_ATTRIB:
     {
-        BOOLEAN HookResult = FALSE;
-
-        CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};
+        BOOLEAN  HookResult = FALSE;
+        CR3_TYPE ProcCr3    = {.Flags = OptionalParam3};
 
         HookResult = EptHookPerformPageHookMonitorAndInlineHook(VCpu,
                                                                 OptionalParam1 /* hook details */,
