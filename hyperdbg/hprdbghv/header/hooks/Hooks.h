@@ -230,22 +230,14 @@ EptHookFromVmxRoot(PVOID TargetAddress);
  * @param TargetAddress
  * @param HookFunction
  * @param ProcessId
- * @param SetHookForRead
- * @param SetHookForWrite
- * @param SetHookForExec
- * @param EptHiddenHook2
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
-         PVOID                   TargetAddress,
-         PVOID                   HookFunction,
-         UINT32                  ProcessId,
-         BOOLEAN                 SetHookForRead,
-         BOOLEAN                 SetHookForWrite,
-         BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2);
+EptHookInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                  PVOID                   TargetAddress,
+                  PVOID                   HookFunction,
+                  UINT32                  ProcessId);
 
 /**
  * @brief This function applies monitor hooks to the target EPT table
@@ -268,21 +260,13 @@ EptHookMonitorHook(VIRTUAL_MACHINE_STATE *                        VCpu,
  * @param VCpu
  * @param TargetAddress
  * @param HookFunction
- * @param SetHookForRead
- * @param SetHookForWrite
- * @param SetHookForExec
- * @param EptHiddenHook2
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
-                    PVOID                   TargetAddress,
-                    PVOID                   HookFunction,
-                    BOOLEAN                 SetHookForRead,
-                    BOOLEAN                 SetHookForWrite,
-                    BOOLEAN                 SetHookForExec,
-                    BOOLEAN                 EptHiddenHook2);
+EptHookInlineHookFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
+                             PVOID                   TargetAddress,
+                             PVOID                   HookFunction);
 
 /**
  * @brief This function applies EPT monitor hooks to the target EPT table

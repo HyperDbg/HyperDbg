@@ -1493,30 +1493,24 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
 }
 
 /**
- * @brief This function applies EPT hook2 and monitor hooks to the target EPT table
+ * @brief This function applies EPT hook 2 (inline) to the target EPT table
  * @details this function should be called from VMX non-root mode
  *
  * @param VCpu The virtual processor's state
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
  * @param ProcessId The process id to translate based on that process's cr3
- * @param SetHookForRead Hook READ Access
- * @param SetHookForWrite Hook WRITE Access
- * @param SetHookForExec Hook EXECUTE Access
- * @param EptHiddenHook2 epthook2 style hook
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
-         PVOID                   TargetAddress,
-         PVOID                   HookFunction,
-         UINT32                  ProcessId,
-         BOOLEAN                 SetHookForRead,
-         BOOLEAN                 SetHookForWrite,
-         BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2)
+EptHookInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                  PVOID                   TargetAddress,
+                  PVOID                   HookFunction,
+                  UINT32                  ProcessId)
 {
+    EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 HookingDetail = {0};
+
     //
     // Should be called from vmx non-root
     //
@@ -1525,15 +1519,20 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
+    //
+    // Set the hooking details
+    //
+    HookingDetail.TargetAddress = TargetAddress;
+    HookingDetail.HookFunction  = HookFunction;
+
     return EptHookPerformMemoryOrInlineHook(VCpu,
-                                            TargetAddress,
-                                            HookFunction,
+                                            &HookingDetail,
+                                            NULL,
                                             ProcessId,
-                                            SetHookForRead,
-                                            SetHookForWrite,
-                                            SetHookForExec,
-                                            EptHiddenHook2,
-                                            FALSE);
+                                            TRUE,
+                                            FALSE
+
+    );
 }
 
 /**
@@ -1574,22 +1573,16 @@ EptHookMonitorHook(VIRTUAL_MACHINE_STATE *                        VCpu,
  * @param VCpu The virtual processor's state
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
- * @param SetHookForRead Hook READ Access
- * @param SetHookForWrite Hook WRITE Access
- * @param SetHookForExec Hook EXECUTE Access
- * @param EptHiddenHook2 epthook2 style hook
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
-                    PVOID                   TargetAddress,
-                    PVOID                   HookFunction,
-                    BOOLEAN                 SetHookForRead,
-                    BOOLEAN                 SetHookForWrite,
-                    BOOLEAN                 SetHookForExec,
-                    BOOLEAN                 EptHiddenHook2)
+EptHookInlineHookFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
+                             PVOID                   TargetAddress,
+                             PVOID                   HookFunction)
 {
+    EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 HookingDetail = {0};
+
     //
     // Should be called from vmx root-mode
     //
@@ -1598,14 +1591,17 @@ EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
         return FALSE;
     }
 
+    //
+    // Configure the details
+    //
+    HookingDetail.TargetAddress = TargetAddress;
+    HookingDetail.HookFunction  = HookFunction;
+
     return EptHookPerformMemoryOrInlineHook(VCpu,
-                                            TargetAddress,
-                                            HookFunction,
+                                            &HookingDetail,
                                             NULL,
-                                            SetHookForRead,
-                                            SetHookForWrite,
-                                            SetHookForExec,
-                                            EptHiddenHook2,
+                                            NULL,
+                                            TRUE,
                                             TRUE);
 }
 

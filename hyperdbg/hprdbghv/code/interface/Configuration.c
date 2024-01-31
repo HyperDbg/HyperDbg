@@ -253,39 +253,26 @@ ConfigureEptHookFromVmxRoot(PVOID TargetAddress)
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook (inline)
  * @details this command uses hidden detours, this NOT be called from vmx-root mode
- *
  *
  * @param CoreId ID of the target core
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
  * @param ProcessId The process id to translate based on that process's cr3
- * @param SetHookForRead Hook READ Access
- * @param SetHookForWrite Hook WRITE Access
- * @param SetHookForExec Hook EXECUTE Access
- * @param EptHiddenHook2 epthook2 style hook
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-ConfigureEptHook2(UINT32  CoreId,
-                  PVOID   TargetAddress,
-                  PVOID   HookFunction,
-                  UINT32  ProcessId,
-                  BOOLEAN SetHookForRead,
-                  BOOLEAN SetHookForWrite,
-                  BOOLEAN SetHookForExec,
-                  BOOLEAN EptHiddenHook2)
+ConfigureEptHook2(UINT32 CoreId,
+                  PVOID  TargetAddress,
+                  PVOID  HookFunction,
+                  UINT32 ProcessId)
 {
-    return EptHook2(&g_GuestState[CoreId],
-                    TargetAddress,
-                    HookFunction,
-                    ProcessId,
-                    SetHookForRead,
-                    SetHookForWrite,
-                    SetHookForExec,
-                    EptHiddenHook2);
+    return EptHookInlineHook(&g_GuestState[CoreId],
+                             TargetAddress,
+                             HookFunction,
+                             ProcessId);
 }
 
 /**
@@ -310,36 +297,23 @@ ConfigureEptHookMonitor(UINT32                                         CoreId,
 }
 
 /**
- * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook (inline EPT hook)
  * @details this command uses hidden detours, this should be called from vmx-root mode
- *
  *
  * @param CoreId ID of the target core
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
- * @param SetHookForRead Hook READ Access
- * @param SetHookForWrite Hook WRITE Access
- * @param SetHookForExec Hook EXECUTE Access
- * @param EptHiddenHook2 epthook2 style hook
  *
  * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
-ConfigureEptHook2FromVmxRoot(UINT32  CoreId,
-                             PVOID   TargetAddress,
-                             PVOID   HookFunction,
-                             BOOLEAN SetHookForRead,
-                             BOOLEAN SetHookForWrite,
-                             BOOLEAN SetHookForExec,
-                             BOOLEAN EptHiddenHook2)
+ConfigureEptHook2FromVmxRoot(UINT32 CoreId,
+                             PVOID  TargetAddress,
+                             PVOID  HookFunction)
 {
-    return EptHook2FromVmxRoot(&g_GuestState[CoreId],
-                               TargetAddress,
-                               HookFunction,
-                               SetHookForRead,
-                               SetHookForWrite,
-                               SetHookForExec,
-                               EptHiddenHook2);
+    return EptHookInlineHookFromVmxRoot(&g_GuestState[CoreId],
+                                        TargetAddress,
+                                        HookFunction);
 }
 
 /**

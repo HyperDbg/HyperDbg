@@ -401,11 +401,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
                                           Event->InitOptions.OptionalParam1,
-                                          NULL,
-                                          FALSE,
-                                          FALSE,
-                                          FALSE,
-                                          TRUE))
+                                          NULL))
         {
             //
             // There was an error applying this event, so we're setting
@@ -456,11 +452,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
                                Event->InitOptions.OptionalParam1,
                                NULL,
-                               TempProcessId,
-                               FALSE,
-                               FALSE,
-                               FALSE,
-                               TRUE))
+                               TempProcessId))
         {
             //
             // There was an error applying this event, so we're setting
