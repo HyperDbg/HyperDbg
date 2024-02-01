@@ -187,6 +187,21 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     SIZE_T PhysicalBaseAddress;
 
     /**
+     * @brief Start address of the target physical address.
+     */
+    SIZE_T StartOfTargetPhysicalAddress;
+
+    /**
+     * @brief End address of the target physical address.
+     */
+    SIZE_T EndOfTargetPhysicalAddress;
+
+    /**
+     * @brief Tag used for notifying the caller.
+     */
+    UINT64 HookingTag;
+
+    /**
      * @brief The base address of the page with fake contents. Used to swap page with fake contents
      * when a hook is hit.
      */

@@ -191,24 +191,16 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu, PVOID TargetAddress, CR3_TY
  * (A pre-allocated buffer should be available)
  *
  * @param VCpu
- * @param TargetAddress
- * @param HookFunction
+ * @param HookingDetails
  * @param ProcessCr3
- * @param UnsetRead
- * @param UnsetWrite
- * @param EptHiddenHook
- * @param UnsetExecute
+ * @param PageHookMask
  * @return BOOLEAN
  */
 BOOLEAN
-EptHookPerformPageHook2(VIRTUAL_MACHINE_STATE * VCpu,
-                        PVOID                   TargetAddress,
-                        PVOID                   HookFunction,
-                        CR3_TYPE                ProcessCr3,
-                        BOOLEAN                 UnsetRead,
-                        BOOLEAN                 UnsetWrite,
-                        BOOLEAN                 UnsetExecute,
-                        BOOLEAN                 EptHiddenHook);
+EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                                           PVOID                   HookingDetails,
+                                           CR3_TYPE                ProcessCr3,
+                                           UINT32                  PageHookMask);
 
 /**
  * @brief Hook in VMX non-root Mode (hidden breakpoint)
@@ -238,22 +230,29 @@ EptHookFromVmxRoot(PVOID TargetAddress);
  * @param TargetAddress
  * @param HookFunction
  * @param ProcessId
- * @param SetHookForRead
- * @param SetHookForWrite
- * @param SetHookForExec
- * @param EptHiddenHook2
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
-         PVOID                   TargetAddress,
-         PVOID                   HookFunction,
-         UINT32                  ProcessId,
-         BOOLEAN                 SetHookForRead,
-         BOOLEAN                 SetHookForWrite,
-         BOOLEAN                 SetHookForExec,
-         BOOLEAN                 EptHiddenHook2);
+EptHookInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
+                  PVOID                   TargetAddress,
+                  PVOID                   HookFunction,
+                  UINT32                  ProcessId);
+
+/**
+ * @brief This function applies monitor hooks to the target EPT table
+ * @details this function should be called from VMX non-root mode
+ *
+ * @param VCpu
+ * @param HookingDetails
+ * @param ProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookMonitorHook(VIRTUAL_MACHINE_STATE *                        VCpu,
+                   EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                   UINT32                                         ProcessId);
 
 /**
  * @brief Hook in VMX root-mode (hidden detours)
@@ -261,21 +260,26 @@ EptHook2(VIRTUAL_MACHINE_STATE * VCpu,
  * @param VCpu
  * @param TargetAddress
  * @param HookFunction
- * @param SetHookForRead
- * @param SetHookForWrite
- * @param SetHookForExec
- * @param EptHiddenHook2
  *
  * @return BOOLEAN
  */
 BOOLEAN
-EptHook2FromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
-                    PVOID                   TargetAddress,
-                    PVOID                   HookFunction,
-                    BOOLEAN                 SetHookForRead,
-                    BOOLEAN                 SetHookForWrite,
-                    BOOLEAN                 SetHookForExec,
-                    BOOLEAN                 EptHiddenHook2);
+EptHookInlineHookFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
+                             PVOID                   TargetAddress,
+                             PVOID                   HookFunction);
+
+/**
+ * @brief This function applies EPT monitor hooks to the target EPT table
+ * @details this function should be called from VMX root-mode
+ *
+ * @param VCpu
+ * @param MemoryAddressDetails
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
+                          EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * MemoryAddressDetails);
 
 /**
  * @brief Handle hooked pages in Vmx-root mode

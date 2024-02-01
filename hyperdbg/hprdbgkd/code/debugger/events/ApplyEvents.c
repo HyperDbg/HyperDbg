@@ -27,9 +27,21 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
-    UINT32  TempProcessId;
-    UINT64  PagesBytes;
-    BOOLEAN ResultOfApplyingEvent = FALSE;
+    UINT32                                       TempProcessId;
+    BOOLEAN                                      ResultOfApplyingEvent = FALSE;
+    UINT64                                       RemainingSize;
+    UINT64                                       PagesBytes;
+    UINT64                                       ConstEndAddress;
+    UINT64                                       TempStartAddress;
+    UINT64                                       TempEndAddress;
+    UINT64                                       TempNextPageAddr;
+    UINT64                                       RemainingSizeRestore;
+    UINT64                                       PagesBytesRestore;
+    UINT64                                       ConstEndAddressRestore;
+    UINT64                                       TempNextPageAddrRestore;
+    UINT64                                       TempStartAddressRestore;
+    UINT64                                       TempEndAddressRestore;
+    EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR HookingAddresses = {0};
 
     if (InputFromVmxRoot)
     {
@@ -50,81 +62,131 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             TempProcessId = Event->ProcessId;
         }
     }
-
-    PagesBytes = PAGE_ALIGN(Event->InitOptions.OptionalParam1);
-    PagesBytes = Event->InitOptions.OptionalParam2 - PagesBytes;
-
-    for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+    //
+    // In all the cases we should set both read/write, even if it's only
+    // read we should set the write too!
+    // Also execute bit has the same conditions here, because if write is set
+    // read should be also set
+    //
+    switch (Event->EventType)
     {
-        //
-        // In all the cases we should set both read/write, even if it's only
-        // read we should set the write too!
-        // Also execute bit has the same conditions here, because if write is set
-        // read should be also set
-        //
-        switch (Event->EventType)
+    case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
+    case HIDDEN_HOOK_READ_AND_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = TRUE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = TRUE;
+
+        break;
+
+    case HIDDEN_HOOK_WRITE_AND_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ:
+
+        HookingAddresses.SetHookForRead  = TRUE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_WRITE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = TRUE;
+        HookingAddresses.SetHookForExec  = FALSE;
+
+        break;
+
+    case HIDDEN_HOOK_EXECUTE:
+
+        HookingAddresses.SetHookForRead  = FALSE;
+        HookingAddresses.SetHookForWrite = FALSE;
+        HookingAddresses.SetHookForExec  = TRUE;
+
+        break;
+
+    default:
+        LogError("Err, Invalid monitor hook type");
+
+        ResultsToReturn->IsSuccessful = FALSE;
+        ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
+
+        goto EventNotApplied;
+
+        break;
+    }
+
+    //
+    // Set the tag
+    //
+    HookingAddresses.Tag = Event->Tag;
+
+    TempStartAddress = Event->InitOptions.OptionalParam1;
+    TempEndAddress   = Event->InitOptions.OptionalParam2;
+    ConstEndAddress  = TempEndAddress;
+
+    PagesBytes = (UINT64)PAGE_ALIGN(TempStartAddress);
+    PagesBytes = TempEndAddress - PagesBytes;
+    PagesBytes = PagesBytes / PAGE_SIZE;
+
+    RemainingSize = TempEndAddress - TempStartAddress;
+
+    // LogInfo("Start address: %llx, end address: %llx", TempStartAddress, TempEndAddress, RemainingSize);
+
+    for (size_t i = 0; i <= PagesBytes; i++)
+    {
+        if (RemainingSize >= PAGE_SIZE)
         {
-        case HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE:
-        case HIDDEN_HOOK_READ_AND_EXECUTE:
-
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                            TempProcessId,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        case HIDDEN_HOOK_WRITE_AND_EXECUTE:
-
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        case HIDDEN_HOOK_READ_AND_WRITE:
-        case HIDDEN_HOOK_READ:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                            TempProcessId,
-                                                                            TRUE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-
-            break;
-
-        case HIDDEN_HOOK_WRITE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            FALSE,
-                                                                            InputFromVmxRoot);
-
-            break;
-
-        case HIDDEN_HOOK_EXECUTE:
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec((UINT64)Event->InitOptions.OptionalParam1 + (i * PAGE_SIZE),
-                                                                            TempProcessId,
-                                                                            FALSE,
-                                                                            FALSE,
-                                                                            TRUE,
-                                                                            InputFromVmxRoot);
-            break;
-
-        default:
-            LogError("Err, Invalid monitor hook type");
-
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
-
-            goto EventNotApplied;
-
-            break;
+            TempEndAddress = (TempStartAddress + ((UINT64)PAGE_ALIGN(TempStartAddress + PAGE_SIZE) - TempStartAddress)) - 1;
+            RemainingSize  = ConstEndAddress - TempEndAddress - 1;
         }
+        else
+        {
+            TempNextPageAddr = (UINT64)PAGE_ALIGN(TempStartAddress + RemainingSize);
+
+            //
+            // Check if by adding the remaining size, we'll go to the next
+            // page boundary or not
+            //
+            if (TempNextPageAddr > ((UINT64)PAGE_ALIGN(TempStartAddress)))
+            {
+                //
+                // It goes to the next page boundary
+                //
+                TempEndAddress = TempNextPageAddr - 1;
+                RemainingSize  = RemainingSize - (TempEndAddress - TempStartAddress) - 1;
+            }
+            else
+            {
+                TempEndAddress = TempStartAddress + RemainingSize;
+                RemainingSize  = 0;
+            }
+        }
+
+        // LogInfo("Start address: %llx, end address: %llx, remaining size: %llx",
+        //         TempStartAddress,
+        //         TempEndAddress,
+        //         RemainingSize);
+
+        //
+        // Setup hooking addresses
+        //
+        HookingAddresses.StartAddress = TempStartAddress;
+        HookingAddresses.EndAddress   = TempEndAddress;
+
+        //
+        // Apply the hook
+        //
+        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(&HookingAddresses,
+                                                                        TempProcessId,
+                                                                        InputFromVmxRoot);
 
         if (!ResultOfApplyingEvent)
         {
@@ -136,19 +198,83 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             //
             // Now we should restore the previously applied events (if any)
             //
-            for (size_t j = 0; j < i; j++)
+
+            TempStartAddressRestore = Event->InitOptions.OptionalParam1;
+            TempEndAddressRestore   = Event->InitOptions.OptionalParam2;
+            ConstEndAddressRestore  = TempEndAddressRestore;
+
+            PagesBytesRestore = (UINT64)PAGE_ALIGN(TempStartAddressRestore);
+            PagesBytesRestore = TempEndAddressRestore - PagesBytesRestore;
+            PagesBytesRestore = PagesBytesRestore / PAGE_SIZE;
+
+            RemainingSizeRestore = TempEndAddressRestore - TempStartAddressRestore;
+
+            // LogInfo("Discard changes from, Start address: %llx, end address: %llx\n\n\n",
+            //         TempStartAddressRestore,
+            //         TempEndAddressRestore,
+            //         RemainingSizeRestore);
+
+            for (size_t j = 0; j <= PagesBytesRestore; j++)
             {
+                //
+                // Check if the previous hook is applied
+                //
+                if (j == i)
+                {
+                    //
+                    // It means this index is not applied successfully,
+                    // so we're not needed to remove as it's not successfully applied
+                    //
+                    break;
+                }
+
+                if (RemainingSizeRestore >= PAGE_SIZE)
+                {
+                    TempEndAddressRestore = (TempStartAddressRestore + ((UINT64)PAGE_ALIGN(TempStartAddressRestore + PAGE_SIZE) - TempStartAddressRestore)) - 1;
+                    RemainingSizeRestore  = ConstEndAddressRestore - TempEndAddressRestore - 1;
+                }
+                else
+                {
+                    TempNextPageAddrRestore = (UINT64)PAGE_ALIGN(TempStartAddressRestore + RemainingSizeRestore);
+
+                    //
+                    // Check if by adding the remaining size, we'll go to the next
+                    // page boundary or not
+                    //
+                    if (TempNextPageAddrRestore > ((UINT64)PAGE_ALIGN(TempStartAddressRestore)))
+                    {
+                        //
+                        // It goes to the next page boundary
+                        //
+                        TempEndAddressRestore = TempNextPageAddrRestore - 1;
+                        RemainingSizeRestore  = RemainingSizeRestore - (TempEndAddressRestore - TempStartAddressRestore) - 1;
+                    }
+                    else
+                    {
+                        TempEndAddressRestore = TempStartAddressRestore + RemainingSizeRestore;
+                        RemainingSizeRestore  = 0;
+                    }
+                }
+
+                //
+                // Remove the hook
+                //
                 if (InputFromVmxRoot)
                 {
-                    TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE),
+                    TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(TempStartAddressRestore,
                                                                                        NULL);
                 }
                 else
                 {
-                    ConfigureEptHookUnHookSingleAddress((UINT64)Event->InitOptions.OptionalParam1 + (j * PAGE_SIZE),
+                    ConfigureEptHookUnHookSingleAddress(TempStartAddressRestore,
                                                         NULL,
                                                         Event->ProcessId);
                 }
+
+                //
+                // Swap the temporary start address and temporary end address
+                //
+                TempStartAddressRestore = TempEndAddressRestore + 1;
             }
 
             break;
@@ -167,6 +293,11 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                 PoolManagerCheckAndPerformAllocationAndDeallocation();
             }
         }
+
+        //
+        // Swap the temporary start address and temporary end address
+        //
+        TempStartAddress = TempEndAddress + 1;
     }
 
     //
@@ -358,11 +489,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
                                           Event->InitOptions.OptionalParam1,
-                                          NULL,
-                                          FALSE,
-                                          FALSE,
-                                          FALSE,
-                                          TRUE))
+                                          NULL))
         {
             //
             // There was an error applying this event, so we're setting
@@ -413,11 +540,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
                                Event->InitOptions.OptionalParam1,
                                NULL,
-                               TempProcessId,
-                               FALSE,
-                               FALSE,
-                               FALSE,
-                               TRUE))
+                               TempProcessId))
         {
             //
             // There was an error applying this event, so we're setting

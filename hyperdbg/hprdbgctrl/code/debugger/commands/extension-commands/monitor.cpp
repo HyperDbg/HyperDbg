@@ -27,13 +27,22 @@ CommandMonitorHelp()
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }] [output {OutputName (string)}]\n");
 
+    ShowMessages("syntax : \t!monitor [Attribute (string)] [FromAddress (hex)] "
+                 "[l Length (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+
     ShowMessages("\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
+    ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 fffff801deadbfff\n");
+    ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 l 230d0\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
     ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
     ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor x fffff801deadb000 l 500 core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor wx fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
 }
 
@@ -55,12 +64,15 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
+    UINT32                             HookLength                  = 0;
     UINT64                             TargetAddress;
-    UINT64                             OptionalParam1 = 0; // Set the 'from' target address
-    UINT64                             OptionalParam2 = 0; // Set the 'to' target address
-    BOOLEAN                            SetFrom        = FALSE;
-    BOOLEAN                            SetTo          = FALSE;
-    BOOLEAN                            SetAttributes  = FALSE;
+    UINT64                             OptionalParam1   = 0; // Set the 'from' target address
+    UINT64                             OptionalParam2   = 0; // Set the 'to' target address
+    BOOLEAN                            SetFrom          = FALSE;
+    BOOLEAN                            SetTo            = FALSE;
+    BOOLEAN                            IsNextLength     = FALSE;
+    BOOLEAN                            LengthAlreadySet = FALSE;
+    BOOLEAN                            SetAttributes    = FALSE;
     vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
@@ -107,6 +119,18 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         {
             continue;
         }
+        else if (IsNextLength)
+        {
+            if (!ConvertStringToUInt32(Section, &HookLength))
+            {
+                ShowMessages("err, you should enter a valid length\n\n");
+                return;
+            }
+
+            IsNextLength     = FALSE;
+            LengthAlreadySet = TRUE;
+            SetTo            = TRUE; // No longer need a second address
+        }
         else if (!Section.compare("r") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ;
@@ -150,6 +174,11 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE;
             SetAttributes    = TRUE;
         }
+        else if (!Section.compare("l") && !SetTo && !LengthAlreadySet)
+        {
+            IsNextLength = TRUE;
+            continue;
+        }
         else
         {
             //
@@ -173,7 +202,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                 }
                 SetFrom = TRUE;
             }
-            else if (!SetTo)
+            else if (!SetTo && !LengthAlreadySet)
             {
                 if (!SymbolConvertNameOrExprToAddress(
                         SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
@@ -204,6 +233,27 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                 return;
             }
         }
+    }
+
+    //
+    // Check  if all parameters are received
+    //
+    if (!SetFrom || !SetTo)
+    {
+        ShowMessages("please choose the 'from' or 'to' values or specify the length\n");
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+        return;
+    }
+
+    //
+    // Check if user specified the 'l' rather than providing two addresses
+    //
+    if (LengthAlreadySet)
+    {
+        //
+        // Because when the user specifies length, the last byte should be ignored
+        //
+        OptionalParam2 = OptionalParam1 + HookLength - 1;
     }
 
     //
