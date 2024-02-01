@@ -873,6 +873,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             // target range. For example we might hook 0x123b000 to 0x123b300 but the hook
             // happens on 0x123b4600, so we perform the necessary checks here
             //
+
             if (GuestPhysicalAddr >= HookedEntry->StartOfTargetPhysicalAddress && GuestPhysicalAddr <= HookedEntry->EndOfTargetPhysicalAddress)
             {
                 ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,

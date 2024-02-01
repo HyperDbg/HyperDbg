@@ -34,6 +34,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     UINT64                                       ConstEndAddress;
     UINT64                                       TempStartAddress;
     UINT64                                       TempEndAddress;
+    UINT64                                       TempNextPageAddr;
     EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR HookingAddresses = {0};
 
     if (InputFromVmxRoot)
@@ -142,8 +143,25 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         }
         else
         {
-            TempEndAddress = TempStartAddress + RemainingSize;
-            RemainingSize  = 0;
+            TempNextPageAddr = (UINT64)PAGE_ALIGN(TempStartAddress + RemainingSize);
+
+            //
+            // Check if by adding the remaining size, we'll go to the next
+            // page boundary or not
+            //
+            if (TempNextPageAddr > ((UINT64)PAGE_ALIGN(TempStartAddress)))
+            {
+                //
+                // It goes to the next page boundary
+                //
+                TempEndAddress = TempNextPageAddr - 1;
+                RemainingSize  = RemainingSize - (TempEndAddress - TempStartAddress) - 1;
+            }
+            else
+            {
+                TempEndAddress = TempStartAddress + RemainingSize;
+                RemainingSize  = 0;
+            }
         }
 
         // LogInfo("Start address: %llx, end address: %llx, remaining size: %llx",

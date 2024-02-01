@@ -110,6 +110,7 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
     UINT64 RemainingSize;
     UINT64 PagesBytes;
     UINT64 ConstEndAddress;
+    UINT64 TempNextPageAddr;
     UINT64 TempStartAddress = Event->Options.OptionalParam3;
     UINT64 TempEndAddress   = Event->Options.OptionalParam4;
     ConstEndAddress         = TempEndAddress;
@@ -144,8 +145,25 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
         }
         else
         {
-            TempEndAddress = TempStartAddress + RemainingSize;
-            RemainingSize  = 0;
+            TempNextPageAddr = (UINT64)PAGE_ALIGN(TempStartAddress + RemainingSize);
+
+            //
+            // Check if by adding the remaining size, we'll go to the next
+            // page boundary or not
+            //
+            if (TempNextPageAddr > ((UINT64)PAGE_ALIGN(TempStartAddress)))
+            {
+                //
+                // It goes to the next page boundary
+                //
+                TempEndAddress = TempNextPageAddr - 1;
+                RemainingSize  = RemainingSize - (TempEndAddress - TempStartAddress) - 1;
+            }
+            else
+            {
+                TempEndAddress = TempStartAddress + RemainingSize;
+                RemainingSize  = 0;
+            }
         }
 
         if (InputFromVmxRoot)

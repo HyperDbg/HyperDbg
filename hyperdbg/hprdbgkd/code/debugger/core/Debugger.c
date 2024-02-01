@@ -1192,6 +1192,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // The hooking tag is same as the event tag if both
             // of them match together
             //
+
             if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
