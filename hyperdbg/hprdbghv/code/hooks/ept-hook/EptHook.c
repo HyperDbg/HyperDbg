@@ -1388,11 +1388,6 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
     {
         HookDetailsToVmcall = EptHook2AddressDetails;
 
-        if (EptHiddenHook2)
-        {
-            PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
-        }
-
         //
         // Initialize the list of ept hook detours if it's not already initialized
         //
@@ -1401,6 +1396,11 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
             g_IsEptHook2sDetourListInitialized = TRUE;
 
             InitializeListHead(&g_EptHook2sDetourListHead);
+        }
+
+        if (EptHiddenHook2)
+        {
+            PageHookMask |= PAGE_ATTRIB_EXEC_HIDDEN_HOOK;
         }
     }
     else
@@ -1864,9 +1864,9 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
  * was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
-                                  BOOLEAN                             ApplyDirectlyFromVmxRoot,
-                                  EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+EptHookUnHookSingleAddressDetoursAndMonitor(PEPT_HOOKED_PAGE_DETAIL             HookedEntry,
+                                            BOOLEAN                             ApplyDirectlyFromVmxRoot,
+                                            EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
     //
     // Set the unhooking details
@@ -1895,7 +1895,10 @@ EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL             HookedEntr
     // Now that we removed this hidden detours hook, it is
     // time to remove it from g_EptHook2sDetourListHead
     //
-    EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
+    if (HookedEntry->IsExecutionHook)
+    {
+        EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
+    }
 
     //
     // remove the entry from the list
@@ -2227,19 +2230,19 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
         else
         {
             //
-            // It's either a hidden detours or a monitor (read/write) entry
+            // It's either a hidden detours or a monitor (read/write/execute) entry
             //
             if (CurrEntity->PhysicalBaseAddress == PhysicalAddress)
             {
-                return EptHookUnHookSingleAddressDetours(CurrEntity,
-                                                         ApplyDirectlyFromVmxRoot,
-                                                         TargetUnhookingDetails);
+                return EptHookUnHookSingleAddressDetoursAndMonitor(CurrEntity,
+                                                                   ApplyDirectlyFromVmxRoot,
+                                                                   TargetUnhookingDetails);
             }
         }
     }
 
     //
-    // Nothing found , probably the list is not found
+    // Nothing found, probably the list is not found
     //
     return FALSE;
 }
