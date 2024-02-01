@@ -1076,6 +1076,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 {
     DebuggerCheckForCondition *      ConditionFunc;
     DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail;
+    PEPT_HOOKS_CONTEXT               EptContext;
     PLIST_ENTRY                      TempList  = 0;
     PLIST_ENTRY                      TempList2 = 0;
     PROCESSOR_DEBUGGING_STATE *      DbgState  = NULL;
@@ -1184,11 +1185,15 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // we get the events for all hidden hooks in a page granularity
             //
 
+            EptContext = (PEPT_HOOKS_CONTEXT)Context;
+
             //
-            // Context should be checked in physical address
+            // Context should be checked with hooking tag
+            // The hooking tag is same as the event tag if both
+            // of them match together
             //
-            if (!(((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->Options.OptionalParam1 &&
-                  ((PEPT_HOOKS_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->Options.OptionalParam2))
+
+            if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
                 // The value is not withing our expected range
@@ -1200,7 +1205,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // Fix the context to virtual address
                 //
-                Context = ((PEPT_HOOKS_CONTEXT)(Context))->VirtualAddress;
+                Context = EptContext->VirtualAddress;
             }
 
             break;

@@ -28,12 +28,9 @@ VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
 
 BOOLEAN
-DebuggerEventEnableMonitorReadWriteExec(UINT64  Address,
-                                        UINT32  ProcessId,
-                                        BOOLEAN EnableForRead,
-                                        BOOLEAN EnableForWrite,
-                                        BOOLEAN EnableForExecute,
-                                        BOOLEAN ApplyDirectlyFromVmxRoot);
+DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR * HookingDetails,
+                                        UINT32                                         ProcessId,
+                                        BOOLEAN                                        ApplyDirectlyFromVmxRoot);
 
 BOOLEAN
 DebuggerCheckProcessOrThreadChange(_In_ UINT32 CoreId);

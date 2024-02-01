@@ -801,13 +801,14 @@ AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_US
 BOOLEAN
 AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest, BOOLEAN IsAttachingToEntrypoint)
 {
-    PEPROCESS                           SourceProcess;
-    UINT64                              ProcessDebuggingToken;
-    UINT64                              PebAddressToMonitor;
-    UINT64                              UsermodeReservedBuffer;
-    BOOLEAN                             ResultOfApplyingEvent;
-    BOOLEAN                             Is32Bit;
-    PUSERMODE_DEBUGGING_PROCESS_DETAILS TempProcessDebuggingDetail;
+    PEPROCESS                                    SourceProcess;
+    UINT64                                       ProcessDebuggingToken;
+    UINT64                                       PebAddressToMonitor;
+    UINT64                                       UsermodeReservedBuffer;
+    BOOLEAN                                      ResultOfApplyingEvent;
+    BOOLEAN                                      Is32Bit;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS          TempProcessDebuggingDetail;
+    EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR EptHookDetails = {0};
 
     if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
     {
@@ -962,12 +963,21 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Apply monitor memory range to the PEB address
         //
+
+        EptHookDetails.StartAddress = PebAddressToMonitor;
+
+        //
+        // both start and the end are at the same address
+        // because it hooks an entire page anyway
+        //
+        EptHookDetails.EndAddress      = PebAddressToMonitor;
+        EptHookDetails.SetHookForRead  = TRUE;
+        EptHookDetails.SetHookForWrite = TRUE;
+        EptHookDetails.SetHookForExec  = FALSE;
+
         ResultOfApplyingEvent = DebuggerEventEnableMonitorReadWriteExec(
-            PebAddressToMonitor,
+            &EptHookDetails,
             AttachRequest->ProcessId,
-            TRUE,
-            TRUE,
-            FALSE,
             FALSE // Applied from VMX non-root mode
         );
 
