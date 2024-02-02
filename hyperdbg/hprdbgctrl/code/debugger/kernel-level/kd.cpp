@@ -2777,6 +2777,16 @@ KdCloseConnection()
     {
         if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
         {
+            //
+            // The messages (and outputs) should no longer be passed
+            // to the debugger, so we'll indicate that debugger is not
+            // connected anymore
+            //
+            g_IsSerialConnectedToRemoteDebugger = FALSE;
+
+            //
+            // Unload VMM
+            //
             HyperDbgUnloadVmm();
         }
     }
@@ -2792,7 +2802,7 @@ KdCloseConnection()
             //
             // It's a debugger, we should send the close packet to debuggee
             //
-            ShowMessages("unloading debugger vmm module on debuggee...\n");
+            ShowMessages("unloading debugger vmm module on debuggee...");
 
             //
             // Send another packet so the user-mode is not waiting for new packet
