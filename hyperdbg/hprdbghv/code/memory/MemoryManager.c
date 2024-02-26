@@ -107,7 +107,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
                 //
                 // Check whether the physical memory is valid or not
                 //
-                if (!CheckAddressPhysical(Address, Size))
+                if (!CheckAddressPhysical(Address))
                 {
                     return FALSE;
                 }
