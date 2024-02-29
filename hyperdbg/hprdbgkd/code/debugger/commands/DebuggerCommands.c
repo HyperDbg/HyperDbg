@@ -389,7 +389,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Execute it on a single core
             //
-            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, DpcRoutinePerformReadMsr, NULL);
+            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, (PVOID)DpcRoutinePerformReadMsr, NULL);
 
             if (Status != STATUS_SUCCESS)
             {
@@ -656,7 +656,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
     PVOID    TempSourceAddress     = 0;
     BOOLEAN  StillMatch            = FALSE;
     UINT64   TempValue             = NULL;
-    CR3_TYPE CurrentProcessCr3;
+    CR3_TYPE CurrentProcessCr3     = {0};
 
     //
     // set chunk size in each modification
@@ -958,7 +958,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         // Align the page and search with alignement
         //
         TempStartAddress = StartAddress;
-        StartAddress     = PAGE_ALIGN(StartAddress);
+        StartAddress     = (UINT64)PAGE_ALIGN(StartAddress);
 
         if (IsDebuggeePaused)
         {

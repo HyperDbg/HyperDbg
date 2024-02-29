@@ -234,15 +234,26 @@ LogUnInitialize()
         //
         // Free each buffers
         //
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddress, POOLTAG);
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
+        if (MessageBufferInformation[i].BufferStartAddress != NULL)
+        {
+            ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddress, POOLTAG);
+        }
+
+        if (MessageBufferInformation[i].BufferStartAddressPriority != NULL)
+        {
+            ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
+        }
+
+        if (MessageBufferInformation[i].BufferForMultipleNonImmediateMessage != NULL)
+        {
+            ExFreePoolWithTag(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
+        }
     }
 
     //
     // de-allocate buffers for trace message and data messages
     //
-    ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+    ExFreePoolWithTag((PVOID)MessageBufferInformation, POOLTAG);
     MessageBufferInformation = NULL;
 }
 
@@ -1204,8 +1215,8 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
 {
     BOOLEAN Result;
     UINT32  Index;
-    KIRQL   OldIRQL;
     BOOLEAN IsVmxRootMode;
+    KIRQL   OldIRQL = NULL;
 
     //
     // Set Vmx State

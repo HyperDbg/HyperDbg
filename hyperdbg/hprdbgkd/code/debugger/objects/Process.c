@@ -675,7 +675,7 @@ BOOLEAN
 ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
 {
     GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
-    GetInformationProcessRequest->Process   = PsGetCurrentProcess();
+    GetInformationProcessRequest->Process   = (UINT64)PsGetCurrentProcess();
     RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
                   CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
                   15);

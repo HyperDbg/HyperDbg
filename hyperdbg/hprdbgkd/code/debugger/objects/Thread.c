@@ -63,8 +63,8 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Initialized with NULL
     //
-    g_ThreadSwitch.Thread   = NULL;
-    g_ThreadSwitch.ThreadId = NULL;
+    g_ThreadSwitch.Thread   = (UINT64)NULL;
+    g_ThreadSwitch.ThreadId = (UINT32)NULL;
 
     //
     // Check to avoid invalid switch
@@ -332,10 +332,10 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         //
         // Debugger wants to know current tid, nt!_ETHREAD and process name, etc.
         //
-        TidRequest->ProcessId = PsGetCurrentProcessId();
-        TidRequest->ThreadId  = PsGetCurrentThreadId();
-        TidRequest->Process   = PsGetCurrentProcess();
-        TidRequest->Thread    = PsGetCurrentThread();
+        TidRequest->ProcessId = (UINT32)PsGetCurrentProcessId();
+        TidRequest->ThreadId  = (UINT32)PsGetCurrentThreadId();
+        TidRequest->Process   = (UINT64)PsGetCurrentProcess();
+        TidRequest->Thread    = (UINT64)PsGetCurrentThread();
         MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
@@ -539,7 +539,7 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // No longer need to store such gs:188 value
         //
-        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = NULL;
+        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = (UINT64)NULL;
     }
 }
 
@@ -694,10 +694,10 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 BOOLEAN
 ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest)
 {
-    GetInformationThreadRequest->ProcessId = PsGetCurrentProcessId();
-    GetInformationThreadRequest->Process   = PsGetCurrentProcess();
-    GetInformationThreadRequest->Thread    = PsGetCurrentThread();
-    GetInformationThreadRequest->ThreadId  = PsGetCurrentThreadId();
+    GetInformationThreadRequest->ProcessId = (UINT32)PsGetCurrentProcessId();
+    GetInformationThreadRequest->Process   = (UINT64)PsGetCurrentProcess();
+    GetInformationThreadRequest->Thread    = (UINT64)PsGetCurrentThread();
+    GetInformationThreadRequest->ThreadId  = (UINT32)PsGetCurrentThreadId();
 
     RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
                   CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),

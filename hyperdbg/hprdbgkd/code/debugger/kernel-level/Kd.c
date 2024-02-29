@@ -566,7 +566,7 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
                           FALSE,
                           DbgState->HardwareDebugRegisterForStepping);
 
-        DbgState->HardwareDebugRegisterForStepping = NULL;
+        DbgState->HardwareDebugRegisterForStepping = (UINT64)NULL;
     }
 }
 

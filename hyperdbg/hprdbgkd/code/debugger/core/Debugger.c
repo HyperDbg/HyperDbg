@@ -831,7 +831,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
         Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
-        Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
+        Action->RequestedBuffer.RequstBufferAddress  = (UINT64)RequestedBuffer;
     }
 
     //
@@ -897,7 +897,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
         Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfRunScript->OptionalRequestedBufferSize;
-        Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
+        Action->RequestedBuffer.RequstBufferAddress  = (UINT64)RequestedBuffer;
     }
 
     if (ActionType == RUN_CUSTOM_CODE)

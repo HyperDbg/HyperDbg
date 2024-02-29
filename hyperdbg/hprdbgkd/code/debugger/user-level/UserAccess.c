@@ -318,8 +318,8 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
         }
         else
         {
-            *BaseAddress = Entry.DllBase;
-            *Entrypoint  = Entry.EntryPoint;
+            *BaseAddress = (UINT64)Entry.DllBase;
+            *Entrypoint  = (UINT64)Entry.EntryPoint;
 
             return TRUE;
         }
@@ -453,8 +453,8 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         //
         // Save the details into the storage
         //
-        ModulesList[CurrentSavedModules].Entrypoint  = Entry->EntryPoint;
-        ModulesList[CurrentSavedModules].BaseAddress = Entry->DllBase;
+        ModulesList[CurrentSavedModules].Entrypoint  = (UINT64)Entry->EntryPoint;
+        ModulesList[CurrentSavedModules].BaseAddress = (UINT64)Entry->DllBase;
 
         //
         // Copy the path

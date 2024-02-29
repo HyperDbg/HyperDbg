@@ -328,7 +328,7 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
     //
     DbgState->HaltedCoreTask.PerformHaltedTask = TRUE;
 
-    DbgState->HaltedCoreTask.KernelStatus       = NULL;
+    DbgState->HaltedCoreTask.KernelStatus       = (UINT64)NULL;
     DbgState->HaltedCoreTask.LockAgainAfterTask = LockAgainAfterTask;
     DbgState->HaltedCoreTask.TargetTask         = TargetTask;
     DbgState->HaltedCoreTask.Context            = Context;
