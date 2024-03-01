@@ -96,7 +96,7 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     if (EProcess != NULL)
     {
-        if (CheckAccessValidityAndSafety(EProcess, sizeof(BYTE)))
+        if (CheckAccessValidityAndSafety((UINT64)EProcess, sizeof(BYTE)))
         {
             g_ProcessSwitch.Process = (UINT64)EProcess;
         }
@@ -264,13 +264,13 @@ BOOLEAN
 ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
 {
     UINT64     Process;
-    LIST_ENTRY ActiveProcessLinks;
+    LIST_ENTRY ActiveProcessLinks = {0};
 
     //
     // Dirty validation of parameters
     //
-    if (ActiveProcessHead == NULL ||
-        ActiveProcessLinksOffset == NULL)
+    if (ActiveProcessHead == (UINT64)NULL ||
+        ActiveProcessLinksOffset == (ULONG)NULL)
     {
         return FALSE;
     }
@@ -344,8 +344,8 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
                 UINT64                                             ListSaveBuffSize)
 {
     UINT64                               Process;
-    UINT64                               UniquePid;
-    LIST_ENTRY                           ActiveProcessLinks;
+    UINT64                               UniquePid          = 0;
+    LIST_ENTRY                           ActiveProcessLinks = {0};
     UCHAR                                ImageFileName[15]  = {0};
     CR3_TYPE                             ProcessCr3         = {0};
     UINT32                               EnumerationCount   = 0;
@@ -386,10 +386,10 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
     //
     // Dirty validation of parameters
     //
-    if (ActiveProcessHead == NULL ||
-        ImageFileNameOffset == NULL ||
-        UniquePidOffset == NULL ||
-        ActiveProcessLinksOffset == NULL)
+    if (ActiveProcessHead == (UINT64)NULL ||
+        ImageFileNameOffset == (ULONG)NULL ||
+        UniquePidOffset == (ULONG)NULL ||
+        ActiveProcessLinksOffset == (ULONG)NULL)
     {
         return FALSE;
     }

@@ -249,12 +249,11 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
 {
     if (Is32Bit)
     {
-        UNICODE_STRING  Name;
         PEB_LDR_DATA32  Ldr32        = {0};
         PEB32           Peb32        = {0};
         PPEB_LDR_DATA32 LdrAddress32 = NULL;
 
-        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb32, sizeof(PEB32));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)PebAddress, &Peb32, sizeof(PEB32));
 
         LdrAddress32 = (PPEB_LDR_DATA32)Peb32.Ldr;
 
@@ -263,14 +262,14 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
             return FALSE;
         }
 
-        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress32, &Ldr32, sizeof(PEB_LDR_DATA32));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)LdrAddress32, &Ldr32, sizeof(PEB_LDR_DATA32));
 
         PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr32.InLoadOrderModuleList.Flink;
 
         PLDR_DATA_TABLE_ENTRY32 EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
         LDR_DATA_TABLE_ENTRY32  Entry        = {0};
 
-        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
 
         if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
         {
@@ -286,13 +285,12 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
     }
     else
     {
-        UNICODE_STRING Name;
-        PPEB_LDR_DATA  LdrAddress = NULL;
-        PEB_LDR_DATA   Ldr        = {0};
+        PPEB_LDR_DATA LdrAddress = NULL;
+        PEB_LDR_DATA  Ldr        = {0};
 
         PEB Peb = {0};
 
-        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb, sizeof(PEB));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)PebAddress, &Peb, sizeof(PEB));
 
         LdrAddress = (PPEB_LDR_DATA)Peb.Ldr;
 
@@ -301,14 +299,14 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
             return FALSE;
         }
 
-        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress, &Ldr, sizeof(PEB_LDR_DATA));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)LdrAddress, &Ldr, sizeof(PEB_LDR_DATA));
 
         PLIST_ENTRY List = (PLIST_ENTRY)Ldr.ModuleListLoadOrder.Flink;
 
         PLDR_DATA_TABLE_ENTRY EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
         LDR_DATA_TABLE_ENTRY  Entry        = {0};
 
-        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY));
 
         // LogInfo("base: %llx | entry: %llx", Entry.DllBase, Entry.EntryPoint);
 
@@ -344,13 +342,12 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
                                 PUSERMODE_LOADED_MODULE_SYMBOLS ModulesList,
                                 UINT32                          SizeOfBufferForModulesList)
 {
-    KAPC_STATE     State;
-    UNICODE_STRING Name;
-    PPEB           Peb                 = NULL;
-    PPEB_LDR_DATA  Ldr                 = NULL;
-    UINT32         CountOfModules      = 0;
-    UINT32         CurrentSavedModules = 0;
-    UINT32         TempSize            = 0;
+    KAPC_STATE    State;
+    PPEB          Peb                 = NULL;
+    PPEB_LDR_DATA Ldr                 = NULL;
+    UINT32        CountOfModules      = 0;
+    UINT32        CurrentSavedModules = 0;
+    UINT32        TempSize            = 0;
 
     if (g_PsGetProcessPeb == NULL)
     {
@@ -386,21 +383,21 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
              List != &Ldr->ModuleListLoadOrder;
              List = (PLIST_ENTRY)List->Flink)
         {
+            /*
             PLDR_DATA_TABLE_ENTRY Entry =
                 CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+
+            Log("Base: %016llx\tEntryPoint: %016llx\tModule: %ws\tPath: %ws\n",
+            Entry->DllBase,
+            Entry->EntryPoint,
+            Entry->BaseDllName.Buffer,
+            Entry->FullDllName.Buffer);
+             */
 
             //
             // Calculate count of modules
             //
             CountOfModules++;
-
-            /*
-        Log("Base: %016llx\tEntryPoint: %016llx\tModule: %ws\tPath: %ws\n",
-            Entry->DllBase,
-            Entry->EntryPoint,
-            Entry->BaseDllName.Buffer,
-            Entry->FullDllName.Buffer);
-        */
         }
 
         *ModulesCount = CountOfModules;
@@ -495,7 +492,6 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
                                 UINT32                          SizeOfBufferForModulesList)
 {
     KAPC_STATE      State;
-    UNICODE_STRING  Name;
     PPEB32          Peb                 = NULL;
     PPEB_LDR_DATA32 Ldr                 = NULL;
     UINT32          CountOfModules      = 0;
@@ -536,8 +532,10 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
              List != &Ldr->InLoadOrderModuleList;
              List = (PLIST_ENTRY32)List->Flink)
         {
+            /*
             PLDR_DATA_TABLE_ENTRY32 Entry =
                 CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+             */
 
             //
             // Calculate count of modules
@@ -629,7 +627,6 @@ BOOLEAN
 UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
 {
     KAPC_STATE      State;
-    UNICODE_STRING  Name;
     PPEB32          Peb = NULL;
     PPEB_LDR_DATA32 Ldr = NULL;
 
@@ -675,8 +672,8 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
         //
         UNICODE_STRING ModuleName;
         UNICODE_STRING ModulePath;
-        UINT64         BaseAddr          = NULL;
-        UINT64         EntrypointAddress = NULL;
+        UINT64         BaseAddr          = (UINT64)NULL;
+        UINT64         EntrypointAddress = (UINT64)NULL;
 
         BaseAddr          = Entry->DllBase;
         EntrypointAddress = Entry->EntryPoint;
@@ -755,8 +752,7 @@ UserAccessIsWow64ProcessByEprocess(PEPROCESS SourceProcess, PBOOLEAN Is32Bit)
 BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 {
-    PEPROCESS  SourceProcess;
-    KAPC_STATE State = {0};
+    PEPROCESS SourceProcess;
 
     if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
@@ -858,9 +854,8 @@ BOOLEAN
 UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    UINT64                              BaseAddress = NULL;
-    UINT64                              Entrypoint  = NULL;
-    PPAGE_ENTRY                         PageEntry   = NULL;
+    UINT64                              BaseAddress = (UINT64)NULL;
+    UINT64                              Entrypoint  = (UINT64)NULL;
     PROCESSOR_DEBUGGING_STATE *         DbgState    = &g_DbgState[CoreId];
 
     //
@@ -885,8 +880,8 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
         return FALSE;
     }
 
-    if (ProcessDebuggingDetail->EntrypointOfMainModule == NULL &&
-        ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+    if (ProcessDebuggingDetail->EntrypointOfMainModule == (UINT64)NULL &&
+        ProcessDebuggingDetail->PebAddressToMonitor != (PVOID)NULL &&
         CheckAccessValidityAndSafety((UINT64)ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
                                                                     ProcessDebuggingDetail->Is32Bit,

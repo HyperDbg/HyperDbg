@@ -82,7 +82,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // Kernel debugger is active, we should send the bytes over serial
         //
         KdLoggingResponsePacketToDebugger(
-            OptionalParam1,
+            (CHAR *)OptionalParam1,
             OptionalParam2,
             OPERATION_LOG_INFO_MESSAGE);
 
@@ -99,7 +99,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
 
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DebuggeeBufferRequest->RequestedAction,
-                                   (UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),
+                                   (CHAR *)((UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
                                    DebuggeeBufferRequest->LengthOfBuffer);
 
         //

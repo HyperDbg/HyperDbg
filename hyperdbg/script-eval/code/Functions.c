@@ -47,6 +47,8 @@ GetValue(PGUEST_REGS                    GuestRegs,
 BOOLEAN
 ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(QWORD)))
@@ -84,6 +86,8 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 BOOLEAN
 ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
@@ -121,6 +125,8 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 BOOLEAN
 ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
@@ -313,7 +319,7 @@ ScriptEngineFunctionVirtualToPhysical(UINT64 Address)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return VirtualAddressToPhysicalAddressOnTargetProcess(Address);
+    return VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Address);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -381,6 +387,9 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
+    UNREFERENCED_PARAMETER(Tag);
+    UNREFERENCED_PARAMETER(ImmediateMessagePassing);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     g_CurrentExprEvalResult         = Value;
@@ -507,7 +516,7 @@ ScriptEngineFunctionStrlen(const char * Address)
  * @return UINT64
  */
 UINT64
-ScriptEngineFunctionDisassembleLen(const char * Address, BOOLEAN Is32Bit)
+ScriptEngineFunctionDisassembleLen(PVOID Address, BOOLEAN Is32Bit)
 {
     UINT64 Result = 0;
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -563,7 +572,7 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
     if (!CheckAccessValidityAndSafety((UINT64)Target, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -593,7 +602,7 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
     if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -621,7 +630,7 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
     if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -649,7 +658,7 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
     if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -682,7 +691,7 @@ ScriptEngineFunctionInterlockedCompareExchange(
     if (!CheckAccessValidityAndSafety((UINT64)Destination, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -827,7 +836,10 @@ ScriptEngineFunctionPause(
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, &TriggeredEventDetail, GuestRegs, NULL);
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT,
+                            (UINT64)&TriggeredEventDetail,
+                            (UINT64)GuestRegs,
+                            (UINT64)NULL);
         }
     }
     else
@@ -1482,6 +1494,8 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
 VOID
 ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     ShowMessages("err, event_inject is not supported in user-mode\n");
@@ -1518,6 +1532,8 @@ ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * H
 VOID
 ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     ShowMessages("err, event_inject is not supported in user-mode\n");

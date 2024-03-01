@@ -478,7 +478,7 @@ ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDeb
         // The thread is allocated from the pool management, so we'll
         // free it from there
         //
-        PoolManagerFreePool(ThreadHolder);
+        PoolManagerFreePool((UINT64)ThreadHolder);
     }
 }
 

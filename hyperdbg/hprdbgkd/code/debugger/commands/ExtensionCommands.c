@@ -29,12 +29,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         //
         if (AddressDetails->IsVirtual2Physical)
         {
-            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressOnTargetProcess(AddressDetails->VirtualAddress);
+            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)AddressDetails->VirtualAddress);
 
             //
             // Check if address is valid or invalid
             //
-            if (AddressDetails->PhysicalAddress == NULL)
+            if (AddressDetails->PhysicalAddress == (UINT64)NULL)
             {
                 //
                 // Invalid address
@@ -73,12 +73,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
             //
             if (AddressDetails->IsVirtual2Physical)
             {
-                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress((PVOID)AddressDetails->VirtualAddress);
 
                 //
                 // Check if address is valid or invalid
                 //
-                if (AddressDetails->PhysicalAddress == NULL)
+                if (AddressDetails->PhysicalAddress == (UINT64)NULL)
                 {
                     //
                     // Invalid address
@@ -123,12 +123,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
 
             if (AddressDetails->IsVirtual2Physical)
             {
-                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId((PVOID)AddressDetails->VirtualAddress, AddressDetails->ProcessId);
 
                 //
                 // Check if address is valid or invalid
                 //
-                if (AddressDetails->PhysicalAddress == NULL)
+                if (AddressDetails->PhysicalAddress == (UINT64)NULL)
                 {
                     //
                     // Invalid address
@@ -174,7 +174,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     //
     if (IsOperatingInVmxRoot)
     {
-        if (!VirtualAddressToPhysicalAddressOnTargetProcess(PteDetails->VirtualAddress))
+        if (!VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)PteDetails->VirtualAddress))
         {
             //
             // Address is not valid (doesn't have Physical Address)
@@ -217,7 +217,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
         //
         // Check if address is valid
         //
-        if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
+        if (!VirtualAddressToPhysicalAddress((PVOID)PteDetails->VirtualAddress))
         {
             //
             // Address is not valid (doesn't have Physical Address)

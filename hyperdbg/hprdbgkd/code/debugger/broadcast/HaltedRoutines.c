@@ -24,7 +24,7 @@ VOID
 HaltedRoutineChangeAllMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 BitmapMask)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -58,7 +58,7 @@ VOID
 HaltedRoutineChangeAllMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 BitmapMask)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -92,7 +92,7 @@ VOID
 HaltedRoutineChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -125,7 +125,7 @@ VOID
 HaltedRoutineEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -153,7 +153,7 @@ VOID
 HaltedRoutineEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -181,7 +181,7 @@ VOID
 HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -209,7 +209,7 @@ VOID
 HaltedRoutineEnableExternalInterruptExiting(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -238,7 +238,7 @@ VOID
 HaltedRoutineSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 ExceptionIndex)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -272,7 +272,7 @@ VOID
 HaltedRoutineUnSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 ExceptionIndex)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -306,7 +306,7 @@ VOID
 HaltedRoutineEnableMovToCrExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -340,7 +340,7 @@ VOID
 HaltedRoutineEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -368,7 +368,7 @@ VOID
 HaltedRoutineInvalidateEptAllContextsOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -396,7 +396,7 @@ VOID
 HaltedRoutineInvalidateSingleContextOnSingleCore(UINT32 TargetCoreId)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task

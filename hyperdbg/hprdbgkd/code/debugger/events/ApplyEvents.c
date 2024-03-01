@@ -317,13 +317,13 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     //
     if (InputFromVmxRoot)
     {
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam1);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam2);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam1);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam2);
     }
     else
     {
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam2, TempProcessId);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam1, TempProcessId);
+        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam2, TempProcessId);
     }
 
     //
@@ -482,7 +482,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         // executed not for all hooks but for this special hook
         // Also, we are sure that this is not null because we checked it before
         //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess(Event->InitOptions.OptionalParam1);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam1);
 
         //
         // Invoke the hooker
@@ -532,7 +532,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         // executed not for all hooks but for this special hook
         // Also, we are sure that this is not null because we checked it before
         //
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(Event->InitOptions.OptionalParam1, TempProcessId);
+        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam1, TempProcessId);
 
         //
         // Invoke the hooker
@@ -577,6 +577,8 @@ ApplyEventRdmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -630,6 +632,8 @@ ApplyEventWrmsrExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -683,6 +687,8 @@ ApplyEventInOutExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -736,6 +742,8 @@ ApplyEventTscExecutionEvent(PDEBUGGER_EVENT                   Event,
                             PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                             BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -784,6 +792,8 @@ ApplyEventRdpmcExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -832,6 +842,8 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
                                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                      BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -880,6 +892,8 @@ ApplyEventControlRegisterAccessedEvent(PDEBUGGER_EVENT                   Event,
                                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Setting an indicator to CR
     //
@@ -934,6 +948,8 @@ ApplyEventExceptionEvent(PDEBUGGER_EVENT                   Event,
                          PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                          BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -987,6 +1003,8 @@ ApplyEventInterruptEvent(PDEBUGGER_EVENT                   Event,
                          PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                          BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     //
     // Let's see if it is for all cores or just one core
     //
@@ -1040,6 +1058,8 @@ ApplyEventEferSyscallHookEvent(PDEBUGGER_EVENT                   Event,
                                PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
 
     //
@@ -1111,6 +1131,8 @@ ApplyEventEferSysretHookEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+
     DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE SyscallHookType = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
 
     //
@@ -1185,6 +1207,10 @@ ApplyEventVmcallExecutionEvent(PDEBUGGER_EVENT                   Event,
                                PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Enable triggering events for VMCALLs. This event doesn't support custom optional
     // parameter(s) because it's unconditional users can use condition(s) to check for
@@ -1290,6 +1316,10 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                               BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Enable triggering events for CPUIDs. This event doesn't support custom optional
     // parameter(s) because it's unconditional users can use condition(s) to check for
@@ -1313,6 +1343,9 @@ ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // This is a dependant-event thus, it will be activated later by
     // another event and nothing needs to be initiated at this stage

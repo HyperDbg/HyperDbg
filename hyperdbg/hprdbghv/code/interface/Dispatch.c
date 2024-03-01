@@ -850,7 +850,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMEXIT_INTERRUPT_INFORMATION              InterruptExit;
+    VMEXIT_INTERRUPT_INFORMATION              InterruptExit = {0};
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 

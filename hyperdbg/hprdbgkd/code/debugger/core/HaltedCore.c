@@ -23,6 +23,8 @@
 VOID
 HaltedCoreTaskTest(PROCESSOR_DEBUGGING_STATE * DbgState, PVOID Context)
 {
+    UNREFERENCED_PARAMETER(DbgState);
+
     //
     // Test target task
     //

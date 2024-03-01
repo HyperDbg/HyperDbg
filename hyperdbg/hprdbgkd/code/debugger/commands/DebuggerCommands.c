@@ -151,7 +151,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
             return FALSE;
         }
 
-        MemoryMapperReadMemorySafeByPhysicalAddress(Address, UserBuffer, Size);
+        MemoryMapperReadMemorySafeByPhysicalAddress(Address, (UINT64)UserBuffer, Size);
     }
     else if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
     {
@@ -456,7 +456,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        if (EditMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
         {
             //
             // It's an invalid address in current process
@@ -464,7 +464,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
             return STATUS_UNSUCCESSFUL;
         }
-        else if (VirtualAddressToPhysicalAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
+        else if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
         {
             //
             // It's an invalid address in another process
@@ -650,11 +650,10 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
     UINT64   Cmp64                 = 0;
     UINT32   IndexToArrayOfResults = 0;
     UINT32   LengthOfEachChunk     = 0;
-    PVOID    DestinationAddress    = 0;
-    PVOID    SourceAddress         = 0;
     PVOID    TempSourceAddress     = 0;
+    PVOID    SourceAddress         = 0;
     BOOLEAN  StillMatch            = FALSE;
-    UINT64   TempValue             = NULL;
+    UINT64   TempValue             = (UINT64)NULL;
     CR3_TYPE CurrentProcessCr3     = {0};
 
     //
@@ -820,7 +819,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                             //
                             // It's a physical memory
                             //
-                            Log("%llx\n", VirtualAddressToPhysicalAddress(BaseIterator));
+                            Log("%llx\n", VirtualAddressToPhysicalAddress((PVOID)BaseIterator));
                         }
                         else
                         {
@@ -837,7 +836,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                             //
                             // It's a physical memory
                             //
-                            AddressToSaveResults[IndexToArrayOfResults] = VirtualAddressToPhysicalAddress(BaseIterator);
+                            AddressToSaveResults[IndexToArrayOfResults] = VirtualAddressToPhysicalAddress((PVOID)BaseIterator);
                         }
                         else
                         {
@@ -935,10 +934,9 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
 {
     CR3_TYPE CurrentProcessCr3;
     UINT64   BaseAddress         = 0;
-    UINT64   CurrentValue        = 0;
     UINT64   RealPhysicalAddress = 0;
-    UINT64   TempValue           = NULL;
-    UINT64   TempStartAddress    = NULL;
+    UINT64   TempValue           = (UINT64)NULL;
+    UINT64   TempStartAddress    = (UINT64)NULL;
     BOOLEAN  DoesBaseAddrSaved   = FALSE;
     BOOLEAN  SearchResult        = FALSE;
 
@@ -984,7 +982,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             // Generally, we can use VirtualAddressToPhysicalAddressByProcessId
             // but let's not change the cr3 multiple times
             //
-            TempValue = VirtualAddressToPhysicalAddress(StartAddress);
+            TempValue = VirtualAddressToPhysicalAddress((PVOID)StartAddress);
 
             if (TempValue != 0)
             {
@@ -1165,7 +1163,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     {
         CurrentValue = SearchResultsStorage[i];
 
-        if (CurrentValue == NULL)
+        if (CurrentValue == (UINT64)NULL)
         {
             //
             // Nothing left to move
@@ -1265,7 +1263,7 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
     VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
-                    DebuggeeBufferRequest,
+                    (UINT64)DebuggeeBufferRequest,
                     0,
                     0);
 

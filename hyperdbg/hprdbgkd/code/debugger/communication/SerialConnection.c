@@ -106,7 +106,7 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
     //
     while (TRUE)
     {
-        UCHAR RecvChar = NULL;
+        UCHAR RecvChar = (UCHAR)NULL;
 
         if (!KdHyperDbgRecvByte(&RecvChar))
         {

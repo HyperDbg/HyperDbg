@@ -209,6 +209,10 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
                  UINT64                             OptionalParam3,
                  UINT64                             OptionalParam4)
 {
+    UNREFERENCED_PARAMETER(OptionalParam2);
+    UNREFERENCED_PARAMETER(OptionalParam3);
+    UNREFERENCED_PARAMETER(OptionalParam4);
+
     //
     // Perform the command
     //
@@ -408,6 +412,8 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
                     PDEBUGGER_TRIGGERED_EVENT_DETAILS  EventDetails)
 
 {
+    UNREFERENCED_PARAMETER(DbgState);
+
     //
     // *** Handle events before pausing ***
     //

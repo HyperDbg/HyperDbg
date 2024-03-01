@@ -51,7 +51,7 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         }
         else
         {
-            return NULL;
+            return (UINT64)NULL;
         }
     case PSEUDO_REGISTER_CONTEXT:
         return ActionBuffer->Context;
@@ -113,14 +113,14 @@ GetValue(PGUEST_REGS                   GuestRegs,
     case SYMBOL_REGISTER_TYPE:
 
         if (ReturnReference)
-            return NULL; // Not reasonable, you should not dereference a register!
+            return (UINT64)NULL; // Not reasonable, you should not dereference a register!
         else
             return GetRegValue(GuestRegs, (REGS_ENUM)Symbol->Value);
 
     case SYMBOL_PSEUDO_REG_TYPE:
 
         if (ReturnReference)
-            return NULL; // Not reasonable, you should not dereference a pseudo-register!
+            return (UINT64)NULL; // Not reasonable, you should not dereference a pseudo-register!
         else
             return GetPseudoRegValue(Symbol, ActionBuffer);
 
@@ -1309,7 +1309,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, FALSE);
+        DesVal = ScriptEngineFunctionDisassembleLen((PVOID)SrcVal0, FALSE);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -1328,7 +1328,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, TRUE);
+        DesVal = ScriptEngineFunctionDisassembleLen((PVOID)SrcVal0, TRUE);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 

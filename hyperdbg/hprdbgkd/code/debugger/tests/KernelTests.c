@@ -39,7 +39,7 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
                                              UINT64 Param3,
                                              UINT64 Param4)
 {
-    UINT64 TargetFuncResult = NULL;
+    UINT64 TargetFuncResult = (UINT64)NULL;
 
     //
     // Configure tags and target functions (export them to assembly)
@@ -80,7 +80,7 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
 VOID
 TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 {
-    UINT64 TempPool = NULL;
+    UINT64 TempPool = (UINT64)NULL;
 
     LogInfo("Starting kernel-test process...");
 
@@ -100,7 +100,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         //
         // Free the previous pool
         //
-        CrsFreePool(TempPool);
+        CrsFreePool((PVOID)TempPool);
     }
 
     LogInfo("All the kernel events are triggered");

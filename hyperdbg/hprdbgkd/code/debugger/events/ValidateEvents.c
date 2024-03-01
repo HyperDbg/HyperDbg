@@ -57,8 +57,8 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     //
     if (InputFromVmxRoot)
     {
-        if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL ||
-            VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam2) == NULL)
+        if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL ||
+            VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam2) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -71,8 +71,8 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     }
     else
     {
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL ||
-            VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, TempPid) == NULL)
+        if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL ||
+            VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam2, TempPid) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -115,6 +115,8 @@ ValidateEventException(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
     //
@@ -152,6 +154,8 @@ ValidateEventInterrupt(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the exception entry is between 32 to 255
     //
@@ -187,6 +191,8 @@ ValidateEventTrapExec(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                       BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the execution mode is valid or not
     //
@@ -254,7 +260,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     //
     if (InputFromVmxRoot)
     {
-        if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL)
+        if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -267,7 +273,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     }
     else
     {
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL)
+        if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)

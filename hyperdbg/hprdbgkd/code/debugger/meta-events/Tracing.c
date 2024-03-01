@@ -112,8 +112,10 @@ TracingCheckForContinuingSteps(PROCESSOR_DEBUGGING_STATE * DbgState)
 VOID
 TracingPerformRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
+    UNREFERENCED_PARAMETER(DbgState);
+
     UINT32 Interruptibility;
-    UINT32 InterruptibilityOld = NULL;
+    UINT32 InterruptibilityOld = (UINT32)NULL;
 
     //
     // Adjust RFLAG's trap-flag

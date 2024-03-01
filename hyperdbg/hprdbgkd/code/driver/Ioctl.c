@@ -22,6 +22,7 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    PDEBUGGER_EVENT_AND_ACTION_RESULT                       RegBufferResult = (DEBUGGER_EVENT_AND_ACTION_RESULT *)NULL;
     PIO_STACK_LOCATION                                      IrpStack;
     PREGISTER_NOTIFY_BUFFER                                 RegisterEventRequest;
     PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
@@ -32,7 +33,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
-    PDEBUGGER_EVENT_AND_ACTION_RESULT                       RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
@@ -58,8 +58,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     ULONG                                                   InBuffLength;  // Input buffer length
     ULONG                                                   OutBuffLength; // Output buffer length
     SIZE_T                                                  ReturnSize;
-    BOOLEAN                                                 DoNotChangeInformation = FALSE;
-    UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode;
+    BOOLEAN                                                 DoNotChangeInformation                    = FALSE;
+    UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode = 0;
     UINT32                                                  FilledEntriesInKernelInfo;
 
     //
@@ -121,7 +121,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
                                   "$",
-                                  1,
+                                  sizeof(CHAR),
                                   TRUE);
 
             Status = STATUS_SUCCESS;

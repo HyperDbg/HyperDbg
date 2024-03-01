@@ -622,6 +622,9 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
                                          UINT64 Address,
                                          UINT32 PageFaultErrorCode)
 {
+    UNREFERENCED_PARAMETER(Address);
+    UNREFERENCED_PARAMETER(PageFaultErrorCode);
+
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
 
@@ -782,6 +785,9 @@ BOOLEAN
 AttachingCheckForSafeCallbackRequestedInitializations(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest,
                                                       UINT64                                    ProcessDebuggingToken)
 {
+    UNREFERENCED_PARAMETER(AttachRequest);
+    UNREFERENCED_PARAMETER(ProcessDebuggingToken);
+
     //
     // Enable the memory access logging
     //
@@ -870,7 +876,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         PebAddressToMonitor = (UINT64)((PPEB)g_PsGetProcessPeb(SourceProcess));
     }
 
-    if (PebAddressToMonitor == NULL)
+    if (PebAddressToMonitor == (UINT64)NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return FALSE;
@@ -881,7 +887,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     UsermodeReservedBuffer = MemoryMapperReserveUsermodeAddressOnTargetProcess(AttachRequest->ProcessId, TRUE);
 
-    if (UsermodeReservedBuffer == NULL)
+    if (UsermodeReservedBuffer == (UINT64)NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return FALSE;
@@ -916,7 +922,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Check if we successfully get the token
     //
-    if (ProcessDebuggingToken == NULL)
+    if (ProcessDebuggingToken == (UINT64)NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return FALSE;
@@ -1030,7 +1036,6 @@ BOOLEAN
 AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
 
     ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
 
@@ -1059,7 +1064,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
             break;
         }
 
-        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == NULL)
+        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == (UINT64)NULL)
         {
             //
             // Save the cr3
@@ -1098,8 +1103,6 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
                                     UINT64 ViolationQualification,
                                     UINT64 GuestPhysicalAddr)
 {
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
     //
     // Not handled here
     //

@@ -79,7 +79,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     if (EThread != NULL)
     {
-        if (CheckAccessValidityAndSafety(EThread, sizeof(BYTE)))
+        if (CheckAccessValidityAndSafety((UINT64)EThread, sizeof(BYTE)))
         {
             g_ThreadSwitch.Thread = EThread;
         }
@@ -127,7 +127,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
 {
     UINT64                              ThreadListHead;
     UINT32                              EnumerationCount   = 0;
-    UINT64                              Thread             = NULL;
+    UINT64                              Thread             = (UINT64)NULL;
     LIST_ENTRY                          ThreadLinks        = {0};
     CLIENT_ID                           ThreadCid          = {0};
     UINT32                              MaximumBufferCount = 0;
@@ -177,7 +177,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Set the target process
     //
-    if (ThreadListSymbolInfo->Process == NULL)
+    if (ThreadListSymbolInfo->Process == (UINT64)NULL)
     {
         //
         // Means that it's for the current process

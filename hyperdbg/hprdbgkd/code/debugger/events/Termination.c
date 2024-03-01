@@ -708,6 +708,9 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
 VOID
 TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     if (DebuggerEventListCount(&g_Events->VmcallInstructionExecutionEventsHead) > 1)
     {
         //
@@ -804,6 +807,9 @@ TerminateExecTrapModeChangedEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoo
 VOID
 TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     if (DebuggerEventListCount(&g_Events->CpuidInstructionExecutionEventsHead) > 1)
     {
         //
@@ -1616,6 +1622,8 @@ BOOLEAN
 TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                               CoreId,
                                               PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
+    UNREFERENCED_PARAMETER(PassOver);
+
     //
     // Check if process switching is enabled or not
     //

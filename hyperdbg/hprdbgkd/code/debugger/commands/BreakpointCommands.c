@@ -147,6 +147,10 @@ Return:
 BOOLEAN
 BreakpointTriggerCallbacks(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 ProcessId, UINT32 ThreadId)
 {
+    UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(ProcessId);
+    UNREFERENCED_PARAMETER(ThreadId);
+
     //
     // Add the process/thread to the watching list
     //
@@ -365,7 +369,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 BOOLEAN
 BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE TargetMem = NULL;
+    BYTE TargetMem = (BYTE)NULL;
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -423,7 +427,7 @@ BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
     //
     // Uninitialize the breakpoint descriptor (safely)
     //
-    PoolManagerFreePool(BreakpointDesc);
+    PoolManagerFreePool((UINT64)BreakpointDesc);
 }
 
 /**
@@ -494,14 +498,12 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                                                    DEBUGGEE_PAUSING_REASON     Reason,
                                                    BOOLEAN                     ChangeMtfState)
 {
-    CR3_TYPE                         GuestCr3;
+    CR3_TYPE                         GuestCr3              = {0};
     BOOLEAN                          IsHandledByBpRoutines = FALSE;
     PLIST_ENTRY                      TempList              = 0;
-    UINT64                           GuestRipPhysical      = NULL;
+    UINT64                           GuestRipPhysical      = (UINT64)NULL;
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
     RFLAGS                           Rflags                = {0};
-    ULONG                            LengthOfExitInstr     = 0;
-    BYTE                             InstrByte             = NULL;
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
 
@@ -517,7 +519,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     //
     // Convert breakpoint to physical address
     //
-    GuestRipPhysical = VirtualAddressToPhysicalAddressByProcessCr3(GuestRip, GuestCr3);
+    GuestRipPhysical = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)GuestRip, GuestCr3);
 
     //
     // Iterate through the list of breakpoints
@@ -758,7 +760,7 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
 BOOLEAN
 BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE PreviousByte   = NULL;
+    BYTE PreviousByte   = (BYTE)NULL;
     BYTE BreakpointByte = 0xcc; // int 3
 
     //
@@ -890,8 +892,8 @@ BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
-    CR3_TYPE                GuestCr3;
-    BOOLEAN                 IsAddress32Bit = FALSE;
+    CR3_TYPE                GuestCr3             = {0};
+    BOOLEAN                 IsAddress32Bit       = FALSE;
 
     //
     // Find the current process cr3
@@ -968,7 +970,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     g_MaximumBreakpointId++;
     BreakpointDescriptor->BreakpointId      = g_MaximumBreakpointId;
     BreakpointDescriptor->Address           = BpDescriptorArg->Address;
-    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)BpDescriptorArg->Address,
                                                                                     GuestCr3);
     BreakpointDescriptor->Core              = BpDescriptorArg->Core;
     BreakpointDescriptor->Pid               = BpDescriptorArg->Pid;

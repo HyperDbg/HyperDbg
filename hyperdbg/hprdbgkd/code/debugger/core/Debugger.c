@@ -785,7 +785,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
             }
             else
             {
@@ -813,7 +813,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
             }
             else
             {
@@ -851,7 +851,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
             }
             else
             {
@@ -879,7 +879,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
             }
             else
             {
@@ -912,7 +912,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
 
                 if (RequestedBuffer != NULL)
                 {
@@ -963,7 +963,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             if (InputFromVmxRoot)
             {
-                PoolManagerFreePool(Action);
+                PoolManagerFreePool((UINT64)Action);
 
                 if (RequestedBuffer != 0)
                 {
@@ -1075,7 +1075,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                       GUEST_REGS *                          Regs)
 {
     DebuggerCheckForCondition *      ConditionFunc;
-    DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail = {0};
     PEPT_HOOKS_CONTEXT               EptContext;
     PLIST_ENTRY                      TempList  = 0;
     PLIST_ENTRY                      TempList2 = 0;
@@ -1436,7 +1436,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
             //
-            if (AsmDebuggerConditionCodeHandler(DbgState->Regs, Context, ConditionFunc) == 0)
+            if (AsmDebuggerConditionCodeHandler(DbgState->Regs, (unsigned long long)Context, ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -1705,20 +1705,20 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(NULL,
-                                     DbgState->Regs,
-                                     EventTriggerDetail->Context,
-                                     Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler((unsigned long long)NULL,
+                                     (unsigned long long)DbgState->Regs,
+                                     (unsigned long long)EventTriggerDetail->Context,
+                                     (unsigned long long)Action->CustomCodeBufferAddress);
     }
     else
     {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress,
-                                     DbgState->Regs,
-                                     EventTriggerDetail->Context,
-                                     Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler((unsigned long long)Action->RequestedBuffer.RequstBufferAddress,
+                                     (unsigned long long)DbgState->Regs,
+                                     (unsigned long long)EventTriggerDetail->Context,
+                                     (unsigned long long)Action->CustomCodeBufferAddress);
     }
 }
 
@@ -1738,6 +1738,8 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                DEBUGGER_EVENT_ACTION *            Action,
                                DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
+    UNREFERENCED_PARAMETER(Action);
+
     if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
@@ -1755,7 +1757,10 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         // The guest is on vmx non-root mode and this is an event
         //
-        VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, EventTriggerDetail, DbgState->Regs, NULL);
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT,
+                        (UINT64)EventTriggerDetail,
+                        DbgState->Regs,
+                        NULL);
     }
 }
 
@@ -1974,8 +1979,8 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 
     while (TargetEventList != TempList->Flink)
     {
-        TempList                     = TempList->Flink;
-        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+        TempList = TempList->Flink;
+        /* PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList); */
 
         //
         // Increase the counter
@@ -2513,7 +2518,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
             }
             else
             {
-                CrsFreePool(CurrentAction->RequestedBuffer.RequstBufferAddress);
+                CrsFreePool((PVOID)CurrentAction->RequestedBuffer.RequstBufferAddress);
             }
         }
 
@@ -2524,7 +2529,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
         //
         if (PoolManagerAllocatedMemory)
         {
-            PoolManagerFreePool(CurrentAction);
+            PoolManagerFreePool((UINT64)CurrentAction);
         }
         else
         {
@@ -2554,8 +2559,6 @@ BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag, BOOLEAN PoolManagerAllocatedMemory)
 {
     PDEBUGGER_EVENT Event;
-    PLIST_ENTRY     TempList  = 0;
-    PLIST_ENTRY     TempList2 = 0;
 
     //
     // First of all, we disable event
@@ -2598,7 +2601,7 @@ DebuggerRemoveEvent(UINT64 Tag, BOOLEAN PoolManagerAllocatedMemory)
     //
     if (PoolManagerAllocatedMemory)
     {
-        PoolManagerFreePool(Event);
+        PoolManagerFreePool((UINT64)Event);
     }
     else
     {

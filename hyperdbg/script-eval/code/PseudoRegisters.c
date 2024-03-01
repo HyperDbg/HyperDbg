@@ -25,11 +25,11 @@ UINT64
 ScriptEnginePseudoRegGetTid()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return GetCurrentThreadId();
+    return (UINT64)GetCurrentThreadId();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return PsGetCurrentThreadId();
+    return (UINT64)PsGetCurrentThreadId();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -42,11 +42,11 @@ UINT64
 ScriptEnginePseudoRegGetCore()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return GetCurrentProcessorNumber();
+    return (UINT64)GetCurrentProcessorNumber();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return KeGetCurrentProcessorNumberEx(NULL);
+    return (UINT64)KeGetCurrentProcessorNumberEx(NULL);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -59,11 +59,11 @@ UINT64
 ScriptEnginePseudoRegGetPid()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return GetCurrentProcessId();
+    return (UINT64)GetCurrentProcessId();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return PsGetCurrentProcessId();
+    return (UINT64)PsGetCurrentProcessId();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -125,11 +125,11 @@ UINT64
 ScriptEnginePseudoRegGetProc()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return NULL;
+    return (UINT64)NULL;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return PsGetCurrentProcess();
+    return (UINT64)PsGetCurrentProcess();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -142,11 +142,11 @@ UINT64
 ScriptEnginePseudoRegGetThread()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return NULL;
+    return (UINT64)NULL;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return PsGetCurrentThread();
+    return (UINT64)PsGetCurrentThread();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -290,11 +290,11 @@ UINT64
 ScriptEnginePseudoRegGetTeb()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return NULL;
+    return (UINT64)NULL;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return PsGetCurrentThreadTeb();
+    return (UINT64)PsGetCurrentThreadTeb();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

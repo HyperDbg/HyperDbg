@@ -21,8 +21,6 @@
 VOID
 KdInitializeKernelDebugger()
 {
-    ULONG CoreCount = KeQueryActiveProcessorCount(0);
-
     //
     // Allocate DPC routine
     //
@@ -818,7 +816,7 @@ KdCloseConnectionAndUnloadDebuggee()
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                           "$",
-                          1,
+                          sizeof(CHAR),
                           TRUE);
 }
 
@@ -1392,7 +1390,7 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = (UINT64)NULL;
 
     //
     // Read cs to have a trace of the execution mode of running application
@@ -1646,8 +1644,6 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 VOID
 KdQueryRflagTrapState()
 {
-    ULONG CoreCount;
-
     //
     // show the number of items
     //
@@ -2493,7 +2489,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // If the address is null, we use the current RSP register
                 //
-                if (CallstackPacket->BaseAddress == NULL)
+                if (CallstackPacket->BaseAddress == (UINT64)NULL)
                 {
                     CallstackPacket->BaseAddress = DbgState->Regs->rsp;
                 }
@@ -2599,7 +2595,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
-                                           (unsigned char *)ReadMemoryPacket,
+                                           (CHAR *)ReadMemoryPacket,
                                            sizeof(DEBUGGER_READ_MEMORY) + ReturnSize);
 
                 break;
@@ -2624,7 +2620,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY,
-                                           (unsigned char *)EditMemoryPacket,
+                                           (CHAR *)EditMemoryPacket,
                                            sizeof(DEBUGGER_EDIT_MEMORY));
 
                 break;
@@ -3016,7 +3012,7 @@ KdIsGuestOnUsermode32Bit()
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = (UINT64)NULL;
 
     //
     // Read guest's cs selector
@@ -3150,7 +3146,7 @@ StartAgain:
             //
             // Set the length to notify debuggee
             //
-            ExitInstructionLength = CheckAddressMaximumInstructionLength(LastVmexitRip);
+            ExitInstructionLength = CheckAddressMaximumInstructionLength((PVOID)LastVmexitRip);
         }
 
         //
