@@ -870,7 +870,7 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     // Find the thread debugging detail structure
     //
     ProcessDebuggingDetail =
-        AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
+        AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     //
     // Check if we find the debugging detail of the thread or not

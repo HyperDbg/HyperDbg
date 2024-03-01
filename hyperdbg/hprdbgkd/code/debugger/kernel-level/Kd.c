@@ -455,8 +455,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                 //
                 if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
                 {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == (UINT32)PsGetCurrentProcessId() &&
-                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == (UINT32)PsGetCurrentThreadId())
+                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) &&
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId()))
                     {
                         //
                         // It's a step caused by a debug register breakpoint step-over
@@ -1499,7 +1499,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Unset the trap flag on the next VM-exit
     //
-    BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId());
+    BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
 }
 
 /**
@@ -1533,8 +1533,8 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         // in other processes
         //
         g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = (UINT32)PsGetCurrentProcessId();
-        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = (UINT32)PsGetCurrentThreadId();
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
 
         //
         // Add hardware debug breakpoints on all core on vm-entry
@@ -1763,7 +1763,7 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    if (!BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId()))
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
     {
         //
         // Adjust the flags for showing there was error

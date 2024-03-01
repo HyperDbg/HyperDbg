@@ -71,7 +71,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // Enable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE, PVOID_TO_BOOLEAN(Context));
 
         break;
     }
@@ -80,7 +80,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // Enable alert for thread changes
         //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, PVOID_TO_BOOLEAN(Context));
 
         break;
     }

@@ -55,7 +55,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = (UINT32)PsGetCurrentProcessId();
+            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
         }
         else
         {
@@ -416,7 +416,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = (UINT32)PsGetCurrentProcessId();
+            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
         }
         else
         {
@@ -520,7 +520,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = (UINT32)PsGetCurrentProcessId();
+            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
         }
         else
         {

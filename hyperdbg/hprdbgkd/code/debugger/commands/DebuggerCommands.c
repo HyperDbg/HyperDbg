@@ -410,12 +410,8 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             return STATUS_SUCCESS;
         }
     }
-    else
-    {
-        *ReturnSize = 0;
-        return STATUS_UNSUCCESSFUL;
-    }
 
+    *ReturnSize = 0;
     return STATUS_UNSUCCESSFUL;
 }
 
@@ -461,7 +457,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
+        if (EditMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
         {
             //
             // It's an invalid address in current process
@@ -707,7 +703,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         }
         else
         {
-            if (SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId())
+            if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
             {
                 CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
             }
@@ -882,7 +878,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Restore the previous memory layout (cr3), if the user specified a
         // special process
         //
-        if (IsDebuggeePaused || SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId())
+        if (IsDebuggeePaused || SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             SwitchToPreviousProcess(CurrentProcessCr3);
         }
@@ -1057,7 +1053,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)EndAddress);
         }
-        else if (SearchMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId())
+        else if (SearchMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             SearchMemRequest->Address = PhysicalAddressToVirtualAddress(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddress(EndAddress);
@@ -1115,7 +1111,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Check if process id is valid or not
     //
-    if (SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId() && !CommonIsProcessExist(SearchMemRequest->ProcessId))
+    if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()) && !CommonIsProcessExist(SearchMemRequest->ProcessId))
     {
         return STATUS_INVALID_PARAMETER;
     }

@@ -959,7 +959,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         // Check the buffers of run script
         //
         if (InTheCaseOfRunScript != NULL &&
-            (InTheCaseOfRunScript->ScriptBuffer == (UINT64)NULL || InTheCaseOfRunScript->ScriptLength == (UINT32)NULL))
+            (InTheCaseOfRunScript->ScriptBuffer == NULL_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO))
         {
             //
             // There was an error
@@ -1143,7 +1143,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check if this event is for this process or not
         //
-        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != (UINT32)PsGetCurrentProcessId())
+        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             //
             // This event is not related to either our process or all processes
@@ -1376,9 +1376,9 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE)
             {
                 if ((CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
-                     Context == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE) ||
+                     Context == (PVOID)DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE) ||
                     (CurrentEvent->Options.OptionalParam1 == DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE &&
-                     Context == DEBUGGER_EVENT_MODE_TYPE_USER_MODE))
+                     Context == (PVOID)DEBUGGER_EVENT_MODE_TYPE_USER_MODE))
                 {
                     continue;
                 }

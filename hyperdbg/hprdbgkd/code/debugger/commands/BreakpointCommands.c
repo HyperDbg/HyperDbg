@@ -246,8 +246,8 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     // and also it indicates whether the debugger itself set this trap
     // flag or it's not supposed to be set by the debugger ***
     //
-    if (BreakpointCheckAndPerformActionsOnTrapFlags((UINT32)PsGetCurrentProcessId(),
-                                                    (UINT32)PsGetCurrentThreadId(),
+    if (BreakpointCheckAndPerformActionsOnTrapFlags(HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
                                                     &TrapSetByDebugger))
     {
         if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
@@ -566,8 +566,8 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             //
             // Check constraints
             //
-            if ((CurrentBreakpointDesc->Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES || CurrentBreakpointDesc->Pid == (UINT32)PsGetCurrentProcessId()) &&
-                (CurrentBreakpointDesc->Tid == DEBUGGEE_BP_APPLY_TO_ALL_THREADS || CurrentBreakpointDesc->Tid == (UINT32)PsGetCurrentThreadId()) &&
+            if ((CurrentBreakpointDesc->Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES || CurrentBreakpointDesc->Pid == HANDLE_TO_UINT32(PsGetCurrentProcessId())) &&
+                (CurrentBreakpointDesc->Tid == DEBUGGEE_BP_APPLY_TO_ALL_THREADS || CurrentBreakpointDesc->Tid == HANDLE_TO_UINT32(PsGetCurrentThreadId())) &&
                 (CurrentBreakpointDesc->Core == DEBUGGEE_BP_APPLY_TO_ALL_CORES || CurrentBreakpointDesc->Core == DbgState->CoreId))
             {
                 //
@@ -589,7 +589,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     //
                     // check callbacks
                     //
-                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, (UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId());
+                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
                 }
 
                 //

@@ -443,7 +443,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     VmFuncSuppressRipIncrement(DbgState->CoreId);
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     //
     // Check to only break on the target process id and thread id and when
@@ -514,7 +514,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Indicate that we should set the trap flag to the FALSE next time on
                 // the same process/thread
                 //
-                if (!BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId()))
+                if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
                 {
                     LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
                                "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
@@ -647,7 +647,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
         return FALSE;
     }
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     if (!ProcessDebuggingDetail)
     {
@@ -1037,7 +1037,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     //
     // Check if process is valid or if thread is in intercepting phase
