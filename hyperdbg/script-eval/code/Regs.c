@@ -934,7 +934,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
-    case INVALID:
+    default:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading register");

@@ -66,7 +66,11 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
-        // TODO: Add all the register
+    default:
+#ifdef SCRIPT_ENGINE_USER_MODE
+        ShowMessages("unknown pseudo-register");
+#endif // SCRIPT_ENGINE_USER_MODE
+        return INVALID;
     }
 }
 
@@ -130,6 +134,17 @@ GetValue(PGUEST_REGS                   GuestRegs,
             return ((UINT64)&VariablesList->TempList[Symbol->Value]);
         else
             return VariablesList->TempList[Symbol->Value];
+
+    default:
+#ifdef SCRIPT_ENGINE_USER_MODE
+        ShowMessages("err, invalid value requested");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        LogInfo("Err, invalid value requested");
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        return NULL_ZERO;
     }
 }
 

@@ -606,7 +606,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         }
 
         TempSize = TempSize * 2;
-        memcpy(&ModulesList[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
+        memcpy(&ModulesList[CurrentSavedModules].FilePath, (const void *)Entry->FullDllName.Buffer, TempSize);
 
         CurrentSavedModules++;
     }

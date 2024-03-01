@@ -75,8 +75,8 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define SYMBOL_INVALID 9
 #define SYMBOL_WSTRING_TYPE 10
-#define INVALID -999
-#define LALR_ACCEPT 999
+#define INVALID 0xffffffff
+#define LALR_ACCEPT 0x7fffffff
 
 \n\n""")
 

@@ -158,7 +158,7 @@ Abstract:
 #define UART_DM_IMR_TXLEV     0x001 // TX Level or below met
 #define UART_DM_IMR_NONE      0x000 // No interrupt
 
-#define UART_DM_MR1_DEFAULT 0       // No RFR or CTS
+#define UART_DM_MR1_DEFAULT 0 // No RFR or CTS
 #define UART_DM_MR2_DEFAULT (UART_DM_MR2_8BPC | \
                              UART_DM_MR2_1SB |  \
                              UART_DM_MR2_NOPAR)
@@ -229,9 +229,9 @@ Abstract:
 #define UART_DM_CH_CMD(a, v)           \
     UART_DM_WRITE_REG((a),             \
                       UART_DM_CR_ADDR, \
-                      ((((v) >> 4) & 0x1) << 11) | (((v)&0xF) << 4))
+                      ((((v) >> 4) & 0x1) << 11) | (((v) & 0xF) << 4))
 #define UART_DM_GENERAL_CMD(a, v) \
-    UART_DM_WRITE_REG((a), UART_DM_CR_ADDR, ((v)&0x7) << 8)
+    UART_DM_WRITE_REG((a), UART_DM_CR_ADDR, ((v) & 0x7) << 8)
 
 // ----------------------------------------------- Internal Function Prototypes
 
@@ -442,6 +442,8 @@ Return Value:
     static UINT32 Snap   = 0;
 
     ULONG limitcount;
+
+    *Byte = 0;
 
     if ((Port == NULL) || (Port->Address == NULL))
     {
