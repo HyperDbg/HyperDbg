@@ -303,7 +303,7 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
 
         for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
-            if (ThreadHolder->Threads[i].ThreadId == NULL)
+            if (ThreadHolder->Threads[i].ThreadId == (UINT32)NULL)
             {
                 //
                 // We find a null thread place, let's return it's structure

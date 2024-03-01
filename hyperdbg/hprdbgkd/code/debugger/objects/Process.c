@@ -98,7 +98,7 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     {
         if (CheckAccessValidityAndSafety((UINT64)EProcess, sizeof(BYTE)))
         {
-            g_ProcessSwitch.Process = (UINT64)EProcess;
+            g_ProcessSwitch.Process = (PVOID)EProcess;
         }
         else
         {
@@ -120,7 +120,7 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
                                     DEBUGGER_HALTED_CORE_TASK_SET_PROCESS_INTERCEPTION,
                                     TRUE,
                                     TRUE,
-                                    IsSwitchByClockIntrrupt);
+                                    (PVOID)IsSwitchByClockIntrrupt);
 
     return TRUE;
 }
@@ -547,7 +547,7 @@ ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_
         //
         // Perform the process switch
         //
-        if (!ProcessSwitch(DbgState, PidRequest->ProcessId, PidRequest->Process, PidRequest->IsSwitchByClkIntr))
+        if (!ProcessSwitch(DbgState, PidRequest->ProcessId, (PEPROCESS)PidRequest->Process, PidRequest->IsSwitchByClkIntr))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;

@@ -60,9 +60,9 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,            // Dpc
-                    Routine,        // DeferredRoutine
-                    DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,                         // Dpc
+                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+                    DeferredContext              // DeferredContext
     );
 
     //

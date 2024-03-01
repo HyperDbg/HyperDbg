@@ -173,7 +173,7 @@ typedef enum _DEBUGGER_PREALLOC_COMMAND_TYPE
 typedef struct _DEBUGGER_PREALLOC_COMMAND
 {
     DEBUGGER_PREALLOC_COMMAND_TYPE Type;
-    UINT64                         Count;
+    UINT32                         Count;
     UINT32                         KernelStatus;
 
 } DEBUGGER_PREALLOC_COMMAND, *PDEBUGGER_PREALLOC_COMMAND;

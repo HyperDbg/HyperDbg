@@ -389,6 +389,7 @@ ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, U
 {
     UNREFERENCED_PARAMETER(Tag);
     UNREFERENCED_PARAMETER(ImmediateMessagePassing);
+    UNREFERENCED_PARAMETER(Value);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 

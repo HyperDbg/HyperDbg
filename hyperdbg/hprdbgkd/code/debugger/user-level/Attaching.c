@@ -115,7 +115,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
 
     if (!ProcessDebuggingDetail)
     {
-        return NULL;
+        return (UINT64)NULL;
     }
 
     //
@@ -140,7 +140,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
     {
         CrsFreePool(ProcessDebuggingDetail);
-        return NULL;
+        return (UINT64)NULL;
     }
 
     //
@@ -559,7 +559,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -574,7 +574,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
         //
         // Fill the memory with nops
         //
-        memset(ReservedBuffAddress, 0x90, PAGE_SIZE);
+        memset((void *)ReservedBuffAddress, 0x90, PAGE_SIZE);
 
         //
         // Set jmps to form a loop (little endians)
@@ -603,7 +603,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
     {
         KeUnstackDetachProcess(&State);
 
-        return NULL;
+        return FALSE;
     }
 
     return TRUE;
@@ -822,7 +822,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         return FALSE;
     }
 
-    if (PsLookupProcessByProcessId(AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -850,7 +850,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // check whether the target process is 32-bit or 64-bit
     //
-    if (!UserAccessIsWow64Process(AttachRequest->ProcessId, &Is32Bit))
+    if (!UserAccessIsWow64Process((HANDLE)AttachRequest->ProcessId, &Is32Bit))
     {
         //
         // Unable to detect whether it's 32-bit or 64-bit
@@ -1103,6 +1103,10 @@ AttachingCheckUnhandledEptViolation(UINT32 CoreId,
                                     UINT64 ViolationQualification,
                                     UINT64 GuestPhysicalAddr)
 {
+    UNREFERENCED_PARAMETER(CoreId);
+    UNREFERENCED_PARAMETER(ViolationQualification);
+    UNREFERENCED_PARAMETER(GuestPhysicalAddr);
+
     //
     // Not handled here
     //
@@ -1331,7 +1335,7 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
     // Free the reserved memory in the target process
     //
     if (!MemoryMapperFreeMemoryOnTargetProcess(DetachRequest->ProcessId,
-                                               ProcessDebuggingDetail->UsermodeReservedBuffer))
+                                               (PVOID)ProcessDebuggingDetail->UsermodeReservedBuffer))
     {
         //
         // Still, we continue, no need to abort the operation

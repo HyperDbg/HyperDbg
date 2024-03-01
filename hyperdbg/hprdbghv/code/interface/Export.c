@@ -683,7 +683,7 @@ NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam1,
                 unsigned long long OptionalParam2,
-                long long          OptionalParam3)
+                unsigned long long OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }

@@ -35,7 +35,7 @@ ScriptEngineWrapperGetInstructionPointer()
         //
         // Otherwise $ip doesn't mean anything
         //
-        return NULL;
+        return (UINT64)NULL;
     }
 }
 

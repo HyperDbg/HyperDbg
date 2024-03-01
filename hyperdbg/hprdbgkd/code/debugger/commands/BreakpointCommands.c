@@ -47,7 +47,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
                                            ProcThrdInfo.asUInt);
@@ -111,7 +111,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         // Remove the thread/process from the list
         // We're sure the Result is TRUE
         //
-        InsertionSortDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+        InsertionSortDeleteItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                 &g_TrapFlagState.NumberOfItems,
                                 Index);
 
@@ -192,7 +192,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
                                            ProcThrdInfo.asUInt);
@@ -211,7 +211,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Insert the thread into the list as the item is not already present
         //
-        SuccessfullyStored = InsertionSortInsertItem(&g_TrapFlagState.ThreadInformation[0],
+        SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                                      &g_TrapFlagState.NumberOfItems,
                                                      MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
                                                      ProcThrdInfo.asUInt);
@@ -1000,7 +1000,9 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(BpDescriptorArg->Address, IsAddress32Bit);
+    BreakpointDescriptor->InstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+        (PVOID)BpDescriptorArg->Address,
+        IsAddress32Bit);
 
     //
     // Breakpoints are enabled by default

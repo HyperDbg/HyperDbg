@@ -43,7 +43,7 @@ HaltedCoreTaskTest(PROCESSOR_DEBUGGING_STATE * DbgState, PVOID Context)
  */
 VOID
 HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
-                            UINT32                      TargetTask,
+                            UINT64                      TargetTask,
                             PVOID                       Context)
 {
     switch (TargetTask)
@@ -319,7 +319,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
  */
 VOID
 HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
-                                UINT32  TargetTask,
+                                UINT64  TargetTask,
                                 BOOLEAN LockAgainAfterTask,
                                 PVOID   Context)
 {
@@ -354,7 +354,7 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
  */
 VOID
 HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
-                              UINT32  TargetTask,
+                              UINT64  TargetTask,
                               BOOLEAN LockAgainAfterTask,
                               PVOID   Context)
 {
@@ -397,7 +397,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
  */
 BOOLEAN
 HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                UINT32                      TargetTask,
+                                UINT64                      TargetTask,
                                 BOOLEAN                     LockAgainAfterTask,
                                 BOOLEAN                     Synchronize,
                                 PVOID                       Context)

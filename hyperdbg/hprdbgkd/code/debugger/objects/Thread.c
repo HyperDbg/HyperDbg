@@ -103,7 +103,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
                                     DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION,
                                     TRUE,
                                     TRUE,
-                                    CheckByClockInterrupt);
+                                    (PVOID)CheckByClockInterrupt);
 
     return TRUE;
 }
@@ -352,7 +352,7 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         //
         if (!ThreadSwitch(DbgState,
                           TidRequest->ThreadId,
-                          TidRequest->Thread,
+                          (PETHREAD)TidRequest->Thread,
                           TidRequest->CheckByClockInterrupt))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;

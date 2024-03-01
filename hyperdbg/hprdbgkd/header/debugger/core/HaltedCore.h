@@ -192,18 +192,18 @@
 
 BOOLEAN
 HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                UINT32                      TargetTask,
+                                UINT64                      TargetTask,
                                 BOOLEAN                     LockAgainAfterTask,
                                 BOOLEAN                     Synchronize,
                                 PVOID                       Context);
 
 VOID
 HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
-                              UINT32  TargetTask,
+                              UINT64  TargetTask,
                               BOOLEAN LockAgainAfterTask,
                               PVOID   Context);
 
 VOID
 HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
-                            UINT32                      TargetTask,
+                            UINT64                      TargetTask,
                             PVOID                       Context);

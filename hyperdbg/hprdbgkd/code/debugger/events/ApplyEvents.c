@@ -385,7 +385,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHookFromVmxRoot(Event->InitOptions.OptionalParam1))
+        if (!ConfigureEptHookFromVmxRoot((PVOID)Event->InitOptions.OptionalParam1))
         {
             //
             // There was an error applying this event, so we're setting
@@ -426,7 +426,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook(Event->InitOptions.OptionalParam1, TempProcessId))
+        if (!ConfigureEptHook((PVOID)Event->InitOptions.OptionalParam1, TempProcessId))
         {
             //
             // There was an error applying this event, so we're setting
@@ -488,7 +488,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         // Invoke the hooker
         //
         if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
-                                          Event->InitOptions.OptionalParam1,
+                                          (PVOID)Event->InitOptions.OptionalParam1,
                                           NULL))
         {
             //
@@ -538,7 +538,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         // Invoke the hooker
         //
         if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
-                               Event->InitOptions.OptionalParam1,
+                               (PVOID)Event->InitOptions.OptionalParam1,
                                NULL,
                                TempProcessId))
         {

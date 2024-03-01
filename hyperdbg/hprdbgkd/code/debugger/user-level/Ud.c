@@ -413,6 +413,8 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
 
 {
     UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(ThreadDebuggingDetails);
+    UNREFERENCED_PARAMETER(EventDetails);
 
     //
     // *** Handle events before pausing ***

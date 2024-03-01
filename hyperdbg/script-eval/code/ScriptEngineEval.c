@@ -217,7 +217,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     ACTION_BUFFER *                ActionDetail,
                     SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
                     SYMBOL_BUFFER *                CodeBuffer,
-                    int *                          Indx,
+                    UINT64 *                       Indx,
                     SYMBOL *                       ErrorOperator)
 {
     PSYMBOL Operator;
@@ -302,7 +302,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEb(SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionEb(SrcVal1, (BYTE)SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 

@@ -21,7 +21,7 @@
 VOID
 TracingPerformInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    DisassemblerShowOneInstructionInVmxRootMode(VmFuncGetLastVmexitRip(DbgState->CoreId), FALSE);
+    DisassemblerShowOneInstructionInVmxRootMode((PVOID)VmFuncGetLastVmexitRip(DbgState->CoreId), FALSE);
 
     DbgState->TracingMode = TRUE;
 

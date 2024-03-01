@@ -24,7 +24,7 @@ IMPORT_EXPORT_VMM NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam1,
                 unsigned long long OptionalParam2,
-                long long          OptionalParam3);
+                unsigned long long OptionalParam3);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);

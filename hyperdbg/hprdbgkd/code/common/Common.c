@@ -25,7 +25,7 @@ CommonIsProcessExist(UINT32 ProcId)
 {
     PEPROCESS TargetEprocess;
 
-    if (PsLookupProcessByProcessId(ProcId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
@@ -195,7 +195,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         CommonUndocumentedNtOpenProcess(
             &ProcessHandle,
             PROCESS_ALL_ACCESS,
-            ProcessId,
+            (HANDLE)ProcessId,
             KernelMode);
 
         if (ProcessHandle == NULL)

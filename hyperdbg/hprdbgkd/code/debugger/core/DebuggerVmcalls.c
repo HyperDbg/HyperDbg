@@ -30,6 +30,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
                       UINT64 OptionalParam2,
                       UINT64 OptionalParam3)
 {
+    UNREFERENCED_PARAMETER(OptionalParam3);
+
     BOOLEAN                     Result   = FALSE;
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
@@ -83,7 +85,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         //
         KdLoggingResponsePacketToDebugger(
             (CHAR *)OptionalParam1,
-            OptionalParam2,
+            (UINT32)OptionalParam2,
             OPERATION_LOG_INFO_MESSAGE);
 
         Result = TRUE;

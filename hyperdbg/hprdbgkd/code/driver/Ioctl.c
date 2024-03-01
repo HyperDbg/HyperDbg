@@ -22,7 +22,6 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PDEBUGGER_EVENT_AND_ACTION_RESULT                       RegBufferResult = (DEBUGGER_EVENT_AND_ACTION_RESULT *)NULL;
     PIO_STACK_LOCATION                                      IrpStack;
     PREGISTER_NOTIFY_BUFFER                                 RegisterEventRequest;
     PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
@@ -897,7 +896,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendUsermodeMessageRequest->Length == NULL || IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
+            if (DebuggerSendUsermodeMessageRequest->Length == (UINT32)NULL ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;
@@ -948,7 +948,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == NULL || IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER + DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
+            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == (UINT32)NULL ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER + DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;

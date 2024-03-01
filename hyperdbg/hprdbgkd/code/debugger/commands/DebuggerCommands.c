@@ -40,7 +40,12 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
 
     if (Size && Address != (UINT64)NULL)
     {
-        if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid, Address, MemType, (PVOID)UserBuffer, Size, ReturnSize))
+        if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid,
+                                                 (PVOID)Address,
+                                                 MemType,
+                                                 (PVOID)UserBuffer,
+                                                 Size,
+                                                 ReturnSize))
         {
             //
             // Reading memory was successful
@@ -73,7 +78,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
                     // for disassembly, so we have to query whether the target process is a
                     // 32-bit process or a 64-bit process
                     //
-                    if (UserAccessIsWow64Process(ReadMemRequest->Pid, &Is32BitProcess))
+                    if (UserAccessIsWow64Process((HANDLE)ReadMemRequest->Pid, &Is32BitProcess))
                     {
                         ReadMemRequest->Is32BitAddress = Is32BitProcess;
                     }
@@ -1049,8 +1054,8 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         if (IsDebuggeePaused)
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress);
-            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)StartAddress);
+            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)EndAddress);
         }
         else if (SearchMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId())
         {
@@ -1059,8 +1064,10 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         }
         else
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressByProcessId(StartAddress, SearchMemRequest->ProcessId);
-            EndAddress                = PhysicalAddressToVirtualAddressByProcessId(EndAddress, SearchMemRequest->ProcessId);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressByProcessId((PVOID)StartAddress,
+                                                                                   SearchMemRequest->ProcessId);
+            EndAddress                = PhysicalAddressToVirtualAddressByProcessId((PVOID)EndAddress,
+                                                                    SearchMemRequest->ProcessId);
         }
 
         //
@@ -1116,7 +1123,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // User-mode buffer is same as SearchMemRequest
     //
-    UsermodeBuffer = SearchMemRequest;
+    UsermodeBuffer = (UINT64 *)SearchMemRequest;
 
     //
     // We store the user-mode data in a seprate variable because

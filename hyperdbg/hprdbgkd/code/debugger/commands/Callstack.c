@@ -107,7 +107,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
             //
             // Check if the target page has NX bit (executable page)
             //
-            AddressToSaveFrames[i].IsExecutable = MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(Value);
+            AddressToSaveFrames[i].IsExecutable = MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess((PVOID)Value);
 
             //
             // Read the memory at the target address

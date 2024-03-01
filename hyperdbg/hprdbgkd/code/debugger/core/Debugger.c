@@ -1436,7 +1436,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
             //
-            if (AsmDebuggerConditionCodeHandler(DbgState->Regs, (unsigned long long)Context, ConditionFunc) == 0)
+            if (AsmDebuggerConditionCodeHandler((unsigned long long)DbgState->Regs, (unsigned long long)Context, ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -1583,15 +1583,15 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = EventTriggerDetail->Context;
+        ActionBuffer.Context                   = (UINT64)EventTriggerDetail->Context;
         ActionBuffer.Tag                       = EventTriggerDetail->Tag;
         ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
-        ActionBuffer.CurrentAction             = Action;
+        ActionBuffer.CurrentAction             = (UINT64)Action;
 
         //
         // Context point to the registers
         //
-        CodeBuffer.Head    = Action->ScriptConfiguration.ScriptBuffer;
+        CodeBuffer.Head    = (PSYMBOL)Action->ScriptConfiguration.ScriptBuffer;
         CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
         CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
     }
@@ -1612,15 +1612,15 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         // Fill the action buffer
         //
-        ActionBuffer.Context                   = EventTriggerDetail->Context;
+        ActionBuffer.Context                   = (UINT64)EventTriggerDetail->Context;
         ActionBuffer.Tag                       = EventTriggerDetail->Tag;
         ActionBuffer.ImmediatelySendTheResults = TRUE;
-        ActionBuffer.CurrentAction             = NULL;
+        ActionBuffer.CurrentAction             = (UINT64)NULL;
 
         //
         // Context point to the registers
         //
-        CodeBuffer.Head    = ((CHAR *)ScriptDetails + sizeof(DEBUGGEE_SCRIPT_PACKET));
+        CodeBuffer.Head    = (SYMBOL *)((CHAR *)ScriptDetails + sizeof(DEBUGGEE_SCRIPT_PACKET));
         CodeBuffer.Size    = ScriptDetails->ScriptBufferSize;
         CodeBuffer.Pointer = ScriptDetails->ScriptBufferPointer;
     }
@@ -1639,7 +1639,7 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     VariablesList.LocalVariablesList  = DbgState->ScriptEngineCoreSpecificLocalVariable;
     VariablesList.TempList            = DbgState->ScriptEngineCoreSpecificTempVariable;
 
-    for (unsigned int i = 0; i < CodeBuffer.Pointer;)
+    for (UINT64 i = 0; i < CodeBuffer.Pointer;)
     {
         //
         // If has error, show error message and abort.
@@ -1759,8 +1759,8 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT,
                         (UINT64)EventTriggerDetail,
-                        DbgState->Regs,
-                        NULL);
+                        (UINT64)DbgState->Regs,
+                        (UINT64)NULL);
     }
 }
 

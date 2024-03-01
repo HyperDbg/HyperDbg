@@ -223,7 +223,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
     {
         ProcessPeb = ProcessBasicInfo.PebBaseAddress;
 
-        *Peb = ProcessPeb;
+        *Peb = (UINT64)ProcessPeb;
         return TRUE;
     }
 
@@ -271,7 +271,7 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
 
         MemoryMapperReadMemorySafeOnTargetProcess((UINT64)EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
 
-        if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
+        if (Entry.DllBase == (ULONG)NULL || Entry.EntryPoint == (ULONG)NULL)
         {
             return FALSE;
         }
@@ -781,7 +781,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
     PEPROCESS SourceProcess;
     BOOLEAN   Is32Bit;
 
-    if (PsLookupProcessByProcessId(ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -795,7 +795,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
     //
     // check whether the target process is 32-bit or 64-bit
     //
-    if (!UserAccessIsWow64Process(ProcessLoadedModuleRequest->ProcessId, &Is32Bit))
+    if (!UserAccessIsWow64Process((HANDLE)ProcessLoadedModuleRequest->ProcessId, &Is32Bit))
     {
         //
         // Unable to detect whether it's 32-bit or 64-bit
@@ -817,7 +817,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
         if (UserAccessPrintLoadedModulesX86(SourceProcess,
                                             ProcessLoadedModuleRequest->OnlyCountModules,
                                             &ProcessLoadedModuleRequest->ModulesCount,
-                                            (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
+                                            (USERMODE_LOADED_MODULE_SYMBOLS *)((UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS)),
                                             BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
             ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
@@ -832,7 +832,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
         if (UserAccessPrintLoadedModulesX64(SourceProcess,
                                             ProcessLoadedModuleRequest->OnlyCountModules,
                                             &ProcessLoadedModuleRequest->ModulesCount,
-                                            (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
+                                            (USERMODE_LOADED_MODULE_SYMBOLS *)((UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS)),
                                             BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
             ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

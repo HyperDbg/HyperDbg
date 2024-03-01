@@ -331,11 +331,11 @@ ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
     //
     // $buffer doesn't mean anything in user-mode
     //
-    return NULL;
+    return (UINT64)NULL;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return ScriptEngineWrapperGetAddressOfReservedBuffer(CorrespondingAction);
+    return ScriptEngineWrapperGetAddressOfReservedBuffer((DEBUGGER_EVENT_ACTION *)CorrespondingAction);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -349,7 +349,7 @@ UINT64
 ScriptEnginePseudoRegGetEventTag(PACTION_BUFFER ActionBuffer)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return NULL;
+    return (UINT64)NULL;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE

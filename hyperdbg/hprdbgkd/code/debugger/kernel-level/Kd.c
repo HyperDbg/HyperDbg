@@ -890,7 +890,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
     KdResponsePacketToDebugger(
         DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS,
-        &FormatsPacket,
+        (CHAR *)&FormatsPacket,
         sizeof(DEBUGGEE_FORMATS_PACKET));
 }
 
@@ -1844,7 +1844,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
                                         DEBUGGER_HALTED_CORE_TASK_TEST,
                                         TRUE,
                                         TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE,
-                                        0x55);
+                                        (PVOID)0x55);
 
         TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -1870,7 +1870,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
             HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context,
                                           DEBUGGER_HALTED_CORE_TASK_TEST,
                                           TRUE,
-                                          0x85);
+                                          (PVOID)0x85);
 
             TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         }
@@ -2447,7 +2447,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE,
-                                           ChangeCorePacket,
+                                           (CHAR *)ChangeCorePacket,
                                            sizeof(DEBUGGEE_CHANGE_CORE_PACKET));
 
                 //
@@ -2475,7 +2475,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
-                                           FlushPacket,
+                                           (CHAR *)FlushPacket,
                                            sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
 
                 break;
@@ -2514,7 +2514,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK,
-                                           CallstackPacket,
+                                           (CHAR *)CallstackPacket,
                                            CallstackPacket->BufferSize);
 
                 break;
@@ -2533,7 +2533,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY,
-                                           TestQueryPacket,
+                                           (CHAR *)TestQueryPacket,
                                            sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER));
 
                 break;
@@ -2566,7 +2566,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
-                                           ReadRegisterPacket,
+                                           (CHAR *)ReadRegisterPacket,
                                            SizeToSend);
 
                 break;
@@ -2639,7 +2639,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
-                                           ChangeProcessPacket,
+                                           (CHAR *)ChangeProcessPacket,
                                            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET));
 
                 break;
@@ -2658,7 +2658,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD,
-                                           ChangeThreadPacket,
+                                           (CHAR *)ChangeThreadPacket,
                                            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET));
 
                 break;
@@ -2693,7 +2693,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT,
-                                           ScriptPacket,
+                                           (CHAR *)ScriptPacket,
                                            sizeof(DEBUGGEE_SCRIPT_PACKET));
 
                 break;
@@ -2750,7 +2750,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
-                                           &SearchPacketResult,
+                                           (CHAR *)&SearchPacketResult,
                                            sizeof(DEBUGGEE_RESULT_OF_SEARCH_PACKET));
 
                 break;
@@ -2777,7 +2777,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
-                                               &DebuggerEventAndActionResult,
+                                               (CHAR *)&DebuggerEventAndActionResult,
                                                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
                 }
 
@@ -2805,7 +2805,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
-                                               &DebuggerEventAndActionResult,
+                                               (CHAR *)&DebuggerEventAndActionResult,
                                                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
                 }
 
@@ -2833,7 +2833,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
-                                               QueryAndModifyEventPacket,
+                                               (CHAR *)QueryAndModifyEventPacket,
                                                sizeof(DEBUGGER_MODIFY_EVENTS));
                 }
 
@@ -2853,7 +2853,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_STATE,
-                                           ShortCircuitingEventPacket,
+                                           (CHAR *)ShortCircuitingEventPacket,
                                            sizeof(DEBUGGER_SHORT_CIRCUITING_EVENT));
 
                 break;
@@ -2872,7 +2872,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
-                                           BpPacket,
+                                           (CHAR *)BpPacket,
                                            sizeof(DEBUGGEE_BP_PACKET));
 
                 break;
@@ -2891,7 +2891,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
-                                           PtePacket,
+                                           (CHAR *)PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
 
                 break;
@@ -2910,7 +2910,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BRINGING_PAGES_IN,
-                                           PageinPacket,
+                                           (CHAR *)PageinPacket,
                                            sizeof(DEBUGGER_PAGE_IN_REQUEST));
 
                 break;
@@ -2930,7 +2930,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,
-                                           Va2paPa2vaPacket,
+                                           (CHAR *)Va2paPa2vaPacket,
                                            sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS));
 
                 break;
@@ -2949,7 +2949,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
-                                           BpListOrModifyPacket,
+                                           (CHAR *)BpListOrModifyPacket,
                                            sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET));
 
                 break;
@@ -3167,7 +3167,7 @@ StartAgain:
         //
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
-                                   &PausePacket,
+                                   (CHAR *)&PausePacket,
                                    sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //
