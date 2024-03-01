@@ -762,6 +762,9 @@ class LL1Parser:
             j = 0
             for Terminal in self.TerminalList:
                 if Terminal in self.PredictDict[RuleId]:
+                    if i ==34 and j ==3:
+                        dccc=3
+
                     if self.ParseTable[i][j] == self.INVALID:
                         self.ParseTable[i][j] = RuleId
 
