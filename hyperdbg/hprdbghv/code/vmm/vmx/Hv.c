@@ -1214,12 +1214,12 @@ HvGetInterruptibilityState()
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-HvClearSteppingBits(UINT32 Interruptibility)
+UINT64
+HvClearSteppingBits(UINT64 Interruptibility)
 {
-    UINT32 InterruptibilityState = Interruptibility;
+    UINT64 InterruptibilityState = Interruptibility;
 
     InterruptibilityState &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
 

@@ -87,12 +87,12 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
     //
     // Call wrapper for ExAllocatePool2
     //
-    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,               // Tag1 = r14
-                                                            2,               // Tag2 = r15
-                                                            ExAllocatePool2, // Target function
-                                                            NonPagedPool,    // PoolType
-                                                            PAGE_SIZE,       // NumberOfBytes
-                                                            POOLTAG,         // Tag
+    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,                      // Tag1 = r14
+                                                            2,                      // Tag2 = r15
+                                                            (PVOID)ExAllocatePool2, // Target function
+                                                            NonPagedPool,           // PoolType
+                                                            PAGE_SIZE,              // NumberOfBytes
+                                                            POOLTAG,                // Tag
                                                             (UINT64)NULL);
 
     if (TempPool != (UINT64)NULL)

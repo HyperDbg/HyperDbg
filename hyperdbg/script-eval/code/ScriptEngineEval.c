@@ -273,7 +273,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEd(SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionEd(SrcVal1, (DWORD)SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -457,7 +457,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionEventInjectErrorCode(SrcVal2, SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionEventInjectErrorCode((UINT32)SrcVal2, (UINT32)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -490,7 +490,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -512,7 +512,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -534,7 +534,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        ScriptEngineFunctionEventInject(SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionEventInject((UINT32)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -1824,7 +1824,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        PSYMBOL Src2 = NULL;
+        Src2 = NULL;
 
         if (Src1->Value > 0)
         {

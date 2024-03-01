@@ -369,7 +369,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 BOOLEAN
 BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE TargetMem = (BYTE)NULL;
+    BYTE TargetMem = NULL_ZERO;
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -760,7 +760,7 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
 BOOLEAN
 BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE PreviousByte   = (BYTE)NULL;
+    BYTE PreviousByte   = NULL_ZERO;
     BYTE BreakpointByte = 0xcc; // int 3
 
     //
@@ -1000,7 +1000,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+    BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
         (PVOID)BpDescriptorArg->Address,
         IsAddress32Bit);
 

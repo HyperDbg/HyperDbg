@@ -127,7 +127,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         // Alloate UNICODE_STRING
         //
         ProcessImageName->Length        = 0;
-        ProcessImageName->MaximumLength = SizeOfImageNameToBeAllocated;
+        ProcessImageName->MaximumLength = (USHORT)SizeOfImageNameToBeAllocated;
         ProcessImageName->Buffer        = (PWSTR)CrsAllocateZeroedNonPagedPool(SizeOfImageNameToBeAllocated);
 
         if (ProcessImageName->Buffer == NULL)
@@ -271,7 +271,7 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB    PebAddress,
 
         MemoryMapperReadMemorySafeOnTargetProcess((UINT64)EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
 
-        if (Entry.DllBase == (ULONG)NULL || Entry.EntryPoint == (ULONG)NULL)
+        if (Entry.DllBase == NULL_ZERO || Entry.EntryPoint == NULL_ZERO)
         {
             return FALSE;
         }

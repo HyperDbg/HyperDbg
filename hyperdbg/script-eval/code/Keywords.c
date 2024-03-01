@@ -60,7 +60,7 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = (QWORD)NULL;
+    QWORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -68,7 +68,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return (WORD)NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -94,7 +94,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = (QWORD)NULL;
+    QWORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -102,7 +102,7 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return (WORD)NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -128,7 +128,7 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 BYTE
 ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 {
-    BYTE Result = (BYTE)NULL;
+    BYTE Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -136,7 +136,7 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return (BYTE)NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -162,7 +162,7 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 DWORD
 ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 {
-    DWORD Result = (DWORD)NULL;
+    DWORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -170,7 +170,7 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return (DWORD)NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -196,7 +196,7 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 {
-    WORD Result = (WORD)NULL;
+    WORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -204,7 +204,7 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return (WORD)NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE

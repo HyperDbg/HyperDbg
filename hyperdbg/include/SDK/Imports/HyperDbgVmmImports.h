@@ -173,8 +173,8 @@ VmFuncGetRip();
 IMPORT_EXPORT_VMM UINT64
 VmFuncGetInterruptibilityState();
 
-IMPORT_EXPORT_VMM UINT32
-VmFuncClearSteppingBits(UINT32 Interruptibility);
+IMPORT_EXPORT_VMM UINT64
+VmFuncClearSteppingBits(UINT64 Interruptibility);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);

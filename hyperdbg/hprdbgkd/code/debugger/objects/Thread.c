@@ -63,13 +63,13 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Initialized with NULL
     //
-    g_ThreadSwitch.Thread   = (UINT64)NULL;
-    g_ThreadSwitch.ThreadId = (UINT32)NULL;
+    g_ThreadSwitch.Thread   = NULL_ZERO;
+    g_ThreadSwitch.ThreadId = NULL_ZERO;
 
     //
     // Check to avoid invalid switch
     //
-    if (ThreadId == (UINT32)NULL && EThread == (PETHREAD)NULL)
+    if (ThreadId == NULL_ZERO && EThread == NULL_ZERO)
     {
         return FALSE;
     }
@@ -91,7 +91,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
             return FALSE;
         }
     }
-    else if (ThreadId != (UINT32)NULL)
+    else if (ThreadId != NULL_ZERO)
     {
         g_ThreadSwitch.ThreadId = ThreadId;
     }
@@ -153,7 +153,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS)
     {
-        MaximumBufferCount = ListSaveBuffSize / sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY);
+        MaximumBufferCount = (UINT32)(ListSaveBuffSize / sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY));
     }
 
     UINT32 ThreadListHeadOffset       = ThreadListSymbolInfo->ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
@@ -165,11 +165,11 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Validate params
     //
-    if (ThreadListHeadOffset == (UINT32)NULL ||
-        ThreadListEntryOffset == (UINT32)NULL ||
-        CidOffset == (UINT32)NULL ||
-        ActiveProcessLinksOffset == (UINT32)NULL ||
-        PsActiveProcessHeadAddress == (UINT64)NULL)
+    if (ThreadListHeadOffset == NULL_ZERO ||
+        ThreadListEntryOffset == NULL_ZERO ||
+        CidOffset == NULL_ZERO ||
+        ActiveProcessLinksOffset == NULL_ZERO ||
+        PsActiveProcessHeadAddress == NULL_ZERO)
     {
         return FALSE;
     }
@@ -177,7 +177,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Set the target process
     //
-    if (ThreadListSymbolInfo->Process == (UINT64)NULL)
+    if (ThreadListSymbolInfo->Process == NULL_ZERO)
     {
         //
         // Means that it's for the current process
@@ -218,7 +218,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         Log("PROCESS\t%llx\tIMAGE\t%s\n",
             ThreadListSymbolInfo->Process,
-            CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process));
+            CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process));
     }
 
     //
@@ -281,7 +281,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             SavingEntries[EnumerationCount - 1].Ethread   = Thread;
 
             RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
-                          CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process),
+                          CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process),
                           15);
 
             break;

@@ -419,7 +419,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Apply the task to all cores except current core
     //
-    for (size_t i = 0; i < CoreCount; i++)
+    for (UINT32 i = 0; i < CoreCount; i++)
     {
         if (DbgState->CoreId != i)
         {

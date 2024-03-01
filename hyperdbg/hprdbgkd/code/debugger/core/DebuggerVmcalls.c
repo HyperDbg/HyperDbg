@@ -97,7 +97,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // Cast the buffer received to perform sending buffer and possibly
         // halt the debuggee
         //
-        PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = OptionalParam1;
+        PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = (DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER *)OptionalParam1;
 
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DebuggeeBufferRequest->RequestedAction,

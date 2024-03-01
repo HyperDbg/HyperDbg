@@ -127,7 +127,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, PSIZE_T ReturnSize)
+DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, UINT32 * ReturnSize)
 {
     UINT32                    Pid;
     UINT32                    Size;
@@ -324,7 +324,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Execute it on a single core
             //
-            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, DpcRoutinePerformWriteMsr, NULL);
+            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, (PVOID)DpcRoutinePerformWriteMsr, NULL);
 
             *ReturnSize = 0;
             return Status;

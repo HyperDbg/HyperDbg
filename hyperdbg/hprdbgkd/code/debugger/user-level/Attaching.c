@@ -1364,14 +1364,14 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetail;
 
-    if (SwitchRequest->ProcessId != (UINT32)NULL)
+    if (SwitchRequest->ProcessId != NULL_ZERO)
     {
         //
         // Switch by process id
         //
         ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(SwitchRequest->ProcessId);
     }
-    else if (SwitchRequest->ThreadId != (UINT32)NULL)
+    else if (SwitchRequest->ThreadId != NULL_ZERO)
     {
         //
         // Switch by thread id
@@ -1399,7 +1399,7 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     //
     // Set the IsPaused field
     //
-    if (SwitchRequest->ThreadId != (UINT32)NULL)
+    if (SwitchRequest->ThreadId != NULL_ZERO)
     {
         //
         // Find the thread's state

@@ -372,7 +372,7 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
     //
     if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS)
     {
-        MaximumBufferCount = ListSaveBuffSize / sizeof(DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY);
+        MaximumBufferCount = (UINT32)(ListSaveBuffSize / sizeof(DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY));
     }
 
     //
@@ -386,10 +386,10 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
     //
     // Dirty validation of parameters
     //
-    if (ActiveProcessHead == (UINT64)NULL ||
-        ImageFileNameOffset == (ULONG)NULL ||
-        UniquePidOffset == (ULONG)NULL ||
-        ActiveProcessLinksOffset == (ULONG)NULL)
+    if (ActiveProcessHead == (UINT64)NULL_ZERO ||
+        ImageFileNameOffset == (ULONG)NULL_ZERO ||
+        UniquePidOffset == (ULONG)NULL_ZERO ||
+        ActiveProcessLinksOffset == (ULONG)NULL_ZERO)
     {
         return FALSE;
     }

@@ -446,7 +446,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
 {
     DEBUGGEE_UD_PAUSED_PACKET           PausePacket;
     ULONG                               ExitInstructionLength   = 0;
-    UINT64                              SizeOfSafeBufferToRead  = 0;
+    UINT32                              SizeOfSafeBufferToRead  = 0;
     RFLAGS                              Rflags                  = {0};
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails = NULL;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails  = NULL;
@@ -553,7 +553,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
         //
         // Compute the amount of buffer we can read without problem
         //
-        SizeOfSafeBufferToRead = LastVmexitRip & 0xfff;
+        SizeOfSafeBufferToRead = (UINT32)(LastVmexitRip & 0xfff);
         SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
 
         if (SizeOfSafeBufferToRead >= PAGE_SIZE)
@@ -575,7 +575,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set the reading length of bytes (for instruction disassembling)
     //
-    PausePacket.ReadInstructionLen = ExitInstructionLength;
+    PausePacket.ReadInstructionLen = (UINT16)ExitInstructionLength;
 
     //
     // Find the current instruction

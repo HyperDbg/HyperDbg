@@ -162,7 +162,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     HANDLE    ProcessHandle = NULL;
     PEPROCESS Process       = NULL;
 
-    if (ProcessId == (UINT32)NULL)
+    if (ProcessId == NULL_ZERO)
     {
         return FALSE;
     }

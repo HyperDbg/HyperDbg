@@ -57,8 +57,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     ULONG                                                   InBuffLength;  // Input buffer length
     ULONG                                                   OutBuffLength; // Output buffer length
     SIZE_T                                                  ReturnSize;
-    BOOLEAN                                                 DoNotChangeInformation                    = FALSE;
-    UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode = 0;
+    BOOLEAN                                                 DoNotChangeInformation = FALSE;
     UINT32                                                  FilledEntriesInKernelInfo;
 
     //
@@ -896,7 +895,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendUsermodeMessageRequest->Length == (UINT32)NULL ||
+            if (DebuggerSendUsermodeMessageRequest->Length == NULL_ZERO ||
                 IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
             {
                 Status = STATUS_INVALID_PARAMETER;
@@ -948,7 +947,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == (UINT32)NULL ||
+            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == NULL_ZERO ||
                 IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER + DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
             {
                 Status = STATUS_INVALID_PARAMETER;

@@ -371,7 +371,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
     char   TempBuffer[20] = {0};
     UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
 
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -943,7 +943,7 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
         char   TempBuffer[20] = {0};
         UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
-        LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+        LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -962,11 +962,11 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 
     if (IsWstring)
     {
-        return wcslen((const wchar_t *)StrAddr);
+        return (UINT32)wcslen((const wchar_t *)StrAddr);
     }
     else
     {
-        return strlen((const char *)StrAddr);
+        return (UINT32)strlen((const char *)StrAddr);
     }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -1032,9 +1032,9 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
               // for maximum buffer + 1 end char null but we alloc 50 to be sure
 
     *CurrentProcessedPositionFromStartOfFormat =
-        *CurrentProcessedPositionFromStartOfFormat + strlen(CurrentSpecifier);
+        *CurrentProcessedPositionFromStartOfFormat + (UINT32)strlen(CurrentSpecifier);
     sprintf(TempBuffer, CurrentSpecifier, Val);
-    TempBufferLen = strlen(TempBuffer);
+    TempBufferLen = (UINT32)strlen(TempBuffer);
 
     //
     // Check final buffer capacity
@@ -1214,7 +1214,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
             // We should convert WstrBuffer to AsciiBuffer
             //
             CopiedBlockLen =
-                WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
+                (UINT32)WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
 
             //
             // Now we should move the AsciiBuffer to the target buffer
@@ -1284,7 +1284,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
 
     UINT64  Val;
     UINT32  Position;
-    UINT32  LenOfFormats = strlen(Format) + 1;
+    UINT32  LenOfFormats = (UINT32)strlen(Format) + 1;
     PSYMBOL Symbol;
 
     *HasError = FALSE;
@@ -1479,7 +1479,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
     //
     // Prepare a buffer to bypass allocating a huge stack space for logging
     //
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, FinalBuffer, strlen(FinalBuffer) + 1);
+    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, FinalBuffer, (UINT32)strlen(FinalBuffer) + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

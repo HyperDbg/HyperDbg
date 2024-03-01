@@ -68,7 +68,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Set the target core
     //
-    KeSetTargetProcessorDpc(Dpc, CoreNumber);
+    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
 
     //
     // it's sure will be executed, but we want to free the above

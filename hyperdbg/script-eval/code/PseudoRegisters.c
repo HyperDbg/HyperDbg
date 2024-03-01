@@ -277,7 +277,7 @@ ScriptEnginePseudoRegGetPeb()
     //
     // PEB doesn't make sense in kernel-mode
     //
-    return NULL;
+    return NULL_ZERO;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

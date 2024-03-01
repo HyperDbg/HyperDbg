@@ -45,7 +45,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
     if (InputFromVmxRoot)
     {
-        TempProcessId = (UINT32)NULL; // Process Id does not make sense in the Debugger Mode
+        TempProcessId = NULL_ZERO; // Process Id does not make sense in the Debugger Mode
     }
     else
     {
@@ -978,7 +978,7 @@ ApplyEventExceptionEvent(PDEBUGGER_EVENT                   Event,
         }
         else
         {
-            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, Event->InitOptions.OptionalParam1);
+            ConfigureSetExceptionBitmapOnSingleCore(Event->CoreId, (UINT32)Event->InitOptions.OptionalParam1);
         }
     }
 

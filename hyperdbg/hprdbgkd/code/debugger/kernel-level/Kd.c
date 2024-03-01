@@ -203,7 +203,7 @@ KdFireDpc(PVOID Routine, PVOID Paramter)
 {
     ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
-    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, Routine, Paramter);
+    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Paramter);
 
     KeInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
 }
@@ -406,7 +406,7 @@ KdLoggingResponsePacketToDebugger(
         DebuggerResponseLock,
         Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                                   sizeof(DEBUGGER_REMOTE_PACKET),
-                                                  &OperationCode,
+                                                  (CHAR *)&OperationCode,
                                                   sizeof(UINT32),
                                                   OptionalBuffer,
                                                   OptionalBufferLength));
@@ -1140,8 +1140,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         // Only 16 bit is needed howerver, vmwrite might write on other bits
         // and corrupt other variables, that's why we get 64bit
         //
-        UINT64                           CsSel         = NULL;
-        PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+        UINT64                           CsSel         = NULL_ZERO;
         DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
         UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
 
@@ -1855,7 +1854,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
         //
         // Validate core number
         //
-        if (!CommonValidateCoreNumber(TestQueryPacket->Context))
+        if (!CommonValidateCoreNumber((UINT32)TestQueryPacket->Context))
         {
             //
             // Core number is invalid
@@ -2226,7 +2225,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SHORT_CIRCUITING_EVENT                    ShortCircuitingEventPacket;
     UINT32                                              SizeToSend                   = 0;
     BOOLEAN                                             UnlockTheNewCore             = FALSE;
-    size_t                                              ReturnSize                   = 0;
+    UINT32                                              ReturnSize                   = 0;
     DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
     DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
 
@@ -2515,7 +2514,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK,
                                            (CHAR *)CallstackPacket,
-                                           CallstackPacket->BufferSize);
+                                           (UINT32)CallstackPacket->BufferSize);
 
                 break;
 
@@ -2574,6 +2573,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY:
 
                 ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Read memory
                 //
@@ -3152,7 +3152,7 @@ StartAgain:
         //
         // Set the reading length of bytes (for instruction disassembling)
         //
-        PausePacket.ReadInstructionLen = ExitInstructionLength;
+        PausePacket.ReadInstructionLen = (UINT16)ExitInstructionLength;
 
         //
         // Find the current instruction

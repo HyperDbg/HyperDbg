@@ -77,7 +77,7 @@ DebuggerInitialize()
     //
     // Set the core's IDs
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (UINT32 i = 0; i < ProcessorCount; i++)
     {
         g_DbgState[i].CoreId = i;
     }
@@ -772,7 +772,9 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // If the user needs a buffer to be passed to the debugger then
     // we should allocate it here (Requested buffer is only available for custom code types)
     //
-    if (ActionType == RUN_CUSTOM_CODE && InTheCaseOfCustomCode->OptionalRequestedBufferSize != 0)
+    if (ActionType == RUN_CUSTOM_CODE &&
+        InTheCaseOfCustomCode != NULL &&
+        InTheCaseOfCustomCode->OptionalRequestedBufferSize != 0)
     {
         //
         // Check if the optional buffer is not more that the size
@@ -905,7 +907,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Check if it's a Custom code without custom code buffer which is invalid
         //
-        if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
+        if (InTheCaseOfCustomCode != NULL && InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
         {
             //
             // There was an error
@@ -956,7 +958,8 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript->ScriptBuffer == (UINT64)NULL || InTheCaseOfRunScript->ScriptLength == (UINT32)NULL)
+        if (InTheCaseOfRunScript != NULL &&
+            (InTheCaseOfRunScript->ScriptBuffer == (UINT64)NULL || InTheCaseOfRunScript->ScriptLength == (UINT32)NULL))
         {
             //
             // There was an error
@@ -994,7 +997,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Copy the memory of script to our non-paged pool
         //
-        RtlCopyMemory(Action->ScriptConfiguration.ScriptBuffer, InTheCaseOfRunScript->ScriptBuffer, InTheCaseOfRunScript->ScriptLength);
+        RtlCopyMemory((void *)Action->ScriptConfiguration.ScriptBuffer, (const void *)InTheCaseOfRunScript->ScriptBuffer, InTheCaseOfRunScript->ScriptLength);
 
         //
         // Set other fields
@@ -1429,14 +1432,14 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Means that there is some conditions
             //
-            ConditionFunc = CurrentEvent->ConditionBufferAddress;
+            ConditionFunc = (DebuggerCheckForCondition *)CurrentEvent->ConditionBufferAddress;
 
             //
             // Run and check for results
             //
             // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
             //
-            if (AsmDebuggerConditionCodeHandler((unsigned long long)DbgState->Regs, (unsigned long long)Context, ConditionFunc) == 0)
+            if (AsmDebuggerConditionCodeHandler((UINT64)DbgState->Regs, (UINT64)Context, (UINT64)ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -1705,20 +1708,20 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler((unsigned long long)NULL,
-                                     (unsigned long long)DbgState->Regs,
-                                     (unsigned long long)EventTriggerDetail->Context,
-                                     (unsigned long long)Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler((UINT64)NULL,
+                                     (UINT64)DbgState->Regs,
+                                     (UINT64)EventTriggerDetail->Context,
+                                     (UINT64)Action->CustomCodeBufferAddress);
     }
     else
     {
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler((unsigned long long)Action->RequestedBuffer.RequstBufferAddress,
-                                     (unsigned long long)DbgState->Regs,
-                                     (unsigned long long)EventTriggerDetail->Context,
-                                     (unsigned long long)Action->CustomCodeBufferAddress);
+        AsmDebuggerCustomCodeHandler((UINT64)Action->RequestedBuffer.RequstBufferAddress,
+                                     (UINT64)DbgState->Regs,
+                                     (UINT64)EventTriggerDetail->Context,
+                                     (UINT64)Action->CustomCodeBufferAddress);
     }
 }
 

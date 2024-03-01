@@ -88,7 +88,7 @@ ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 
         for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
-            if (ThreadHolder->Threads[i].ThreadId != (UINT32)NULL && ThreadHolder->Threads[i].IsPaused)
+            if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO && ThreadHolder->Threads[i].IsPaused)
             {
                 return TRUE;
             }
@@ -179,7 +179,7 @@ ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId)
 
         for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
-            if (ThreadHolder->Threads[i].ThreadId != (UINT32)NULL)
+            if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO)
             {
                 //
                 // The active thread's structure is found
@@ -303,7 +303,7 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
 
         for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
-            if (ThreadHolder->Threads[i].ThreadId == (UINT32)NULL)
+            if (ThreadHolder->Threads[i].ThreadId == NULL_ZERO)
             {
                 //
                 // We find a null thread place, let's return it's structure
@@ -420,7 +420,7 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 
             for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
             {
-                if (ThreadHolder->Threads[i].ThreadId != (UINT32)NULL &&
+                if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO &&
                     ThreadHolder->Threads[i].IsPaused)
                 {
                     for (size_t j = 0; j < MAX_USER_ACTIONS_FOR_THREADS; j++)
