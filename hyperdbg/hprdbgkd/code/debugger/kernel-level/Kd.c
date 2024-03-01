@@ -2705,7 +2705,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Send the user-input to user-mode debuggee
                 //
-                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket),
+                KdNotifyDebuggeeForUserInput(((DEBUGGEE_USER_INPUT_PACKET *)UserInputPacket),
                                              sizeof(DEBUGGEE_USER_INPUT_PACKET) + UserInputPacket->CommandLen);
 
                 //
@@ -2757,7 +2757,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT:
 
-                EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+                EventRegPacket = (DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
                 // Parsing the event either in the VMX-root mode or pass it to the user-mode
@@ -2785,7 +2785,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT:
 
-                AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+                AddActionPacket = (DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
                 // Parsing the action either in the VMX-root mode or pass it to the user-mode

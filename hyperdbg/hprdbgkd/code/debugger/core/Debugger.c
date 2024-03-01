@@ -840,7 +840,9 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     // If the user needs a buffer to be passed to the debugger script then
     // we should allocate it here (Requested buffer is only available for custom code types)
     //
-    if (ActionType == RUN_SCRIPT && InTheCaseOfRunScript->OptionalRequestedBufferSize != 0)
+    if (ActionType == RUN_SCRIPT &&
+        InTheCaseOfRunScript != NULL &&
+        InTheCaseOfRunScript->OptionalRequestedBufferSize != 0)
     {
         //
         // Check if the optional buffer is not more that the size
@@ -902,7 +904,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         Action->RequestedBuffer.RequstBufferAddress  = (UINT64)RequestedBuffer;
     }
 
-    if (ActionType == RUN_CUSTOM_CODE)
+    if (ActionType == RUN_CUSTOM_CODE && InTheCaseOfCustomCode != NULL)
     {
         //
         // Check if it's a Custom code without custom code buffer which is invalid
@@ -940,7 +942,6 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Move the custom code buffer to the end of the action
         //
-
         Action->CustomCodeBufferSize    = InTheCaseOfCustomCode->CustomCodeBufferSize;
         Action->CustomCodeBufferAddress = (PVOID)((UINT64)Action + sizeof(DEBUGGER_EVENT_ACTION));
 
@@ -953,13 +954,12 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
     //
     // If it's run script action type
     //
-    else if (ActionType == RUN_SCRIPT)
+    else if (ActionType == RUN_SCRIPT && InTheCaseOfRunScript != NULL)
     {
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript != NULL &&
-            (InTheCaseOfRunScript->ScriptBuffer == NULL_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO))
+        if (InTheCaseOfRunScript->ScriptBuffer == NULL_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO)
         {
             //
             // There was an error
@@ -3076,7 +3076,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                                     EventDetails->Tag,
                                     &EventDetails->Options,
                                     EventDetails->ConditionBufferSize,
-                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL),
+                                    (PVOID)((UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL)),
                                     ResultsToReturn,
                                     InputFromVmxRoot);
     }
@@ -3355,6 +3355,7 @@ BOOLEAN
 DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
 {
     PDEBUGGER_EVENT Event;
+    BOOLEAN         Result = FALSE;
 
     //
     // Find the event by its tag
@@ -3380,6 +3381,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call external interrupt terminator
         //
         TerminateExternalInterruptEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3395,6 +3397,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call read and write and execute ept hook terminator
         //
         TerminateHiddenHookReadAndWriteAndExecuteEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3404,6 +3407,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call ept hook (hidden breakpoint) terminator
         //
         TerminateHiddenHookExecCcEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3413,6 +3417,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call ept hook (hidden inline hook) terminator
         //
         TerminateHiddenHookExecDetoursEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3422,6 +3427,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call rdmsr execution event terminator
         //
         TerminateRdmsrExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3431,6 +3437,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call wrmsr execution event terminator
         //
         TerminateWrmsrExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3440,6 +3447,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call exception events terminator
         //
         TerminateExceptionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3449,6 +3457,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call IN instruction execution event terminator
         //
         TerminateInInstructionExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3458,6 +3467,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call OUT instruction execution event terminator
         //
         TerminateOutInstructionExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3467,6 +3477,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call syscall hook event terminator
         //
         TerminateSyscallHookEferEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3476,6 +3487,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call sysret hook event terminator
         //
         TerminateSysretHookEferEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3485,6 +3497,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call vmcall instruction execution event terminator
         //
         TerminateVmcallExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3494,6 +3507,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call mode execution trap event terminator
         //
         TerminateExecTrapModeChangedEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3503,6 +3517,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call rdtsc/rdtscp instruction execution event terminator
         //
         TerminateTscEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3512,6 +3527,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call rdtsc/rdtscp instructions execution event terminator
         //
         TerminatePmcEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3521,6 +3537,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call mov to debugger register event terminator
         //
         TerminateDebugRegistersEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3530,6 +3547,7 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call cpuid instruction execution event terminator
         //
         TerminateCpuidExecutionEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
 
         break;
     }
@@ -3539,12 +3557,21 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call mov to control register event terminator
         //
         TerminateControlRegistersEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
+
         break;
     }
     default:
         LogError("Err, unknown event for termination");
+        Result = FALSE;
+
         break;
     }
+
+    //
+    // Return status
+    //
+    return Result;
 }
 
 /**

@@ -343,7 +343,7 @@ ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return PhysicalAddressToVirtualAddressOnTargetProcess(Address);
+    return PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)Address);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
