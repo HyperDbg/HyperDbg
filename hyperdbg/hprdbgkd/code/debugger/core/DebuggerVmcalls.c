@@ -55,7 +55,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // instead we send the registers provided
         // from the third parameter
         //
-        DbgState->Regs = OptionalParam2;
+        DbgState->Regs = (GUEST_REGS *)OptionalParam2;
 
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,

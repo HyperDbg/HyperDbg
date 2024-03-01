@@ -58,7 +58,7 @@ CommonGetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
     CLIENT_ID         Cid;
     InitializeObjectAttributes(&ObjAttr, NULL, 0, NULL, NULL);
 
-    Cid.UniqueProcess = ProcessId;
+    Cid.UniqueProcess = (HANDLE)ProcessId;
     Cid.UniqueThread  = (HANDLE)0;
 
     Status = ZwOpenProcess(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
@@ -161,7 +161,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     HANDLE    ProcessHandle = NULL;
     PEPROCESS Process       = NULL;
 
-    if (ProcessId == NULL)
+    if (ProcessId == (UINT32)NULL)
     {
         return FALSE;
     }

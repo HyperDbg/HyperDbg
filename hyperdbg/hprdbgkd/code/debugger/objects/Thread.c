@@ -24,8 +24,8 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check if we reached to the target thread or not
     //
-    if ((g_ThreadSwitch.ThreadId != NULL && g_ThreadSwitch.ThreadId == PsGetCurrentThreadId()) ||
-        (g_ThreadSwitch.Thread != NULL && g_ThreadSwitch.Thread == PsGetCurrentThread()))
+    if ((g_ThreadSwitch.ThreadId != (UINT32)NULL && g_ThreadSwitch.ThreadId == (UINT32)PsGetCurrentThreadId()) ||
+        (g_ThreadSwitch.Thread != (UINT64)NULL && g_ThreadSwitch.Thread == PsGetCurrentThread()))
     {
         //
         // Halt the debuggee, we have found the target thread
@@ -69,7 +69,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Check to avoid invalid switch
     //
-    if (ThreadId == NULL && EThread == NULL)
+    if (ThreadId == (UINT32)NULL && EThread == (PETHREAD)NULL)
     {
         return FALSE;
     }
@@ -91,7 +91,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
             return FALSE;
         }
     }
-    else if (ThreadId != NULL)
+    else if (ThreadId != (UINT32)NULL)
     {
         g_ThreadSwitch.ThreadId = ThreadId;
     }
@@ -165,11 +165,11 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Validate params
     //
-    if (ThreadListHeadOffset == NULL ||
-        ThreadListEntryOffset == NULL ||
-        CidOffset == NULL ||
-        ActiveProcessLinksOffset == NULL ||
-        PsActiveProcessHeadAddress == NULL)
+    if (ThreadListHeadOffset == (UINT32)NULL ||
+        ThreadListEntryOffset == (UINT32)NULL ||
+        CidOffset == (UINT32)NULL ||
+        ActiveProcessLinksOffset == (UINT32)NULL ||
+        PsActiveProcessHeadAddress == (UINT64)NULL)
     {
         return FALSE;
     }
@@ -182,7 +182,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         // Means that it's for the current process
         //
-        ThreadListSymbolInfo->Process = PsGetCurrentProcess();
+        ThreadListSymbolInfo->Process = (UINT64)PsGetCurrentProcess();
         ThreadListHead                = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
     }
     else
@@ -275,10 +275,10 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             //
             // Save the details
             //
-            SavingEntries[EnumerationCount - 1].Eprocess = ThreadListSymbolInfo->Process;
-            SavingEntries[EnumerationCount - 1].Pid      = ThreadCid.UniqueProcess;
-            SavingEntries[EnumerationCount - 1].Tid      = ThreadCid.UniqueThread;
-            SavingEntries[EnumerationCount - 1].Ethread  = Thread;
+            SavingEntries[EnumerationCount - 1].Eprocess  = ThreadListSymbolInfo->Process;
+            SavingEntries[EnumerationCount - 1].ProcessId = (UINT32)ThreadCid.UniqueProcess;
+            SavingEntries[EnumerationCount - 1].ThreadId  = (UINT32)ThreadCid.UniqueThread;
+            SavingEntries[EnumerationCount - 1].Ethread   = Thread;
 
             RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
                           CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process),
@@ -336,7 +336,7 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         TidRequest->ThreadId  = (UINT32)PsGetCurrentThreadId();
         TidRequest->Process   = (UINT64)PsGetCurrentProcess();
         TidRequest->Thread    = (UINT64)PsGetCurrentThread();
-        MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
+        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -375,7 +375,7 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
                             NULL,
                             NULL,
-                            NULL))
+                            (UINT64)NULL))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
             break;
@@ -644,7 +644,7 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count,
                             NULL,
-                            NULL);
+                            (UINT64)NULL);
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {

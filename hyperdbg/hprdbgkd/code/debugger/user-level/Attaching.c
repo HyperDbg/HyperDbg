@@ -131,7 +131,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     ProcessDebuggingDetail->Is32Bit                                      = Is32Bit;
     ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction = CheckCallbackAtFirstInstruction;
     ProcessDebuggingDetail->Eprocess                                     = Eprocess;
-    ProcessDebuggingDetail->PebAddressToMonitor                          = PebAddressToMonitor;
+    ProcessDebuggingDetail->PebAddressToMonitor                          = (PVOID)PebAddressToMonitor;
     ProcessDebuggingDetail->UsermodeReservedBuffer                       = UsermodeReservedBuffer;
 
     //
@@ -443,7 +443,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     VmFuncSuppressRipIncrement(DbgState->CoreId);
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
 
     //
     // Check to only break on the target process id and thread id and when
@@ -514,7 +514,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Indicate that we should set the trap flag to the FALSE next time on
                 // the same process/thread
                 //
-                if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+                if (!BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId()))
                 {
                     LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
                                "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
@@ -644,7 +644,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
         return FALSE;
     }
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
 
     if (!ProcessDebuggingDetail)
     {
@@ -748,7 +748,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     {
         for (size_t i = 0; i < MAX_CR3_IN_A_PROCESS; i++)
         {
-            if (ProcessDebuggingDetail->InterceptedCr3[i].Flags != NULL)
+            if (ProcessDebuggingDetail->InterceptedCr3[i].Flags != (UINT64)NULL)
             {
                 //
                 // This cr3 should not be intercepted on threads' user mode execution
@@ -863,11 +863,11 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     if (Is32Bit)
     {
-        PebAddressToMonitor = (PPEB32)g_PsGetProcessWow64Process(SourceProcess);
+        PebAddressToMonitor = (UINT64)((PPEB32)g_PsGetProcessWow64Process(SourceProcess));
     }
     else
     {
-        PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
+        PebAddressToMonitor = (UINT64)((PPEB)g_PsGetProcessPeb(SourceProcess));
     }
 
     if (PebAddressToMonitor == NULL)
@@ -1032,7 +1032,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
 
     //
     // Check if process is valid or if thread is in intercepting phase
@@ -1141,8 +1141,8 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
         //
         // The entrypoint is called, we should remove the hook
         //
-        if (!ConfigureEptHookUnHookSingleAddress(ProcessDebuggingDetails->PebAddressToMonitor,
-                                                 NULL,
+        if (!ConfigureEptHookUnHookSingleAddress((UINT64)ProcessDebuggingDetails->PebAddressToMonitor,
+                                                 (UINT64)NULL,
                                                  ProcessDebuggingDetails->ProcessId))
         {
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS;
@@ -1357,14 +1357,14 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetail;
 
-    if (SwitchRequest->ProcessId != NULL)
+    if (SwitchRequest->ProcessId != (UINT32)NULL)
     {
         //
         // Switch by process id
         //
         ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(SwitchRequest->ProcessId);
     }
-    else if (SwitchRequest->ThreadId != NULL)
+    else if (SwitchRequest->ThreadId != (UINT32)NULL)
     {
         //
         // Switch by thread id
@@ -1392,7 +1392,7 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     //
     // Set the IsPaused field
     //
-    if (SwitchRequest->ThreadId != NULL)
+    if (SwitchRequest->ThreadId != (UINT32)NULL)
     {
         //
         // Find the thread's state

@@ -38,7 +38,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
     Address = ReadMemRequest->Address;
     MemType = ReadMemRequest->MemoryType;
 
-    if (Size && Address != NULL)
+    if (Size && Address != (UINT64)NULL)
     {
         if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid, Address, MemType, (PVOID)UserBuffer, Size, ReturnSize))
         {
@@ -423,10 +423,9 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
 NTSTATUS
 DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 {
-    UINT32   LengthOfEachChunk  = 0;
-    PVOID    DestinationAddress = 0;
-    PVOID    SourceAddress      = 0;
-    CR3_TYPE CurrentProcessCr3;
+    UINT32 LengthOfEachChunk  = 0;
+    PVOID  DestinationAddress = 0;
+    PVOID  SourceAddress      = 0;
 
     //
     // set chunk size in each modification
@@ -457,7 +456,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        if (EditMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
         {
             //
             // It's an invalid address in current process
@@ -479,15 +478,15 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
             //
             // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
             // It is because the target page might be read-only so we can make it writable
             //
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
-            MemoryMapperWriteMemoryUnsafe(DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
+            MemoryMapperWriteMemoryUnsafe((UINT64)DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
         }
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
@@ -497,10 +496,10 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
         }
     }
     else
@@ -529,12 +528,12 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 BOOLEAN
 DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 {
-    UINT32   LengthOfEachChunk  = 0;
-    PVOID    DestinationAddress = 0;
-    PVOID    SourceAddress      = 0;
-    CR3_TYPE CurrentProcessCr3;
+    UINT32 LengthOfEachChunk  = 0;
+    PVOID  DestinationAddress = 0;
+    PVOID  SourceAddress      = 0;
+
     //
-    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
+    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX-ROOT
     //
 
     //
@@ -579,8 +578,8 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
             //
             // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafeOnTargetProcess
@@ -588,7 +587,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             //
 
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
-            MemoryMapperWriteMemorySafeOnTargetProcess(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)DestinationAddress, SourceAddress, LengthOfEachChunk);
         }
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
@@ -598,10 +597,10 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
         }
     }
     else
@@ -704,7 +703,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         }
         else
         {
-            if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+            if (SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId())
             {
                 CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
             }
@@ -714,7 +713,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Here we iterate through the buffer we received from
         // user-mode
         //
-        SourceAddress = (UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY;
+        SourceAddress = (PVOID)((UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY);
 
         for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((UINT64)EndAddress); BaseIterator += LengthOfEachChunk)
         {
@@ -729,7 +728,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
             //
             if (IsDebuggeePaused)
             {
-                MemoryMapperReadMemorySafe((PVOID)BaseIterator, &Cmp64, LengthOfEachChunk);
+                MemoryMapperReadMemorySafe((UINT64)BaseIterator, &Cmp64, LengthOfEachChunk);
             }
             else
             {
@@ -760,7 +759,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     // I know, we have a double check here ;)
                     //
-                    TempSourceAddress = (UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY + (i * sizeof(UINT64));
+                    TempSourceAddress = (PVOID)((UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY + (i * sizeof(UINT64)));
 
                     //
                     // Add i to BaseIterator and recompute the Cmp64
@@ -769,7 +768,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     if (IsDebuggeePaused)
                     {
-                        MemoryMapperReadMemorySafe((PVOID)(BaseIterator + (LengthOfEachChunk * i)), &Cmp64, LengthOfEachChunk);
+                        MemoryMapperReadMemorySafe((UINT64)(BaseIterator + (LengthOfEachChunk * i)), &Cmp64, LengthOfEachChunk);
                     }
                     else
                     {
@@ -782,7 +781,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     if (IsDebuggeePaused)
                     {
-                        MemoryMapperReadMemorySafe(TempSourceAddress, &TempValue, sizeof(UINT64));
+                        MemoryMapperReadMemorySafe((UINT64)TempSourceAddress, &TempValue, sizeof(UINT64));
                     }
                     else
                     {
@@ -879,7 +878,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Restore the previous memory layout (cr3), if the user specified a
         // special process
         //
-        if (IsDebuggeePaused || SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+        if (IsDebuggeePaused || SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId())
         {
             SwitchToPreviousProcess(CurrentProcessCr3);
         }
@@ -1055,7 +1054,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress);
         }
-        else if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
+        else if (SearchMemRequest->ProcessId == (UINT32)PsGetCurrentProcessId())
         {
             SearchMemRequest->Address = PhysicalAddressToVirtualAddress(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddress(EndAddress);
@@ -1111,7 +1110,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Check if process id is valid or not
     //
-    if (SearchMemRequest->ProcessId != PsGetCurrentProcessId() && !CommonIsProcessExist(SearchMemRequest->ProcessId))
+    if (SearchMemRequest->ProcessId != (UINT32)PsGetCurrentProcessId() && !CommonIsProcessExist(SearchMemRequest->ProcessId))
     {
         return STATUS_INVALID_PARAMETER;
     }

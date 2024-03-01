@@ -35,7 +35,7 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     TempPid = EventDetails->ProcessId;
     if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
     {
-        TempPid = PsGetCurrentProcessId();
+        TempPid = (UINT32)PsGetCurrentProcessId();
     }
 
     //
@@ -44,7 +44,7 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     // to another process is not possible, we'll return
     // an error
     //
-    if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
+    if (InputFromVmxRoot && TempPid != (UINT32)PsGetCurrentProcessId())
     {
         ResultsToReturn->IsSuccessful = FALSE;
         ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
@@ -232,7 +232,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
 
     if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
     {
-        TempPid = PsGetCurrentProcessId();
+        TempPid = (UINT32)PsGetCurrentProcessId();
     }
 
     //
@@ -241,7 +241,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     // to another process is not possible, we'll return
     // an error
     //
-    if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
+    if (InputFromVmxRoot && TempPid != (UINT32)PsGetCurrentProcessId())
     {
         ResultsToReturn->IsSuccessful = FALSE;
         ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;

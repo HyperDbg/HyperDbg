@@ -72,10 +72,10 @@ SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffe
         //
         // Clear the end character
         //
-        Buffer[ActualBufferLength - 3] = NULL;
-        Buffer[ActualBufferLength - 2] = NULL;
-        Buffer[ActualBufferLength - 1] = NULL;
-        Buffer[ActualBufferLength]     = NULL;
+        Buffer[ActualBufferLength - 3] = (BYTE)NULL;
+        Buffer[ActualBufferLength - 2] = (BYTE)NULL;
+        Buffer[ActualBufferLength - 1] = (BYTE)NULL;
+        Buffer[ActualBufferLength]     = (BYTE)NULL;
 
         //
         // Set the new length

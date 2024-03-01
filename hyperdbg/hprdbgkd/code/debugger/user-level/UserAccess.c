@@ -875,7 +875,7 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     // Find the thread debugging detail structure
     //
     ProcessDebuggingDetail =
-        AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+        AttachingFindProcessDebuggingDetailsByProcessId((UINT32)PsGetCurrentProcessId());
 
     //
     // Check if we find the debugging detail of the thread or not
@@ -887,13 +887,13 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
 
     if (ProcessDebuggingDetail->EntrypointOfMainModule == NULL &&
         ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
-        CheckAccessValidityAndSafety(ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
+        CheckAccessValidityAndSafety((UINT64)ProcessDebuggingDetail->PebAddressToMonitor, sizeof(CHAR)) &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
                                                                     ProcessDebuggingDetail->Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {
-        if (Entrypoint != NULL)
+        if (Entrypoint != (UINT64)NULL)
         {
             ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
             ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;

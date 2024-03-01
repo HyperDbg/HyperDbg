@@ -375,14 +375,14 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
             //
             // The buffer fits into a regular instant event
             //
-            Event = PoolManagerRequestPool(INSTANT_REGULAR_EVENT_BUFFER, TRUE, REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER);
+            Event = (DEBUGGER_EVENT *)PoolManagerRequestPool(INSTANT_REGULAR_EVENT_BUFFER, TRUE, REGULAR_INSTANT_EVENT_CONDITIONAL_BUFFER);
 
             if (!Event)
             {
                 //
                 // Here we try again to see if we could store it into a big instant event instead
                 //
-                Event = PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
+                Event = (DEBUGGER_EVENT *)PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
 
                 if (!Event)
                 {
@@ -404,7 +404,7 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
             //
             // The buffer fits into a big instant event
             //
-            Event = PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
+            Event = (DEBUGGER_EVENT *)PoolManagerRequestPool(INSTANT_BIG_EVENT_BUFFER, TRUE, BIG_INSTANT_EVENT_CONDITIONAL_BUFFER);
 
             if (!Event)
             {
@@ -478,7 +478,7 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
         // It's condtional
         //
         Event->ConditionsBufferSize   = ConditionsBufferSize;
-        Event->ConditionBufferAddress = (UINT64)Event + sizeof(DEBUGGER_EVENT);
+        Event->ConditionBufferAddress = (PVOID)((UINT64)Event + sizeof(DEBUGGER_EVENT));
 
         //
         // copy the condtion buffer to the end of the buffer of the event
@@ -538,14 +538,14 @@ DebuggerAllocateSafeRequestedBuffer(SIZE_T                            SizeOfRequ
             //
             // The buffer fits into a regular safe requested buffer
             //
-            RequestedBuffer = PoolManagerRequestPool(INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS, TRUE, REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+            RequestedBuffer = (PVOID)PoolManagerRequestPool(INSTANT_REGULAR_SAFE_BUFFER_FOR_EVENTS, TRUE, REGULAR_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
 
             if (!RequestedBuffer)
             {
                 //
                 // Here we try again to see if we could store it into a big instant event safe requested buffer instead
                 //
-                RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+                RequestedBuffer = (PVOID)PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
 
                 if (!RequestedBuffer)
                 {
@@ -567,7 +567,7 @@ DebuggerAllocateSafeRequestedBuffer(SIZE_T                            SizeOfRequ
             //
             // The buffer fits into a big instant requested safe buffer
             //
-            RequestedBuffer = PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
+            RequestedBuffer = (PVOID)PoolManagerRequestPool(INSTANT_BIG_SAFE_BUFFER_FOR_EVENTS, TRUE, BIG_INSTANT_EVENT_REQUESTED_SAFE_BUFFER);
 
             if (!RequestedBuffer)
             {
@@ -686,14 +686,14 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // The buffer fits into a regular instant event's action
             //
-            Action = PoolManagerRequestPool(INSTANT_REGULAR_EVENT_ACTION_BUFFER, TRUE, REGULAR_INSTANT_EVENT_ACTION_BUFFER);
+            Action = (DEBUGGER_EVENT_ACTION *)PoolManagerRequestPool(INSTANT_REGULAR_EVENT_ACTION_BUFFER, TRUE, REGULAR_INSTANT_EVENT_ACTION_BUFFER);
 
             if (!Action)
             {
                 //
                 // Here we try again to see if we could store it into a big instant event's action buffer instead
                 //
-                Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+                Action = (DEBUGGER_EVENT_ACTION *)PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
 
                 if (!Action)
                 {
@@ -715,7 +715,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             //
             // The buffer fits into a big instant event's action buffer
             //
-            Action = PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
+            Action = (DEBUGGER_EVENT_ACTION *)PoolManagerRequestPool(INSTANT_BIG_EVENT_ACTION_BUFFER, TRUE, BIG_INSTANT_EVENT_ACTION_BUFFER);
 
             if (!Action)
             {
@@ -916,7 +916,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
 
                 if (RequestedBuffer != NULL)
                 {
-                    PoolManagerFreePool(RequestedBuffer);
+                    PoolManagerFreePool((UINT64)RequestedBuffer);
                 }
             }
             else
@@ -940,7 +940,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
 
         Action->CustomCodeBufferSize    = InTheCaseOfCustomCode->CustomCodeBufferSize;
-        Action->CustomCodeBufferAddress = (UINT64)Action + sizeof(DEBUGGER_EVENT_ACTION);
+        Action->CustomCodeBufferAddress = (PVOID)((UINT64)Action + sizeof(DEBUGGER_EVENT_ACTION));
 
         //
         // copy the custom code buffer to the end of the buffer of the action
@@ -956,7 +956,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL)
+        if (InTheCaseOfRunScript->ScriptBuffer == (UINT64)NULL || InTheCaseOfRunScript->ScriptLength == (UINT32)NULL)
         {
             //
             // There was an error
@@ -967,7 +967,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
 
                 if (RequestedBuffer != 0)
                 {
-                    PoolManagerFreePool(RequestedBuffer);
+                    PoolManagerFreePool((UINT64)RequestedBuffer);
                 }
             }
             else
@@ -989,7 +989,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Allocate the buffer from a non-page pool on the script
         //
-        Action->ScriptConfiguration.ScriptBuffer = (BYTE *)Action + sizeof(DEBUGGER_EVENT_ACTION);
+        Action->ScriptConfiguration.ScriptBuffer = (UINT64)((BYTE *)Action + sizeof(DEBUGGER_EVENT_ACTION));
 
         //
         // Copy the memory of script to our non-paged pool
@@ -1140,7 +1140,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check if this event is for this process or not
         //
-        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != PsGetCurrentProcessId())
+        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != (UINT32)PsGetCurrentProcessId())
         {
             //
             // This event is not related to either our process or all processes
@@ -1161,7 +1161,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Context is the physical address
             //
-            if (Context != CurrentEvent->Options.OptionalParam1)
+            if ((UINT64)Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // The interrupt is not for this event
@@ -1205,7 +1205,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // Fix the context to virtual address
                 //
-                Context = EptContext->VirtualAddress;
+                Context = (PVOID)EptContext->VirtualAddress;
             }
 
             break;
@@ -1218,7 +1218,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // the hook is triggered for the address described in
             // event, note that address in event is a virtual address
             //
-            if (Context != CurrentEvent->Options.OptionalParam1)
+            if ((UINT64)Context != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the virtual address
@@ -1261,7 +1261,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // Convert it to virtual address
                 //
-                Context = ((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress;
+                Context = (PVOID)(((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress);
             }
 
             break;
@@ -1272,7 +1272,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if MSR exit is what we want or not
             //
-            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->Options.OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->Options.OptionalParam1 != (UINT64)Context)
             {
                 //
                 // The msr is not what we want
@@ -1287,7 +1287,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if exception is what we need or not
             //
-            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->Options.OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->Options.OptionalParam1 != (UINT64)Context)
             {
                 //
                 // The exception is not what we want
@@ -1303,7 +1303,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if I/O port is what we want or not
             //
-            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->Options.OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->Options.OptionalParam1 != (UINT64)Context)
             {
                 //
                 // The port is not what we want
@@ -1325,7 +1325,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check syscall number
             //
-            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->Options.OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->Options.OptionalParam1 != (UINT64)Context)
             {
                 //
                 // The syscall number is not what we want
@@ -1340,7 +1340,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CPUID is what we want or not
             //
-            if (CurrentEvent->Options.OptionalParam1 != NULL /*FALSE*/ && CurrentEvent->Options.OptionalParam2 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != (UINT64)NULL /*FALSE*/ && CurrentEvent->Options.OptionalParam2 != (UINT64)Context)
             {
                 //
                 // The CPUID is not what we want (and the user didn't intend to get all CPUIDs)
@@ -1355,7 +1355,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // check if CR exit is what we want or not
             //
-            if (CurrentEvent->Options.OptionalParam1 != Context)
+            if (CurrentEvent->Options.OptionalParam1 != (UINT64)Context)
             {
                 //
                 // The CR is not what we want
@@ -1639,7 +1639,7 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     VariablesList.LocalVariablesList  = DbgState->ScriptEngineCoreSpecificLocalVariable;
     VariablesList.TempList            = DbgState->ScriptEngineCoreSpecificTempVariable;
 
-    for (int i = 0; i < CodeBuffer.Pointer;)
+    for (unsigned int i = 0; i < CodeBuffer.Pointer;)
     {
         //
         // If has error, show error message and abort.
@@ -2502,7 +2502,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
         // Check if it has a OptionalRequestedBuffer probably for
         // CustomCode
         //
-        if (CurrentAction->RequestedBuffer.RequestBufferSize != 0 && CurrentAction->RequestedBuffer.RequstBufferAddress != NULL)
+        if (CurrentAction->RequestedBuffer.RequestBufferSize != 0 && CurrentAction->RequestedBuffer.RequstBufferAddress != (UINT64)NULL)
         {
             //
             // There is a buffer
@@ -3220,7 +3220,7 @@ DebuggerParseAction(PDEBUGGER_GENERAL_ACTION          ActionDetails,
         DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
 
         CustomCode.CustomCodeBufferSize        = ActionDetails->CustomCodeBufferSize;
-        CustomCode.CustomCodeBufferAddress     = (UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION);
+        CustomCode.CustomCodeBufferAddress     = (PVOID)((UINT64)ActionDetails + sizeof(DEBUGGER_GENERAL_ACTION));
         CustomCode.OptionalRequestedBufferSize = ActionDetails->PreAllocatedBuffer;
 
         //

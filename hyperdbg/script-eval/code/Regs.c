@@ -517,7 +517,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & X86_FLAGS_CF) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & X86_FLAGS_CF) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -529,7 +529,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_PF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_PF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -541,7 +541,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_AF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_AF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -553,7 +553,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_ZF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_ZF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -565,7 +565,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_SF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_SF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -577,7 +577,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_TF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_TF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -589,7 +589,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_IF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_IF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -601,7 +601,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_DF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_DF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -613,7 +613,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_OF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_OF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -637,7 +637,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_NT)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_NT)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -649,7 +649,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_RF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_RF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -661,7 +661,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_VM)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VM)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -673,7 +673,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_AC)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_AC)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -685,7 +685,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_VIF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VIF)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -697,7 +697,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_VIP)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VIP)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -709,7 +709,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (X86_FLAGS_ID)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_ID)) != (UINT64)NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;

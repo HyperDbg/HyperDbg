@@ -407,7 +407,7 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -436,7 +436,7 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -466,7 +466,7 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -560,7 +560,7 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Target, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Target, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -590,7 +590,7 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -618,7 +618,7 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -646,7 +646,7 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -679,7 +679,7 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Destination, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Destination, sizeof(long long)))
     {
         *HasError = TRUE;
         return NULL;
@@ -798,7 +798,7 @@ ScriptEngineFunctionPause(
         // Make the details of context
         //
         TriggeredEventDetail.Tag     = ActionDetail->Tag;
-        TriggeredEventDetail.Context = ActionDetail->Context;
+        TriggeredEventDetail.Context = (PVOID)ActionDetail->Context;
 
         if (ActionDetail->CallingStage == 1)
         {
@@ -1097,7 +1097,6 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
     CHAR    AsciiBuffer[sizeof(WstrBuffer) / 2];
     UINT32  StringSizeInByte; /* because of wide-char */
     UINT32  CountOfBlocks;
-    UINT32  CountOfBytesToRead;
     UINT32  CopiedBlockLen;
 
     //
@@ -1111,7 +1110,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
     //
     // get the length of the string (format) identifier
     //
-    *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
+    *CurrentProcessedPositionFromStartOfFormat += (UINT32)strlen(CurrentSpecifier);
 
     //
     // Get string len
@@ -1174,7 +1173,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
                 MemoryMapperReadMemorySafeOnTargetProcess(
-                    (void *)(Val + (i * sizeof(WstrBuffer))),
+                    (UINT64)(Val + (i * sizeof(WstrBuffer))),
                     WstrBuffer,
                     StringSizeInByte % sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1191,7 +1190,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
                 MemoryMapperReadMemorySafeOnTargetProcess(
-                    (void *)(Val + (i * sizeof(WstrBuffer))),
+                    (UINT64)(Val + (i * sizeof(WstrBuffer))),
                     WstrBuffer,
                     sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE

@@ -44,7 +44,7 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
     case PSEUDO_REGISTER_IP:
         return ScriptEnginePseudoRegGetIp();
     case PSEUDO_REGISTER_BUFFER:
-        if (ActionBuffer->CurrentAction != NULL)
+        if (ActionBuffer->CurrentAction != (UINT64)NULL)
         {
             return ScriptEnginePseudoRegGetBuffer(
                 (UINT64 *)ActionBuffer->CurrentAction);

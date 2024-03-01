@@ -723,7 +723,7 @@ typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 typedef struct _DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY
 {
     UINT64 Eprocess;
-    UINT32 Pid;
+    UINT32 ProcessId;
     UINT64 Cr3;
     UCHAR  ImageFileName[15 + 1];
 
@@ -738,8 +738,8 @@ typedef struct _DEBUGGEE_THREAD_LIST_DETAILS_ENTRY
 {
     UINT64 Eprocess;
     UINT64 Ethread;
-    UINT64 Pid;
-    UINT64 Tid;
+    UINT32 ProcessId;
+    UINT32 ThreadId;
     UCHAR  ImageFileName[15 + 1];
 
 } DEBUGGEE_THREAD_LIST_DETAILS_ENTRY, *PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY;

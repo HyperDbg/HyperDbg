@@ -434,7 +434,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
-    TargetContext.Context = LastVmexitRip;
+    TargetContext.Context = (PVOID)LastVmexitRip;
 
     if (TrapSetByDebugger)
     {
@@ -450,14 +450,15 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 FALSE))
         {
-            if (g_HardwareDebugRegisterDetailsForStepOver.Address != NULL)
+            if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL)
             {
                 //
                 // Check if it's caused by a step-over hardware debug breakpoint or not
                 //
                 if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
                 {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == PsGetCurrentProcessId() && g_HardwareDebugRegisterDetailsForStepOver.ThreadId == PsGetCurrentThreadId())
+                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == (UINT32)PsGetCurrentProcessId() &&
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == (UINT32)PsGetCurrentThreadId())
                     {
                         //
                         // It's a step caused by a debug register breakpoint step-over
@@ -559,7 +560,7 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check to apply hardware debug register breakpoints for step-over
     //
-    if (DbgState->HardwareDebugRegisterForStepping != NULL)
+    if (DbgState->HardwareDebugRegisterForStepping != (UINT64)NULL)
     {
         SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
                           BREAK_ON_INSTRUCTION_FETCH,
@@ -653,12 +654,12 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
         //
         // Read Extra registers
         //
-        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
         ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
         ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
 
@@ -702,12 +703,12 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
         //
         // Read Extra registers
         //
-        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
         ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
         ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
 
@@ -1173,7 +1174,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
             // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
             // as a tracking mechanism, so we'll change the reason for that)
             //
-            TargetContext.Context = LastVmexitRip;
+            TargetContext.Context = (PVOID)LastVmexitRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &TargetContext);
@@ -1501,7 +1502,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Unset the trap flag on the next VM-exit
     //
-    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
+    BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId());
 }
 
 /**
@@ -1535,8 +1536,8 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         // in other processes
         //
         g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = PsGetCurrentProcessId();
-        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = PsGetCurrentThreadId();
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = (UINT32)PsGetCurrentProcessId();
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = (UINT32)PsGetCurrentThreadId();
 
         //
         // Add hardware debug breakpoints on all core on vm-entry
@@ -1767,7 +1768,7 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered((UINT32)PsGetCurrentProcessId(), (UINT32)PsGetCurrentThreadId()))
     {
         //
         // Adjust the flags for showing there was error

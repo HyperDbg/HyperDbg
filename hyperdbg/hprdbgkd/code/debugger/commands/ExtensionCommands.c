@@ -65,7 +65,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         // *** regular !va2pa and !pa2va in VMI Mode
         //
 
-        if (AddressDetails->ProcessId == PsGetCurrentProcessId())
+        if (AddressDetails->ProcessId == (UINT32)PsGetCurrentProcessId())
         {
             //
             // It's on current process address space (we process the request
@@ -190,7 +190,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     }
     else
     {
-        if (PteDetails->ProcessId != PsGetCurrentProcessId())
+        if (PteDetails->ProcessId != (UINT32)PsGetCurrentProcessId())
         {
             //
             // It's on another process address space
@@ -279,7 +279,7 @@ RestoreTheState:
     //
     // Check to restore the current cr3 if it's changed
     //
-    if (RestoreCr3.Flags != NULL)
+    if (RestoreCr3.Flags != (UINT64)NULL)
     {
         SwitchToPreviousProcess(RestoreCr3);
     }

@@ -45,7 +45,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
     if (InputFromVmxRoot)
     {
-        TempProcessId = NULL; // Process Id does not make sense in the Debugger Mode
+        TempProcessId = (UINT32)NULL; // Process Id does not make sense in the Debugger Mode
     }
     else
     {
@@ -262,12 +262,12 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                 if (InputFromVmxRoot)
                 {
                     TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(TempStartAddressRestore,
-                                                                                       NULL);
+                                                                                       (UINT64)NULL);
                 }
                 else
                 {
                     ConfigureEptHookUnHookSingleAddress(TempStartAddressRestore,
-                                                        NULL,
+                                                        (UINT64)NULL,
                                                         Event->ProcessId);
                 }
 
@@ -520,7 +520,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = PsGetCurrentProcessId();
+            TempProcessId = (UINT32)PsGetCurrentProcessId();
         }
         else
         {

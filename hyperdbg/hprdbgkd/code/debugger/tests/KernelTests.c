@@ -93,9 +93,9 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
                                                             NonPagedPool,    // PoolType
                                                             PAGE_SIZE,       // NumberOfBytes
                                                             POOLTAG,         // Tag
-                                                            NULL);
+                                                            (UINT64)NULL);
 
-    if (TempPool != NULL)
+    if (TempPool != (UINT64)NULL)
     {
         //
         // Free the previous pool

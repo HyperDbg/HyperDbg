@@ -169,12 +169,12 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
         if (InputFromVmxRoot)
         {
             TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempStartAddress,
-                                                                               NULL);
+                                                                               (UINT64)NULL);
         }
         else
         {
             ConfigureEptHookUnHookSingleAddress((UINT64)TempStartAddress,
-                                                NULL,
+                                                (UINT64)NULL,
                                                 Event->ProcessId);
         }
 
@@ -213,12 +213,12 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     if (InputFromVmxRoot)
     {
         TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(Event->Options.OptionalParam1,
-                                                                           NULL);
+                                                                           (UINT64)NULL);
     }
     else
     {
         ConfigureEptHookUnHookSingleAddress(Event->Options.OptionalParam1,
-                                            NULL,
+                                            (UINT64)NULL,
                                             Event->ProcessId);
     }
 }
@@ -252,12 +252,12 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     //
     if (InputFromVmxRoot)
     {
-        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(NULL,
+        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)NULL,
                                                                            Event->Options.OptionalParam1);
     }
     else
     {
-        ConfigureEptHookUnHookSingleAddress(NULL,
+        ConfigureEptHookUnHookSingleAddress((UINT64)NULL,
                                             Event->Options.OptionalParam1,
                                             Event->ProcessId);
     }

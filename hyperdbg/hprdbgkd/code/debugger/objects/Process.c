@@ -44,8 +44,8 @@ ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check if we reached to the target process or not
     //
-    if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
-        (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
+    if ((g_ProcessSwitch.ProcessId != (UINT32)NULL && g_ProcessSwitch.ProcessId == (UINT32)PsGetCurrentProcessId()) ||
+        (g_ProcessSwitch.Process != (UINT64)NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
         KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
 
@@ -81,12 +81,12 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     // Initialized with NULL
     //
     g_ProcessSwitch.Process   = NULL;
-    g_ProcessSwitch.ProcessId = NULL;
+    g_ProcessSwitch.ProcessId = (UINT32)NULL;
 
     //
     // Check to avoid invalid switch
     //
-    if (ProcessId == NULL && EProcess == NULL)
+    if (ProcessId == (UINT32)NULL && EProcess == (PEPROCESS)NULL)
     {
         return FALSE;
     }
@@ -98,7 +98,7 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     {
         if (CheckAccessValidityAndSafety(EProcess, sizeof(BYTE)))
         {
-            g_ProcessSwitch.Process = EProcess;
+            g_ProcessSwitch.Process = (UINT64)EProcess;
         }
         else
         {
@@ -108,7 +108,7 @@ ProcessSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
             return FALSE;
         }
     }
-    else if (ProcessId != NULL)
+    else if (ProcessId != (UINT32)NULL)
     {
         g_ProcessSwitch.ProcessId = ProcessId;
     }
@@ -470,9 +470,9 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
                 //
                 // Save the details
                 //
-                SavingEntries[EnumerationCount - 1].Eprocess = Process;
-                SavingEntries[EnumerationCount - 1].Pid      = UniquePid;
-                SavingEntries[EnumerationCount - 1].Cr3      = ProcessCr3.Flags;
+                SavingEntries[EnumerationCount - 1].Eprocess  = Process;
+                SavingEntries[EnumerationCount - 1].ProcessId = (UINT32)UniquePid;
+                SavingEntries[EnumerationCount - 1].Cr3       = ProcessCr3.Flags;
                 RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName, ImageFileName, 15);
 
                 break;
@@ -531,9 +531,9 @@ ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_
         //
         // Debugger wants to know current pid, nt!_EPROCESS and process name
         //
-        PidRequest->ProcessId = PsGetCurrentProcessId();
-        PidRequest->Process   = PsGetCurrentProcess();
-        MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
+        PidRequest->ProcessId = (UINT32)PsGetCurrentProcessId();
+        PidRequest->Process   = (UINT64)PsGetCurrentProcess();
+        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -569,7 +569,7 @@ ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_
                              DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
                              NULL,
                              NULL,
-                             NULL))
+                             (UINT64)NULL))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
@@ -624,7 +624,7 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
                              DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
                              &DebuggerUsermodeProcessOrThreadQueryRequest->Count,
                              NULL,
-                             NULL);
+                             (UINT64)NULL);
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
@@ -674,7 +674,7 @@ ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 BOOLEAN
 ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
 {
-    GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
+    GetInformationProcessRequest->ProcessId = (UINT32)PsGetCurrentProcessId();
     GetInformationProcessRequest->Process   = (UINT64)PsGetCurrentProcess();
     RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
                   CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
