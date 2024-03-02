@@ -18,21 +18,21 @@
  * @return PVOID
  */
 PVOID
-SyscallHookGetKernelBase(PULONG pImageSize)
+SyscallHookGetKernelBase(PULONG ImageSize)
 {
-    NTSTATUS                   status;
+    NTSTATUS                   Status;
     ZWQUERYSYSTEMINFORMATION   ZwQSI = 0;
-    UNICODE_STRING             routineName;
-    PVOID                      pModuleBase          = NULL;
-    PSYSTEM_MODULE_INFORMATION pSystemInfoBuffer    = NULL;
+    UNICODE_STRING             RoutineName;
+    PVOID                      ModuleBase           = NULL;
+    PSYSTEM_MODULE_INFORMATION SystemInfoBuffer     = NULL;
     ULONG                      SystemInfoBufferSize = 0;
 
-    RtlInitUnicodeString(&routineName, L"ZwQuerySystemInformation");
-    ZwQSI = (ZWQUERYSYSTEMINFORMATION)MmGetSystemRoutineAddress(&routineName);
+    RtlInitUnicodeString(&RoutineName, L"ZwQuerySystemInformation");
+    ZwQSI = (ZWQUERYSYSTEMINFORMATION)MmGetSystemRoutineAddress(&RoutineName);
     if (!ZwQSI)
         return NULL;
 
-    status = ZwQSI(SystemModuleInformation,
+    Status = ZwQSI(SystemModuleInformation,
                    &SystemInfoBufferSize,
                    0,
                    &SystemInfoBufferSize);
@@ -43,26 +43,26 @@ SyscallHookGetKernelBase(PULONG pImageSize)
         return NULL;
     }
 
-    pSystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
+    SystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
 
-    if (!pSystemInfoBuffer)
+    if (!SystemInfoBuffer)
     {
         LogError("Err, insufficient memory");
         return NULL;
     }
 
-    memset(pSystemInfoBuffer, 0, SystemInfoBufferSize * 2);
+    memset(SystemInfoBuffer, 0, SystemInfoBufferSize * 2);
 
-    status = ZwQSI(SystemModuleInformation,
-                   pSystemInfoBuffer,
+    Status = ZwQSI(SystemModuleInformation,
+                   SystemInfoBuffer,
                    SystemInfoBufferSize * 2,
                    &SystemInfoBufferSize);
 
-    if (NT_SUCCESS(status))
+    if (NT_SUCCESS(Status))
     {
-        pModuleBase = pSystemInfoBuffer->Module[0].ImageBase;
-        if (pImageSize)
-            *pImageSize = pSystemInfoBuffer->Module[0].ImageSize;
+        ModuleBase = SystemInfoBuffer->Module.ImageBase;
+        if (ImageSize)
+            *ImageSize = SystemInfoBuffer->Module.ImageSize;
     }
     else
     {
@@ -70,8 +70,8 @@ SyscallHookGetKernelBase(PULONG pImageSize)
         return NULL;
     }
 
-    ExFreePool(pSystemInfoBuffer);
-    return pModuleBase;
+    ExFreePool(SystemInfoBuffer);
+    return ModuleBase;
 }
 
 /**
