@@ -38,7 +38,7 @@
 .OperatorsTwoOperand->or xor and asr asl add sub mul div mod gt lt egt elt equal neq 
 .OperatorsOneOperand->inc dec reference dereference
 
-.SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while  start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if ignore_lvalue
+.SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while  start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if ignore_lvalue end_of_user_defined_function return_of_user_defined_function_with_value return_of_user_defined_function_without_value call_user_defined_function_parameter end_of_calling_user_defined_function_without_returning_value end_of_calling_user_defined_function_with_returning_value call_user_defined_function start_of_user_defined_function mov_return_value
 
 .Registers->rax eax ax ah al rcx ecx cx ch cl rdx edx dx dh dl rbx ebx bx bh bl rsp esp sp spl rbp ebp bp bpl rsi esi si sil rdi edi di dil r8 r8d r8w r8h r8l r9 r9d r9w r9h r9l r10 r10d r10w r10h r10l r11 r11d r11w r11h r11l r12 r12d r12w r12h r12l r13 r13d r13w r13h r13l r14 r14d r14w r14h r14l r15 r15d r15w r15h r15l ds es fs gs cs ss rflags eflags flags cf pf af zf sf tf if df of iopl nt rf vm ac vif vip id rip eip ip idtr ldtr gdtr tr cr0 cr2 cr3 cr4 cr8 dr0 dr1 dr2 dr3 dr6 dr7
 
@@ -48,19 +48,59 @@ S->STATEMENT S
 S->{ STATEMENT S }
 S->eps
 
-
 STATEMENT->IF_STATEMENT
 STATEMENT->WHILE_STATEMENT
 STATEMENT->DO_WHILE_STATEMENT
 STATEMENT->FOR_STATEMENT
-STATEMENT->ASSIGNMENT_STATEMENT ;
+STATEMENT->L_VALUE L_VALUE2
 STATEMENT->CALL_FUNC_STATEMENT ;
 STATEMENT->break @BREAK ;
 STATEMENT->continue @CONTINUE ;
+STATEMENT->VARIABLE_TYPE3
 
+S2->STATEMENT2 S2
+S2->{ STATEMENT2 S2 }
+S2->eps
 
+STATEMENT2->IF_STATEMENT
+STATEMENT2->WHILE_STATEMENT
+STATEMENT2->DO_WHILE_STATEMENT
+STATEMENT2->FOR_STATEMENT
+STATEMENT2->L_VALUE L_VALUE2
+STATEMENT2->CALL_FUNC_STATEMENT ;
+STATEMENT2->break @BREAK ;
+STATEMENT2->continue @CONTINUE ;
+STATEMENT2->VARIABLE_TYPE1 VARIABLE_TYPE2 L_VALUE = EXPRESSION @MOV ;
+STATEMENT2->return RETURN ;
+RETURN->eps @RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE
+RETURN->EXPRESSION @RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE
 
-ASSIGNMENT_STATEMENT->L_VALUE ASSIGNMENT_STATEMENT'
+# name started with a dot is a list of fun, wii rewrite here 
+.VARIABLETYPE->void bool char short int long unsigned signed float double
+VARIABLE_TYPE1->@PUSH .VARIABLETYPE
+
+VARIABLE_TYPE2->VARIABLE_TYPE1
+VARIABLE_TYPE2->eps
+
+VARIABLE_TYPE3->VARIABLE_TYPE1 VARIABLE_TYPE2 L_VALUE VARIABLE_TYPE4
+VARIABLE_TYPE4->= EXPRESSION @MOV ;
+
+# define function
+VARIABLE_TYPE4->@START_OF_USER_DEFINED_FUNCTION ( VARIABLE_TYPE5 ) { S2 @END_OF_USER_DEFINED_FUNCTION }
+
+VARIABLE_TYPE5->eps
+VARIABLE_TYPE5->VARIABLE_TYPE1 VARIABLE_TYPE2 L_VALUE @FUNCTION_PARAMETER VARIABLE_TYPE6
+VARIABLE_TYPE6->, VARIABLE_TYPE1 VARIABLE_TYPE2 L_VALUE @FUNCTION_PARAMETER VARIABLE_TYPE6
+VARIABLE_TYPE6->eps
+
+# L_VALUE2 is to decide whether is assignemnt or call user-defined function
+L_VALUE2->ASSIGNMENT_STATEMENT' ;
+L_VALUE2->@CALL_USER_DEFINED_FUNCTION ( CALL_USER_DEFINED_FUNCTION_PARAMETER ) @END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE ;
+CALL_USER_DEFINED_FUNCTION_PARAMETER->eps
+CALL_USER_DEFINED_FUNCTION_PARAMETER->EXPRESSION @CALL_USER_DEFINED_FUNCTION_PARAMETER CALL_USER_DEFINED_FUNCTION_PARAMETER2
+CALL_USER_DEFINED_FUNCTION_PARAMETER2->, EXPRESSION @CALL_USER_DEFINED_FUNCTION_PARAMETER CALL_USER_DEFINED_FUNCTION_PARAMETER2
+CALL_USER_DEFINED_FUNCTION_PARAMETER2->eps
+
 ASSIGNMENT_STATEMENT'->++ @INC
 ASSIGNMENT_STATEMENT'->-- @DEC
 ASSIGNMENT_STATEMENT'->= EXPRESSION @MOV
@@ -81,20 +121,21 @@ CALL_FUNC_STATEMENT->.ThreeOpFunc2 ( EXPRESSION , EXPRESSION , EXPRESSION @.Thre
 VA->, EXPRESSION VA
 VA->eps
 
-IF_STATEMENT->if @START_OF_IF ( BOOLEAN_EXPRESSION ) @JZ { S } ELSIF_STATEMENT ELSE_STATEMENT @END_OF_IF END_OF_IF
-ELSIF_STATEMENT->elsif @JMP_TO_END_AND_JZCOMPLETED ( BOOLEAN_EXPRESSION ) @JZ { S } ELSIF_STATEMENT
+IF_STATEMENT->if @START_OF_IF ( BOOLEAN_EXPRESSION ) @JZ { S2 } ELSIF_STATEMENT ELSE_STATEMENT @END_OF_IF END_OF_IF
+ELSIF_STATEMENT->elsif @JMP_TO_END_AND_JZCOMPLETED ( BOOLEAN_EXPRESSION ) @JZ { S2 } ELSIF_STATEMENT
 ELSIF_STATEMENT->@JMP_TO_END_AND_JZCOMPLETED ELSIF_STATEMENT'
 ELSIF_STATEMENT'->eps
-ELSE_STATEMENT->else { S } 
+ELSE_STATEMENT->else { S2 } 
 ELSE_STATEMENT->eps
 END_OF_IF->eps
 
     
 
-WHILE_STATEMENT->while @START_OF_WHILE ( BOOLEAN_EXPRESSION ) @START_OF_WHILE_COMMANDS { S @END_OF_WHILE } 
-DO_WHILE_STATEMENT->do @START_OF_DO_WHILE { S } while ( BOOLEAN_EXPRESSION ) @END_OF_DO_WHILE ; 
+WHILE_STATEMENT->while @START_OF_WHILE ( BOOLEAN_EXPRESSION ) @START_OF_WHILE_COMMANDS { S2 @END_OF_WHILE } 
+DO_WHILE_STATEMENT->do @START_OF_DO_WHILE { S2 } while ( BOOLEAN_EXPRESSION ) @END_OF_DO_WHILE ; 
 
-FOR_STATEMENT->for ( SIMPLE_ASSIGNMENT ; @START_OF_FOR BOOLEAN_EXPRESSION ; @FOR_INC_DEC INC_DEC ) { @START_OF_FOR_COMMANDS S @END_OF_FOR }
+FOR_STATEMENT->for ( SIMPLE_ASSIGNMENT ; @START_OF_FOR BOOLEAN_EXPRESSION ; @FOR_INC_DEC INC_DEC ) { @START_OF_FOR_COMMANDS S2 @END_OF_FOR }
+SIMPLE_ASSIGNMENT->VARIABLE_TYPE1 VARIABLE_TYPE2 L_VALUE = EXPRESSION @MOV SIMPLE_ASSIGNMENT'
 SIMPLE_ASSIGNMENT->L_VALUE = EXPRESSION @MOV SIMPLE_ASSIGNMENT'
 SIMPLE_ASSIGNMENT->eps 
 SIMPLE_ASSIGNMENT'->eps
@@ -157,10 +198,10 @@ E12->.TwoOpFunc4 ( WstringNumber , WstringNumber @.TwoOpFunc4 )
 E12->( EXPRESSION )
 
 
-# Types must have '_' at the first 
-E12->@PUSH _register
-E12->@PUSH _local_id
-E12->@PUSH _global_id
+E12->L_VALUE E13
+E13->eps
+E13->@CALL_USER_DEFINED_FUNCTION ( CALL_USER_DEFINED_FUNCTION_PARAMETER ) @END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE
+
 
 
 # numbers 
@@ -178,18 +219,15 @@ E12->~ E12 @NOT
 E12->* E12 @POI
 E12->& E12 @REFERENCE
 
-
-
-
-
+# Types must have '_' at the first 
 STRING->@PUSH _string
 WSTRING->@PUSH _wstring
 L_VALUE->@PUSH _global_id 
 L_VALUE->@PUSH _local_id 
 L_VALUE->@PUSH _register
+L_VALUE->@PUSH _function_parameter_id
 
 StringNumber->EXPRESSION
 StringNumber->STRING
 WstringNumber->EXPRESSION
 WstringNumber->WSTRING
-

@@ -32,3 +32,4 @@
 #include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"
+#include "type.h"

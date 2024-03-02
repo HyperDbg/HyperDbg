@@ -165,7 +165,20 @@ PrintToken(PTOKEN Token)
     case UNKNOWN:
         printf(" UNKNOWN>\n");
         break;
-
+    case INPUT_VARIABLE_TYPE:
+        printf(" INPUT_VARIABLE_TYPE>\n");
+        break;
+    case HANDLED_VARIABLE_TYPE:
+        printf(" HANDLED_VARIABLE_TYPE>\n");
+        break;
+    case FUNCTION_TYPE:
+        printf(" FUNCTION_TYPE>\n");
+        break;
+    case FUNCTION_PARAMETER_ID:
+        printf(" FUNCTION_PARAMETER_ID>\n");
+        break;
+    case STACK_TEMP:
+        printf(" STACK_TEMP>\n");
     default:
         printf(" ERROR>\n");
         break;
@@ -238,7 +251,7 @@ AppendWchar(PTOKEN Token, wchar_t c)
     //
     // Append the new charcter to the wstring
     //
-    *((wchar_t *)(Token->Value) + Token->Len/2) = c;
+    *((wchar_t *)(Token->Value) + Token->Len / 2) = c;
     Token->Len += 2;
 }
 
@@ -394,7 +407,7 @@ Pop(PTOKEN_LIST TokenList)
     // Calculate address to read most recent token
     //
     if (TokenList->Pointer > 0)
-        TokenList->Pointer--;
+        TokenList->Pointer--; // not consider what if the token's type is string or wstring
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer;
     PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
@@ -507,16 +520,55 @@ IsOctal(char c)
  * @return PTOKEN
  */
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error, PSYMBOL CurrentFunctionSymbol)
+{
+    if (CurrentFunctionSymbol)
+    {
+        return NewStackTemp(Error);
+    }
+    else
+    {
+        static unsigned int TempID = 0;
+        int                 i;
+        for (i = 0; i < MAX_TEMP_COUNT; i++)
+        {
+            if (TempMap[i] == 0)
+            {
+                TempID     = i;
+                TempMap[i] = 1;
+                break;
+            }
+        }
+        if (i == MAX_TEMP_COUNT)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+        }
+        PTOKEN Temp = NewUnknownToken();
+        char   TempValue[8];
+        sprintf(TempValue, "%d", TempID);
+        strcpy(Temp->Value, TempValue);
+        Temp->Type = TEMP;
+        return Temp;
+    }
+}
+
+/**
+ * @brief Allocates a new temporary variable in stack and returns it
+ *
+ * @param Error
+ * @return PTOKEN
+ */
+PTOKEN
+NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
     int                 i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
-        if (TempMap[i] == 0)
+        if (StackTempMap[i] == 0)
         {
-            TempID     = i;
-            TempMap[i] = 1;
+            TempID          = i;
+            StackTempMap[i] = 1;
             break;
         }
     }
@@ -528,7 +580,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     char   TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
-    Temp->Type = TEMP;
+    Temp->Type = STACK_TEMP;
     return Temp;
 }
 
@@ -545,6 +597,10 @@ FreeTemp(PTOKEN Temp)
     {
         TempMap[id] = 0;
     }
+    else if (Temp->Type == STACK_TEMP)
+    {
+        StackTempMap[id] = 0;
+    }
 }
 
 /**
@@ -556,7 +612,8 @@ CleanTempList(void)
 {
     for (int i = 0; i < MAX_TEMP_COUNT; i++)
     {
-        TempMap[i] = 0;
+        TempMap[i]      = 0;
+        StackTempMap[i] = 0;
     }
 }
 
@@ -861,6 +918,28 @@ IsType14Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is VariableType
+ *
+ * @param Operator
+ * @return char
+ */
+
+char
+IsVariableType(PTOKEN Operator)
+{
+    unsigned int n = VARIABLETYPE_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, VARIABLETYPE[i]))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *
@@ -935,6 +1014,13 @@ GetTerminalId(PTOKEN Token)
         else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
         {
             if (!strcmp("_local_id", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == FUNCTION_PARAMETER_ID)
+        {
+            if (!strcmp("_function_parameter_id", TerminalMap[i]))
             {
                 return i;
             }
@@ -1040,6 +1126,13 @@ LalrGetTerminalId(PTOKEN Token)
         else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
         {
             if (!strcmp("_local_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == FUNCTION_PARAMETER_ID)
+        {
+            if (!strcmp("_function_parameter_id", LalrTerminalMap[i]))
             {
                 return i;
             }
@@ -1292,10 +1385,10 @@ BinaryToInt(char * str)
 }
 
 /**
-* @brief Rotate a character array to the left by one time
-*
-* @param str
-*/
+ * @brief Rotate a character array to the left by one time
+ *
+ * @param str
+ */
 void
 RotateLeftStringOnce(char * str)
 {
@@ -1306,5 +1399,4 @@ RotateLeftStringOnce(char * str)
         str[i] = str[i + 1];
     }
     str[length - 1] = temp;
-
 }

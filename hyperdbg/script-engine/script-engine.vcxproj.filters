@@ -29,6 +29,9 @@
     <ClInclude Include="header\script-engine.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\type.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.c">
@@ -47,6 +50,9 @@
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="code\script-engine.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\type.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

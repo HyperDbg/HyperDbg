@@ -20,6 +20,11 @@
 PTOKEN_LIST IdTable;
 
 /**
+ * @brief 
+ */
+PTOKEN_LIST FunctionParameterIdTable;
+
+/**
  * @brief number of read characters from input
  */
 unsigned int InputIdx;

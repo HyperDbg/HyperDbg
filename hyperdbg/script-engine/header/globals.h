@@ -16,5 +16,5 @@
 #    define MAX_TEMP_COUNT 128
 
 extern char TempMap[MAX_TEMP_COUNT];
-
+extern char StackTempMap[MAX_TEMP_COUNT];
 #endif // !GLOBALS_H

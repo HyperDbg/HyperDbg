@@ -358,6 +358,14 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
 
+    //
+    //
+    //
+    PSYMBOL_BUFFER StackBuffer       = GetStackBuffer();
+    int            StackIndx         = 0;
+    int            StackBaseIndx     = 0;
+    int            StackTempBaseIndx = 0;
+
     if (CodeBuffer->Message == NULL)
     {
         for (int i = 0; i < CodeBuffer->Pointer;)
@@ -386,6 +394,10 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                                     &VariablesList,
                                     CodeBuffer,
                                     &i,
+                                    StackBuffer,
+                                    &StackIndx,
+                                    &StackBaseIndx,
+                                    &StackTempBaseIndx,
                                     &ErrorSymbol) == TRUE)
             {
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
