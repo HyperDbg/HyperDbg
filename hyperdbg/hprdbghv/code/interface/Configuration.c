@@ -483,7 +483,7 @@ ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
 VOID
 ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, BitMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, (PVOID)BitMask);
 }
 
 /**
@@ -511,7 +511,7 @@ ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBU
 VOID
 ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, MsrMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, (PVOID)MsrMask);
 }
 
 /**
@@ -525,7 +525,7 @@ ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 VOID
 ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, MsrMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, (PVOID)MsrMask);
 }
 
 /**
@@ -539,5 +539,5 @@ ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 VOID
 ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, Port);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, (PVOID)Port);
 }

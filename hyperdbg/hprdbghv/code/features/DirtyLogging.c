@@ -155,6 +155,8 @@ DirtyLoggingEnable(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    UNREFERENCED_PARAMETER(VCpu);
+
     //
     // Clear the address
     //

@@ -26,7 +26,7 @@ LayoutGetCr3ByProcessId(UINT32 ProcessId)
     PEPROCESS TargetEprocess;
     CR3_TYPE  ProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)ProcessId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found

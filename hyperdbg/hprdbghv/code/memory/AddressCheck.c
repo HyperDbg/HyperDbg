@@ -243,7 +243,7 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
                 ReadSize = Size;
             }
 
-            if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+            if (!MemoryMapperCheckIfPageIsPresentByCr3((PVOID)TargetAddress, GuestCr3))
             {
                 //
                 // Address is not valid
@@ -269,7 +269,7 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
     }
     else
     {
-        if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+        if (!MemoryMapperCheckIfPageIsPresentByCr3((PVOID)TargetAddress, GuestCr3))
         {
             //
             // Address is not valid

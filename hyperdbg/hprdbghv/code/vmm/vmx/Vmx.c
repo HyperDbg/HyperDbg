@@ -482,7 +482,7 @@ VmxTerminate()
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
     //
-    Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL, NULL, NULL);
+    Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL_ZERO, NULL_ZERO, NULL_ZERO);
 
     if (Status == STATUS_SUCCESS)
     {
@@ -493,10 +493,10 @@ VmxTerminate()
         //
         MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
         MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
-        CrsFreePool(VCpu->VmmStack);
-        CrsFreePool(VCpu->MsrBitmapVirtualAddress);
-        CrsFreePool(VCpu->IoBitmapVirtualAddressA);
-        CrsFreePool(VCpu->IoBitmapVirtualAddressB);
+        CrsFreePool((PVOID)VCpu->VmmStack);
+        CrsFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
+        CrsFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
+        CrsFreePool((PVOID)VCpu->IoBitmapVirtualAddressB);
 
         return TRUE;
     }
@@ -1070,7 +1070,7 @@ VmxCompatibleStrlen(const CHAR * S)
         /*
         Temp = *S;
         */
-        MemoryMapperReadMemorySafe(S, &Temp, sizeof(CHAR));
+        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(CHAR));
 
         if (Temp != '\0')
         {
@@ -1161,7 +1161,7 @@ VmxCompatibleWcslen(const wchar_t * S)
         /*
         Temp = *S;
         */
-        MemoryMapperReadMemorySafe(S, &Temp, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(wchar_t));
 
         if (Temp != '\0\0')
         {
@@ -1317,12 +1317,12 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
         /*
         C1 = *Address1;
         */
-        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(CHAR));
+        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(CHAR));
 
         /*
         C2 = *Address2;
         */
-        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(CHAR));
+        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(CHAR));
 
         Address1++;
         Address2++;
@@ -1427,12 +1427,12 @@ VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
         /*
         C1 = *Address1;
         */
-        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(wchar_t));
 
         /*
         C2 = *Address2;
         */
-        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(wchar_t));
 
         Address1++;
         Address2++;
@@ -1538,12 +1538,12 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
         /*
         C1 = *Address1;
         */
-        MemoryMapperReadMemorySafe(Address1, &C1, sizeof(CHAR));
+        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(CHAR));
 
         /*
         C2 = *Address2;
         */
-        MemoryMapperReadMemorySafe(Address2, &C2, sizeof(CHAR));
+        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(CHAR));
 
         Address1++;
         Address2++;

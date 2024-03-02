@@ -78,7 +78,7 @@ DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  VCpu->Regs->rax,
+                                                  (PVOID)VCpu->Regs->rax,
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -98,7 +98,7 @@ DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     {
         VmmCallbackTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 VCpu->Regs->rax,
+                                 (PVOID)VCpu->Regs->rax,
                                  NULL,
                                  VCpu->Regs);
     }
@@ -147,7 +147,7 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         //
         EventTriggerResult = VmmCallbackTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      Context,
+                                                      (PVOID)Context,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
 
@@ -169,7 +169,7 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         {
             VmmCallbackTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
                                      VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     Context,
+                                     (PVOID)Context,
                                      NULL,
                                      VCpu->Regs);
         }
@@ -204,7 +204,7 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(TSC_INSTRUCTION_EXECUTION,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  IsRdtscp,
+                                                  (PVOID)IsRdtscp,
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -233,7 +233,7 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     {
         VmmCallbackTriggerEvents(TSC_INSTRUCTION_EXECUTION,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 IsRdtscp,
+                                 (PVOID)IsRdtscp,
                                  NULL,
                                  VCpu->Regs);
     }
@@ -325,7 +325,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      (UINT64)TargetMode,
+                                                      (PVOID)TargetMode,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
 
@@ -442,7 +442,7 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     {
         EventTriggerResult = VmmCallbackTriggerEvents(IN_INSTRUCTION_EXECUTION,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      IoQualification.PortNumber,
+                                                      (PVOID)IoQualification.PortNumber,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
     }
@@ -450,7 +450,7 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     {
         EventTriggerResult = VmmCallbackTriggerEvents(OUT_INSTRUCTION_EXECUTION,
                                                       VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      IoQualification.PortNumber,
+                                                      (PVOID)IoQualification.PortNumber,
                                                       &PostEventTriggerReq,
                                                       VCpu->Regs);
     }
@@ -475,7 +475,7 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
         {
             VmmCallbackTriggerEvents(IN_INSTRUCTION_EXECUTION,
                                      VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     IoQualification.PortNumber,
+                                     (PVOID)IoQualification.PortNumber,
                                      NULL,
                                      VCpu->Regs);
         }
@@ -483,7 +483,7 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
         {
             VmmCallbackTriggerEvents(OUT_INSTRUCTION_EXECUTION,
                                      VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                     IoQualification.PortNumber,
+                                     (PVOID)IoQualification.PortNumber,
                                      NULL,
                                      VCpu->Regs);
         }
@@ -507,7 +507,7 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  VCpu->Regs->rcx & 0xffffffff,
+                                                  (PVOID)(VCpu->Regs->rcx & 0xffffffff),
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -529,7 +529,7 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
     {
         VmmCallbackTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 VCpu->Regs->rcx & 0xffffffff,
+                                 (PVOID)(VCpu->Regs->rcx & 0xffffffff),
                                  NULL,
                                  VCpu->Regs);
     }
@@ -552,7 +552,7 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  VCpu->Regs->rcx & 0xffffffff,
+                                                  (PVOID)(VCpu->Regs->rcx & 0xffffffff),
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -574,7 +574,7 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
     {
         VmmCallbackTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 VCpu->Regs->rcx & 0xffffffff,
+                                 (PVOID)(VCpu->Regs->rcx & 0xffffffff),
                                  NULL,
                                  VCpu->Regs);
     }
@@ -718,7 +718,7 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  CrExitQualification->ControlRegister,
+                                                  (PVOID)CrExitQualification->ControlRegister,
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -740,7 +740,7 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     {
         VmmCallbackTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 CrExitQualification->ControlRegister,
+                                 (PVOID)CrExitQualification->ControlRegister,
                                  NULL,
                                  VCpu->Regs);
     }
@@ -795,7 +795,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(EXCEPTION_OCCURRED,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  InterruptExit.Vector,
+                                                  (PVOID)InterruptExit.Vector,
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -835,7 +835,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     {
         VmmCallbackTriggerEvents(EXCEPTION_OCCURRED,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 InterruptExit.Vector,
+                                 (PVOID)InterruptExit.Vector,
                                  NULL,
                                  VCpu->Regs);
     }
@@ -912,7 +912,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     EventTriggerResult = VmmCallbackTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                  InterruptExit.Vector,
+                                                  (PVOID)InterruptExit.Vector,
                                                   &PostEventTriggerReq,
                                                   VCpu->Regs);
 
@@ -943,7 +943,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         VmmCallbackTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
                                  VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
-                                 InterruptExit.Vector,
+                                 (PVOID)InterruptExit.Vector,
                                  NULL,
                                  VCpu->Regs);
     }

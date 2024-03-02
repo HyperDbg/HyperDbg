@@ -281,7 +281,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         //
         UCHAR InstructionBuffer[3] = {0};
 
-        if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
+        if (MemoryMapperCheckIfPageIsPresentByCr3((PVOID)Rip, GuestCr3))
         {
             //
             // The page is safe to read (present)
@@ -347,7 +347,7 @@ EmulateSYSRET:
     //
     // Perform the dispatching and the emulation of the SYSRET event
     //
-    DispatchEventEferSysret(VCpu, Rip);
+    DispatchEventEferSysret(VCpu, (PVOID)Rip);
 
     return TRUE;
 
@@ -366,7 +366,7 @@ EmulateSYSCALL:
     //
     // Perform the dispatching and the emulation of the SYSCAKK event
     //
-    DispatchEventEferSyscall(VCpu, Rip);
+    DispatchEventEferSyscall(VCpu, (PVOID)Rip);
 
     return TRUE;
 }

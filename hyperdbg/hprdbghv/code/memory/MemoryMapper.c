@@ -644,7 +644,7 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
     //
     // Get the page's Page Table Entry
     //
-    Pte = MemoryMapperGetPte(Va);
+    Pte = MemoryMapperGetPte((PVOID)Va);
 
     *PteAddress = Pte;
 
@@ -725,12 +725,12 @@ MemoryMapperUninitialize()
         //
         if (g_MemoryMapper[i].VirualAddressForRead != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForRead);
+            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForRead);
         }
 
         if (g_MemoryMapper[i].VirualAddressForWrite != NULL)
         {
-            MemoryMapperUnmapReservedPageRange(g_MemoryMapper[i].VirualAddressForWrite);
+            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForWrite);
         }
 
         g_MemoryMapper[i].VirualAddressForRead     = NULL;
@@ -943,7 +943,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
 
     case MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY:
 
-        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(AddressToRead);
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)AddressToRead);
 
         break;
 
@@ -1027,7 +1027,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
 
             if (!MemoryMapperReadMemorySafeByPte(
                     PhysicalAddress,
-                    BufferToSaveMemory,
+                    (PVOID)BufferToSaveMemory,
                     ReadSize,
                     g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
                     g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
@@ -1056,7 +1056,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
 
         return MemoryMapperReadMemorySafeByPte(
             PhysicalAddress,
-            BufferToSaveMemory,
+            (PVOID)BufferToSaveMemory,
             SizeToRead,
             g_MemoryMapper[ProcessorIndex].PteVirtualAddressForRead,
             g_MemoryMapper[ProcessorIndex].VirualAddressForRead,
@@ -1229,11 +1229,11 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
 
         if (TargetProcessId == NULL)
         {
-            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(DestinationAddr);
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)DestinationAddr);
         }
         else
         {
-            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId(DestinationAddr, TargetProcessId);
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId((PVOID)DestinationAddr, TargetProcessId);
         }
 
         break;
@@ -1242,11 +1242,11 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
 
         if (TargetProcessCr3 == NULL || TargetProcessCr3->Flags == NULL)
         {
-            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(DestinationAddr);
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)DestinationAddr);
         }
         else
         {
-            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessCr3(DestinationAddr, *TargetProcessCr3);
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)DestinationAddr, *TargetProcessCr3);
         }
 
         break;
@@ -1332,7 +1332,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                                                                       TargetProcessId);
 
             if (!MemoryMapperWriteMemorySafeByPte(
-                    Source,
+                    (PVOID)Source,
                     PhysicalAddress,
                     WriteSize,
                     g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
@@ -1359,7 +1359,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                                                                   TargetProcessCr3,
                                                                                   TargetProcessId);
         return MemoryMapperWriteMemorySafeByPte(
-            Source,
+            (PVOID)Source,
             PhysicalAddress,
             SizeToWrite,
             g_MemoryMapper[ProcessorIndex].PteVirtualAddressForWrite,
@@ -1469,7 +1469,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
         // User needs another process memory
         //
 
-        if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
         {
             //
             // if the process not found
@@ -1549,7 +1549,7 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
         // User needs another process memory
         //
 
-        if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
         {
             //
             // if the process not found

@@ -121,7 +121,7 @@ BroadcastNotifyAllToInvalidateEptAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, TRUE);
+    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, (PVOID)TRUE);
 }
 
 /**
@@ -162,7 +162,7 @@ BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapReadOnAllCores, BitmapMask);
+    KeGenericCallDpc(DpcRoutineChangeMsrBitmapReadOnAllCores, (PVOID)BitmapMask);
 }
 
 /**
@@ -189,7 +189,7 @@ BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapWriteOnAllCores, BitmapMask);
+    KeGenericCallDpc(DpcRoutineChangeMsrBitmapWriteOnAllCores, (PVOID)BitmapMask);
 }
 
 /**
@@ -285,7 +285,7 @@ BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, ExceptionIndex);
+    KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
 }
 
 /**
@@ -301,7 +301,7 @@ BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, ExceptionIndex);
+    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
 }
 
 /**
@@ -411,7 +411,7 @@ BroadcastIoBitmapChangeAllCores(UINT64 Port)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeIoBitmapOnAllCores, Port);
+    KeGenericCallDpc(DpcRoutineChangeIoBitmapOnAllCores, (PVOID)Port);
 }
 
 /**
@@ -479,7 +479,7 @@ BroadcasDisableMbecOnAllProcessors()
 VOID
 BroadcasEnableMbecOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x1);
+    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, (PVOID)0x1);
 }
 
 /**
