@@ -1653,6 +1653,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                 &VariablesList,
                                 &CodeBuffer,
                                 &i,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
                                 &ErrorSymbol) == TRUE)
         {
             CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};

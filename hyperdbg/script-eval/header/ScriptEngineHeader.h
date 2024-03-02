@@ -16,7 +16,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     ACTION_BUFFER *                ActionDetail,
                     SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
                     SYMBOL_BUFFER *                CodeBuffer,
-                    UINT64 *                       Indx,
+                    int *                          Indx,
+                    SYMBOL_BUFFER *                StackBuffer,
+                    int *                          StackIndx,
+                    int *                          StackBaseIndx,
+                    int *                          StackTempBaseIndx,
                     SYMBOL *                       ErrorOperator);
 
 UINT64

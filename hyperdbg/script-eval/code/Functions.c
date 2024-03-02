@@ -30,7 +30,11 @@ GetValue(PGUEST_REGS                    GuestRegs,
          PACTION_BUFFER                 ActionBuffer,
          SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
          PSYMBOL                        Symbol,
-         BOOLEAN                        ReturnReference);
+         BOOLEAN                        ReturnReference,
+         SYMBOL_BUFFER *                StackBuffer,
+         int *                          StackIndx,
+         int *                          StackBaseIndx,
+         int *                          StackTempBaseIndx);
 
 //
 // *** Functions ***
@@ -1271,7 +1275,11 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            char *                         Format,
                            UINT64                         ArgCount,
                            PSYMBOL                        FirstArg,
-                           BOOLEAN *                      HasError)
+                           BOOLEAN *                      HasError,
+                           SYMBOL_BUFFER *                StackBuffer,
+                           int *                          StackIndx,
+                           int *                          StackBaseIndx,
+                           int *                          StackTempBaseIndx)
 {
     //
     // *** The printf function ***
@@ -1304,7 +1312,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
         memcpy(&TempSymbol, Symbol, sizeof(SYMBOL));
         TempSymbol.Type &= 0x7fffffff;
 
-        Val = GetValue(GuestRegs, ActionDetail, VariablesList, &TempSymbol, FALSE);
+        Val = GetValue(GuestRegs, ActionDetail, VariablesList, &TempSymbol, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
         CHAR PercentageChar = Format[Position];
 

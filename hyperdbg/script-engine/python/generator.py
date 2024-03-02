@@ -41,6 +41,7 @@ class Generator():
 typedef struct SYMBOL {
 	long long unsigned Type;
     long long unsigned Len;
+    long long unsigned VariableType;
 	long long unsigned Value;
 } SYMBOL, * PSYMBOL;
 typedef struct SYMBOL_BUFFER {
@@ -75,8 +76,13 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define SYMBOL_INVALID 9
 #define SYMBOL_WSTRING_TYPE 10
-#define INVALID 0xffffffff
-#define LALR_ACCEPT 0x7fffffff
+#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 11
+#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 12
+#define SYMBOL_RETURN_ADDRESS_TYPE 13
+#define SYMBOL_STACK_TEMP_TYPE 14
+#define SYMBOL_FUNCTION_PARAMETER_TYPE 15
+#define INVALID -999
+#define LALR_ACCEPT 999
 
 \n\n""")
 

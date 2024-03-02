@@ -57,6 +57,11 @@ typedef enum TOKEN_TYPE
     TEMP,
     STRING,
     WSTRING,
+    INPUT_VARIABLE_TYPE,
+    HANDLED_VARIABLE_TYPE,
+    FUNCTION_TYPE,
+    FUNCTION_PARAMETER_ID,
+    STACK_TEMP,
     UNKNOWN
 } TOKEN_TYPE;
 
@@ -106,7 +111,10 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PSYMBOL);
+
+PTOKEN
+NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
 FreeTemp(PTOKEN Temp);
@@ -194,7 +202,7 @@ BinaryToInt(char * str);
 void
 RotateLeftStringOnce(char * str);
 
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //	       Semantic Rule Related Functions		  //
 ////////////////////////////////////////////////////
 
@@ -242,5 +250,8 @@ IsTwoOperandOperator(PTOKEN Operator);
 
 char
 IsOneOperandOperator(PTOKEN Operator);
+
+char
+IsVariableType(PTOKEN Operator);
 
 #endif // !COMMON_H
