@@ -63,11 +63,10 @@ DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
  *
  * @param CoreIndex Current core's index
  * @param Regs Guest's gp register
- * @param Context Context of triggering the event
  * @return VOID
  */
 VOID
-DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
+DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu)
 {
     BOOLEAN                                   PostEventTriggerReq = FALSE;
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;

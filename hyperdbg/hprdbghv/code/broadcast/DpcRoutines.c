@@ -60,9 +60,9 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,            // Dpc
-                    Routine,        // DeferredRoutine
-                    DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,                         // Dpc
+                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+                    DeferredContext              // DeferredContext
     );
 
     //
@@ -127,6 +127,9 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 BOOLEAN
 DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
     //
     // Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
     //
@@ -1129,6 +1132,7 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
                                                                       PVOID  SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
 
     //
     // Reset Exception Bitmaps from vmx-root

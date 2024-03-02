@@ -276,7 +276,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
         //
         // Pid is invalid
         //
-        return NULL;
+        return NULL_ZERO;
     }
 
     //

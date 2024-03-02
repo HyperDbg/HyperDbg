@@ -148,7 +148,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
 {
     ULONG                   ProcessorsCount;
     EPT_PML1_ENTRY          ChangedEntry;
-    INVEPT_DESCRIPTOR       Descriptor;
     SIZE_T                  PhysicalBaseAddress;
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
@@ -156,7 +155,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     CR3_TYPE                Cr3OfCurrentProcess;
-    BYTE                    OriginalByte;
 
     //
     // Get number of processors
@@ -477,15 +475,8 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
                        PVOID                   TargetAddress,
                        CR3_TYPE                ProcessCr3)
 {
-    EPT_PML1_ENTRY           ChangedEntry;
     SIZE_T                   PhysicalBaseAddress;
     PVOID                    VirtualTarget;
-    PVOID                    TargetBuffer;
-    UINT64                   TargetAddressInFakePageContent;
-    UINT64                   PageOffset;
-    PEPT_PML1_ENTRY          TargetPage;
-    PEPT_HOOKED_PAGE_DETAIL  HookedPage;
-    BYTE                     OriginalByte;
     EPT_HOOKED_PAGE_DETAIL * HookedEntry = NULL;
 
     //
@@ -991,7 +982,6 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
 {
     ULONG                   ProcessorsCount;
     EPT_PML1_ENTRY          ChangedEntry;
-    INVEPT_DESCRIPTOR       Descriptor;
     SIZE_T                  PhysicalBaseAddress;
     PVOID                   AlignedTargetVa;
     PVOID                   TargetBuffer;
@@ -1177,7 +1167,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->HookFunction == NULL)
         {
-            HookFunction = AsmGeneralDetourHook;
+            HookFunction = (PVOID)AsmGeneralDetourHook;
         }
         else
         {

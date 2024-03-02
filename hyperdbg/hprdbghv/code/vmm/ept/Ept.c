@@ -1008,7 +1008,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification, GuestPhysicalAddr))
+    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification))
     {
         return TRUE;
     }

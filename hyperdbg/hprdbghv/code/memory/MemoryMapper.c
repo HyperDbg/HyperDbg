@@ -332,7 +332,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
     //
     // we need VA of Cr3, not PA
     //
-    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
+    Cr3Va = (UINT64 *)PhysicalAddressToVirtualAddress(TempCr3);
 
     //
     // Check for invalid address
@@ -342,7 +342,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
         return NULL;
     }
 
-    Offset = MemoryMapperGetOffset(PagingLevelPageMapLevel4, Va);
+    Offset = MemoryMapperGetOffset(PagingLevelPageMapLevel4, (UINT64)Va);
 
     PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
 
@@ -1474,7 +1474,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
             //
             // if the process not found
             //
-            return NULL;
+            return NULL_ZERO;
         }
         __try
         {

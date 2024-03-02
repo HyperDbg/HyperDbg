@@ -92,7 +92,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
     {
         // LogInfo("Address of Cr3Va: %llx", Cr3Va);
 
-        PPAGE_ENTRY Pml4e = &Cr3Va[i];
+        PPAGE_ENTRY Pml4e = (PAGE_ENTRY *)&Cr3Va[i];
 
         if (Pml4e->Fields.Present)
         {
@@ -130,7 +130,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                 {
                     // LogInfo("Address of PdptVa: %llx", PdptVa);
 
-                    PPAGE_ENTRY Pdpte = &PdptVa[j];
+                    PPAGE_ENTRY Pdpte = (PAGE_ENTRY *)&PdptVa[j];
 
                     if (Pdpte->Fields.Present)
                     {
@@ -178,7 +178,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                                     continue;
                                 }
 
-                                PPAGE_ENTRY Pde = &PdVa[k];
+                                PPAGE_ENTRY Pde = (PAGE_ENTRY *)&PdVa[k];
 
                                 if (Pde->Fields.Present)
                                 {
@@ -773,14 +773,12 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
- * @param GuestPhysicalAddr
  *
  * @return BOOLEAN
  */
 BOOLEAN
 ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
-                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
-                                 UINT64                                 GuestPhysicalAddr)
+                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification)
 {
     //
     // Check if this mechanism is use or not

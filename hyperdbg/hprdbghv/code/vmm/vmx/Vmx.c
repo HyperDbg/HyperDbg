@@ -12,6 +12,106 @@
 #include "pch.h"
 
 /**
+ * @brief VMX VMREAD instruction (64-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread64(size_t Field,
+            UINT64 FieldValue)
+{
+    return __vmx_vmread((size_t)Field, (size_t *)FieldValue);
+}
+
+/**
+ * @brief VMX VMREAD instruction (32-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread32(size_t Field,
+            UINT32 FieldValue)
+{
+    UINT64 TargetField = 0ull;
+
+    TargetField = FieldValue;
+
+    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
+}
+
+/**
+ * @brief VMX VMREAD instruction (16-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread16(size_t Field,
+            UINT16 FieldValue)
+{
+    UINT64 TargetField = 0ull;
+
+    TargetField = FieldValue;
+
+    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
+}
+
+/**
+ * @brief VMX VMREAD instruction (64-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread64P(size_t   Field,
+             UINT64 * FieldValue)
+{
+    return __vmx_vmread((size_t)Field, (size_t *)FieldValue);
+}
+
+/**
+ * @brief VMX VMREAD instruction (32-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread32P(size_t   Field,
+             UINT32 * FieldValue)
+{
+    UINT64 TargetField = 0ull;
+
+    TargetField = (UINT64)FieldValue;
+
+    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
+}
+
+/**
+ * @brief VMX VMREAD instruction (16-bit)
+ * @param Field
+ * @param FieldValue
+ *
+ * @return UCHAR
+ */
+UCHAR
+VmxVmread16P(size_t Field,
+             UINT16 FieldValue)
+{
+    UINT64 TargetField = 0ull;
+
+    TargetField = (UINT64)FieldValue;
+
+    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
+}
+
+/**
  * @brief Check whether VMX Feature is supported or not
  *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported

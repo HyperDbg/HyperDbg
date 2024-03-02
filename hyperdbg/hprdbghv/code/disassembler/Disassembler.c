@@ -228,7 +228,6 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     ZydisDecodedInstruction Instruction;
     ZydisDecodedOperand     Operands[ZYDIS_MAX_OPERAND_COUNT];
     ZyanStatus              Status;
-    CHAR                    PrintBuffer[128];
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {

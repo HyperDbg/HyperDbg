@@ -321,6 +321,8 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 VOID
 IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
+    UNREFERENCED_PARAMETER(VCpu);
+
     LogError("Why NMI-window exiting happens?");
 }
 
@@ -328,11 +330,10 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Injects a page-fault when interrupt window is open
  *
  * @param VCpu The virtual processor's state
- * @return VOID
+ * @return BOOLEAN
  */
 BOOLEAN
-IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(_Inout_ VIRTUAL_MACHINE_STATE *        VCpu,
-                                                      _Inout_ VMEXIT_INTERRUPT_INFORMATION * InterruptInfo)
+IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
     // Check if all the injections are done or not
@@ -380,7 +381,7 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (g_WaitingForInterruptWindowToInjectPageFault)
     {
-        InjectPageFault = IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(VCpu, &InterruptExit);
+        InjectPageFault = IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(VCpu);
     }
 
     //

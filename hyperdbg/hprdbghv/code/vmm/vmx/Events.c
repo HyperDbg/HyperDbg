@@ -65,7 +65,7 @@ EventInjectGeneralProtection()
 
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT, TRUE, 0);
 
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
     __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 
@@ -222,6 +222,8 @@ EventInjectPageFaultRangeAddress(VIRTUAL_MACHINE_STATE * VCpu,
                                  UINT64                  AddressTo,
                                  UINT32                  PageFaultCode)
 {
+    UNREFERENCED_PARAMETER(VCpu);
+
     //
     // Indicate that the VMM is waiting for interrupt-window to
     // be openned to inject page-fault

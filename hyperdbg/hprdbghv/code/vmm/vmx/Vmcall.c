@@ -178,7 +178,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         HookResult = EptHookPerformPageHookMonitorAndInlineHook(VCpu,
                                                                 OptionalParam1 /* hook details */,
                                                                 ProcCr3 /* Process cr3 */,
-                                                                OptionalParam2 /* PageHookMask */);
+                                                                (UINT32)OptionalParam2 /* PageHookMask */);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -249,7 +249,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_SET_EXCEPTION_BITMAP:
     {
-        HvSetExceptionBitmap(VCpu, OptionalParam1);
+        HvSetExceptionBitmap(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -360,7 +360,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_UNSET_EXCEPTION_BITMAP:
     {
-        HvUnsetExceptionBitmap(VCpu, OptionalParam1);
+        HvUnsetExceptionBitmap(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -454,7 +454,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_DISABLE_OR_ENABLE_MBEC:
     {
-        ModeBasedExecHookEnableOrDisable(VCpu, OptionalParam1);
+        ModeBasedExecHookEnableOrDisable(VCpu, (UINT32)OptionalParam1);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

@@ -112,7 +112,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
                     return FALSE;
                 }
 
-                CopyAddress.PhysicalAddress.QuadPart = Address;
+                CopyAddress.PhysicalAddress.QuadPart = (LONGLONG)Address;
                 MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize);
             }
             else

@@ -43,8 +43,8 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
     //
     // Read previous VM-Entry and VM-Exit controls
     //
-    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     MsrValue.AsUInt = __readmsr(IA32_EFER);
 
@@ -366,7 +366,7 @@ EmulateSYSCALL:
     //
     // Perform the dispatching and the emulation of the SYSCAKK event
     //
-    DispatchEventEferSyscall(VCpu, (PVOID)Rip);
+    DispatchEventEferSyscall(VCpu);
 
     return TRUE;
 }

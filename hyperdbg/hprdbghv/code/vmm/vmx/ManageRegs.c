@@ -51,8 +51,8 @@ GetGuestCs()
     VMX_SEGMENT_SELECTOR Cs;
 
     __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.Base);
-    __vmx_vmread(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
-    __vmx_vmread(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.AsUInt);
+    VmxVmread32P(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
+    VmxVmread32P(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
 
     return Cs;
@@ -96,8 +96,8 @@ GetGuestSs()
     VMX_SEGMENT_SELECTOR Ss;
 
     __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.Base);
-    __vmx_vmread(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
-    __vmx_vmread(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.AsUInt);
+    VmxVmread32P(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
+    VmxVmread32P(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
 
     return Ss;
@@ -141,8 +141,8 @@ GetGuestDs()
     VMX_SEGMENT_SELECTOR Ds;
 
     __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.Base);
-    __vmx_vmread(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
-    __vmx_vmread(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.AsUInt);
+    VmxVmread32P(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
+    VmxVmread32P(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
 
     return Ds;
@@ -186,8 +186,8 @@ GetGuestFs()
     VMX_SEGMENT_SELECTOR Fs;
 
     __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.Base);
-    __vmx_vmread(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
-    __vmx_vmread(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.AsUInt);
+    VmxVmread32P(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
+    VmxVmread32P(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
 
     return Fs;
@@ -231,7 +231,7 @@ GetGuestGs()
     VMX_SEGMENT_SELECTOR Gs;
 
     __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.Base);
-    __vmx_vmread(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
+    VmxVmread32P(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
     __vmx_vmread(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
 

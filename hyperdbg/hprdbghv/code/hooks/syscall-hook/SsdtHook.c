@@ -161,7 +161,6 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
     SSDTStruct * SSDT;
     BOOLEAN      Result;
     ULONG_PTR    SSDTbase;
-    ULONG        ReadOffset;
     UINT64       NtTable, Win32kTable;
 
     //
@@ -297,7 +296,7 @@ SyscallHookTest()
     //
     if (EptHookInlineHook(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)],
                           ApiLocationFromSSDTOfNtCreateFile,
-                          NtCreateFileHook,
+                          (PVOID)NtCreateFileHook,
                           PsGetCurrentProcessId()))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);

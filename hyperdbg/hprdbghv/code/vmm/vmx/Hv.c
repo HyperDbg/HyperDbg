@@ -591,7 +591,7 @@ HvReadExceptionBitmap()
     //
     // Read the current bitmap
     //
-    __vmx_vmread(VMCS_CTRL_EXCEPTION_BITMAP, &ExceptionBitmap);
+    VmxVmread32P(VMCS_CTRL_EXCEPTION_BITMAP, &ExceptionBitmap);
 
     return ExceptionBitmap;
 }

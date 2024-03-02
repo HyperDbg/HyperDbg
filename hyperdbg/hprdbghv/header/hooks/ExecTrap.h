@@ -64,8 +64,7 @@ ExecTrapInitialize();
 
 BOOLEAN
 ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
-                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
-                                 UINT64                                 GuestPhysicalAddr);
+                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification);
 
 BOOLEAN
 ExecTrapAddProcessToWatchingList(UINT32 ProcessId);
