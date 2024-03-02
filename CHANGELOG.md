@@ -7,28 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.2.0] - 2024-XX-XX
 New release of the HyperDbg Debugger.
 
+### Added
+- Add user-defined functions and variable types in script engine ([link](https://github.com/HyperDbg/HyperDbg/pull/342))
+
 ### Changed
 - Fix debuggee crash after running the '.debug close' command on the debugger  
+- After downloading new symbols it is automatically loaded  
 
 ## [0.8.1.0] - 2024-02-01
 New release of the HyperDbg Debugger.
+
+### Added
+- The **!monitor** command now supports length in parameters ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor#syntax))
 
 ### Changed
 - Fix the issue of not intercepting memory monitoring on non-contiguous physical memory allocations
 - The speed of memory read/write/execution interception is enhanced by avoiding triggering out-of-range events
 
-### Added
-- The **!monitor** command now supports length in parameters ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor#syntax))
-
 ## [0.8.0.0] - 2024-01-28
 New release of the HyperDbg Debugger thanks to [@mattiwatti](https://github.com/Mattiwatti).
-
-### Changed
-- Fix miscalculating MTRRs in 13th gen processors 
 
 ### Added
 - The **!mode** event command is added to detect kernel-to-user and user-to-kernel transitions ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 - The 'preactivate' command is added to support initializing special functionalities in the Debugger Mode ([link](https://docs.hyperdbg.org/commands/debugging-commands/preactivate))
+
+### Changed
+- Fix miscalculating MTRRs in 13th gen processors 
 
 ## [0.7.2.0] - 2024-01-23
 New release of the HyperDbg Debugger thanks to [@mattiwatti](https://github.com/Mattiwatti) and [@cutecatsandvirtualmachines](https://github.com/cutecatsandvirtualmachines).

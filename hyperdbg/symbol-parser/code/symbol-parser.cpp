@@ -1951,7 +1951,21 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                   BufferToStoreDetailsConverted[i].ModuleSymbolPath;
 
             //
-            // Check if the symbol already download or not
+            // Download the symbols file if not available
+            //
+            if (DownloadIfAvailable && IsFileExists(Tmp) == FALSE)
+            {
+                //
+                // Download the symbol
+                //
+                SymbolPdbDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                                  BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
+                                  SymPath,
+                                  IsSilentLoad);
+            }
+
+            //
+            // Check again to see if the symbol already download or not
             //
             if (IsFileExists(Tmp))
             {
@@ -2004,19 +2018,6 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                     {
                         ShowMessages("\tnot loaded (already loaded?)\n");
                     }
-                }
-            }
-            else
-            {
-                if (DownloadIfAvailable)
-                {
-                    //
-                    // Download the symbol
-                    //
-                    SymbolPdbDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
-                                      BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
-                                      SymPath,
-                                      IsSilentLoad);
                 }
             }
         }
