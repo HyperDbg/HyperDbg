@@ -72,10 +72,10 @@ SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffe
         //
         // Clear the end character
         //
-        Buffer[ActualBufferLength - 3] = NULL;
-        Buffer[ActualBufferLength - 2] = NULL;
-        Buffer[ActualBufferLength - 1] = NULL;
-        Buffer[ActualBufferLength]     = NULL;
+        Buffer[ActualBufferLength - 3] = NULL_ZERO;
+        Buffer[ActualBufferLength - 2] = NULL_ZERO;
+        Buffer[ActualBufferLength - 1] = NULL_ZERO;
+        Buffer[ActualBufferLength]     = NULL_ZERO;
 
         //
         // Set the new length
@@ -106,7 +106,7 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
     //
     while (TRUE)
     {
-        UCHAR RecvChar = NULL;
+        UCHAR RecvChar = NULL_ZERO;
 
         if (!KdHyperDbgRecvByte(&RecvChar))
         {
@@ -379,7 +379,7 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     //
     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
-                               DebuggeeRequest,
+                               (CHAR *)DebuggeeRequest,
                                MAXIMUM_CHARACTER_FOR_OS_NAME);
 
     //

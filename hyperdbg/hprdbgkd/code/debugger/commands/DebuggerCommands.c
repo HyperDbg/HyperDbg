@@ -38,9 +38,14 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
     Address = ReadMemRequest->Address;
     MemType = ReadMemRequest->MemoryType;
 
-    if (Size && Address != NULL)
+    if (Size && Address != (UINT64)NULL)
     {
-        if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid, Address, MemType, (PVOID)UserBuffer, Size, ReturnSize))
+        if (MemoryManagerReadProcessMemoryNormal((HANDLE)Pid,
+                                                 (PVOID)Address,
+                                                 MemType,
+                                                 (PVOID)UserBuffer,
+                                                 Size,
+                                                 ReturnSize))
         {
             //
             // Reading memory was successful
@@ -73,7 +78,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
                     // for disassembly, so we have to query whether the target process is a
                     // 32-bit process or a 64-bit process
                     //
-                    if (UserAccessIsWow64Process(ReadMemRequest->Pid, &Is32BitProcess))
+                    if (UserAccessIsWow64Process((HANDLE)ReadMemRequest->Pid, &Is32BitProcess))
                     {
                         ReadMemRequest->Is32BitAddress = Is32BitProcess;
                     }
@@ -122,7 +127,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, PSIZE_T ReturnSize)
+DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, UINT32 * ReturnSize)
 {
     UINT32                    Pid;
     UINT32                    Size;
@@ -151,7 +156,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
             return FALSE;
         }
 
-        MemoryMapperReadMemorySafeByPhysicalAddress(Address, UserBuffer, Size);
+        MemoryMapperReadMemorySafeByPhysicalAddress(Address, (UINT64)UserBuffer, Size);
     }
     else if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
     {
@@ -319,7 +324,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Execute it on a single core
             //
-            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, DpcRoutinePerformWriteMsr, NULL);
+            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, (PVOID)DpcRoutinePerformWriteMsr, NULL);
 
             *ReturnSize = 0;
             return Status;
@@ -389,7 +394,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Execute it on a single core
             //
-            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, DpcRoutinePerformReadMsr, NULL);
+            Status = DpcRoutineRunTaskOnSingleCore(ReadOrWriteMsrRequest->CoreNumber, (PVOID)DpcRoutinePerformReadMsr, NULL);
 
             if (Status != STATUS_SUCCESS)
             {
@@ -405,12 +410,8 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             return STATUS_SUCCESS;
         }
     }
-    else
-    {
-        *ReturnSize = 0;
-        return STATUS_UNSUCCESSFUL;
-    }
 
+    *ReturnSize = 0;
     return STATUS_UNSUCCESSFUL;
 }
 
@@ -423,10 +424,9 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
 NTSTATUS
 DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 {
-    UINT32   LengthOfEachChunk  = 0;
-    PVOID    DestinationAddress = 0;
-    PVOID    SourceAddress      = 0;
-    CR3_TYPE CurrentProcessCr3;
+    UINT32 LengthOfEachChunk  = 0;
+    PVOID  DestinationAddress = 0;
+    PVOID  SourceAddress      = 0;
 
     //
     // set chunk size in each modification
@@ -457,7 +457,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        if (EditMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
         {
             //
             // It's an invalid address in current process
@@ -465,7 +465,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
             return STATUS_UNSUCCESSFUL;
         }
-        else if (VirtualAddressToPhysicalAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
+        else if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
         {
             //
             // It's an invalid address in another process
@@ -479,15 +479,15 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
             //
             // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
             // It is because the target page might be read-only so we can make it writable
             //
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
-            MemoryMapperWriteMemoryUnsafe(DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
+            MemoryMapperWriteMemoryUnsafe((UINT64)DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
         }
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
@@ -497,10 +497,10 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
         }
     }
     else
@@ -529,12 +529,12 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 BOOLEAN
 DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 {
-    UINT32   LengthOfEachChunk  = 0;
-    PVOID    DestinationAddress = 0;
-    PVOID    SourceAddress      = 0;
-    CR3_TYPE CurrentProcessCr3;
+    UINT32 LengthOfEachChunk  = 0;
+    PVOID  DestinationAddress = 0;
+    PVOID  SourceAddress      = 0;
+
     //
-    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
+    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX-ROOT
     //
 
     //
@@ -579,8 +579,8 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
             //
             // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafeOnTargetProcess
@@ -588,7 +588,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             //
 
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
-            MemoryMapperWriteMemorySafeOnTargetProcess(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)DestinationAddress, SourceAddress, LengthOfEachChunk);
         }
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
@@ -598,10 +598,10 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
-            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
-            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
+            SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
         }
     }
     else
@@ -651,12 +651,11 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
     UINT64   Cmp64                 = 0;
     UINT32   IndexToArrayOfResults = 0;
     UINT32   LengthOfEachChunk     = 0;
-    PVOID    DestinationAddress    = 0;
-    PVOID    SourceAddress         = 0;
     PVOID    TempSourceAddress     = 0;
+    PVOID    SourceAddress         = 0;
     BOOLEAN  StillMatch            = FALSE;
-    UINT64   TempValue             = NULL;
-    CR3_TYPE CurrentProcessCr3;
+    UINT64   TempValue             = (UINT64)NULL;
+    CR3_TYPE CurrentProcessCr3     = {0};
 
     //
     // set chunk size in each modification
@@ -704,7 +703,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         }
         else
         {
-            if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+            if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
             {
                 CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
             }
@@ -714,7 +713,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Here we iterate through the buffer we received from
         // user-mode
         //
-        SourceAddress = (UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY;
+        SourceAddress = (PVOID)((UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY);
 
         for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((UINT64)EndAddress); BaseIterator += LengthOfEachChunk)
         {
@@ -729,7 +728,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
             //
             if (IsDebuggeePaused)
             {
-                MemoryMapperReadMemorySafe((PVOID)BaseIterator, &Cmp64, LengthOfEachChunk);
+                MemoryMapperReadMemorySafe((UINT64)BaseIterator, &Cmp64, LengthOfEachChunk);
             }
             else
             {
@@ -760,7 +759,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     // I know, we have a double check here ;)
                     //
-                    TempSourceAddress = (UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY + (i * sizeof(UINT64));
+                    TempSourceAddress = (PVOID)((UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY + (i * sizeof(UINT64)));
 
                     //
                     // Add i to BaseIterator and recompute the Cmp64
@@ -769,7 +768,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     if (IsDebuggeePaused)
                     {
-                        MemoryMapperReadMemorySafe((PVOID)(BaseIterator + (LengthOfEachChunk * i)), &Cmp64, LengthOfEachChunk);
+                        MemoryMapperReadMemorySafe((UINT64)(BaseIterator + (LengthOfEachChunk * i)), &Cmp64, LengthOfEachChunk);
                     }
                     else
                     {
@@ -782,7 +781,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     if (IsDebuggeePaused)
                     {
-                        MemoryMapperReadMemorySafe(TempSourceAddress, &TempValue, sizeof(UINT64));
+                        MemoryMapperReadMemorySafe((UINT64)TempSourceAddress, &TempValue, sizeof(UINT64));
                     }
                     else
                     {
@@ -821,7 +820,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                             //
                             // It's a physical memory
                             //
-                            Log("%llx\n", VirtualAddressToPhysicalAddress(BaseIterator));
+                            Log("%llx\n", VirtualAddressToPhysicalAddress((PVOID)BaseIterator));
                         }
                         else
                         {
@@ -838,7 +837,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                             //
                             // It's a physical memory
                             //
-                            AddressToSaveResults[IndexToArrayOfResults] = VirtualAddressToPhysicalAddress(BaseIterator);
+                            AddressToSaveResults[IndexToArrayOfResults] = VirtualAddressToPhysicalAddress((PVOID)BaseIterator);
                         }
                         else
                         {
@@ -879,7 +878,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Restore the previous memory layout (cr3), if the user specified a
         // special process
         //
-        if (IsDebuggeePaused || SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+        if (IsDebuggeePaused || SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             SwitchToPreviousProcess(CurrentProcessCr3);
         }
@@ -936,10 +935,9 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
 {
     CR3_TYPE CurrentProcessCr3;
     UINT64   BaseAddress         = 0;
-    UINT64   CurrentValue        = 0;
     UINT64   RealPhysicalAddress = 0;
-    UINT64   TempValue           = NULL;
-    UINT64   TempStartAddress    = NULL;
+    UINT64   TempValue           = (UINT64)NULL;
+    UINT64   TempStartAddress    = (UINT64)NULL;
     BOOLEAN  DoesBaseAddrSaved   = FALSE;
     BOOLEAN  SearchResult        = FALSE;
 
@@ -958,7 +956,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         // Align the page and search with alignement
         //
         TempStartAddress = StartAddress;
-        StartAddress     = PAGE_ALIGN(StartAddress);
+        StartAddress     = (UINT64)PAGE_ALIGN(StartAddress);
 
         if (IsDebuggeePaused)
         {
@@ -985,7 +983,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             // Generally, we can use VirtualAddressToPhysicalAddressByProcessId
             // but let's not change the cr3 multiple times
             //
-            TempValue = VirtualAddressToPhysicalAddress(StartAddress);
+            TempValue = VirtualAddressToPhysicalAddress((PVOID)StartAddress);
 
             if (TempValue != 0)
             {
@@ -1052,18 +1050,20 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         if (IsDebuggeePaused)
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress);
-            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)StartAddress);
+            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)EndAddress);
         }
-        else if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
+        else if (SearchMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             SearchMemRequest->Address = PhysicalAddressToVirtualAddress(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddress(EndAddress);
         }
         else
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressByProcessId(StartAddress, SearchMemRequest->ProcessId);
-            EndAddress                = PhysicalAddressToVirtualAddressByProcessId(EndAddress, SearchMemRequest->ProcessId);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressByProcessId((PVOID)StartAddress,
+                                                                                   SearchMemRequest->ProcessId);
+            EndAddress                = PhysicalAddressToVirtualAddressByProcessId((PVOID)EndAddress,
+                                                                    SearchMemRequest->ProcessId);
         }
 
         //
@@ -1111,7 +1111,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Check if process id is valid or not
     //
-    if (SearchMemRequest->ProcessId != PsGetCurrentProcessId() && !CommonIsProcessExist(SearchMemRequest->ProcessId))
+    if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()) && !CommonIsProcessExist(SearchMemRequest->ProcessId))
     {
         return STATUS_INVALID_PARAMETER;
     }
@@ -1119,7 +1119,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // User-mode buffer is same as SearchMemRequest
     //
-    UsermodeBuffer = SearchMemRequest;
+    UsermodeBuffer = (UINT64 *)SearchMemRequest;
 
     //
     // We store the user-mode data in a seprate variable because
@@ -1166,7 +1166,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     {
         CurrentValue = SearchResultsStorage[i];
 
-        if (CurrentValue == NULL)
+        if (CurrentValue == (UINT64)NULL)
         {
             //
             // Nothing left to move
@@ -1266,7 +1266,7 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
     VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
-                    DebuggeeBufferRequest,
+                    (UINT64)DebuggeeBufferRequest,
                     0,
                     0);
 

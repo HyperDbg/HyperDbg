@@ -29,8 +29,8 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
 {
     UINT32 FrameIndex          = 0;
     UINT16 AddressMode         = 0;
-    UINT64 Value               = NULL;
-    UINT64 CurrentStackAddress = NULL;
+    UINT64 Value               = (UINT64)NULL;
+    UINT64 CurrentStackAddress = (UINT64)NULL;
 
     if (Size == 0)
     {
@@ -107,7 +107,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
             //
             // Check if the target page has NX bit (executable page)
             //
-            AddressToSaveFrames[i].IsExecutable = MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(Value);
+            AddressToSaveFrames[i].IsExecutable = MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess((PVOID)Value);
 
             //
             // Read the memory at the target address

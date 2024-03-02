@@ -313,7 +313,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                     {
                         ShowMessages("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
                                      ProcessEntries[i].Eprocess,
-                                     ProcessEntries[i].Pid,
+                                     ProcessEntries[i].ProcessId,
                                      ProcessEntries[i].Cr3,
                                      ProcessEntries[i].ImageFileName);
                     }
@@ -322,10 +322,10 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                 {
                     if (ThreadEntries[i].Ethread != NULL)
                     {
-                        ShowMessages("\tTHREAD\t%llx (%llx.%llx)\n",
+                        ShowMessages("\tTHREAD\t%llx (%x.%x)\n",
                                      ThreadEntries[i].Ethread,
-                                     ThreadEntries[i].Pid,
-                                     ThreadEntries[i].Tid);
+                                     ThreadEntries[i].ProcessId,
+                                     ThreadEntries[i].ThreadId);
                     }
                 }
             }

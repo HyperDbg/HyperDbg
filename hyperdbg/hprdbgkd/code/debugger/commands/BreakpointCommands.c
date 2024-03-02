@@ -47,7 +47,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
                                            ProcThrdInfo.asUInt);
@@ -111,7 +111,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
         // Remove the thread/process from the list
         // We're sure the Result is TRUE
         //
-        InsertionSortDeleteItem(&g_TrapFlagState.ThreadInformation[0],
+        InsertionSortDeleteItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                 &g_TrapFlagState.NumberOfItems,
                                 Index);
 
@@ -147,6 +147,10 @@ Return:
 BOOLEAN
 BreakpointTriggerCallbacks(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 ProcessId, UINT32 ThreadId)
 {
+    UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(ProcessId);
+    UNREFERENCED_PARAMETER(ThreadId);
+
     //
     // Add the process/thread to the watching list
     //
@@ -188,7 +192,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     //
     // *** Search the list of processes/threads for the current process's trap flag state ***
     //
-    Result = BinarySearchPerformSearchItem(&g_TrapFlagState.ThreadInformation[0],
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
                                            ProcThrdInfo.asUInt);
@@ -207,7 +211,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Insert the thread into the list as the item is not already present
         //
-        SuccessfullyStored = InsertionSortInsertItem(&g_TrapFlagState.ThreadInformation[0],
+        SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                                      &g_TrapFlagState.NumberOfItems,
                                                      MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
                                                      ProcThrdInfo.asUInt);
@@ -242,8 +246,8 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
     // and also it indicates whether the debugger itself set this trap
     // flag or it's not supposed to be set by the debugger ***
     //
-    if (BreakpointCheckAndPerformActionsOnTrapFlags(PsGetCurrentProcessId(),
-                                                    PsGetCurrentThreadId(),
+    if (BreakpointCheckAndPerformActionsOnTrapFlags(HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
                                                     &TrapSetByDebugger))
     {
         if (DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
@@ -365,7 +369,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
 BOOLEAN
 BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE TargetMem = NULL;
+    BYTE TargetMem = NULL_ZERO;
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -375,7 +379,9 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
         //
         // Double check if we can access it by physical address
         //
-        MemoryMapperReadMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress, &TargetMem, sizeof(BYTE));
+        MemoryMapperReadMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                    (UINT64)&TargetMem,
+                                                    sizeof(BYTE));
 
         if (TargetMem != 0xcc)
         {
@@ -387,7 +393,7 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     // Apply the previous byte
     //
     MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
-                                                 &BreakpointDescriptor->PreviousByte,
+                                                 (UINT64)&BreakpointDescriptor->PreviousByte,
                                                  sizeof(BYTE));
 
     //
@@ -421,7 +427,7 @@ BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
     //
     // Uninitialize the breakpoint descriptor (safely)
     //
-    PoolManagerFreePool(BreakpointDesc);
+    PoolManagerFreePool((UINT64)BreakpointDesc);
 }
 
 /**
@@ -451,7 +457,7 @@ BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
         //
         MemoryMapperWriteMemorySafeByPhysicalAddress(
             DbgState->SoftwareBreakpointState->PhysAddress,
-            &BreakpointByte,
+            (UINT64)&BreakpointByte,
             sizeof(BYTE));
 
         //
@@ -492,14 +498,12 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                                                    DEBUGGEE_PAUSING_REASON     Reason,
                                                    BOOLEAN                     ChangeMtfState)
 {
-    CR3_TYPE                         GuestCr3;
+    CR3_TYPE                         GuestCr3              = {0};
     BOOLEAN                          IsHandledByBpRoutines = FALSE;
     PLIST_ENTRY                      TempList              = 0;
-    UINT64                           GuestRipPhysical      = NULL;
+    UINT64                           GuestRipPhysical      = (UINT64)NULL;
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
     RFLAGS                           Rflags                = {0};
-    ULONG                            LengthOfExitInstr     = 0;
-    BYTE                             InstrByte             = NULL;
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
 
@@ -515,7 +519,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     //
     // Convert breakpoint to physical address
     //
-    GuestRipPhysical = VirtualAddressToPhysicalAddressByProcessCr3(GuestRip, GuestCr3);
+    GuestRipPhysical = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)GuestRip, GuestCr3);
 
     //
     // Iterate through the list of breakpoints
@@ -538,13 +542,13 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             // First, we remove the breakpoint
             //
             MemoryMapperWriteMemorySafeByPhysicalAddress(GuestRipPhysical,
-                                                         &CurrentBreakpointDesc->PreviousByte,
+                                                         (UINT64)&CurrentBreakpointDesc->PreviousByte,
                                                          sizeof(BYTE));
 
             //
             // Now, halt the debuggee
             //
-            TargetContext.Context = VmFuncGetLastVmexitRip(DbgState->CoreId);
+            TargetContext.Context = (PVOID)VmFuncGetLastVmexitRip(DbgState->CoreId);
 
             //
             // In breakpoints tag is breakpoint id, not event tag
@@ -562,8 +566,8 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             //
             // Check constraints
             //
-            if ((CurrentBreakpointDesc->Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES || CurrentBreakpointDesc->Pid == PsGetCurrentProcessId()) &&
-                (CurrentBreakpointDesc->Tid == DEBUGGEE_BP_APPLY_TO_ALL_THREADS || CurrentBreakpointDesc->Tid == PsGetCurrentThreadId()) &&
+            if ((CurrentBreakpointDesc->Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES || CurrentBreakpointDesc->Pid == HANDLE_TO_UINT32(PsGetCurrentProcessId())) &&
+                (CurrentBreakpointDesc->Tid == DEBUGGEE_BP_APPLY_TO_ALL_THREADS || CurrentBreakpointDesc->Tid == HANDLE_TO_UINT32(PsGetCurrentThreadId())) &&
                 (CurrentBreakpointDesc->Core == DEBUGGEE_BP_APPLY_TO_ALL_CORES || CurrentBreakpointDesc->Core == DbgState->CoreId))
             {
                 //
@@ -585,7 +589,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     //
                     // check callbacks
                     //
-                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, PsGetCurrentProcessId(), PsGetCurrentThreadId());
+                    IgnoreUserHandling = BreakpointTriggerCallbacks(DbgState, HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
                 }
 
                 //
@@ -723,7 +727,7 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
             //
             // It's a random breakpoint byte
             //
-            TargetContext.Context = GuestRip;
+            TargetContext.Context = (PVOID)GuestRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
                                                   &TargetContext);
@@ -756,7 +760,7 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
 BOOLEAN
 BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE PreviousByte   = NULL;
+    BYTE PreviousByte   = NULL_ZERO;
     BYTE BreakpointByte = 0xcc; // int 3
 
     //
@@ -783,7 +787,7 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     // Apply the breakpoint
     //
     MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
-                                                 &BreakpointByte,
+                                                 (UINT64)&BreakpointByte,
                                                  sizeof(BYTE));
 
     return TRUE;
@@ -888,8 +892,8 @@ BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
-    CR3_TYPE                GuestCr3;
-    BOOLEAN                 IsAddress32Bit = FALSE;
+    CR3_TYPE                GuestCr3             = {0};
+    BOOLEAN                 IsAddress32Bit       = FALSE;
 
     //
     // Find the current process cr3
@@ -948,7 +952,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Get the pre-allocated buffer
     //
-    BreakpointDescriptor = PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
+    BreakpointDescriptor = (DEBUGGEE_BP_DESCRIPTOR *)PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
 
     if (BreakpointDescriptor == NULL)
     {
@@ -966,7 +970,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     g_MaximumBreakpointId++;
     BreakpointDescriptor->BreakpointId      = g_MaximumBreakpointId;
     BreakpointDescriptor->Address           = BpDescriptorArg->Address;
-    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+    BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)BpDescriptorArg->Address,
                                                                                     GuestCr3);
     BreakpointDescriptor->Core              = BpDescriptorArg->Core;
     BreakpointDescriptor->Pid               = BpDescriptorArg->Pid;
@@ -996,7 +1000,9 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(BpDescriptorArg->Address, IsAddress32Bit);
+    BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+        (PVOID)BpDescriptorArg->Address,
+        IsAddress32Bit);
 
     //
     // Breakpoints are enabled by default

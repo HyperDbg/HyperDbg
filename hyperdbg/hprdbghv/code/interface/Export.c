@@ -403,10 +403,10 @@ VmFuncGetInterruptibilityState()
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-VmFuncClearSteppingBits(UINT32 Interruptibility)
+UINT64
+VmFuncClearSteppingBits(UINT64 Interruptibility)
 {
     return HvClearSteppingBits(Interruptibility);
 }
@@ -683,7 +683,7 @@ NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam1,
                 unsigned long long OptionalParam2,
-                long long          OptionalParam3)
+                unsigned long long OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }

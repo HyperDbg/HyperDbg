@@ -21,8 +21,6 @@
 VOID
 KdInitializeKernelDebugger()
 {
-    ULONG CoreCount = KeQueryActiveProcessorCount(0);
-
     //
     // Allocate DPC routine
     //
@@ -205,7 +203,7 @@ KdFireDpc(PVOID Routine, PVOID Paramter)
 {
     ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
-    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, Routine, Paramter);
+    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Paramter);
 
     KeInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
 }
@@ -408,7 +406,7 @@ KdLoggingResponsePacketToDebugger(
         DebuggerResponseLock,
         Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                                   sizeof(DEBUGGER_REMOTE_PACKET),
-                                                  &OperationCode,
+                                                  (CHAR *)&OperationCode,
                                                   sizeof(UINT32),
                                                   OptionalBuffer,
                                                   OptionalBufferLength));
@@ -434,7 +432,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
-    TargetContext.Context = LastVmexitRip;
+    TargetContext.Context = (PVOID)LastVmexitRip;
 
     if (TrapSetByDebugger)
     {
@@ -450,14 +448,15 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 FALSE))
         {
-            if (g_HardwareDebugRegisterDetailsForStepOver.Address != NULL)
+            if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL)
             {
                 //
                 // Check if it's caused by a step-over hardware debug breakpoint or not
                 //
                 if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
                 {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == PsGetCurrentProcessId() && g_HardwareDebugRegisterDetailsForStepOver.ThreadId == PsGetCurrentThreadId())
+                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) &&
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId()))
                     {
                         //
                         // It's a step caused by a debug register breakpoint step-over
@@ -559,14 +558,14 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check to apply hardware debug register breakpoints for step-over
     //
-    if (DbgState->HardwareDebugRegisterForStepping != NULL)
+    if (DbgState->HardwareDebugRegisterForStepping != (UINT64)NULL)
     {
         SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
                           BREAK_ON_INSTRUCTION_FETCH,
                           FALSE,
                           DbgState->HardwareDebugRegisterForStepping);
 
-        DbgState->HardwareDebugRegisterForStepping = NULL;
+        DbgState->HardwareDebugRegisterForStepping = (UINT64)NULL;
     }
 }
 
@@ -653,12 +652,12 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
         //
         // Read Extra registers
         //
-        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
         ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
         ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
 
@@ -702,12 +701,12 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
         //
         // Read Extra registers
         //
-        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
         ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
         ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
 
@@ -817,7 +816,7 @@ KdCloseConnectionAndUnloadDebuggee()
     //
     LogCallbackSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                           "$",
-                          1,
+                          sizeof(CHAR),
                           TRUE);
 }
 
@@ -891,7 +890,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
     KdResponsePacketToDebugger(
         DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS,
-        &FormatsPacket,
+        (CHAR *)&FormatsPacket,
         sizeof(DEBUGGEE_FORMATS_PACKET));
 }
 
@@ -1141,8 +1140,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         // Only 16 bit is needed howerver, vmwrite might write on other bits
         // and corrupt other variables, that's why we get 64bit
         //
-        UINT64                           CsSel         = NULL;
-        PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
+        UINT64                           CsSel         = NULL_ZERO;
         DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
         UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
 
@@ -1173,7 +1171,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
             // Handle the step (if the disassembly ignored here, it means the debugger wants to use it
             // as a tracking mechanism, so we'll change the reason for that)
             //
-            TargetContext.Context = LastVmexitRip;
+            TargetContext.Context = (PVOID)LastVmexitRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &TargetContext);
@@ -1391,7 +1389,7 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = (UINT64)NULL;
 
     //
     // Read cs to have a trace of the execution mode of running application
@@ -1501,7 +1499,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Unset the trap flag on the next VM-exit
     //
-    BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId());
+    BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
 }
 
 /**
@@ -1535,8 +1533,8 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         // in other processes
         //
         g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = PsGetCurrentProcessId();
-        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = PsGetCurrentThreadId();
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
 
         //
         // Add hardware debug breakpoints on all core on vm-entry
@@ -1645,8 +1643,6 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 VOID
 KdQueryRflagTrapState()
 {
-    ULONG CoreCount;
-
     //
     // show the number of items
     //
@@ -1767,7 +1763,7 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
     {
         //
         // Adjust the flags for showing there was error
@@ -1847,7 +1843,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
                                         DEBUGGER_HALTED_CORE_TASK_TEST,
                                         TRUE,
                                         TestQueryPacket->RequestType == TEST_SETTING_TARGET_TASKS_ON_HALTED_CORES_SYNCHRONOUS ? TRUE : FALSE,
-                                        0x55);
+                                        (PVOID)0x55);
 
         TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -1858,7 +1854,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
         //
         // Validate core number
         //
-        if (!CommonValidateCoreNumber(TestQueryPacket->Context))
+        if (!CommonValidateCoreNumber((UINT32)TestQueryPacket->Context))
         {
             //
             // Core number is invalid
@@ -1873,7 +1869,7 @@ KdPerformTheTestPacketOperation(PROCESSOR_DEBUGGING_STATE *           DbgState,
             HaltedCoreRunTaskOnSingleCore((UINT32)TestQueryPacket->Context,
                                           DEBUGGER_HALTED_CORE_TASK_TEST,
                                           TRUE,
-                                          0x85);
+                                          (PVOID)0x85);
 
             TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         }
@@ -2229,7 +2225,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SHORT_CIRCUITING_EVENT                    ShortCircuitingEventPacket;
     UINT32                                              SizeToSend                   = 0;
     BOOLEAN                                             UnlockTheNewCore             = FALSE;
-    size_t                                              ReturnSize                   = 0;
+    UINT32                                              ReturnSize                   = 0;
     DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
     DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
 
@@ -2450,7 +2446,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE,
-                                           ChangeCorePacket,
+                                           (CHAR *)ChangeCorePacket,
                                            sizeof(DEBUGGEE_CHANGE_CORE_PACKET));
 
                 //
@@ -2478,7 +2474,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
-                                           FlushPacket,
+                                           (CHAR *)FlushPacket,
                                            sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
 
                 break;
@@ -2492,7 +2488,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // If the address is null, we use the current RSP register
                 //
-                if (CallstackPacket->BaseAddress == NULL)
+                if (CallstackPacket->BaseAddress == (UINT64)NULL)
                 {
                     CallstackPacket->BaseAddress = DbgState->Regs->rsp;
                 }
@@ -2517,8 +2513,8 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK,
-                                           CallstackPacket,
-                                           CallstackPacket->BufferSize);
+                                           (CHAR *)CallstackPacket,
+                                           (UINT32)CallstackPacket->BufferSize);
 
                 break;
 
@@ -2536,7 +2532,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY,
-                                           TestQueryPacket,
+                                           (CHAR *)TestQueryPacket,
                                            sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER));
 
                 break;
@@ -2569,7 +2565,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
-                                           ReadRegisterPacket,
+                                           (CHAR *)ReadRegisterPacket,
                                            SizeToSend);
 
                 break;
@@ -2577,6 +2573,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY:
 
                 ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Read memory
                 //
@@ -2598,7 +2595,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
-                                           (unsigned char *)ReadMemoryPacket,
+                                           (CHAR *)ReadMemoryPacket,
                                            sizeof(DEBUGGER_READ_MEMORY) + ReturnSize);
 
                 break;
@@ -2623,7 +2620,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY,
-                                           (unsigned char *)EditMemoryPacket,
+                                           (CHAR *)EditMemoryPacket,
                                            sizeof(DEBUGGER_EDIT_MEMORY));
 
                 break;
@@ -2642,7 +2639,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
-                                           ChangeProcessPacket,
+                                           (CHAR *)ChangeProcessPacket,
                                            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET));
 
                 break;
@@ -2661,7 +2658,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD,
-                                           ChangeThreadPacket,
+                                           (CHAR *)ChangeThreadPacket,
                                            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET));
 
                 break;
@@ -2696,7 +2693,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT,
-                                           ScriptPacket,
+                                           (CHAR *)ScriptPacket,
                                            sizeof(DEBUGGEE_SCRIPT_PACKET));
 
                 break;
@@ -2708,7 +2705,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Send the user-input to user-mode debuggee
                 //
-                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket),
+                KdNotifyDebuggeeForUserInput(((DEBUGGEE_USER_INPUT_PACKET *)UserInputPacket),
                                              sizeof(DEBUGGEE_USER_INPUT_PACKET) + UserInputPacket->CommandLen);
 
                 //
@@ -2753,14 +2750,14 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
-                                           &SearchPacketResult,
+                                           (CHAR *)&SearchPacketResult,
                                            sizeof(DEBUGGEE_RESULT_OF_SEARCH_PACKET));
 
                 break;
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT:
 
-                EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+                EventRegPacket = (DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
                 // Parsing the event either in the VMX-root mode or pass it to the user-mode
@@ -2780,7 +2777,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
-                                               &DebuggerEventAndActionResult,
+                                               (CHAR *)&DebuggerEventAndActionResult,
                                                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
                 }
 
@@ -2788,7 +2785,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT:
 
-                AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+                AddActionPacket = (DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
                 // Parsing the action either in the VMX-root mode or pass it to the user-mode
@@ -2808,7 +2805,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
-                                               &DebuggerEventAndActionResult,
+                                               (CHAR *)&DebuggerEventAndActionResult,
                                                sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
                 }
 
@@ -2836,7 +2833,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
-                                               QueryAndModifyEventPacket,
+                                               (CHAR *)QueryAndModifyEventPacket,
                                                sizeof(DEBUGGER_MODIFY_EVENTS));
                 }
 
@@ -2856,7 +2853,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_STATE,
-                                           ShortCircuitingEventPacket,
+                                           (CHAR *)ShortCircuitingEventPacket,
                                            sizeof(DEBUGGER_SHORT_CIRCUITING_EVENT));
 
                 break;
@@ -2875,7 +2872,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
-                                           BpPacket,
+                                           (CHAR *)BpPacket,
                                            sizeof(DEBUGGEE_BP_PACKET));
 
                 break;
@@ -2894,7 +2891,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
-                                           PtePacket,
+                                           (CHAR *)PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
 
                 break;
@@ -2913,7 +2910,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BRINGING_PAGES_IN,
-                                           PageinPacket,
+                                           (CHAR *)PageinPacket,
                                            sizeof(DEBUGGER_PAGE_IN_REQUEST));
 
                 break;
@@ -2933,7 +2930,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,
-                                           Va2paPa2vaPacket,
+                                           (CHAR *)Va2paPa2vaPacket,
                                            sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS));
 
                 break;
@@ -2952,7 +2949,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
-                                           BpListOrModifyPacket,
+                                           (CHAR *)BpListOrModifyPacket,
                                            sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET));
 
                 break;
@@ -3015,7 +3012,7 @@ KdIsGuestOnUsermode32Bit()
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = (UINT64)NULL;
 
     //
     // Read guest's cs selector
@@ -3149,13 +3146,13 @@ StartAgain:
             //
             // Set the length to notify debuggee
             //
-            ExitInstructionLength = CheckAddressMaximumInstructionLength(LastVmexitRip);
+            ExitInstructionLength = CheckAddressMaximumInstructionLength((PVOID)LastVmexitRip);
         }
 
         //
         // Set the reading length of bytes (for instruction disassembling)
         //
-        PausePacket.ReadInstructionLen = ExitInstructionLength;
+        PausePacket.ReadInstructionLen = (UINT16)ExitInstructionLength;
 
         //
         // Find the current instruction
@@ -3170,7 +3167,7 @@ StartAgain:
         //
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
-                                   &PausePacket,
+                                   (CHAR *)&PausePacket,
                                    sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //

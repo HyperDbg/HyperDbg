@@ -23,6 +23,8 @@
 VOID
 HaltedCoreTaskTest(PROCESSOR_DEBUGGING_STATE * DbgState, PVOID Context)
 {
+    UNREFERENCED_PARAMETER(DbgState);
+
     //
     // Test target task
     //
@@ -41,7 +43,7 @@ HaltedCoreTaskTest(PROCESSOR_DEBUGGING_STATE * DbgState, PVOID Context)
  */
 VOID
 HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
-                            UINT32                      TargetTask,
+                            UINT64                      TargetTask,
                             PVOID                       Context)
 {
     switch (TargetTask)
@@ -69,7 +71,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // Enable process change detection
         //
-        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+        ProcessEnableOrDisableThreadChangeMonitor(DbgState, TRUE, PVOID_TO_BOOLEAN(Context));
 
         break;
     }
@@ -78,7 +80,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // Enable alert for thread changes
         //
-        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, (BOOLEAN)Context);
+        ThreadEnableOrDisableThreadChangeMonitor(DbgState, TRUE, PVOID_TO_BOOLEAN(Context));
 
         break;
     }
@@ -317,7 +319,7 @@ HaltedCorePerformTargetTask(PROCESSOR_DEBUGGING_STATE * DbgState,
  */
 VOID
 HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
-                                UINT32  TargetTask,
+                                UINT64  TargetTask,
                                 BOOLEAN LockAgainAfterTask,
                                 PVOID   Context)
 {
@@ -328,7 +330,7 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
     //
     DbgState->HaltedCoreTask.PerformHaltedTask = TRUE;
 
-    DbgState->HaltedCoreTask.KernelStatus       = NULL;
+    DbgState->HaltedCoreTask.KernelStatus       = (UINT64)NULL;
     DbgState->HaltedCoreTask.LockAgainAfterTask = LockAgainAfterTask;
     DbgState->HaltedCoreTask.TargetTask         = TargetTask;
     DbgState->HaltedCoreTask.Context            = Context;
@@ -352,7 +354,7 @@ HaltedCoreApplyTaskOnTargetCore(UINT32  TargetCoreId,
  */
 VOID
 HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
-                              UINT32  TargetTask,
+                              UINT64  TargetTask,
                               BOOLEAN LockAgainAfterTask,
                               PVOID   Context)
 {
@@ -395,7 +397,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
  */
 BOOLEAN
 HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
-                                UINT32                      TargetTask,
+                                UINT64                      TargetTask,
                                 BOOLEAN                     LockAgainAfterTask,
                                 BOOLEAN                     Synchronize,
                                 PVOID                       Context)
@@ -417,7 +419,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Apply the task to all cores except current core
     //
-    for (size_t i = 0; i < CoreCount; i++)
+    for (UINT32 i = 0; i < CoreCount; i++)
     {
         if (DbgState->CoreId != i)
         {

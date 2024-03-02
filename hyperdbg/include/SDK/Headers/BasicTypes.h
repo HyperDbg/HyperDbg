@@ -46,6 +46,8 @@ typedef unsigned short   UINT16, *PUINT16;
 typedef unsigned int     UINT32, *PUINT32;
 typedef unsigned __int64 UINT64, *PUINT64;
 
+#define NULL_ZERO 0
+
 #define FALSE 0
 #define TRUE  1
 

@@ -32,7 +32,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
-    PDEBUGGER_EVENT_AND_ACTION_RESULT                       RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
@@ -59,7 +58,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     ULONG                                                   OutBuffLength; // Output buffer length
     SIZE_T                                                  ReturnSize;
     BOOLEAN                                                 DoNotChangeInformation = FALSE;
-    UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode;
     UINT32                                                  FilledEntriesInKernelInfo;
 
     //
@@ -121,7 +119,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
                                   "$",
-                                  1,
+                                  sizeof(CHAR),
                                   TRUE);
 
             Status = STATUS_SUCCESS;
@@ -230,7 +228,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
-            Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, DebuggerReadOrWriteMsrRequest, &ReturnSize);
+            Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, (UINT64 *)DebuggerReadOrWriteMsrRequest, &ReturnSize);
 
             //
             // Set the size
@@ -897,7 +895,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendUsermodeMessageRequest->Length == NULL || IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
+            if (DebuggerSendUsermodeMessageRequest->Length == NULL_ZERO ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;
@@ -948,7 +947,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Second validation phase
             //
-            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == NULL || IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER + DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
+            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == NULL_ZERO ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER + DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;

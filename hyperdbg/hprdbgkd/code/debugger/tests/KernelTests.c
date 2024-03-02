@@ -39,18 +39,18 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
                                              UINT64 Param3,
                                              UINT64 Param4)
 {
-    UINT64 TargetFuncResult = NULL;
+    UINT64 TargetFuncResult = (UINT64)NULL;
 
     //
     // Configure tags and target functions (export them to assembly)
     //
     g_KernelTestTargetFunction = TargetFunction;
-    g_KernelTestTag1           = Tag1;
-    g_KernelTestTag2           = Tag2;
-    g_KernelTestR15            = NULL;
-    g_KernelTestR14            = NULL;
-    g_KernelTestR13            = NULL;
-    g_KernelTestR12            = NULL;
+    g_KernelTestTag1           = (UINT64)Tag1;
+    g_KernelTestTag2           = (UINT64)Tag2;
+    g_KernelTestR15            = (UINT64)NULL;
+    g_KernelTestR14            = (UINT64)NULL;
+    g_KernelTestR13            = (UINT64)NULL;
+    g_KernelTestR12            = (UINT64)NULL;
 
     //
     // Call the target function
@@ -60,13 +60,13 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
     //
     // Null the exports
     //
-    g_KernelTestTargetFunction = NULL;
-    g_KernelTestTag1           = NULL;
-    g_KernelTestTag2           = NULL;
-    g_KernelTestR15            = NULL;
-    g_KernelTestR14            = NULL;
-    g_KernelTestR13            = NULL;
-    g_KernelTestR12            = NULL;
+    g_KernelTestTargetFunction = (PVOID)NULL;
+    g_KernelTestTag1           = (UINT64)NULL;
+    g_KernelTestTag2           = (UINT64)NULL;
+    g_KernelTestR15            = (UINT64)NULL;
+    g_KernelTestR14            = (UINT64)NULL;
+    g_KernelTestR13            = (UINT64)NULL;
+    g_KernelTestR12            = (UINT64)NULL;
 
     return TargetFuncResult;
 }
@@ -80,27 +80,27 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
 VOID
 TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 {
-    UINT64 TempPool = NULL;
+    UINT64 TempPool = (UINT64)NULL;
 
     LogInfo("Starting kernel-test process...");
 
     //
     // Call wrapper for ExAllocatePool2
     //
-    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,               // Tag1 = r14
-                                                            2,               // Tag2 = r15
-                                                            ExAllocatePool2, // Target function
-                                                            NonPagedPool,    // PoolType
-                                                            PAGE_SIZE,       // NumberOfBytes
-                                                            POOLTAG,         // Tag
-                                                            NULL);
+    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,                      // Tag1 = r14
+                                                            2,                      // Tag2 = r15
+                                                            (PVOID)ExAllocatePool2, // Target function
+                                                            NonPagedPool,           // PoolType
+                                                            PAGE_SIZE,              // NumberOfBytes
+                                                            POOLTAG,                // Tag
+                                                            (UINT64)NULL);
 
-    if (TempPool != NULL)
+    if (TempPool != (UINT64)NULL)
     {
         //
         // Free the previous pool
         //
-        CrsFreePool(TempPool);
+        CrsFreePool((PVOID)TempPool);
     }
 
     LogInfo("All the kernel events are triggered");
@@ -131,19 +131,19 @@ TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest)
     // ------------------------------------------------------
 
     Index                    = 0;
-    InfoRequest[Index].Value = ExAllocatePool2;
+    InfoRequest[Index].Value = (UINT64)ExAllocatePool2;
     memcpy(&InfoRequest[Index].Tag, "ExAllocatePool2", strlen("ExAllocatePool2") + 1);
 
     // ------------------------------------------------------
 
     Index                    = 1;
-    InfoRequest[Index].Value = NtReadFile;
+    InfoRequest[Index].Value = (UINT64)NtReadFile;
     memcpy(&InfoRequest[Index].Tag, "NtReadFile", strlen("NtReadFile") + 1);
 
     // ------------------------------------------------------
 
     Index                    = 2;
-    InfoRequest[Index].Value = NtWriteFile;
+    InfoRequest[Index].Value = (UINT64)NtWriteFile;
     memcpy(&InfoRequest[Index].Tag, "NtWriteFile", strlen("NtWriteFile") + 1);
 
     // ------------------------------------------------------

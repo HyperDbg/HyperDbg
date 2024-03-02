@@ -9,12 +9,8 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include <ntifs.h>
-#include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
-#include <ntstrsafe.h>
-#include <Windef.h>
+
+#pragma warning(disable : 4201) // Suppress nameless struct/union warning
 
 //
 // Scope definitions
@@ -22,6 +18,16 @@
 #define HYPERDBG_KERNEL_MODE
 #define HYPERDBG_DEBUGGER
 #define SCRIPT_ENGINE_KERNEL_MODE
+
+//
+// General WDK headers
+//
+#include <ntifs.h>
+#include <ntddk.h>
+#include <wdf.h>
+#include <wdm.h>
+#include <ntstrsafe.h>
+#include <Windef.h>
 
 //
 // Definition of Intel primitives (External header)

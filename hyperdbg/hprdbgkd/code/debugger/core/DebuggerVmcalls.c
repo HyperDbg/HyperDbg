@@ -30,6 +30,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
                       UINT64 OptionalParam2,
                       UINT64 OptionalParam3)
 {
+    UNREFERENCED_PARAMETER(OptionalParam3);
+
     BOOLEAN                     Result   = FALSE;
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
@@ -55,7 +57,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // instead we send the registers provided
         // from the third parameter
         //
-        DbgState->Regs = OptionalParam2;
+        DbgState->Regs = (GUEST_REGS *)OptionalParam2;
 
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
@@ -81,10 +83,14 @@ DebuggerVmcallHandler(UINT32 CoreId,
         //
         // Kernel debugger is active, we should send the bytes over serial
         //
-        KdLoggingResponsePacketToDebugger(
-            OptionalParam1,
-            OptionalParam2,
-            OPERATION_LOG_INFO_MESSAGE);
+
+        if (OptionalParam1 != NULL_ZERO && OptionalParam2 != 0)
+        {
+            KdLoggingResponsePacketToDebugger(
+                (CHAR *)OptionalParam1,
+                (UINT32)OptionalParam2,
+                OPERATION_LOG_INFO_MESSAGE);
+        }
 
         Result = TRUE;
         break;
@@ -95,11 +101,11 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // Cast the buffer received to perform sending buffer and possibly
         // halt the debuggee
         //
-        PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = OptionalParam1;
+        PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = (DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER *)OptionalParam1;
 
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DebuggeeBufferRequest->RequestedAction,
-                                   (UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),
+                                   (CHAR *)((UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
                                    DebuggeeBufferRequest->LengthOfBuffer);
 
         //

@@ -361,10 +361,10 @@ HvGetInterruptibilityState();
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-HvClearSteppingBits(UINT32 Interruptibility);
+UINT64
+HvClearSteppingBits(UINT64 Interruptibility);
 
 /**
  * @brief Set guest's interruptibility state

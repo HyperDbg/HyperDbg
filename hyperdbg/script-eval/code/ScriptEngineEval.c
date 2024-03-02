@@ -44,14 +44,14 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
     case PSEUDO_REGISTER_IP:
         return ScriptEnginePseudoRegGetIp();
     case PSEUDO_REGISTER_BUFFER:
-        if (ActionBuffer->CurrentAction != NULL)
+        if (ActionBuffer->CurrentAction != (UINT64)NULL)
         {
             return ScriptEnginePseudoRegGetBuffer(
                 (UINT64 *)ActionBuffer->CurrentAction);
         }
         else
         {
-            return NULL;
+            return (UINT64)NULL;
         }
     case PSEUDO_REGISTER_CONTEXT:
         return ActionBuffer->Context;
@@ -66,7 +66,11 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
-        // TODO: Add all the register
+    default:
+#ifdef SCRIPT_ENGINE_USER_MODE
+        ShowMessages("unknown pseudo-register");
+#endif // SCRIPT_ENGINE_USER_MODE
+        return INVALID;
     }
 }
 
@@ -117,14 +121,14 @@ GetValue(PGUEST_REGS                   GuestRegs,
     case SYMBOL_REGISTER_TYPE:
 
         if (ReturnReference)
-            return NULL; // Not reasonable, you should not dereference a register!
+            return (UINT64)NULL; // Not reasonable, you should not dereference a register!
         else
             return GetRegValue(GuestRegs, (REGS_ENUM)Symbol->Value);
 
     case SYMBOL_PSEUDO_REG_TYPE:
 
         if (ReturnReference)
-            return NULL; // Not reasonable, you should not dereference a pseudo-register!
+            return (UINT64)NULL; // Not reasonable, you should not dereference a pseudo-register!
         else
             return GetPseudoRegValue(Symbol, ActionBuffer);
 
@@ -253,7 +257,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     ACTION_BUFFER *                ActionDetail,
                     SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
                     SYMBOL_BUFFER *                CodeBuffer,
-                    int *                          Indx,
+                    UINT64 *                       Indx,
                     SYMBOL_BUFFER *                StackBuffer,
                     int *                          StackIndx,
                     int *                          StackBaseIndx,
@@ -316,7 +320,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEd(SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionEd(SrcVal1, (DWORD)SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
@@ -345,7 +349,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEb(SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionEb(SrcVal1, (BYTE)SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
@@ -500,7 +504,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionEventInjectErrorCode(SrcVal2, SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionEventInjectErrorCode((UINT32)SrcVal2, (UINT32)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -533,7 +537,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -555,7 +559,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
-        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -577,7 +581,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
-        ScriptEngineFunctionEventInject(SrcVal1, SrcVal0, &HasError);
+        ScriptEngineFunctionEventInject((UINT32)SrcVal1, (UINT32)SrcVal0, &HasError);
 
         break;
 
@@ -1352,7 +1356,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, FALSE);
+        DesVal = ScriptEngineFunctionDisassembleLen((PVOID)SrcVal0, FALSE);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
@@ -1371,7 +1375,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionDisassembleLen((const char *)SrcVal0, TRUE);
+        DesVal = ScriptEngineFunctionDisassembleLen((PVOID)SrcVal0, TRUE);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
@@ -2030,7 +2034,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        PSYMBOL Src2 = NULL;
+        Src2 = NULL;
 
         if (Src1->Value > 0)
         {

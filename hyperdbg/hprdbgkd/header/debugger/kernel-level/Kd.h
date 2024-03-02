@@ -38,7 +38,7 @@ volatile LONG DebuggerHandleBreakpointLock;
 typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
 {
     UINT32 ProcessId;
-    UINT64 Process;
+    PVOID  Process;
 
 } DEBUGGEE_REQUEST_TO_CHANGE_PROCESS, *PDEBUGGEE_REQUEST_TO_CHANGE_PROCESS;
 
@@ -49,7 +49,7 @@ typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
 typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_THREAD
 {
     UINT32 ThreadId;
-    UINT64 Thread;
+    PVOID  Thread;
 
 } DEBUGGEE_REQUEST_TO_CHANGE_THREAD, *PDEBUGGEE_REQUEST_TO_CHANGE_THREAD;
 
@@ -96,7 +96,7 @@ KdFireDpc(PVOID Routine, PVOID Paramter);
 
 static BYTE
 KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
-                      _In_ UINT32                    Length);
+                      _In_ UINT32                        Length);
 
 static VOID
 KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState);
@@ -219,9 +219,9 @@ KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE 
                            _In_ UINT32                                                      OptionalBufferLength);
 
 BOOLEAN
-KdLoggingResponsePacketToDebugger(_In_reads_bytes_opt_(OptionalBufferLength) CHAR * OptionalBuffer,
-                                  _In_ UINT32                                       OptionalBufferLength,
-                                  _In_ UINT32                                       OperationCode);
+KdLoggingResponsePacketToDebugger(_In_reads_bytes_(OptionalBufferLength) CHAR * OptionalBuffer,
+                                  _In_ UINT32                                   OptionalBufferLength,
+                                  _In_ UINT32                                   OperationCode);
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);

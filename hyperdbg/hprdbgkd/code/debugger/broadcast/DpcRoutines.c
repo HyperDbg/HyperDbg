@@ -60,15 +60,15 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,            // Dpc
-                    Routine,        // DeferredRoutine
-                    DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,                         // Dpc
+                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+                    DeferredContext              // DeferredContext
     );
 
     //
     // Set the target core
     //
-    KeSetTargetProcessorDpc(Dpc, CoreNumber);
+    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
 
     //
     // it's sure will be executed, but we want to free the above
@@ -127,7 +127,6 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentProcessorIndex = 0;
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 

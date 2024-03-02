@@ -368,7 +368,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
     if (CodeBuffer->Message == NULL)
     {
-        for (int i = 0; i < CodeBuffer->Pointer;)
+        for (UINT64 i = 0; i < CodeBuffer->Pointer;)
         {
             //
             // Fill the action buffer but as we're in user-mode here

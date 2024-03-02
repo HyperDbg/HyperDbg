@@ -162,7 +162,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         // Indicate that we should set the trap flag to the FALSE next time on
         // the same process/thread
         //
-        if (!BreakpointRestoreTheTrapFlagOnceTriggered(PsGetCurrentProcessId(), PsGetCurrentThreadId()))
+        if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
         {
             LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
                        "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
@@ -209,6 +209,10 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
                  UINT64                             OptionalParam3,
                  UINT64                             OptionalParam4)
 {
+    UNREFERENCED_PARAMETER(OptionalParam2);
+    UNREFERENCED_PARAMETER(OptionalParam3);
+    UNREFERENCED_PARAMETER(OptionalParam4);
+
     //
     // Perform the command
     //
@@ -262,8 +266,8 @@ UdCheckForCommand()
         return FALSE;
     }
 
-    ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                                                       PsGetCurrentThreadId());
+    ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()));
 
     if (!ThreadDebuggingDetails)
     {
@@ -300,10 +304,10 @@ UdCheckForCommand()
             //
             // Remove the command
             //
-            ThreadDebuggingDetails->UdAction[i].OptionalParam1 = NULL;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam2 = NULL;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam3 = NULL;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam4 = NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam1 = (UINT64)NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam2 = (UINT64)NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam3 = (UINT64)NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam4 = (UINT64)NULL;
 
             //
             // At last disable it
@@ -408,6 +412,10 @@ UdPrePausingReasons(PROCESSOR_DEBUGGING_STATE *        DbgState,
                     PDEBUGGER_TRIGGERED_EVENT_DETAILS  EventDetails)
 
 {
+    UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(ThreadDebuggingDetails);
+    UNREFERENCED_PARAMETER(EventDetails);
+
     //
     // *** Handle events before pausing ***
     //
@@ -438,7 +446,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
 {
     DEBUGGEE_UD_PAUSED_PACKET           PausePacket;
     ULONG                               ExitInstructionLength   = 0;
-    UINT64                              SizeOfSafeBufferToRead  = 0;
+    UINT32                              SizeOfSafeBufferToRead  = 0;
     RFLAGS                              Rflags                  = {0};
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails = NULL;
     PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails  = NULL;
@@ -456,7 +464,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Check entry of paused thread
     //
-    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     if (!ProcessDebuggingDetails)
     {
@@ -469,7 +477,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Find the thread entry and if not found, create one for it
     //
-    ThreadDebuggingDetails = ThreadHolderFindOrCreateThreadDebuggingDetail(PsGetCurrentThreadId(), ProcessDebuggingDetails);
+    ThreadDebuggingDetails = ThreadHolderFindOrCreateThreadDebuggingDetail(HANDLE_TO_UINT32(PsGetCurrentThreadId()), ProcessDebuggingDetails);
 
     if (!ThreadDebuggingDetails)
     {
@@ -503,8 +511,8 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set process debugging information
     //
-    PausePacket.ProcessId             = PsGetCurrentProcessId();
-    PausePacket.ThreadId              = PsGetCurrentThreadId();
+    PausePacket.ProcessId             = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+    PausePacket.ThreadId              = HANDLE_TO_UINT32(PsGetCurrentThreadId());
     PausePacket.ProcessDebuggingToken = ProcessDebuggingDetails->Token;
 
     //
@@ -545,7 +553,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
         //
         // Compute the amount of buffer we can read without problem
         //
-        SizeOfSafeBufferToRead = LastVmexitRip & 0xfff;
+        SizeOfSafeBufferToRead = (UINT32)(LastVmexitRip & 0xfff);
         SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
 
         if (SizeOfSafeBufferToRead >= PAGE_SIZE)
@@ -567,7 +575,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set the reading length of bytes (for instruction disassembling)
     //
-    PausePacket.ReadInstructionLen = ExitInstructionLength;
+    PausePacket.ReadInstructionLen = (UINT16)ExitInstructionLength;
 
     //
     // Find the current instruction

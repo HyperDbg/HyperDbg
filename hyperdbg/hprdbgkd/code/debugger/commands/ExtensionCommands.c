@@ -29,12 +29,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         //
         if (AddressDetails->IsVirtual2Physical)
         {
-            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressOnTargetProcess(AddressDetails->VirtualAddress);
+            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)AddressDetails->VirtualAddress);
 
             //
             // Check if address is valid or invalid
             //
-            if (AddressDetails->PhysicalAddress == NULL)
+            if (AddressDetails->PhysicalAddress == (UINT64)NULL)
             {
                 //
                 // Invalid address
@@ -51,7 +51,8 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         }
         else
         {
-            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressOnTargetProcess(AddressDetails->PhysicalAddress);
+            AddressDetails->VirtualAddress =
+                PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)AddressDetails->PhysicalAddress);
 
             //
             // We don't know a way for checking physical address validity
@@ -65,7 +66,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         // *** regular !va2pa and !pa2va in VMI Mode
         //
 
-        if (AddressDetails->ProcessId == PsGetCurrentProcessId())
+        if (AddressDetails->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             //
             // It's on current process address space (we process the request
@@ -73,12 +74,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
             //
             if (AddressDetails->IsVirtual2Physical)
             {
-                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress((PVOID)AddressDetails->VirtualAddress);
 
                 //
                 // Check if address is valid or invalid
                 //
-                if (AddressDetails->PhysicalAddress == NULL)
+                if (AddressDetails->PhysicalAddress == (UINT64)NULL)
                 {
                     //
                     // Invalid address
@@ -123,12 +124,12 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
 
             if (AddressDetails->IsVirtual2Physical)
             {
-                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId((PVOID)AddressDetails->VirtualAddress, AddressDetails->ProcessId);
 
                 //
                 // Check if address is valid or invalid
                 //
-                if (AddressDetails->PhysicalAddress == NULL)
+                if (AddressDetails->PhysicalAddress == (UINT64)NULL)
                 {
                     //
                     // Invalid address
@@ -145,7 +146,9 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
             }
             else
             {
-                AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressByProcessId(AddressDetails->PhysicalAddress, AddressDetails->ProcessId);
+                AddressDetails->VirtualAddress =
+                    PhysicalAddressToVirtualAddressByProcessId((PVOID)AddressDetails->PhysicalAddress,
+                                                               AddressDetails->ProcessId);
 
                 //
                 // We don't know a way for checking physical address validity
@@ -174,7 +177,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     //
     if (IsOperatingInVmxRoot)
     {
-        if (!VirtualAddressToPhysicalAddressOnTargetProcess(PteDetails->VirtualAddress))
+        if (!VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)PteDetails->VirtualAddress))
         {
             //
             // Address is not valid (doesn't have Physical Address)
@@ -190,7 +193,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     }
     else
     {
-        if (PteDetails->ProcessId != PsGetCurrentProcessId())
+        if (PteDetails->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
         {
             //
             // It's on another process address space
@@ -217,7 +220,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
         //
         // Check if address is valid
         //
-        if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
+        if (!VirtualAddressToPhysicalAddress((PVOID)PteDetails->VirtualAddress))
         {
             //
             // Address is not valid (doesn't have Physical Address)
@@ -231,40 +234,40 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     //
     // Read the PML4E
     //
-    PPAGE_ENTRY Pml4e = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageMapLevel4);
+    PPAGE_ENTRY Pml4e = MemoryMapperGetPteVa((PVOID)PteDetails->VirtualAddress, PagingLevelPageMapLevel4);
     if (Pml4e)
     {
-        PteDetails->Pml4eVirtualAddress = Pml4e;
+        PteDetails->Pml4eVirtualAddress = (UINT64)Pml4e;
         PteDetails->Pml4eValue          = Pml4e->Flags;
     }
 
     //
     // Read the PDPTE
     //
-    PPAGE_ENTRY Pdpte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageDirectoryPointerTable);
+    PPAGE_ENTRY Pdpte = MemoryMapperGetPteVa((PVOID)PteDetails->VirtualAddress, PagingLevelPageDirectoryPointerTable);
     if (Pdpte)
     {
-        PteDetails->PdpteVirtualAddress = Pdpte;
+        PteDetails->PdpteVirtualAddress = (UINT64)Pdpte;
         PteDetails->PdpteValue          = Pdpte->Flags;
     }
 
     //
     // Read the PDE
     //
-    PPAGE_ENTRY Pde = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageDirectory);
+    PPAGE_ENTRY Pde = MemoryMapperGetPteVa((PVOID)PteDetails->VirtualAddress, PagingLevelPageDirectory);
     if (Pde)
     {
-        PteDetails->PdeVirtualAddress = Pde;
+        PteDetails->PdeVirtualAddress = (UINT64)Pde;
         PteDetails->PdeValue          = Pde->Flags;
     }
 
     //
     // Read the PTE
     //
-    PPAGE_ENTRY Pte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageTable);
+    PPAGE_ENTRY Pte = MemoryMapperGetPteVa((PVOID)PteDetails->VirtualAddress, PagingLevelPageTable);
     if (Pte)
     {
-        PteDetails->PteVirtualAddress = Pte;
+        PteDetails->PteVirtualAddress = (UINT64)Pte;
         PteDetails->PteValue          = Pte->Flags;
     }
 
@@ -279,7 +282,7 @@ RestoreTheState:
     //
     // Check to restore the current cr3 if it's changed
     //
-    if (RestoreCr3.Flags != NULL)
+    if (RestoreCr3.Flags != (UINT64)NULL)
     {
         SwitchToPreviousProcess(RestoreCr3);
     }

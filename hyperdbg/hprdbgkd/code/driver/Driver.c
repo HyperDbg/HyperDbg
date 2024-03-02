@@ -116,6 +116,8 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // Check for privilege
     //
@@ -186,6 +188,8 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // Not used
     //
@@ -208,6 +212,8 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // Not used
     //
@@ -230,6 +236,8 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // If the close is called means that all of the IOCTLs
     // are not in a pending state so we can safely allow
@@ -254,6 +262,8 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // Not supported
     //

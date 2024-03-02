@@ -21,7 +21,7 @@
 VOID
 TracingPerformInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    DisassemblerShowOneInstructionInVmxRootMode(VmFuncGetLastVmexitRip(DbgState->CoreId), FALSE);
+    DisassemblerShowOneInstructionInVmxRootMode((PVOID)VmFuncGetLastVmexitRip(DbgState->CoreId), FALSE);
 
     DbgState->TracingMode = TRUE;
 
@@ -112,8 +112,10 @@ TracingCheckForContinuingSteps(PROCESSOR_DEBUGGING_STATE * DbgState)
 VOID
 TracingPerformRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    UINT32 Interruptibility;
-    UINT32 InterruptibilityOld = NULL;
+    UNREFERENCED_PARAMETER(DbgState);
+
+    UINT64 Interruptibility;
+    UINT64 InterruptibilityOld = NULL_ZERO;
 
     //
     // Adjust RFLAG's trap-flag
