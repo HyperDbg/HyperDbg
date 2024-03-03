@@ -20,12 +20,12 @@
 BOOLEAN
 DirtyLoggingInitialize()
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
     //
     // Query count of active processors
     //
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // The explanations are copied from Intel whitepaper on PML:
@@ -53,7 +53,7 @@ DirtyLoggingInitialize()
     // the 4 - KByte aligned physical address of the page - modification log.The page modification
     // log comprises 512 64 - bit entries
     //
-    for (size_t i = 0; i < CoreCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].PmlBufferAddress == NULL)
         {
@@ -65,7 +65,7 @@ DirtyLoggingInitialize()
             //
             // Allocation failed
             //
-            for (size_t j = 0; j < CoreCount; j++)
+            for (size_t j = 0; j < ProcessorsCount; j++)
             {
                 if (g_GuestState[j].PmlBufferAddress != NULL)
                 {
@@ -181,12 +181,12 @@ DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 DirtyLoggingUninitialize()
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
     //
     // Query count of active processors
     //
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Broadcast VMCALL to disable PML controls from vmx-root
@@ -196,7 +196,7 @@ DirtyLoggingUninitialize()
     //
     // Free the allocated pool buffers
     //
-    for (size_t i = 0; i < CoreCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].PmlBufferAddress != NULL)
         {

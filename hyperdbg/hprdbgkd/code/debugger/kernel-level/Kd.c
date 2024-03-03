@@ -80,11 +80,11 @@ KdInitializeKernelDebugger()
 VOID
 KdUninitializeKernelDebugger()
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
     if (g_KernelDebuggerState)
     {
-        CoreCount = KeQueryActiveProcessorCount(0);
+        ProcessorsCount = KeQueryActiveProcessorCount(0);
 
         //
         // Indicate that the kernel debugger is not active
@@ -599,8 +599,8 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     //
     // Unlock all the cores
     //
-    ULONG CoreCount = KeQueryActiveProcessorCount(0);
-    for (size_t i = 0; i < CoreCount; i++)
+    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
     }
@@ -735,12 +735,12 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 BOOLEAN
 KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
 {
-    ULONG CoreCount = KeQueryActiveProcessorCount(0);
+    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Check if core is valid or not
     //
-    if (NewCore >= CoreCount)
+    if (NewCore >= ProcessorsCount)
     {
         //
         // Invalid core count
@@ -1516,7 +1516,7 @@ VOID
 KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
 {
     UINT64 NextAddressForHardwareDebugBp = 0;
-    ULONG  CoreCount;
+    ULONG  ProcessorsCount;
 
     if (IsNextInstructionACall)
     {
@@ -1526,7 +1526,7 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         //
         NextAddressForHardwareDebugBp = VmFuncGetLastVmexitRip(DbgState->CoreId) + CallLength;
 
-        CoreCount = KeQueryActiveProcessorCount(0);
+        ProcessorsCount = KeQueryActiveProcessorCount(0);
 
         //
         // Store the detail of the hardware debug register to avoid trigger
@@ -1539,7 +1539,7 @@ KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructio
         //
         // Add hardware debug breakpoints on all core on vm-entry
         //
-        for (size_t i = 0; i < CoreCount; i++)
+        for (size_t i = 0; i < ProcessorsCount; i++)
         {
             g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
         }
@@ -1669,16 +1669,16 @@ KdQueryRflagTrapState()
 VOID
 KdQuerySystemState()
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Query core debugging Lock info
     //
     Log("================================================ Debugging Lock Info ================================================\n");
 
-    for (size_t i = 0; i < CoreCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         if (SpinlockCheckLock(&g_DbgState[i].Lock))
         {
@@ -1696,7 +1696,7 @@ KdQuerySystemState()
     //
     Log("\n================================================ NMI Receiver State =======+=========================================\n");
 
-    for (size_t i = 0; i < CoreCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         if (g_DbgState[i].NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {

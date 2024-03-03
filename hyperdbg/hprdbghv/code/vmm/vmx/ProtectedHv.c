@@ -190,8 +190,8 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_M
 VOID
 ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    UINT32 PinBasedControls = 0;
+    UINT32 VmExitControls   = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -226,8 +226,8 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -285,7 +285,7 @@ ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE
 VOID
 ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -320,7 +320,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -350,7 +350,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
 VOID
 ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -374,7 +374,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -483,7 +483,7 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
 VOID
 ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -530,7 +530,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {

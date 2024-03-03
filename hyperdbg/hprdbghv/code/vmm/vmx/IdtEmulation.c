@@ -23,14 +23,14 @@ VOID
 IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                              _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG                ErrorCode          = 0;
+    UINT32               ErrorCode          = 0;
     PAGE_FAULT_EXCEPTION PageFaultErrorCode = {0};
     UINT64               PageFaultAddress   = 0;
 
     //
     // Read the error code and exiting address
     //
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+    VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
     PageFaultErrorCode.AsUInt = ErrorCode;
 
     //
@@ -88,7 +88,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // Handle software breakpoints
         //
         {
-            UINT64 GuestRip  = NULL;
+            UINT64 GuestRip  = NULL64_ZERO;
             BYTE   TargetMem = NULL;
 
             __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
@@ -373,7 +373,7 @@ VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMEXIT_INTERRUPT_INFORMATION InterruptExit   = {0};
-    ULONG                        ErrorCode       = 0;
+    UINT32                       ErrorCode       = 0;
     BOOLEAN                      InjectPageFault = FALSE;
 
     //

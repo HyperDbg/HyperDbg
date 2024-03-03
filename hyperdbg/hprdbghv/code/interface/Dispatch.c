@@ -694,12 +694,12 @@ DispatchEventMovToFromControlRegisters(VIRTUAL_MACHINE_STATE * VCpu)
     VMX_EXIT_QUALIFICATION_MOV_CR *           CrExitQualification;
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
-    ULONG                                     ExitQualification   = 0;
+    UINT32                                    ExitQualification   = 0;
 
     //
     // Read the exit qualification
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
+    VmxVmread32P(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
     CrExitQualification = (VMX_EXIT_QUALIFICATION_MOV_CR *)&ExitQualification;
 

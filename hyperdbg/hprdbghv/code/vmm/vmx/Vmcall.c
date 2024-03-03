@@ -23,7 +23,7 @@ _Use_decl_annotations_
 NTSTATUS
 VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
 {
-    UINT64                GuestRsp   = NULL;
+    UINT64                GuestRsp   = NULL64_ZERO;
     HYPERCALL_INPUT_VALUE InputValue = {.Flags = GuestRegs->rcx};
 
     switch (InputValue.Fields.CallCode)

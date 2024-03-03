@@ -137,7 +137,7 @@ EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
 VOID
 EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG ErrorCode = 0;
+    UINT32 ErrorCode = 0;
 
     //
     // Re-inject it
@@ -152,7 +152,7 @@ EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
         //
         // Read the error code
         //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+        VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
 
         //
         // Write the error code

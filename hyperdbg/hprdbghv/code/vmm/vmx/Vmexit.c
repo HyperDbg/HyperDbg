@@ -21,7 +21,7 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    ULONG                   ExitReason          = 0;
+    UINT32                  ExitReason          = 0;
     BOOLEAN                 Result              = FALSE;
     BOOLEAN                 ShouldEmulateRdtscp = TRUE;
     VIRTUAL_MACHINE_STATE * VCpu                = NULL;
@@ -44,7 +44,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // read the exit reason and exit qualification
     //
-    __vmx_vmread(VMCS_EXIT_REASON, &ExitReason);
+    VmxVmread32P(VMCS_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
 
     //
@@ -110,7 +110,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // cf=1 indicate vm instructions fail
         //
-        // ULONG Rflags = 0;
+        // UINT64 Rflags = 0;
         // __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
         // __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags | 0x1);
 

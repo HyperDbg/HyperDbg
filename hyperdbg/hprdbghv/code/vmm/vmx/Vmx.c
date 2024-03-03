@@ -213,7 +213,7 @@ VmxGetCurrentLaunchState()
 BOOLEAN
 VmxInitialize()
 {
-    ULONG LogicalProcessorsCount;
+    ULONG ProcessorsCount;
 
     //
     // ****** Start Virtualizing Current System ******
@@ -230,9 +230,9 @@ VmxInitialize()
         return FALSE;
     }
 
-    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t ProcessorID = 0; ProcessorID < LogicalProcessorsCount; ProcessorID++)
+    for (size_t ProcessorID = 0; ProcessorID < ProcessorsCount; ProcessorID++)
     {
         //
         // *** Launching VM for Test (in the all logical processor) ***
@@ -398,10 +398,10 @@ VmxPerformVirtualizationOnAllCores()
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
-    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentProcessorNumber];
+    ULONG                   CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentCore];
 
-    LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
+    LogDebugInfo("Allocating vmx regions for logical core %d", CurrentCore);
 
     //
     // Enabling VMX Operation
@@ -504,10 +504,10 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
     UINT64                  ErrorCode   = 0;
-    ULONG                   ProcessorID = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[ProcessorID];
+    ULONG                   CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[CurrentCore];
 
-    LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
+    LogDebugInfo("Virtualizing current system (logical core : 0x%x)", CurrentCore);
 
     //
     // Clear the VMCS State
@@ -531,7 +531,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     VmxSetupVmcs(VCpu, GuestStack);
 
-    LogDebugInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
+    LogDebugInfo("Executing VMLAUNCH on logical core %d", CurrentCore);
 
     //
     // Setting the state to indicate current core is currently virtualized
@@ -576,8 +576,8 @@ BOOLEAN
 VmxTerminate()
 {
     NTSTATUS                Status           = STATUS_SUCCESS;
-    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCoreIndex];
+    ULONG                   CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCore];
 
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
@@ -586,7 +586,7 @@ VmxTerminate()
 
     if (Status == STATUS_SUCCESS)
     {
-        LogDebugInfo("VMX terminated on logical core %d\n", CurrentCoreIndex);
+        LogDebugInfo("VMX terminated on logical core %d\n", CurrentCore);
 
         //
         // Free the destination memory
@@ -684,8 +684,8 @@ _Use_decl_annotations_
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 {
-    ULONG                   CpuBasedVmExecControls;
-    ULONG                   SecondaryProcBasedVmExecControls;
+    UINT32                   CpuBasedVmExecControls;
+    UINT32                   SecondaryProcBasedVmExecControls;
     PVOID                   HostRsp;
     UINT64                  GdtBase         = 0;
     VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
@@ -1044,14 +1044,14 @@ VmxReturnInstructionPointerForVmxoff()
 VOID
 VmxPerformTermination()
 {
-    ULONG LogicalProcessorsCount;
+    ULONG ProcessorsCount;
 
     LogDebugInfo("Terminating VMX...\n");
 
     //
     // Get number of processors
     //
-    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // ******* Terminating Vmx *******
@@ -1090,7 +1090,7 @@ VmxPerformTermination()
     //
     // Free Identity Page Table
     //
-    for (size_t i = 0; i < LogicalProcessorsCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
         g_GuestState[i].EptPageTable = NULL;
@@ -1219,7 +1219,7 @@ VmxCompatibleStrlen(const CHAR * S)
 UINT32
 VmxCompatibleWcslen(const wchar_t * S)
 {
-    wchar_t  Temp  = NULL;
+    wchar_t  Temp  = NULL_ZERO;
     UINT32   Count = 0;
     UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
@@ -1486,7 +1486,7 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 INT32
 VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 {
-    wchar_t  C1 = NULL, C2 = NULL;
+    wchar_t  C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;

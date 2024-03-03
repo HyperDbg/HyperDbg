@@ -16,11 +16,11 @@
  *
  * @param Ctl
  * @param Msr
- * @return ULONG Returns the Cpu Based and Secondary Processor Based Controls
+ * @return UINT32 Returns the Cpu Based and Secondary Processor Based Controls
  *  and other controls based on hardware support
  */
-ULONG
-HvAdjustControls(ULONG Ctl, ULONG Msr)
+UINT32
+HvAdjustControls(UINT32 Ctl, UINT32 Msr)
 {
     MSR MsrValue = {0};
 
@@ -39,7 +39,7 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
  * @return BOOLEAN
  */
 BOOLEAN
-HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
+HvSetGuestSelector(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
     VmxGetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
@@ -273,7 +273,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
  * @return VOID
  */
 VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
+HvFillGuestSelectorData(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
@@ -301,8 +301,8 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 VOID
 HvResumeToNextInstruction()
 {
-    UINT64 ResumeRIP             = NULL;
-    UINT64 CurrentRIP            = NULL;
+    UINT64 ResumeRIP             = NULL64_ZERO;
+    UINT64 CurrentRIP            = NULL64_ZERO;
     size_t ExitInstructionLength = 0;
 
     __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
@@ -348,12 +348,12 @@ HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 HvSetMonitorTrapFlag(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -401,12 +401,12 @@ HvSetRflagTrapFlag(BOOLEAN Set)
 VOID
 HvSetLoadDebugControls(BOOLEAN Set)
 {
-    ULONG VmentryControls = 0;
+    UINT32 VmentryControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
 
     if (Set)
     {
@@ -432,12 +432,12 @@ HvSetLoadDebugControls(BOOLEAN Set)
 VOID
 HvSetSaveDebugControls(BOOLEAN Set)
 {
-    ULONG VmexitControls = 0;
+    UINT32 VmexitControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
 
     if (Set)
     {
@@ -508,12 +508,12 @@ HvRestoreRegisters()
 VOID
 HvSetPmcVmexit(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -605,12 +605,12 @@ HvReadExceptionBitmap()
 VOID
 HvSetInterruptWindowExiting(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -639,13 +639,13 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 VOID
 HvSetPmlEnableFlag(BOOLEAN Set)
 {
-    ULONG AdjSecCtrl;
-    ULONG SecondaryProcBasedVmExecControls = 0;
+    UINT32 AdjSecCtrl;
+    UINT32 SecondaryProcBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
 
     //
     // PML enable flag
@@ -676,13 +676,13 @@ HvSetPmlEnableFlag(BOOLEAN Set)
 VOID
 HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
 {
-    ULONG AdjSecCtrl;
-    ULONG SecondaryProcBasedVmExecControls = 0;
+    UINT32 AdjSecCtrl;
+    UINT32 SecondaryProcBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
 
     //
     // PML enable flag
@@ -713,12 +713,12 @@ HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
 VOID
 HvSetNmiWindowExiting(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -952,14 +952,14 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 HvSetNmiExiting(BOOLEAN Set)
 {
-    ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    UINT32 PinBasedControls = 0;
+    UINT32 VmExitControls   = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -988,12 +988,12 @@ HvSetNmiExiting(BOOLEAN Set)
 VOID
 HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
 {
-    ULONG PinBasedControls = 0;
+    UINT32 PinBasedControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
 
     if (Set)
     {
@@ -1135,7 +1135,7 @@ HvGetCsSelector()
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
@@ -1150,7 +1150,7 @@ HvGetCsSelector()
 UINT64
 HvGetRflags()
 {
-    UINT64 Rflags = NULL;
+    UINT64 Rflags = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
@@ -1177,7 +1177,7 @@ HvSetRflags(UINT64 Rflags)
 UINT64
 HvGetRip()
 {
-    UINT64 Rip = NULL;
+    UINT64 Rip = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_RIP, &Rip);
 
@@ -1204,7 +1204,7 @@ HvSetRip(UINT64 Rip)
 UINT64
 HvGetInterruptibilityState()
 {
-    UINT64 InterruptibilityState = NULL;
+    UINT64 InterruptibilityState = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
@@ -1321,7 +1321,7 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
-    ULONG   ProcessorCount;
+    ULONG   ProcessorsCount;
     BOOLEAN Result = FALSE;
 
     //
@@ -1348,12 +1348,12 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // We have a zeroed guest state
     //
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Set the core's id and initialize memory mapper
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         g_GuestState[i].CoreId = i;
     }

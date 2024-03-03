@@ -255,11 +255,11 @@ _Use_decl_annotations_
 BOOLEAN
 CommonValidateCoreNumber(UINT32 CoreNumber)
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    if (CoreNumber >= CoreCount)
+    if (CoreNumber >= ProcessorsCount)
     {
         return FALSE;
     }

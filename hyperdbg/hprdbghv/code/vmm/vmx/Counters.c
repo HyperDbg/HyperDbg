@@ -61,7 +61,7 @@ CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ULONG       EcxReg    = 0;
+    UINT32       EcxReg    = 0;
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     EcxReg         = GuestRegs->rcx & 0xffffffff;

@@ -85,9 +85,9 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 {
     UNREFERENCED_PARAMETER(Context);
 
-    ULONG CurrentCoreIndex;
-    CurrentCoreIndex             = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCoreIndex];
+    ULONG CurrentCore;
+    CurrentCore                  = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCore];
 
     //
     // This mechanism tries to solve the problem of receiving NMIs
@@ -134,7 +134,7 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
 BOOLEAN
 VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
     //
     // Check if NMI broadcasting is initialized
@@ -144,12 +144,12 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
         return FALSE;
     }
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Indicate that we're waiting for NMI
     //
-    for (size_t i = 0; i < CoreCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         if (i != VCpu->CoreId)
         {

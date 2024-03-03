@@ -24,7 +24,7 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
     PHYSICAL_ADDRESS PhysicalAddr;
     PhysicalAddr.QuadPart = PhysicalAddress;
 
-    return MmGetVirtualForPhysical(PhysicalAddr);
+    return (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
 }
 
 /**
@@ -58,7 +58,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
         //
         // Pid is invalid
         //
-        return NULL;
+        return NULL64_ZERO;
     }
 
     //
@@ -106,7 +106,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
         //
         // Pid is invalid
         //
-        return NULL;
+        return NULL64_ZERO;
     }
 
     //
@@ -186,7 +186,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
         //
         // Pid is invalid
         //
-        return NULL;
+        return NULL64_ZERO;
     }
 
     //
@@ -230,7 +230,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
         //
         // Pid is invalid
         //
-        return NULL;
+        return NULL64_ZERO;
     }
 
     //

@@ -245,8 +245,8 @@ IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-        memset(VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+        memset((void *)VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset((void *)VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
     }
     else
     {

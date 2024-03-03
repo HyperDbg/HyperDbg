@@ -160,8 +160,8 @@ EptBuildMtrrMap(VOID)
     IA32_MTRR_PHYSMASK_REGISTER     CurrentPhysMask;
     IA32_MTRR_DEF_TYPE_REGISTER     MTRRDefType;
     PMTRR_RANGE_DESCRIPTOR          Descriptor;
-    ULONG                           CurrentRegister;
-    ULONG                           NumberOfBitsInMask;
+    UINT32                          CurrentRegister;
+    UINT32                          NumberOfBitsInMask;
 
     MTRRCap.AsUInt     = __readmsr(IA32_MTRR_CAPABILITIES);
     MTRRDefType.AsUInt = __readmsr(IA32_MTRR_DEF_TYPE);
@@ -198,8 +198,8 @@ EptBuildMtrrMap(VOID)
     //
     if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
     {
-        const ULONG                K64Base  = 0x0;
-        const ULONG                K64Size  = 0x10000;
+        const UINT32               K64Base  = 0x0;
+        const UINT32               K64Size  = 0x10000;
         IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
         for (unsigned int i = 0; i < 8; i++)
         {
@@ -210,8 +210,8 @@ EptBuildMtrrMap(VOID)
             Descriptor->FixedRange          = TRUE;
         }
 
-        const ULONG K16Base = 0x80000;
-        const ULONG K16Size = 0x4000;
+        const UINT32 K16Base = 0x80000;
+        const UINT32 K16Size = 0x4000;
         for (unsigned int i = 0; i < 2; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K16Types = {__readmsr(IA32_MTRR_FIX16K_80000 + i)};
@@ -225,8 +225,8 @@ EptBuildMtrrMap(VOID)
             }
         }
 
-        const ULONG K4Base = 0xC0000;
-        const ULONG K4Size = 0x1000;
+        const UINT32 K4Base = 0xC0000;
+        const UINT32 K4Size = 0x1000;
         for (unsigned int i = 0; i < 8; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K4Types = {__readmsr(IA32_MTRR_FIX4K_C0000 + i)};
@@ -756,16 +756,16 @@ EptAllocateAndCreateIdentityPageTable(VOID)
 BOOLEAN
 EptLogicalProcessorInitialize(VOID)
 {
-    ULONG               LogicalProcessorsCount;
+    ULONG               ProcessorsCount;
     PVMM_EPT_PAGE_TABLE PageTable;
     EPT_POINTER         EPTP = {0};
 
     //
     // Get number of processors
     //
-    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t i = 0; i < LogicalProcessorsCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         //
         // Allocate the identity mapped page table
@@ -777,7 +777,7 @@ EptLogicalProcessorInitialize(VOID)
             //
             // Try to deallocate previous pools (if any)
             //
-            for (size_t j = 0; j < LogicalProcessorsCount; j++)
+            for (size_t j = 0; j < ProcessorsCount; j++)
             {
                 if (g_GuestState[j].EptPageTable != NULL)
                 {

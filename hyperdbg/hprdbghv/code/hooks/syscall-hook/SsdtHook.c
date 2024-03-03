@@ -85,65 +85,65 @@ SyscallHookGetKernelBase(PULONG ImageSize)
 BOOLEAN
 SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 {
-    ULONG               kernelSize = 0;
-    ULONG_PTR           kernelBase;
+    ULONG               KernelSize = 0;
+    ULONG_PTR           KernelBase;
     const unsigned char KiSystemServiceStartPattern[] = {0x8B, 0xF8, 0xC1, 0xEF, 0x07, 0x83, 0xE7, 0x20, 0x25, 0xFF, 0x0F, 0x00, 0x00};
-    const ULONG         signatureSize                 = sizeof(KiSystemServiceStartPattern);
-    BOOLEAN             found                         = FALSE;
-    LONG                relativeOffset                = 0;
-    ULONG_PTR           addressAfterPattern;
-    ULONG_PTR           address;
-    SSDTStruct *        shadow;
-    PVOID               ntTable;
-    PVOID               win32kTable;
+    const ULONG         SignatureSize                 = sizeof(KiSystemServiceStartPattern);
+    BOOLEAN             Found                         = FALSE;
+    LONG                RelativeOffset                = 0;
+    ULONG_PTR           AddressAfterPattern;
+    ULONG_PTR           Address;
+    SSDTStruct *        Shadow;
+    PVOID               TableNT;
+    PVOID               TableWin32k;
 
     //
     // x64 code
     //
-    kernelBase = (ULONG_PTR)SyscallHookGetKernelBase(&kernelSize);
+    KernelBase = (ULONG_PTR)SyscallHookGetKernelBase(&KernelSize);
 
-    if (kernelBase == 0 || kernelSize == 0)
+    if (KernelBase == 0 || KernelSize == 0)
         return FALSE;
 
     //
     // Find KiSystemServiceStart
     //
     ULONG KiSSSOffset;
-    for (KiSSSOffset = 0; KiSSSOffset < kernelSize - signatureSize; KiSSSOffset++)
+    for (KiSSSOffset = 0; KiSSSOffset < KernelSize - SignatureSize; KiSSSOffset++)
     {
-        if (RtlCompareMemory(((unsigned char *)kernelBase + KiSSSOffset), KiSystemServiceStartPattern, signatureSize) == signatureSize)
+        if (RtlCompareMemory(((unsigned char *)KernelBase + KiSSSOffset), KiSystemServiceStartPattern, SignatureSize) == SignatureSize)
         {
-            found = TRUE;
+            Found = TRUE;
             break;
         }
     }
 
-    if (!found)
+    if (!Found)
         return FALSE;
 
-    addressAfterPattern = kernelBase + KiSSSOffset + signatureSize;
-    address             = addressAfterPattern + 7; // Skip lea r10,[nt!KeServiceDescriptorTable]
+    AddressAfterPattern = KernelBase + KiSSSOffset + SignatureSize;
+    Address             = AddressAfterPattern + 7; // Skip lea r10,[nt!KeServiceDescriptorTable]
 
     //
     // lea r11, KeServiceDescriptorTableShadow
     //
-    if ((*(unsigned char *)address == 0x4c) &&
-        (*(unsigned char *)(address + 1) == 0x8d) &&
-        (*(unsigned char *)(address + 2) == 0x1d))
+    if ((*(unsigned char *)Address == 0x4c) &&
+        (*(unsigned char *)(Address + 1) == 0x8d) &&
+        (*(unsigned char *)(Address + 2) == 0x1d))
     {
-        relativeOffset = *(LONG *)(address + 3);
+        RelativeOffset = *(LONG *)(Address + 3);
     }
 
-    if (relativeOffset == 0)
+    if (RelativeOffset == 0)
         return FALSE;
 
-    shadow = (SSDTStruct *)(address + relativeOffset + 7);
+    Shadow = (SSDTStruct *)(Address + RelativeOffset + 7);
 
-    ntTable     = (PVOID)shadow;
-    win32kTable = (PVOID)((ULONG_PTR)shadow + 0x20); // Offset showed in Windbg
+    TableNT     = (PVOID)Shadow;
+    TableWin32k = (PVOID)((ULONG_PTR)Shadow + 0x20); // Offset showed in Windbg
 
-    *NtTable     = ntTable;
-    *Win32kTable = win32kTable;
+    *NtTable     = TableNT;
+    *Win32kTable = TableWin32k;
 
     return TRUE;
 }
@@ -227,12 +227,11 @@ NtCreateFileHook(
     PVOID              EaBuffer,
     ULONG              EaLength)
 {
-    HANDLE         kFileHandle;
     NTSTATUS       ConvertStatus;
-    UNICODE_STRING kObjectName;
+    UNICODE_STRING ObjectName;
     ANSI_STRING    FileNameA;
 
-    kObjectName.Buffer = NULL;
+    ObjectName.Buffer = NULL;
 
     __try
     {
@@ -241,11 +240,11 @@ NtCreateFileHook(
         ProbeForRead(ObjectAttributes->ObjectName, sizeof(UNICODE_STRING), 1);
         ProbeForRead(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, 1);
 
-        kFileHandle               = *FileHandle;
-        kObjectName.Length        = ObjectAttributes->ObjectName->Length;
-        kObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
-        kObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(kObjectName.MaximumLength);
-        RtlCopyUnicodeString(&kObjectName, ObjectAttributes->ObjectName);
+        FileHandle               = *FileHandle;
+        ObjectName.Length        = ObjectAttributes->ObjectName->Length;
+        ObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
+        ObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(ObjectName.MaximumLength);
+        RtlCopyUnicodeString(&ObjectName, ObjectAttributes->ObjectName);
 
         ConvertStatus = RtlUnicodeStringToAnsiString(&FileNameA, ObjectAttributes->ObjectName, TRUE);
         LogInfo("NtCreateFile called for : %s", FileNameA.Buffer);
@@ -254,9 +253,9 @@ NtCreateFileHook(
     {
     }
 
-    if (kObjectName.Buffer)
+    if (ObjectName.Buffer)
     {
-        CrsFreePool(kObjectName.Buffer);
+        CrsFreePool(ObjectName.Buffer);
     }
 
     return NtCreateFileOrig(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
