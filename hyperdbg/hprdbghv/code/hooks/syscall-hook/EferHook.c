@@ -43,8 +43,8 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
     //
     // Read previous VM-Entry and VM-Exit controls
     //
-    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     MsrValue.AsUInt = __readmsr(IA32_EFER);
 
@@ -128,7 +128,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading instruction length
     //
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &InstructionLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &InstructionLength);
 
     //
     // Reading guest's Rflags
@@ -281,7 +281,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         //
         UCHAR InstructionBuffer[3] = {0};
 
-        if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
+        if (MemoryMapperCheckIfPageIsPresentByCr3((PVOID)Rip, GuestCr3))
         {
             //
             // The page is safe to read (present)
@@ -347,7 +347,7 @@ EmulateSYSRET:
     //
     // Perform the dispatching and the emulation of the SYSRET event
     //
-    DispatchEventEferSysret(VCpu, Rip);
+    DispatchEventEferSysret(VCpu, (PVOID)Rip);
 
     return TRUE;
 
@@ -366,7 +366,7 @@ EmulateSYSCALL:
     //
     // Perform the dispatching and the emulation of the SYSCAKK event
     //
-    DispatchEventEferSyscall(VCpu, Rip);
+    DispatchEventEferSyscall(VCpu);
 
     return TRUE;
 }

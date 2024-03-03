@@ -100,7 +100,7 @@ CommonIsGuestOnUsermode32Bit()
     // Only 16 bit is needed howerver, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = NULL64_ZERO;
 
     //
     // Read guest's cs selector
@@ -162,7 +162,8 @@ CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     Log("\n");
-    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, CommonIsGuestOnUsermode32Bit());
+    DisassemblerShowOneInstructionInVmxRootMode((PVOID)VCpu->LastVmexitRip,
+                                                CommonIsGuestOnUsermode32Bit());
     Log("\n");
 
     Log(

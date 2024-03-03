@@ -402,9 +402,9 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
                                 BOOLEAN                     Synchronize,
                                 PVOID                       Context)
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Synchronization is not possible when the locking after the task is
@@ -419,7 +419,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Apply the task to all cores except current core
     //
-    for (UINT32 i = 0; i < CoreCount; i++)
+    for (UINT32 i = 0; i < ProcessorsCount; i++)
     {
         if (DbgState->CoreId != i)
         {
@@ -443,7 +443,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     if (Synchronize)
     {
-        for (size_t i = 0; i < CoreCount; i++)
+        for (size_t i = 0; i < ProcessorsCount; i++)
         {
             if (DbgState->CoreId != i)
             {

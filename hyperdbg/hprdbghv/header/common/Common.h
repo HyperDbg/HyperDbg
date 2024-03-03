@@ -277,7 +277,7 @@ typedef struct _NT_KPROCESS
  * @brief Prototype to run a function on a logical core
  *
  */
-typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorID);
+typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorId);
 
 //////////////////////////////////////////////////
 //				External Functions				//

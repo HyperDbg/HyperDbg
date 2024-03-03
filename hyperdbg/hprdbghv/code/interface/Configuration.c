@@ -397,7 +397,7 @@ ConfigureEptHookModifyPageWriteState(UINT32  CoreId,
 VOID
 ConfigureEnableEferSyscallHookOnSingleCore(UINT32 TargetCoreId)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
 }
 
 /**
@@ -430,7 +430,7 @@ ConfigureSetEferSyscallOrSysretHookType(DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE Sysca
 VOID
 ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
 }
 
 /**
@@ -443,7 +443,7 @@ ConfigureSetExternalInterruptExitingOnSingleCore(UINT32 TargetCoreId)
 VOID
 ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
 }
 
 /**
@@ -456,7 +456,7 @@ ConfigureEnableRdtscExitingOnSingleCore(UINT32 TargetCoreId)
 VOID
 ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
 }
 
 /**
@@ -469,7 +469,7 @@ ConfigureEnableRdpmcExitingOnSingleCore(UINT32 TargetCoreId)
 VOID
 ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
 }
 
 /**
@@ -483,7 +483,7 @@ ConfigureEnableMovToDebugRegistersExitingOnSingleCore(UINT32 TargetCoreId)
 VOID
 ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, BitMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformSetExceptionBitmapOnSingleCore, (PVOID)BitMask);
 }
 
 /**
@@ -497,7 +497,7 @@ ConfigureSetExceptionBitmapOnSingleCore(UINT32 TargetCoreId, UINT32 BitMask)
 VOID
 ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformEnableMovToControlRegisterExiting, &BroadcastingOption);
 }
 
 /**
@@ -511,7 +511,7 @@ ConfigureEnableMovToControlRegisterExitingOnSingleCore(UINT32 TargetCoreId, DEBU
 VOID
 ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, MsrMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, (PVOID)MsrMask);
 }
 
 /**
@@ -525,7 +525,7 @@ ConfigureChangeMsrBitmapWriteOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 VOID
 ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, MsrMask);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, (PVOID)MsrMask);
 }
 
 /**
@@ -539,5 +539,5 @@ ConfigureChangeMsrBitmapReadOnSingleCore(UINT32 TargetCoreId, UINT64 MsrMask)
 VOID
 ConfigureChangeIoBitmapOnSingleCore(UINT32 TargetCoreId, UINT64 Port)
 {
-    DpcRoutineRunTaskOnSingleCore(TargetCoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, Port);
+    DpcRoutineRunTaskOnSingleCore(TargetCoreId, (PVOID)DpcRoutinePerformChangeIoBitmapOnSingleCore, (PVOID)Port);
 }

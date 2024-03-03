@@ -55,7 +55,7 @@ DebuggerSetLastError(UINT32 LastError)
 BOOLEAN
 DebuggerInitialize()
 {
-    ULONG                       ProcessorCount       = KeQueryActiveProcessorCount(0);
+    ULONG                       ProcessorsCount      = KeQueryActiveProcessorCount(0);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     //
@@ -77,7 +77,7 @@ DebuggerInitialize()
     //
     // Set the core's IDs
     //
-    for (UINT32 i = 0; i < ProcessorCount; i++)
+    for (UINT32 i = 0; i < ProcessorsCount; i++)
     {
         g_DbgState[i].CoreId = i;
     }
@@ -156,7 +156,7 @@ DebuggerInitialize()
     //
     // Intialize the local and temp variables
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         CurrentDebuggerState = &g_DbgState[i];
 
@@ -232,10 +232,10 @@ DebuggerInitialize()
 VOID
 DebuggerUninitialize()
 {
-    ULONG                       ProcessorCount;
+    ULONG                       ProcessorsCount;
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     //  *** Disable, terminate and clear all the events ***
@@ -300,7 +300,7 @@ DebuggerUninitialize()
     //
     // Free core specific local and temp variables
     //
-    for (SIZE_T i = 0; i < ProcessorCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         CurrentDebuggerState = &g_DbgState[i];
 
@@ -959,7 +959,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript->ScriptBuffer == NULL_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO)
+        if (InTheCaseOfRunScript->ScriptBuffer == NULL64_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO)
         {
             //
             // There was an error

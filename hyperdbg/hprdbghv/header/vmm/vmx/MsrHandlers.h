@@ -22,19 +22,19 @@ VOID
 MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs);
 
 BOOLEAN
-MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 BOOLEAN
-MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 VOID
-MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask);
+MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask);
 
 VOID
 MsrHandlePerformMsrBitmapReadReset(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask);
+MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask);
 
 VOID
 MsrHandlePerformMsrBitmapWriteReset(VIRTUAL_MACHINE_STATE * VCpu);

@@ -36,7 +36,7 @@ AsmGetRflags ENDP
 
 ;------------------------------------------------------------------------
 
-; AsmReloadGdtr (PVOID GdtBase (rcx), ULONG GdtLimit (rdx) );
+; AsmReloadGdtr (PVOID GdtBase (rcx), UINT32 GdtLimit (rdx) );
 
 AsmReloadGdtr PROC
 
@@ -52,7 +52,7 @@ AsmReloadGdtr ENDP
 
 ;------------------------------------------------------------------------
 
-; AsmReloadIdtr (PVOID IdtBase (rcx), ULONG IdtLimit (rdx) );
+; AsmReloadIdtr (PVOID IdtBase (rcx), UINT32 IdtLimit (rdx) );
 
 AsmReloadIdtr PROC
     

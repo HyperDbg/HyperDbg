@@ -35,14 +35,14 @@ NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
 {
     PRKDPC Dpc;
-    UINT32 ProcessorCount;
+    ULONG  ProcessorsCount;
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Check if the core number is not invalid
     //
-    if (CoreNumber >= ProcessorCount)
+    if (CoreNumber >= ProcessorsCount)
     {
         return STATUS_INVALID_PARAMETER;
     }
@@ -60,15 +60,15 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,            // Dpc
-                    Routine,        // DeferredRoutine
-                    DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,                         // Dpc
+                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+                    DeferredContext              // DeferredContext
     );
 
     //
     // Set the target core
     //
-    KeSetTargetProcessorDpc(Dpc, CoreNumber);
+    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
 
     //
     // it's sure will be executed, but we want to free the above
@@ -127,6 +127,9 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 BOOLEAN
 DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
     //
     // Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
     //
@@ -164,7 +167,7 @@ DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredConte
     //
     // change msr bitmap (read)
     //
-    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, (UINT64)DeferredContext, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -192,7 +195,7 @@ DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredCont
     //
     // change msr bitmap (write)
     //
-    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, (UINT64)DeferredContext, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -279,7 +282,7 @@ DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContex
     //
     // change exception bitmap
     //
-    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, (UINT64)DeferredContext, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -365,7 +368,7 @@ DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC * Dpc, PVOID Defer
     //
     // Enable external interrupt exiting
     //
-    AsmVmxVmcall(VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, NULL64_ZERO, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -394,7 +397,7 @@ DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC * Dpc, PVOID DeferredCon
     //
     // Enable syscall hook EFER
     //
-    AsmVmxVmcall(VMCALL_ENABLE_SYSCALL_HOOK_EFER, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_ENABLE_SYSCALL_HOOK_EFER, NULL64_ZERO, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -422,7 +425,7 @@ DpcRoutinePerformChangeIoBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, P
     //
     // change I/O bitmap
     //
-    AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, (UINT64)DeferredContext, 0, 0);
 
     //
     // As this function is designed for a single,
@@ -542,7 +545,7 @@ DpcRoutineEnableOrDisableMbec(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
     //
     // Enable/Disable MBEC from vmx-root
     //
-    AsmVmxVmcall(VMCALL_DISABLE_OR_ENABLE_MBEC, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_DISABLE_OR_ENABLE_MBEC, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -727,7 +730,7 @@ DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
     //
     // Disable msr bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -758,7 +761,7 @@ DpcRoutineResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     // Reset msr bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_READ, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_READ, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -788,7 +791,7 @@ DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
     //
     // Disable msr bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -819,7 +822,7 @@ DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
     //
     // Reset msr bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_WRITE, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_WRITE, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1069,7 +1072,7 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     // Enable Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1099,7 +1102,7 @@ DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
     //
     // Disable Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1129,11 +1132,12 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
                                                                       PVOID  SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
 
     //
     // Reset Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1350,7 +1354,7 @@ DpcRoutineChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syst
     //
     // Change I/O Bitmaps on all cores
     //
-    AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, (UINT64)DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1381,7 +1385,7 @@ DpcRoutineResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
     //
     // Reset I/O Bitmaps on all cores
     //
-    AsmVmxVmcall(VMCALL_RESET_IO_BITMAP, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_IO_BITMAP, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1474,7 +1478,7 @@ DpcRoutineEnableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     // Cause vm-exit on NMIs
     //
-    AsmVmxVmcall(VMCALL_SET_VM_EXIT_ON_NMIS, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_SET_VM_EXIT_ON_NMIS, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1505,7 +1509,7 @@ DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
     //
     // Cause no vm-exit on NMIs
     //
-    AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_ON_NMIS, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_ON_NMIS, NULL64_ZERO, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1608,7 +1612,7 @@ DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID Deferred
     //
     // Execute the VMCALL to remove the hook and invalidate
     //
-    AsmVmxVmcall(VMCALL_UNHOOK_ALL_PAGES, NULL, NULL, NULL);
+    AsmVmxVmcall(VMCALL_UNHOOK_ALL_PAGES, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1641,7 +1645,7 @@ DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID Deferre
     //
     // Execute the VMCALL to remove the hook and invalidate
     //
-    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, UnhookingDetail->PhysicalAddress, UnhookingDetail->OriginalEntry, NULL);
+    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, UnhookingDetail->PhysicalAddress, UnhookingDetail->OriginalEntry, NULL64_ZERO);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1673,14 +1677,17 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
         //
         // We have to invalidate all contexts
         //
-        AsmVmxVmcall(VMCALL_INVEPT_ALL_CONTEXTS, NULL, NULL, NULL);
+        AsmVmxVmcall(VMCALL_INVEPT_ALL_CONTEXTS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
     }
     else
     {
         //
         // We have to invalidate all contexts
         //
-        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].EptPointer.AsUInt, NULL, NULL);
+        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT,
+                     g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].EptPointer.AsUInt,
+                     NULL64_ZERO,
+                     NULL64_ZERO);
     }
 
     //

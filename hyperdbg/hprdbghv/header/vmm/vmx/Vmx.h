@@ -294,11 +294,51 @@ enum HYPERCALL_CODE
  * @brief MOV to debug registers states
  *
  */
-typedef enum MOV_TO_DEBUG_REG
+typedef enum _MOV_TO_DEBUG_REG
 {
     AccessToDebugRegister   = 0,
     AccessFromDebugRegister = 1,
-};
+} MOV_TO_DEBUG_REG;
+
+//////////////////////////////////////////////////
+//				VMX Instructions				//
+//////////////////////////////////////////////////
+
+extern inline UCHAR
+VmxVmread64(size_t Field, UINT64 FieldValue);
+
+extern inline UCHAR
+VmxVmread32(size_t Field, UINT32 FieldValue);
+
+extern inline UCHAR
+VmxVmread16(size_t Field, UINT16 FieldValue);
+
+extern inline UCHAR
+VmxVmread64P(size_t Field, UINT64 * FieldValue);
+
+extern inline UCHAR
+VmxVmread32P(size_t Field, UINT32 * FieldValue);
+
+extern inline UCHAR
+VmxVmread16P(size_t Field, UINT16 * FieldValue);
+
+extern inline UCHAR
+VmxVmwrite64(size_t Field, UINT64 FieldValue);
+
+extern inline UCHAR
+VmxVmwrite32(size_t Field, UINT32 FieldValue);
+
+extern inline UCHAR
+VmxVmwrite16(size_t Field, UINT16 FieldValue);
+
+VOID
+VmxVmptrst();
+
+VOID
+VmxVmresume();
+
+VOID
+VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -347,15 +387,6 @@ VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-VmxVmptrst();
-
-VOID
-VmxVmresume();
-
-VOID
-VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore();

@@ -25,7 +25,7 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     // Check if we reached to the target thread or not
     //
     if ((g_ThreadSwitch.ThreadId != NULL_ZERO && g_ThreadSwitch.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId())) ||
-        (g_ThreadSwitch.Thread != NULL_ZERO && g_ThreadSwitch.Thread == PsGetCurrentThread()))
+        (g_ThreadSwitch.Thread != NULL64_ZERO && g_ThreadSwitch.Thread == PsGetCurrentThread()))
     {
         //
         // Halt the debuggee, we have found the target thread
@@ -63,13 +63,13 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Initialized with NULL
     //
-    g_ThreadSwitch.Thread   = NULL_ZERO;
+    g_ThreadSwitch.Thread   = NULL64_ZERO;
     g_ThreadSwitch.ThreadId = NULL_ZERO;
 
     //
     // Check to avoid invalid switch
     //
-    if (ThreadId == NULL_ZERO && EThread == NULL_ZERO)
+    if (ThreadId == NULL_ZERO && EThread == NULL64_ZERO)
     {
         return FALSE;
     }
@@ -169,7 +169,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         ThreadListEntryOffset == NULL_ZERO ||
         CidOffset == NULL_ZERO ||
         ActiveProcessLinksOffset == NULL_ZERO ||
-        PsActiveProcessHeadAddress == NULL_ZERO)
+        PsActiveProcessHeadAddress == NULL64_ZERO)
     {
         return FALSE;
     }
@@ -177,7 +177,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Set the target process
     //
-    if (ThreadListSymbolInfo->Process == NULL_ZERO)
+    if (ThreadListSymbolInfo->Process == NULL64_ZERO)
     {
         //
         // Means that it's for the current process

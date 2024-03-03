@@ -20,7 +20,7 @@ VOID
 DispatchEventEferSysret(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
 
 VOID
-DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context);
+DispatchEventEferSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu);

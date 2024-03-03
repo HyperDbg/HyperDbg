@@ -190,8 +190,8 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands(VIRTUAL_M
 VOID
 ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    UINT32 PinBasedControls = 0;
+    UINT32 VmExitControls   = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -226,8 +226,8 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -243,8 +243,8 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -285,7 +285,7 @@ ProtectedHvExternalInterruptExitingForDisablingInterruptCommands(VIRTUAL_MACHINE
 VOID
 ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -320,7 +320,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -333,7 +333,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -350,7 +350,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
 VOID
 ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -374,7 +374,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -388,7 +388,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -408,26 +408,26 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
     {
         if (Set)
         {
-            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
         }
         else
         {
-            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);
+            VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, 0);
         }
     }
     else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4)
     {
         if (Set)
         {
-            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
         }
         else
         {
-            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, 0);
+            VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, 0);
         }
     }
 }
@@ -483,7 +483,7 @@ ProtectedHvSetMovControlRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PR
 VOID
 ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // The protected checks are only performed if the "Set" is "FALSE",
@@ -530,7 +530,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -544,7 +544,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**

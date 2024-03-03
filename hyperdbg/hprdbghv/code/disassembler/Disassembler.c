@@ -95,7 +95,7 @@ DisassemblerShowInstructionsInVmxNonRootMode(PVOID Address, UINT32 Length, BOOLE
             InstrAddress,
             NULL);
 
-        LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)ReadOffset, InstrAddress, PrintBuffer);
+        LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (UINT32)ReadOffset, InstrAddress, PrintBuffer);
 
         ReadOffset += Instruction.length;
     }
@@ -188,7 +188,7 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
             InstrAddress,
             NULL);
 
-        // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (ULONG)ReadOffset, InstrAddress, PrintBuffer);
+        // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (UINT32)ReadOffset, InstrAddress, PrintBuffer);
 
         Log("core: %x | pid: %x - tid: %x,\t %llx \t\t\t\t%hs\n",
             KeGetCurrentProcessorNumberEx(NULL),
@@ -228,12 +228,11 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     ZydisDecodedInstruction Instruction;
     ZydisDecodedOperand     Operands[ZYDIS_MAX_OPERAND_COUNT];
     ZyanStatus              Status;
-    CHAR                    PrintBuffer[128];
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
         LogError("Err, invalid zydis version");
-        return NULL;
+        return NULL_ZERO;
     }
 
     //
@@ -243,14 +242,14 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     {
         if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32)))
         {
-            return NULL;
+            return NULL_ZERO;
         }
     }
     else
     {
         if (!ZYAN_SUCCESS(ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64)))
         {
-            return NULL;
+            return NULL_ZERO;
         }
     }
 
@@ -270,7 +269,7 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
             //
             // Probably invalid instruction
             //
-            return NULL;
+            return NULL_ZERO;
         }
 
         //
@@ -282,7 +281,7 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit)
     //
     // return an error status
     //
-    return NULL;
+    return NULL_ZERO;
 }
 
 /**
@@ -309,7 +308,7 @@ DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLE
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(Address,
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address,
                                               SafeMemoryToRead,
                                               SizeOfSafeBufferToRead);
 
@@ -340,9 +339,9 @@ DisassemblerShowOneInstructionInVmxRootMode(PVOID Address, BOOLEAN Is32Bit)
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(Address,
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address,
                                               SafeMemoryToRead,
                                               SizeOfSafeBufferToRead);
 
-    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, Address, Is32Bit);
+    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, (UINT64)Address, Is32Bit);
 }

@@ -25,7 +25,6 @@
  * @param KernelCr3 kernel cr3 of target process
  * @return PVOID virtual address of PTE based on cr3
  */
-_Use_decl_annotations_
 BOOLEAN
 ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
 {
@@ -73,7 +72,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
     //
     // we need VA of Cr3, not PA
     //
-    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
+    Cr3Va = (UINT64 *)PhysicalAddressToVirtualAddress(TempCr3);
 
     //
     // Check for invalid address
@@ -92,14 +91,14 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
     {
         // LogInfo("Address of Cr3Va: %llx", Cr3Va);
 
-        PPAGE_ENTRY Pml4e = &Cr3Va[i];
+        PPAGE_ENTRY Pml4e = (PAGE_ENTRY *)&Cr3Va[i];
 
         if (Pml4e->Fields.Present)
         {
             // LogInfo("PML4[%d] = %llx", i, Pml4e->Fields.PageFrameNumber);
 
-            IsLargePage        = FALSE;
-            PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
+            IsLargePage  = FALSE;
+            EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
 
             if (EptPmlEntry4 != NULL)
             {
@@ -119,7 +118,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                 LogInfo("null address");
             }
 
-            PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
+            PdptVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
 
             //
             // Check for invalid address
@@ -130,7 +129,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                 {
                     // LogInfo("Address of PdptVa: %llx", PdptVa);
 
-                    PPAGE_ENTRY Pdpte = &PdptVa[j];
+                    PPAGE_ENTRY Pdpte = (PAGE_ENTRY *)&PdptVa[j];
 
                     if (Pdpte->Fields.Present)
                     {
@@ -162,7 +161,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                             continue;
                         }
 
-                        PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
+                        PdVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
 
                         //
                         // Check for invalid address
@@ -173,12 +172,12 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                             {
                                 // LogInfo("Address of PdVa: %llx", PdVa);
 
-                                if (PdVa == 0xfffffffffffffe00)
+                                if (PdVa == (PUINT64)0xfffffffffffffe00)
                                 {
                                     continue;
                                 }
 
-                                PPAGE_ENTRY Pde = &PdVa[k];
+                                PPAGE_ENTRY Pde = (PAGE_ENTRY *)&PdVa[k];
 
                                 if (Pde->Fields.Present)
                                 {
@@ -210,7 +209,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                                         continue;
                                     }
 
-                                    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
+                                    PtVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
 
                                     //
                                     // Check for invalid address
@@ -426,7 +425,7 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
-        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
+        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL64_ZERO)
         {
             RemainingSize  = (INT64)PhysicalRamRegions[i].RamSize;
             CurrentAddress = PhysicalRamRegions[i].RamPhysicalAddress;
@@ -773,14 +772,12 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
  * @brief Handle EPT Violations related to the MBEC hooks
  * @param VCpu The virtual processor's state
  * @param ViolationQualification
- * @param GuestPhysicalAddr
  *
  * @return BOOLEAN
  */
 BOOLEAN
 ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
-                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification,
-                                 UINT64                                 GuestPhysicalAddr)
+                                 VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification)
 {
     //
     // Check if this mechanism is use or not

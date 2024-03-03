@@ -274,7 +274,9 @@ NTSTATUS
 DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UINT64 * UserBuffer, PSIZE_T ReturnSize)
 {
     NTSTATUS Status;
-    UINT32   ProcessorCount = KeQueryActiveProcessorCount(0);
+    ULONG    ProcessorsCount;
+
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // We don't check whether the MSR is in valid range of hardware or not
@@ -292,7 +294,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Means that we should apply it on all cores
             //
-            for (size_t i = 0; i < ProcessorCount; i++)
+            for (size_t i = 0; i < ProcessorsCount; i++)
             {
                 g_DbgState[i].MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
                 g_DbgState[i].MsrState.Value = ReadOrWriteMsrRequest->Value;
@@ -311,7 +313,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Check if the core number is not invalid
             //
-            if (ReadOrWriteMsrRequest->CoreNumber >= ProcessorCount)
+            if (ReadOrWriteMsrRequest->CoreNumber >= ProcessorsCount)
             {
                 return STATUS_INVALID_PARAMETER;
             }
@@ -346,7 +348,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Means that we should apply it on all cores
             //
-            for (size_t i = 0; i < ProcessorCount; i++)
+            for (size_t i = 0; i < ProcessorsCount; i++)
             {
                 g_DbgState[i].MsrState.Msr = ReadOrWriteMsrRequest->Msr;
             }
@@ -360,7 +362,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             // When we reach here, all processors read their shits
             // so we have to fill that fucking buffer for user mode
             //
-            for (size_t i = 0; i < ProcessorCount; i++)
+            for (size_t i = 0; i < ProcessorsCount; i++)
             {
                 UserBuffer[i] = g_DbgState[i].MsrState.Value;
             }
@@ -369,7 +371,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             // It's an rdmsr we have to return a value for all cores
             //
 
-            *ReturnSize = sizeof(UINT64) * ProcessorCount;
+            *ReturnSize = sizeof(UINT64) * ProcessorsCount;
             return STATUS_SUCCESS;
         }
         else
@@ -381,7 +383,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Check if the core number is not invalid
             //
-            if (ReadOrWriteMsrRequest->CoreNumber >= ProcessorCount)
+            if (ReadOrWriteMsrRequest->CoreNumber >= ProcessorsCount)
             {
                 *ReturnSize = 0;
                 return STATUS_INVALID_PARAMETER;

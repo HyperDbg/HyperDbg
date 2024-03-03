@@ -42,7 +42,7 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    int         Aux       = 0;
+    UINT32      Aux       = 0;
     UINT64      Tsc       = __rdtscp(&Aux);
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
@@ -61,7 +61,7 @@ CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    ULONG       EcxReg    = 0;
+    UINT32      EcxReg    = 0;
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     EcxReg         = GuestRegs->rcx & 0xffffffff;
@@ -82,7 +82,7 @@ CounterSetPreemptionTimer(UINT32 TimerValue)
     //
     // Set the time value
     //
-    __vmx_vmwrite(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, TimerValue);
+    VmxVmwrite64(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, TimerValue);
 }
 
 /**
@@ -96,5 +96,5 @@ CounterClearPreemptionTimer()
     //
     // Set the time value to NULL
     //
-    __vmx_vmwrite(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, NULL);
+    VmxVmwrite64(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, NULL64_ZERO);
 }

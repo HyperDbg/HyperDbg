@@ -16,10 +16,10 @@
 //////////////////////////////////////////////////
 
 int
-TestBit(int nth, unsigned long * addr);
+TestBit(int BitNumber, unsigned long * Addr);
 
 void
-ClearBit(int nth, unsigned long * addr);
+ClearBit(int BitNumber, unsigned long * Addr);
 
 void
-SetBit(int nth, unsigned long * addr);
+SetBit(int BitNumber, unsigned long * Addr);

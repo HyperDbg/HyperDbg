@@ -108,9 +108,9 @@ BOOLEAN inline LogSendImmediateMessage(CHAR * OptionalBuffer,
 BOOLEAN
 LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
 {
-    ULONG CoreCount = 0;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Initialize buffers for trace message and data messages
@@ -132,7 +132,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     // Allocate VmxTempMessage and VmxLogMessage
     //
     VmxTempMessage = NULL;
-    VmxTempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+    VmxTempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * ProcessorsCount, POOLTAG);
 
     if (!VmxTempMessage)
     {
@@ -142,7 +142,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     }
 
     VmxLogMessage = NULL;
-    VmxLogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+    VmxLogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * ProcessorsCount, POOLTAG);
 
     if (!VmxLogMessage)
     {
@@ -1000,7 +1000,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     char *  LogMessage     = NULL;
     char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
-    ULONG   CoreId         = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Set Vmx State
@@ -1013,8 +1013,8 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     //
     if (IsVmxRootMode)
     {
-        LogMessage  = &VmxLogMessage[CoreId * PacketChunkSize];
-        TempMessage = &VmxTempMessage[CoreId * PacketChunkSize];
+        LogMessage  = &VmxLogMessage[CurrentCore * PacketChunkSize];
+        TempMessage = &VmxTempMessage[CurrentCore * PacketChunkSize];
     }
     else
     {
@@ -1096,7 +1096,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // Append time with previous message
         //
-        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CoreId, IsVmxRootMode ? "yes" : "no", TempMessage);
+        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CurrentCore, IsVmxRootMode ? "yes" : "no", TempMessage);
 
         //
         // Check if the buffer passed the limit

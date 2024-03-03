@@ -35,14 +35,14 @@ NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
 {
     PRKDPC Dpc;
-    UINT32 ProcessorCount;
+    ULONG  ProcessorsCount;
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Check if the core number is not invalid
     //
-    if (CoreNumber >= ProcessorCount)
+    if (CoreNumber >= ProcessorsCount)
     {
         return STATUS_INVALID_PARAMETER;
     }

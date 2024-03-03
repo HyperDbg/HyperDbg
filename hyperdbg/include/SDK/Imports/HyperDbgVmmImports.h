@@ -548,16 +548,13 @@ IMPORT_EXPORT_VMM PVOID
 MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
                                     _In_ PAGING_LEVEL Level);
 
-IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level);
-
 IMPORT_EXPORT_VMM PVOID
 MemoryMapperSetExecuteDisableToPteOnTargetProcess(_In_ PVOID   Va,
                                                   _In_ BOOLEAN Set);
 
-IMPORT_EXPORT_VMM PVOID
-MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
-                                    _In_ PAGING_LEVEL Level);
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID        Va,
+                                             PAGING_LEVEL Level);
 
 // ----------------------------------------------------------------------------
 // Reading Memory Functions

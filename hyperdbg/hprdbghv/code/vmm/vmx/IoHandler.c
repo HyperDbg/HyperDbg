@@ -68,7 +68,7 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
         // String operations always operate either on RDI (in) or
         // RSI (out) registers.
         //
-        PortValue.AsPtr = IoQualification.DirectionOfAccess == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
+        PortValue.AsPtr = (PVOID)(IoQualification.DirectionOfAccess == AccessIn ? GuestRegs->rdi : GuestRegs->rsi);
     }
     else
     {
@@ -81,7 +81,7 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
     //
     // Resolve port as a nice 16-bit number.
     //
-    Port = IoQualification.PortNumber;
+    Port = (UINT16)IoQualification.PortNumber;
 
     //
     // Resolve number of bytes to send/receive.
@@ -90,7 +90,7 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
     //
     Count = IoQualification.RepPrefixed ? (GuestRegs->rcx & 0xffffffff) : 1;
 
-    Size = IoQualification.SizeOfAccess + 1;
+    Size = (UINT32)(IoQualification.SizeOfAccess + 1);
 
     switch (IoQualification.DirectionOfAccess)
     {
@@ -100,13 +100,13 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
             switch (Size)
             {
             case 1:
-                IoInByteString(Port, PortValue.AsBytePtr, Count);
+                IoInByteString(Port, (UINT8 *)PortValue.AsBytePtr, Count);
                 break;
             case 2:
-                IoInWordString(Port, PortValue.AsWordPtr, Count);
+                IoInWordString(Port, (UINT16 *)PortValue.AsWordPtr, Count);
                 break;
             case 4:
-                IoInDwordString(Port, PortValue.AsDwordPtr, Count);
+                IoInDwordString(Port, (UINT32 *)PortValue.AsDwordPtr, Count);
                 break;
             }
         }
@@ -138,13 +138,13 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
             switch (Size)
             {
             case 1:
-                IoOutByteString(Port, PortValue.AsBytePtr, Count);
+                IoOutByteString(Port, (UINT8 *)PortValue.AsBytePtr, Count);
                 break;
             case 2:
-                IoOutWordString(Port, PortValue.AsWordPtr, Count);
+                IoOutWordString(Port, (UINT16 *)PortValue.AsWordPtr, Count);
                 break;
             case 4:
-                IoOutDwordString(Port, PortValue.AsDwordPtr, Count);
+                IoOutDwordString(Port, (UINT32 *)PortValue.AsDwordPtr, Count);
                 break;
             }
         }
@@ -211,15 +211,15 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
  * @return BOOLEAN Returns true if the I/O Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
+IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port)
 {
     if (Port <= 0x7FFF)
     {
-        SetBit(Port, VCpu->IoBitmapVirtualAddressA);
+        SetBit(Port, (unsigned long *)VCpu->IoBitmapVirtualAddressA);
     }
     else if ((0x8000 <= Port) && (Port <= 0xFFFF))
     {
-        SetBit(Port - 0x8000, VCpu->IoBitmapVirtualAddressB);
+        SetBit(Port - 0x8000, (unsigned long *)VCpu->IoBitmapVirtualAddressB);
     }
     else
     {
@@ -238,15 +238,15 @@ IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
  * @return VOID
  */
 VOID
-IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port)
 {
     if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-        memset(VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+        memset((void *)VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset((void *)VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
     }
     else
     {
@@ -270,6 +270,6 @@ IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
-    memset(VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+    memset((void *)VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset((void *)VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }

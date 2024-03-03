@@ -95,7 +95,7 @@ CompatibilityCheckModeBasedExecution()
     // The PML address and PML index fields exist only on processors that support the 1-setting of
     // the "enable PML" VM - execution control
     //
-    ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG,
+    UINT32 SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG,
                                                               IA32_VMX_PROCBASED_CTLS2);
 
     if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG)
@@ -126,7 +126,7 @@ CompatibilityCheckPml()
     // The PML address and PML index fields exist only on processors that support the 1-setting of
     // the "enable PML" VM - execution control
     //
-    ULONG SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG, IA32_VMX_PROCBASED_CTLS2);
+    UINT32 SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG, IA32_VMX_PROCBASED_CTLS2);
 
     if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_ENABLE_PML_FLAG)
     {

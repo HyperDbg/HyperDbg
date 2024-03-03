@@ -805,8 +805,8 @@ ScriptEngineFunctionPause(
     //
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
-        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail  = {0};
-        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+        ULONG                            CurrentCore          = KeGetCurrentProcessorNumberEx(NULL);
 
         //
         // Make the details of context
@@ -831,7 +831,7 @@ ScriptEngineFunctionPause(
             //
 
             KdHandleBreakpointAndDebugBreakpointsCallback(
-                CurrentProcessorIndex,
+                CurrentCore,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &TriggeredEventDetail);
         }
@@ -903,15 +903,15 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
         return;
     }
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     if (State != 0)
     {
-        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = TRUE;
+        g_DbgState[CurrentCore].ShortCircuitingEvent = TRUE;
     }
     else
     {
-        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = FALSE;
+        g_DbgState[CurrentCore].ShortCircuitingEvent = FALSE;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1648,12 +1648,12 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Call instrumentation step in
     //
-    TracingPerformInstrumentationStepIn(&g_DbgState[CurrentProcessorIndex]);
+    TracingPerformInstrumentationStepIn(&g_DbgState[CurrentCore]);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1672,12 +1672,12 @@ ScriptEngineFunctionEventTraceStepIn()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Call instrumentation step in
     //
-    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentProcessorIndex]);
+    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentCore]);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

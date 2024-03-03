@@ -84,7 +84,7 @@ DebuggerVmcallHandler(UINT32 CoreId,
         // Kernel debugger is active, we should send the bytes over serial
         //
 
-        if (OptionalParam1 != NULL_ZERO && OptionalParam2 != 0)
+        if (OptionalParam1 != NULL64_ZERO && OptionalParam2 != NULL64_ZERO)
         {
             KdLoggingResponsePacketToDebugger(
                 (CHAR *)OptionalParam1,
