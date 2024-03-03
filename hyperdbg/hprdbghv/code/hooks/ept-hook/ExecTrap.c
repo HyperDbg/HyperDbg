@@ -173,7 +173,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                             {
                                 // LogInfo("Address of PdVa: %llx", PdVa);
 
-                                if (PdVa == 0xfffffffffffffe00)
+                                if (PdVa == (PUINT64)0xfffffffffffffe00)
                                 {
                                     continue;
                                 }

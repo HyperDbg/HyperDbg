@@ -180,7 +180,7 @@ EptBuildMtrrMap(VOID)
     // The IA32_MTRR_DEF_TYPE MSR (named MTRRdefType MSR for the P6 family processors) sets the default
     // properties of the regions of physical memory that are not encompassed by MTRRs
     //
-    g_EptState->DefaultMemoryType = MTRRDefType.DefaultMemoryType;
+    g_EptState->DefaultMemoryType = (UINT8)MTRRDefType.DefaultMemoryType;
 
     //
     // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is

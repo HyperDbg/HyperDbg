@@ -160,7 +160,7 @@ DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Clear the address
     //
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, NULL);
+    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, NULL64_ZERO);
 
     //
     // Clear the PML index

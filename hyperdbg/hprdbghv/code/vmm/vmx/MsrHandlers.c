@@ -108,7 +108,7 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Check whether the MSR should cause #GP or not
             //
-            if (/* TargetMsr >= 0x0 && */ TargetMsr <= 0xfff && TestBit(TargetMsr, g_MsrBitmapInvalidMsrs) != NULL)
+            if (TargetMsr <= 0xfff && TestBit(TargetMsr, (unsigned long *)g_MsrBitmapInvalidMsrs) != NULL64_ZERO)
             {
                 //
                 // Invalid MSR between 0x0 to 0xfff
@@ -224,23 +224,23 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmwrite(VMCS_GUEST_GS_BASE, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_GS_BASE, Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmwrite(VMCS_GUEST_FS_BASE, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_FS_BASE, Msr.Flags);
             break;
 
         default:
@@ -248,7 +248,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Perform the WRMSR
             //
-            __writemsr(GuestRegs->rcx, Msr.Flags);
+            __writemsr((unsigned long)GuestRegs->rcx, Msr.Flags);
             break;
         }
     }
@@ -272,7 +272,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
@@ -321,7 +321,7 @@ MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDete
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
@@ -419,7 +419,7 @@ MsrHandleFilterMsrWriteBitmap(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask)
+MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask)
 {
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
@@ -466,7 +466,7 @@ MsrHandlePerformMsrBitmapReadReset(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask)
+MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask)
 {
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {

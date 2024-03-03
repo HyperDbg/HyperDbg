@@ -112,7 +112,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // UINT64 Rflags = 0;
         // __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-        // __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags | 0x1);
+        // VmxVmwrite64(VMCS_GUEST_RFLAGS, Rflags | 0x1);
 
         //
         // Handle unconditional vm-exits (inject #ud)

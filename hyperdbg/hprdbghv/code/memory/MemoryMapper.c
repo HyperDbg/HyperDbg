@@ -41,7 +41,7 @@ _Use_decl_annotations_
 UINT32
 MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
 {
-    UINT64 Result = MemoryMapperGetIndex(Level, Va);
+    UINT32 Result = (UINT32)MemoryMapperGetIndex(Level, Va);
     Result &= (1 << 9) - 1; // 0x1ff
 
     return Result;
@@ -1522,7 +1522,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
         return NULL64_ZERO;
     }
 
-    return AllocPtr;
+    return (UINT64)AllocPtr;
 }
 
 /**

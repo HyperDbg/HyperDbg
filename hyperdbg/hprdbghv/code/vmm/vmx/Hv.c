@@ -49,10 +49,10 @@ HvSetGuestSelector(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
         SegmentSelector.Attributes.Unusable = TRUE;
     }
 
-    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    VmxVmwrite64(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    VmxVmwrite64(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
+    VmxVmwrite64(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
 }
@@ -167,8 +167,8 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
-            __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
+            VmxVmwrite64(VMCS_GUEST_CR0, *RegPtr);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
 
             break;
 
@@ -180,7 +180,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Apply the new cr3
             //
-            __vmx_vmwrite(VMCS_GUEST_CR3, NewCr3Reg.Flags);
+            VmxVmwrite64(VMCS_GUEST_CR3, NewCr3Reg.Flags);
 
             //
             // Invalidate as we used VPID tags so the vm-exit won't
@@ -214,8 +214,8 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
-            __vmx_vmwrite(VMCS_GUEST_CR4, *RegPtr);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
+            VmxVmwrite64(VMCS_GUEST_CR4, *RegPtr);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
 
             break;
 
@@ -287,10 +287,10 @@ HvFillGuestSelectorData(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
     SegmentSelector.Attributes.Reserved1 = 0;
     SegmentSelector.Attributes.Reserved2 = 0;
 
-    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    VmxVmwrite64(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    VmxVmwrite64(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
+    VmxVmwrite64(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
 /**
@@ -310,7 +310,7 @@ HvResumeToNextInstruction()
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
-    __vmx_vmwrite(VMCS_GUEST_RIP, ResumeRIP);
+    VmxVmwrite64(VMCS_GUEST_RIP, ResumeRIP);
 }
 
 /**
@@ -367,7 +367,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -420,7 +420,7 @@ HvSetLoadDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
 }
 
 /**
@@ -451,7 +451,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -487,7 +487,7 @@ HvRestoreRegisters()
     __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
     __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
-    AsmReloadGdtr(GdtrBase, GdtrLimit);
+    AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
 
     //
     // Restore IDTR
@@ -495,7 +495,7 @@ HvRestoreRegisters()
     __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
     __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
-    AsmReloadIdtr(IdtrBase, IdtrLimit);
+    AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
 }
 
 /**
@@ -527,7 +527,7 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -574,7 +574,7 @@ HvWriteExceptionBitmap(UINT32 BitmapMask)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_EXCEPTION_BITMAP, BitmapMask);
+    VmxVmwrite64(VMCS_CTRL_EXCEPTION_BITMAP, BitmapMask);
 }
 
 /**
@@ -627,7 +627,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -664,7 +664,7 @@ HvSetPmlEnableFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
+    VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**
@@ -701,7 +701,7 @@ HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
+    VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**
@@ -735,7 +735,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -856,7 +856,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 
         Dr7.GeneralDetect = FALSE;
 
-        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.AsUInt);
+        VmxVmwrite64(VMCS_GUEST_DR7, Dr7.AsUInt);
 
         EventInjectDebugBreakpoint();
 
@@ -975,8 +975,8 @@ HvSetNmiExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -1007,7 +1007,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
 }
 
 /**
@@ -1166,7 +1166,7 @@ HvGetRflags()
 VOID
 HvSetRflags(UINT64 Rflags)
 {
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags);
+    VmxVmwrite64(VMCS_GUEST_RFLAGS, Rflags);
 }
 
 /**
@@ -1193,7 +1193,7 @@ HvGetRip()
 VOID
 HvSetRip(UINT64 Rip)
 {
-    __vmx_vmwrite(VMCS_GUEST_RIP, Rip);
+    VmxVmwrite64(VMCS_GUEST_RIP, Rip);
 }
 
 /**
@@ -1235,7 +1235,7 @@ HvClearSteppingBits(UINT64 Interruptibility)
 VOID
 HvSetInterruptibilityState(UINT64 InterruptibilityState)
 {
-    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
+    VmxVmwrite64(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
 }
 
 /**
@@ -1353,7 +1353,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // Set the core's id and initialize memory mapper
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (UINT32 i = 0; i < ProcessorsCount; i++)
     {
         g_GuestState[i].CoreId = i;
     }

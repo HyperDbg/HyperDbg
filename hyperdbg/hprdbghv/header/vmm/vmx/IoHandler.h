@@ -167,7 +167,7 @@ VOID
 IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
-IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port);
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port);
 
 VOID
 IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu);

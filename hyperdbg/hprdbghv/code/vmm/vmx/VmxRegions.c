@@ -272,7 +272,7 @@ VmxAllocateInvalidMsrBimap()
         return NULL;
     }
 
-    for (size_t i = 0; i < 0x1000; ++i)
+    for (UINT32 i = 0; i < 0x1000; ++i)
     {
         __try
         {
@@ -280,7 +280,7 @@ VmxAllocateInvalidMsrBimap()
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            SetBit(i, InvalidMsrBitmap);
+            SetBit(i, (unsigned long *)InvalidMsrBitmap);
         }
     }
 

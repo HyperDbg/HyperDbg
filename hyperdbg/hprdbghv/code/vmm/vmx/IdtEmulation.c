@@ -267,8 +267,8 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
-        VmxVmread64P(VMCS_GUEST_RFLAGS, (UINT64 *)&GuestRflags);
-        __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+        VmxVmread64P(VMCS_GUEST_RFLAGS, &GuestRflags.AsUInt);
+        VmxVmread32P(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState.AsUInt);
 
         //
         // External interrupts cannot be injected into the
@@ -373,7 +373,6 @@ VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMEXIT_INTERRUPT_INFORMATION InterruptExit   = {0};
-    UINT32                       ErrorCode       = 0;
     BOOLEAN                      InjectPageFault = FALSE;
 
     //

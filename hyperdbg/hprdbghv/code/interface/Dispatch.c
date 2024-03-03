@@ -761,7 +761,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // read the exit interruption information
     //
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
+    VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit.AsUInt);
 
     //
     // This type of vm-exit, can be either because of an !exception event,
@@ -856,7 +856,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // read the exit interruption information
     //
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
+    VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit.AsUInt);
 
     //
     // Check for immediate vm-exit mechanism

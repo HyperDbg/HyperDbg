@@ -263,7 +263,7 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Apply the changes to the next addresses (if any)
             //
-            Size          = Size - ReadSize;
+            Size          = (UINT32)(Size - ReadSize);
             TargetAddress = TargetAddress + ReadSize;
         }
     }

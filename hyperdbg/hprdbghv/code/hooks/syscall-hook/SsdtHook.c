@@ -142,8 +142,8 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
     TableNT     = (PVOID)Shadow;
     TableWin32k = (PVOID)((ULONG_PTR)Shadow + 0x20); // Offset showed in Windbg
 
-    *NtTable     = TableNT;
-    *Win32kTable = TableWin32k;
+    *NtTable     = (UINT64)TableNT;
+    *Win32kTable = (UINT64)TableWin32k;
 
     return TRUE;
 }
@@ -176,7 +176,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 
     if (!GetFromWin32k)
     {
-        SSDT = NtTable;
+        SSDT = (SSDTStruct *)NtTable;
     }
     else
     {
@@ -184,7 +184,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
         // Win32k APIs start from 0x1000
         //
         ApiNumber = ApiNumber - 0x1000;
-        SSDT      = Win32kTable;
+        SSDT      = (SSDTStruct *)Win32kTable;
     }
 
     SSDTbase = (ULONG_PTR)SSDT->pServiceTable;
@@ -296,7 +296,7 @@ SyscallHookTest()
     if (EptHookInlineHook(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)],
                           ApiLocationFromSSDTOfNtCreateFile,
                           (PVOID)NtCreateFileHook,
-                          PsGetCurrentProcessId()))
+                          HANDLE_TO_UINT32(PsGetCurrentProcessId())))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }

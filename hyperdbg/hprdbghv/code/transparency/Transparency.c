@@ -490,10 +490,10 @@ TransparentUnhideDebugger()
 BOOLEAN
 TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 {
-    int         Aux                = 0;
+    UINT32      Aux                = 0;
     PLIST_ENTRY TempList           = 0;
     PCHAR       CurrentProcessName = 0;
-    PCHAR       CurrentProcessId;
+    UINT32      CurrentProcessId;
     UINT64      CurrrentTime;
     HANDLE      CurrentThreadId;
     BOOLEAN     Result                      = TRUE;
@@ -512,7 +512,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
     //
     // Find the current process id and name
     //
-    CurrentProcessId   = PsGetCurrentProcessId();
+    CurrentProcessId   = HANDLE_TO_UINT32(PsGetCurrentProcessId());
     CurrentProcessName = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
 
     //
@@ -612,8 +612,8 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
             // It's a new rdtscp, let's save the new value
             //
             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc +=
-                TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
-                                 g_TransparentModeMeasurements->CpuidStandardDeviation);
+                TransparentRandn((UINT32)g_TransparentModeMeasurements->CpuidAverage,
+                                 (UINT32)g_TransparentModeMeasurements->CpuidStandardDeviation);
             ;
         }
 
@@ -647,8 +647,8 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         //  we need to store it somewhere to remeber this behavior
         //
         VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc +=
-            TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
-                             g_TransparentModeMeasurements->CpuidStandardDeviation);
+            TransparentRandn((UINT32)g_TransparentModeMeasurements->CpuidAverage,
+                             (UINT32)g_TransparentModeMeasurements->CpuidStandardDeviation);
 
         VCpu->TransparencyState.CpuidAfterRdtscDetected = TRUE;
     }

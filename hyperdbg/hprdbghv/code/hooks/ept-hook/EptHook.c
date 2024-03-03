@@ -51,7 +51,7 @@ EptHookCalcBreakpointOffset(_In_ PVOID                    TargetAddress,
     UINT64 TargetAddressInFakePageContent;
     UINT64 PageOffset;
 
-    TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
+    TargetAddressInFakePageContent = (UINT64)&HookedEntry->FakePageContents;
     TargetAddressInFakePageContent = (UINT64)PAGE_ALIGN(TargetAddressInFakePageContent);
     PageOffset                     = (UINT64)PAGE_OFFSET(TargetAddress);
     TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
@@ -188,7 +188,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the detail of hooked page to keep track of it
     //
-    HookedPage = PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
 
     if (!HookedPage)
     {
@@ -562,9 +562,9 @@ EptHookPerformHook(PVOID   TargetAddress,
         BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
 
         if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT,
-                         TargetAddress,
+                         (UINT64)TargetAddress,
                          LayoutGetCr3ByProcessId(ProcessId).Flags,
-                         NULL) == STATUS_SUCCESS)
+                         (UINT64)NULL64_ZERO) == STATUS_SUCCESS)
         {
             LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
@@ -941,7 +941,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     // function that changes the original function and if our structure is no ready after this
     // function then we probably see BSOD on other cores
     //
-    DetourHookDetails                        = PoolManagerRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
+    DetourHookDetails                        = (HIDDEN_HOOKS_DETOUR_DETAILS *)PoolManagerRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
     DetourHookDetails->HookedFunctionAddress = TargetFunction;
     DetourHookDetails->ReturnAddress         = Hook->Trampoline;
 
@@ -949,7 +949,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     // Save the address of DetourHookDetails because we want to
     // deallocate it when the hook is finished
     //
-    Hook->AddressOfEptHook2sDetourListEntry = DetourHookDetails;
+    Hook->AddressOfEptHook2sDetourListEntry = (UINT64)DetourHookDetails;
 
     //
     // Insert it to the list of hooked pages
@@ -1067,7 +1067,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the detail of hooked page to keep track of it
     //
-    HookedPage = PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
 
     if (!HookedPage)
     {
@@ -1437,7 +1437,10 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
     {
         if (VmxGetCurrentLaunchState())
         {
-            if (AsmVmxVmcall(VMCALL_CHANGE_PAGE_ATTRIB, HookDetailsToVmcall, PageHookMask, LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
+            if (AsmVmxVmcall(VMCALL_CHANGE_PAGE_ATTRIB,
+                             (UINT64)HookDetailsToVmcall,
+                             PageHookMask,
+                             LayoutGetCr3ByProcessId(ProcessId).Flags) == STATUS_SUCCESS)
             {
                 //
                 // Test log
@@ -1791,7 +1794,7 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
     //
     LIST_FOR_EACH_LINK(g_EptHook2sDetourListHead, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList, CurrentHookedDetails)
     {
-        if (CurrentHookedDetails->HookedFunctionAddress == Address)
+        if (CurrentHookedDetails->HookedFunctionAddress == (PVOID)Address)
         {
             //
             // We found the address, we should remove it and add it for
@@ -2122,7 +2125,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // Remove just that special entry
                 // BTW, No need to remove it, it will be replaced automatically
                 //
-                HookedEntry->BreakpointAddresses[i]                = NULL;
+                HookedEntry->BreakpointAddresses[i]                = NULL64_ZERO;
                 HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
 
                 //
@@ -2189,16 +2192,17 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
     {
         if (ApplyDirectlyFromVmxRoot)
         {
-            PhysicalAddress = (SIZE_T)(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess(VirtualAddress)));
+            PhysicalAddress = (SIZE_T)(PAGE_ALIGN(VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)VirtualAddress)));
         }
         else
         {
-            PhysicalAddress = (SIZE_T)(PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId)));
+            PhysicalAddress = (SIZE_T)(PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId((PVOID)VirtualAddress,
+                                                                                             ProcessId)));
         }
     }
     else
     {
-        PhysicalAddress = PAGE_ALIGN(PhysAddress);
+        PhysicalAddress = (SIZE_T)PAGE_ALIGN(PhysAddress);
     }
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, CurrEntity)

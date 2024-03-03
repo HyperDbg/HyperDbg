@@ -243,8 +243,8 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -333,7 +333,7 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -388,7 +388,7 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -408,26 +408,26 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
     {
         if (Set)
         {
-            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
         }
         else
         {
-            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);
+            VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, 0);
         }
     }
     else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4)
     {
         if (Set)
         {
-            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
         }
         else
         {
-            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, 0);
+            VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, 0);
         }
     }
 }
@@ -544,7 +544,7 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**

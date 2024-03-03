@@ -322,6 +322,15 @@ VmxVmread32P(size_t Field, UINT32 * FieldValue);
 UCHAR
 VmxVmread16P(size_t Field, UINT16 * FieldValue);
 
+UCHAR
+VmxVmwrite64(size_t Field, UINT64 FieldValue);
+
+UCHAR
+VmxVmwrite32(size_t Field, UINT32 FieldValue);
+
+UCHAR
+VmxVmwrite16(size_t Field, UINT16 FieldValue);
+
 VOID
 VmxVmptrst();
 

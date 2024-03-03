@@ -53,7 +53,7 @@ VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
     //
     // Let the top-level hypervisor to manage it
     //
-    AsmHypervVmcall(GuestRegs);
+    AsmHypervVmcall((UINT64)GuestRegs);
 
     //
     // Restore the guest's RSP
@@ -176,7 +176,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         CR3_TYPE ProcCr3    = {.Flags = OptionalParam3};
 
         HookResult = EptHookPerformPageHookMonitorAndInlineHook(VCpu,
-                                                                OptionalParam1 /* hook details */,
+                                                                (PVOID)OptionalParam1 /* hook details */,
                                                                 ProcCr3 /* Process cr3 */,
                                                                 (UINT32)OptionalParam2 /* PageHookMask */);
 
@@ -225,13 +225,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadChange(VCpu, OptionalParam1);
+        MsrHandlePerformMsrBitmapReadChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteChange(VCpu, OptionalParam1);
+        MsrHandlePerformMsrBitmapWriteChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -267,7 +267,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapChange(VCpu, OptionalParam1);
+        IoHandlePerformIoBitmapChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -277,8 +277,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         CR3_TYPE ProcCr3    = {.Flags = OptionalParam2};
 
         HookResult = EptHookPerformPageHook(VCpu,
-                                            OptionalParam1, /* TargetAddress */
-                                            ProcCr3);       /* process cr3 */
+                                            (PVOID)OptionalParam1, /* TargetAddress */
+                                            ProcCr3);              /* process cr3 */
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
