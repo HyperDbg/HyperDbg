@@ -11,6 +11,8 @@
  */
 #pragma once
 
+#pragma warning(disable : 4201) // Suppress nameless struct/union warning
+
 //////////////////////////////////////////////////
 //               Basic Datatypes                //
 //////////////////////////////////////////////////
