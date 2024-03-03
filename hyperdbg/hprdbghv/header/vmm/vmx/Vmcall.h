@@ -326,7 +326,6 @@ VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
  *
  * @return NTSTATUS
  */
-_Use_decl_annotations_
 NTSTATUS
 VmxVmcallDirectVmcallHandler(VIRTUAL_MACHINE_STATE *    VCpu,
                              UINT64                     VmcallNumber,

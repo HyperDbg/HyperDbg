@@ -25,7 +25,6 @@
  * @param KernelCr3 kernel cr3 of target process
  * @return PVOID virtual address of PTE based on cr3
  */
-_Use_decl_annotations_
 BOOLEAN
 ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE TargetCr3, CR3_TYPE KernelCr3)
 {
@@ -98,8 +97,8 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
         {
             // LogInfo("PML4[%d] = %llx", i, Pml4e->Fields.PageFrameNumber);
 
-            IsLargePage        = FALSE;
-            PVOID EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
+            IsLargePage  = FALSE;
+            EptPmlEntry4 = EptGetPml1OrPml2Entry(EptTable, Pml4e->Fields.PageFrameNumber << 12, &IsLargePage);
 
             if (EptPmlEntry4 != NULL)
             {

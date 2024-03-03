@@ -270,7 +270,7 @@ EptBuildMtrrMap(VOID)
             // Calculate the total size of the range
             // The lowest bit of the mask that is set to 1 specifies the size of the range
             //
-            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
+            _BitScanForward64((ULONG *)&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
 
             //
             // Size of the range in bytes + Base Address
@@ -846,7 +846,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     PVOID   TargetPage;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
-    BOOLEAN IsHandled;
+    BOOLEAN IsHandled               = FALSE;
     BOOLEAN ResultOfHandlingHook    = FALSE;
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
@@ -996,7 +996,6 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
-_Use_decl_annotations_
 BOOLEAN
 EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 {

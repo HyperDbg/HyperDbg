@@ -1138,7 +1138,11 @@ VmxPerformTermination()
     //
     for (size_t i = 0; i < ProcessorsCount; i++)
     {
-        MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
+        if (g_GuestState[i].EptPageTable != NULL)
+        {
+            MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
+        }
+
         g_GuestState[i].EptPageTable = NULL;
     }
 
@@ -1504,7 +1508,8 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
                 return 0x2;
             }
         }
-    } while (!(Result = C1 - C2) && C2);
+        Result = C1 - C2;
+    } while (!Result && C2);
 
     if (Result < 0)
     {
@@ -1614,7 +1619,9 @@ VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
                 return 0x2;
             }
         }
-    } while (!(Result = C1 - C2) && C2);
+
+        Result = C1 - C2;
+    } while (!Result && C2);
 
     if (Result < 0)
     {

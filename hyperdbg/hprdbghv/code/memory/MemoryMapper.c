@@ -170,7 +170,6 @@ MemoryMapperGetPteVaOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
  *
  * @return BOOLEAN Is present or not
  */
-_Use_decl_annotations_
 BOOLEAN
 MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level)
 {

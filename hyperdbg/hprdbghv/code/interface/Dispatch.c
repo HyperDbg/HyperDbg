@@ -424,7 +424,7 @@ DispatchEventMovToCr3(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult  = VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED;
     VMX_EXIT_QUALIFICATION_IO_INSTRUCTION     IoQualification     = {.AsUInt = VCpu->ExitQualification};
     RFLAGS                                    Flags               = {0};
     BOOLEAN                                   PostEventTriggerReq = FALSE;
