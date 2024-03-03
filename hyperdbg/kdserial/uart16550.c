@@ -17,6 +17,24 @@ Abstract:
 #include "common.h"
 #include "kdcom.h"
 
+// ----------------------------------------------- Internal Function Prototypes
+
+BOOLEAN
+Uart16550SetBaud(
+    _Inout_ PCPPORT Port,
+    ULONG           Rate);
+
+UART_STATUS
+Uart16550PutByte(
+    _Inout_ PCPPORT Port,
+    UCHAR           Byte,
+    BOOLEAN         BusyWait);
+
+UART_STATUS
+Uart16550GetByte(
+    _Inout_ PCPPORT Port,
+    _Out_ PUCHAR    Byte);
+
 // ----------------------------------------------- Function Test
 
 //
@@ -55,16 +73,17 @@ ReadPortWithIndex8(
     return (UCHAR)READ_PORT_UCHAR(Pointer);
 }
 
-UINT64
+VOID
 KdHyperDbgTest(UINT16 Byte)
 {
+    UNREFERENCED_PARAMETER(Byte);
     //
     // *** This function is for internal use and test
     // don't use it ***
     //
 
     CPPORT TempPort    = {0};
-    TempPort.Address   = 0x2f8;
+    TempPort.Address   = (PUCHAR)0x2f8;
     TempPort.BaudRate  = 0x01c200; // 115200
     TempPort.Flags     = 0;
     TempPort.ByteWidth = 1;
@@ -76,7 +95,7 @@ KdHyperDbgTest(UINT16 Byte)
 
     for (size_t i = 0; i < 100; i++)
     {
-        char RecvByte = 0;
+        // char RecvByte = 0;
         // Uart16550GetByte(&TempPort,&RecvByte);
     }
 }
@@ -84,7 +103,10 @@ KdHyperDbgTest(UINT16 Byte)
 VOID
 KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
 {
-    g_PortDetails.Address   = PortAddress;
+    UINT64 PortAddressUChar = 0ULL;
+    PortAddressUChar        = PortAddressUChar | PortAddress;
+
+    g_PortDetails.Address   = (PUCHAR)PortAddressUChar;
     g_PortDetails.BaudRate  = Baudrate;
     g_PortDetails.Flags     = 0;
     g_PortDetails.ByteWidth = 1;
@@ -108,13 +130,6 @@ KdHyperDbgRecvByte(PUCHAR RecvByte)
     }
     return FALSE;
 }
-
-// ----------------------------------------------- Internal Function Prototypes
-
-BOOLEAN
-Uart16550SetBaud(
-    _Inout_ PCPPORT Port,
-    ULONG           Rate);
 
 // ------------------------------------------------------------------ Functions
 
@@ -554,6 +569,8 @@ Return Value:
     UCHAR Data;
     UCHAR Lsr;
     UCHAR Msr;
+
+    *Byte = 0;
 
     if ((Port == NULL) || (Port->Address == NULL))
     {
