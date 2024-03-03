@@ -320,7 +320,7 @@ UCHAR
 VmxVmread32P(size_t Field, UINT32 * FieldValue);
 
 UCHAR
-VmxVmread16P(size_t Field, UINT16 FieldValue);
+VmxVmread16P(size_t Field, UINT16 * FieldValue);
 
 VOID
 VmxVmptrst();

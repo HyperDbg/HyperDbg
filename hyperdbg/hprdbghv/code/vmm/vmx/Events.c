@@ -49,7 +49,7 @@ EventInjectBreakpoint()
 
     EventInjectInterruption(INTERRUPT_TYPE_SOFTWARE_EXCEPTION, EXCEPTION_VECTOR_BREAKPOINT, FALSE, 0);
 
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
     __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 

@@ -53,7 +53,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL)
+    if (CurrentProcessCr3.Flags == NULL64_ZERO)
     {
         //
         // Pid is invalid
@@ -64,8 +64,8 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
     //
     // Read the virtual address based on new cr3
     //
-    PhysicalAddr.QuadPart = PhysicalAddress;
-    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
+    PhysicalAddr.QuadPart = (LONGLONG)PhysicalAddress;
+    VirtualAddress        = (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -101,7 +101,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL)
+    if (CurrentProcessCr3.Flags == NULL64_ZERO)
     {
         //
         // Pid is invalid
@@ -112,8 +112,8 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
     //
     // Read the virtual address based on new cr3
     //
-    PhysicalAddr.QuadPart = PhysicalAddress;
-    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
+    PhysicalAddr.QuadPart = (LONGLONG)PhysicalAddress;
+    VirtualAddress        = (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -181,7 +181,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL)
+    if (CurrentProcessCr3.Flags == NULL64_ZERO)
     {
         //
         // Pid is invalid
@@ -225,7 +225,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
     //
     // Validate if process id is valid
     //
-    if (CurrentProcessCr3.Flags == NULL)
+    if (CurrentProcessCr3.Flags == NULL64_ZERO)
     {
         //
         // Pid is invalid
@@ -271,7 +271,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     //
     // Validate if process id is valid
     //
-    if (CurrentCr3.Flags == NULL)
+    if (CurrentCr3.Flags == NULL64_ZERO)
     {
         //
         // Pid is invalid

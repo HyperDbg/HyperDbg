@@ -128,7 +128,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading instruction length
     //
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &InstructionLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &InstructionLength);
 
     //
     // Reading guest's Rflags

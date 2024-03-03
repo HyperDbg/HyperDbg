@@ -105,7 +105,7 @@ PoolManagerUninitialize()
         //
         if (!PoolTable->AlreadyFreed)
         {
-            CrsFreePool(PoolTable->Address);
+            CrsFreePool((PVOID)PoolTable->Address);
         }
 
         //
@@ -267,7 +267,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         // Allocate the buffer
         //
-        SinglePool->Address = CrsAllocateZeroedNonPagedPool(Size);
+        SinglePool->Address = (UINT64)CrsAllocateZeroedNonPagedPool(Size);
 
         if (!SinglePool->Address)
         {
@@ -377,7 +377,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // This item should be freed
                 //
-                CrsFreePool(PoolTable->Address);
+                CrsFreePool((PVOID)PoolTable->Address);
 
                 //
                 // Now we should remove the entry from the g_ListOfAllocatedPoolsHead

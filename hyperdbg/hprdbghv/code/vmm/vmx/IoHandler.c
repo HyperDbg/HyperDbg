@@ -215,11 +215,11 @@ IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port)
 {
     if (Port <= 0x7FFF)
     {
-        SetBit(Port, VCpu->IoBitmapVirtualAddressA);
+        SetBit(Port, (unsigned long *)VCpu->IoBitmapVirtualAddressA);
     }
     else if ((0x8000 <= Port) && (Port <= 0xFFFF))
     {
-        SetBit(Port - 0x8000, VCpu->IoBitmapVirtualAddressB);
+        SetBit(Port - 0x8000, (unsigned long *)VCpu->IoBitmapVirtualAddressB);
     }
     else
     {
@@ -270,6 +270,6 @@ IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
-    memset(VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+    memset((void *)VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset((void *)VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }

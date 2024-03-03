@@ -73,7 +73,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
     //
     // we need VA of Cr3, not PA
     //
-    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
+    Cr3Va = (UINT64 *)PhysicalAddressToVirtualAddress(TempCr3);
 
     //
     // Check for invalid address
@@ -119,7 +119,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                 LogInfo("null address");
             }
 
-            PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
+            PdptVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
 
             //
             // Check for invalid address
@@ -162,7 +162,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                             continue;
                         }
 
-                        PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
+                        PdVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
 
                         //
                         // Check for invalid address
@@ -210,7 +210,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                                         continue;
                                     }
 
-                                    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
+                                    PtVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
 
                                     //
                                     // Check for invalid address
@@ -426,7 +426,7 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
-        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL)
+        if (PhysicalRamRegions[i].RamPhysicalAddress != NULL64_ZERO)
         {
             RemainingSize  = (INT64)PhysicalRamRegions[i].RamSize;
             CurrentAddress = PhysicalRamRegions[i].RamPhysicalAddress;

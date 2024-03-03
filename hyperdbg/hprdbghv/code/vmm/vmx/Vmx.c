@@ -18,7 +18,7 @@
  *
  * @return UCHAR
  */
-UCHAR
+inline UCHAR
 VmxVmread64(size_t Field,
             UINT64 FieldValue)
 {
@@ -32,7 +32,7 @@ VmxVmread64(size_t Field,
  *
  * @return UCHAR
  */
-UCHAR
+inline UCHAR
 VmxVmread32(size_t Field,
             UINT32 FieldValue)
 {
@@ -50,7 +50,7 @@ VmxVmread32(size_t Field,
  *
  * @return UCHAR
  */
-UCHAR
+inline UCHAR
 VmxVmread16(size_t Field,
             UINT16 FieldValue)
 {
@@ -68,7 +68,7 @@ VmxVmread16(size_t Field,
  *
  * @return UCHAR
  */
-UCHAR
+inline UCHAR
 VmxVmread64P(size_t   Field,
              UINT64 * FieldValue)
 {
@@ -82,7 +82,7 @@ VmxVmread64P(size_t   Field,
  *
  * @return UCHAR
  */
-UCHAR
+inline UCHAR
 VmxVmread32P(size_t   Field,
              UINT32 * FieldValue)
 {
@@ -100,9 +100,9 @@ VmxVmread32P(size_t   Field,
  *
  * @return UCHAR
  */
-UCHAR
-VmxVmread16P(size_t Field,
-             UINT16 FieldValue)
+inline UCHAR
+VmxVmread16P(size_t   Field,
+             UINT16 * FieldValue)
 {
     UINT64 TargetField = 0ull;
 
@@ -399,7 +399,7 @@ BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
     ULONG                   CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu                   = &g_GuestState[CurrentCore];
+    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[CurrentCore];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentCore);
 
@@ -575,9 +575,9 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 BOOLEAN
 VmxTerminate()
 {
-    NTSTATUS                Status           = STATUS_SUCCESS;
+    NTSTATUS                Status      = STATUS_SUCCESS;
     ULONG                   CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu             = &g_GuestState[CurrentCore];
+    VIRTUAL_MACHINE_STATE * VCpu        = &g_GuestState[CurrentCore];
 
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
@@ -591,8 +591,8 @@ VmxTerminate()
         //
         // Free the destination memory
         //
-        MmFreeContiguousMemory(VCpu->VmxonRegionVirtualAddress);
-        MmFreeContiguousMemory(VCpu->VmcsRegionVirtualAddress);
+        MmFreeContiguousMemory((PVOID)VCpu->VmxonRegionVirtualAddress);
+        MmFreeContiguousMemory((PVOID)VCpu->VmcsRegionVirtualAddress);
         CrsFreePool((PVOID)VCpu->VmmStack);
         CrsFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
         CrsFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
@@ -684,8 +684,8 @@ _Use_decl_annotations_
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 {
-    UINT32                   CpuBasedVmExecControls;
-    UINT32                   SecondaryProcBasedVmExecControls;
+    UINT32                  CpuBasedVmExecControls;
+    UINT32                  SecondaryProcBasedVmExecControls;
     PVOID                   HostRsp;
     UINT64                  GdtBase         = 0;
     VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
@@ -848,7 +848,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     // Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
     // needs alignment to 16
     //
-    HostRsp = (UINT64)VCpu->VmmStack + VMM_STACK_SIZE - 1;
+    HostRsp = (PVOID)((UINT64)VCpu->VmmStack + VMM_STACK_SIZE - 1);
     HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
     __vmx_vmwrite(VMCS_HOST_RSP, HostRsp);
     __vmx_vmwrite(VMCS_HOST_RIP, (UINT64)AsmVmexitHandler);
@@ -1130,7 +1130,7 @@ VmxPerformTermination()
 UINT32
 VmxCompatibleStrlen(const CHAR * S)
 {
-    CHAR     Temp  = NULL;
+    CHAR     Temp  = NULL_ZERO;
     UINT32   Count = 0;
     UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
@@ -1376,7 +1376,7 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
 INT32
 VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
-    CHAR     C1 = NULL, C2 = NULL;
+    CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;
@@ -1597,7 +1597,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 INT32
 VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 {
-    CHAR     C1 = NULL, C2 = NULL;
+    CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;

@@ -308,7 +308,7 @@ DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLE
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(Address,
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address,
                                               SafeMemoryToRead,
                                               SizeOfSafeBufferToRead);
 
@@ -339,9 +339,9 @@ DisassemblerShowOneInstructionInVmxRootMode(PVOID Address, BOOLEAN Is32Bit)
     //
     // Find the current instruction
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(Address,
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address,
                                               SafeMemoryToRead,
                                               SizeOfSafeBufferToRead);
 
-    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, Address, Is32Bit);
+    return DisassemblerShowOneInstructionInVmxNonRootMode(SafeMemoryToRead, (UINT64)Address, Is32Bit);
 }

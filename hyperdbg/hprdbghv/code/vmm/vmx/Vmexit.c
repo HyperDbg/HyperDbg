@@ -74,7 +74,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Read the exit qualification
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &VCpu->ExitQualification);
+    VmxVmread32P(VMCS_EXIT_QUALIFICATION, &VCpu->ExitQualification);
 
     //
     // Debugging purpose

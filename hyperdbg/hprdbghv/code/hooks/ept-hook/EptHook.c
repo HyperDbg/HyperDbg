@@ -52,8 +52,8 @@ EptHookCalcBreakpointOffset(_In_ PVOID                    TargetAddress,
     UINT64 PageOffset;
 
     TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
-    TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
-    PageOffset                     = PAGE_OFFSET(TargetAddress);
+    TargetAddressInFakePageContent = (UINT64)PAGE_ALIGN(TargetAddressInFakePageContent);
+    PageOffset                     = (UINT64)PAGE_OFFSET(TargetAddress);
     TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
 
     return TargetAddressInFakePageContent;
@@ -204,7 +204,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the virtual address
     //
-    HookedPage->VirtualAddress = TargetAddress;
+    HookedPage->VirtualAddress = (UINT64)TargetAddress;
 
     //
     // Save the physical address
@@ -224,7 +224,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the address of (first) new breakpoint
     //
-    HookedPage->BreakpointAddresses[0] = TargetAddress;
+    HookedPage->BreakpointAddresses[0] = (UINT64)TargetAddress;
 
     //
     // Change the counter (set it to 1)
@@ -269,7 +269,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         // Set target buffer, request buffer from pool manager,
         // we also need to allocate new page to replace the current page
         //
-        TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
         if (!TargetBuffer)
         {
@@ -415,7 +415,7 @@ EptHookUpdateHookPage(_In_ PVOID                       TargetAddress,
     //
     // Add target address to the list of breakpoints
     //
-    HookedEntry->BreakpointAddresses[HookedEntry->CountOfBreakpoints] = TargetAddress;
+    HookedEntry->BreakpointAddresses[HookedEntry->CountOfBreakpoints] = (UINT64)TargetAddress;
 
     //
     // Save the original byte
@@ -541,7 +541,7 @@ EptHookPerformHook(PVOID   TargetAddress,
         //
         // Set VMCALL options
         //
-        DirectVmcallOptions.OptionalParam1 = TargetAddress;
+        DirectVmcallOptions.OptionalParam1 = (UINT64)TargetAddress;
         DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
 
         //
@@ -862,7 +862,9 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 19;
-         SizeOfHookedInstructions += DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions, FALSE))
+         SizeOfHookedInstructions += DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+             (PVOID)((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions),
+             FALSE))
     {
         //
         // Get the full size of instructions necessary to copy
@@ -890,7 +892,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     //
     // Allocate some executable memory for the trampoline
     //
-    Hook->Trampoline = PoolManagerRequestPool(EXEC_TRAMPOLINE, TRUE, MAX_EXEC_TRAMPOLINE_SIZE);
+    Hook->Trampoline = (CHAR *)PoolManagerRequestPool(EXEC_TRAMPOLINE, TRUE, MAX_EXEC_TRAMPOLINE_SIZE);
 
     if (!Hook->Trampoline)
     {
@@ -1019,7 +1021,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     }
     else
     {
-        TargetAddress = ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress;
+        TargetAddress = (PVOID)((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress;
     }
 
     AlignedTargetVa = PAGE_ALIGN(TargetAddress);
@@ -1076,7 +1078,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the virtual address
     //
-    HookedPage->VirtualAddress = TargetAddress;
+    HookedPage->VirtualAddress = (UINT64)TargetAddress;
 
     //
     // Save the physical address
@@ -1192,7 +1194,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         // Set target buffer, request buffer from pool manager,
         // we also need to allocate new page to replace the current page
         //
-        TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
         if (!TargetBuffer)
         {
@@ -1418,7 +1420,7 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
     if (ApplyDirectlyFromVmxRoot)
     {
         DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-        DirectVmcallOptions.OptionalParam1           = HookDetailsToVmcall;
+        DirectVmcallOptions.OptionalParam1           = (UINT64)HookDetailsToVmcall;
         DirectVmcallOptions.OptionalParam2           = PageHookMask;
         DirectVmcallOptions.OptionalParam3           = LayoutGetCurrentProcessCr3().Flags; // Process id is ignored while applied directly
 
@@ -1591,7 +1593,7 @@ EptHookInlineHookFromVmxRoot(VIRTUAL_MACHINE_STATE * VCpu,
     return EptHookPerformMemoryOrInlineHook(VCpu,
                                             &HookingDetail,
                                             NULL,
-                                            NULL,
+                                            NULL_ZERO,
                                             TRUE,
                                             TRUE);
 }
@@ -1620,7 +1622,7 @@ EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
     return EptHookPerformMemoryOrInlineHook(VCpu,
                                             NULL,
                                             MemoryAddressDetails,
-                                            NULL,
+                                            NULL_ZERO,
                                             FALSE,
                                             TRUE);
 }
@@ -1657,8 +1659,8 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
     //
     // Get alignment
     //
-    AlignedVirtualAddress  = PAGE_ALIGN(HookedEntryDetails->VirtualAddress);
-    AlignedPhysicalAddress = PAGE_ALIGN(PhysicalAddress);
+    AlignedVirtualAddress  = (UINT64)PAGE_ALIGN(HookedEntryDetails->VirtualAddress);
+    AlignedPhysicalAddress = (UINT64)PAGE_ALIGN(PhysicalAddress);
 
     //
     // Let's read the exact address that was accessed
@@ -2127,7 +2129,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // all addresses to a lower array index (because one entry is
                 // missing and might) be in the middle of the array
                 //
-                for (int j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
+                for (size_t j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
                 {
                     HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
                     HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
@@ -2177,13 +2179,13 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
     //
     if (ApplyDirectlyFromVmxRoot || ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
     {
-        ProcessId = PsGetCurrentProcessId();
+        ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
     }
 
     //
     // Check if the physical address is available or not
     //
-    if (PhysAddress == NULL)
+    if (PhysAddress == NULL64_ZERO)
     {
         if (ApplyDirectlyFromVmxRoot)
         {
@@ -2299,7 +2301,7 @@ EptHookUnHookSingleAddressFromVmxRoot(UINT64                              Virtua
 
     return EptHookPerformUnHookSingleAddress(VirtualAddress,
                                              PhysAddress,
-                                             NULL,
+                                             NULL_ZERO,
                                              TRUE,
                                              TargetUnhookingDetails);
 }
@@ -2348,7 +2350,7 @@ EptHookUnHookAll()
         // As we are in vmx-root here, we add the hooked entry to the list
         // of pools that will be deallocated on next IOCTL
         //
-        if (!PoolManagerFreePool(CurrEntity))
+        if (!PoolManagerFreePool((UINT64)CurrEntity))
         {
             LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
         }
@@ -2389,7 +2391,7 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     //
     // Create temporary context
     //
-    TempContext.VirtualAddress  = CalledFrom;
+    TempContext.VirtualAddress  = (UINT64)CalledFrom;
     TempContext.PhysicalAddress = VirtualAddressToPhysicalAddress(CalledFrom);
 
     //
@@ -2453,7 +2455,7 @@ EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2511,7 +2513,7 @@ EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2569,7 +2571,7 @@ EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {

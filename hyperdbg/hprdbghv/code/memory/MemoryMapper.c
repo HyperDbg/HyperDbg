@@ -344,14 +344,14 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
 
     Offset = MemoryMapperGetOffset(PagingLevelPageMapLevel4, (UINT64)Va);
 
-    PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
+    PPAGE_ENTRY Pml4e = (PAGE_ENTRY *)&Cr3Va[Offset];
 
     if (!Pml4e->Fields.Present || Level == PagingLevelPageMapLevel4)
     {
         return Pml4e;
     }
 
-    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
+    PdptVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -363,14 +363,14 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
 
     Offset = MemoryMapperGetOffset(PagingLevelPageDirectoryPointerTable, (UINT64)Va);
 
-    PPAGE_ENTRY Pdpte = &PdptVa[Offset];
+    PPAGE_ENTRY Pdpte = (PAGE_ENTRY *)&PdptVa[Offset];
 
     if (!Pdpte->Fields.Present || Pdpte->Fields.LargePage || Level == PagingLevelPageDirectoryPointerTable)
     {
         return Pdpte;
     }
 
-    PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
+    PdVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -382,14 +382,14 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
 
     Offset = MemoryMapperGetOffset(PagingLevelPageDirectory, (UINT64)Va);
 
-    PPAGE_ENTRY Pde = &PdVa[Offset];
+    PPAGE_ENTRY Pde = (PAGE_ENTRY *)&PdVa[Offset];
 
     if (!Pde->Fields.Present || Pde->Fields.LargePage || Level == PagingLevelPageDirectory)
     {
         return Pde;
     }
 
-    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
+    PtVa = (UINT64 *)PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -401,7 +401,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
 
     Offset = MemoryMapperGetOffset(PagingLevelPageTable, (UINT64)Va);
 
-    PPAGE_ENTRY Pt = &PtVa[Offset];
+    PPAGE_ENTRY Pt = (PAGE_ENTRY *)&PtVa[Offset];
 
     return Pt;
 }
@@ -644,7 +644,7 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
     //
     // Get the page's Page Table Entry
     //
-    Pte = MemoryMapperGetPte(Va);
+    Pte = (UINT64)MemoryMapperGetPte(Va);
 
     *PteAddress = Pte;
 
@@ -695,13 +695,13 @@ MemoryMapperInitialize()
         //
         // Initial and reserve for read operations
         //
-        g_MemoryMapper[i].VirualAddressForRead     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].VirualAddressForRead     = (UINT64)MemoryMapperMapPageAndGetPte(&TempPte);
         g_MemoryMapper[i].PteVirtualAddressForRead = TempPte;
 
         //
         // Initial and reserve for write operations
         //
-        g_MemoryMapper[i].VirualAddressForWrite     = MemoryMapperMapPageAndGetPte(&TempPte);
+        g_MemoryMapper[i].VirualAddressForWrite     = (UINT64)MemoryMapperMapPageAndGetPte(&TempPte);
         g_MemoryMapper[i].PteVirtualAddressForWrite = TempPte;
     }
 }
@@ -723,21 +723,21 @@ MemoryMapperUninitialize()
         //
         // Unmap and free the reserved buffer
         //
-        if (g_MemoryMapper[i].VirualAddressForRead != NULL)
+        if (g_MemoryMapper[i].VirualAddressForRead != NULL64_ZERO)
         {
             MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForRead);
         }
 
-        if (g_MemoryMapper[i].VirualAddressForWrite != NULL)
+        if (g_MemoryMapper[i].VirualAddressForWrite != NULL64_ZERO)
         {
             MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForWrite);
         }
 
-        g_MemoryMapper[i].VirualAddressForRead     = NULL;
-        g_MemoryMapper[i].PteVirtualAddressForRead = NULL;
+        g_MemoryMapper[i].VirualAddressForRead     = NULL64_ZERO;
+        g_MemoryMapper[i].PteVirtualAddressForRead = NULL64_ZERO;
 
-        g_MemoryMapper[i].VirualAddressForWrite     = NULL;
-        g_MemoryMapper[i].PteVirtualAddressForWrite = NULL;
+        g_MemoryMapper[i].VirualAddressForWrite     = NULL64_ZERO;
+        g_MemoryMapper[i].PteVirtualAddressForWrite = NULL64_ZERO;
     }
 
     //
@@ -768,7 +768,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
 {
     PVOID       NewAddress;
     PAGE_ENTRY  PageEntry;
-    PPAGE_ENTRY Pte = PteVaAddress;
+    PPAGE_ENTRY Pte = (PAGE_ENTRY *)PteVaAddress;
     PVOID       Va  = (PVOID)MappingVa;
 
     //
@@ -828,7 +828,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
     //
     // Unmap Address
     //
-    Pte->Flags = NULL;
+    Pte->Flags = NULL64_ZERO;
 
     return TRUE;
 }
@@ -855,7 +855,7 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
 {
     PVOID       NewAddress;
     PAGE_ENTRY  PageEntry;
-    PPAGE_ENTRY Pte = PteVaAddress;
+    PPAGE_ENTRY Pte = (PAGE_ENTRY *)PteVaAddress;
     PVOID       Va  = (PVOID)MappingVa;
 
     //
@@ -912,7 +912,7 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
     //
     // Unmap Address
     //
-    Pte->Flags = NULL;
+    Pte->Flags = NULL64_ZERO;
 
     return TRUE;
 }
@@ -982,8 +982,8 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_MemoryMapper[CurrentCore].VirualAddressForRead == NULL ||
-        g_MemoryMapper[CurrentCore].PteVirtualAddressForRead == NULL)
+    if (g_MemoryMapper[CurrentCore].VirualAddressForRead == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForRead == NULL64_ZERO)
     {
         //
         // Not initialized
@@ -1103,7 +1103,7 @@ MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZ
 {
     return MemoryMapperReadMemorySafeByPhysicalAddressWrapper(MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
                                                               VaAddressToRead,
-                                                              BufferToSaveMemory,
+                                                              (UINT64)BufferToSaveMemory,
                                                               SizeToRead);
 }
 
@@ -1227,7 +1227,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
 
     case MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE:
 
-        if (TargetProcessId == NULL)
+        if (TargetProcessId == NULL_ZERO)
         {
             PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)DestinationAddr);
         }
@@ -1240,7 +1240,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
 
     case MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE:
 
-        if (TargetProcessCr3 == NULL || TargetProcessCr3->Flags == NULL)
+        if (TargetProcessCr3 == NULL || TargetProcessCr3->Flags == NULL64_ZERO)
         {
             PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)DestinationAddr);
         }
@@ -1288,8 +1288,8 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_MemoryMapper[CurrentCore].VirualAddressForWrite == NULL ||
-        g_MemoryMapper[CurrentCore].PteVirtualAddressForWrite == NULL)
+    if (g_MemoryMapper[CurrentCore].VirualAddressForWrite == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForWrite == NULL64_ZERO)
     {
         //
         // Not initialized
@@ -1389,10 +1389,10 @@ MemoryMapperWriteMemorySafe(UINT64   Destination,
 {
     return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE,
                                               Destination,
-                                              Source,
+                                              (UINT64)Source,
                                               SizeToWrite,
                                               &TargetProcessCr3,
-                                              NULL);
+                                              NULL_ZERO);
 }
 
 /**
@@ -1413,7 +1413,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
 {
     return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE,
                                               Destination,
-                                              Source,
+                                              (UINT64)Source,
                                               SizeToWrite,
                                               NULL,
                                               TargetProcessId);
@@ -1442,7 +1442,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa,
                                               Source,
                                               SizeToWrite,
                                               NULL,
-                                              NULL);
+                                              NULL_ZERO);
 }
 
 /**
@@ -1463,7 +1463,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsGetCurrentProcessId() != ProcessId)
+    if (PsGetCurrentProcessId() != (HANDLE)ProcessId)
     {
         //
         // User needs another process memory
@@ -1486,7 +1486,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
             Status = ZwAllocateVirtualMemory(
                 NtCurrentProcess(),
                 &AllocPtr,
-                NULL,
+                (ULONG_PTR)NULL,
                 &AllocSize,
                 Allocate ? MEM_COMMIT : MEM_RESERVE,
                 PAGE_EXECUTE_READWRITE);
@@ -1511,7 +1511,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
         Status = ZwAllocateVirtualMemory(
             NtCurrentProcess(),
             &AllocPtr,
-            NULL,
+            (ULONG_PTR)NULL,
             &AllocSize,
             Allocate ? MEM_COMMIT : MEM_RESERVE,
             PAGE_EXECUTE_READWRITE);
@@ -1543,7 +1543,7 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsGetCurrentProcessId() != ProcessId)
+    if (PsGetCurrentProcessId() != (HANDLE)ProcessId)
     {
         //
         // User needs another process memory

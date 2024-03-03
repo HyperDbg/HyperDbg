@@ -162,7 +162,8 @@ CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     Log("\n");
-    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, CommonIsGuestOnUsermode32Bit());
+    DisassemblerShowOneInstructionInVmxRootMode((PVOID)VCpu->LastVmexitRip,
+                                                CommonIsGuestOnUsermode32Bit());
     Log("\n");
 
     Log(

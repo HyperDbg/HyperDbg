@@ -103,7 +103,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[0] = HYPERV_CPUID_INTERFACE;
             CpuInfo[1] = 'epyH'; // [HyperDbg]
             CpuInfo[2] = 'gbDr';
-            CpuInfo[3] = NULL;
+            CpuInfo[3] = 0;
         }
         else if (Regs->rax == HYPERV_CPUID_INTERFACE)
         {
@@ -751,12 +751,12 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs = VCpu->Regs;
+    UINT64 *                      GpRegs = (UINT64 *)VCpu->Regs;
 
     //
     // The implementation is derived from Hvpp
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
+    VmxVmread64P(VMCS_EXIT_QUALIFICATION, &ExitQualification.AsUInt);
 
     UINT64 GpRegister = GpRegs[ExitQualification.GeneralPurposeRegister];
 
@@ -806,7 +806,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read guest cr4
     //
-    __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
+    VmxVmread64P(VMCS_GUEST_CR4, &Cr4.AsUInt);
 
     if (ExitQualification.DebugRegister == 4 || ExitQualification.DebugRegister == 5)
     {
@@ -843,7 +843,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read the DR7
     //
-    __vmx_vmread(VMCS_GUEST_DR7, &Dr7);
+    VmxVmread64P(VMCS_GUEST_DR7, &Dr7.AsUInt);
 
     if (Dr7.GeneralDetect)
     {
@@ -1085,7 +1085,7 @@ HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
         {
             //
             // Enable Interrupt-window exiting.
@@ -1251,7 +1251,7 @@ HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check if there is at least an interrupt that needs to be delivered
     //
-    if (VCpu->PendingExternalInterrupts[0] != NULL)
+    if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
     {
         //
         // Enable Interrupt-window exiting.

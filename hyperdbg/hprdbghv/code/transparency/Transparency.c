@@ -234,7 +234,7 @@ TransparentRandn(int Average, int Sigma)
     int U1, r1, U2, r2, W, Mult;
     int X1, X2 = 0, XS1;
     int LogTemp = 0;
-    
+
     do
     {
         r1 = TransparentGetRand();
@@ -327,14 +327,14 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
         //
         // Move the process name string to the end of the buffer
         //
-        RtlCopyBytes((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS),
-                     (UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE),
+        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
                      Measurements->LengthOfProcessName);
 
         //
         // Set the process name location
         //
-        PidAndNameBuffer->ProcessName = (UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS);
+        PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
     }
 
     //
@@ -578,7 +578,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         // It's a new thread Id reset everything
         //
         VCpu->TransparencyState.ThreadId                        = CurrentThreadId;
-        VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc = NULL;
+        VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc = NULL64_ZERO;
         VCpu->TransparencyState.CpuidAfterRdtscDetected         = FALSE;
     }
 
@@ -588,7 +588,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 
     if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSC || ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
     {
-        if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc == NULL)
+        if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc == NULL64_ZERO)
         {
             //
             // It's a timing and the previous time for the thread is null
@@ -605,7 +605,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 
             // LogInfo("Possible RDTSC+CPUID+RDTSC");
         }
-        else if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL &&
+        else if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL64_ZERO &&
                  VCpu->TransparencyState.CpuidAfterRdtscDetected == FALSE)
         {
             //
@@ -639,7 +639,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         Result = FALSE;
     }
     else if (ExitReason == VMX_EXIT_REASON_EXECUTE_CPUID &&
-             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL)
+             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL64_ZERO)
     {
         //
         // The guy executed one or more CPUIDs after an rdtscp so we

@@ -53,7 +53,7 @@ GetGuestCs()
     __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.Base);
     VmxVmread32P(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
     VmxVmread32P(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
+    VmxVmread16P(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
 
     return Cs;
 }
@@ -98,7 +98,7 @@ GetGuestSs()
     __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.Base);
     VmxVmread32P(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
     VmxVmread32P(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
+    VmxVmread16P(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
 
     return Ss;
 }
@@ -143,7 +143,7 @@ GetGuestDs()
     __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.Base);
     VmxVmread32P(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
     VmxVmread32P(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
+    VmxVmread16P(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
 
     return Ds;
 }
@@ -188,7 +188,7 @@ GetGuestFs()
     __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.Base);
     VmxVmread32P(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
     VmxVmread32P(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
+    VmxVmread16P(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
 
     return Fs;
 }
@@ -232,8 +232,8 @@ GetGuestGs()
 
     __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.Base);
     VmxVmread32P(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
-    __vmx_vmread(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
+    VmxVmread32P(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.AsUInt);
+    VmxVmread16P(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
 
     return Gs;
 }
@@ -276,9 +276,9 @@ GetGuestEs()
     VMX_SEGMENT_SELECTOR Es;
 
     __vmx_vmread(VMCS_GUEST_ES_BASE, &Es.Base);
-    __vmx_vmread(VMCS_GUEST_ES_LIMIT, &Es.Limit);
-    __vmx_vmread(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.AsUInt);
-    __vmx_vmread(VMCS_GUEST_ES_SELECTOR, &Es.Selector);
+    VmxVmread32P(VMCS_GUEST_ES_LIMIT, &Es.Limit);
+    VmxVmread32P(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.AsUInt);
+    VmxVmread16P(VMCS_GUEST_ES_SELECTOR, &Es.Selector);
 
     return Es;
 }

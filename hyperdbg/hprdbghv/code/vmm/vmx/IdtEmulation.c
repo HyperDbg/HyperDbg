@@ -89,7 +89,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         {
             UINT64 GuestRip  = NULL64_ZERO;
-            BYTE   TargetMem = NULL;
+            BYTE   TargetMem = NULL_ZERO;
 
             __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
             MemoryMapperReadMemorySafe(GuestRip, &TargetMem, sizeof(BYTE));
@@ -203,7 +203,7 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STA
         //
         // Find an empty space
         //
-        if (VCpu->PendingExternalInterrupts[i] == NULL)
+        if (VCpu->PendingExternalInterrupts[i] == NULL_ZERO)
         {
             //
             // Save it for future re-injection (interrupt-window exiting)
@@ -267,7 +267,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
-        __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
+        VmxVmread64P(VMCS_GUEST_RFLAGS, (UINT64 *)&GuestRflags);
         __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
         //
@@ -351,7 +351,7 @@ IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(_Inout_ VIRTUAL_MACHINE_ST
                                 g_PageFaultInjectionAddressFrom,
                                 g_PageFaultInjectionErrorCode);
 
-    if (MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(g_PageFaultInjectionAddressFrom))
+    if (MemoryMapperCheckIfPdeIsLargePageOnTargetProcess((PVOID)g_PageFaultInjectionAddressFrom))
     {
         g_PageFaultInjectionAddressFrom = g_PageFaultInjectionAddressFrom + SIZE_2_MB;
     }
@@ -394,7 +394,7 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Find an empty space
             //
-            if (VCpu->PendingExternalInterrupts[i] != NULL)
+            if (VCpu->PendingExternalInterrupts[i] != NULL_ZERO)
             {
                 //
                 // Save it for re-injection (interrupt-window exiting)
@@ -404,7 +404,7 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // Free the entry
                 //
-                VCpu->PendingExternalInterrupts[i] = NULL;
+                VCpu->PendingExternalInterrupts[i] = NULL_ZERO;
                 break;
             }
         }

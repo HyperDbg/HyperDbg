@@ -232,7 +232,7 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE * VCpu)
     BOOLEAN  IsLargePage;
     PVOID    PmlEntry;
 
-    __vmx_vmread(VMCS_GUEST_PML_INDEX, &PmlIdx);
+    VmxVmread16P(VMCS_GUEST_PML_INDEX, &PmlIdx);
 
     //
     // Do nothing if PML buffer is empty

@@ -432,7 +432,7 @@ DispatchEventIO(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read Guest's RFLAGS
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Flags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, (UINT64 *)&Flags);
 
     //
     // As the context to event trigger, port address
