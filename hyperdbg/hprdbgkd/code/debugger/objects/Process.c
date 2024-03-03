@@ -269,7 +269,7 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
     //
     // Dirty validation of parameters
     //
-    if (ActiveProcessHead == NULL_ZERO ||
+    if (ActiveProcessHead == NULL64_ZERO ||
         ActiveProcessLinksOffset == NULL_ZERO)
     {
         return FALSE;
@@ -386,10 +386,10 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
     //
     // Dirty validation of parameters
     //
-    if (ActiveProcessHead == (UINT64)NULL_ZERO ||
-        ImageFileNameOffset == (ULONG)NULL_ZERO ||
-        UniquePidOffset == (ULONG)NULL_ZERO ||
-        ActiveProcessLinksOffset == (ULONG)NULL_ZERO)
+    if (ActiveProcessHead == NULL64_ZERO ||
+        ImageFileNameOffset == NULL_ZERO ||
+        UniquePidOffset == NULL_ZERO ||
+        ActiveProcessLinksOffset == NULL_ZERO)
     {
         return FALSE;
     }

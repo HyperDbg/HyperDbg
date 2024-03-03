@@ -582,7 +582,7 @@ VmxTerminate()
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
     //
-    Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL_ZERO, NULL_ZERO, NULL_ZERO);
+    Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
 
     if (Status == STATUS_SUCCESS)
     {

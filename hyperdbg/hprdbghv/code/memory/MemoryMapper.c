@@ -1252,7 +1252,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
         break;
 
     default:
-        return NULL;
+        return NULL64_ZERO;
 
         break;
     }
@@ -1474,7 +1474,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
             //
             // if the process not found
             //
-            return NULL_ZERO;
+            return NULL64_ZERO;
         }
         __try
         {
@@ -1500,7 +1500,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
             KeUnstackDetachProcess(&State);
 
             ObDereferenceObject(SourceProcess);
-            return NULL;
+            return NULL64_ZERO;
         }
     }
     else
@@ -1519,7 +1519,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
 
     if (!NT_SUCCESS(Status))
     {
-        return NULL;
+        return NULL64_ZERO;
     }
 
     return AllocPtr;

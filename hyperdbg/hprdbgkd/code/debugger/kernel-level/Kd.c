@@ -1140,7 +1140,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         // Only 16 bit is needed howerver, vmwrite might write on other bits
         // and corrupt other variables, that's why we get 64bit
         //
-        UINT64                           CsSel         = NULL_ZERO;
+        UINT64                           CsSel         = NULL64_ZERO;
         DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
         UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
 

@@ -115,7 +115,7 @@ TracingPerformRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     UNREFERENCED_PARAMETER(DbgState);
 
     UINT64 Interruptibility;
-    UINT64 InterruptibilityOld = NULL_ZERO;
+    UINT64 InterruptibilityOld = NULL64_ZERO;
 
     //
     // Adjust RFLAG's trap-flag

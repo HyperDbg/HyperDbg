@@ -60,7 +60,7 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = NULL_ZERO;
+    QWORD Result = NULL64_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -68,7 +68,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return NULL_ZERO;
+        return NULL64_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -94,7 +94,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = NULL_ZERO;
+    QWORD Result = NULL64_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
@@ -102,7 +102,7 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
     {
         *HasError = TRUE;
 
-        return NULL_ZERO;
+        return NULL64_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE

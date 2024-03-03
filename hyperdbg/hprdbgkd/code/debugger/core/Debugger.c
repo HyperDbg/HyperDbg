@@ -959,7 +959,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Check the buffers of run script
         //
-        if (InTheCaseOfRunScript->ScriptBuffer == NULL_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO)
+        if (InTheCaseOfRunScript->ScriptBuffer == NULL64_ZERO || InTheCaseOfRunScript->ScriptLength == NULL_ZERO)
         {
             //
             // There was an error
