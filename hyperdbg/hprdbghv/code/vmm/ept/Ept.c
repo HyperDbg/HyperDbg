@@ -616,14 +616,16 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     if (EptIsValidForLargePage(PageFrameNumber))
     {
         NewEntry->MemoryType = EptGetMemoryType(PageFrameNumber, TRUE);
+
         return TRUE;
     }
     else
     {
-        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)CrsAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
+
         if (!TargetBuffer)
         {
-            VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+            LogError("Err, cannot allocate page for spliting edge large pages");
             return FALSE;
         }
 
