@@ -629,7 +629,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
             return FALSE;
         }
 
-        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * PAGE_SIZE);
+        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * SIZE_2_MB);
     }
 }
 
