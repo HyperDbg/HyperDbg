@@ -7,6 +7,10 @@
 // other module remains loaded in the memory.
 //
 
+__declspec(dllexport) NTSTATUS
+    DllInitialize(
+        _In_ PUNICODE_STRING RegistryPath);
+
 NTSTATUS
 DllInitialize(
     _In_ PUNICODE_STRING RegistryPath)
