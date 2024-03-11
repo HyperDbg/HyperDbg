@@ -68,9 +68,10 @@
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol />
       <NoEntryPoint>true</NoEntryPoint>
+      <ModuleDefinitionFile>hyperlog.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -82,9 +83,10 @@
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol />
       <NoEntryPoint>true</NoEntryPoint>
+      <ModuleDefinitionFile>hyperlog.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

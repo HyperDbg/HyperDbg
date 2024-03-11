@@ -73,7 +73,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -91,7 +91,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
