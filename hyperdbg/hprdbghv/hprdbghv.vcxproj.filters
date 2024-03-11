@@ -583,7 +583,4 @@
       <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
 </Project>

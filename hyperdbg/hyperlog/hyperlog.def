@@ -1,0 +1,6 @@
+LIBRARY hyperlog
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE

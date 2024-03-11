@@ -1,0 +1,6 @@
+LIBRARY hprdbghv
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE
