@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- Add user-defined functions and variable types in script engine thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/342))
+- Add user-defined functions and variable types in script engine thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/constants-and-functions))([link](https://github.com/HyperDbg/HyperDbg/pull/342))
 
 ### Changed
 - Fix debuggee crash after running the '.debug close' command on the debugger  
