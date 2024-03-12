@@ -42,8 +42,6 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     BOOL                 Status;
     ULONG                ReturnedLength;
     DEBUGGER_READ_MEMORY ReadMem = {0};
-    UINT32               OperationCode;
-    CHAR                 Character;
     UINT32               SizeOfTargetBuffer;
 
     ReadMem.Address     = Address;
@@ -407,7 +405,6 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
 void
 ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    CHAR Character;
     for (int i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)

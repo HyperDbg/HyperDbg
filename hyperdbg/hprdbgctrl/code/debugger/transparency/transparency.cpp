@@ -22,7 +22,6 @@ unsigned long long
 TransparentModeRdtscDiffVmexit()
 {
     unsigned long long ret, ret2;
-    unsigned           eax, edx;
     int                cpuid_result[4] = {0};
 
     //

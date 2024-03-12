@@ -419,7 +419,6 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -856,7 +855,6 @@ HyperDbgLengthDisassemblerEngine(
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)

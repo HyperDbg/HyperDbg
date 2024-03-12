@@ -38,8 +38,6 @@ CommandDetachHelp()
 VOID
 DetachFromProcess()
 {
-    BOOLEAN                                  Status;
-    ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //

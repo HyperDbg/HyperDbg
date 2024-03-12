@@ -60,7 +60,7 @@ main(int argc, char * argv[])
         }
 
         SentMessageResult =
-            NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
+            NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
 
         if (!SentMessageResult)
         {
@@ -101,7 +101,7 @@ main(int argc, char * argv[])
                 "Wow! I miss you... Would you plz send me the kernel information?");
 
             SentMessageResult =
-                NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
+                NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
 
             if (!SentMessageResult)
             {

@@ -285,7 +285,6 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
     SC_HANDLE      SchService;
     DWORD          LastError;
-    SERVICE_STATUS serviceStatus;
     UINT64         Status = TRUE;
 
     //

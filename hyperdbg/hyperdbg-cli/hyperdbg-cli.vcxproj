@@ -76,6 +76,7 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
@@ -122,6 +123,7 @@ copy "$(OutDir)hprdbghv.dll" "$(OutDir)SDK\Libraries\hprdbghv.dll"</Command>
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"

@@ -720,7 +720,6 @@ InterpretScript(vector<string> * SplittedCommand,
     string         AppendedFinalBuffer;
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
     int            Index            = 0;
     int            NewIndexToRemove = 0;
     int            OpenBracket      = 0;
