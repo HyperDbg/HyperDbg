@@ -15,7 +15,7 @@ New release of the HyperDbg Debugger.
 - After downloading new symbols it is automatically loaded
 - The problem with adding edge MTRR pages is fixed thanks to [@Maladiy](https://github.com/Maladiy) ([link](https://github.com/HyperDbg/HyperDbg/pull/347)) 
 - All compiler/linker warnings of kernel-mode modules are fixed  
-- Kernel modules of HyperDbg now compile with "treat warning as error"  
+- User/Kernel modules of HyperDbg now compile with "treat warning as error"  
 
 ## [0.8.1.0] - 2024-02-01
 New release of the HyperDbg Debugger.

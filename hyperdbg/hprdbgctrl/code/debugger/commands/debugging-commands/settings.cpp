@@ -567,7 +567,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
         //
         if (g_IsConnectedToRemoteDebuggee)
         {
-            RemoteConnectionSendCommand(Command.c_str(), Command.length() + 1);
+            RemoteConnectionSendCommand(Command.c_str(), (UINT32)Command.length() + 1);
         }
         else
         {
@@ -585,7 +585,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
         //
         if (g_IsConnectedToRemoteDebuggee)
         {
-            RemoteConnectionSendCommand(Command.c_str(), Command.length() + 1);
+            RemoteConnectionSendCommand(Command.c_str(), (UINT32)Command.length() + 1);
         }
         else
         {
@@ -603,7 +603,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
         //
         if (g_IsConnectedToRemoteDebuggee)
         {
-            RemoteConnectionSendCommand(Command.c_str(), Command.length() + 1);
+            RemoteConnectionSendCommand(Command.c_str(), (UINT32)Command.length() + 1);
         }
         else
         {

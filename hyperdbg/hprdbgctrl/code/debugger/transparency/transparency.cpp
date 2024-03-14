@@ -70,7 +70,6 @@ unsigned long long
 TransparentModeRdtscVmexitTracing()
 {
     unsigned long long ret, ret2;
-    unsigned           eax, edx;
 
     //
     // GCC

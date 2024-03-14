@@ -74,7 +74,6 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 BOOLEAN
 PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
-    int                     i      = 0;
     BOOLEAN                 Result = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
@@ -377,7 +376,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         NumberOfSections = NtHeader64->FileHeader.NumberOfSections;
     }
 
-    for (i = 0; i < NumberOfSections; i++, SecHeader++)
+    for (UINT32 i = 0; i < NumberOfSections; i++, SecHeader++)
     {
         if (Is32Bit)
         {

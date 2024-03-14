@@ -113,7 +113,7 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 VOID
-PrintBits(size_t const size, void const * const ptr);
+PrintBits(const UINT32 size, const void * ptr);
 
 BOOL
 Replace(std::string & str, const std::string & from, const std::string & to);

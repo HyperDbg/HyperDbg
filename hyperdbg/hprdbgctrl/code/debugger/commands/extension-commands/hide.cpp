@@ -203,7 +203,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // It's a process name
         //
-        HideRequest.LengthOfProcessName = Command.size() + 1;
+        HideRequest.LengthOfProcessName = (UINT32)Command.size() + 1;
         RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) +
                             Command.size() + 1;
     }

@@ -734,7 +734,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 
     if (ModulesCount != 0)
     {
-        for (int i = 0; i < ModulesCount; i++)
+        for (UINT32 i = 0; i < ModulesCount; i++)
         {
             //
             // For logging purpose
@@ -823,7 +823,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     // ----------------------------------------------------------------------------------
     //
 
-    for (int i = 0; i < ModuleInfo->NumberOfModules; i++)
+    for (UINT32 i = 0; i < ModuleInfo->NumberOfModules; i++)
     {
         UINT32 IndexInSymbolBuffer = ModulesCount + i;
 

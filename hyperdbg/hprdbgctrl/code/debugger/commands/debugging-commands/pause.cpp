@@ -50,7 +50,7 @@ CommandPauseRequest()
     //
     if (g_IsConnectedToRemoteDebuggee)
     {
-        RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+        RemoteConnectionSendCommand("pause", (UINT32)strlen("pause") + 1);
     }
     else if (g_ActiveProcessDebuggingState.IsActive && UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken))
     {

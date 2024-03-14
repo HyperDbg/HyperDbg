@@ -28,7 +28,7 @@ CommandScriptHelp()
 {
     ShowMessages(".script : runs a HyperDbg script.\n\n");
 
-    ShowMessages("syntax : \.script [FilePath (string)] [Args (string)]\n");
+    ShowMessages("syntax : .script [FilePath (string)] [Args (string)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.ds\n");

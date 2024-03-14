@@ -43,7 +43,6 @@ CommandPreactivate(vector<string> SplittedCommand, string Command)
 {
     BOOL                         Status;
     ULONG                        ReturnedLength;
-    UINT64                       Count;
     DEBUGGER_PREACTIVATE_COMMAND PreactivateRequest = {0};
 
     if (SplittedCommand.size() != 2)

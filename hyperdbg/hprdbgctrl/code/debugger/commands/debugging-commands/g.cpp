@@ -61,7 +61,7 @@ CommandGRequest()
         //
         if (g_IsConnectedToRemoteDebuggee)
         {
-            RemoteConnectionSendCommand("g", strlen("g") + 1);
+            RemoteConnectionSendCommand("g", (UINT32)strlen("g") + 1);
         }
         else if (g_ActiveProcessDebuggingState.IsActive)
         {

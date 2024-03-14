@@ -2803,7 +2803,7 @@ KdCloseConnection()
             //
             // Send another packet so the user-mode is not waiting for new packet
             //
-            !KdCommandPacketToDebuggee(
+            KdCommandPacketToDebuggee(
                 DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
                 DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET);
         }

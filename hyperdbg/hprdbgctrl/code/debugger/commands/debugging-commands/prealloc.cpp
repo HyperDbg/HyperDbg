@@ -126,7 +126,7 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
     //
     // Set the counter
     //
-    PreallocRequest.Count = Count;
+    PreallocRequest.Count = (UINT32)Count;
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 

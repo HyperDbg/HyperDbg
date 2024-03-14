@@ -242,7 +242,7 @@ CommandDump(vector<string> SplittedCommand, string Command)
     //
     // Compute the length
     //
-    Length = EndAddress - StartAddress;
+    Length = (UINT32)(EndAddress - StartAddress);
 
     ActualLength = NULL;
     Iterator     = Length / PAGE_SIZE;

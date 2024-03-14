@@ -266,11 +266,11 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     unsigned int Character;
 
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -334,10 +334,10 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     unsigned int Character;
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -403,9 +403,9 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -452,9 +452,9 @@ ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {

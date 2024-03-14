@@ -39,25 +39,25 @@ SeparateTo64BitValue(UINT64 Value)
 /**
  * @brief print bits and bytes for d* commands
  *
- * @param size
- * @param ptr
+ * @param Size
+ * @param Ptr
  * @return VOID
  */
 VOID
-PrintBits(size_t const size, void const * const ptr)
+PrintBits(const UINT32 Size, const void * Ptr)
 {
-    unsigned char * b = (unsigned char *)ptr;
-    unsigned char   byte;
+    unsigned char * Buf = (unsigned char *)Ptr;
+    unsigned char   Byte;
     int             i, j;
 
-    for (i = size - 1; i >= 0; i--)
+    for (i = Size - 1; i >= 0; i--)
     {
         for (j = 7; j >= 0; j--)
         {
-            byte = (b[i] >> j) & 1;
-            ShowMessages("%u", byte);
+            Byte = (Buf[i] >> j) & 1;
+            ShowMessages("%u", Byte);
         }
-        ShowMessages(" ", byte);
+        ShowMessages(" ", Byte);
     }
 }
 

@@ -103,7 +103,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
-      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,7 +113,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>
