@@ -81,6 +81,21 @@
 #define CPUID_ADDR_WIDTH 0x80000008
 
 //////////////////////////////////////////////////
+//			  Assembly Functions                //
+//////////////////////////////////////////////////
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern bool
+AsmVmxSupportDetection();
+
+#ifdef __cplusplus
+}
+#endif
+
+//////////////////////////////////////////////////
 //			    	 Spinlocks                  //
 //////////////////////////////////////////////////
 
@@ -133,13 +148,10 @@ HasEnding(string const & fullString, string const & ending);
 BOOLEAN
 ValidateIP(const string & ip);
 
-BOOLEAN
-VmxSupportDetection();
-
 BOOL
-SetPrivilege(HANDLE  hToken,          // access token handle
-             LPCTSTR lpszPrivilege,   // name of privilege to enable/disable
-             BOOL    bEnablePrivilege // to enable or disable privilege
+SetPrivilege(HANDLE  Token,          // access token handle
+             LPCTSTR Privilege,      // name of privilege to enable/disable
+             BOOL    EnablePrivilege // to enable or disable privilege
 );
 
 void

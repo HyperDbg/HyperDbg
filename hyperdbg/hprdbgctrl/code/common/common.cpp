@@ -505,7 +505,7 @@ HPRDBGCTRL_API bool
 HyperDbgVmxSupportDetection()
 {
     //
-    // Call asm function
+    // Call assembly function
     //
     return AsmVmxSupportDetection();
 }
@@ -513,39 +513,39 @@ HyperDbgVmxSupportDetection()
 /**
  * @brief SetPrivilege enables/disables process token privilege
  *
- * @param hToken
- * @param lpszPrivilege
- * @param bEnablePrivilege
+ * @param Token
+ * @param Privilege
+ * @param EnablePrivilege
  * @return BOOL
  */
 BOOL
-SetPrivilege(HANDLE  hToken,          // access token handle
-             LPCTSTR lpszPrivilege,   // name of privilege to enable/disable
-             BOOL    bEnablePrivilege // to enable or disable privilege
+SetPrivilege(HANDLE  Token,          // access token handle
+             LPCTSTR Privilege,      // name of privilege to enable/disable
+             BOOL    EnablePrivilege // to enable or disable privilege
 )
 {
-    TOKEN_PRIVILEGES tp;
-    LUID             luid;
+    TOKEN_PRIVILEGES Tp;
+    LUID             Luid;
 
-    if (!LookupPrivilegeValue(NULL,          // lookup privilege on local system
-                              lpszPrivilege, // privilege to lookup
-                              &luid))        // receives LUID of privilege
+    if (!LookupPrivilegeValue(NULL,      // lookup privilege on local system
+                              Privilege, // privilege to lookup
+                              &Luid))    // receives LUID of privilege
     {
         ShowMessages("err, in LookupPrivilegeValue (%x)\n", GetLastError());
         return FALSE;
     }
 
-    tp.PrivilegeCount     = 1;
-    tp.Privileges[0].Luid = luid;
-    if (bEnablePrivilege)
-        tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    Tp.PrivilegeCount     = 1;
+    Tp.Privileges[0].Luid = Luid;
+    if (EnablePrivilege)
+        Tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
     else
-        tp.Privileges[0].Attributes = 0;
+        Tp.Privileges[0].Attributes = 0;
 
     //
     // Enable the privilege or disable all privileges.
     //
-    if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
+    if (!AdjustTokenPrivileges(Token, FALSE, &Tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
     {
         ShowMessages("err, in AdjustTokenPrivileges (%x)\n", GetLastError());
         return FALSE;

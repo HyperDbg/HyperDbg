@@ -27,26 +27,8 @@
 #    define HPRDBGCTRL_API __declspec(dllimport)
 #endif
 
-//
-// This class is exported from the dll
-//
-class HPRDBGCTRL_API Chprdbgctrl
-{
-public:
-    Chprdbgctrl(void);
-    //
-    // TODO: add your methods here.
-    //
-};
-
-extern HPRDBGCTRL_API int nhprdbgctrl;
-
-HPRDBGCTRL_API int
-fnhprdbgctrl(void);
-
 //////////////////////////////////////////////////
-//					Installer
-////
+//					Installer                   //
 //////////////////////////////////////////////////
 
 #define DRIVER_FUNC_INSTALL 0x01

@@ -46,94 +46,58 @@ typedef RFLAGS * PRFLAGS;
 //
 typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
-#    define PHNT_MODE    PHNT_MODE_USER
-#    define PHNT_VERSION PHNT_WIN11 // Windows 7
-
+#    define PHNT_MODE               PHNT_MODE_USER
+#    define PHNT_VERSION            PHNT_WIN11 // Windows 7
 #    define PHNT_PATCH_FOR_HYPERDBG TRUE
 
 #    include <phnt/phnt_windows.h>
-
 #    include <phnt/phnt.h>
 
 #elif defined(USE_NATIVE_SDK_HEADERS)
 
 #    include <winternl.h>
-
 #    include <Windows.h>
-
 #    include <winioctl.h>
 
 #endif
 
 #include <winsock2.h>
-
 #include <ws2tcpip.h>
-
 #include <strsafe.h>
-
 #include <shlobj.h>
-
 #include <tchar.h>
-
 #include <tlhelp32.h>
-
 #include <shlwapi.h>
-
 #include <VersionHelpers.h>
-
 #include <tchar.h>
-
 #include <psapi.h>
-
 #include <time.h>
-
 #include <conio.h>
-
 #include <intrin.h>
-
 #include <inttypes.h>
-
 #include <stdio.h>
-
 #include <stdlib.h>
 
 //
 // STL headers
 //
 #include <algorithm>
-
 #include <string>
-
 #include <vector>
-
 #include <array>
-
 #include <bitset>
-
 #include <iomanip>
-
 #include <iostream>
-
 #include <iterator>
-
 #include <sstream>
-
 #include <fstream>
-
 #include <map>
-
 #include <numeric>
-
 #include <list>
-
 #include <locale>
-
 #include <memory>
-
 #include <cctype>
-
 #include <cstring>
-
 #include <unordered_set>
 
 //
@@ -141,73 +105,54 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 #define SCRIPT_ENGINE_USER_MODE
 #define HYPERDBG_USER_MODE
+#define HYPERDBG_HPRDBGCTRL
 
 //
 // HyperDbg defined headers
 //
 #include "Configuration.h"
-
 #include "Definition.h"
-
 #include "SDK/HyperDbgSdk.h"
-
 #include "SDK/Imports/HyperDbgCtrlImports.h"
 
 //
 // Script-engine
 //
 #include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
-
 #include "..\script-eval\header\ScriptEngineHeader.h"
 
 //
 // Imports/Exports
 //
 #include "SDK/Imports/HyperDbgScriptImports.h"
-#include "header/exports.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"
 
 //
 // General
 //
 #include "header/inipp.h"
-
 #include "header/commands.h"
-
 #include "header/common.h"
-
 #include "header/symbol.h"
-
 #include "header/debugger.h"
-
 #include "header/script-engine.h"
-
-#include "header/exports.h"
-
 #include "header/help.h"
-
 #include "header/install.h"
-
 #include "header/list.h"
-
 #include "header/tests.h"
-
 #include "header/transparency.h"
-
 #include "header/communication.h"
-
 #include "header/namedpipe.h"
-
 #include "header/forwarding.h"
-
 #include "header/kd.h"
-
 #include "header/pe-parser.h"
-
 #include "header/ud.h"
-
 #include "header/objects.h"
-
 #include "header/rev-ctrl.h"
+
+//
+// Libraries
+//
 
 #pragma comment(lib, "ntdll.lib")
 
