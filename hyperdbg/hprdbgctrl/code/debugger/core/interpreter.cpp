@@ -276,7 +276,7 @@ InterpreterRemoveComments(char * CommandText)
 {
     BOOLEAN IsComment       = FALSE;
     BOOLEAN IsOnString      = FALSE;
-    UINT32  LengthOfCommand = strlen(CommandText);
+    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {

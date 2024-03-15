@@ -401,7 +401,7 @@ CommandDtShowDataBasedOnSymbolTypes(
                                          IsPhysicalAddress ? DEBUGGER_READ_PHYSICAL_ADDRESS : DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          TargetPid,
-                                         StructureSize,
+                                         (UINT32)StructureSize,
                                          &DtOptions);
     }
     else

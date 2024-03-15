@@ -346,7 +346,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
         ShowMessages("%x\t", CurrentModule->ImageSize);
 
         auto   PathName    = CurrentModule->FullPathName + CurrentModule->OffsetToFileName;
-        UINT32 PathNameLen = strlen((const char *)PathName);
+        UINT32 PathNameLen = (UINT32)strlen((const char *)PathName);
 
         ShowMessages("%s\t", PathName);
 

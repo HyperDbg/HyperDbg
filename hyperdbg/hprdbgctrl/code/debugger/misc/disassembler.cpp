@@ -26,7 +26,10 @@ all
  * @brief   Demonstrates basic hooking functionality of the `ZydisFormatter`
  * class by implementing a custom symbol-resolver.
  */
-#define NDEBUG
+
+#ifndef NDEBUG
+#    define NDEBUG
+#endif // !NDEBUG
 
 #include "pch.h"
 

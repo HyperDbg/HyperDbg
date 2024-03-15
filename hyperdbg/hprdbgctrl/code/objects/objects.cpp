@@ -338,7 +338,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
     }
     else
     {
-        ShowErrorMessage(QueryCountOfActiveThreadsOrProcessesRequest.Result);
+        ShowErrorMessage((UINT32)QueryCountOfActiveThreadsOrProcessesRequest.Result);
         return FALSE;
     }
 

@@ -390,14 +390,14 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
                 *Result = i;
                 return TRUE;
             }
-            catch (std::invalid_argument const & e)
+            catch (std::invalid_argument const &)
             {
                 //
                 // Bad input: std::invalid_argument thrown
                 //
                 return FALSE;
             }
-            catch (std::out_of_range const & e)
+            catch (std::out_of_range const &)
             {
                 //
                 // Integer overflow: std::out_of_range thrown

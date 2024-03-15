@@ -242,7 +242,6 @@ ScriptEnginePseudoRegGetPeb()
 
     struct PROCESS_BASIC_INFORMATION BasicInfo;
     struct PEB *                     PebPtr;
-    struct LDR_MODULE *              modPtr;
 
     /* retrieve pseudo-handle */
     ThisProcess = GetCurrentProcess();

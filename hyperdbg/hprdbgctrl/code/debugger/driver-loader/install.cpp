@@ -283,9 +283,9 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 BOOLEAN
 StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
-    SC_HANDLE      SchService;
-    DWORD          LastError;
-    UINT64         Status = TRUE;
+    SC_HANDLE SchService;
+    DWORD     LastError;
+    BOOLEAN   Status = TRUE;
 
     //
     // Open the handle to the existing service

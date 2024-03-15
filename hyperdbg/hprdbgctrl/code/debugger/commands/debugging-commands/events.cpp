@@ -621,7 +621,7 @@ CommandEventsHandleModifiedEvent(
         //
         // Interpret error
         //
-        ShowErrorMessage(ModifyEventRequest->KernelStatus);
+        ShowErrorMessage((UINT32)ModifyEventRequest->KernelStatus);
         return;
     }
 }
