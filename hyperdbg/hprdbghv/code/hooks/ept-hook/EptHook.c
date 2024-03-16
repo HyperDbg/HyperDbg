@@ -1165,7 +1165,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
 
         //
         // Make sure if handler function is valid or if it's default
-        // then we set it to the default hanlder
+        // then we set it to the default handler
         //
         if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->HookFunction == NULL)
         {

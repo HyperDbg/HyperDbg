@@ -151,7 +151,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
             if (!ConvertStringToUInt32(Section, &ProcId))
             {
-                ShowMessages("please specify a correct hex prcoess id\n\n");
+                ShowMessages("please specify a correct hex process id\n\n");
                 CommandEditMemoryHelp();
                 return;
             }

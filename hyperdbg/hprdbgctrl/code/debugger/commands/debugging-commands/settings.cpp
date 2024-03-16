@@ -29,7 +29,7 @@ VOID
 CommandSettingsHelp()
 {
     ShowMessages(
-        "settings : queries, sets, or changes a value for a sepcial settings option.\n\n");
+        "settings : queries, sets, or changes a value for a special settings option.\n\n");
 
     ShowMessages("syntax : \tsettings [OptionName (string)]\n");
     ShowMessages("syntax : \tsettings [OptionName (string)] [Value (hex)]\n");

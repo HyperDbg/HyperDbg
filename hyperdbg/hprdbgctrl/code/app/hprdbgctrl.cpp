@@ -164,7 +164,7 @@ ReadIrpBasedBuffer()
     }
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
 
@@ -196,7 +196,7 @@ ReadIrpBasedBuffer()
                 if (!Status)
                 {
                     //
-                    // Error occured for second time, and we show the error message
+                    // Error occurred for second time, and we show the error message
                     //
                     // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
@@ -401,7 +401,7 @@ ReadIrpBasedBuffer()
     }
     catch (const std::exception &)
     {
-        ShowMessages("err, exception occured in creating handle or parsing buffer\n");
+        ShowMessages("err, exception occurred in creating handle or parsing buffer\n");
     }
 
     free(OutputBuffer);
@@ -570,7 +570,7 @@ HyperDbgLoadVmm()
     else
     {
         ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environemnt !\n");
+                     "environment !\n");
         return 1;
     }
 

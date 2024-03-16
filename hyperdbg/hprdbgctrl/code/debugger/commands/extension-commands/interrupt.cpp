@@ -143,7 +143,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
     {
         //
         // The user didn't set the target interrupt, even though it's possible to
-        // get all interrupts but it makes the system not resposive so it's wrong
+        // get all interrupts but it makes the system not responsive so it's wrong
         // to trigger event on all interrupts and we're not going to support it
         //
         ShowMessages("please specify an interrupt index to monitor, HyperDbg "

@@ -110,7 +110,7 @@ KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 }
 
 /**
- * @brief calculate the checksum of recived buffer from debugger
+ * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
  * @param LengthReceived
@@ -779,7 +779,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForProcessList != NULL)
     {
@@ -832,7 +832,7 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForThreadList != NULL)
     {
@@ -1251,7 +1251,7 @@ KdSendPausePacketToDebuggee()
 }
 
 /**
- * @brief Get Windows name, version and build to send to debuggger
+ * @brief Get Windows name, version and build to send to debugger
  *
  * @param BufferToSave
  *
@@ -3028,7 +3028,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
         //
         // By the way, we don't need to send an input buffer
         // to the kernel, but let's keep it like this, if we
-        // want to pass some other aguments to the kernel in
+        // want to pass some other arguments to the kernel in
         // the future
         //
         Status = DeviceIoControl(

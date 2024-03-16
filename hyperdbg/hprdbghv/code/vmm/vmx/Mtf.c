@@ -83,7 +83,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         IsMtfHandled = TRUE;
 
         //
-        // Change the MTF registeration state (might be changed in the caller)
+        // Change the MTF registration state (might be changed in the caller)
         //
         VCpu->RegisterBreakOnMtf = FALSE;
 

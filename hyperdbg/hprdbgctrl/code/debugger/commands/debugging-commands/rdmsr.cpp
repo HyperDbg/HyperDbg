@@ -120,7 +120,7 @@ CommandRdmsr(vector<string> SplittedCommand, string Command)
     NumCPU = SysInfo.dwNumberOfProcessors;
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     UINT64 * OutputBuffer = (UINT64 *)malloc(sizeof(UINT64) * NumCPU);
 

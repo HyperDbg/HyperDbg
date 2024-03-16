@@ -124,7 +124,7 @@ CommandTrace(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Couldn't resolve or unkonwn parameter
+            // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
                          Section.c_str());

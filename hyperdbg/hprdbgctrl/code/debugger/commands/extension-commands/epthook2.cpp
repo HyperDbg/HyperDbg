@@ -119,7 +119,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
                     &OptionalParam1))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());

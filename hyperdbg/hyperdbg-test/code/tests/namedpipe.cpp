@@ -49,7 +49,7 @@ NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 Input
 }
 
 /**
- * @brief wait for client conncetion
+ * @brief wait for client connection
  *
  * @param PipeHandle
  * @return BOOLEAN

@@ -27,7 +27,7 @@ volatile LONG OneCoreLock;
  *              SpinlockUnlock(&OneCoreLock);
  *
  * @param CoreNumber core number that the target function should run on it
- * @param Routine the target function that should be runned
+ * @param Routine the target function that should be ran
  * @param DeferredContext an optional parameter to Routine
  * @return NTSTATUS
  */

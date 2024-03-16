@@ -1242,7 +1242,7 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
     if (InputFromVmxRoot)
     {
         //
-        // The event registeration is coming from VMX root-mode, we
+        // The event registration is coming from VMX root-mode, we
         // cannot initialize this event in VMX-root mode, so we need
         // to check whether it's already activated (using the 'preactivate' command)
         // or not and if it's activated then we can just add the current process
@@ -1278,7 +1278,7 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
     else
     {
         //
-        // The event registeration is coming from VMX non-root mode so we
+        // The event registration is coming from VMX non-root mode so we
         // can initialize this mechanism if it's not already initialized
         //
 

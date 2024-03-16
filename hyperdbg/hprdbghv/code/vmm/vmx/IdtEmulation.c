@@ -253,7 +253,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // During developing HyperDbg, we realized that if we just ignore the interrupts completely
         // while we are waiting on 'i' instrumentation step-in command, then the serial device becomes
-        // unresposive, to solve this issue we hold the details of interrupts so we can re-inject
+        // unresponsive, to solve this issue we hold the details of interrupts so we can re-inject
         // and process them when we decide to continue the debuggee (guest interrupt windows is open)
         // this way, the serial device works normally and won't become unresponsive
         //

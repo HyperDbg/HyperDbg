@@ -80,7 +80,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     SizeOfTargetBuffer           = (Size * sizeof(CHAR)) + sizeof(DEBUGGER_READ_MEMORY);
     unsigned char * OutputBuffer = (unsigned char *)malloc(SizeOfTargetBuffer);
@@ -200,7 +200,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
         //
-        // Check if assembly mismatch occured with the target address
+        // Check if assembly mismatch occurred with the target address
         //
         if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == TRUE &&
             MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
@@ -225,7 +225,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
 
         //
-        // Check if assembly mismatch occured with the target address
+        // Check if assembly mismatch occurred with the target address
         //
         if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == FALSE &&
             MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)

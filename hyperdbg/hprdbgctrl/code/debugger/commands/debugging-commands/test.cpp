@@ -58,7 +58,7 @@ CommandTestPerformKernelTestsIoctl()
     //
     // By the way, we don't need to send an input buffer
     // to the kernel, but let's keep it like this, if we
-    // want to pass some other aguments to the kernel in
+    // want to pass some other arguments to the kernel in
     // the future
     //
     Status = DeviceIoControl(

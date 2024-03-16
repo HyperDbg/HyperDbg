@@ -206,7 +206,7 @@
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x814, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, collects a buffer from kernel-side testing informations
+ * @brief ioctl, collects a buffer from kernel-side testing information
  *
  */
 #define IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION \

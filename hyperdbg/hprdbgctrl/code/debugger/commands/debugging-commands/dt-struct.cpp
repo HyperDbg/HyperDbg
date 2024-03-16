@@ -281,7 +281,7 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<string> ExtraArgs,
     }
 
     //
-    // Check if user enetered yes/no or string when expected or not
+    // Check if user entered yes/no or string when expected or not
     //
     if (NextItemIsYesNo || NextItemIsString || NextItemIsInline || NextItemIsFileName || NextItemIsProcessId)
     {

@@ -503,7 +503,7 @@ CommandEventsHandleModifiedEvent(
     if (ModifyEventRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
-        // Successfull, nothing to show but we should also
+        // Successful, nothing to show but we should also
         // do the same (change) the user-mode structures
         // that hold the event data
         //

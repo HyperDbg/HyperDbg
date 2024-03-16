@@ -190,7 +190,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                         &OptionalParam1))
                 {
                     //
-                    // couldn't resolve or unkonwn parameter
+                    // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
                                  SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
@@ -208,7 +208,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                         &OptionalParam2))
                 {
                     //
-                    // Couldn't resolve or unkonwn parameter
+                    // Couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
                                  SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());

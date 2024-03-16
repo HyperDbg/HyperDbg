@@ -29,7 +29,7 @@ CommandBpHelp()
     ShowMessages(
         "Note : 'bp' is not an event, if you want to use an event version "
         "of breakpoints use !epthook or !epthook2 instead. See "
-        "documentation for more inforamtion.\n\n");
+        "documentation for more information.\n\n");
 
     ShowMessages("syntax : \tbp [Address (hex)] [pid ProcessId (hex)] [tid ThreadId (hex)] [core CoreId (hex)]\n");
 
@@ -148,7 +148,7 @@ CommandBp(vector<string> SplittedCommand, string Command)
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());

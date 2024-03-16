@@ -350,7 +350,7 @@ CommandPagein(vector<string> SplittedCommand, string Command)
                                                   &TargetAddressFrom))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());

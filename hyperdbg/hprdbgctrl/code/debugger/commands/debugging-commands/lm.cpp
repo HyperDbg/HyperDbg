@@ -415,7 +415,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt32(Section, &TargetPid))
             {
                 //
-                // couldn't resolve or unkonwn parameter
+                // couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              Section.c_str());

@@ -94,7 +94,7 @@ HyperDbgInterpreter(char * Command)
     vector<string> SplittedCommand {Split(CommandString, ' ')};
 
     //
-    // Check if user entered an empty imput
+    // Check if user entered an empty input
     //
     if (SplittedCommand.empty())
     {

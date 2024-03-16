@@ -109,7 +109,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 }
 
 /**
- * @brief Collect the kernel-side debugging informations
+ * @brief Collect the kernel-side debugging information
  *
  * @param InfoRequest user-mode buffer to fill kernel information
  * @return UINT32 Filled entries

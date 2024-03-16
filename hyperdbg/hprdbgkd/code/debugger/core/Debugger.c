@@ -1400,7 +1400,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             //
             // Here it means that the current event is a post, or all event event
             // and the current stage of calling is for the pre-event events, thus
-            // this event is not supposed to be runned at the current stage.
+            // this event is not supposed to be ran at the current stage.
             // However, we'll set a flag so the caller will know that there is
             // a valid post-event available for the parameters related to this
             // event.

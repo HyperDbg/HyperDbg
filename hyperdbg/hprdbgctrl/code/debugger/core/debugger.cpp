@@ -94,7 +94,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER:
-        ShowMessages("err, edit memeory request has invalid parameters (%x)\n",
+        ShowMessages("err, edit memory request has invalid parameters (%x)\n",
                      Error);
         break;
 
@@ -122,7 +122,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER:
-        ShowMessages("err, invalid parameter passsed to stepping core. (%x)\n",
+        ShowMessages("err, invalid parameter passed to stepping core. (%x)\n",
                      Error);
         break;
 
@@ -610,7 +610,7 @@ DebuggerPauseDebuggee()
 /**
  * @brief Shows whether the debugger is connected to a debugger
  * or debuggee connected to a debugger
- * @details we use this function to avoid connecting to a remote machine whem\n
+ * @details we use this function to avoid connecting to a remote machine when
  * debuggee or debugger is already connected to an instance
  *
  * @return BOOLEAN
@@ -1845,7 +1845,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
-        // It's a debuggger, we should send the events buffer directly
+        // It's a debugger, we should send the events buffer directly
         // from here
         //
 
@@ -2123,7 +2123,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
     //
     // As we're not needing any of action buffer, we'll free all of the
-    // here in the case of a successful registeration of action, however
+    // here in the case of a successful registration of action, however
     // event detail is needed for the 'event' command's list
     //
     FreeEventsAndActionsMemory(NULL, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -2466,7 +2466,7 @@ InterpretGeneralEventAndActionsFields(
             free(BufferOfCommandString);
 
             ShowMessages("err, the name you entered, not found. Did you use "
-                         "'output' commmand to create it?\n");
+                         "'output' command to create it?\n");
             *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
             return FALSE;
         }
@@ -2542,7 +2542,7 @@ InterpretGeneralEventAndActionsFields(
                 free(BufferOfCommandString);
 
                 ShowMessages("err, the name you entered, not found. Did you use "
-                             "'output' commmand to create it?\n");
+                             "'output' command to create it?\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
                 return FALSE;
             }
@@ -2595,7 +2595,7 @@ InterpretGeneralEventAndActionsFields(
     RtlZeroMemory(TempEvent, LengthOfEventBuffer);
 
     //
-    // Check if buffer is availabe
+    // Check if buffer is available
     //
     if (TempEvent == NULL)
     {
@@ -3003,7 +3003,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("imm"))
         {
             //
-            // the next commnad is immediate messaging indicator
+            // the next command is immediate messaging indicator
             //
             IsNextCommandImmediateMessaging = TRUE;
 
@@ -3018,7 +3018,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("stage"))
         {
             //
-            // the next commnad is execution mode (pre- and post-events)
+            // the next command is execution mode (pre- and post-events)
             //
             IsNextCommandExecutionStage = TRUE;
 
@@ -3033,7 +3033,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("sc"))
         {
             //
-            // the next commnad is the default short-circuiting state
+            // the next command is the default short-circuiting state
             //
             IsNextCommandSc = TRUE;
 

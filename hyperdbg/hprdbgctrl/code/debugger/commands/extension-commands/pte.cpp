@@ -122,7 +122,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
         {
             //
-            // Couldn't resolve or unkonwn parameter
+            // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n",
                          SplittedCommandCaseSensitive.at(1).c_str());
@@ -145,7 +145,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(3).c_str());
@@ -157,7 +157,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(1).c_str());

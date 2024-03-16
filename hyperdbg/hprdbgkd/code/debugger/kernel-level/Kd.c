@@ -259,7 +259,7 @@ KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                
 }
 
 /**
- * @brief calculate the checksum of recived buffer from debugger
+ * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
  * @param LengthReceived
@@ -2773,7 +2773,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 else
                 {
                     //
-                    // Send the response of event registeration to the debugger
+                    // Send the response of event registration to the debugger
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
@@ -2801,7 +2801,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 else
                 {
                     //
-                    // Send the response of event registeration to the debugger
+                    // Send the response of event registration to the debugger
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,

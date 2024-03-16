@@ -304,7 +304,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief The size of each chunk of memory used in the 'memcpy' function
- * of the script engine for transfering buffers in the VMX-root mode
+ * of the script engine for transferring buffers in the VMX-root mode
  *
  */
 #define DebuggerScriptEngineMemcpyMovingBufferSize 64
@@ -538,7 +538,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief maximum supported modules to load
- * their symbol informations
+ * their symbol information
  */
 #define MAXIMUM_SUPPORTED_SYMBOLS 1000
 

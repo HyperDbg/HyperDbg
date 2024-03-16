@@ -25,7 +25,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandSymHelp()
 {
-    ShowMessages(".sym : perfroms the symbol actions.\n\n");
+    ShowMessages(".sym : performs the symbol actions.\n\n");
 
     ShowMessages("syntax : \t.sym [table]\n");
     ShowMessages("syntax : \t.sym [reload] [pid ProcessId (hex)]\n");
@@ -126,7 +126,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
                 if (!ConvertStringToUInt32(SplittedCommand.at(3), &UserProcessId))
                 {
                     //
-                    // couldn't resolve or unkonwn parameter
+                    // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
                                  SplittedCommand.at(3).c_str());

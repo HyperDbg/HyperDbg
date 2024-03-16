@@ -81,7 +81,7 @@ UdUninitializeUserDebugger()
         }
 
         //
-        // Indicate that user debuggger is not initialized
+        // Indicate that user debugger is not initialized
         //
         g_IsUserDebuggerInitialized = FALSE;
     }

@@ -878,7 +878,7 @@ StartAgain:
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
                     //
-                    // Check if assembly mismatch occured with the target address
+                    // Check if assembly mismatch occurred with the target address
                     //
                     if (ReadMemoryPacket->Is32BitAddress == TRUE &&
                         ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
@@ -897,7 +897,7 @@ StartAgain:
                 case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
 
                     //
-                    // Check if assembly mismatch occured with the target address
+                    // Check if assembly mismatch occurred with the target address
                     //
                     if (ReadMemoryPacket->Is32BitAddress == FALSE &&
                         ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)

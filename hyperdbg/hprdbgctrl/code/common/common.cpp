@@ -420,7 +420,7 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
         else
         {
             //
-            // It's hex numer
+            // It's hex number
             //
             UINT32 TempResult;
             TempResult = stoi(TextToConvert, nullptr, 16);
@@ -1128,9 +1128,9 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
         //
 
         //
-        // There is no way to perfom this check! The below implementation doesn't satisfy
+        // There is no way to perform this check! The below implementation doesn't satisfy
         // our needs for address checks, but we're not trying to ask kernel about it as
-        // HyperDbg's script engine is not designed to be runned these functions in user-mode
+        // HyperDbg's script engine is not designed to be ran these functions in user-mode
         // so we left it unimplemented to avoid crashes in the main program
         //
         return FALSE;
