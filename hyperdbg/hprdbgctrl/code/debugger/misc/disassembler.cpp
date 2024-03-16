@@ -27,10 +27,6 @@ all
  * class by implementing a custom symbol-resolver.
  */
 
-#ifndef NDEBUG
-#    define NDEBUG
-#endif // !NDEBUG
-
 #include "pch.h"
 
 #include "Zycore/Format.h"
@@ -738,6 +734,11 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
+
+    //
+    // Should not reach here
+    //
+    return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
 }
 
 /**
@@ -834,6 +835,11 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }
 
 /**
@@ -1069,6 +1075,11 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }
 
 /**
@@ -1154,4 +1165,9 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }

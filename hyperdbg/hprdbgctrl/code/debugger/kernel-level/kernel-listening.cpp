@@ -1251,7 +1251,7 @@ StartAgain:
         //
         // Check to make sure that we don't pass the boundaries
         //
-        if (!(MaxSerialPacketSize > Loop))
+        if (!Status || !(MaxSerialPacketSize > Loop))
         {
             //
             // Invalid buffer

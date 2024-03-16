@@ -64,7 +64,7 @@ CommandStructHelp()
 {
     ShowMessages("struct : displays a data type, enum, or structure derived from PDB symbols.\n\n");
 
-    ShowMessages("syntax : \struct [Module!SymbolName (string)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
+    ShowMessages("syntax : struct [Module!SymbolName (string)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
                  "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
                  "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
                  "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
@@ -403,6 +403,8 @@ CommandDtShowDataBasedOnSymbolTypes(
                                          TargetPid,
                                          (UINT32)StructureSize,
                                          &DtOptions);
+
+        return TRUE;
     }
     else
     {

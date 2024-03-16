@@ -155,6 +155,11 @@ GetValue(PGUEST_REGS                   GuestRegs,
         return StackSymbol->Value;
     }
     }
+
+    //
+    // Shouldn't reach here
+    //
+    return NULL;
 }
 
 /**

@@ -108,6 +108,13 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #define HYPERDBG_HPRDBGCTRL
 
 //
+// Zydis Debug Disable Flag
+//
+#ifndef NDEBUG
+#    define NDEBUG
+#endif // !NDEBUG
+
+//
 // HyperDbg defined headers
 //
 #include "Configuration.h"

@@ -743,7 +743,7 @@ StringToWString(std::wstring & ws, const std::string & s)
 VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
 {
-    int  Len = Command.length();
+    int  Len = (int)Command.length();
     bool Qot = false, Sqot = false;
     int  ArgLen;
 
@@ -1077,11 +1077,11 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Address should be accessed in more than one page
             //
-            UINT64 ReadSize = AddressToCheck;
+            UINT32 ReadSize = 0;
 
             while (Size != 0)
             {
-                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+                ReadSize = (UINT32)((UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress);
 
                 if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
                 {
@@ -1147,11 +1147,11 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Address should be accessed in more than one page
             //
-            UINT64 ReadSize = AddressToCheck;
+            UINT32 ReadSize = 0;
 
             while (Size != 0)
             {
-                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+                ReadSize = (UINT32)((UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress);
 
                 if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
                 {

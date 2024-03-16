@@ -446,7 +446,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                     {
                         PeHexDump((char *)((UINT64)DosHeader + SecHeader->PointerToRawData),
                                   SecHeader->SizeOfRawData,
-                                  OpHeader64.ImageBase + SecHeader->VirtualAddress);
+                                  (int)(OpHeader64.ImageBase + SecHeader->VirtualAddress));
                     }
                 }
             }
