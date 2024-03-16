@@ -25,7 +25,7 @@ VmFuncPerformRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param CoreId Target core's ID
  * @return VOID
@@ -37,7 +37,7 @@ VmFuncSuppressRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress unsetting MTF
+ * @brief Suppress unsetting MTF
  *
  * @param CoreId Target core's ID
  * @param Set State of setting or unsetting

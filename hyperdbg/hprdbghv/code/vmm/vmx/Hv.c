@@ -314,7 +314,7 @@ HvResumeToNextInstruction()
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param VCpu The virtual processor's state
  *

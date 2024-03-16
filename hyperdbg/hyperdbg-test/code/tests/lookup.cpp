@@ -42,7 +42,7 @@ TestListenerForResultsThread(void * data)
     BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     //
-    // Wait for message from the target processs
+    // Wait for message from the target process
     //
     if (!NamedPipeServerWaitForClientConntection(OutputPipeHandle))
     {

@@ -247,7 +247,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //
-        // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
+        // Ignore the interrupt as it's suppressed because of instrumentation step-in
         //
 
         //

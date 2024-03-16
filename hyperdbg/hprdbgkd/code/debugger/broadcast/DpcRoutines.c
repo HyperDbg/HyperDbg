@@ -21,7 +21,7 @@ volatile LONG OneCoreLock;
 /**
  * @brief This function synchronize the function execution for a single core
  * You should only used it for one core, not in multiple threads simultaneously
- * The function that needs to use this featue (Routine parameter function) should
+ * The function that needs to use this feature (Routine parameter function) should
  * have the when it ends :
  *
  *              SpinlockUnlock(&OneCoreLock);

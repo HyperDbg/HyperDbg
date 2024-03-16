@@ -348,7 +348,7 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 }
 
 /**
- * @brief check and convert string to a 64 bit unsigned interger and also
+ * @brief check and convert string to a 64 bit unsigned integer and also
  *  check for symbol object names and evaluate expressions
  *
  * @param TextToConvert the target string

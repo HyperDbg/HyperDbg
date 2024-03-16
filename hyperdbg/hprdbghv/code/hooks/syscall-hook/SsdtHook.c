@@ -75,7 +75,7 @@ SyscallHookGetKernelBase(PULONG ImageSize)
 }
 
 /**
- * @brief Find SSDT address of Nt fucntions and W32Table
+ * @brief Find SSDT address of Nt functions and W32Table
  *
  * @param NtTable [Out] Address of Nt Syscall Table
  * @param Win32kTable [Out] Address of Win32k Syscall Table
@@ -149,7 +149,7 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 }
 
 /**
- * @brief Find entry from SSDT table of Nt fucntions and W32Table syscalls
+ * @brief Find entry from SSDT table of Nt functions and W32Table syscalls
  *
  * @param ApiNumber The Syscall Number
  * @param GetFromWin32k Is this syscall from Win32K

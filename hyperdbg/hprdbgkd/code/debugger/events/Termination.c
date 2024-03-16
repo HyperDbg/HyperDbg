@@ -1668,7 +1668,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
     if (Result == TRUE)
     {
         //
-        // It's the responsiblity of the caller to restore EPT entries and
+        // It's the responsibility of the caller to restore EPT entries and
         // invalidate EPT caches
         //
         if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
@@ -1677,7 +1677,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
         }
 
         //
-        // It's the responsiblity of the caller to clear #BPs directly from
+        // It's the responsibility of the caller to clear #BPs directly from
         // VMX-root mode if applied from VMX-root mode
         //
         if (TargetUnhookingDetails.RemoveBreakpointInterception)

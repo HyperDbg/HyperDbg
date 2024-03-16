@@ -200,7 +200,7 @@ GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * Sta
     *MedianOfData            = (UINT64)DataMedian;
 
     //
-    // ShowMessages("varience : %f\n", StandardDeviation);
+    // ShowMessages("variance : %f\n", StandardDeviation);
     // ShowMessages("mean : %f\n", DataAverage);
     // ShowMessages("count of outliers : %d\n", CountOfOutliers);
     //

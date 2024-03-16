@@ -568,7 +568,7 @@ ExecTrapInitialize()
         g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
 
         //
-        // The initialization was not successfull
+        // The initialization was not successful
         //
         return FALSE;
     }
@@ -795,7 +795,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         // LogInfo("Reached to the user-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
-        // Supress the RIP increment
+        // Suppress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
 
@@ -814,7 +814,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         // LogInfo("Reached to the kernel-mode of the process (0x%x) is executed address: %llx", PsGetCurrentProcessId(), VCpu->LastVmexitRip);
 
         //
-        // Supress the RIP increment
+        // Suppress the RIP increment
         //
         HvSuppressRipIncrement(VCpu);
 

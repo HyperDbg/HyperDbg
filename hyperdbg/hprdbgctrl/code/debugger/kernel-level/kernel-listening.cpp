@@ -1094,7 +1094,7 @@ StartAgain:
             if (PageinPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
-                // Show the successfull delivery of the packet
+                // Show the successful delivery of the packet
                 //
                 ShowMessages("the page-fault is delivered to the target thread\n"
                              "press 'g' to continue debuggee (the current thread will execute ONLY one instruction and will be halted again)...\n");
@@ -1222,7 +1222,7 @@ StartAgain:
         // ShowMessages("warning, there is an error in setting CommMask\n");
 
         //
-        // Somethimes, this error happens
+        // Sometimes, this error happens
         //
         // return FALSE;
     }

@@ -60,7 +60,7 @@ typedef enum _DEBUGGER_EVENT_FORWARDING_STATE
  * @brief output source status
  *
  * @details this enum is used as the result returned from
- * the functions that work with openning and closing sources
+ * the functions that work with opening and closing sources
  */
 typedef enum _DEBUGGER_OUTPUT_SOURCE_STATUS
 {
