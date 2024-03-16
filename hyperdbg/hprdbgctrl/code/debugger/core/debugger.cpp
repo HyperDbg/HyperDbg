@@ -536,9 +536,14 @@ DebuggerGetNtoskrnlBase()
 
     Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
 
+    if (Modules == NULL)
+    {
+        return NULL64_ZERO;
+    }
+
     NtQuerySystemInformation(SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
-    for (int i = 0; i < Modules->NumberOfModules; i++)
+    for (UINT32 i = 0; i < Modules->NumberOfModules; i++)
     {
         if (!strcmp((const char *)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
                     "ntoskrnl.exe"))
@@ -720,12 +725,11 @@ InterpretScript(vector<string> * SplittedCommand,
     string         AppendedFinalBuffer;
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
-    int            Index            = 0;
-    int            NewIndexToRemove = 0;
-    int            OpenBracket      = 0;
-    size_t         CountOfOpenBrackets;
-    size_t         CountOfCloseBrackets;
+    UINT32         Index            = 0;
+    UINT32         NewIndexToRemove = 0;
+    UINT32         OpenBracket      = 0;
+    UINT32         CountOfOpenBrackets;
+    UINT32         CountOfCloseBrackets;
     UINT32         IndexInCommandCaseSensitive          = 0;
     vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
     string         TempStr;
@@ -795,7 +799,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
 
                 //
                 // Add it to the open brackets
@@ -815,7 +819,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                 //
                 // Add it to the open brackets
@@ -872,7 +876,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
 
                 //
                 // Add it to the open brackets (-1 because script starts with { which
@@ -910,7 +914,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                 //
                 // Add it to the open brackets
@@ -979,8 +983,8 @@ InterpretScript(vector<string> * SplittedCommand,
 
             IsTextVisited        = TRUE;
             IsInState            = TRUE;
-            CountOfOpenBrackets  = count(Section.begin(), Section.end(), '{');
-            CountOfCloseBrackets = count(Section.begin(), Section.end(), '}');
+            CountOfOpenBrackets  = (UINT32)count(Section.begin(), Section.end(), '{');
+            CountOfCloseBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
             //
             // Check if script contains bracket "{"
@@ -1030,7 +1034,7 @@ InterpretScript(vector<string> * SplittedCommand,
                     //
                     // Check the count of brackets in the string and add it to OpenBracket
                     //
-                    size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                    UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                     //
                     // Add it to the open brackets
@@ -1531,7 +1535,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     // Set the buffer and length
     //
     *BufferAddress = (UINT64)FinalBuffer;
-    *BufferLength  = ParsedBytes.size();
+    *BufferLength  = (UINT32)ParsedBytes.size();
 
     //
     // Removing the code or condition indexes from the command
@@ -1910,7 +1914,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             if (g_IsConnectedToRemoteDebuggee)
             {
-                RemoteConnectionSendCommand("g", strlen("g") + 1);
+                RemoteConnectionSendCommand("g", (UINT32)strlen("g") + 1);
             }
 
             ShowMessages("\n");

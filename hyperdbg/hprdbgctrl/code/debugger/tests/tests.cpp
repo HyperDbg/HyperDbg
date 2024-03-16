@@ -214,7 +214,7 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
             SentMessageResult = NamedPipeServerSendMessageToClient(
                 PipeHandle,
                 BufferToSend,
-                strlen(BufferToSend) + 1);
+                (UINT32)strlen(BufferToSend) + 1);
 
             if (!SentMessageResult)
             {

@@ -238,8 +238,8 @@ NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName)
     //
     // Connect to the server pipe using CreateFile()
     //
-    hPipe = CreateFileA(PipeName,             // pipe name
-                        GENERIC_READ |        // read and write access
+    hPipe = CreateFileA(PipeName,      // pipe name
+                        GENERIC_READ | // read and write access
                             GENERIC_WRITE,
                         0,                    // no sharing
                         NULL,                 // default security attributes
@@ -423,7 +423,7 @@ NamedPipeServerExample()
     SentMessageResult = NamedPipeServerSendMessageToClient(
         PipeHandle,
         BufferToSend,
-        strlen(BufferToSend) + 1);
+        (UINT32)strlen(BufferToSend) + 1);
 
     if (!SentMessageResult)
     {
@@ -469,7 +469,7 @@ NamedPipeClientExample()
     }
 
     SentMessageResult =
-        NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
+        NamedPipeClientSendMessage(PipeHandle, Buffer, (UINT32)strlen(Buffer) + 1);
 
     if (!SentMessageResult)
     {

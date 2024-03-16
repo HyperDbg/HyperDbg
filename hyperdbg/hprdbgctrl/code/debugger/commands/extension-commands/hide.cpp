@@ -194,7 +194,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // It's a process id
         //
-        HideRequest.ProcId = TargetPid;
+        HideRequest.ProcId = (UINT32)TargetPid;
 
         RequestBufferSize = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE);
     }
@@ -203,9 +203,8 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // It's a process name
         //
-        HideRequest.LengthOfProcessName = Command.size() + 1;
-        RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) +
-                            Command.size() + 1;
+        HideRequest.LengthOfProcessName = (UINT32)Command.size() + 1;
+        RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) + Command.size() + 1;
     }
 
     //
@@ -213,6 +212,12 @@ CommandHide(vector<string> SplittedCommand, string Command)
     //
     FinalRequestBuffer =
         (PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)malloc(RequestBufferSize);
+
+    if (FinalRequestBuffer == NULL)
+    {
+        ShowMessages("insufficient space\n");
+        return;
+    }
 
     //
     // Zero the memory
@@ -242,7 +247,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER, // IO Control
                                                                     // code
         FinalRequestBuffer,                                         // Input Buffer to driver.
-        RequestBufferSize,                                          // Input buffer length
+        (DWORD)RequestBufferSize,                                   // Input buffer length
         FinalRequestBuffer,                                         // Output Buffer from driver.
         SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,         // Length of output
                                                                     // buffer in bytes.

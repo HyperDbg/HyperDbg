@@ -43,7 +43,7 @@ CommandAttachHelp()
 VOID
 CommandAttach(vector<string> SplittedCommand, string Command)
 {
-    UINT64  TargetPid = 0;
+    UINT32  TargetPid = 0;
     BOOLEAN NextIsPid = FALSE;
 
     //
@@ -94,7 +94,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         {
             NextIsPid = FALSE;
 
-            if (!ConvertStringToUInt64(item, &TargetPid))
+            if (!ConvertStringToUInt32(item, &TargetPid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandAttachHelp();

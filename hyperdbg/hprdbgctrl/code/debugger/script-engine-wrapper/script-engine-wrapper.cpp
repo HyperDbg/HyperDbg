@@ -496,7 +496,7 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate UNICODE_STRING 1
     //
     WCHAR           MyString1[40]   = L"Hi come from stupid struct 1!";
-    UINT32          SizeOfMyString1 = wcslen(MyString1) * sizeof(WCHAR) + 2;
+    UINT32          SizeOfMyString1 = (UINT32)wcslen(MyString1) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr1     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
     AllocationsForCastings->Buff1   = (CHAR *)UnicodeStr1;
     WCHAR * Buff1                   = (WCHAR *)malloc(SizeOfMyString1);
@@ -510,7 +510,7 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate UNICODE_STRING 2
     //
     WCHAR           MyString2[40]   = L"Goodbye I'm at stupid struct 2!";
-    UINT32          SizeOfMyString2 = wcslen(MyString2) * sizeof(WCHAR) + 2;
+    UINT32          SizeOfMyString2 = (UINT32)wcslen(MyString2) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr2     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
     AllocationsForCastings->Buff3   = (CHAR *)UnicodeStr2;
     WCHAR * Buff2                   = (WCHAR *)malloc(SizeOfMyString2);

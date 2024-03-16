@@ -90,8 +90,6 @@ ReadIrpBasedBuffer()
     UINT32                 OperationCode;
     DWORD                  ErrorNum;
     HANDLE                 Handle;
-    BOOLEAN                OutputSourceFound;
-    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
@@ -372,8 +370,6 @@ ReversingMachineStart()
 int
 HyperDbgUnloadReversingMachine()
 {
-    BOOL Status;
-
     //
     // Check if driver is loaded
     //

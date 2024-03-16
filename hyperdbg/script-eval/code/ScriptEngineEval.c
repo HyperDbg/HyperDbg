@@ -155,6 +155,11 @@ GetValue(PGUEST_REGS                   GuestRegs,
         return StackSymbol->Value;
     }
     }
+
+    //
+    // Shouldn't reach here
+    //
+    return NULL;
 }
 
 /**
@@ -1764,7 +1769,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         SrcVal0    = GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
-        *StackIndx = *StackIndx + SrcVal0;
+        *StackIndx = (UINT32)(*StackIndx + SrcVal0);
 
         break;
 

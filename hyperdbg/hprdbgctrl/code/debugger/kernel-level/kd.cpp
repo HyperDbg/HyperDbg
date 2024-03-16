@@ -1329,7 +1329,6 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    BOOL   Status;             /* Status */
     char   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
@@ -1420,7 +1419,6 @@ BOOLEAN
 KdReceivePacketFromDebugger(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    BOOL   Status;             /* Status */
     char   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
@@ -1897,8 +1895,6 @@ BOOLEAN
 KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
                                         BOOLEAN IsNamedPipe)
 {
-StartAgain:
-
     BOOL  Status;        /* Status */
     DWORD EventMask = 0; /* Event mask to trigger */
 
@@ -2807,7 +2803,7 @@ KdCloseConnection()
             //
             // Send another packet so the user-mode is not waiting for new packet
             //
-            !KdCommandPacketToDebuggee(
+            KdCommandPacketToDebuggee(
                 DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
                 DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET);
         }
@@ -3127,7 +3123,6 @@ VOID
 KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 CurrentSymbolInfoIndex, UINT32 TotalSymbols)
 {
     BOOLEAN                       Result;
-    ULONG                         ReturnedLength;
     PDEBUGGER_UPDATE_SYMBOL_TABLE UsermodeSymDetailRequest;
 
     UsermodeSymDetailRequest =

@@ -182,7 +182,7 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
 
         string OutputCommand = "cmd:" + NewCase;
 
-        SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)OutputCommand.c_str(), OutputCommand.length() + 1);
+        SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)OutputCommand.c_str(), (int)OutputCommand.length() + 1);
         if (!SentMessageResult)
         {
             //

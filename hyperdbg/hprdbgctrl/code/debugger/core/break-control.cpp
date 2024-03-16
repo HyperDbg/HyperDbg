@@ -103,7 +103,7 @@ BreakController(DWORD CtrlType)
                 //
                 if (g_IsConnectedToRemoteDebuggee)
                 {
-                    RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+                    RemoteConnectionSendCommand("pause", (UINT32)strlen("pause") + 1);
                 }
 
                 Sleep(300);

@@ -22,7 +22,6 @@ unsigned long long
 TransparentModeRdtscDiffVmexit()
 {
     unsigned long long ret, ret2;
-    unsigned           eax, edx;
     int                cpuid_result[4] = {0};
 
     //
@@ -71,7 +70,6 @@ unsigned long long
 TransparentModeRdtscVmexitTracing()
 {
     unsigned long long ret, ret2;
-    unsigned           eax, edx;
 
     //
     // GCC
@@ -112,13 +110,13 @@ TransparentModeCpuidTimeStampCounter(UINT64 * Average,
                                      UINT64 * StandardDeviation,
                                      UINT64 * Median)
 {
-    unsigned long long Avg          = 0;
-    unsigned long long MeasuredTime = 0;
-    vector<double>     Results;
+    double         Avg          = 0;
+    double         MeasuredTime = 0;
+    vector<double> Results;
 
     for (int i = 0; i < TestCount; i++)
     {
-        MeasuredTime = TransparentModeRdtscDiffVmexit();
+        MeasuredTime = (double)TransparentModeRdtscDiffVmexit();
         Avg          = Avg + MeasuredTime;
 
         Results.push_back(MeasuredTime);
@@ -154,13 +152,13 @@ TransparentModeRdtscEmulationDetection(UINT64 * Average,
                                        UINT64 * StandardDeviation,
                                        UINT64 * Median)
 {
-    unsigned long long Avg          = 0;
-    unsigned long long MeasuredTime = 0;
-    vector<double>     Results;
+    double         Avg          = 0;
+    double         MeasuredTime = 0;
+    vector<double> Results;
 
     for (int i = 0; i < TestCount; i++)
     {
-        MeasuredTime = TransparentModeRdtscVmexitTracing();
+        MeasuredTime = (double)TransparentModeRdtscVmexitTracing();
         Avg          = Avg + MeasuredTime;
 
         Results.push_back(MeasuredTime);

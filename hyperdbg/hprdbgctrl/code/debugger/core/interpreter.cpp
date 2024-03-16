@@ -144,7 +144,7 @@ HyperDbgInterpreter(char * Command)
         //
         // It's a connection over network (VMI-Mode)
         //
-        RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+        RemoteConnectionSendCommand(Command, (UINT32)strlen(Command) + 1);
 
         ShowMessages("\n");
 
@@ -163,7 +163,7 @@ HyperDbgInterpreter(char * Command)
 
         if (CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN)
         {
-            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, TRUE);
+            KdSendUserInputPacketToDebuggee(Command, (UINT32)strlen(Command) + 1, TRUE);
 
             //
             // Set the debuggee to show that it's running
@@ -176,7 +176,7 @@ HyperDbgInterpreter(char * Command)
             // Disable the breakpoints and events while executing the command in the remote computer
             //
             KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
-            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, FALSE);
+            KdSendUserInputPacketToDebuggee(Command, (UINT32)strlen(Command) + 1, FALSE);
             KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
         }
 
@@ -276,7 +276,7 @@ InterpreterRemoveComments(char * CommandText)
 {
     BOOLEAN IsComment       = FALSE;
     BOOLEAN IsOnString      = FALSE;
-    UINT32  LengthOfCommand = strlen(CommandText);
+    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {
@@ -386,7 +386,7 @@ HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
         g_InterpreterCountOfOpenCurlyBrackets      = 0;
     }
 
-    CurrentCommandLen = CurrentCommandStr.length();
+    CurrentCommandLen = (UINT32)CurrentCommandStr.length();
 
     for (size_t i = 0; i < CurrentCommandLen; i++)
     {

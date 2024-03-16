@@ -192,7 +192,7 @@ StartAgain:
             //
             if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(MessagePacket->OperationCode,
                                                                                          MessagePacket->Message,
-                                                                                         strlen(MessagePacket->Message)))
+                                                                                         (UINT32)strlen(MessagePacket->Message)))
             {
                 //
                 // We check g_IgnoreNewLoggingMessages here because we want to
@@ -731,7 +731,7 @@ StartAgain:
                 //
                 // There was an error
                 //
-                ShowErrorMessage(EventModifyAndQueryPacket->KernelStatus);
+                ShowErrorMessage((UINT32)EventModifyAndQueryPacket->KernelStatus);
             }
             else if (EventModifyAndQueryPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
             {
@@ -766,7 +766,7 @@ StartAgain:
                 //
                 // There was an error
                 //
-                ShowErrorMessage(SymbolReloadFinishedPacket->KernelStatus);
+                ShowErrorMessage((UINT32)SymbolReloadFinishedPacket->KernelStatus);
             }
             else
             {
@@ -1054,7 +1054,7 @@ StartAgain:
             }
             else
             {
-                ShowErrorMessage(ShortCircuitingPacket->KernelStatus);
+                ShowErrorMessage((UINT32)ShortCircuitingPacket->KernelStatus);
             }
 
             //
@@ -1251,7 +1251,7 @@ StartAgain:
         //
         // Check to make sure that we don't pass the boundaries
         //
-        if (!(MaxSerialPacketSize > Loop))
+        if (!Status || !(MaxSerialPacketSize > Loop))
         {
             //
             // Invalid buffer

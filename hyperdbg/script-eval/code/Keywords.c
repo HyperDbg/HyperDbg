@@ -142,7 +142,7 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (BYTE)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -176,7 +176,7 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (DWORD)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -210,7 +210,7 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (WORD)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE

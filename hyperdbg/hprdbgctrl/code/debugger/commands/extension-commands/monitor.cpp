@@ -65,7 +65,6 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
     UINT32                             HookLength                  = 0;
-    UINT64                             TargetAddress;
     UINT64                             OptionalParam1   = 0; // Set the 'from' target address
     UINT64                             OptionalParam2   = 0; // Set the 'to' target address
     BOOLEAN                            SetFrom          = FALSE;

@@ -2160,7 +2160,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //      2. type (structure) name
     //      3. PDB file location
     //
-    SizeOfArgv = SplitedSymPath.size() + 3;
+    SizeOfArgv = (UINT32)SplitedSymPath.size() + 3;
     ArgvArray  = (char **)malloc(SizeOfArgv * sizeof(char *));
 
     if (ArgvArray == NULL)

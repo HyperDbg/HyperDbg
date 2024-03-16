@@ -26,7 +26,6 @@ all
  * @brief   Demonstrates basic hooking functionality of the `ZydisFormatter`
  * class by implementing a custom symbol-resolver.
  */
-#define NDEBUG
 
 #include "pch.h"
 
@@ -419,7 +418,6 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -736,6 +734,11 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
+
+    //
+    // Should not reach here
+    //
+    return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
 }
 
 /**
@@ -832,6 +835,11 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }
 
 /**
@@ -856,7 +864,6 @@ HyperDbgLengthDisassemblerEngine(
     UINT64                  CurrentRip    = 0;
     int                     instr_decoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -1068,6 +1075,11 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }
 
 /**
@@ -1153,4 +1165,9 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
             return FALSE;
         }
     }
+
+    //
+    // Should not reach here
+    //
+    return FALSE;
 }

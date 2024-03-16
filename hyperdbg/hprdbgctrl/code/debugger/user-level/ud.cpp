@@ -463,7 +463,17 @@ UdAttachToProcess(UINT32        TargetPid,
         //
         // Resume the suspended process
         //
-        ResumeThread(ProcInfo.hThread);
+        if (ProcInfo.hThread != NULL64_ZERO)
+        {
+            ResumeThread(ProcInfo.hThread);
+        }
+        else
+        {
+            //
+            // The handle of the target thread is empty
+            //
+            return FALSE;
+        }
 
         //
         // *** Remove the hooks ***
@@ -524,7 +534,7 @@ UdAttachToProcess(UINT32        TargetPid,
                 //
                 // An error happend, we should not continue
                 //
-                ShowErrorMessage(AttachRequest.Result);
+                ShowErrorMessage((UINT32)AttachRequest.Result);
                 return FALSE;
             }
         }
@@ -541,7 +551,7 @@ UdAttachToProcess(UINT32        TargetPid,
     }
     else
     {
-        ShowErrorMessage(AttachRequest.Result);
+        ShowErrorMessage((UINT32)AttachRequest.Result);
         return FALSE;
     }
 
@@ -735,7 +745,7 @@ UdKillProcess(UINT32 TargetPid)
     }
     else
     {
-        ShowErrorMessage(KillRequest.Result);
+        ShowErrorMessage((UINT32)KillRequest.Result);
         return FALSE;
     }
 }
@@ -817,7 +827,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     }
     else
     {
-        ShowErrorMessage(DetachRequest.Result);
+        ShowErrorMessage((UINT32)DetachRequest.Result);
         return FALSE;
     }
 }
@@ -885,7 +895,7 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     }
     else
     {
-        ShowErrorMessage(PauseRequest.Result);
+        ShowErrorMessage((UINT32)PauseRequest.Result);
         return FALSE;
     }
 }
@@ -1095,7 +1105,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     }
     else
     {
-        ShowErrorMessage(SwitchRequest.Result);
+        ShowErrorMessage((UINT32)SwitchRequest.Result);
         return FALSE;
     }
 }
@@ -1175,10 +1185,16 @@ UdShowListActiveDebuggingProcessesAndThreads()
             //
             // Allocate the storage for the pull details of threads and processes
             //
-            SizeOfBufferForThreadsAndProcessDetails = QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses * SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
+            SizeOfBufferForThreadsAndProcessDetails =
+                QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses * SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
 
-            AddressOfThreadsAndProcessDetails = (USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS *)
-                malloc(SizeOfBufferForThreadsAndProcessDetails);
+            AddressOfThreadsAndProcessDetails = (USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS *)malloc(SizeOfBufferForThreadsAndProcessDetails);
+
+            if (AddressOfThreadsAndProcessDetails == NULL64_ZERO)
+            {
+                ShowMessages("insufficient space\n");
+                return FALSE;
+            }
 
             RtlZeroMemory(AddressOfThreadsAndProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
 
@@ -1243,7 +1259,7 @@ UdShowListActiveDebuggingProcessesAndThreads()
     }
     else
     {
-        ShowErrorMessage(QueryCountOfActiveThreadsRequest.Result);
+        ShowErrorMessage((UINT32)QueryCountOfActiveThreadsRequest.Result);
         return FALSE;
     }
 }

@@ -113,7 +113,6 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION KernelSideInfo
     HANDLE  ThreadHandle;
     HANDLE  ProcessHandle;
     UINT32  ReadBytes;
-    BOOLEAN SentMessageResult;
     CHAR *  Buffer = {0};
 
     //
