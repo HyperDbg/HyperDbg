@@ -650,7 +650,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Symbol        = CodeBuffer->Head + i - 1;
             Symbol->Value = CurrentPointer;
 
-            int StackTempNumber = 0;
+            long long unsigned StackTempNumber = 0;
             for (int j = i; j < CurrentPointer; j++)
             {
                 Symbol = CodeBuffer->Head + j;
@@ -928,7 +928,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                         break;
                     }
 
-                    Op1Symbol->VariableType = VariableType;
+                    Op1Symbol->VariableType = (unsigned long long)VariableType;
                 }
             }
 
@@ -2389,7 +2389,7 @@ NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
     memcpy((void *)Symbol->Value, FunctionName, Length);
     Symbol->Len          = Length;
     Symbol->Type         = SYMBOL_USER_DEFINED_FUNCTION_TYPE;
-    Symbol->VariableType = VariableType;
+    Symbol->VariableType = (long long unsigned)VariableType;
     return Symbol;
 }
 
@@ -2435,7 +2435,7 @@ PrintSymbol(PSYMBOL Symbol)
 {
     if (Symbol->Type == SYMBOL_STRING_TYPE)
     {
-        printf("Type:%llx, Value:%s\n", Symbol->Type, &Symbol->Value);
+        printf("Type:%llx, Value:0x%p\n", Symbol->Type, &Symbol->Value);
     }
     else
     {
