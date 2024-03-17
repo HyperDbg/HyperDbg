@@ -83,7 +83,7 @@ void
 PrintToken(PTOKEN Token)
 {
     //
-    // Prints vlaue of the Token
+    // Prints value of the Token
     //
     if (Token->Type == WHITE_SPACE)
     {
@@ -214,7 +214,7 @@ AppendByte(PTOKEN Token, char c)
     }
 
     //
-    // Append the new charcter to the string
+    // Append the new character to the string
     //
     Token->Value[Token->Len] = c;
     Token->Len++;
@@ -249,7 +249,7 @@ AppendWchar(PTOKEN Token, wchar_t c)
     }
 
     //
-    // Append the new charcter to the wstring
+    // Append the new character to the wstring
     //
     *((wchar_t *)(Token->Value) + Token->Len / 2) = c;
     Token->Len += 2;
@@ -1196,7 +1196,7 @@ LalrGetTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief Checks wether the value and type of Token1 and Token2 are the same
+ * @brief Checks whether the value and type of Token1 and Token2 are the same
  *
  * @param Token1
  * @param Token2

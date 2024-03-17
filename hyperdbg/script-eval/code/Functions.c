@@ -13,7 +13,7 @@
 #include "pch.h"
 
 //
-// User-mode Globabl Variables
+// User-mode Global Variables
 //
 #ifdef SCRIPT_ENGINE_USER_MODE
 
@@ -191,14 +191,14 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 /**
  * @brief A VMX-compatible equivalent of memcpy function in C
  *
- * @param Destionation
+ * @param Destination
  * @param Source
  * @param Num
  * @param HasError
  * @return VOID
  */
 VOID
-ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL * HasError)
+ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError)
 {
     UINT64 PrevReadLen                                              = 0;
     BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
@@ -208,7 +208,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckAccessValidityAndSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destination, Num))
     {
         *HasError = TRUE;
         return;
@@ -226,7 +226,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Address is valid, perform the memcpy in user-mode
     //
-    memcpy((void *)Destionation, (void *)Source, Num);
+    memcpy((void *)Destination, (void *)Source, Num);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -235,7 +235,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckAccessValidityAndSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destination, Num))
     {
         *HasError = TRUE;
         return;
@@ -272,7 +272,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
             //
             // Write the moving buffer into the target buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess(Destionation + PrevReadLen, MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
+            MemoryMapperWriteMemorySafeOnTargetProcess(Destination + PrevReadLen, MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
 
             //
             // Computing the bytes that we read
@@ -294,7 +294,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
             //
             // Write the moving buffer into the target buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess(Destionation + PrevReadLen, MovingBuffer, Num);
+            MemoryMapperWriteMemorySafeOnTargetProcess(Destination + PrevReadLen, MovingBuffer, Num);
 
             //
             // Computing the bytes that we gonna read
@@ -1616,7 +1616,7 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  *
  * @param Address1
  * @param Address2
- * @parem Count
+ * @param Count
  * @return UINT64
  */
 UINT64

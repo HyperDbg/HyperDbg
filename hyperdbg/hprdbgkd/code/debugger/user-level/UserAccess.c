@@ -124,7 +124,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         ImageName = (PUNICODE_STRING)Buffer;
 
         //
-        // Alloate UNICODE_STRING
+        // Allocate UNICODE_STRING
         //
         ProcessImageName->Length        = 0;
         ProcessImageName->MaximumLength = (USHORT)SizeOfImageNameToBeAllocated;

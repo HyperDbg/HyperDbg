@@ -193,17 +193,17 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 /**
  * @brief Add a DPC to dpc queue
  * @param Routine
- * @param Paramter
+ * @param Parameter
  * @param ProcessorNumber
  *
  * @return VOID
  */
 VOID
-KdFireDpc(PVOID Routine, PVOID Paramter)
+KdFireDpc(PVOID Routine, PVOID Parameter)
 {
     ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
-    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Paramter);
+    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Parameter);
 
     KeInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
 }
@@ -570,7 +570,7 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief continue the debuggee, this function gurantees that all other cores
+ * @brief continue the debuggee, this function guarantees that all other cores
  * are continued (except current core)
  * @param DbgState The state of the debugger on the current core
  * @param SpeialEventResponse
@@ -943,7 +943,7 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(PROCESSOR_DEBUGGING_STATE * DbgState)
     // execution and then we check for the possible pausing reasons.
     //
     // The pausing scenario should be checked two cases,
-    //      1. If the current core is stucked in spinlock of getting
+    //      1. If the current core is stuck in spinlock of getting
     //          the debug lock
     //      2. If the current core is making it self ready for the vm-entry
     //
@@ -1486,7 +1486,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 }
 
 /**
- * @brief Regualar step-in | step one instruction to the debuggee
+ * @brief Regular step-in | step one instruction to the debuggee
  * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
@@ -1503,7 +1503,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief Regualar step-over | step one instruction to the debuggee if
+ * @brief Regular step-over | step one instruction to the debuggee if
  * there is a call then it jumps the call
  *
  * @param DbgState The state of the debugger on the current core
@@ -2721,7 +2721,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 SearchQueryPacket = (DEBUGGER_SEARCH_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Perfom the search in debuggee debuggee
+                // Perform the search in debuggee debuggee
                 // Call the search wrapper
                 //
 

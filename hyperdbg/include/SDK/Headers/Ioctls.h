@@ -86,7 +86,7 @@
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, request to read or write on a speical MSR
+ * @brief ioctl, request to read or write on a special MSR
  *
  */
 #define IOCTL_DEBUGGER_READ_OR_WRITE_MSR \

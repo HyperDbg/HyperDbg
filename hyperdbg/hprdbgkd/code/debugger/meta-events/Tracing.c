@@ -104,7 +104,7 @@ TracingCheckForContinuingSteps(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief Regualar step-in | step one instruction to the debuggee
+ * @brief Regular step-in | step one instruction to the debuggee
  * @param DbgState The state of the debugger on the current core
  *
  * @return VOID

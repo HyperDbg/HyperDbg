@@ -218,7 +218,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief Default buffer count of packets for message tracing
- * @details number of packets storage for regualr buffers
+ * @details number of packets storage for regular buffers
  */
 #define MaximumPacketsCapacity 1000
 
@@ -710,7 +710,7 @@ const unsigned char BuildSignature[] = {
 #define DEBUGGEE_BP_APPLY_TO_ALL_THREADS 0xffffffff
 
 /**
- * @brief for reading all regisers in r command.
+ * @brief for reading all registers in r command.
  *
  */
 #define DEBUGGEE_SHOW_ALL_REGISTERS 0xffffffff

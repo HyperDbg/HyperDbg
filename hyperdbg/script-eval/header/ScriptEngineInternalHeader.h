@@ -107,7 +107,7 @@ BOOLEAN
 ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length);
 
 VOID
-ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL * HasError);
+ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
 UINT64
 ScriptEngineFunctionVirtualToPhysical(UINT64 Address);

@@ -643,7 +643,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
 
             //
-            // skip excuting user-defined function first time
+            // skip executing user-defined function first time
             //
             Symbol        = CodeBuffer->Head + i - 1;
             Symbol->Value = CurrentPointer;
@@ -868,7 +868,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 //
                 // Add return variable symbol
                 //
-                Temp = NewTemp(Error,CurrentFunctionSymbol);
+                Temp = NewTemp(Error, CurrentFunctionSymbol);
                 Push(MatchedStack, Temp);
 
                 PSYMBOL Symbol = NewSymbol();
@@ -1550,7 +1550,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             RemoveSymbol(&JnzInstruction);
 
             //
-            // Add JZ addresss to Code CodeBuffer
+            // Add JZ address to Code CodeBuffer
             //
             PSYMBOL JnzAddressSymbol = NewSymbol();
             JnzAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -1583,7 +1583,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             RemoveSymbol(&JumpInstruction);
 
             //
-            // Add jmp addresss to Code CodeBuffer
+            // Add jmp address to Code CodeBuffer
             //
             PSYMBOL JumpAddressSymbol = NewSymbol();
             JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -1659,13 +1659,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Push(MatchedStack, JzAddressToken);
 
             //
-            // Push @INC_DEC token to mathced stack
+            // Push @INC_DEC token to matched stack
             //
             PTOKEN IncDecToken = NewToken(SEMANTIC_RULE, "@INC_DEC");
             Push(MatchedStack, IncDecToken);
 
             //
-            // Push start of inc_dec address to mathced stack
+            // Push start of inc_dec address to matched stack
             //
             Push(MatchedStack, JumpAddressToken);
         }
@@ -2569,7 +2569,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             free(SymbolBuffer->Head);
 
             //
-            // Upadate Head and size of SymbolBuffer
+            // Update Head and size of SymbolBuffer
             //
             SymbolBuffer->Size = NewSize;
             SymbolBuffer->Head = NewHead;
@@ -2612,7 +2612,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             free(SymbolBuffer->Head);
 
             //
-            // Upadate Head and size of SymbolBuffer
+            // Update Head and size of SymbolBuffer
             //
             SymbolBuffer->Size *= 2;
             SymbolBuffer->Head = NewHead;
@@ -2806,7 +2806,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
         strcat(Message, "Not returning a value in noo-void function");
         return Message;
     default:
-        strcat(Message, "Unkown Error: ");
+        strcat(Message, "Unknown Error: ");
         return Message;
     }
 }
@@ -2854,7 +2854,7 @@ GetLocalIdentifierVal(PTOKEN Token)
 }
 
 /**
- * @brief Allocates a new gloabal variable and returns the integer assigned to it
+ * @brief Allocates a new global variable and returns the integer assigned to it
  *
  * @param Token
  * @return int

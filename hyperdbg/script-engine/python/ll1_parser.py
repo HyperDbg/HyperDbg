@@ -34,7 +34,7 @@ class LL1Parser:
         # Left Hand Side(Lhs)
         self.LhsList = []
 
-        # Set of all termials and noneterminals
+        # Set of all terminals and noneterminals
         self.TerminalSet = set()
         self.NonTerminalSet = set()
 
@@ -67,7 +67,7 @@ class LL1Parser:
 
 
     def Run(self):
-        # Read grammar from input file and intialize grammar related variables 
+        # Read grammar from input file and initialize grammar related variables 
         self.ReadGrammar()
 
         # Calculate "First Set" for all nonterminals and print it
@@ -88,7 +88,7 @@ class LL1Parser:
         # self.print_predicts()
         # print("________________________________________________________________________________")
 
-        # Fills "Parse Table" according to calculted "Predicted Set" and print "Parse Table"
+        # Fills "Parse Table" according to calculated "Predicted Set" and print "Parse Table"
         self.FillParseTable()
         # print("Parse Table:")
         # self.PrintParseTable()
@@ -139,7 +139,7 @@ class LL1Parser:
         # Prints Operators List into output files 
         self.WriteOperatorsList()
 
-        # Prints Maps into outpu files 
+        # Prints Maps into output files 
         self.WriteMaps()
         
 
@@ -175,13 +175,13 @@ class LL1Parser:
         # Push start variable into stack
         Stack.append(self.Start)
 
-        # Assign top variale an invalid vlaue 
+        # Assign top variale an invalid value 
         Top = ""
 
         # Read input
         Tokens, CurrentIn = Read(Tokens)
 
-        # Temporary vlaues counter initialized with 0 value 
+        # Temporary values counter initialized with 0 value 
         TempCounter = 0 
         
         # While Stack is not empty repeat 

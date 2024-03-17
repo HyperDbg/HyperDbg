@@ -198,7 +198,7 @@ Return Value:
 
     //
     // Reset and disable the FIFO queue.
-    // N.B. FIFO will be reenabled before returning from this routine.
+    // N.B. FIFO will be re-enabled before returning from this routine.
     //
 
     Port->Write(Port, COM_FCR, FC_CLEAR_TRANSMIT | FC_CLEAR_RECEIVE);

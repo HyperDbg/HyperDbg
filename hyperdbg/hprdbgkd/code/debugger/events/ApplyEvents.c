@@ -285,7 +285,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             // We applied the hook and the pre-allocated buffers are used
             // for this hook, as here is a safe PASSIVE_LEVEL we can force
             // the Windows to reallocate some pools for us, thus, if this
-            // hook is continued to other pages, we still have pre-alloated
+            // hook is continued to other pages, we still have pre-allocated
             // buffers ready for our future hooks
             //
             if (!InputFromVmxRoot)
@@ -1347,7 +1347,7 @@ ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
     UNREFERENCED_PARAMETER(InputFromVmxRoot);
 
     //
-    // This is a dependant-event thus, it will be activated later by
+    // This is a dependent-event thus, it will be activated later by
     // another event and nothing needs to be initiated at this stage
     //
 

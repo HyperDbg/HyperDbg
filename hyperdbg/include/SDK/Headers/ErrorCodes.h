@@ -178,7 +178,7 @@
 #define DEBUGGER_ERROR_INVALID_REGISTER_NUMBER 0xc0000017
 
 /**
- * @brief error, maximum pools were used without continueing debuggee
+ * @brief error, maximum pools were used without continuing debuggee
  *
  */
 #define DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE 0xc0000018
