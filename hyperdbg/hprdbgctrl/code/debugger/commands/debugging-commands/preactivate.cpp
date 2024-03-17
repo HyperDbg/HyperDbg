@@ -34,18 +34,18 @@ CommandPreactivateHelp()
 /**
  * @brief preactivate command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPreactivate(vector<string> SplittedCommand, string Command)
+CommandPreactivate(vector<string> SplitCommand, string Command)
 {
     BOOL                         Status;
     ULONG                        ReturnedLength;
     DEBUGGER_PREACTIVATE_COMMAND PreactivateRequest = {0};
 
-    if (SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'Preactivate'\n\n");
         CommandPreactivateHelp();
@@ -55,17 +55,17 @@ CommandPreactivate(vector<string> SplittedCommand, string Command)
     //
     // Set the type of preactivation
     //
-    if (!SplittedCommand.at(1).compare("mode") || !SplittedCommand.at(1).compare("!mode"))
+    if (!SplitCommand.at(1).compare("mode") || !SplitCommand.at(1).compare("!mode"))
     {
         PreactivateRequest.Type = DEBUGGER_PREACTIVATE_COMMAND_TYPE_MODE;
     }
     else
     {
         //
-        // Couldn't resolve or unkonwn parameter
+        // Couldn't resolve or unknown parameter
         //
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         return;
     }
 

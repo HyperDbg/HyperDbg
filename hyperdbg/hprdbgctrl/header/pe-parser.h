@@ -1,7 +1,7 @@
 /**
  * @file pe-parser.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Header for Protable Execuatable parser
+ * @brief Header for Portable Executable parser
  * @details
  * @version 0.1
  * @date 2021-12-26

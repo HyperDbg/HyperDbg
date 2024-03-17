@@ -43,12 +43,12 @@ CommandGuHelp()
 /**
  * @brief handler of gu command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandGu(vector<string> SplittedCommand, string Command)
+CommandGu(vector<string> SplitCommand, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -57,7 +57,7 @@ CommandGu(vector<string> SplittedCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'gu'\n\n");
         CommandGuHelp();
@@ -72,9 +72,9 @@ CommandGu(vector<string> SplittedCommand, string Command)
     //
     // Check if the command has a counter parameter
     //
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount))
+        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandGuHelp();

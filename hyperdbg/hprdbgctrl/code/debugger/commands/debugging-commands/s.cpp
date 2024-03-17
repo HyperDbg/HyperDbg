@@ -130,12 +130,12 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
 /**
  * @brief !s* s* commands handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSearchMemory(vector<string> SplittedCommand, string Command)
+CommandSearchMemory(vector<string> SplitCommand, string Command)
 {
     UINT64                 Address;
     vector<UINT64>         ValuesToEdit;
@@ -152,7 +152,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     UINT32                 CountOfValues       = 0;
     UINT32                 FinalSize           = 0;
     UINT64 *               FinalBuffer         = NULL;
-    vector<string>         SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>         SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32                 IndexInCommandCaseSensitive = 0;
     BOOLEAN                IsFirstCommand              = TRUE;
 
@@ -165,14 +165,14 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
         ProcId = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplittedCommand.size() <= 4)
+    if (SplitCommand.size() <= 4)
     {
         ShowMessages("incorrect use of the 's*'\n\n");
         CommandSearchMemoryHelp();
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -232,7 +232,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
             if (!ConvertStringToUInt32(Section, &ProcId))
             {
-                ShowMessages("please specify a correct hex prcoess id\n\n");
+                ShowMessages("please specify a correct hex process id\n\n");
                 CommandSearchMemoryHelp();
                 return;
             }
@@ -288,10 +288,10 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
             {
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandSearchMemoryHelp();
                 return;
             }

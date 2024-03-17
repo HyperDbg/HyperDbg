@@ -314,7 +314,7 @@ HvResumeToNextInstruction()
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param VCpu The virtual processor's state
  *
@@ -1132,7 +1132,7 @@ UINT16
 HvGetCsSelector()
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
     UINT64 CsSel = NULL64_ZERO;

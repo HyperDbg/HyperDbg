@@ -218,7 +218,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief Default buffer count of packets for message tracing
- * @details number of packets storage for regualr buffers
+ * @details number of packets storage for regular buffers
  */
 #define MaximumPacketsCapacity 1000
 
@@ -240,7 +240,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief size of user-mode buffer
- * @details Because of Opeation code at the start of the
+ * @details Because of operation code at the start of the
  * buffer + 1 for null-termminating
  *
  */
@@ -304,7 +304,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief The size of each chunk of memory used in the 'memcpy' function
- * of the script engine for transfering buffers in the VMX-root mode
+ * of the script engine for transferring buffers in the VMX-root mode
  *
  */
 #define DebuggerScriptEngineMemcpyMovingBufferSize 64
@@ -538,7 +538,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief maximum supported modules to load
- * their symbol informations
+ * their symbol information
  */
 #define MAXIMUM_SUPPORTED_SYMBOLS 1000
 
@@ -710,7 +710,7 @@ const unsigned char BuildSignature[] = {
 #define DEBUGGEE_BP_APPLY_TO_ALL_THREADS 0xffffffff
 
 /**
- * @brief for reading all regisers in r command.
+ * @brief for reading all registers in r command.
  *
  */
 #define DEBUGGEE_SHOW_ALL_REGISTERS 0xffffffff

@@ -334,7 +334,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         // Only for the first time execution of the loop, we save these details,
         // it is because after this condition, the hook is applied and by applying
         // the hook, we have to make sure that the address is saved g_EptState->HookedPagesList
-        // because the hook might be simulatenously triggered from other cores
+        // because the hook might be simultaneously triggered from other cores
         //
         if (i == 0)
         {
@@ -650,7 +650,7 @@ EptHookFromVmxRoot(PVOID TargetAddress)
  * @param PhysicalAddress
  * @param OriginalEntry
  *
- * @return BOOLEAN Return false if there was an error or returns true if it was successfull
+ * @return BOOLEAN Return false if there was an error or returns true if it was successful
  */
 BOOLEAN
 EptHookRestoreSingleHookToOriginalEntry(VIRTUAL_MACHINE_STATE *     VCpu,
@@ -1165,7 +1165,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
 
         //
         // Make sure if handler function is valid or if it's default
-        // then we set it to the default hanlder
+        // then we set it to the default handler
         //
         if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_EPTHOOK2 *)HookingDetails)->HookFunction == NULL)
         {
@@ -1283,7 +1283,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         // Only for the first time execution of the loop, we save these details,
         // it is because after this condition, the hook is applied and by applying
         // the hook, we have to make sure that the address is saved g_EptState->HookedPagesList
-        // because the hook might be simulatenously triggered from other cores
+        // because the hook might be simultaneously triggered from other cores
         //
         if (i == 0)
         {
@@ -1353,7 +1353,7 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
             //
             // In the current design of hyperdbg we use execute-only pages
             // to implement hidden hooks for exec page, so your processor doesn't
-            // have this feature and you have to implment it in other ways :(
+            // have this feature and you have to implement it in other ways :(
             //
             return FALSE;
         }
@@ -1780,7 +1780,7 @@ EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
 }
 
 /**
- * @brief Remove the enrty from g_EptHook2sDetourListHead in the case
+ * @brief Remove the entry from g_EptHook2sDetourListHead in the case
  * of !epthook2 details
  * @param Address Address to remove
  * @return BOOLEAN TRUE if successfully removed and false if not found
@@ -1873,7 +1873,7 @@ EptHookUnHookSingleAddressDetoursAndMonitor(PEPT_HOOKED_PAGE_DETAIL             
     TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
 
     //
-    // If applied directly from VMX-root mode, it's the responsiblity of the
+    // If applied directly from VMX-root mode, it's the responsibility of the
     // caller to remove the hook and invalidate EPT caches for the target physical address
     //
     if (ApplyDirectlyFromVmxRoot)
@@ -2028,13 +2028,13 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 TargetUnhookingDetails->OriginalEntry   = HookedEntry->OriginalEntry.AsUInt;
 
                 //
-                // If applied directly from VMX-root mode, it's the responsiblity of the
+                // If applied directly from VMX-root mode, it's the responsibility of the
                 // caller to remove the hook and invalidate EPT caches for the target physical address
                 //
                 if (ApplyDirectlyFromVmxRoot)
                 {
                     //
-                    // The caller is responsibe for restoring EPT entry and invalidate caches
+                    // The caller is responsible for restoring EPT entry and invalidate caches
                     //
                     TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = TRUE;
                 }
@@ -2062,14 +2062,14 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 }
 
                 //
-                // Check if there is any other breakpoints, if no then we have to disalbe
+                // Check if there is any other breakpoints, if no then we have to disable
                 // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
                 // to visit all the entries to see if there is any entries
                 //
                 if (EptHookGetCountOfEpthooks(FALSE) == 0)
                 {
                     //
-                    // If applied directly from VMX-root mode, it's the responsiblity of the
+                    // If applied directly from VMX-root mode, it's the responsibility of the
                     // caller to broadcast to disable breakpoint exceptions on all cores
                     //
                     if (ApplyDirectlyFromVmxRoot)

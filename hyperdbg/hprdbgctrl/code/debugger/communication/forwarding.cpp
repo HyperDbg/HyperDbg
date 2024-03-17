@@ -140,7 +140,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
     if (SourceDescriptor->Type == EVENT_FORWARDING_FILE)
     {
         //
-        // Close the hanlde
+        // Close the handle
         //
         CloseHandle(SourceDescriptor->Handle);
 

@@ -31,12 +31,12 @@ CommandRdmsrHelp()
 /**
  * @brief rdmsr command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandRdmsr(vector<string> SplittedCommand, string Command)
+CommandRdmsr(vector<string> SplitCommand, string Command)
 {
     BOOL                           Status;
     SYSTEM_INFO                    SysInfo;
@@ -49,14 +49,14 @@ CommandRdmsr(vector<string> SplittedCommand, string Command)
     UINT32                         CoreNumer      = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
     BOOLEAN                        IsFirstCommand = TRUE;
 
-    if (SplittedCommand.size() >= 5)
+    if (SplitCommand.size() >= 5)
     {
         ShowMessages("incorrect use of the 'rdmsr'\n\n");
         CommandRdmsrHelp();
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (IsFirstCommand == TRUE)
         {
@@ -120,7 +120,7 @@ CommandRdmsr(vector<string> SplittedCommand, string Command)
     NumCPU = SysInfo.dwNumberOfProcessors;
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     UINT64 * OutputBuffer = (UINT64 *)malloc(sizeof(UINT64) * NumCPU);
 

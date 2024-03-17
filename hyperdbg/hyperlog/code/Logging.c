@@ -29,9 +29,9 @@
  */
 BOOLEAN inline LogCheckVmxOperation()
 {
-    CHECK_VMX_OPERATION VmxOpeationCheck = g_MsgTracingCallbacks.VmxOpeationCheck;
+    CHECK_VMX_OPERATION VmxOperationCheck = g_MsgTracingCallbacks.VmxOperationCheck;
 
-    if (VmxOpeationCheck == NULL)
+    if (VmxOperationCheck == NULL)
     {
         //
         // As the caller didn't defined a checker for vmx operation, we assume
@@ -43,7 +43,7 @@ BOOLEAN inline LogCheckVmxOperation()
     //
     // The user specified a vmx checker
     //
-    return VmxOpeationCheck();
+    return VmxOperationCheck();
 }
 
 /**
@@ -347,7 +347,7 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
  * @param Buffer Buffer to be send to user mode
  * @param BufferLength Length of the buffer
  * @param Priority Whether the buffer has priority
- * @return BOOLEAN Returns true if the buffer succssfully set to be
+ * @return BOOLEAN Returns true if the buffer successfully set to be
  * send to user mode and false if there was an error
  */
 _Use_decl_annotations_
@@ -480,9 +480,9 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     // Set the header
     //
-    Header->OpeationNumber = OperationCode;
-    Header->BufferLength   = BufferLength;
-    Header->Valid          = TRUE;
+    Header->OperationNumber = OperationCode;
+    Header->BufferLength    = BufferLength;
+    Header->Valid           = TRUE;
 
     //
     // ******** Now it's time to fill the buffer ********
@@ -706,7 +706,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
  * @param BufferToSaveMessage Target buffer to save the message
  * @param ReturnedLength The actual length of the buffer that this function used it
- * @return BOOLEAN return of this function shows whether the read was successfull
+ * @return BOOLEAN return of this function shows whether the read was successful
  * or not (e.g FALSE shows there's no new buffer available.)
  */
 BOOLEAN
@@ -799,7 +799,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // First copy the header
     //
-    RtlCopyBytes(BufferToSaveMessage, &Header->OpeationNumber, sizeof(UINT32));
+    RtlCopyBytes(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
 
     //
     // Second, save the buffer contents
@@ -827,7 +827,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Means that show just messages
     //
-    if (Header->OpeationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
+    if (Header->OperationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
     {
         //
         // We're in Dpc level here so it's safe to use DbgPrint
@@ -860,7 +860,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     Header->Valid = FALSE;
 
     //
-    // Set the length to show as the ReturnedByted in usermode ioctl funtion + size of header
+    // Set the length to show as the ReturnedByted in usermode ioctl function + size of header
     //
     *ReturnedLength = Header->BufferLength + sizeof(UINT32);
 

@@ -377,12 +377,12 @@ CommandLmShowKernelModeModule(const char * SearchModule)
 /**
  * @brief handle lm command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandLm(vector<string> SplittedCommand, string Command)
+CommandLm(vector<string> SplitCommand, string Command)
 {
     BOOLEAN SetPid                = FALSE;
     BOOLEAN SetSearchFilter       = FALSE;
@@ -396,7 +396,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("lm"))
         {
@@ -415,7 +415,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt32(Section, &TargetPid))
             {
                 //
-                // couldn't resolve or unkonwn parameter
+                // couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              Section.c_str());

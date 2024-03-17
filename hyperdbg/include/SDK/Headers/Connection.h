@@ -139,7 +139,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
 /**
- * @brief enum for diffrent packet types in HyperDbg packets
+ * @brief enum for different packet types in HyperDbg packets
  *
  */
 typedef enum _DEBUGGER_REMOTE_PACKET_TYPE

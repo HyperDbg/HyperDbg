@@ -44,12 +44,12 @@ CommandPHelp()
 /**
  * @brief handler of p command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandP(vector<string> SplittedCommand, string Command)
+CommandP(vector<string> SplitCommand, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -57,7 +57,7 @@ CommandP(vector<string> SplittedCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'p'\n\n");
         CommandPHelp();
@@ -72,9 +72,9 @@ CommandP(vector<string> SplittedCommand, string Command)
     //
     // Check if the command has a counter parameter
     //
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount))
+        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandPHelp();
@@ -132,7 +132,7 @@ CommandP(vector<string> SplittedCommand, string Command)
                                            RequestFormat);
             }
 
-            if (!SplittedCommand.at(0).compare("pr"))
+            if (!SplitCommand.at(0).compare("pr"))
             {
                 //
                 // Show registers

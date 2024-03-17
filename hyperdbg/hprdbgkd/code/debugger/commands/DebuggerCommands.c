@@ -955,7 +955,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
 
         //
-        // Align the page and search with alignement
+        // Align the page and search with alignment
         //
         TempStartAddress = StartAddress;
         StartAddress     = (UINT64)PAGE_ALIGN(StartAddress);
@@ -1124,7 +1124,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     UsermodeBuffer = (UINT64 *)SearchMemRequest;
 
     //
-    // We store the user-mode data in a seprate variable because
+    // We store the user-mode data in a separate variable because
     // we will use them later when we Zeroed the SearchMemRequest
     //
     AddressFrom = SearchMemRequest->Address;

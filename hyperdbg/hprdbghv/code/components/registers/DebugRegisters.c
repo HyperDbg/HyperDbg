@@ -20,7 +20,7 @@
  * Also, the caller must be sure that Load Debug Controls and Save Debug
  * Controls on VM-entry and VM-exit controls on the VMCS of the
  * target core, vmcalls VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS and
- * VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designd for this purpose
+ * VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designed for this purpose
  * should be called on vmx-root mode if the ApplyToVmcs is TRUE
  *
  * @param DebugRegNum Debug register that want to apply to it (can be between

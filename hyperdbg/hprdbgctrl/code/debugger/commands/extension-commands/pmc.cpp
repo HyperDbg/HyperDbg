@@ -35,12 +35,12 @@ CommandPmcHelp()
 /**
  * @brief !pmc command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPmc(vector<string> SplittedCommand, string Command)
+CommandPmc(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -50,7 +50,7 @@ CommandPmc(vector<string> SplittedCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -58,8 +58,8 @@ CommandPmc(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             PMC_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -77,7 +77,7 @@ CommandPmc(vector<string> SplittedCommand, string Command)
     //
     // Check for size
     //
-    if (SplittedCommand.size() > 1)
+    if (SplitCommand.size() > 1)
     {
         ShowMessages("incorrect use of the '!pmc'\n");
         CommandPmcHelp();

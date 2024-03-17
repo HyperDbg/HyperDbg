@@ -35,18 +35,18 @@ CommandPeHelp()
 /**
  * @brief .pe command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPe(vector<string> SplittedCommand, string Command)
+CommandPe(vector<string> SplitCommand, string Command)
 {
     BOOLEAN Is32Bit = FALSE;
     wstring Filepath;
     BOOLEAN ShowDumpOfSection = FALSE;
 
-    if (SplittedCommand.size() <= 2)
+    if (SplitCommand.size() <= 2)
     {
         ShowMessages("err, incorrect use of the '.pe' command\n\n");
         CommandPeHelp();
@@ -56,9 +56,9 @@ CommandPe(vector<string> SplittedCommand, string Command)
     //
     // Check for first option
     //
-    if (!SplittedCommand.at(1).compare("section"))
+    if (!SplitCommand.at(1).compare("section"))
     {
-        if (SplittedCommand.size() == 3)
+        if (SplitCommand.size() == 3)
         {
             ShowMessages("please specify a valid PE file\n\n");
             CommandPeHelp();
@@ -66,17 +66,17 @@ CommandPe(vector<string> SplittedCommand, string Command)
         }
         ShowDumpOfSection = TRUE;
     }
-    else if (!SplittedCommand.at(1).compare("header"))
+    else if (!SplitCommand.at(1).compare("header"))
     {
         ShowDumpOfSection = FALSE;
     }
     else
     {
         //
-        // Couldn't resolve or unkonwn parameter
+        // Couldn't resolve or unknown parameter
         //
         ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         CommandPeHelp();
         return;
     }
@@ -89,7 +89,7 @@ CommandPe(vector<string> SplittedCommand, string Command)
     //
     // Remove .pe from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     if (!ShowDumpOfSection)
     {
@@ -108,7 +108,7 @@ CommandPe(vector<string> SplittedCommand, string Command)
         //
         // Remove the string param for section + space
         //
-        Command.erase(0, SplittedCommand.at(2).size() + 1);
+        Command.erase(0, SplitCommand.at(2).size() + 1);
     }
 
     //
@@ -141,6 +141,6 @@ CommandPe(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        PeShowSectionInformationAndDump(Filepath.c_str(), SplittedCommand.at(2).c_str(), Is32Bit);
+        PeShowSectionInformationAndDump(Filepath.c_str(), SplitCommand.at(2).c_str(), Is32Bit);
     }
 }

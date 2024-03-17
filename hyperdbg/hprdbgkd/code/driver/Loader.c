@@ -29,7 +29,7 @@ LoaderInitVmmAndDebugger()
     //
     // Fill the callbacks for the message tracer
     //
-    MsgTracingCallbacks.VmxOpeationCheck             = VmFuncVmxGetCurrentExecutionMode;
+    MsgTracingCallbacks.VmxOperationCheck             = VmFuncVmxGetCurrentExecutionMode;
     MsgTracingCallbacks.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
     MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
 

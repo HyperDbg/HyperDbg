@@ -77,7 +77,7 @@ typedef struct _TOKEN
 } TOKEN, *PTOKEN;
 
 /**
- * @brief this structure is a dynamic containter of TOKENS
+ * @brief this structure is a dynamic container of TOKENS
  */
 typedef struct _TOKEN_LIST
 {

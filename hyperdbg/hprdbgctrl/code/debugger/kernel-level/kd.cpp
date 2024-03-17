@@ -110,7 +110,7 @@ KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 }
 
 /**
- * @brief calculate the checksum of recived buffer from debugger
+ * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
  * @param LengthReceived
@@ -779,7 +779,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForProcessList != NULL)
     {
@@ -832,7 +832,7 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForThreadList != NULL)
     {
@@ -1130,7 +1130,7 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBre
 }
 
 /**
- * @brief Sends seach query request packet to the debuggee
+ * @brief Sends search query request packet to the debuggee
  * @param SearchRequestBuffer
  * @param SearchRequestBufferSize
  *
@@ -1251,7 +1251,7 @@ KdSendPausePacketToDebuggee()
 }
 
 /**
- * @brief Get Windows name, version and build to send to debuggger
+ * @brief Get Windows name, version and build to send to debugger
  *
  * @param BufferToSave
  *
@@ -2217,7 +2217,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               0,                            // Non Overlapped I/O
@@ -2236,7 +2236,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               FILE_FLAG_OVERLAPPED,         // Overlapped I/O
@@ -2273,7 +2273,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         SerialParams.DCBlength = sizeof(SerialParams);
 
         //
-        // retreives the current settings
+        // retrieves the current settings
         //
         Status = GetCommState(Comm, &SerialParams);
 
@@ -3028,7 +3028,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
         //
         // By the way, we don't need to send an input buffer
         // to the kernel, but let's keep it like this, if we
-        // want to pass some other aguments to the kernel in
+        // want to pass some other arguments to the kernel in
         // the future
         //
         Status = DeviceIoControl(

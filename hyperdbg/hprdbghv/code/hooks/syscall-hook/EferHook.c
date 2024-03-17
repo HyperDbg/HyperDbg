@@ -1,7 +1,7 @@
 /**
  * @file EferHook.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Implenetation of the fucntions related to the EFER Syscall Hook
+ * @brief Implementation of the functions related to the EFER Syscall Hook
  * @details This is derived by the method demonstrated at
  * - https://revers.engineering/syscall-hooking-via-extended-feature-enable-register-efer/
  *
@@ -221,7 +221,7 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Detect whether the #UD was because of Syscall or Sysret or not
  *
  * @param VCpu The virtual processor's state
- * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not
+ * @return BOOLEAN Shows whether the caller should inject #UD on the guest or not
  */
 _Use_decl_annotations_
 BOOLEAN

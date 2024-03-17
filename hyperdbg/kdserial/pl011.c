@@ -29,7 +29,7 @@ Abstract:
 #define UART_CR    0x30 // Control register
 #define UART_IFLS  0x34 // Interrupt FIFO level select register
 #define UART_IMSC  0x38 // Interrupt mask set/clear
-#define UART_RIS   0x3C // Raw Interrrupt status
+#define UART_RIS   0x3C // Raw Interrupt status
 #define UART_MIS   0x40 // Masked interrupt status
 #define UART_ICR   0x44 // Interrupt clear register
 #define UART_DMACR 0x48 // DMA control register

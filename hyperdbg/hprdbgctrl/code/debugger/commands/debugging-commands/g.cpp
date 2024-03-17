@@ -85,14 +85,14 @@ CommandGRequest()
 /**
  * @brief handler of g command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandG(vector<string> SplittedCommand, string Command)
+CommandG(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the 'g'\n\n");
         CommandGHelp();

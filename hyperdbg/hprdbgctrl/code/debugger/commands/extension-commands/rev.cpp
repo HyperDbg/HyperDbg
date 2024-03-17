@@ -43,12 +43,12 @@ CommandRevHelp()
 /**
  * @brief !rev command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandRev(vector<string> SplittedCommand, string Command)
+CommandRev(vector<string> SplitCommand, string Command)
 {
     /*
     vector<string> PathAndArgs;
@@ -72,7 +72,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
 
 #endif // !ActivateUserModeDebugger
 
-    if (SplittedCommand.size() <= 2)
+    if (SplitCommand.size() <= 2)
     {
         ShowMessages("incorrect use of the '.start'\n\n");
         CommandStartHelp();
@@ -80,7 +80,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
     }
 
 
-    if (!SplittedCommand.at(1).compare("path"))
+    if (!SplitCommand.at(1).compare("path"))
     {
         //
         // *** It's a run of target PE file ***
@@ -94,7 +94,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
         //
         // Remove !rev from it
         //
-        Command.erase(0, SplittedCommand.at(0).size());
+        Command.erase(0, SplitCommand.at(0).size());
 
         //
         // Remove path + space
@@ -145,7 +145,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
     else
     {
         ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         CommandStartHelp();
         return;
     }
@@ -183,7 +183,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!rev") && IgnoreFirstCommand)
         {
@@ -199,7 +199,7 @@ CommandRev(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt32(Section, &TargetPid))
             {
                 //
-                // couldn't resolve or unkonwn parameter
+                // couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              Section.c_str());

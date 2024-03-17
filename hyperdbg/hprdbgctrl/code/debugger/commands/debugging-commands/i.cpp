@@ -47,12 +47,12 @@ CommandIHelp()
 /**
  * @brief handler of i command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandI(vector<string> SplittedCommand, string Command)
+CommandI(vector<string> SplitCommand, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -60,7 +60,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'i'\n\n");
         CommandIHelp();
@@ -84,9 +84,9 @@ CommandI(vector<string> SplittedCommand, string Command)
     //
     // Check if the command has a counter parameter
     //
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount))
+        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandIHelp();
@@ -122,7 +122,7 @@ CommandI(vector<string> SplittedCommand, string Command)
             //
             KdSendStepPacketToDebuggee(RequestFormat);
 
-            if (!SplittedCommand.at(0).compare("ir"))
+            if (!SplitCommand.at(0).compare("ir"))
             {
                 //
                 // Show registers

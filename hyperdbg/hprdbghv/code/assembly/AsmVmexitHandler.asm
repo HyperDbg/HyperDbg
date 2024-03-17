@@ -13,7 +13,7 @@ AsmVmexitHandler PROC
     
     push 0  ; we might be in an unaligned stack state, so the memory before stack might cause 
             ; irql less or equal as it doesn't exist, so we just put some extra space avoid
-            ; these kind of erros
+            ; these kind of errors
 
     pushfq
 

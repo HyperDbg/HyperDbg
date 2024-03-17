@@ -37,12 +37,12 @@ CommandIoinHelp()
 /**
  * @brief !ioin command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandIoin(vector<string> SplittedCommand, string Command)
+CommandIoin(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -54,15 +54,15 @@ CommandIoin(vector<string> SplittedCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_ALL_IO_PORTS;
     BOOLEAN                            GetPort                     = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
     // Interpret and fill the general event and action fields
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             IN_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -80,7 +80,7 @@ CommandIoin(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!ioin"))
         {
@@ -94,7 +94,7 @@ CommandIoin(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &SpecialTarget))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandIoinHelp();
@@ -110,7 +110,7 @@ CommandIoin(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandIoinHelp();

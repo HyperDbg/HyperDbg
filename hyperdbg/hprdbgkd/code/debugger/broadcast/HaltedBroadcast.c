@@ -524,7 +524,7 @@ HaltedBroadcastResetMsrBitmapWriteAllCores()
 /**
  * @brief This function broadcasts reset exception bitmap on VMCS to all cores
  * @details Should be called from VMX root-mode
- * THIS VMCALL SHOULD BE USED ONLY IN RESETING (CLEARING) EXCEPTION EVENTS
+ * THIS VMCALL SHOULD BE USED ONLY IN RESETTING (CLEARING) EXCEPTION EVENTS
  *
  * @return VOID
  */

@@ -81,7 +81,7 @@ UdUninitializeUserDebugger()
         }
 
         //
-        // Indicate that user debuggger is not initialized
+        // Indicate that user debugger is not initialized
         //
         g_IsUserDebuggerInitialized = FALSE;
     }
@@ -515,7 +515,7 @@ UdAttachToProcess(UINT32        TargetPid,
             if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
-                // The hook is remove successfuly
+                // The hook is remove successfully
                 //
                 break;
             }
@@ -532,7 +532,7 @@ UdAttachToProcess(UINT32        TargetPid,
             else
             {
                 //
-                // An error happend, we should not continue
+                // An error happened, we should not continue
                 //
                 ShowErrorMessage((UINT32)AttachRequest.Result);
                 return FALSE;

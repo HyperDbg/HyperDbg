@@ -118,10 +118,10 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
     //
     // Because there are different EPT hooks, like READ, WRITE, EXECUTE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
-    // not dependant to a single bit and if we remove or add any other hook
+    // not dependent to a single bit and if we remove or add any other hook
     // then it won't cause any problem for other hooks
     //
 
@@ -199,10 +199,10 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
-    // not dependant to a single bit and if we remove or add any other hook
+    // not dependent to a single bit and if we remove or add any other hook
     // then it won't cause any problem for other hooks
     //
 
@@ -237,10 +237,10 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
-    // not dependant to a single bit and if we remove or add any other hook
+    // not dependent to a single bit and if we remove or add any other hook
     // then it won't cause any problem for other hooks
     //
 
@@ -1668,7 +1668,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
     if (Result == TRUE)
     {
         //
-        // It's the responsiblity of the caller to restore EPT entries and
+        // It's the responsibility of the caller to restore EPT entries and
         // invalidate EPT caches
         //
         if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
@@ -1677,7 +1677,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
         }
 
         //
-        // It's the responsiblity of the caller to clear #BPs directly from
+        // It's the responsibility of the caller to clear #BPs directly from
         // VMX-root mode if applied from VMX-root mode
         //
         if (TargetUnhookingDetails.RemoveBreakpointInterception)

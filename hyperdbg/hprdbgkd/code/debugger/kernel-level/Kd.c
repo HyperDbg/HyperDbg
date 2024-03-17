@@ -193,17 +193,17 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 /**
  * @brief Add a DPC to dpc queue
  * @param Routine
- * @param Paramter
+ * @param Parameter
  * @param ProcessorNumber
  *
  * @return VOID
  */
 VOID
-KdFireDpc(PVOID Routine, PVOID Paramter)
+KdFireDpc(PVOID Routine, PVOID Parameter)
 {
     ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
-    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Paramter);
+    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Parameter);
 
     KeInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
 }
@@ -259,7 +259,7 @@ KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                
 }
 
 /**
- * @brief calculate the checksum of recived buffer from debugger
+ * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
  * @param LengthReceived
@@ -570,7 +570,7 @@ KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief continue the debuggee, this function gurantees that all other cores
+ * @brief continue the debuggee, this function guarantees that all other cores
  * are continued (except current core)
  * @param DbgState The state of the debugger on the current core
  * @param SpeialEventResponse
@@ -943,7 +943,7 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(PROCESSOR_DEBUGGING_STATE * DbgState)
     // execution and then we check for the possible pausing reasons.
     //
     // The pausing scenario should be checked two cases,
-    //      1. If the current core is stucked in spinlock of getting
+    //      1. If the current core is stuck in spinlock of getting
     //          the debug lock
     //      2. If the current core is making it self ready for the vm-entry
     //
@@ -1066,7 +1066,7 @@ KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
 
         //
         // If the core was in the middle of spinning on the spinlock
-        // of getting the debug lock, this mechansim is not needed,
+        // of getting the debug lock, this mechanism is not needed,
         // but if the core is not spinning there or the core is processing
         // a random vm-exit, then we inject an immediate vm-exit after vm-entry
         // or inject a DPC
@@ -1137,7 +1137,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
     else
     {
         //
-        // Only 16 bit is needed howerver, vmwrite might write on other bits
+        // Only 16 bit is needed however, vmwrite might write on other bits
         // and corrupt other variables, that's why we get 64bit
         //
         UINT64                           CsSel         = NULL64_ZERO;
@@ -1386,7 +1386,7 @@ VOID
 KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
     UINT64 CsSel = (UINT64)NULL;
@@ -1486,7 +1486,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 }
 
 /**
- * @brief Regualar step-in | step one instruction to the debuggee
+ * @brief Regular step-in | step one instruction to the debuggee
  * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
@@ -1503,7 +1503,7 @@ KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief Regualar step-over | step one instruction to the debuggee if
+ * @brief Regular step-over | step one instruction to the debuggee if
  * there is a call then it jumps the call
  *
  * @param DbgState The state of the debugger on the current core
@@ -2176,7 +2176,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     else
     {
         //
-        // Invalid parameter specifed in Action
+        // Invalid parameter specified in Action
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
     }
@@ -2721,7 +2721,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 SearchQueryPacket = (DEBUGGER_SEARCH_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Perfom the search in debuggee debuggee
+                // Perform the search in debuggee debuggee
                 // Call the search wrapper
                 //
 
@@ -2773,7 +2773,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 else
                 {
                     //
-                    // Send the response of event registeration to the debugger
+                    // Send the response of event registration to the debugger
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
@@ -2801,7 +2801,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 else
                 {
                     //
-                    // Send the response of event registeration to the debugger
+                    // Send the response of event registration to the debugger
                     //
                     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
@@ -3009,7 +3009,7 @@ BOOLEAN
 KdIsGuestOnUsermode32Bit()
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
     UINT64 CsSel = (UINT64)NULL;

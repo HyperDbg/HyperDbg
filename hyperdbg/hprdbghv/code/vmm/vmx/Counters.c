@@ -23,7 +23,7 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // I realized that if you log anything here (LogInfo) then
     // the system-halts, currently don't have any idea of how
-    // to solve it, in the future we solve it using tsc offseting
+    // to solve it, in the future we solve it using tsc offsetting
     // or tsc scalling (The reason is because of that fucking patchguard :( )
     //
     UINT64      Tsc       = __rdtsc();

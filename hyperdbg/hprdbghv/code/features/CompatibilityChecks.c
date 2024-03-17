@@ -145,7 +145,7 @@ CompatibilityCheckPml()
 }
 
 /**
- * @brief Checks for the compatiblity features based on current processor
+ * @brief Checks for the compatibility features based on current processor
  * @detail NOTE: NOT ALL OF THE CHECKS ARE PERFORMED HERE
  * @return VOID
  */

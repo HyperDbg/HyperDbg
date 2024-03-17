@@ -45,16 +45,16 @@ CommandListenHelp()
 /**
  * @brief listen command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandListen(vector<string> SplittedCommand, string Command)
+CommandListen(vector<string> SplitCommand, string Command)
 {
     string port;
 
-    if (SplittedCommand.size() >= 3)
+    if (SplitCommand.size() >= 3)
     {
         //
         // Means that user entered invalid parameters
@@ -82,7 +82,7 @@ CommandListen(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         //
         // listen on default port
@@ -92,9 +92,9 @@ CommandListen(vector<string> SplittedCommand, string Command)
 
         return;
     }
-    else if (SplittedCommand.size() == 2)
+    else if (SplitCommand.size() == 2)
     {
-        port = SplittedCommand.at(1);
+        port = SplitCommand.at(1);
 
         //
         // means that probably wants to listen

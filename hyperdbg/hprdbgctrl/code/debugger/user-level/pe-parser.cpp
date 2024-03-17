@@ -1,7 +1,7 @@
 /**
  * @file pe-parser.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Protable Execuatable parser
+ * @brief Portable Executable parser
  * @details
  * @version 0.1
  * @date 2021-12-26
@@ -44,7 +44,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
         if (i % 16 == 0)
         {
             //
-            // print the chracter dump to the right
+            // print the character dump to the right
             //
             _putws(Buf);
             if (i + 1 <= Size)
@@ -223,9 +223,9 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     }
 
     //
-    // Determine Machine Architechture
+    // Determine Machine Architecture
     //
-    ShowMessages("\n%-36s", "Machine Architechture :");
+    ShowMessages("\n%-36s", "Machine Architecture :");
 
     //
     // Only few are determined (for remaining refer
@@ -363,7 +363,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                  "Info....\n--------------------------------");
 
     //
-    // Retrive a pointer to First Section Header(or Section Table Entry)
+    // Retrieve a pointer to First Section Header(or Section Table Entry)
     //
     if (Is32Bit)
     {

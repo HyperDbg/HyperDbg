@@ -92,11 +92,11 @@ static VOID
 KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 
 static VOID
-KdFireDpc(PVOID Routine, PVOID Paramter);
+KdFireDpc(PVOID Routine, PVOID Parameter);
 
 static BYTE
 KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
-                      _In_ UINT32                        Length);
+                      _In_ UINT32                    Length);
 
 static VOID
 KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState);

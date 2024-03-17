@@ -332,7 +332,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 
     //
     // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertable.
+    // These pointers occupy the same place in the table and are directly convertible.
     //
     PML2Pointer = (PEPT_PML2_POINTER)PML2;
 
@@ -397,7 +397,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
 
     //
     // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertable.
+    // These pointers occupy the same place in the table and are directly convertible.
     //
     PML2Pointer = (PEPT_PML2_POINTER)PML2;
 
@@ -625,7 +625,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
 
         if (!TargetBuffer)
         {
-            LogError("Err, cannot allocate page for spliting edge large pages");
+            LogError("Err, cannot allocate page for splitting edge large pages");
             return FALSE;
         }
 
@@ -871,7 +871,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             //
             // Reaching here means that the hooks was actually caused VM-exit because of
             // our configurations, but here we double whether the hook needs to trigger
-            // any event or not becuase the hooking address (physical) might not be in the
+            // any event or not because the hooking address (physical) might not be in the
             // target range. For example we might hook 0x123b000 to 0x123b300 but the hook
             // happens on 0x123b4600, so we perform the necessary checks here
             //
@@ -1095,7 +1095,7 @@ EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
     }
     else
     {
-        LogError("Err, invald invalidation parameter");
+        LogError("Err, invalid invalidation parameter");
     }
 }
 

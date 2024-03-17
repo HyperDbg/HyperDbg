@@ -47,24 +47,24 @@ CommandKHelp()
 /**
  * @brief k command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandK(vector<string> SplittedCommand, string Command)
+CommandK(vector<string> SplitCommand, string Command)
 {
     UINT64         BaseAddress = NULL;  // Null base address means current RSP register
     UINT32         Length      = 0x100; // Default length
-    vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
     BOOLEAN        IsFirstCommand              = TRUE;
     BOOLEAN        IsNextBase                  = FALSE;
     BOOLEAN        IsNextLength                = FALSE;
 
-    string FirstCommand = SplittedCommand.front();
+    string FirstCommand = SplitCommand.front();
 
-    if (SplittedCommand.size() >= 6)
+    if (SplitCommand.size() >= 6)
     {
         ShowMessages("incorrect use of the '%s'\n\n", FirstCommand.c_str());
         CommandKHelp();
@@ -90,7 +90,7 @@ CommandK(vector<string> SplittedCommand, string Command)
         Length = 0x200;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -101,14 +101,14 @@ CommandK(vector<string> SplittedCommand, string Command)
         }
         if (IsNextBase == TRUE)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                                                   &BaseAddress))
             {
                 //
-                // Couldn't resolve or unkonwn parameter
+                // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 return;
             }
 

@@ -27,14 +27,14 @@ CommandCpuHelp()
 /**
  * @brief cpu command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandCpu(vector<string> SplittedCommand, string Command)
+CommandCpu(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the 'cpu'\n\n");
         CommandCpuHelp();

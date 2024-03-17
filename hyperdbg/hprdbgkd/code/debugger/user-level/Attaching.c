@@ -1319,7 +1319,7 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
 
     //
     // If the threads are paused, we can't detach from the target process
-    // before sending this request, the debuggger should continued all the
+    // before sending this request, the debugger should continued all the
     // threads by sending a continue packet
     //
     if (ThreadHolderIsAnyPausedThreadInProcess(ProcessDebuggingDetail))

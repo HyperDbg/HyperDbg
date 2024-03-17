@@ -61,7 +61,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 }
 
 /**
- * @brief Handle Nmi and expection vm-exits
+ * @brief Handle NMI and exception vm-exits
  *
  * @param VCpu The virtual processor's state
  * @param InterruptExit interrupt exit information
@@ -76,7 +76,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception's vector was set to 1
     //	2: An NMI was delivered to the logical processor and the "NMI exiting" VM-execution control was 1.
     //
-    // VMCS_VMEXIT_INTERRUPTION_INFORMATION shows the exit infromation about event that occurred and causes this exit
+    // VMCS_VMEXIT_INTERRUPTION_INFORMATION shows the exit information about event that occurred and causes this exit
     // Don't forget to read VMCS_VMEXIT_INTERRUPTION_ERROR_CODE in the case of re-injectiong event
     //
 
@@ -247,13 +247,13 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         VCpu->EnableExternalInterruptsOnContinueMtf)
     {
         //
-        // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
+        // Ignore the interrupt as it's suppressed because of instrumentation step-in
         //
 
         //
         // During developing HyperDbg, we realized that if we just ignore the interrupts completely
         // while we are waiting on 'i' instrumentation step-in command, then the serial device becomes
-        // unresposive, to solve this issue we hold the details of interrupts so we can re-inject
+        // unresponsive, to solve this issue we hold the details of interrupts so we can re-inject
         // and process them when we decide to continue the debuggee (guest interrupt windows is open)
         // this way, the serial device works normally and won't become unresponsive
         //

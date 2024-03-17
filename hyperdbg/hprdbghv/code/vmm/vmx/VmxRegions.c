@@ -39,7 +39,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
 #endif // ENV_WINDOWS
 
     //
-    // Allocating a 4-KByte Contigous Memory region
+    // Allocating a 4-KByte Contiguous Memory region
     //
     VmxonSize   = 2 * VMXON_SIZE;
     VmxonRegion = CrsAllocateContiguousZeroedMemory(VmxonSize + ALIGNMENT_PAGE_SIZE);
@@ -118,7 +118,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
 #endif // ENV_WINDOWS
 
     //
-    // Allocating a 4-KByte Contigous Memory region
+    // Allocating a 4-KByte Contiguous Memory region
     //
     VmcsSize   = 2 * VMCS_SIZE;
     VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE);
@@ -173,7 +173,7 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     if (VCpu->VmmStack == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg vmm stack");
+        LogError("Err, insufficient memory in allocating vmm stack");
         return FALSE;
     }
 
@@ -183,7 +183,7 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief Allocate a buffer forr Msr Bitmap
+ * @brief Allocate a buffer for Msr Bitmap
  *
  * @param VCpu The virtual processor's state
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
@@ -199,7 +199,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     if (VCpu->MsrBitmapVirtualAddress == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg MSR Bitmaps");
+        LogError("Err, insufficient memory in allocating MSR Bitmaps");
         return FALSE;
     }
 
@@ -212,7 +212,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief Allocate a buffer forr I/O Bitmap
+ * @brief Allocate a buffer for I/O Bitmap
  *
  * @param ProcessorID
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
@@ -227,7 +227,7 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     if (VCpu->IoBitmapVirtualAddressA == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg I/O Bitmaps A");
+        LogError("Err, insufficient memory in allocating I/O Bitmaps A");
         return FALSE;
     }
 
@@ -243,7 +243,7 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     if (VCpu->IoBitmapVirtualAddressB == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg I/O Bitmaps B");
+        LogError("Err, insufficient memory in allocating I/O Bitmaps B");
         return FALSE;
     }
 

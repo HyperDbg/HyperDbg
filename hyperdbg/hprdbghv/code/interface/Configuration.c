@@ -166,7 +166,7 @@ ConfigureEptHookUnHookSingleAddress(UINT64 VirtualAddress,
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
- * @details Should be called from vmx root-mode and it's the responsiblity
+ * @details Should be called from vmx root-mode and it's the responsibility
  * of caller to broadcast to all cores to remove the target physical address
  * and invalidate EPT and modify exception bitmap (#BPs) if needed
  *

@@ -285,7 +285,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             // We applied the hook and the pre-allocated buffers are used
             // for this hook, as here is a safe PASSIVE_LEVEL we can force
             // the Windows to reallocate some pools for us, thus, if this
-            // hook is continued to other pages, we still have pre-alloated
+            // hook is continued to other pages, we still have pre-allocated
             // buffers ready for our future hooks
             //
             if (!InputFromVmxRoot)
@@ -302,7 +302,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
     //
     // If applied directly from VMX root-mode,
-    // As the call to hook adjuster was successfull, we have to
+    // As the call to hook adjuster was successful, we have to
     // invalidate the TLB of EPT caches for all cores here
     //
     if (InputFromVmxRoot)
@@ -398,7 +398,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         else
         {
             //
-            // As the call to hook adjuster was successfull, we have to
+            // As the call to hook adjuster was successful, we have to
             // invalidate the TLB of EPT caches for all cores here
             //
             HaltedBroadcastInvalidateSingleContextAllCores();
@@ -502,7 +502,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         else
         {
             //
-            // As the call to hook adjuster was successfull, we have to
+            // As the call to hook adjuster was successful, we have to
             // invalidate the TLB of EPT caches for all cores here
             //
             HaltedBroadcastInvalidateSingleContextAllCores();
@@ -1242,7 +1242,7 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
     if (InputFromVmxRoot)
     {
         //
-        // The event registeration is coming from VMX root-mode, we
+        // The event registration is coming from VMX root-mode, we
         // cannot initialize this event in VMX-root mode, so we need
         // to check whether it's already activated (using the 'preactivate' command)
         // or not and if it's activated then we can just add the current process
@@ -1278,7 +1278,7 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
     else
     {
         //
-        // The event registeration is coming from VMX non-root mode so we
+        // The event registration is coming from VMX non-root mode so we
         // can initialize this mechanism if it's not already initialized
         //
 
@@ -1347,7 +1347,7 @@ ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
     UNREFERENCED_PARAMETER(InputFromVmxRoot);
 
     //
-    // This is a dependant-event thus, it will be activated later by
+    // This is a dependent-event thus, it will be activated later by
     // another event and nothing needs to be initiated at this stage
     //
 

@@ -37,12 +37,12 @@ CommandCpuidHelp()
 /**
  * @brief !cpuid command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandCpuid(vector<string> SplittedCommand, string Command)
+CommandCpuid(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -54,7 +54,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -62,8 +62,8 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             CPUID_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -81,7 +81,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any), of CPUID EAX index
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!cpuid"))
         {
@@ -95,7 +95,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &SpecialTarget))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandCpuidHelp();
@@ -114,7 +114,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandCpuidHelp();

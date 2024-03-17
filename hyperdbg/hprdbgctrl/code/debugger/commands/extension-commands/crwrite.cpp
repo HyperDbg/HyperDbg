@@ -36,12 +36,12 @@ CommandCrwriteHelp()
 /**
  * @brief !crwrite command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandCrwrite(vector<string> SplittedCommand, string Command)
+CommandCrwrite(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -55,10 +55,10 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
     UINT64                             MaskRegister                = 0xFFFFFFFFFFFFFFFF;
     BOOLEAN                            GetRegister                 = FALSE;
     BOOLEAN                            GetMask                     = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplittedCommand.size() < 2)
+    if (SplitCommand.size() < 2)
     {
         ShowMessages("incorrect use of the '!crwrite'\n");
         CommandCrwriteHelp();
@@ -70,8 +70,8 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             CONTROL_REGISTER_MODIFIED,
             &Event,
             &EventLength,
@@ -89,7 +89,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!crwrite"))
         {
@@ -103,7 +103,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &TargetRegister))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandCrwriteHelp();
@@ -121,7 +121,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &MaskRegister))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandCrwriteHelp();
@@ -137,7 +137,7 @@ CommandCrwrite(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandCrwriteHelp();

@@ -25,7 +25,7 @@ VmFuncPerformRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param CoreId Target core's ID
  * @return VOID
@@ -37,7 +37,7 @@ VmFuncSuppressRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress unsetting MTF
+ * @brief Suppress unsetting MTF
  *
  * @param CoreId Target core's ID
  * @param Set State of setting or unsetting
@@ -544,7 +544,7 @@ VmFuncUninitVmm()
 }
 
 /**
- * @brief Get the current vmx opeation state
+ * @brief Get the current VMX operation state
  *
  * @return BOOLEAN
  */
@@ -689,7 +689,7 @@ VmFuncVmxVmcall(unsigned long long VmcallNumber,
 }
 
 /**
- * @brief Export for initialize the VMX Broadcast mechansim
+ * @brief Export for initialize the VMX Broadcast mechanism
  *
  * @return VOID
  */
@@ -700,7 +700,7 @@ VmFuncVmxBroadcastInitialize()
 }
 
 /**
- * @brief Export for uninitialize the VMX Broadcast mechansim
+ * @brief Export for uninitialize the VMX Broadcast mechanism
  *
  * @return VOID
  */

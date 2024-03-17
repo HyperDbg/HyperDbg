@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief Initialize the VMX Broadcast mechansim
+ * @brief Initialize the VMX Broadcast mechanism
  *
  * @return VOID
  */
@@ -45,7 +45,7 @@ VmxBroadcastInitialize()
 }
 
 /**
- * @brief Uninitialize the VMX Broadcast mechansim
+ * @brief Uninitialize the VMX Broadcast mechanism
  *
  * @return VOID
  */

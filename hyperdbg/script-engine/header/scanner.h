@@ -20,7 +20,7 @@
 PTOKEN_LIST IdTable;
 
 /**
- * @brief 
+ * @brief
  */
 PTOKEN_LIST FunctionParameterIdTable;
 
@@ -35,12 +35,12 @@ unsigned int InputIdx;
 unsigned int CurrentLine;
 
 /*
- * @brief current line start postion
+ * @brief current line start position
  */
 unsigned int CurrentLineIdx;
 
 /*
- * @brief curren PTOKEN start postion
+ * @brief current PTOKEN start position
  */
 unsigned int CurrentTokenIdx;
 

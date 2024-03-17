@@ -72,12 +72,12 @@ CommandSysretHelp()
 /**
  * @brief !syscall, !syscall2 and !sysret, !sysret2 commands handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
+CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -89,7 +89,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS;
     BOOLEAN                            GetSyscallNumber            = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
     string                             Cmd;
 
@@ -97,12 +97,12 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     //
-    Cmd = SplittedCommand.at(0);
+    Cmd = SplitCommand.at(0);
     if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
         if (!InterpretGeneralEventAndActionsFields(
-                &SplittedCommand,
-                &SplittedCommandCaseSensitive,
+                &SplitCommand,
+                &SplitCommandCaseSensitive,
                 SYSCALL_HOOK_EFER_SYSCALL,
                 &Event,
                 &EventLength,
@@ -120,8 +120,8 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     else
     {
         if (!InterpretGeneralEventAndActionsFields(
-                &SplittedCommand,
-                &SplittedCommandCaseSensitive,
+                &SplitCommand,
+                &SplitCommandCaseSensitive,
                 SYSCALL_HOOK_EFER_SYSRET,
                 &Event,
                 &EventLength,
@@ -149,7 +149,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     //
     if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
-        for (auto Section : SplittedCommand)
+        for (auto Section : SplitCommand)
         {
             if (!Section.compare("!syscall") ||
                 !Section.compare("!syscall2") ||
@@ -167,7 +167,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                 if (!ConvertStringToUInt64(Section, &SpecialTarget))
                 {
                     //
-                    // Unkonwn parameter
+                    // Unknown parameter
                     //
                     ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 
@@ -191,7 +191,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
             else
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 

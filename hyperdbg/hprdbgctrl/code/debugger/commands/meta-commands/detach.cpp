@@ -63,14 +63,14 @@ DetachFromProcess()
 /**
  * @brief .detach command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDetach(vector<string> SplittedCommand, string Command)
+CommandDetach(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() >= 2)
+    if (SplitCommand.size() >= 2)
     {
         ShowMessages("incorrect use of the '.detach'\n\n");
         CommandDetachHelp();

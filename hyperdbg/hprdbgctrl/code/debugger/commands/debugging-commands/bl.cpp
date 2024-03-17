@@ -32,19 +32,19 @@ CommandBlHelp()
 /**
  * @brief handler of the bl command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandBl(vector<string> SplittedCommand, string Command)
+CommandBl(vector<string> SplitCommand, string Command)
 {
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the 'bl'\n\n");
         CommandBlHelp();

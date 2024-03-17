@@ -38,12 +38,12 @@ CommandInterruptHelp()
 /**
  * @brief !interrupt command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandInterrupt(vector<string> SplittedCommand, string Command)
+CommandInterrupt(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -55,7 +55,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = 0;
     BOOLEAN                            GetEntry                    = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -63,8 +63,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             EXTERNAL_INTERRUPT_OCCURRED,
             &Event,
             &EventLength,
@@ -83,7 +83,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
     // Interpret command specific details (if any)
     //
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!interrupt"))
         {
@@ -97,7 +97,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &SpecialTarget))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandInterruptHelp();
@@ -129,7 +129,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandInterruptHelp();
@@ -143,7 +143,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
     {
         //
         // The user didn't set the target interrupt, even though it's possible to
-        // get all interrupts but it makes the system not resposive so it's wrong
+        // get all interrupts but it makes the system not responsive so it's wrong
         // to trigger event on all interrupts and we're not going to support it
         //
         ShowMessages("please specify an interrupt index to monitor, HyperDbg "

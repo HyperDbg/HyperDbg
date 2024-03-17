@@ -41,16 +41,16 @@ CommandSwitchHelp()
 /**
  * @brief .switch command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSwitch(vector<string> SplittedCommand, string Command)
+CommandSwitch(vector<string> SplitCommand, string Command)
 {
     UINT32 PidOrTid = NULL;
 
-    if (SplittedCommand.size() > 3 || SplittedCommand.size() == 2)
+    if (SplitCommand.size() > 3 || SplitCommand.size() == 2)
     {
         ShowMessages("incorrect use of the '.switch'\n\n");
         CommandSwitchHelp();
@@ -71,13 +71,13 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
     //
     // Perform switching or listing the threads
     //
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         UdShowListActiveDebuggingProcessesAndThreads();
     }
-    else if (!SplittedCommand.at(1).compare("pid"))
+    else if (!SplitCommand.at(1).compare("pid"))
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(2), &PidOrTid))
+        if (!ConvertStringToUInt32(SplitCommand.at(2), &PidOrTid))
         {
             ShowMessages("please specify a correct hex value for process id\n\n");
             return;
@@ -91,9 +91,9 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
             ShowMessages("switched to process id: %x\n", PidOrTid);
         }
     }
-    else if (!SplittedCommand.at(1).compare("tid"))
+    else if (!SplitCommand.at(1).compare("tid"))
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(2), &PidOrTid))
+        if (!ConvertStringToUInt32(SplitCommand.at(2), &PidOrTid))
         {
             ShowMessages("please specify a correct hex value for thread id\n\n");
             return;
@@ -110,7 +110,7 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
     else
     {
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         return;
     }
 }

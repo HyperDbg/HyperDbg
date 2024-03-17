@@ -417,7 +417,7 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
 }
 
 /**
- * @brief Deactive transparent-mode
+ * @brief Deactivate transparent-mode
  *
  * @return NTSTATUS
  */
@@ -646,7 +646,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         //
         // The guy executed one or more CPUIDs after an rdtscp so we
         //  need to add new cpuid value to previous timer and also
-        //  we need to store it somewhere to remeber this behavior
+        //  we need to store it somewhere to remember this behavior
         //
         VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc +=
             TransparentRandn((UINT32)g_TransparentModeMeasurements->CpuidAverage,

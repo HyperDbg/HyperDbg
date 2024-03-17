@@ -174,7 +174,7 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
     if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo, &ProcessInfo))
     {
         //
-        // Wait for message from the target processs
+        // Wait for message from the target process
         //
         if (!NamedPipeServerWaitForClientConntection(PipeHandle))
         {
