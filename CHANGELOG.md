@@ -14,7 +14,7 @@ New release of the HyperDbg Debugger.
 - Fix debuggee crash after running the '.debug close' command on the debugger  
 - The problem with adding edge MTRR pages is fixed thanks to [@Maladiy](https://github.com/Maladiy) ([link](https://github.com/HyperDbg/HyperDbg/pull/347)) 
 - All compiler/linker warnings of kernel-mode modules are fixed  
-- User/Kernel modules of HyperDbg now compile with "treat warning as error"  
+- User/Kernel modules of HyperDbg now compiled with "treat warning as error"  
 - After downloading new symbols it is automatically loaded
 - Fix error messages/comments spelling typos
 
