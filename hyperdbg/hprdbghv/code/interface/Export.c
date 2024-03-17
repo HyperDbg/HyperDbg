@@ -544,7 +544,7 @@ VmFuncUninitVmm()
 }
 
 /**
- * @brief Get the current vmx opeation state
+ * @brief Get the current VMX operation state
  *
  * @return BOOLEAN
  */
@@ -689,7 +689,7 @@ VmFuncVmxVmcall(unsigned long long VmcallNumber,
 }
 
 /**
- * @brief Export for initialize the VMX Broadcast mechansim
+ * @brief Export for initialize the VMX Broadcast mechanism
  *
  * @return VOID
  */
@@ -700,7 +700,7 @@ VmFuncVmxBroadcastInitialize()
 }
 
 /**
- * @brief Export for uninitialize the VMX Broadcast mechansim
+ * @brief Export for uninitialize the VMX Broadcast mechanism
  *
  * @return VOID
  */

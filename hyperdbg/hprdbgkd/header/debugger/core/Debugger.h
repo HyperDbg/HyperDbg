@@ -40,7 +40,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
     //
 
     //
-    // Do not add any varialbes to this this list, just LIST_ENTRY is allowed
+    // Do not add any variables to this this list, just LIST_ENTRY is allowed
     //
     LIST_ENTRY HiddenHookReadAndWriteAndExecuteEventsHead; // HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE
     LIST_ENTRY HiddenHookReadAndWriteEventsHead;           // HIDDEN_HOOK_READ_AND_WRITE

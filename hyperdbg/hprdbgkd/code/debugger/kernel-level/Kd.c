@@ -1066,7 +1066,7 @@ KdHandleNmiBroadcastDebugBreaks(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler)
 
         //
         // If the core was in the middle of spinning on the spinlock
-        // of getting the debug lock, this mechansim is not needed,
+        // of getting the debug lock, this mechanism is not needed,
         // but if the core is not spinning there or the core is processing
         // a random vm-exit, then we inject an immediate vm-exit after vm-entry
         // or inject a DPC
@@ -1137,7 +1137,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
     else
     {
         //
-        // Only 16 bit is needed howerver, vmwrite might write on other bits
+        // Only 16 bit is needed however, vmwrite might write on other bits
         // and corrupt other variables, that's why we get 64bit
         //
         UINT64                           CsSel         = NULL64_ZERO;
@@ -1386,7 +1386,7 @@ VOID
 KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
     UINT64 CsSel = (UINT64)NULL;
@@ -2176,7 +2176,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
     else
     {
         //
-        // Invalid parameter specifed in Action
+        // Invalid parameter specified in Action
         //
         ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
     }
@@ -3009,7 +3009,7 @@ BOOLEAN
 KdIsGuestOnUsermode32Bit()
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
     UINT64 CsSel = (UINT64)NULL;

@@ -463,12 +463,12 @@ VmxPerformVirtualizationOnSpecificCore()
 
     if (!VmxAllocateVmxonRegion(VCpu))
     {
-        LogError("Err, allocating memory for vmxon region was not successfull");
+        LogError("Err, allocating memory for vmxon region was not successful");
         return FALSE;
     }
     if (!VmxAllocateVmcsRegion(VCpu))
     {
-        LogError("Err, allocating memory for vmcs region was not successfull");
+        LogError("Err, allocating memory for vmcs region was not successful");
         return FALSE;
     }
 

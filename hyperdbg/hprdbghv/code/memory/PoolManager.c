@@ -206,7 +206,7 @@ PoolManagerShowPreAllocatedPools()
  * @param RequestNewPool Create a request to allocate a new pool with the same size, next time
  * that it's safe to allocate (this way we never ran out of pools for this "Intention")
  * @param Size If the RequestNewPool is true the we should specify a size for the new pool
- * @return UINT64 Returns a pool address or retuns null if there was an error
+ * @return UINT64 Returns a pool address or returns null if there was an error
  */
 UINT64
 PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
@@ -364,7 +364,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
             PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
 
             //
-            // Check whther this pool should be freed or not and
+            // Check whether this pool should be freed or not and
             // also check whether it's already freed or not
             //
             if (PoolTable->ShouldBeFreed && !PoolTable->AlreadyFreed)
@@ -395,7 +395,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     }
 
     //
-    // All allocation and deallocation are preformed
+    // All allocation and deallocation are performed
     //
     g_IsNewRequestForDeAllocation       = FALSE;
     g_IsNewRequestForAllocationReceived = FALSE;

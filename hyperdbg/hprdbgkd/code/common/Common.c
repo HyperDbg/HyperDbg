@@ -232,7 +232,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     default:
 
         //
-        // Unknow killing method
+        // Unknown killing method
         //
         return FALSE;
         break;

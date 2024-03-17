@@ -208,7 +208,7 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
  * @param VCpu The virtual processor's state
  * @param Port Port
  *
- * @return BOOLEAN Returns true if the I/O Bitmap is succcessfully applied or false if not applied
+ * @return BOOLEAN Returns true if the I/O Bitmap is successfully applied or false if not applied
  */
 BOOLEAN
 IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port)

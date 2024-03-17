@@ -73,7 +73,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
-    // Check for insturmentation step-in
+    // Check for instrumentation step-in
     //
     if (VCpu->RegisterBreakOnMtf)
     {

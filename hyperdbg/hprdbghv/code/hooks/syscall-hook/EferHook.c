@@ -221,7 +221,7 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Detect whether the #UD was because of Syscall or Sysret or not
  *
  * @param VCpu The virtual processor's state
- * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not
+ * @return BOOLEAN Shows whether the caller should inject #UD on the guest or not
  */
 _Use_decl_annotations_
 BOOLEAN

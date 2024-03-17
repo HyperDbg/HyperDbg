@@ -836,7 +836,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
  * @brief Write memory safely by mapping the buffer using PTE
  *
  * @param SourceVA Source virtual address
- * @param PaAddressToWrite Destinaton physical address
+ * @param PaAddressToWrite Destination physical address
  * @param SizeToWrite Size
  * @param PteVaAddress PTE of target virtual address
  * @param MappingVa Mapping Virtual Address

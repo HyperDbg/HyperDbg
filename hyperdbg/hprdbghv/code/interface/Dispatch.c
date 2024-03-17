@@ -875,7 +875,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         HvSuppressRipIncrement(VCpu);
 
         //
-        // Hanlde immediate vm-exit mechanism
+        // Handle immediate vm-exit mechanism
         //
         VmxMechanismHandleImmediateVmexit(VCpu);
 
@@ -936,7 +936,7 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // As the context to event trigger, we send the vector index
         //
-        // Keep in mind that interrupt might be inseted in pending list
+        // Keep in mind that interrupt might be inserted in pending list
         // because the guest is not in a interruptible state and will
         // be re-injected when the guest is ready for interrupts
         //

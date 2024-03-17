@@ -154,7 +154,7 @@ DebuggerInitialize()
     RtlZeroMemory(&g_TrapFlagState, sizeof(DEBUGGER_TRAP_FLAG_STATE));
 
     //
-    // Intialize the local and temp variables
+    // Initialize the local and temp variables
     //
     for (size_t i = 0; i < ProcessorsCount; i++)
     {
@@ -430,7 +430,7 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
             // Set the error
             //
             ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDITIONALS;
 
             return NULL;
         }
@@ -475,13 +475,13 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
     if (ConditionBuffer != 0)
     {
         //
-        // It's condtional
+        // It's conditional
         //
         Event->ConditionsBufferSize   = ConditionsBufferSize;
         Event->ConditionBufferAddress = (PVOID)((UINT64)Event + sizeof(DEBUGGER_EVENT));
 
         //
-        // copy the condtion buffer to the end of the buffer of the event
+        // copy the condition buffer to the end of the buffer of the event
         //
         memcpy(Event->ConditionBufferAddress, ConditionBuffer, ConditionsBufferSize);
     }
@@ -1067,7 +1067,7 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * trigger a post-event event
  * @param Regs Guest gp-registers
  *
- * @return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE returns the staus
+ * @return VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE returns the status
  * of handling events
  */
 VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE
@@ -1199,7 +1199,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
-                // The value is not withing our expected range
+                // The value is not within our expected range
                 //
                 continue;
             }
@@ -1424,7 +1424,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         }
 
         //
-        // Check if condtion is met or not , if the condition
+        // Check if condition is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
         if (CurrentEvent->ConditionsBufferSize != 0)
@@ -3032,7 +3032,7 @@ ClearTheEventAfterCreatingEvent:
  * the user-mode
  * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
  *
- * @return BOOLEAN TRUE if the event was valid an regisered without error,
+ * @return BOOLEAN TRUE if the event was valid and registered without error,
  * otherwise returns FALSE
  */
 BOOLEAN
@@ -3150,7 +3150,7 @@ DebuggerParseEvent(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     else
     {
         //
-        // Remove the event as it was not successfull
+        // Remove the event as it was not successful
         // The same input as of input from VMX-root is
         // selected here because we apply it directly in the
         // above function and based on this input we can
@@ -3698,7 +3698,7 @@ DebuggerParseEventsModification(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificatio
     else
     {
         //
-        // Invalid parameter specifed in TypeOfAction
+        // Invalid parameter specified in TypeOfAction
         //
         DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
 

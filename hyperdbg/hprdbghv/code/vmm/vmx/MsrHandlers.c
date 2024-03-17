@@ -269,7 +269,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
  * @param Msr MSR Address
  * @param ReadDetection set read bit
  * @param WriteDetection set write bit
- * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ * @return BOOLEAN Returns true if the MSR Bitmap is successfully applied or false if not applied
  */
 BOOLEAN
 MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
@@ -318,7 +318,7 @@ MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDete
  * @param Msr MSR Address
  * @param ReadDetection Unset read bit
  * @param WriteDetection Unset write bit
- * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ * @return BOOLEAN Returns true if the MSR Bitmap is successfully applied or false if not applied
  */
 BOOLEAN
 MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)

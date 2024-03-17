@@ -240,7 +240,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief size of user-mode buffer
- * @details Because of Opeation code at the start of the
+ * @details Because of operation code at the start of the
  * buffer + 1 for null-termminating
  *
  */

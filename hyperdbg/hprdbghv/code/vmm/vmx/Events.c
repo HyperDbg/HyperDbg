@@ -226,7 +226,7 @@ EventInjectPageFaultRangeAddress(VIRTUAL_MACHINE_STATE * VCpu,
 
     //
     // Indicate that the VMM is waiting for interrupt-window to
-    // be openned to inject page-fault
+    // be opened to inject page-fault
     //
     g_WaitingForInterruptWindowToInjectPageFault = TRUE;
 

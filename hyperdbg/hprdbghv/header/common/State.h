@@ -26,7 +26,7 @@ typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 //////////////////////////////////////////////////
 
 /**
- * @brief Pending External Interrups Buffer Capacity
+ * @brief Pending External Interrupts Buffer Capacity
  *
  */
 #define PENDING_INTERRUPTS_BUFFER_CAPACITY 64
@@ -117,7 +117,7 @@ typedef struct _VMM_EPT_PAGE_TABLE
 
     /**
      * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
-     * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
+     * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individual 4096 byte pages.
      * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
      */
     DECLSPEC_ALIGN(PAGE_SIZE)
@@ -165,17 +165,17 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     CHAR FakePageContents[PAGE_SIZE];
 
     /**
-     * @brief Linked list entires for each page hook.
+     * @brief Linked list entries for each page hook.
      */
     LIST_ENTRY PageHookList;
 
     /**
-     * @brief The virtual address from the caller prespective view (cr3)
+     * @brief The virtual address from the caller perspective view (cr3)
      */
     UINT64 VirtualAddress;
 
     /**
-     * @brief The virtual address of it's enty on g_EptHook2sDetourListHead
+     * @brief The virtual address of it's entry on g_EptHook2sDetourListHead
      * this way we can de-allocate the list whenever the hook is finished
      */
     UINT64 AddressOfEptHook2sDetourListEntry;
@@ -304,7 +304,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     UINT64       TestNumber;                                                    // Used for test purposes (Number)
     GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
     UINT32       CoreId;                                                        // The core's unique identifier
-    UINT32        ExitReason;                                                    // The core's exit reason
+    UINT32       ExitReason;                                                    // The core's exit reason
     UINT32       ExitQualification;                                             // The core's exit qualification
     UINT64       LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64       VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
@@ -330,7 +330,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 
     //
-    // EPT Decriptors
+    // EPT Descriptors
     //
     EPT_POINTER         EptPointer;   // Extended-Page-Table Pointer
     PVMM_EPT_PAGE_TABLE EptPageTable; // Details of core-specific page-table

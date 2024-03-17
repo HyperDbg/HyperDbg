@@ -29,9 +29,9 @@
  */
 BOOLEAN inline LogCheckVmxOperation()
 {
-    CHECK_VMX_OPERATION VmxOpeationCheck = g_MsgTracingCallbacks.VmxOpeationCheck;
+    CHECK_VMX_OPERATION VmxOperationCheck = g_MsgTracingCallbacks.VmxOperationCheck;
 
-    if (VmxOpeationCheck == NULL)
+    if (VmxOperationCheck == NULL)
     {
         //
         // As the caller didn't defined a checker for vmx operation, we assume
@@ -43,7 +43,7 @@ BOOLEAN inline LogCheckVmxOperation()
     //
     // The user specified a vmx checker
     //
-    return VmxOpeationCheck();
+    return VmxOperationCheck();
 }
 
 /**
@@ -480,7 +480,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     // Set the header
     //
-    Header->OpeationNumber = OperationCode;
+    Header->OperationNumber = OperationCode;
     Header->BufferLength   = BufferLength;
     Header->Valid          = TRUE;
 
@@ -799,7 +799,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // First copy the header
     //
-    RtlCopyBytes(BufferToSaveMessage, &Header->OpeationNumber, sizeof(UINT32));
+    RtlCopyBytes(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
 
     //
     // Second, save the buffer contents
@@ -827,7 +827,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Means that show just messages
     //
-    if (Header->OpeationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
+    if (Header->OperationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
     {
         //
         // We're in Dpc level here so it's safe to use DbgPrint

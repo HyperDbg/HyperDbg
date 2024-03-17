@@ -302,7 +302,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
     //
     // If applied directly from VMX root-mode,
-    // As the call to hook adjuster was successfull, we have to
+    // As the call to hook adjuster was successful, we have to
     // invalidate the TLB of EPT caches for all cores here
     //
     if (InputFromVmxRoot)
@@ -398,7 +398,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         else
         {
             //
-            // As the call to hook adjuster was successfull, we have to
+            // As the call to hook adjuster was successful, we have to
             // invalidate the TLB of EPT caches for all cores here
             //
             HaltedBroadcastInvalidateSingleContextAllCores();
@@ -502,7 +502,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         else
         {
             //
-            // As the call to hook adjuster was successfull, we have to
+            // As the call to hook adjuster was successful, we have to
             // invalidate the TLB of EPT caches for all cores here
             //
             HaltedBroadcastInvalidateSingleContextAllCores();

@@ -47,7 +47,7 @@ typedef BOOLEAN (*SEND_IMMEDIATE_MESSAGE)(CHAR * OptionalBuffer,
  */
 typedef struct _MESSAGE_TRACING_CALLBACKS
 {
-    CHECK_VMX_OPERATION             VmxOpeationCheck;
+    CHECK_VMX_OPERATION             VmxOperationCheck;
     CHECK_IMMEDIATE_MESSAGE_SENDING CheckImmediateMessageSending;
     SEND_IMMEDIATE_MESSAGE          SendImmediateMessage;
 

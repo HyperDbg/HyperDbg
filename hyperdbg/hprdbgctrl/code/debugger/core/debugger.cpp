@@ -398,7 +398,7 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
-    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS:
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDITIONALS:
         ShowMessages("err, the requested buffer for storing event and conditions is larger than the pre-allocated "
                      "buffer size (%x)\nfor more information on how to resolve this issue, "
                      "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
@@ -1179,7 +1179,7 @@ InterpretScript(vector<string> * SplittedCommand,
 
 /**
  * @brief Interpret conditions (if an event has condition) and custom code
- * @details If this function returns true then it means that there is a condtion
+ * @details If this function returns true then it means that there is a condition
  * or code buffer in this command split and the details are returned in the
  * input structure
  *

@@ -118,7 +118,7 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
     //
     // Because there are different EPT hooks, like READ, WRITE, EXECUTE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
     // not dependant to a single bit and if we remove or add any other hook
@@ -199,7 +199,7 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
     // not dependant to a single bit and if we remove or add any other hook
@@ -237,7 +237,7 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxR
     //
     // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
     // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
+    // unhooked with a same routine, we will not check whether the list of
     // all of them is empty or not and instead, we remove just a single
     // hook, this way is better as hidden hooks and ept modifications are
     // not dependant to a single bit and if we remove or add any other hook
