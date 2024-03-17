@@ -373,12 +373,14 @@ ScriptEngineParse(char * str)
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
+
                 TerminalId = GetTerminalId(CurrentIn);
                 if (TerminalId == INVALID)
                 {
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
+
                 RuleId = ParseTable[NonTerminalId][TerminalId];
                 if (RuleId == INVALID)
                 {
@@ -601,7 +603,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
 
             Op0Symbol = NewSymbol();
-            free(Op0Symbol->Value);
+            free((void *)Op0Symbol->Value);
             Op0Symbol->Value = NewFunctionParameterIdentifier(Op0);
             SetType(&Op0Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
 
@@ -613,14 +615,14 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             UINT64  CurrentPointer = CodeBuffer->Pointer;
             PSYMBOL Symbol         = NULL;
 
-            BOOL Found = FALSE;
-            int  i     = 0;
+            BOOL         Found = FALSE;
+            unsigned int i     = 0;
             // for loop not able to begin from CodeBuffer->Pointer to 0 because of string and wstring's size
             for (; i < CodeBuffer->Pointer;)
             {
                 Symbol = CodeBuffer->Head + i;
 
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp(CurrentFunctionSymbol->Value, Symbol->Value))
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)CurrentFunctionSymbol->Value, (const char *)Symbol->Value))
                 {
                     Found = TRUE;
                     break;
@@ -670,7 +672,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentFunctionSymbol->VariableType != VARIABLE_TYPE_VOID)
+            if (CurrentFunctionSymbol->VariableType != (unsigned long long)VARIABLE_TYPE_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE;
                 break;
@@ -684,7 +686,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentFunctionSymbol->VariableType == VARIABLE_TYPE_VOID)
+            if (CurrentFunctionSymbol->VariableType == (unsigned long long)VARIABLE_TYPE_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                 break;
@@ -705,10 +707,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
 
         else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION"))
         {
-            PSYMBOL Symbol        = NULL;
-            int     i             = 0;
-            PTOKEN  FunctionToken = Top(MatchedStack);
-            BOOL    Found         = FALSE;
+            PSYMBOL      Symbol        = NULL;
+            unsigned int i             = 0;
+            PTOKEN       FunctionToken = Top(MatchedStack);
+            BOOL         Found         = FALSE;
 
             //
             // find function's address
@@ -717,7 +719,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             {
                 Symbol = CodeBuffer->Head + i;
 
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp(FunctionToken->Value, Symbol->Value))
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
                 {
                     Found = TRUE;
                     break;
@@ -756,13 +758,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
         }
         else if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE") || !strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
         {
-            PSYMBOL Symbol                    = NULL;
-            int     i                         = 0;
-            int     TargetFunctionVariableNum = 0;
-            int     VariableNum               = 0;
-            PTOKEN  FunctionToken             = NULL;
-            BOOL    Found                     = FALSE;
-            PTOKEN  ReturnValueToken          = NULL;
+            PSYMBOL      Symbol                    = NULL;
+            unsigned int i                         = 0;
+            int          TargetFunctionVariableNum = 0;
+            int          VariableNum               = 0;
+            PTOKEN       FunctionToken             = NULL;
+            BOOL         Found                     = FALSE;
+            PTOKEN       ReturnValueToken          = NULL;
 
             while (MatchedStack->Pointer > 0)
             {
@@ -786,7 +788,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             {
                 Symbol = CodeBuffer->Head + i;
 
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp(FunctionToken->Value, Symbol->Value))
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
                 {
                     Found = TRUE;
                     break;
@@ -809,10 +811,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
 
             // will rewrite here
-            for (int j = 0; j < UserDefinedFunctions->Pointer; j++)
+            for (unsigned int j = 0; j < UserDefinedFunctions->Pointer; j++)
             {
                 Symbol = UserDefinedFunctions->Head + j;
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp(FunctionToken->Value, Symbol->Value))
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
                 {
                     j++;
                     Symbol = UserDefinedFunctions->Head + j;
@@ -859,7 +861,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
 
             if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
             {
-                if (FunctionToken->Type == VARIABLE_TYPE_VOID)
+                if (FunctionToken->Type == (TOKEN_TYPE)VARIABLE_TYPE_VOID)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                     break;
@@ -898,14 +900,14 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             if (Op1->Type == GLOBAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
-                free(Op1Symbol->Value);
+                free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewGlobalIdentifier(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
             }
             else if (Op1->Type == LOCAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
-                free(Op1Symbol->Value);
+                free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewLocalIdentifier(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
             }
@@ -1030,8 +1032,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
 
             unsigned int FirstArgPointer = CodeBuffer->Pointer;
 
-            PSYMBOL Symbol;
-            int     ArgCount = TempStack->Pointer;
+            PSYMBOL      Symbol;
+            unsigned int ArgCount = TempStack->Pointer;
             for (int i = TempStack->Pointer - 1; i >= 0; i--)
             {
                 Symbol = TempStack->Head + i;
@@ -1283,7 +1285,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             PushSymbol(CodeBuffer, Op0Symbol);
 
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
 
@@ -1356,7 +1358,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Push(MatchedStack, OperatorCopy);
 
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1452,7 +1454,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Push(MatchedStack, OperatorCopy);
 
             char str[20];
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1530,7 +1532,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             // Push current pointer into matched stack
             //
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1600,7 +1602,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             // Push current pointer into matched stack
             //
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
 
@@ -2281,7 +2283,16 @@ PSYMBOL
 NewSymbol(void)
 {
     PSYMBOL Symbol;
-    Symbol               = (PSYMBOL)malloc(sizeof(SYMBOL));
+    Symbol = (PSYMBOL)malloc(sizeof(SYMBOL));
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     Symbol->Value        = 0;
     Symbol->Len          = 0;
     Symbol->Type         = 0;
@@ -2300,7 +2311,16 @@ NewStringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
     int     BufferSize = (3 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
-    Symbol             = (unsigned long long)calloc(sizeof(SYMBOL), BufferSize);
+    Symbol             = (PSYMBOL)calloc(sizeof(SYMBOL), BufferSize);
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
     Symbol->Len          = Token->Len;
@@ -2319,7 +2339,16 @@ NewWstringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
     int     BufferSize = (3 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
-    Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
+    Symbol             = (PSYMBOL)malloc(BufferSize * sizeof(SYMBOL));
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
     Symbol->Len          = Token->Len;
@@ -2335,11 +2364,29 @@ NewWstringSymbol(PTOKEN Token)
 PSYMBOL
 NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
 {
-    int     Length = strlen(FunctionName);
+    int     Length = (int)strlen(FunctionName);
     PSYMBOL Symbol = NewSymbol();
     Symbol         = (PSYMBOL)malloc(sizeof(SYMBOL));
-    Symbol->Value  = (char *)calloc(Length + 1, sizeof(char));
-    memcpy(Symbol->Value, FunctionName, Length);
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
+    Symbol->Value = (unsigned long long)calloc(Length + 1, sizeof(char));
+
+    if (Symbol->Value == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
+    memcpy((void *)Symbol->Value, FunctionName, Length);
     Symbol->Len          = Length;
     Symbol->Type         = SYMBOL_USER_DEFINED_FUNCTION_TYPE;
     Symbol->VariableType = VariableType;
@@ -2494,7 +2541,16 @@ PSYMBOL_BUFFER
 NewSymbolBuffer(void)
 {
     PSYMBOL_BUFFER SymbolBuffer;
-    SymbolBuffer          = (PSYMBOL_BUFFER)malloc(sizeof(*SymbolBuffer));
+    SymbolBuffer = (PSYMBOL_BUFFER)malloc(sizeof(*SymbolBuffer));
+
+    if (SymbolBuffer == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     SymbolBuffer->Pointer = 0;
     SymbolBuffer->Size    = SYMBOL_BUFFER_INIT_SIZE;
     SymbolBuffer->Head    = (PSYMBOL)malloc(SymbolBuffer->Size * sizeof(SYMBOL));
@@ -2547,7 +2603,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             //
             // Calculate new size for the symbol B
             //
-            int NewSize = SymbolBuffer->Size;
+            unsigned int NewSize = SymbolBuffer->Size;
             do
             {
                 NewSize *= 2;
@@ -2601,6 +2657,12 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             //
             PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
 
+            if (NewHead == NULL)
+            {
+                printf("err, could not allocate buffer");
+                return NULL;
+            }
+
             //
             // Copy old Buffer to new buffer
             //
@@ -2631,7 +2693,7 @@ void
 PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 {
     PSYMBOL Symbol;
-    for (int i = 0; i < SymbolBuffer->Pointer;)
+    for (unsigned int i = 0; i < SymbolBuffer->Pointer;)
     {
         Symbol = SymbolBuffer->Head + i;
 
@@ -2736,6 +2798,12 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     //
     int    MessageSize = 16 + 100 + (CurrentTokenIdx - CurrentLineIdx) + (LineEnd - CurrentLineIdx);
     char * Message     = (char *)malloc(MessageSize);
+
+    if (Message == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return NULL;
+    }
 
     //
     // add line number

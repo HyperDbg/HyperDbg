@@ -51,7 +51,7 @@ GetToken(char * c, char * str)
                 else if (*c == 'x')
                 {
                     char ByteString[] = "000";
-                    int  len          = strlen(ByteString);
+                    int  len          = (int)strlen(ByteString);
                     int  i            = 0;
                     for (; i < len; i++)
                     {
@@ -72,7 +72,7 @@ GetToken(char * c, char * str)
                     else
                     {
                         InputIdx--;
-                        char num = strtol(ByteString, NULL, 16);
+                        char num = (char)strtol(ByteString, NULL, 16);
                         AppendByte(Token, num);
                     }
                 }
@@ -580,7 +580,7 @@ GetToken(char * c, char * str)
                     else if (*c == 'x')
                     {
                         char ByteString[] = "00000";
-                        int  len          = strlen(ByteString);
+                        int  len          = (int)strlen(ByteString);
                         int  i            = 0;
                         for (; i < len; i++)
                         {
@@ -601,7 +601,7 @@ GetToken(char * c, char * str)
                         else
                         {
                             InputIdx--;
-                            wchar_t num = strtol(ByteString, NULL, 16);
+                            wchar_t num = (wchar_t)strtol(ByteString, NULL, 16);
                             AppendWchar(Token, num);
                         }
                     }

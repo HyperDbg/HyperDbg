@@ -157,6 +157,9 @@ int
 GetNonTerminalId(PTOKEN Token);
 
 int
+GetTerminalId(PTOKEN Token);
+
+int
 LalrGetNonTerminalId(PTOKEN Token);
 
 int

@@ -24,8 +24,25 @@ NewUnknownToken()
     //
     // Allocate memory for token and its value
     //
-    Token        = (PTOKEN)malloc(sizeof(TOKEN));
+    Token = (PTOKEN)malloc(sizeof(TOKEN));
+
+    if (Token == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     Token->Value = (char *)calloc(TOKEN_VALUE_MAX_LEN + 1, sizeof(char));
+
+    if (Token->Value == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
 
     //
     // Init fields
@@ -46,6 +63,14 @@ NewToken(TOKEN_TYPE Type, char * Value)
     //
     PTOKEN Token = (PTOKEN)malloc(sizeof(TOKEN));
 
+    if (Token == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     //
     // Init fields
     //
@@ -54,6 +79,15 @@ NewToken(TOKEN_TYPE Type, char * Value)
     Token->Len       = Len;
     Token->MaxLen    = Len;
     Token->Value     = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+
+    if (Token->Value == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     strcpy(Token->Value, Value);
 
     return Token;
@@ -205,6 +239,12 @@ AppendByte(PTOKEN Token, char c)
         Token->MaxLen *= 2;
         char * NewValue = (char *)calloc(Token->MaxLen + 1, sizeof(char));
 
+        if (NewValue == NULL)
+        {
+            printf("err, could not allocate buffer");
+            return;
+        }
+
         //
         // Free Old buffer and update the pointer
         //
@@ -240,6 +280,12 @@ AppendWchar(PTOKEN Token, wchar_t c)
         Token->MaxLen *= 2;
         char * NewValue = (char *)calloc(Token->MaxLen + 2, sizeof(char));
 
+        if (NewValue == NULL)
+        {
+            printf("err, could not allocate buffer");
+            return;
+        }
+
         //
         // Free Old buffer and update the pointer
         //
@@ -263,11 +309,29 @@ AppendWchar(PTOKEN Token, wchar_t c)
 PTOKEN
 CopyToken(PTOKEN Token)
 {
-    PTOKEN TokenCopy  = (PTOKEN)malloc(sizeof(TOKEN));
+    PTOKEN TokenCopy = (PTOKEN)malloc(sizeof(TOKEN));
+
+    if (TokenCopy == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     TokenCopy->Type   = Token->Type;
     TokenCopy->MaxLen = Token->MaxLen;
     TokenCopy->Len    = Token->Len;
     TokenCopy->Value  = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
+
+    if (TokenCopy->Value == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     strcpy(TokenCopy->Value, Token->Value);
 
     return TokenCopy;
@@ -281,12 +345,20 @@ CopyToken(PTOKEN Token)
 PTOKEN_LIST
 NewTokenList(void)
 {
-    PTOKEN_LIST TokenList;
+    PTOKEN_LIST TokenList = NULL;
 
     //
     // Allocation of memory for TOKEN_LIST structure
     //
     TokenList = (PTOKEN_LIST)malloc(sizeof(*TokenList));
+
+    if (TokenList == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
 
     //
     // Initialize fields of TOKEN_LIST
@@ -374,6 +446,12 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
         // Allocate a new buffer for string list with doubled length
         //
         PTOKEN * NewHead = (PTOKEN *)malloc(2 * TokenList->Size * sizeof(PTOKEN));
+
+        if (NewHead == NULL)
+        {
+            printf("err, could not allocate buffer");
+            return NULL;
+        }
 
         //
         // Copy old buffer to new buffer
@@ -627,7 +705,7 @@ char
 IsType1Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC1_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OneOpFunc1[i]))
         {
@@ -647,7 +725,7 @@ char
 IsType2Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC2_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OneOpFunc2[i]))
         {
@@ -667,7 +745,7 @@ char
 IsTwoOperandOperator(PTOKEN Operator)
 {
     unsigned int n = OPERATORS_TWO_OPERAND_LIST_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OperatorsTwoOperandList[i]))
         {
@@ -687,7 +765,7 @@ char
 IsOneOperandOperator(PTOKEN Operator)
 {
     unsigned int n = OPERATORS_ONE_OPERAND_LIST_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OperatorsOneOperandList[i]))
         {
@@ -707,7 +785,7 @@ char
 IsType4Func(PTOKEN Operator)
 {
     unsigned int n = VARARGFUNC1_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, VarArgFunc1[i]))
         {
@@ -727,7 +805,7 @@ char
 IsType5Func(PTOKEN Operator)
 {
     unsigned int n = ZEROOPFUNC1_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ZeroOpFunc1[i]))
         {
@@ -747,7 +825,7 @@ char
 IsType6Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC1_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, TwoOpFunc1[i]))
         {
@@ -767,7 +845,7 @@ char
 IsType7Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC2_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, TwoOpFunc2[i]))
         {
@@ -787,7 +865,7 @@ char
 IsType8Func(PTOKEN Operator)
 {
     unsigned int n = THREEOPFUNC1_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ThreeOpFunc1[i]))
         {
@@ -807,7 +885,7 @@ char
 IsType9Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC3_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OneOpFunc3[i]))
         {
@@ -827,7 +905,7 @@ char
 IsType10Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC3_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, TwoOpFunc3[i]))
         {
@@ -847,7 +925,7 @@ char
 IsType11Func(PTOKEN Operator)
 {
     unsigned int n = THREEOPFUNC3_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ThreeOpFunc3[i]))
         {
@@ -867,7 +945,7 @@ char
 IsType12Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC4_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OneOpFunc4[i]))
         {
@@ -887,7 +965,7 @@ char
 IsType13Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC4_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, TwoOpFunc4[i]))
         {
@@ -907,7 +985,7 @@ char
 IsType14Func(PTOKEN Operator)
 {
     unsigned int n = THREEOPFUNC2_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ThreeOpFunc2[i]))
         {
@@ -928,7 +1006,7 @@ char
 IsVariableType(PTOKEN Operator)
 {
     unsigned int n = VARIABLETYPE_LENGTH;
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, VARIABLETYPE[i]))
         {
@@ -1392,7 +1470,7 @@ BinaryToInt(char * str)
 void
 RotateLeftStringOnce(char * str)
 {
-    int  length = strlen(str);
+    int  length = (int)strlen(str);
     char temp   = str[0];
     for (int i = 0; i < (length - 1); i++)
     {

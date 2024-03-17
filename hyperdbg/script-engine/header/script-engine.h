@@ -19,10 +19,6 @@
 //
 // *** export pdb wrapper as script engine function ***
 //
-__declspec(dllimport) BOOLEAN
-    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllexport) UINT64
     ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) UINT32
