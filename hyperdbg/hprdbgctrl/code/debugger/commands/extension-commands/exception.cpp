@@ -40,12 +40,12 @@ CommandExceptionHelp()
 /**
  * @brief !exception command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandException(vector<string> SplittedCommand, string Command)
+CommandException(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -57,7 +57,7 @@ CommandException(vector<string> SplittedCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES;
     BOOLEAN                            GetEntry                    = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -65,8 +65,8 @@ CommandException(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             EXCEPTION_OCCURRED,
             &Event,
             &EventLength,
@@ -84,7 +84,7 @@ CommandException(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!exception"))
         {
@@ -98,7 +98,7 @@ CommandException(vector<string> SplittedCommand, string Command)
             if (!ConvertStringToUInt64(Section, &SpecialTarget))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandExceptionHelp();
@@ -130,7 +130,7 @@ CommandException(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandExceptionHelp();

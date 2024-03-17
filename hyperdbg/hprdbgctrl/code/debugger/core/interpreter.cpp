@@ -91,18 +91,18 @@ HyperDbgInterpreter(char * Command)
     //
     transform(CommandString.begin(), CommandString.end(), CommandString.begin(), [](unsigned char c) { return std::tolower(c); });
 
-    vector<string> SplittedCommand {Split(CommandString, ' ')};
+    vector<string> SplitCommand {Split(CommandString, ' ')};
 
     //
     // Check if user entered an empty input
     //
-    if (SplittedCommand.empty())
+    if (SplitCommand.empty())
     {
         ShowMessages("\n");
         return 0;
     }
 
-    string FirstCommand = SplittedCommand.front();
+    string FirstCommand = SplitCommand.front();
 
     //
     // Read the command's attributes
@@ -192,13 +192,13 @@ HyperDbgInterpreter(char * Command)
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
         !FirstCommand.compare(".hh"))
     {
-        if (SplittedCommand.size() == 2)
+        if (SplitCommand.size() == 2)
         {
             //
             // Show that it's a help command
             //
             HelpCommand  = TRUE;
-            FirstCommand = SplittedCommand.at(1);
+            FirstCommand = SplitCommand.at(1);
         }
         else
         {
@@ -219,16 +219,16 @@ HyperDbgInterpreter(char * Command)
         //  Command doesn't exist
         //
         string         CaseSensitiveCommandString(Command);
-        vector<string> CaseSensitiveSplittedCommand {Split(CaseSensitiveCommandString, ' ')};
+        vector<string> CaseSensitiveSplitCommand {Split(CaseSensitiveCommandString, ' ')};
 
         if (!HelpCommand)
         {
-            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplittedCommand.front().c_str());
+            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplitCommand.front().c_str());
         }
         else
         {
             ShowMessages("err, couldn't find the help for the command at '%s'\n",
-                         CaseSensitiveSplittedCommand.at(1).c_str());
+                         CaseSensitiveSplitCommand.at(1).c_str());
         }
     }
     else
@@ -246,11 +246,11 @@ HyperDbgInterpreter(char * Command)
                  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE))
             {
                 string CaseSensitiveCommandString(Command);
-                Iterator->second.CommandFunction(SplittedCommand, CaseSensitiveCommandString);
+                Iterator->second.CommandFunction(SplitCommand, CaseSensitiveCommandString);
             }
             else
             {
-                Iterator->second.CommandFunction(SplittedCommand, CommandString);
+                Iterator->second.CommandFunction(SplitCommand, CommandString);
             }
         }
     }

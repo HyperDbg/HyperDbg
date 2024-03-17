@@ -64,12 +64,12 @@ CommandReadMemoryAndDisassemblerHelp()
 /**
  * @brief u* d* !u* !d* commands handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
+CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
 {
     UINT32         Pid             = 0;
     UINT32         Length          = 0;
@@ -77,10 +77,10 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     BOOLEAN        IsNextProcessId = FALSE;
     BOOLEAN        IsFirstCommand  = TRUE;
     BOOLEAN        IsNextLength    = FALSE;
-    vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
 
-    string FirstCommand = SplittedCommand.front();
+    string FirstCommand = SplitCommand.front();
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -91,7 +91,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         //
         // Means that user entered one command without any parameter
@@ -101,7 +101,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -150,14 +150,14 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         //
         if (TargetAddress == 0)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                                                   &TargetAddress))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 return;
             }
         }

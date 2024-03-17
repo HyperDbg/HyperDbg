@@ -1130,7 +1130,7 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBre
 }
 
 /**
- * @brief Sends seach query request packet to the debuggee
+ * @brief Sends search query request packet to the debuggee
  * @param SearchRequestBuffer
  * @param SearchRequestBufferSize
  *
@@ -2217,7 +2217,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               0,                            // Non Overlapped I/O
@@ -2236,7 +2236,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               FILE_FLAG_OVERLAPPED,         // Overlapped I/O
@@ -2273,7 +2273,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         SerialParams.DCBlength = sizeof(SerialParams);
 
         //
-        // retreives the current settings
+        // retrieves the current settings
         //
         Status = GetCommState(Comm, &SerialParams);
 

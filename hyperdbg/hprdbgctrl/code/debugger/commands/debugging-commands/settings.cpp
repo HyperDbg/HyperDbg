@@ -267,13 +267,13 @@ CommandSettingsLoadDefaultValuesFromConfigFile()
  * @brief set the address conversion enabled and disabled
  * and query the status of this mode
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @return VOID
  */
 VOID
-CommandSettingsAddressConversion(vector<string> SplittedCommand)
+CommandSettingsAddressConversion(vector<string> SplitCommand)
 {
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
         //
         // It's a query
@@ -287,19 +287,19 @@ CommandSettingsAddressConversion(vector<string> SplittedCommand)
             ShowMessages("address conversion is disabled\n");
         }
     }
-    else if (SplittedCommand.size() == 3)
+    else if (SplitCommand.size() == 3)
     {
         //
         // The user tries to set a value as the autoflush
         //
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             g_AddressConversion = TRUE;
             CommandSettingsSetValueFromConfigFile("AddrConv", "on");
 
             ShowMessages("set address conversion to enabled\n");
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             g_AddressConversion = FALSE;
             CommandSettingsSetValueFromConfigFile("AddrConv", "off");
@@ -331,13 +331,13 @@ CommandSettingsAddressConversion(vector<string> SplittedCommand)
  * @brief set the auto-flush mode to enabled and disabled
  * and query the status of this mode
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @return VOID
  */
 VOID
-CommandSettingsAutoFlush(vector<string> SplittedCommand)
+CommandSettingsAutoFlush(vector<string> SplitCommand)
 {
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
         //
         // It's a query
@@ -351,19 +351,19 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
             ShowMessages("auto-flush is disabled\n");
         }
     }
-    else if (SplittedCommand.size() == 3)
+    else if (SplitCommand.size() == 3)
     {
         //
         // The user tries to set a value as the autoflush
         //
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             g_AutoFlush = TRUE;
             CommandSettingsSetValueFromConfigFile("AutoFlush", "on");
 
             ShowMessages("set auto-flush to enabled\n");
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             g_AutoFlush = FALSE;
             CommandSettingsSetValueFromConfigFile("AutoFlush", "off");
@@ -394,13 +394,13 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
 /**
  * @brief set auto-unpause mode to enabled or disabled
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @return VOID
  */
 VOID
-CommandSettingsAutoUpause(vector<string> SplittedCommand)
+CommandSettingsAutoUpause(vector<string> SplitCommand)
 {
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
         //
         // It's a query
@@ -414,19 +414,19 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
             ShowMessages("auto-unpause is disabled\n");
         }
     }
-    else if (SplittedCommand.size() == 3)
+    else if (SplitCommand.size() == 3)
     {
         //
         // The user tries to set a value as the autounpause
         //
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             g_AutoUnpause = TRUE;
             CommandSettingsSetValueFromConfigFile("AutoUnpause", "on");
 
             ShowMessages("set auto-unpause to enabled\n");
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             g_AutoUnpause = FALSE;
             CommandSettingsSetValueFromConfigFile("AutoUnpause", "off");
@@ -457,13 +457,13 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
 /**
  * @brief set the syntax of !u !u2 u u2 command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @return VOID
  */
 VOID
-CommandSettingsSyntax(vector<string> SplittedCommand)
+CommandSettingsSyntax(vector<string> SplitCommand)
 {
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
         //
         // It's a query
@@ -485,27 +485,27 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
             ShowMessages("unknown syntax\n");
         }
     }
-    else if (SplittedCommand.size() == 3)
+    else if (SplitCommand.size() == 3)
     {
         //
         // The user tries to set a value as the syntax
         //
-        if (!SplittedCommand.at(2).compare("intel"))
+        if (!SplitCommand.at(2).compare("intel"))
         {
             g_DisassemblerSyntax = 1;
             CommandSettingsSetValueFromConfigFile("AsmSyntax", "intel");
 
             ShowMessages("set syntax to intel\n");
         }
-        else if (!SplittedCommand.at(2).compare("att") ||
-                 !SplittedCommand.at(2).compare("at&t"))
+        else if (!SplitCommand.at(2).compare("att") ||
+                 !SplitCommand.at(2).compare("at&t"))
         {
             g_DisassemblerSyntax = 2;
             CommandSettingsSetValueFromConfigFile("AsmSyntax", "att");
 
             ShowMessages("set syntax to at&t\n");
         }
-        else if (!SplittedCommand.at(2).compare("masm"))
+        else if (!SplitCommand.at(2).compare("masm"))
         {
             g_DisassemblerSyntax = 3;
             CommandSettingsSetValueFromConfigFile("AsmSyntax", "masm");
@@ -536,14 +536,14 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
 /**
  * @brief settings command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSettings(vector<string> SplittedCommand, string Command)
+CommandSettings(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() <= 1)
+    if (SplitCommand.size() <= 1)
     {
         ShowMessages("incorrect use of the 'settings'\n\n");
         CommandSettingsHelp();
@@ -553,14 +553,14 @@ CommandSettings(vector<string> SplittedCommand, string Command)
     //
     // Interpret the field name
     //
-    if (!SplittedCommand.at(1).compare("autounpause"))
+    if (!SplitCommand.at(1).compare("autounpause"))
     {
         //
         // Handle it locally
         //
-        CommandSettingsAutoUpause(SplittedCommand);
+        CommandSettingsAutoUpause(SplitCommand);
     }
-    else if (!SplittedCommand.at(1).compare("syntax"))
+    else if (!SplitCommand.at(1).compare("syntax"))
     {
         //
         // If it's a remote debugger then we send it to the remote debugger
@@ -575,10 +575,10 @@ CommandSettings(vector<string> SplittedCommand, string Command)
             // If it's a connection over serial or a local debugging then
             // we handle it locally
             //
-            CommandSettingsSyntax(SplittedCommand);
+            CommandSettingsSyntax(SplitCommand);
         }
     }
-    else if (!SplittedCommand.at(1).compare("autoflush"))
+    else if (!SplitCommand.at(1).compare("autoflush"))
     {
         //
         // If it's a remote debugger then we send it to the remote debugger
@@ -593,10 +593,10 @@ CommandSettings(vector<string> SplittedCommand, string Command)
             // If it's a connection over serial or a local debugging then
             // we handle it locally
             //
-            CommandSettingsAutoFlush(SplittedCommand);
+            CommandSettingsAutoFlush(SplitCommand);
         }
     }
-    else if (!SplittedCommand.at(1).compare("addressconversion"))
+    else if (!SplitCommand.at(1).compare("addressconversion"))
     {
         //
         // If it's a remote debugger then we send it to the remote debugger
@@ -611,7 +611,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
             // If it's a connection over serial or a local debugging then
             // we handle it locally
             //
-            CommandSettingsAddressConversion(SplittedCommand);
+            CommandSettingsAddressConversion(SplitCommand);
         }
     }
     else

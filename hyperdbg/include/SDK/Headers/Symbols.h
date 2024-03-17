@@ -94,7 +94,7 @@ static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize,
  */
 typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
 {
-    UINT64 KernelStatus; // Kerenl put the status in this field
+    UINT64 KernelStatus; // Kernel put the status in this field
 
 } DEBUGGEE_SYMBOL_UPDATE_RESULT, *PDEBUGGEE_SYMBOL_UPDATE_RESULT;
 

@@ -41,22 +41,22 @@ CommandVa2paHelp()
 /**
  * @brief !va2pa command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandVa2pa(vector<string> SplittedCommand, string Command)
+CommandVa2pa(vector<string> SplitCommand, string Command)
 {
     BOOL                              Status;
     ULONG                             ReturnedLength;
     UINT64                            TargetVa;
     UINT32                            Pid            = 0;
     DEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails = {0};
-    vector<string>                    SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                    SplitCommandCaseSensitive {Split(Command, ' ')};
 
-    if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
-        SplittedCommand.size() == 3)
+    if (SplitCommand.size() == 1 || SplitCommand.size() >= 5 ||
+        SplitCommand.size() == 3)
     {
         ShowMessages("incorrect use of the '!va2pa'\n\n");
         CommandVa2paHelp();
@@ -72,18 +72,18 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplittedCommand.size() == 2)
+    if (SplitCommand.size() == 2)
     {
         //
         // It's just an address for current process
         //
-        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+        if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(1), &TargetVa))
         {
             //
             // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplittedCommandCaseSensitive.at(1).c_str());
+                         SplitCommandCaseSensitive.at(1).c_str());
             return;
         }
     }
@@ -92,37 +92,37 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         // It might be address + pid
         //
-        if (!SplittedCommand.at(1).compare("pid"))
+        if (!SplitCommand.at(1).compare("pid"))
         {
-            if (!ConvertStringToUInt32(SplittedCommand.at(2), &Pid))
+            if (!ConvertStringToUInt32(SplitCommand.at(2), &Pid))
             {
                 ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
 
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(3), &TargetVa))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(3).c_str());
+                             SplitCommandCaseSensitive.at(3).c_str());
                 return;
             }
         }
-        else if (!SplittedCommand.at(2).compare("pid"))
+        else if (!SplitCommand.at(2).compare("pid"))
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(1), &TargetVa))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplittedCommandCaseSensitive.at(1).c_str());
+                             SplitCommandCaseSensitive.at(1).c_str());
                 return;
             }
 
-            if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
+            if (!ConvertStringToUInt32(SplitCommand.at(3), &Pid))
             {
                 ShowMessages("incorrect address, please enter a valid process id\n");
                 return;

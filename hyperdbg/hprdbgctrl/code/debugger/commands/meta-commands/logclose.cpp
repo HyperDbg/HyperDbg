@@ -33,14 +33,14 @@ CommandLogcloseHelp()
 /**
  * @brief .logclose command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandLogclose(vector<string> SplittedCommand, string Command)
+CommandLogclose(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the '.logclose'\n\n");
         CommandLogcloseHelp();

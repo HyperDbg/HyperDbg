@@ -46,29 +46,29 @@ CommandSymHelp()
 /**
  * @brief .sym command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSym(vector<string> SplittedCommand, string Command)
+CommandSym(vector<string> SplitCommand, string Command)
 {
     UINT64 BaseAddress   = NULL;
     UINT32 UserProcessId = NULL;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("incorrect use of the '.sym'\n\n");
         CommandSymHelp();
         return;
     }
 
-    if (!SplittedCommand.at(1).compare("table"))
+    if (!SplitCommand.at(1).compare("table"))
     {
         //
         // Validate params
         //
-        if (SplittedCommand.size() != 2)
+        if (SplitCommand.size() != 2)
         {
             ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
@@ -80,12 +80,12 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         SymbolBuildAndShowSymbolTable();
     }
-    else if (!SplittedCommand.at(1).compare("load") || !SplittedCommand.at(1).compare("download"))
+    else if (!SplitCommand.at(1).compare("load") || !SplitCommand.at(1).compare("download"))
     {
         //
         // Validate params
         //
-        if (SplittedCommand.size() != 2)
+        if (SplitCommand.size() != 2)
         {
             ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
@@ -95,21 +95,21 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // Load and download available symbols
         //
-        if (!SplittedCommand.at(1).compare("load"))
+        if (!SplitCommand.at(1).compare("load"))
         {
             SymbolLoadOrDownloadSymbols(FALSE, FALSE);
         }
-        else if (!SplittedCommand.at(1).compare("download"))
+        else if (!SplitCommand.at(1).compare("download"))
         {
             SymbolLoadOrDownloadSymbols(TRUE, FALSE);
         }
     }
-    else if (!SplittedCommand.at(1).compare("reload"))
+    else if (!SplitCommand.at(1).compare("reload"))
     {
         //
         // Validate params
         //
-        if (SplittedCommand.size() != 2 && SplittedCommand.size() != 4)
+        if (SplitCommand.size() != 2 && SplitCommand.size() != 4)
         {
             ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
@@ -119,17 +119,17 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // Check for process id
         //
-        if (SplittedCommand.size() == 4)
+        if (SplitCommand.size() == 4)
         {
-            if (!SplittedCommand.at(2).compare("pid"))
+            if (!SplitCommand.at(2).compare("pid"))
             {
-                if (!ConvertStringToUInt32(SplittedCommand.at(3), &UserProcessId))
+                if (!ConvertStringToUInt32(SplitCommand.at(3), &UserProcessId))
                 {
                     //
                     // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplittedCommand.at(3).c_str());
+                                 SplitCommand.at(3).c_str());
                     CommandSymHelp();
                     return;
                 }
@@ -184,12 +184,12 @@ CommandSym(vector<string> SplittedCommand, string Command)
             }
         }
     }
-    else if (!SplittedCommand.at(1).compare("unload"))
+    else if (!SplitCommand.at(1).compare("unload"))
     {
         //
         // Validate params
         //
-        if (SplittedCommand.size() != 2)
+        if (SplitCommand.size() != 2)
         {
             ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
@@ -205,25 +205,25 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // Size is 3 there is module name (not working ! I don't know why)
         //
-        // ScriptEngineUnloadModuleSymbolWrapper((char *)SplittedCommand.at(2).c_str());
+        // ScriptEngineUnloadModuleSymbolWrapper((char *)SplitCommand.at(2).c_str());
     }
-    else if (!SplittedCommand.at(1).compare("add"))
+    else if (!SplitCommand.at(1).compare("add"))
     {
         //
         // Validate params
         //
-        if (SplittedCommand.size() < 6)
+        if (SplitCommand.size() < 6)
         {
             ShowMessages("incorrect use of the '.sym'\n\n");
             CommandSymHelp();
             return;
         }
 
-        if (!SplittedCommand.at(2).compare("base"))
+        if (!SplitCommand.at(2).compare("base"))
         {
             string Delimiter = "";
             string PathToPdb = "";
-            if (!ConvertStringToUInt64(SplittedCommand.at(3), &BaseAddress))
+            if (!ConvertStringToUInt64(SplitCommand.at(3), &BaseAddress))
             {
                 ShowMessages("please add a valid hex address to be used as the base address\n\n");
                 CommandSymHelp();
@@ -233,7 +233,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             //
             // Base address is now valid, check if next parameter is path
             //
-            if (SplittedCommand.at(4).compare("path"))
+            if (SplitCommand.at(4).compare("path"))
             {
                 ShowMessages("incorrect use of the '.sym'\n\n");
                 CommandSymHelp();
@@ -272,7 +272,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("unknown parameter at '%s'\n\n", SplittedCommand.at(1).c_str());
+        ShowMessages("unknown parameter at '%s'\n\n", SplitCommand.at(1).c_str());
         CommandSymHelp();
         return;
     }

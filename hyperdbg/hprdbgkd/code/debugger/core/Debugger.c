@@ -138,7 +138,7 @@ DebuggerInitialize()
     if (!g_ScriptGlobalVariables)
     {
         //
-        // Out of resource, initialization of script engine's global varialbe holders failed
+        // Out of resource, initialization of script engine's global variable holders failed
         //
         return FALSE;
     }
@@ -168,7 +168,7 @@ DebuggerInitialize()
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
             //
-            // Out of resource, initialization of script engine's local varialbe holders failed
+            // Out of resource, initialization of script engine's local variable holders failed
             //
             return FALSE;
         }
@@ -181,7 +181,7 @@ DebuggerInitialize()
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
         {
             //
-            // Out of resource, initialization of script engine's local varialbe holders failed
+            // Out of resource, initialization of script engine's local variable holders failed
             //
             return FALSE;
         }

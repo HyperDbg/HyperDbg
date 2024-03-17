@@ -33,13 +33,13 @@ CommandWrmsrHelp()
 /**
  * @brief wrmsr command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  *
  * @return VOID
  */
 VOID
-CommandWrmsr(vector<string> SplittedCommand, string Command)
+CommandWrmsr(vector<string> SplitCommand, string Command)
 {
     BOOL                           Status;
     UINT64                         Msr;
@@ -51,14 +51,14 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
     UINT32                         CoreNumer       = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
     BOOLEAN                        IsFirstCommand  = TRUE;
 
-    if (SplittedCommand.size() >= 6)
+    if (SplitCommand.size() >= 6)
     {
         ShowMessages("incorrect use of the 'wrmsr'\n\n");
         CommandWrmsrHelp();
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (IsFirstCommand == TRUE)
         {

@@ -29,23 +29,23 @@ CommandSleepHelp()
 /**
  * @brief sleep command help
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandSleep(vector<string> SplittedCommand, string Command)
+CommandSleep(vector<string> SplitCommand, string Command)
 {
     UINT32 MillisecondsTime = 0;
 
-    if (SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'sleep'\n\n");
         CommandSleepHelp();
         return;
     }
 
-    if (!ConvertStringToUInt32(SplittedCommand.at(1), &MillisecondsTime))
+    if (!ConvertStringToUInt32(SplitCommand.at(1), &MillisecondsTime))
     {
         ShowMessages(
             "please specify a correct hex value for time (milliseconds)\n\n");

@@ -44,12 +44,12 @@ CommandConnectHelp()
 /**
  * @brief .connect command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandConnect(vector<string> SplittedCommand, string Command)
+CommandConnect(vector<string> SplitCommand, string Command)
 {
     string ip;
     string port;
@@ -70,7 +70,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         //
         // Means that user entered just a connect so we have to
@@ -80,7 +80,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         CommandConnectHelp();
         return;
     }
-    else if (SplittedCommand.at(1) == "local" && SplittedCommand.size() == 2)
+    else if (SplitCommand.at(1) == "local" && SplitCommand.size() == 2)
     {
         //
         // connect to local debugger
@@ -89,13 +89,13 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         g_IsConnectedToHyperDbgLocally = TRUE;
         return;
     }
-    else if (SplittedCommand.size() == 3 || SplittedCommand.size() == 2)
+    else if (SplitCommand.size() == 3 || SplitCommand.size() == 2)
     {
-        ip = SplittedCommand.at(1);
+        ip = SplitCommand.at(1);
 
-        if (SplittedCommand.size() == 3)
+        if (SplitCommand.size() == 3)
         {
-            port = SplittedCommand.at(2);
+            port = SplitCommand.at(2);
         }
 
         //
@@ -109,7 +109,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
             return;
         }
 
-        if (SplittedCommand.size() == 3)
+        if (SplitCommand.size() == 3)
         {
             if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0)
             {

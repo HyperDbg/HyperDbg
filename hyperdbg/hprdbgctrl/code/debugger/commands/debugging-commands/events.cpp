@@ -57,12 +57,12 @@ CommandEventsHelp()
 /**
  * @brief events command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandEvents(vector<string> SplittedCommand, string Command)
+CommandEvents(vector<string> SplitCommand, string Command)
 {
     DEBUGGER_MODIFY_EVENTS_TYPE RequestedAction;
     UINT64                      RequestedTag;
@@ -70,14 +70,14 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     //
     // Validate the parameters (size)
     //
-    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 3)
+    if (SplitCommand.size() != 1 && SplitCommand.size() != 3)
     {
-        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         if (!g_EventTraceInitialized)
         {
@@ -97,25 +97,25 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     // Validate second argument as it's not just a simple
     // events without any parameter
     //
-    if (!SplittedCommand.at(1).compare("e"))
+    if (!SplitCommand.at(1).compare("e"))
     {
         RequestedAction = DEBUGGER_MODIFY_EVENTS_ENABLE;
     }
-    else if (!SplittedCommand.at(1).compare("d"))
+    else if (!SplitCommand.at(1).compare("d"))
     {
         RequestedAction = DEBUGGER_MODIFY_EVENTS_DISABLE;
     }
-    else if (!SplittedCommand.at(1).compare("c"))
+    else if (!SplitCommand.at(1).compare("c"))
     {
         RequestedAction = DEBUGGER_MODIFY_EVENTS_CLEAR;
     }
-    else if (!SplittedCommand.at(1).compare("sc"))
+    else if (!SplitCommand.at(1).compare("sc"))
     {
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             KdSendShortCircuitingEventToDebuggee(TRUE);
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             KdSendShortCircuitingEventToDebuggee(FALSE);
         }
@@ -137,7 +137,7 @@ CommandEvents(vector<string> SplittedCommand, string Command)
         //
         // unknown second command
         //
-        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }
@@ -146,11 +146,11 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     // Validate third argument as it's not just a simple
     // events without any parameter
     //
-    if (!SplittedCommand.at(2).compare("all"))
+    if (!SplitCommand.at(2).compare("all"))
     {
         RequestedTag = DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG;
     }
-    else if (!ConvertStringToUInt64(SplittedCommand.at(2), &RequestedTag))
+    else if (!ConvertStringToUInt64(SplitCommand.at(2), &RequestedTag))
     {
         ShowMessages(
             "please specify a correct hex value for tag id (event number)\n\n");

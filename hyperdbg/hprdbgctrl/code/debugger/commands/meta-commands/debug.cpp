@@ -107,17 +107,17 @@ CommandDebugCheckComPort(const string & ComPort, UINT32 * Port)
 /**
  * @brief .debug command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDebug(vector<string> SplittedCommand, string Command)
+CommandDebug(vector<string> SplitCommand, string Command)
 {
     UINT32 Baudrate;
     UINT32 Port;
 
-    if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("close"))
+    if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("close"))
     {
         //
         // Check if the debugger is attached to a debuggee
@@ -133,7 +133,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
         }
         return;
     }
-    else if (SplittedCommand.size() <= 3)
+    else if (SplitCommand.size() <= 3)
     {
         ShowMessages("incorrect use of the '.debug'\n\n");
         CommandDebugHelp();
@@ -143,18 +143,18 @@ CommandDebug(vector<string> SplittedCommand, string Command)
     //
     // Check the main command
     //
-    if (!SplittedCommand.at(1).compare("remote"))
+    if (!SplitCommand.at(1).compare("remote"))
     {
         //
         // in the case of the 'remote'
         //
 
-        if (!SplittedCommand.at(2).compare("serial"))
+        if (!SplitCommand.at(2).compare("serial"))
         {
             //
             // Connect to a remote serial device
             //
-            if (SplittedCommand.size() != 5)
+            if (SplitCommand.size() != 5)
             {
                 ShowMessages("incorrect use of the '.debug'\n\n");
                 CommandDebugHelp();
@@ -164,18 +164,18 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // Set baudrate
             //
-            if (!IsNumber(SplittedCommand.at(3)))
+            if (!IsNumber(SplitCommand.at(3)))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n",
-                             SplittedCommand.at(3).c_str());
+                             SplitCommand.at(3).c_str());
                 CommandDebugHelp();
                 return;
             }
 
-            Baudrate = stoi(SplittedCommand.at(3));
+            Baudrate = stoi(SplitCommand.at(3));
 
             //
             // Check if baudrate is valid or not
@@ -193,7 +193,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplittedCommand.at(4), &Port))
+            if (!CommandDebugCheckComPort(SplitCommand.at(4), &Port))
             {
                 //
                 // com port is invalid
@@ -206,9 +206,9 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // Everything is okay, connect to the remote machine to send (debugger)
             //
-            KdPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(), Baudrate, Port, FALSE, FALSE);
+            KdPrepareAndConnectDebugPort(SplitCommand.at(4).c_str(), Baudrate, Port, FALSE, FALSE);
         }
-        else if (!SplittedCommand.at(2).compare("namedpipe"))
+        else if (!SplitCommand.at(2).compare("namedpipe"))
         {
             //
             // Connect to a remote namedpipe
@@ -226,16 +226,16 @@ CommandDebug(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Unkonwn parameter
+            // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", SplittedCommand.at(2).c_str());
+            ShowMessages("unknown parameter '%s'\n\n", SplitCommand.at(2).c_str());
             CommandDebugHelp();
             return;
         }
     }
-    else if (!SplittedCommand.at(1).compare("prepare"))
+    else if (!SplitCommand.at(1).compare("prepare"))
     {
-        if (SplittedCommand.size() != 5)
+        if (SplitCommand.size() != 5)
         {
             ShowMessages("incorrect use of the '.debug'\n\n");
             CommandDebugHelp();
@@ -246,23 +246,23 @@ CommandDebug(vector<string> SplittedCommand, string Command)
         // in the case of the 'prepare'
         // currently we only support serial
         //
-        if (!SplittedCommand.at(2).compare("serial"))
+        if (!SplitCommand.at(2).compare("serial"))
         {
             //
             // Set baudrate
             //
-            if (!IsNumber(SplittedCommand.at(3)))
+            if (!IsNumber(SplitCommand.at(3)))
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n",
-                             SplittedCommand.at(3).c_str());
+                             SplitCommand.at(3).c_str());
                 CommandDebugHelp();
                 return;
             }
 
-            Baudrate = stoi(SplittedCommand.at(3));
+            Baudrate = stoi(SplitCommand.at(3));
 
             //
             // Check if baudrate is valid or not
@@ -280,7 +280,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplittedCommand.at(4), &Port))
+            if (!CommandDebugCheckComPort(SplitCommand.at(4), &Port))
             {
                 //
                 // com port is invalid
@@ -293,18 +293,18 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // Everything is okay, prepare to send (debuggee)
             //
-            KdPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(), Baudrate, Port, TRUE, FALSE);
+            KdPrepareAndConnectDebugPort(SplitCommand.at(4).c_str(), Baudrate, Port, TRUE, FALSE);
         }
         else
         {
-            ShowMessages("invalid parameter '%s'\n\n", SplittedCommand.at(2));
+            ShowMessages("invalid parameter '%s'\n\n", SplitCommand.at(2));
             CommandDebugHelp();
             return;
         }
     }
     else
     {
-        ShowMessages("invalid parameter '%s'\n\n", SplittedCommand.at(1));
+        ShowMessages("invalid parameter '%s'\n\n", SplitCommand.at(1));
         CommandDebugHelp();
         return;
     }

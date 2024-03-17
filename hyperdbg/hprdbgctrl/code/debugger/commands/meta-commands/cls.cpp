@@ -27,12 +27,12 @@ CommandClearScreenHelp()
 /**
  * @brief .cls command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandClearScreen(vector<string> SplittedCommand, string Command)
+CommandClearScreen(vector<string> SplitCommand, string Command)
 {
     system("cls");
 }

@@ -49,12 +49,12 @@ CommandMonitorHelp()
 /**
  * @brief !monitor command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandMonitor(vector<string> SplittedCommand, string Command)
+CommandMonitor(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -72,11 +72,11 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     BOOLEAN                            IsNextLength     = FALSE;
     BOOLEAN                            LengthAlreadySet = FALSE;
     BOOLEAN                            SetAttributes    = FALSE;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplittedCommand.size() < 4)
+    if (SplitCommand.size() < 4)
     {
         ShowMessages("incorrect use of the '!monitor'\n");
         CommandMonitorHelp();
@@ -91,8 +91,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     // we are not sure what kind event the user need
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
             &Event,
             &EventLength,
@@ -110,7 +110,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -186,14 +186,14 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             if (!SetFrom)
             {
                 if (!SymbolConvertNameOrExprToAddress(
-                        SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                         &OptionalParam1))
                 {
                     //
                     // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                                 SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                     CommandMonitorHelp();
 
                     FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -204,14 +204,14 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             else if (!SetTo && !LengthAlreadySet)
             {
                 if (!SymbolConvertNameOrExprToAddress(
-                        SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                         &OptionalParam2))
                 {
                     //
                     // Couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                                 SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
 
                     CommandMonitorHelp();
 
@@ -223,7 +223,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             else
             {
                 //
-                // Unkonwn parameter
+                // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandMonitorHelp();

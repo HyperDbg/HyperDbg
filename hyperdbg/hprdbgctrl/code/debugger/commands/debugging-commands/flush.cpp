@@ -101,14 +101,14 @@ CommandFlushRequestFlush()
 /**
  * @brief flush command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandFlush(vector<string> SplittedCommand, string Command)
+CommandFlush(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the 'flush'\n\n");
         CommandFlushHelp();

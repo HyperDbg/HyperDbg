@@ -36,14 +36,14 @@ CommandDisconnectHelp()
 /**
  * @brief .disconnect command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDisconnect(vector<string> SplittedCommand, string Command)
+CommandDisconnect(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the '.disconnect'\n\n");
         CommandDisconnectHelp();

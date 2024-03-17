@@ -38,16 +38,16 @@ CommandCoreHelp()
 /**
  * @brief ~ command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandCore(vector<string> SplittedCommand, string Command)
+CommandCore(vector<string> SplitCommand, string Command)
 {
     UINT32 TargetCore = 0;
 
-    if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the '~'\n\n");
         CommandCoreHelp();
@@ -63,13 +63,13 @@ CommandCore(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("current processor : 0x%x\n", g_CurrentRemoteCore);
     }
-    else if (SplittedCommand.size() == 2)
+    else if (SplitCommand.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplittedCommand.at(1), &TargetCore))
+        if (!ConvertStringToUInt32(SplitCommand.at(1), &TargetCore))
         {
             ShowMessages("please specify a correct hex value for the core that you "
                          "want to operate on it\n\n");

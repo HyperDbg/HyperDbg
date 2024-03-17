@@ -52,12 +52,12 @@ CommandHideHelp()
 /**
  * @brief !hide command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandHide(vector<string> SplittedCommand, string Command)
+CommandHide(vector<string> SplitCommand, string Command)
 {
     BOOLEAN                                      Status;
     ULONG                                        ReturnedLength;
@@ -67,7 +67,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE FinalRequestBuffer = 0;
     size_t                                       RequestBufferSize  = 0;
 
-    if (SplittedCommand.size() <= 2 && SplittedCommand.size() != 1)
+    if (SplitCommand.size() <= 2 && SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the '!hide'\n\n");
         CommandHideHelp();
@@ -77,7 +77,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     //
     // Find out whether the user enters pid or name
     //
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         if (g_ActiveProcessDebuggingState.IsActive)
         {
@@ -94,14 +94,14 @@ CommandHide(vector<string> SplittedCommand, string Command)
             return;
         }
     }
-    else if (!SplittedCommand.at(1).compare("pid"))
+    else if (!SplitCommand.at(1).compare("pid"))
     {
         TrueIfProcessIdAndFalseIfProcessName = TRUE;
 
         //
         // Check for the user to not add extra arguments
         //
-        if (SplittedCommand.size() != 3)
+        if (SplitCommand.size() != 3)
         {
             ShowMessages("incorrect use of the '!hide'\n\n");
             CommandHideHelp();
@@ -111,13 +111,13 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // It's just a pid for the process
         //
-        if (!ConvertStringToUInt64(SplittedCommand.at(2), &TargetPid))
+        if (!ConvertStringToUInt64(SplitCommand.at(2), &TargetPid))
         {
             ShowMessages("incorrect process id\n\n");
             return;
         }
     }
-    else if (!SplittedCommand.at(1).compare("name"))
+    else if (!SplitCommand.at(1).compare("name"))
     {
         TrueIfProcessIdAndFalseIfProcessName = FALSE;
 
@@ -129,7 +129,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
         //
         // Remove !hide from it
         //
-        Command.erase(0, SplittedCommand.at(0).size());
+        Command.erase(0, SplitCommand.at(0).size());
 
         //
         // remove name + space

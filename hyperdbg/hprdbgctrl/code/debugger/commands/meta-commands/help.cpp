@@ -14,7 +14,7 @@
 /**
  * @brief help of the help command :)
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */

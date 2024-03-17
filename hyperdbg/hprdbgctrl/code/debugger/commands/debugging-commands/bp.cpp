@@ -46,12 +46,12 @@ CommandBpHelp()
 /**
  * @brief bp command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandBp(vector<string> SplittedCommand, string Command)
+CommandBp(vector<string> SplitCommand, string Command)
 {
     BOOL IsNextCoreId = FALSE;
     BOOL IsNextPid    = FALSE;
@@ -66,20 +66,20 @@ CommandBp(vector<string> SplittedCommand, string Command)
     UINT32         Pid       = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
     UINT32         CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
     UINT64         Address   = NULL;
-    vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
     BOOLEAN        IsFirstCommand              = TRUE;
 
     DEBUGGEE_BP_PACKET BpPacket = {0};
 
-    if (SplittedCommand.size() >= 9)
+    if (SplitCommand.size() >= 9)
     {
         ShowMessages("incorrect use of the 'bp'\n\n");
         CommandBpHelp();
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -145,13 +145,13 @@ CommandBp(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandBpHelp();
                 return;
             }
