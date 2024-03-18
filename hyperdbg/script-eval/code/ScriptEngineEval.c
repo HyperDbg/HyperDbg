@@ -95,6 +95,10 @@ GetValue(PGUEST_REGS                   GuestRegs,
          int *                         StackBaseIndx,
          int *                         StackTempBaseIndx)
 {
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    UNREFERENCED_PARAMETER(StackIndx);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
     switch (Symbol->Type)
     {
     case SYMBOL_GLOBAL_ID_TYPE:
@@ -159,7 +163,7 @@ GetValue(PGUEST_REGS                   GuestRegs,
     //
     // Shouldn't reach here
     //
-    return NULL;
+    return NULL64_ZERO;
 }
 
 /**
@@ -172,8 +176,19 @@ GetValue(PGUEST_REGS                   GuestRegs,
  * @return VOID
  */
 VOID
-SetValue(PGUEST_REGS GuestRegs, SCRIPT_ENGINE_VARIABLES_LIST * VariablesList, PSYMBOL Symbol, UINT64 Value, SYMBOL_BUFFER * StackBuffer, int * StackIndx, int * StackBaseIndx, int * StackTempBaseIndx)
+SetValue(PGUEST_REGS                    GuestRegs,
+         SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
+         PSYMBOL                        Symbol,
+         UINT64                         Value,
+         SYMBOL_BUFFER *                StackBuffer,
+         int *                          StackIndx,
+         int *                          StackBaseIndx,
+         int *                          StackTempBaseIndx)
 {
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    UNREFERENCED_PARAMETER(StackIndx);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
     switch (Symbol->Type)
     {
     case SYMBOL_GLOBAL_ID_TYPE:
@@ -282,8 +297,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
     UINT64 DesVal;
     BOOL   HasError = FALSE;
 
-    static int                StackIndxTemp = NULL;
-    static unsigned long long ReturnValue   = NULL;
+    static int                StackIndxTemp = NULL_ZERO;
+    static unsigned long long ReturnValue   = NULL64_ZERO;
 
     Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));

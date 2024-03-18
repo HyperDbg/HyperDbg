@@ -983,6 +983,13 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+
+    if (TypeNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 
@@ -992,6 +999,13 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     //
     const size_t FieldNameSize = strlen(FieldName) + 1;
     WCHAR *      FieldNameW    = (WCHAR *)malloc(sizeof(wchar_t) * FieldNameSize);
+
+    if (FieldNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(FieldNameW, sizeof(wchar_t) * FieldNameSize);
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
@@ -1057,6 +1071,13 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+
+    if (TypeNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 

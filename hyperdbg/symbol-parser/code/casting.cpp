@@ -69,13 +69,13 @@ typedef struct _STUPID_STRUCT2
  * safely use the details
  */
 BOOLEAN
-SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
-                                 _In_ const char * FiledOfStructName,
-                                 _Out_ PBOOLEAN    IsStructNamePointerOrNot,
-                                 _Out_ PBOOLEAN    IsFiledOfStructNamePointerOrNot,
-                                 _Out_ char **     NewStructOrTypeName,
-                                 _Out_ UINT32 *    OffsetOfFieldFromTop,
-                                 _Out_ UINT32 *    SizeOfField)
+SymCastingQueryForFiledsAndTypes(const char * StructName,
+                                 const char * FiledOfStructName,
+                                 PBOOLEAN     IsStructNamePointerOrNot,
+                                 PBOOLEAN     IsFiledOfStructNamePointerOrNot,
+                                 char **      NewStructOrTypeName,
+                                 UINT32 *     OffsetOfFieldFromTop,
+                                 UINT32 *     SizeOfField)
 {
     BOOLEAN IsPointer                 = FALSE;
     BOOLEAN IsTheStructItselfAPointer = FALSE;
@@ -245,7 +245,7 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
  * details
  */
 BOOLEAN
-SymQuerySizeof(_In_ const char * StructNameOrTypeName, _Out_ UINT32 * SizeOfField)
+SymQuerySizeof(const char * StructNameOrTypeName, UINT32 * SizeOfField)
 {
     if (strcmp(StructNameOrTypeName, "STUPID_STRUCT1") == 0)
     {
