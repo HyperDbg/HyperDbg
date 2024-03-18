@@ -187,19 +187,19 @@ IsOctal(char c);
 void
 SetType(unsigned long long * Val, unsigned char Type);
 
-unsigned long long int
+unsigned long long
 DecimalToInt(char * str);
 
-unsigned long long int
+unsigned long long
 DecimalToSignedInt(char * str);
 
-unsigned long long int
+unsigned long long
 HexToInt(char * str);
 
-unsigned long long int
+unsigned long long
 OctalToInt(char * str);
 
-unsigned long long int
+unsigned long long
 BinaryToInt(char * str);
 
 void

@@ -74,7 +74,7 @@ NewToken(TOKEN_TYPE Type, char * Value)
     //
     // Init fields
     //
-    unsigned int Len = strlen(Value);
+    unsigned int Len = (unsigned int)strlen(Value);
     Token->Type      = Type;
     Token->Len       = Len;
     Token->MaxLen    = Len;
@@ -670,7 +670,7 @@ NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 void
 FreeTemp(PTOKEN Temp)
 {
-    int id = DecimalToInt(Temp->Value);
+    int id = (int)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
     {
         TempMap[id] = 0;
@@ -1336,11 +1336,11 @@ SetType(unsigned long long * Val, unsigned char Type)
  * @param str
  * @return unsigned long long int
  */
-unsigned long long int
+unsigned long long
 DecimalToInt(char * str)
 {
-    unsigned long long int Acc = 0;
-    size_t                 Len;
+    unsigned long long Acc = 0;
+    size_t             Len;
 
     Len = strlen(str);
     for (int i = 0; i < Len; i++)
@@ -1355,13 +1355,13 @@ DecimalToInt(char * str)
  * @brief Converts an decimal string to a signed integer
  *
  * @param str
- * @return unsigned long long int
+ * @return unsigned long long
  */
-unsigned long long int
+unsigned long long
 DecimalToSignedInt(char * str)
 {
-    long long int Acc = 0;
-    size_t        Len;
+    long long Acc = 0;
+    size_t    Len;
 
     if (str[0] == '-')
     {
@@ -1389,14 +1389,14 @@ DecimalToSignedInt(char * str)
  * @brief Converts an hexadecimal string to integer
  *
  * @param str
- * @return unsigned long long int
+ * @return unsigned long long
  */
-unsigned long long int
+unsigned long long
 HexToInt(char * str)
 {
-    char                   temp;
-    size_t                 len = strlen(str);
-    unsigned long long int Acc = 0;
+    char               temp;
+    size_t             len = strlen(str);
+    unsigned long long Acc = 0;
     for (int i = 0; i < len; i++)
     {
         Acc <<= 4;
@@ -1422,13 +1422,13 @@ HexToInt(char * str)
  * @brief Converts an octal string to integer
  *
  * @param str
- * @return unsigned long long int
+ * @return unsigned long long
  */
-unsigned long long int
+unsigned long long
 OctalToInt(char * str)
 {
-    size_t                 Len;
-    unsigned long long int Acc = 0;
+    size_t             Len;
+    unsigned long long Acc = 0;
 
     Len = strlen(str);
 
@@ -1444,13 +1444,13 @@ OctalToInt(char * str)
  * @brief Converts a binary string to integer
  *
  * @param str
- * @return unsigned long long int
+ * @return unsigned long long
  */
-unsigned long long int
+unsigned long long
 BinaryToInt(char * str)
 {
-    size_t                 Len;
-    unsigned long long int Acc = 0;
+    size_t             Len;
+    unsigned long long Acc = 0;
 
     Len = strlen(str);
 

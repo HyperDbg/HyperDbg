@@ -229,7 +229,7 @@ ScriptEngineSymbolAbortLoading()
     //
     // A wrapper for aborting download and reload
     //
-    return SymbolAbortLoading();
+    SymbolAbortLoading();
 }
 
 /**
@@ -393,7 +393,7 @@ ScriptEngineParse(char * str)
                 //
                 for (int i = RhsSize[RuleId] - 1; i >= 0; i--)
                 {
-                    PTOKEN Token = &Rhs[RuleId][i];
+                    PTOKEN Token = (PTOKEN)&Rhs[RuleId][i];
 
                     if (Token->Type == EPSILON)
                         break;
@@ -2153,7 +2153,7 @@ ScriptEngineBooleanExpresssionParse(
     {
         TopToken       = Top(Stack);
         int TerminalId = LalrGetTerminalId(CurrentIn);
-        StateId        = DecimalToSignedInt(TopToken->Value);
+        StateId        = (int)DecimalToSignedInt(TopToken->Value);
         if (StateId == INVALID || TerminalId < 0)
         {
             *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -2208,9 +2208,9 @@ ScriptEngineBooleanExpresssionParse(
         else if (Action < 0) // Reduce
         {
             StateId      = -Action;
-            Lhs          = &LalrLhs[StateId - 1];
+            Lhs          = (PTOKEN)&LalrLhs[StateId - 1];
             RhsSize      = LalrGetRhsSize(StateId - 1);
-            SemanticRule = &LalrSemanticRules[StateId - 1];
+            SemanticRule = (PTOKEN)&LalrSemanticRules[StateId - 1];
 
             for (int i = 0; i < 2 * RhsSize; i++)
             {
@@ -2248,7 +2248,7 @@ ScriptEngineBooleanExpresssionParse(
             }
 
             Temp    = Top(Stack);
-            StateId = DecimalToSignedInt(Temp->Value);
+            StateId = (int)DecimalToSignedInt(Temp->Value);
 
             Goto = LalrGotoTable[StateId][LalrGetNonTerminalId(Lhs)];
 
@@ -2378,7 +2378,7 @@ NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
 
     Symbol->Value = (unsigned long long)calloc(Length + 1, sizeof(char));
 
-    if (Symbol->Value == NULL)
+    if (Symbol->Value == 0ull)
     {
         //
         // There was an error allocating buffer
@@ -2408,7 +2408,7 @@ NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
 unsigned int
 GetSymbolHeapSize(PSYMBOL Symbol)
 {
-    int Temp = (3 * sizeof(unsigned long long) + Symbol->Len) / sizeof(SYMBOL) + 1;
+    int Temp = (3 * sizeof(unsigned long long) + (int)Symbol->Len) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -2614,6 +2614,12 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             //
             PSYMBOL NewHead = (PSYMBOL)malloc(NewSize * sizeof(SYMBOL));
 
+            if (NewHead == NULL)
+            {
+                printf("err, could not allocate buffer");
+                return NULL;
+            }
+
             //
             // Copy old buffer to new buffer
             //
@@ -2816,8 +2822,8 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     //
     // add the line which error happened at
     //
-
     strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
+
     strcat(Message, "\n");
 
     //

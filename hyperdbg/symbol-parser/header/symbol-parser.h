@@ -63,8 +63,8 @@ __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 __declspec(dllexport) BOOLEAN SymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllexport) BOOLEAN SymShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
-__declspec(dllexport) BOOLEAN SymQuerySizeof(_In_ const char * StructNameOrTypeName, _Out_ UINT32 * SizeOfField);
-__declspec(dllexport) BOOLEAN SymCastingQueryForFiledsAndTypes(_In_ const char * StructName, _In_ const char * FiledOfStructName, _Out_ PBOOLEAN IsStructNamePointerOrNot, _Out_ PBOOLEAN IsFiledOfStructNamePointerOrNot, _Out_ char ** NewStructOrTypeName, _Out_ UINT32 * OffsetOfFieldFromTop, _Out_ UINT32 * SizeOfField);
+__declspec(dllexport) BOOLEAN SymQuerySizeof( const char * StructNameOrTypeName,  UINT32 * SizeOfField);
+__declspec(dllexport) BOOLEAN SymCastingQueryForFiledsAndTypes( const char * StructName,  const char * FiledOfStructName,  PBOOLEAN IsStructNamePointerOrNot,  PBOOLEAN IsFiledOfStructNamePointerOrNot,  char ** NewStructOrTypeName,  UINT32 * OffsetOfFieldFromTop,  UINT32 * SizeOfField);
 }
 
 //////////////////////////////////////////////////

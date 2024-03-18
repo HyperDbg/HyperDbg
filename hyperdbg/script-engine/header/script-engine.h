@@ -100,7 +100,7 @@ PSYMBOL
 ToSymbol(PTOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
-__declspec(dllimport) PSYMBOL_BUFFER GetStackBuffer();
+__declspec(dllexport) PSYMBOL_BUFFER GetStackBuffer();
 
 void
 ScriptEngineBooleanExpresssionParse(
