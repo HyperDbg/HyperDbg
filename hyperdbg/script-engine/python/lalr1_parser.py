@@ -49,8 +49,8 @@ class LALR1Parser:
 
 
         # INVALID rule indicator
-        self.INVALID = -999 
-        self.ACCEPT =   999
+        self.INVALID = 0x80000000 
+        self.ACCEPT = 0x7fffffff
 
         self.FunctionsDict = dict()
         self.OperatorsList = []
