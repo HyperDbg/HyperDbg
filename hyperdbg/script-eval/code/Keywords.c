@@ -26,15 +26,15 @@
 UINT64
 ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 {
-    UINT64 Result = NULL;
+    UINT64 Result = (UINT64)NULL;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return (UINT64)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -44,7 +44,7 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(UINT64));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(UINT64));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -60,15 +60,15 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = NULL;
+    QWORD Result = NULL64_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return NULL64_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -78,7 +78,7 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(UINT64));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(UINT64));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return HIWORD(Result);
@@ -94,15 +94,15 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = NULL;
+    QWORD Result = NULL64_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(UINT64)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(UINT64)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return NULL64_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -112,7 +112,7 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(UINT64));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(UINT64));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return LOWORD(Result);
@@ -128,25 +128,25 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 BYTE
 ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 {
-    BYTE Result = NULL;
+    BYTE Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(BYTE)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (BYTE)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(BYTE));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(BYTE));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -162,25 +162,25 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 DWORD
 ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 {
-    DWORD Result = NULL;
+    DWORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(DWORD)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (DWORD)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(DWORD));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(DWORD));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -196,25 +196,25 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 WORD
 ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 {
-    WORD Result = NULL;
+    WORD Result = NULL_ZERO;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(WORD)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(WORD)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return NULL_ZERO;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    Result = (WORD)*Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(WORD));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(WORD));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;
@@ -230,15 +230,15 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 QWORD
 ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 {
-    QWORD Result = NULL;
+    QWORD Result = (QWORD)NULL;
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
+    if (!CheckAccessValidityAndSafety((UINT64)Address, sizeof(DWORD)))
     {
         *HasError = TRUE;
 
-        return NULL;
+        return (QWORD)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -248,7 +248,7 @@ ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafeOnTargetProcess(Address, &Result, sizeof(QWORD));
+    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(QWORD));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;

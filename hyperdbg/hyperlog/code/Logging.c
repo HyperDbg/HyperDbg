@@ -29,9 +29,9 @@
  */
 BOOLEAN inline LogCheckVmxOperation()
 {
-    CHECK_VMX_OPERATION VmxOpeationCheck = g_MsgTracingCallbacks.VmxOpeationCheck;
+    CHECK_VMX_OPERATION VmxOperationCheck = g_MsgTracingCallbacks.VmxOperationCheck;
 
-    if (VmxOpeationCheck == NULL)
+    if (VmxOperationCheck == NULL)
     {
         //
         // As the caller didn't defined a checker for vmx operation, we assume
@@ -43,7 +43,7 @@ BOOLEAN inline LogCheckVmxOperation()
     //
     // The user specified a vmx checker
     //
-    return VmxOpeationCheck();
+    return VmxOperationCheck();
 }
 
 /**
@@ -108,15 +108,15 @@ BOOLEAN inline LogSendImmediateMessage(CHAR * OptionalBuffer,
 BOOLEAN
 LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
 {
-    ULONG CoreCount = 0;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Initialize buffers for trace message and data messages
     //(we have two buffers one for vmx root and one for vmx non-root)
     //
-    MessageBufferInformation = ExAllocatePoolWithTag(NonPagedPool, sizeof(LOG_BUFFER_INFORMATION) * 2, POOLTAG);
+    MessageBufferInformation = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(LOG_BUFFER_INFORMATION) * 2, POOLTAG);
 
     if (!MessageBufferInformation)
     {
@@ -132,7 +132,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     // Allocate VmxTempMessage and VmxLogMessage
     //
     VmxTempMessage = NULL;
-    VmxTempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+    VmxTempMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize * ProcessorsCount, POOLTAG);
 
     if (!VmxTempMessage)
     {
@@ -142,7 +142,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     }
 
     VmxLogMessage = NULL;
-    VmxLogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize * CoreCount, POOLTAG);
+    VmxLogMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize * ProcessorsCount, POOLTAG);
 
     if (!VmxLogMessage)
     {
@@ -177,8 +177,8 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // allocate the buffer for regular buffers
         //
-        MessageBufferInformation[i].BufferStartAddress                   = ExAllocatePoolWithTag(NonPagedPool, LogBufferSize, POOLTAG);
-        MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
+        MessageBufferInformation[i].BufferStartAddress                   = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, LogBufferSize, POOLTAG);
+        MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
 
         if (!MessageBufferInformation[i].BufferStartAddress ||
             !MessageBufferInformation[i].BufferForMultipleNonImmediateMessage)
@@ -189,7 +189,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // allocate the buffer for priority buffers
         //
-        MessageBufferInformation[i].BufferStartAddressPriority = ExAllocatePoolWithTag(NonPagedPool, LogBufferSizePriority, POOLTAG);
+        MessageBufferInformation[i].BufferStartAddressPriority = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, LogBufferSizePriority, POOLTAG);
 
         if (!MessageBufferInformation[i].BufferStartAddressPriority)
         {
@@ -199,9 +199,9 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // Zeroing the buffer
         //
-        RtlZeroMemory(MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
-        RtlZeroMemory(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
-        RtlZeroMemory(MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
+        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
+        RtlZeroMemory((void *)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
 
         //
         // Set the end address
@@ -234,15 +234,26 @@ LogUnInitialize()
         //
         // Free each buffers
         //
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddress, POOLTAG);
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
-        ExFreePoolWithTag(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
+        if (MessageBufferInformation[i].BufferStartAddress != NULL64_ZERO)
+        {
+            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferStartAddress, POOLTAG);
+        }
+
+        if (MessageBufferInformation[i].BufferStartAddressPriority != NULL64_ZERO)
+        {
+            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
+        }
+
+        if (MessageBufferInformation[i].BufferForMultipleNonImmediateMessage != NULL64_ZERO)
+        {
+            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
+        }
     }
 
     //
     // de-allocate buffers for trace message and data messages
     //
-    ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+    ExFreePoolWithTag((PVOID)MessageBufferInformation, POOLTAG);
     MessageBufferInformation = NULL;
 }
 
@@ -257,8 +268,8 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
 {
     UINT32  Index;
     BOOLEAN IsVmxRoot;
-    UINT32  CurrentIndexToWrite;
-    UINT32  CurrentIndexToWritePriority;
+    UINT32  CurrentIndexToWrite         = NULL_ZERO;
+    UINT32  CurrentIndexToWritePriority = NULL_ZERO;
 
     //
     // Check that if we're in vmx root-mode
@@ -336,16 +347,16 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
  * @param Buffer Buffer to be send to user mode
  * @param BufferLength Length of the buffer
  * @param Priority Whether the buffer has priority
- * @return BOOLEAN Returns true if the buffer succssfully set to be
+ * @return BOOLEAN Returns true if the buffer successfully set to be
  * send to user mode and false if there was an error
  */
 _Use_decl_annotations_
 BOOLEAN
 LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority)
 {
-    KIRQL   OldIRQL;
     UINT32  Index;
     BOOLEAN IsVmxRoot;
+    KIRQL   OldIRQL = NULL_ZERO;
 
     if (BufferLength > PacketChunkSize - 1 || BufferLength == 0)
     {
@@ -469,9 +480,9 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     // Set the header
     //
-    Header->OpeationNumber = OperationCode;
-    Header->BufferLength   = BufferLength;
-    Header->Valid          = TRUE;
+    Header->OperationNumber = OperationCode;
+    Header->BufferLength    = BufferLength;
+    Header->Valid           = TRUE;
 
     //
     // ******** Now it's time to fill the buffer ********
@@ -484,11 +495,11 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
 
     if (Priority)
     {
-        SavingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SavingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
     else
     {
-        SavingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SavingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
 
     //
@@ -562,9 +573,9 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
 UINT32
 LogMarkAllAsRead(BOOLEAN IsVmxRoot)
 {
-    KIRQL  OldIRQL;
     UINT32 Index;
     UINT32 ResultsOfBuffersSetToRead = 0;
+    KIRQL  OldIRQL                   = NULL_ZERO;
 
     //
     // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
@@ -640,7 +651,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Second, save the buffer contents
         //
-        PVOID SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        PVOID SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
 
         //
         // Finally, set the current index to invalid as we sent it
@@ -695,15 +706,15 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
  * @param BufferToSaveMessage Target buffer to save the message
  * @param ReturnedLength The actual length of the buffer that this function used it
- * @return BOOLEAN return of this function shows whether the read was successfull
+ * @return BOOLEAN return of this function shows whether the read was successful
  * or not (e.g FALSE shows there's no new buffer available.)
  */
 BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength)
 {
-    KIRQL   OldIRQL;
     UINT32  Index;
     BOOLEAN PriorityMessageIsAvailable = FALSE;
+    KIRQL   OldIRQL                    = NULL_ZERO;
 
     //
     // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
@@ -788,7 +799,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // First copy the header
     //
-    RtlCopyBytes(BufferToSaveMessage, &Header->OpeationNumber, sizeof(UINT32));
+    RtlCopyBytes(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
 
     //
     // Second, save the buffer contents
@@ -797,14 +808,18 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 
     if (PriorityMessageIsAvailable)
     {
-        SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
     else
     {
-        SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
 
-    PVOID SavingAddress = ((UINT64)BufferToSaveMessage + sizeof(UINT32)); /* Because we want to pass the header of usermode header */
+    //
+    // Because we want to pass the header of usermode header
+    //
+    PVOID SavingAddress = (PVOID)((UINT64)BufferToSaveMessage + sizeof(UINT32));
+
     RtlCopyBytes(SavingAddress, SendingBuffer, Header->BufferLength);
 
 #if ShowMessagesOnDebugger
@@ -812,7 +827,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Means that show just messages
     //
-    if (Header->OpeationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
+    if (Header->OperationNumber <= OPERATION_LOG_NON_IMMEDIATE_MESSAGE)
     {
         //
         // We're in Dpc level here so it's safe to use DbgPrint
@@ -845,7 +860,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     Header->Valid = FALSE;
 
     //
-    // Set the length to show as the ReturnedByted in usermode ioctl funtion + size of header
+    // Set the length to show as the ReturnedByted in usermode ioctl function + size of header
     //
     *ReturnedLength = Header->BufferLength + sizeof(UINT32);
 
@@ -922,7 +937,6 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 BOOLEAN
 LogCheckForNewMessage(BOOLEAN IsVmxRoot, BOOLEAN Priority)
 {
-    KIRQL  OldIRQL;
     UINT32 Index;
 
     if (IsVmxRoot)
@@ -989,7 +1003,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     char *  LogMessage     = NULL;
     char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
-    ULONG   CoreId         = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Set Vmx State
@@ -1002,15 +1016,15 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     //
     if (IsVmxRootMode)
     {
-        LogMessage  = &VmxLogMessage[CoreId * PacketChunkSize];
-        TempMessage = &VmxTempMessage[CoreId * PacketChunkSize];
+        LogMessage  = &VmxLogMessage[CurrentCore * PacketChunkSize];
+        TempMessage = &VmxTempMessage[CurrentCore * PacketChunkSize];
     }
     else
     {
         //
         // To avoid buffer collision and buffer re-writing in VMX non-root, allocate pool
         //
-        LogMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
+        LogMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
 
         if (LogMessage == NULL)
         {
@@ -1019,8 +1033,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
             //
             return FALSE;
         }
-
-        TempMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
+        TempMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
 
         if (TempMessage == NULL)
         {
@@ -1085,7 +1098,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // Append time with previous message
         //
-        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CoreId, IsVmxRootMode ? "yes" : "no", TempMessage);
+        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CurrentCore, IsVmxRootMode ? "yes" : "no", TempMessage);
 
         //
         // Check if the buffer passed the limit
@@ -1140,7 +1153,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     //
     // Send the prepared buffer (with no priority)
     //
-    Result = LogCallbackSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
+    Result = LogCallbackSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, (UINT32)WrittenSize, Priority);
 
 FreeBufferAndReturn:
 
@@ -1186,6 +1199,8 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
                                                             ArgList);
 
     va_end(ArgList);
+
+    return Result;
 }
 
 /**
@@ -1204,8 +1219,8 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
 {
     BOOLEAN Result;
     UINT32  Index;
-    KIRQL   OldIRQL;
     BOOLEAN IsVmxRootMode;
+    KIRQL   OldIRQL = NULL_ZERO;
 
     //
     // Set Vmx State
@@ -1293,7 +1308,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             // accumulated messages don't have priority
             //
             Result = LogCallbackSendBuffer(OPERATION_LOG_NON_IMMEDIATE_MESSAGE,
-                                           MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
+                                           (PVOID)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
                                            MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
                                            FALSE);
 
@@ -1301,14 +1316,14 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             // Free the immediate buffer
             //
             MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer = 0;
-            RtlZeroMemory(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+            RtlZeroMemory((void *)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
         }
 
         //
         // We have to save the message
         //
-        RtlCopyBytes(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
-                         MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
+        RtlCopyBytes((void *)(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
+                              MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
                      LogMessage,
                      BufferLen);
 
@@ -1462,9 +1477,10 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
 NTSTATUS
 LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     PNOTIFY_RECORD          NotifyRecord;
     PIO_STACK_LOCATION      IrpStack;
-    KIRQL                   OOldIrql;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
 
     //
@@ -1482,7 +1498,7 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Allocate a record and save all the event context
         //
-        NotifyRecord = ExAllocatePoolWithQuotaTag(NonPagedPool, sizeof(NOTIFY_RECORD), POOLTAG);
+        NotifyRecord = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, sizeof(NOTIFY_RECORD), POOLTAG);
 
         if (NULL == NotifyRecord)
         {
@@ -1578,11 +1594,12 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     PNOTIFY_RECORD          NotifyRecord;
     NTSTATUS                Status;
     PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
-    KIRQL                   OldIrql;
 
     IrpStack      = IoGetCurrentIrpStackLocation(Irp);
     RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
@@ -1590,7 +1607,7 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Allocate a record and save all the event context
     //
-    NotifyRecord = ExAllocatePoolWithQuotaTag(NonPagedPool, sizeof(NOTIFY_RECORD), POOLTAG);
+    NotifyRecord = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, sizeof(NOTIFY_RECORD), POOLTAG);
 
     if (NULL == NotifyRecord)
     {

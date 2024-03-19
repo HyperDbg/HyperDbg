@@ -34,6 +34,12 @@
 #define LIST_FOR_EACH_LINK(_head, _struct_type, _member, _var) _LIST_FOR_EACH(_head, _struct_type, _member, _var)
 
 //
+// Conversion
+//
+#define HANDLE_TO_UINT32(_var) (UINT32)((UINT64)_var & 0xffffffff)
+#define PVOID_TO_BOOLEAN(_var) (BOOLEAN)((UINT64)_var & 0xff)
+
+//
 // RAW versions, use only if really needed
 //
 #define _NEXT(_var, _member)              _var->_member.Flink

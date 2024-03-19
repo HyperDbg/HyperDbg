@@ -33,6 +33,6 @@ def CountLines(start, lines=0, header=True, begin_start=None):
 
 ##
 ## This is fun script, I wrote to see that  
-## HyperDbg conatins how many lines of code...
+## HyperDbg contains how many lines of code...
 ##
 CountLines(r'..\\hyperdbg')

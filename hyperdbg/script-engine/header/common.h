@@ -57,6 +57,11 @@ typedef enum TOKEN_TYPE
     TEMP,
     STRING,
     WSTRING,
+    INPUT_VARIABLE_TYPE,
+    HANDLED_VARIABLE_TYPE,
+    FUNCTION_TYPE,
+    FUNCTION_PARAMETER_ID,
+    STACK_TEMP,
     UNKNOWN
 } TOKEN_TYPE;
 
@@ -72,7 +77,7 @@ typedef struct _TOKEN
 } TOKEN, *PTOKEN;
 
 /**
- * @brief this structure is a dynamic containter of TOKENS
+ * @brief this structure is a dynamic container of TOKENS
  */
 typedef struct _TOKEN_LIST
 {
@@ -106,7 +111,10 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PSYMBOL);
+
+PTOKEN
+NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
 FreeTemp(PTOKEN Temp);
@@ -149,6 +157,9 @@ int
 GetNonTerminalId(PTOKEN Token);
 
 int
+GetTerminalId(PTOKEN Token);
+
+int
 LalrGetNonTerminalId(PTOKEN Token);
 
 int
@@ -176,25 +187,25 @@ IsOctal(char c);
 void
 SetType(unsigned long long * Val, unsigned char Type);
 
-unsigned long long int
+unsigned long long
 DecimalToInt(char * str);
 
-unsigned long long int
+unsigned long long
 DecimalToSignedInt(char * str);
 
-unsigned long long int
+unsigned long long
 HexToInt(char * str);
 
-unsigned long long int
+unsigned long long
 OctalToInt(char * str);
 
-unsigned long long int
+unsigned long long
 BinaryToInt(char * str);
 
 void
 RotateLeftStringOnce(char * str);
 
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //	       Semantic Rule Related Functions		  //
 ////////////////////////////////////////////////////
 
@@ -242,5 +253,8 @@ IsTwoOperandOperator(PTOKEN Operator);
 
 char
 IsOneOperandOperator(PTOKEN Operator);
+
+char
+IsVariableType(PTOKEN Operator);
 
 #endif // !COMMON_H

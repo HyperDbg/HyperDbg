@@ -42,8 +42,6 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     BOOL                 Status;
     ULONG                ReturnedLength;
     DEBUGGER_READ_MEMORY ReadMem = {0};
-    UINT32               OperationCode;
-    CHAR                 Character;
     UINT32               SizeOfTargetBuffer;
 
     ReadMem.Address     = Address;
@@ -82,7 +80,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     SizeOfTargetBuffer           = (Size * sizeof(CHAR)) + sizeof(DEBUGGER_READ_MEMORY);
     unsigned char * OutputBuffer = (unsigned char *)malloc(SizeOfTargetBuffer);
@@ -202,7 +200,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
 
         //
-        // Check if assembly mismatch occured with the target address
+        // Check if assembly mismatch occurred with the target address
         //
         if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == TRUE &&
             MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
@@ -227,7 +225,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
 
         //
-        // Check if assembly mismatch occured with the target address
+        // Check if assembly mismatch occurred with the target address
         //
         if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == FALSE &&
             MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
@@ -268,11 +266,11 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     unsigned int Character;
 
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -336,10 +334,10 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     unsigned int Character;
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -405,10 +403,9 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    CHAR Character;
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {
@@ -455,9 +452,9 @@ ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
  * @param Length Length of memory to show
  */
 void
-ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    for (int i = 0; i < Size; i += 16)
+    for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
         {

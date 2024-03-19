@@ -1,7 +1,7 @@
 /**
  * @file pe-parser.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Protable Execuatable parser
+ * @brief Portable Executable parser
  * @details
  * @version 0.1
  * @date 2021-12-26
@@ -44,7 +44,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
         if (i % 16 == 0)
         {
             //
-            // print the chracter dump to the right
+            // print the character dump to the right
             //
             _putws(Buf);
             if (i + 1 <= Size)
@@ -74,7 +74,6 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 BOOLEAN
 PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
-    int                     i      = 0;
     BOOLEAN                 Result = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
@@ -224,9 +223,9 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     }
 
     //
-    // Determine Machine Architechture
+    // Determine Machine Architecture
     //
-    ShowMessages("\n%-36s", "Machine Architechture :");
+    ShowMessages("\n%-36s", "Machine Architecture :");
 
     //
     // Only few are determined (for remaining refer
@@ -364,7 +363,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                  "Info....\n--------------------------------");
 
     //
-    // Retrive a pointer to First Section Header(or Section Table Entry)
+    // Retrieve a pointer to First Section Header(or Section Table Entry)
     //
     if (Is32Bit)
     {
@@ -377,7 +376,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         NumberOfSections = NtHeader64->FileHeader.NumberOfSections;
     }
 
-    for (i = 0; i < NumberOfSections; i++, SecHeader++)
+    for (UINT32 i = 0; i < NumberOfSections; i++, SecHeader++)
     {
         if (Is32Bit)
         {
@@ -447,7 +446,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
                     {
                         PeHexDump((char *)((UINT64)DosHeader + SecHeader->PointerToRawData),
                                   SecHeader->SizeOfRawData,
-                                  OpHeader64.ImageBase + SecHeader->VirtualAddress);
+                                  (int)(OpHeader64.ImageBase + SecHeader->VirtualAddress));
                     }
                 }
             }

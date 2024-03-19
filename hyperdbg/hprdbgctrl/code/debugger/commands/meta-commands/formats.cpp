@@ -97,17 +97,17 @@ CommandFormatsShowResults(UINT64 U64Value)
 /**
  * @brief handler of .formats command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandFormats(vector<string> SplittedCommand, string Command)
+CommandFormats(vector<string> SplitCommand, string Command)
 {
     UINT64  ConstantValue = 0;
     BOOLEAN HasError      = TRUE;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("incorrect use of the '.formats'\n\n");
         CommandFormatsHelp();
@@ -122,7 +122,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     //
     // Remove .formats from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

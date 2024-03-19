@@ -36,12 +36,12 @@ CommandBcHelp()
 /**
  * @brief handler of bc command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandBc(vector<string> SplittedCommand, string Command)
+CommandBc(vector<string> SplitCommand, string Command)
 {
     UINT64                            BreakpointId;
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
@@ -49,7 +49,7 @@ CommandBc(vector<string> SplittedCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplittedCommand.size() != 2)
+    if (SplitCommand.size() != 2)
     {
         ShowMessages("incorrect use of the 'bc'\n\n");
         CommandBcHelp();
@@ -59,7 +59,7 @@ CommandBc(vector<string> SplittedCommand, string Command)
     //
     // Get the breakpoint id
     //
-    if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId))
+    if (!ConvertStringToUInt64(SplitCommand.at(1), &BreakpointId))
     {
         ShowMessages("please specify a correct hex value for breakpoint id\n\n");
         CommandBcHelp();

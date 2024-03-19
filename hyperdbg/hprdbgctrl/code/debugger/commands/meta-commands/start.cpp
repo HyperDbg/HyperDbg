@@ -37,12 +37,12 @@ CommandStartHelp()
 /**
  * @brief .start command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandStart(vector<string> SplittedCommand, string Command)
+CommandStart(vector<string> SplitCommand, string Command)
 {
     vector<string> PathAndArgs;
     string         Arguments = "";
@@ -65,14 +65,14 @@ CommandStart(vector<string> SplittedCommand, string Command)
 
 #endif // !ActivateUserModeDebugger
 
-    if (SplittedCommand.size() <= 2)
+    if (SplitCommand.size() <= 2)
     {
         ShowMessages("incorrect use of the '.start'\n\n");
         CommandStartHelp();
         return;
     }
 
-    if (!SplittedCommand.at(1).compare("path"))
+    if (!SplitCommand.at(1).compare("path"))
     {
         //
         // *** It's a run of target PE file ***
@@ -86,7 +86,7 @@ CommandStart(vector<string> SplittedCommand, string Command)
         //
         // Remove '.start' or 'start' from it
         //
-        Command.erase(0, SplittedCommand.at(0).size());
+        Command.erase(0, SplitCommand.at(0).size());
 
         //
         // Remove path + space
@@ -137,7 +137,7 @@ CommandStart(vector<string> SplittedCommand, string Command)
     else
     {
         ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         CommandStartHelp();
         return;
     }

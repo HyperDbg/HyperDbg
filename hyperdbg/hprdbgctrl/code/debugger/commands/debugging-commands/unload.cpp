@@ -40,14 +40,14 @@ CommandUnloadHelp()
 /**
  * @brief unload command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandUnload(vector<string> SplittedCommand, string Command)
+CommandUnload(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
+    if (SplitCommand.size() != 2 && SplitCommand.size() != 3)
     {
         ShowMessages("incorrect use of the 'unload'\n\n");
         CommandUnloadHelp();
@@ -57,7 +57,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
     //
     // Check for the module
     //
-    if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("vmm")) || (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") && !SplittedCommand.at(1).compare("remove")))
+    if ((SplitCommand.size() == 2 && !SplitCommand.at(1).compare("vmm")) || (SplitCommand.size() == 3 && !SplitCommand.at(2).compare("vmm") && !SplitCommand.at(1).compare("remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -88,7 +88,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         //
         // Check to remove the driver
         //
-        if (!SplittedCommand.at(1).compare("remove"))
+        if (!SplitCommand.at(1).compare("remove"))
         {
             //
             // Stop the driver

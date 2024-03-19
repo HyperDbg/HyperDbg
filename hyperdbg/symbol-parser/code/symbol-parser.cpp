@@ -983,6 +983,13 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+
+    if (TypeNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 
@@ -992,6 +999,13 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     //
     const size_t FieldNameSize = strlen(FieldName) + 1;
     WCHAR *      FieldNameW    = (WCHAR *)malloc(sizeof(wchar_t) * FieldNameSize);
+
+    if (FieldNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(FieldNameW, sizeof(wchar_t) * FieldNameSize);
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
@@ -1057,6 +1071,13 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+
+    if (TypeNameW == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return FALSE;
+    }
+
     RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 
@@ -1951,7 +1972,21 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                   BufferToStoreDetailsConverted[i].ModuleSymbolPath;
 
             //
-            // Check if the symbol already download or not
+            // Download the symbols file if not available
+            //
+            if (DownloadIfAvailable && IsFileExists(Tmp) == FALSE)
+            {
+                //
+                // Download the symbol
+                //
+                SymbolPdbDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                                  BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
+                                  SymPath,
+                                  IsSilentLoad);
+            }
+
+            //
+            // Check again to see if the symbol already download or not
             //
             if (IsFileExists(Tmp))
             {
@@ -2004,19 +2039,6 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                     {
                         ShowMessages("\tnot loaded (already loaded?)\n");
                     }
-                }
-            }
-            else
-            {
-                if (DownloadIfAvailable)
-                {
-                    //
-                    // Download the symbol
-                    //
-                    SymbolPdbDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
-                                      BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
-                                      SymPath,
-                                      IsSilentLoad);
                 }
             }
         }
@@ -2159,7 +2181,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //      2. type (structure) name
     //      3. PDB file location
     //
-    SizeOfArgv = SplitedSymPath.size() + 3;
+    SizeOfArgv = (UINT32)SplitedSymPath.size() + 3;
     ArgvArray  = (char **)malloc(SizeOfArgv * sizeof(char *));
 
     if (ArgvArray == NULL)

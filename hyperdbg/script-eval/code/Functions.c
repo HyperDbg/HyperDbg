@@ -13,7 +13,7 @@
 #include "pch.h"
 
 //
-// User-mode Globabl Variables
+// User-mode Global Variables
 //
 #ifdef SCRIPT_ENGINE_USER_MODE
 
@@ -30,7 +30,11 @@ GetValue(PGUEST_REGS                    GuestRegs,
          PACTION_BUFFER                 ActionBuffer,
          SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
          PSYMBOL                        Symbol,
-         BOOLEAN                        ReturnReference);
+         BOOLEAN                        ReturnReference,
+         SYMBOL_BUFFER *                StackBuffer,
+         int *                          StackIndx,
+         int *                          StackBaseIndx,
+         int *                          StackTempBaseIndx);
 
 //
 // *** Functions ***
@@ -47,6 +51,8 @@ GetValue(PGUEST_REGS                    GuestRegs,
 BOOLEAN
 ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(QWORD)))
@@ -84,6 +90,8 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 BOOLEAN
 ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(DWORD)))
@@ -121,6 +129,8 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 BOOLEAN
 ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     if (!CheckAccessValidityAndSafety(Address, sizeof(BYTE)))
@@ -181,14 +191,14 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
 /**
  * @brief A VMX-compatible equivalent of memcpy function in C
  *
- * @param Destionation
+ * @param Destination
  * @param Source
  * @param Num
  * @param HasError
  * @return VOID
  */
 VOID
-ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL * HasError)
+ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError)
 {
     UINT64 PrevReadLen                                              = 0;
     BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
@@ -198,7 +208,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckAccessValidityAndSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destination, Num))
     {
         *HasError = TRUE;
         return;
@@ -216,7 +226,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Address is valid, perform the memcpy in user-mode
     //
-    memcpy((void *)Destionation, (void *)Source, Num);
+    memcpy((void *)Destination, (void *)Source, Num);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -225,7 +235,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (!CheckAccessValidityAndSafety(Destionation, Num))
+    if (!CheckAccessValidityAndSafety(Destination, Num))
     {
         *HasError = TRUE;
         return;
@@ -262,7 +272,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
             //
             // Write the moving buffer into the target buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess(Destionation + PrevReadLen, MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
+            MemoryMapperWriteMemorySafeOnTargetProcess(Destination + PrevReadLen, MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
 
             //
             // Computing the bytes that we read
@@ -284,7 +294,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
             //
             // Write the moving buffer into the target buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess(Destionation + PrevReadLen, MovingBuffer, Num);
+            MemoryMapperWriteMemorySafeOnTargetProcess(Destination + PrevReadLen, MovingBuffer, Num);
 
             //
             // Computing the bytes that we gonna read
@@ -313,7 +323,7 @@ ScriptEngineFunctionVirtualToPhysical(UINT64 Address)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return VirtualAddressToPhysicalAddressOnTargetProcess(Address);
+    return VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Address);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -337,7 +347,7 @@ ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return PhysicalAddressToVirtualAddressOnTargetProcess(Address);
+    return PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)Address);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -365,7 +375,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
     char   TempBuffer[20] = {0};
     UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
 
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -381,6 +391,10 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
+    UNREFERENCED_PARAMETER(Tag);
+    UNREFERENCED_PARAMETER(ImmediateMessagePassing);
+    UNREFERENCED_PARAMETER(Value);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     g_CurrentExprEvalResult         = Value;
@@ -407,7 +421,7 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -436,7 +450,7 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -466,7 +480,7 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Lock, sizeof(LONG)))
+    if (!CheckAccessValidityAndSafety((UINT64)Lock, sizeof(LONG)))
     {
         *HasError = TRUE;
         return;
@@ -507,7 +521,7 @@ ScriptEngineFunctionStrlen(const char * Address)
  * @return UINT64
  */
 UINT64
-ScriptEngineFunctionDisassembleLen(const char * Address, BOOLEAN Is32Bit)
+ScriptEngineFunctionDisassembleLen(PVOID Address, BOOLEAN Is32Bit)
 {
     UINT64 Result = 0;
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -560,10 +574,10 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Target, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Target, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -590,10 +604,10 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -618,10 +632,10 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -646,10 +660,10 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Addend, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Addend, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -679,10 +693,10 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!CheckAccessValidityAndSafety(Destination, sizeof(long long)))
+    if (!CheckAccessValidityAndSafety((UINT64)Destination, sizeof(long long)))
     {
         *HasError = TRUE;
-        return NULL;
+        return (long long)NULL;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -791,14 +805,14 @@ ScriptEngineFunctionPause(
     //
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
-        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail  = {0};
-        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+        ULONG                            CurrentCore          = KeGetCurrentProcessorNumberEx(NULL);
 
         //
         // Make the details of context
         //
         TriggeredEventDetail.Tag     = ActionDetail->Tag;
-        TriggeredEventDetail.Context = ActionDetail->Context;
+        TriggeredEventDetail.Context = (PVOID)ActionDetail->Context;
 
         if (ActionDetail->CallingStage == 1)
         {
@@ -817,7 +831,7 @@ ScriptEngineFunctionPause(
             //
 
             KdHandleBreakpointAndDebugBreakpointsCallback(
-                CurrentProcessorIndex,
+                CurrentCore,
                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                 &TriggeredEventDetail);
         }
@@ -827,7 +841,10 @@ ScriptEngineFunctionPause(
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, &TriggeredEventDetail, GuestRegs, NULL);
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT,
+                            (UINT64)&TriggeredEventDetail,
+                            (UINT64)GuestRegs,
+                            (UINT64)NULL);
         }
     }
     else
@@ -886,15 +903,15 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
         return;
     }
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     if (State != 0)
     {
-        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = TRUE;
+        g_DbgState[CurrentCore].ShortCircuitingEvent = TRUE;
     }
     else
     {
-        g_DbgState[CurrentProcessorIndex].ShortCircuitingEvent = FALSE;
+        g_DbgState[CurrentCore].ShortCircuitingEvent = FALSE;
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -930,7 +947,7 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
         char   TempBuffer[20] = {0};
         UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
-        LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+        LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -949,11 +966,11 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 
     if (IsWstring)
     {
-        return wcslen((const wchar_t *)StrAddr);
+        return (UINT32)wcslen((const wchar_t *)StrAddr);
     }
     else
     {
-        return strlen((const char *)StrAddr);
+        return (UINT32)strlen((const char *)StrAddr);
     }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -1019,9 +1036,9 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
               // for maximum buffer + 1 end char null but we alloc 50 to be sure
 
     *CurrentProcessedPositionFromStartOfFormat =
-        *CurrentProcessedPositionFromStartOfFormat + strlen(CurrentSpecifier);
+        *CurrentProcessedPositionFromStartOfFormat + (UINT32)strlen(CurrentSpecifier);
     sprintf(TempBuffer, CurrentSpecifier, Val);
-    TempBufferLen = strlen(TempBuffer);
+    TempBufferLen = (UINT32)strlen(TempBuffer);
 
     //
     // Check final buffer capacity
@@ -1097,7 +1114,6 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
     CHAR    AsciiBuffer[sizeof(WstrBuffer) / 2];
     UINT32  StringSizeInByte; /* because of wide-char */
     UINT32  CountOfBlocks;
-    UINT32  CountOfBytesToRead;
     UINT32  CopiedBlockLen;
 
     //
@@ -1111,7 +1127,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
     //
     // get the length of the string (format) identifier
     //
-    *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
+    *CurrentProcessedPositionFromStartOfFormat += (UINT32)strlen(CurrentSpecifier);
 
     //
     // Get string len
@@ -1174,7 +1190,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
                 MemoryMapperReadMemorySafeOnTargetProcess(
-                    (void *)(Val + (i * sizeof(WstrBuffer))),
+                    (UINT64)(Val + (i * sizeof(WstrBuffer))),
                     WstrBuffer,
                     StringSizeInByte % sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1191,7 +1207,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
                 MemoryMapperReadMemorySafeOnTargetProcess(
-                    (void *)(Val + (i * sizeof(WstrBuffer))),
+                    (UINT64)(Val + (i * sizeof(WstrBuffer))),
                     WstrBuffer,
                     sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1202,7 +1218,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
             // We should convert WstrBuffer to AsciiBuffer
             //
             CopiedBlockLen =
-                WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
+                (UINT32)WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
 
             //
             // Now we should move the AsciiBuffer to the target buffer
@@ -1259,7 +1275,11 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            char *                         Format,
                            UINT64                         ArgCount,
                            PSYMBOL                        FirstArg,
-                           BOOLEAN *                      HasError)
+                           BOOLEAN *                      HasError,
+                           SYMBOL_BUFFER *                StackBuffer,
+                           int *                          StackIndx,
+                           int *                          StackBaseIndx,
+                           int *                          StackTempBaseIndx)
 {
     //
     // *** The printf function ***
@@ -1272,7 +1292,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
 
     UINT64  Val;
     UINT32  Position;
-    UINT32  LenOfFormats = strlen(Format) + 1;
+    UINT32  LenOfFormats = (UINT32)strlen(Format) + 1;
     PSYMBOL Symbol;
 
     *HasError = FALSE;
@@ -1292,7 +1312,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
         memcpy(&TempSymbol, Symbol, sizeof(SYMBOL));
         TempSymbol.Type &= 0x7fffffff;
 
-        Val = GetValue(GuestRegs, ActionDetail, VariablesList, &TempSymbol, FALSE);
+        Val = GetValue(GuestRegs, ActionDetail, VariablesList, &TempSymbol, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
 
         CHAR PercentageChar = Format[Position];
 
@@ -1467,7 +1487,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
     //
     // Prepare a buffer to bypass allocating a huge stack space for logging
     //
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, FinalBuffer, strlen(FinalBuffer) + 1);
+    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, FinalBuffer, (UINT32)strlen(FinalBuffer) + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1483,6 +1503,8 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
 VOID
 ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     ShowMessages("err, event_inject is not supported in user-mode\n");
@@ -1519,6 +1541,8 @@ ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * H
 VOID
 ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector, UINT32 ErrorCode, BOOL * HasError)
 {
+    UNREFERENCED_PARAMETER(HasError);
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     ShowMessages("err, event_inject is not supported in user-mode\n");
@@ -1592,7 +1616,7 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  *
  * @param Address1
  * @param Address2
- * @parem Count
+ * @param Count
  * @return UINT64
  */
 UINT64
@@ -1624,12 +1648,12 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Call instrumentation step in
     //
-    TracingPerformInstrumentationStepIn(&g_DbgState[CurrentProcessorIndex]);
+    TracingPerformInstrumentationStepIn(&g_DbgState[CurrentCore]);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1648,12 +1672,12 @@ ScriptEngineFunctionEventTraceStepIn()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     //
     // Call instrumentation step in
     //
-    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentProcessorIndex]);
+    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentCore]);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

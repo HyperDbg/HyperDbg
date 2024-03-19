@@ -38,8 +38,6 @@ CommandDetachHelp()
 VOID
 DetachFromProcess()
 {
-    BOOLEAN                                  Status;
-    ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //
@@ -65,14 +63,14 @@ DetachFromProcess()
 /**
  * @brief .detach command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDetach(vector<string> SplittedCommand, string Command)
+CommandDetach(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() >= 2)
+    if (SplitCommand.size() >= 2)
     {
         ShowMessages("incorrect use of the '.detach'\n\n");
         CommandDetachHelp();

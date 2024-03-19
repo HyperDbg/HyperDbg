@@ -38,14 +38,14 @@ CommandRestartHelp()
 /**
  * @brief .restart command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandRestart(vector<string> SplittedCommand, string Command)
+CommandRestart(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the '.restart'\n\n");
         CommandRestartHelp();

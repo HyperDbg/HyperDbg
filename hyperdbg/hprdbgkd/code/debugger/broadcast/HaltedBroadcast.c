@@ -23,7 +23,7 @@ VOID
 HaltedBroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -57,7 +57,7 @@ VOID
 HaltedBroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -91,7 +91,7 @@ VOID
 HaltedBroadcastChangeAllIoBitmapAllCores(UINT64 Port)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -123,7 +123,7 @@ VOID
 HaltedBroadcastEnableRdpmcExitingAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -150,7 +150,7 @@ VOID
 HaltedBroadcastEnableRdtscExitingAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -177,7 +177,7 @@ VOID
 HaltedBroadcastEnableMov2DebugRegsExitingAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -204,7 +204,7 @@ VOID
 HaltedBroadcastEnableExternalInterruptExitingAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -233,7 +233,7 @@ VOID
 HaltedBroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -267,7 +267,7 @@ VOID
 HaltedBroadcastUnSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -301,7 +301,7 @@ VOID
 HaltedBroadcastEnableMovToCrExitingAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -334,7 +334,7 @@ VOID
 HaltedBroadcastEnableEferSyscallHookAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -361,7 +361,7 @@ VOID
 HaltedBroadcastInvalidateEptAllContextsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -388,7 +388,7 @@ VOID
 HaltedBroadcastInvalidateSingleContextAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -417,7 +417,7 @@ VOID
 HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * UnhookingDetail)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -450,7 +450,7 @@ VOID
 HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -477,7 +477,7 @@ VOID
 HaltedBroadcastResetMsrBitmapReadAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -504,7 +504,7 @@ VOID
 HaltedBroadcastResetMsrBitmapWriteAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -524,7 +524,7 @@ HaltedBroadcastResetMsrBitmapWriteAllCores()
 /**
  * @brief This function broadcasts reset exception bitmap on VMCS to all cores
  * @details Should be called from VMX root-mode
- * THIS VMCALL SHOULD BE USED ONLY IN RESETING (CLEARING) EXCEPTION EVENTS
+ * THIS VMCALL SHOULD BE USED ONLY IN RESETTING (CLEARING) EXCEPTION EVENTS
  *
  * @return VOID
  */
@@ -532,7 +532,7 @@ VOID
 HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -559,7 +559,7 @@ VOID
 HaltedBroadcastResetIoBitmapAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -587,7 +587,7 @@ VOID
 HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -615,7 +615,7 @@ VOID
 HaltedBroadcastDisableRdpmcExitingAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -643,7 +643,7 @@ VOID
 HaltedBroadcastDisableEferSyscallEventsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -671,7 +671,7 @@ VOID
 HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores()
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task
@@ -701,7 +701,7 @@ VOID
 HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(DEBUGGER_EVENT_OPTIONS * BroadcastingOption)
 {
     DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
-    UINT64                   HaltedCoreTask      = NULL;
+    UINT64                   HaltedCoreTask      = (UINT64)NULL;
 
     //
     // Set the target task

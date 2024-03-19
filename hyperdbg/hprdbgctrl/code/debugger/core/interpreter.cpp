@@ -91,18 +91,18 @@ HyperDbgInterpreter(char * Command)
     //
     transform(CommandString.begin(), CommandString.end(), CommandString.begin(), [](unsigned char c) { return std::tolower(c); });
 
-    vector<string> SplittedCommand {Split(CommandString, ' ')};
+    vector<string> SplitCommand {Split(CommandString, ' ')};
 
     //
-    // Check if user entered an empty imput
+    // Check if user entered an empty input
     //
-    if (SplittedCommand.empty())
+    if (SplitCommand.empty())
     {
         ShowMessages("\n");
         return 0;
     }
 
-    string FirstCommand = SplittedCommand.front();
+    string FirstCommand = SplitCommand.front();
 
     //
     // Read the command's attributes
@@ -144,7 +144,7 @@ HyperDbgInterpreter(char * Command)
         //
         // It's a connection over network (VMI-Mode)
         //
-        RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+        RemoteConnectionSendCommand(Command, (UINT32)strlen(Command) + 1);
 
         ShowMessages("\n");
 
@@ -163,7 +163,7 @@ HyperDbgInterpreter(char * Command)
 
         if (CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN)
         {
-            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, TRUE);
+            KdSendUserInputPacketToDebuggee(Command, (UINT32)strlen(Command) + 1, TRUE);
 
             //
             // Set the debuggee to show that it's running
@@ -176,7 +176,7 @@ HyperDbgInterpreter(char * Command)
             // Disable the breakpoints and events while executing the command in the remote computer
             //
             KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_OFF_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
-            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, FALSE);
+            KdSendUserInputPacketToDebuggee(Command, (UINT32)strlen(Command) + 1, FALSE);
             KdSendTestQueryPacketToDebuggee(TEST_BREAKPOINT_TURN_ON_BPS_AND_EVENTS_FOR_COMMANDS_IN_REMOTE_COMPUTER);
         }
 
@@ -192,13 +192,13 @@ HyperDbgInterpreter(char * Command)
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
         !FirstCommand.compare(".hh"))
     {
-        if (SplittedCommand.size() == 2)
+        if (SplitCommand.size() == 2)
         {
             //
             // Show that it's a help command
             //
             HelpCommand  = TRUE;
-            FirstCommand = SplittedCommand.at(1);
+            FirstCommand = SplitCommand.at(1);
         }
         else
         {
@@ -219,16 +219,16 @@ HyperDbgInterpreter(char * Command)
         //  Command doesn't exist
         //
         string         CaseSensitiveCommandString(Command);
-        vector<string> CaseSensitiveSplittedCommand {Split(CaseSensitiveCommandString, ' ')};
+        vector<string> CaseSensitiveSplitCommand {Split(CaseSensitiveCommandString, ' ')};
 
         if (!HelpCommand)
         {
-            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplittedCommand.front().c_str());
+            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplitCommand.front().c_str());
         }
         else
         {
             ShowMessages("err, couldn't find the help for the command at '%s'\n",
-                         CaseSensitiveSplittedCommand.at(1).c_str());
+                         CaseSensitiveSplitCommand.at(1).c_str());
         }
     }
     else
@@ -246,11 +246,11 @@ HyperDbgInterpreter(char * Command)
                  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE))
             {
                 string CaseSensitiveCommandString(Command);
-                Iterator->second.CommandFunction(SplittedCommand, CaseSensitiveCommandString);
+                Iterator->second.CommandFunction(SplitCommand, CaseSensitiveCommandString);
             }
             else
             {
-                Iterator->second.CommandFunction(SplittedCommand, CommandString);
+                Iterator->second.CommandFunction(SplitCommand, CommandString);
             }
         }
     }
@@ -276,7 +276,7 @@ InterpreterRemoveComments(char * CommandText)
 {
     BOOLEAN IsComment       = FALSE;
     BOOLEAN IsOnString      = FALSE;
-    UINT32  LengthOfCommand = strlen(CommandText);
+    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {
@@ -386,7 +386,7 @@ HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
         g_InterpreterCountOfOpenCurlyBrackets      = 0;
     }
 
-    CurrentCommandLen = CurrentCommandStr.length();
+    CurrentCommandLen = (UINT32)CurrentCommandStr.length();
 
     for (size_t i = 0; i < CurrentCommandLen; i++)
     {

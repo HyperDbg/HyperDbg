@@ -11,6 +11,8 @@
  */
 #pragma once
 
+#pragma warning(disable : 4201) // Suppress nameless struct/union warning
+
 //////////////////////////////////////////////////
 //               Basic Datatypes                //
 //////////////////////////////////////////////////
@@ -45,6 +47,9 @@ typedef unsigned char    UINT8, *PUINT8;
 typedef unsigned short   UINT16, *PUINT16;
 typedef unsigned int     UINT32, *PUINT32;
 typedef unsigned __int64 UINT64, *PUINT64;
+
+#define NULL_ZERO   0
+#define NULL64_ZERO 0ull
 
 #define FALSE 0
 #define TRUE  1

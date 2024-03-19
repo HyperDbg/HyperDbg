@@ -24,7 +24,7 @@ IMPORT_EXPORT_VMM NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam1,
                 unsigned long long OptionalParam2,
-                long long          OptionalParam3);
+                unsigned long long OptionalParam3);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
@@ -173,8 +173,8 @@ VmFuncGetRip();
 IMPORT_EXPORT_VMM UINT64
 VmFuncGetInterruptibilityState();
 
-IMPORT_EXPORT_VMM UINT32
-VmFuncClearSteppingBits(UINT32 Interruptibility);
+IMPORT_EXPORT_VMM UINT64
+VmFuncClearSteppingBits(UINT64 Interruptibility);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncInitVmm(VMM_CALLBACKS * VmmCallbacks);
@@ -548,16 +548,13 @@ IMPORT_EXPORT_VMM PVOID
 MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
                                     _In_ PAGING_LEVEL Level);
 
-IMPORT_EXPORT_VMM BOOLEAN
-MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID Va, PAGING_LEVEL Level);
-
 IMPORT_EXPORT_VMM PVOID
 MemoryMapperSetExecuteDisableToPteOnTargetProcess(_In_ PVOID   Va,
                                                   _In_ BOOLEAN Set);
 
-IMPORT_EXPORT_VMM PVOID
-MemoryMapperGetPteVaOnTargetProcess(_In_ PVOID        Va,
-                                    _In_ PAGING_LEVEL Level);
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperCheckPteIsPresentOnTargetProcess(PVOID        Va,
+                                             PAGING_LEVEL Level);
 
 // ----------------------------------------------------------------------------
 // Reading Memory Functions

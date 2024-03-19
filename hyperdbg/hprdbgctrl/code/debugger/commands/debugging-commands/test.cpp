@@ -58,7 +58,7 @@ CommandTestPerformKernelTestsIoctl()
     //
     // By the way, we don't need to send an input buffer
     // to the kernel, but let's keep it like this, if we
-    // want to pass some other aguments to the kernel in
+    // want to pass some other arguments to the kernel in
     // the future
     //
     Status = DeviceIoControl(
@@ -113,7 +113,6 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION KernelSideInfo
     HANDLE  ThreadHandle;
     HANDLE  ProcessHandle;
     UINT32  ReadBytes;
-    BOOLEAN SentMessageResult;
     CHAR *  Buffer = {0};
 
     //
@@ -435,60 +434,60 @@ CommandTestSetDebugBreakState(BOOLEAN State)
 /**
  * @brief test command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandTest(vector<string> SplittedCommand, string Command)
+CommandTest(vector<string> SplitCommand, string Command)
 {
     UINT64 Context = NULL;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         //
         // For testing in vmi mode
         //
         CommandTestInVmiMode();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("query"))
+    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("query"))
     {
         //
         // Query the state of debuggee in debugger mode
         //
         CommandTestQueryState();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("trap-status"))
+    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("trap-status"))
     {
         //
         // Query the state of trap flag in debugger mode
         //
         CommandTestQueryTrapState();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("pool"))
+    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("pool"))
     {
         //
         // Query the state of pre-allocated pools in debugger mode
         //
         CommandTestQueryPreAllocPoolsState();
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("sync-task"))
+    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("sync-task"))
     {
         //
         // Send target task to the halted cores in debugger mode (synchronous)
         //
         CommandTestSetTargetTaskToHaltedCores(TRUE);
     }
-    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("async-task"))
+    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("async-task"))
     {
         //
         // Send target task to the halted cores in debugger mode (asynchronous)
         //
         CommandTestSetTargetTaskToHaltedCores(FALSE);
     }
-    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("target-core-task"))
+    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("target-core-task"))
     {
-        if (!ConvertStringToUInt64(SplittedCommand.at(2), &Context))
+        if (!ConvertStringToUInt64(SplitCommand.at(2), &Context))
         {
             ShowMessages("err, you should enter a valid hex number as the core id\n\n");
             return;
@@ -499,41 +498,41 @@ CommandTest(vector<string> SplittedCommand, string Command)
         //
         CommandTestSetTargetTaskToTargetCore((UINT32)Context);
     }
-    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("breakpoint"))
+    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("breakpoint"))
     {
         //
         // Change breakpoint state
         //
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             CommandTestSetBreakpointState(TRUE);
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             CommandTestSetBreakpointState(FALSE);
         }
         else
         {
-            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplittedCommand.at(2).c_str());
+            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplitCommand.at(2).c_str());
             return;
         }
     }
-    else if (SplittedCommand.size() == 3 && !SplittedCommand.at(1).compare("trap"))
+    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("trap"))
     {
         //
         // Change debug break state
         //
-        if (!SplittedCommand.at(2).compare("on"))
+        if (!SplitCommand.at(2).compare("on"))
         {
             CommandTestSetDebugBreakState(TRUE);
         }
-        else if (!SplittedCommand.at(2).compare("off"))
+        else if (!SplitCommand.at(2).compare("off"))
         {
             CommandTestSetDebugBreakState(FALSE);
         }
         else
         {
-            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplittedCommand.at(2).c_str());
+            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplitCommand.at(2).c_str());
             return;
         }
     }

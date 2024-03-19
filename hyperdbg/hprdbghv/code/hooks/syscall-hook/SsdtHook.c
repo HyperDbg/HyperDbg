@@ -18,21 +18,21 @@
  * @return PVOID
  */
 PVOID
-SyscallHookGetKernelBase(PULONG pImageSize)
+SyscallHookGetKernelBase(PULONG ImageSize)
 {
-    NTSTATUS                   status;
+    NTSTATUS                   Status;
     ZWQUERYSYSTEMINFORMATION   ZwQSI = 0;
-    UNICODE_STRING             routineName;
-    PVOID                      pModuleBase          = NULL;
-    PSYSTEM_MODULE_INFORMATION pSystemInfoBuffer    = NULL;
+    UNICODE_STRING             RoutineName;
+    PVOID                      ModuleBase           = NULL;
+    PSYSTEM_MODULE_INFORMATION SystemInfoBuffer     = NULL;
     ULONG                      SystemInfoBufferSize = 0;
 
-    RtlInitUnicodeString(&routineName, L"ZwQuerySystemInformation");
-    ZwQSI = (ZWQUERYSYSTEMINFORMATION)MmGetSystemRoutineAddress(&routineName);
+    RtlInitUnicodeString(&RoutineName, L"ZwQuerySystemInformation");
+    ZwQSI = (ZWQUERYSYSTEMINFORMATION)MmGetSystemRoutineAddress(&RoutineName);
     if (!ZwQSI)
         return NULL;
 
-    status = ZwQSI(SystemModuleInformation,
+    Status = ZwQSI(SystemModuleInformation,
                    &SystemInfoBufferSize,
                    0,
                    &SystemInfoBufferSize);
@@ -43,26 +43,26 @@ SyscallHookGetKernelBase(PULONG pImageSize)
         return NULL;
     }
 
-    pSystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
+    SystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
 
-    if (!pSystemInfoBuffer)
+    if (!SystemInfoBuffer)
     {
         LogError("Err, insufficient memory");
         return NULL;
     }
 
-    memset(pSystemInfoBuffer, 0, SystemInfoBufferSize * 2);
+    memset(SystemInfoBuffer, 0, SystemInfoBufferSize * 2);
 
-    status = ZwQSI(SystemModuleInformation,
-                   pSystemInfoBuffer,
+    Status = ZwQSI(SystemModuleInformation,
+                   SystemInfoBuffer,
                    SystemInfoBufferSize * 2,
                    &SystemInfoBufferSize);
 
-    if (NT_SUCCESS(status))
+    if (NT_SUCCESS(Status))
     {
-        pModuleBase = pSystemInfoBuffer->Module[0].ImageBase;
-        if (pImageSize)
-            *pImageSize = pSystemInfoBuffer->Module[0].ImageSize;
+        ModuleBase = SystemInfoBuffer->Module.ImageBase;
+        if (ImageSize)
+            *ImageSize = SystemInfoBuffer->Module.ImageSize;
     }
     else
     {
@@ -70,12 +70,12 @@ SyscallHookGetKernelBase(PULONG pImageSize)
         return NULL;
     }
 
-    ExFreePool(pSystemInfoBuffer);
-    return pModuleBase;
+    ExFreePool(SystemInfoBuffer);
+    return ModuleBase;
 }
 
 /**
- * @brief Find SSDT address of Nt fucntions and W32Table
+ * @brief Find SSDT address of Nt functions and W32Table
  *
  * @param NtTable [Out] Address of Nt Syscall Table
  * @param Win32kTable [Out] Address of Win32k Syscall Table
@@ -85,71 +85,71 @@ SyscallHookGetKernelBase(PULONG pImageSize)
 BOOLEAN
 SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 {
-    ULONG               kernelSize = 0;
-    ULONG_PTR           kernelBase;
+    ULONG               KernelSize = 0;
+    ULONG_PTR           KernelBase;
     const unsigned char KiSystemServiceStartPattern[] = {0x8B, 0xF8, 0xC1, 0xEF, 0x07, 0x83, 0xE7, 0x20, 0x25, 0xFF, 0x0F, 0x00, 0x00};
-    const ULONG         signatureSize                 = sizeof(KiSystemServiceStartPattern);
-    BOOLEAN             found                         = FALSE;
-    LONG                relativeOffset                = 0;
-    ULONG_PTR           addressAfterPattern;
-    ULONG_PTR           address;
-    SSDTStruct *        shadow;
-    PVOID               ntTable;
-    PVOID               win32kTable;
+    const ULONG         SignatureSize                 = sizeof(KiSystemServiceStartPattern);
+    BOOLEAN             Found                         = FALSE;
+    LONG                RelativeOffset                = 0;
+    ULONG_PTR           AddressAfterPattern;
+    ULONG_PTR           Address;
+    SSDTStruct *        Shadow;
+    PVOID               TableNT;
+    PVOID               TableWin32k;
 
     //
     // x64 code
     //
-    kernelBase = (ULONG_PTR)SyscallHookGetKernelBase(&kernelSize);
+    KernelBase = (ULONG_PTR)SyscallHookGetKernelBase(&KernelSize);
 
-    if (kernelBase == 0 || kernelSize == 0)
+    if (KernelBase == 0 || KernelSize == 0)
         return FALSE;
 
     //
     // Find KiSystemServiceStart
     //
     ULONG KiSSSOffset;
-    for (KiSSSOffset = 0; KiSSSOffset < kernelSize - signatureSize; KiSSSOffset++)
+    for (KiSSSOffset = 0; KiSSSOffset < KernelSize - SignatureSize; KiSSSOffset++)
     {
-        if (RtlCompareMemory(((unsigned char *)kernelBase + KiSSSOffset), KiSystemServiceStartPattern, signatureSize) == signatureSize)
+        if (RtlCompareMemory(((unsigned char *)KernelBase + KiSSSOffset), KiSystemServiceStartPattern, SignatureSize) == SignatureSize)
         {
-            found = TRUE;
+            Found = TRUE;
             break;
         }
     }
 
-    if (!found)
+    if (!Found)
         return FALSE;
 
-    addressAfterPattern = kernelBase + KiSSSOffset + signatureSize;
-    address             = addressAfterPattern + 7; // Skip lea r10,[nt!KeServiceDescriptorTable]
+    AddressAfterPattern = KernelBase + KiSSSOffset + SignatureSize;
+    Address             = AddressAfterPattern + 7; // Skip lea r10,[nt!KeServiceDescriptorTable]
 
     //
     // lea r11, KeServiceDescriptorTableShadow
     //
-    if ((*(unsigned char *)address == 0x4c) &&
-        (*(unsigned char *)(address + 1) == 0x8d) &&
-        (*(unsigned char *)(address + 2) == 0x1d))
+    if ((*(unsigned char *)Address == 0x4c) &&
+        (*(unsigned char *)(Address + 1) == 0x8d) &&
+        (*(unsigned char *)(Address + 2) == 0x1d))
     {
-        relativeOffset = *(LONG *)(address + 3);
+        RelativeOffset = *(LONG *)(Address + 3);
     }
 
-    if (relativeOffset == 0)
+    if (RelativeOffset == 0)
         return FALSE;
 
-    shadow = (SSDTStruct *)(address + relativeOffset + 7);
+    Shadow = (SSDTStruct *)(Address + RelativeOffset + 7);
 
-    ntTable     = (PVOID)shadow;
-    win32kTable = (PVOID)((ULONG_PTR)shadow + 0x20); // Offset showed in Windbg
+    TableNT     = (PVOID)Shadow;
+    TableWin32k = (PVOID)((ULONG_PTR)Shadow + 0x20); // Offset showed in Windbg
 
-    *NtTable     = ntTable;
-    *Win32kTable = win32kTable;
+    *NtTable     = (UINT64)TableNT;
+    *Win32kTable = (UINT64)TableWin32k;
 
     return TRUE;
 }
 
 /**
- * @brief Find entry from SSDT table of Nt fucntions and W32Table syscalls
+ * @brief Find entry from SSDT table of Nt functions and W32Table syscalls
  *
  * @param ApiNumber The Syscall Number
  * @param GetFromWin32k Is this syscall from Win32K
@@ -161,7 +161,6 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
     SSDTStruct * SSDT;
     BOOLEAN      Result;
     ULONG_PTR    SSDTbase;
-    ULONG        ReadOffset;
     UINT64       NtTable, Win32kTable;
 
     //
@@ -177,7 +176,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 
     if (!GetFromWin32k)
     {
-        SSDT = NtTable;
+        SSDT = (SSDTStruct *)NtTable;
     }
     else
     {
@@ -185,7 +184,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
         // Win32k APIs start from 0x1000
         //
         ApiNumber = ApiNumber - 0x1000;
-        SSDT      = Win32kTable;
+        SSDT      = (SSDTStruct *)Win32kTable;
     }
 
     SSDTbase = (ULONG_PTR)SSDT->pServiceTable;
@@ -228,12 +227,11 @@ NtCreateFileHook(
     PVOID              EaBuffer,
     ULONG              EaLength)
 {
-    HANDLE         kFileHandle;
     NTSTATUS       ConvertStatus;
-    UNICODE_STRING kObjectName;
+    UNICODE_STRING ObjectName;
     ANSI_STRING    FileNameA;
 
-    kObjectName.Buffer = NULL;
+    ObjectName.Buffer = NULL;
 
     __try
     {
@@ -242,11 +240,11 @@ NtCreateFileHook(
         ProbeForRead(ObjectAttributes->ObjectName, sizeof(UNICODE_STRING), 1);
         ProbeForRead(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, 1);
 
-        kFileHandle               = *FileHandle;
-        kObjectName.Length        = ObjectAttributes->ObjectName->Length;
-        kObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
-        kObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(kObjectName.MaximumLength);
-        RtlCopyUnicodeString(&kObjectName, ObjectAttributes->ObjectName);
+        FileHandle               = *FileHandle;
+        ObjectName.Length        = ObjectAttributes->ObjectName->Length;
+        ObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
+        ObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(ObjectName.MaximumLength);
+        RtlCopyUnicodeString(&ObjectName, ObjectAttributes->ObjectName);
 
         ConvertStatus = RtlUnicodeStringToAnsiString(&FileNameA, ObjectAttributes->ObjectName, TRUE);
         LogInfo("NtCreateFile called for : %s", FileNameA.Buffer);
@@ -255,9 +253,9 @@ NtCreateFileHook(
     {
     }
 
-    if (kObjectName.Buffer)
+    if (ObjectName.Buffer)
     {
-        CrsFreePool(kObjectName.Buffer);
+        CrsFreePool(ObjectName.Buffer);
     }
 
     return NtCreateFileOrig(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
@@ -297,8 +295,8 @@ SyscallHookTest()
     //
     if (EptHookInlineHook(&g_GuestState[KeGetCurrentProcessorNumberEx(NULL)],
                           ApiLocationFromSSDTOfNtCreateFile,
-                          NtCreateFileHook,
-                          PsGetCurrentProcessId()))
+                          (PVOID)NtCreateFileHook,
+                          HANDLE_TO_UINT32(PsGetCurrentProcessId())))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }

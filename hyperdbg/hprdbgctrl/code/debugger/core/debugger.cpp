@@ -94,7 +94,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER:
-        ShowMessages("err, edit memeory request has invalid parameters (%x)\n",
+        ShowMessages("err, edit memory request has invalid parameters (%x)\n",
                      Error);
         break;
 
@@ -122,7 +122,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER:
-        ShowMessages("err, invalid parameter passsed to stepping core. (%x)\n",
+        ShowMessages("err, invalid parameter passed to stepping core. (%x)\n",
                      Error);
         break;
 
@@ -398,7 +398,7 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
-    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS:
+    case DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDITIONALS:
         ShowMessages("err, the requested buffer for storing event and conditions is larger than the pre-allocated "
                      "buffer size (%x)\nfor more information on how to resolve this issue, "
                      "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
@@ -536,9 +536,14 @@ DebuggerGetNtoskrnlBase()
 
     Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
 
+    if (Modules == NULL)
+    {
+        return NULL64_ZERO;
+    }
+
     NtQuerySystemInformation(SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
-    for (int i = 0; i < Modules->NumberOfModules; i++)
+    for (UINT32 i = 0; i < Modules->NumberOfModules; i++)
     {
         if (!strcmp((const char *)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
                     "ntoskrnl.exe"))
@@ -605,7 +610,7 @@ DebuggerPauseDebuggee()
 /**
  * @brief Shows whether the debugger is connected to a debugger
  * or debuggee connected to a debugger
- * @details we use this function to avoid connecting to a remote machine whem\n
+ * @details we use this function to avoid connecting to a remote machine when
  * debuggee or debugger is already connected to an instance
  *
  * @return BOOLEAN
@@ -697,8 +702,8 @@ IsTagExist(UINT64 Tag)
  * script in this command split and the details are returned in the
  * input structure
  *
- * @param SplittedCommand the initialized command that are splitted by space
- * @param SplittedCommandCaseSensitive case sensitive splitted command
+ * @param SplitCommand the initialized command that are split by space
+ * @param SplitCommandCaseSensitive case sensitive split command
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -706,8 +711,8 @@ IsTagExist(UINT64 Tag)
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> * SplittedCommand,
-                vector<string> * SplittedCommandCaseSensitive,
+InterpretScript(vector<string> * SplitCommand,
+                vector<string> * SplitCommandCaseSensitive,
                 PBOOLEAN         ScriptSyntaxErrors,
                 PUINT64          BufferAddress,
                 PUINT32          BufferLength,
@@ -720,14 +725,13 @@ InterpretScript(vector<string> * SplittedCommand,
     string         AppendedFinalBuffer;
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
-    int            Index            = 0;
-    int            NewIndexToRemove = 0;
-    int            OpenBracket      = 0;
-    size_t         CountOfOpenBrackets;
-    size_t         CountOfCloseBrackets;
-    UINT32         IndexInCommandCaseSensitive          = 0;
-    vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
+    UINT32         Index            = 0;
+    UINT32         NewIndexToRemove = 0;
+    UINT32         OpenBracket      = 0;
+    UINT32         CountOfOpenBrackets;
+    UINT32         CountOfCloseBrackets;
+    UINT32         IndexInCommandCaseSensitive       = 0;
+    vector<string> SplitCommandCaseSensitiveInstance = *SplitCommandCaseSensitive;
     string         TempStr;
 
     //
@@ -735,7 +739,7 @@ InterpretScript(vector<string> * SplittedCommand,
     //
     *ScriptSyntaxErrors = TRUE;
 
-    for (auto Section : *SplittedCommand)
+    for (auto Section : *SplitCommand)
     {
         IndexInCommandCaseSensitive++;
         Index++;
@@ -770,7 +774,7 @@ InterpretScript(vector<string> * SplittedCommand,
                     //
                     // remove the last character and append it to the ConditionBuffer
                     //
-                    TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                     SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                     IsEnded = TRUE;
@@ -795,7 +799,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
 
                 //
                 // Add it to the open brackets
@@ -815,7 +819,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                 //
                 // Add it to the open brackets
@@ -826,7 +830,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    TempStr     = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    TempStr     = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                     SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
                     break;
                 }
@@ -835,7 +839,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Add the text as the script screen
             //
-            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
+            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
 
             //
             // We want to stay in this condition
@@ -872,7 +876,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
 
                 //
                 // Add it to the open brackets (-1 because script starts with { which
@@ -891,7 +895,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 IndexesToRemove.push_back(Index);
 
-                TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
+                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                 IsEnded = TRUE;
@@ -910,7 +914,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check the count of brackets in the string and add it to OpenBracket
                 //
-                size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                 //
                 // Add it to the open brackets
@@ -921,7 +925,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    TempStr     = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    TempStr     = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                     SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
                     break;
                 }
@@ -932,7 +936,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             IndexesToRemove.push_back(Index);
 
-            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
+            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
 
             IsInState = TRUE;
             continue;
@@ -979,8 +983,8 @@ InterpretScript(vector<string> * SplittedCommand,
 
             IsTextVisited        = TRUE;
             IsInState            = TRUE;
-            CountOfOpenBrackets  = count(Section.begin(), Section.end(), '{');
-            CountOfCloseBrackets = count(Section.begin(), Section.end(), '}');
+            CountOfOpenBrackets  = (UINT32)count(Section.begin(), Section.end(), '{');
+            CountOfCloseBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
             //
             // Check if script contains bracket "{"
@@ -1004,7 +1008,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 // remove the last character and first character append it to the
                 // ConditionBuffer
                 //
-                TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
+                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                 IsEnded     = TRUE;
@@ -1016,7 +1020,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Section starts with script{
                 //
-                SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
+                SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
 
                 //
                 // Check if script contains bracket "}"
@@ -1030,7 +1034,7 @@ InterpretScript(vector<string> * SplittedCommand,
                     //
                     // Check the count of brackets in the string and add it to OpenBracket
                     //
-                    size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+                    UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
 
                     //
                     // Add it to the open brackets
@@ -1166,8 +1170,8 @@ InterpretScript(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1175,12 +1179,12 @@ InterpretScript(vector<string> * SplittedCommand,
 
 /**
  * @brief Interpret conditions (if an event has condition) and custom code
- * @details If this function returns true then it means that there is a condtion
+ * @details If this function returns true then it means that there is a condition
  * or code buffer in this command split and the details are returned in the
  * input structure
  *
- * @param SplittedCommand the initialized command that are splitted by space
- * @param SplittedCommandCaseSensitive the initialized command that are splitted
+ * @param SplitCommand the initialized command that are split by space
+ * @param SplitCommandCaseSensitive the initialized command that are split
  * by space case sensitive
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
  * @param BufferAddress the address that the allocated buffer will be saved on
@@ -1190,8 +1194,8 @@ InterpretScript(vector<string> * SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretConditionsAndCodes(vector<string> * SplittedCommand,
-                            vector<string> * SplittedCommandCaseSensitive,
+InterpretConditionsAndCodes(vector<string> * SplitCommand,
+                            vector<string> * SplitCommandCaseSensitive,
                             BOOLEAN          IsConditionBuffer,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength)
@@ -1209,7 +1213,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     int            NewIndexToRemove = 0;
     int            Index            = 0;
 
-    for (auto Section : *SplittedCommand)
+    for (auto Section : *SplitCommand)
     {
         Index++;
 
@@ -1531,7 +1535,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     // Set the buffer and length
     //
     *BufferAddress = (UINT64)FinalBuffer;
-    *BufferLength  = ParsedBytes.size();
+    *BufferLength  = (UINT32)ParsedBytes.size();
 
     //
     // Removing the code or condition indexes from the command
@@ -1541,8 +1545,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1554,8 +1558,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * input that needs to be considered for this event (other than just printing)
  * like sending over network, save to file, and send over a namedpipe
  *
- * @param SplittedCommand the initialized command that are splitted by space
- * @param SplittedCommandCaseSensitive the initialized command that are splitted
+ * @param SplitCommand the initialized command that are split by space
+ * @param SplitCommandCaseSensitive the initialized command that are split
  * by space case sensitive
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
@@ -1564,8 +1568,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> * SplittedCommand,
-                vector<string> * SplittedCommandCaseSensitive,
+InterpretOutput(vector<string> * SplitCommand,
+                vector<string> * SplitCommandCaseSensitive,
                 vector<string> & InputSources)
 {
     BOOLEAN        IsTextVisited = FALSE;
@@ -1576,14 +1580,14 @@ InterpretOutput(vector<string> * SplittedCommand,
     vector<int>    IndexesToRemove;
     string         Token;
     string         TempStr;
-    int            NewIndexToRemove                     = 0;
-    int            Index                                = 0;
-    char           Delimiter                            = ',';
-    size_t         Pos                                  = 0;
-    vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
-    UINT32         IndexInCommandCaseSensitive          = 0;
+    int            NewIndexToRemove                  = 0;
+    int            Index                             = 0;
+    char           Delimiter                         = ',';
+    size_t         Pos                               = 0;
+    vector<string> SplitCommandCaseSensitiveInstance = *SplitCommandCaseSensitive;
+    UINT32         IndexInCommandCaseSensitive       = 0;
 
-    for (auto Section : *SplittedCommand)
+    for (auto Section : *SplitCommand)
     {
         IndexInCommandCaseSensitive++;
         Index++;
@@ -1616,7 +1620,7 @@ InterpretOutput(vector<string> * SplittedCommand,
                 //
                 // remove the last character and append it to the output buffer
                 //
-                TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                 IsEnded = TRUE;
@@ -1631,7 +1635,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             //
             // Add the codes into buffer buffer
             //
-            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
+            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
 
             //
             // We want to stay in this condition
@@ -1666,7 +1670,7 @@ InterpretOutput(vector<string> * SplittedCommand,
                 //
                 IndexesToRemove.push_back(Index);
 
-                TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
+                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                 IsEnded = TRUE;
@@ -1678,7 +1682,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             //
             IndexesToRemove.push_back(Index);
 
-            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
+            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
 
             IsInState = TRUE;
             continue;
@@ -1722,7 +1726,7 @@ InterpretOutput(vector<string> * SplittedCommand,
                 //
                 // Section starts with output{
                 //
-                SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
+                SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
                 continue;
             }
             else
@@ -1731,7 +1735,7 @@ InterpretOutput(vector<string> * SplittedCommand,
                 // remove the last character and first character append it to the
                 // Output
                 //
-                TempStr = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
+                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
                 SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
 
                 IsEnded = TRUE;
@@ -1814,8 +1818,8 @@ InterpretOutput(vector<string> * SplittedCommand,
     {
         NewIndexToRemove++;
 
-        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1841,7 +1845,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
-        // It's a debuggger, we should send the events buffer directly
+        // It's a debugger, we should send the events buffer directly
         // from here
         //
 
@@ -1910,7 +1914,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             if (g_IsConnectedToRemoteDebuggee)
             {
-                RemoteConnectionSendCommand("g", strlen("g") + 1);
+                RemoteConnectionSendCommand("g", (UINT32)strlen("g") + 1);
             }
 
             ShowMessages("\n");
@@ -2119,7 +2123,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
     //
     // As we're not needing any of action buffer, we'll free all of the
-    // here in the case of a successful registeration of action, however
+    // here in the case of a successful registration of action, however
     // event detail is needed for the 'event' command's list
     //
     FreeEventsAndActionsMemory(NULL, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -2185,8 +2189,8 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 /**
  * @brief Interpret general event fields
  *
- * @param SplittedCommand the commands that was splitted by space
- * @param SplittedCommandCaseSensitive the commands that was splitted by space
+ * @param SplitCommand the commands that was split by space
+ * @param SplitCommandCaseSensitive the commands that was split by space
  * case sensitive
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled
@@ -2204,8 +2208,8 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  */
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                    SplittedCommand,
-    vector<string> *                    SplittedCommandCaseSensitive,
+    vector<string> *                    SplitCommand,
+    vector<string> *                    SplitCommandCaseSensitive,
     VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
@@ -2264,7 +2268,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Create a command string to show in the history
     //
-    for (auto Section : *SplittedCommandCaseSensitive)
+    for (auto Section : *SplitCommandCaseSensitive)
     {
         CommandString.append(Section);
         CommandString.append(" ");
@@ -2290,7 +2294,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a condition buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
+    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
     {
         //
         // Indicate condition is not available
@@ -2332,7 +2336,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a code buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
+    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
     {
         //
         // Indicate code is not available
@@ -2372,8 +2376,8 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a Script block in the command
     //
-    if (!InterpretScript(SplittedCommand,
-                         SplittedCommandCaseSensitive,
+    if (!InterpretScript(SplitCommand,
+                         SplitCommandCaseSensitive,
                          &HasScriptSyntaxError,
                          &ScriptBufferAddress,
                          &ScriptBufferLength,
@@ -2410,7 +2414,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a output path in the command
     //
-    if (!InterpretOutput(SplittedCommand, SplittedCommandCaseSensitive, ListOfOutputSources))
+    if (!InterpretOutput(SplitCommand, SplitCommandCaseSensitive, ListOfOutputSources))
     {
         //
         // Indicate output is not available
@@ -2462,7 +2466,7 @@ InterpretGeneralEventAndActionsFields(
             free(BufferOfCommandString);
 
             ShowMessages("err, the name you entered, not found. Did you use "
-                         "'output' commmand to create it?\n");
+                         "'output' command to create it?\n");
             *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
             return FALSE;
         }
@@ -2538,7 +2542,7 @@ InterpretGeneralEventAndActionsFields(
                 free(BufferOfCommandString);
 
                 ShowMessages("err, the name you entered, not found. Did you use "
-                             "'output' commmand to create it?\n");
+                             "'output' command to create it?\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
                 return FALSE;
             }
@@ -2591,7 +2595,7 @@ InterpretGeneralEventAndActionsFields(
     RtlZeroMemory(TempEvent, LengthOfEventBuffer);
 
     //
-    // Check if buffer is availabe
+    // Check if buffer is available
     //
     if (TempEvent == NULL)
     {
@@ -2781,7 +2785,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Interpret rest of the command
     //
-    for (auto Section : *SplittedCommand)
+    for (auto Section : *SplitCommand)
     {
         Index++;
         if (IsNextCommandBufferSize)
@@ -2999,7 +3003,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("imm"))
         {
             //
-            // the next commnad is immediate messaging indicator
+            // the next command is immediate messaging indicator
             //
             IsNextCommandImmediateMessaging = TRUE;
 
@@ -3014,7 +3018,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("stage"))
         {
             //
-            // the next commnad is execution mode (pre- and post-events)
+            // the next command is execution mode (pre- and post-events)
             //
             IsNextCommandExecutionStage = TRUE;
 
@@ -3029,7 +3033,7 @@ InterpretGeneralEventAndActionsFields(
         if (!Section.compare("sc"))
         {
             //
-            // the next commnad is the default short-circuiting state
+            // the next command is the default short-circuiting state
             //
             IsNextCommandSc = TRUE;
 
@@ -3239,8 +3243,8 @@ InterpretGeneralEventAndActionsFields(
     for (auto IndexToRemove : IndexesToRemove)
     {
         NewIndexToRemove++;
-        SplittedCommand->erase(SplittedCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
+        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     //

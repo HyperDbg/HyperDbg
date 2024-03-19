@@ -179,12 +179,12 @@ ShowAllRegisters()
 /**
  * @brief handler of r command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandR(std::vector<std::string> SplittedCommand, std::string Command)
+CommandR(std::vector<std::string> SplitCommand, std::string Command)
 {
     //
     // Interpret here
@@ -198,12 +198,12 @@ CommandR(std::vector<std::string> SplittedCommand, std::string Command)
 
     std::string SetRegValue = "SetRegValue";
 
-    if (SplittedCommand[0] != "r")
+    if (SplitCommand[0] != "r")
     {
         return;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         //
         // show all registers

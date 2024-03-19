@@ -38,19 +38,19 @@ CommandPrintHelp()
 /**
  * @brief handler of print command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPrint(vector<string> SplittedCommand, string Command)
+CommandPrint(vector<string> SplitCommand, string Command)
 {
     PVOID  CodeBuffer;
     UINT64 BufferAddress;
     UINT32 BufferLength;
     UINT32 Pointer;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("incorrect use of the 'print'\n\n");
         CommandPrintHelp();
@@ -65,7 +65,7 @@ CommandPrint(vector<string> SplittedCommand, string Command)
     //
     // Remove print from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

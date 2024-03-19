@@ -348,7 +348,7 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 }
 
 /**
- * @brief check and convert string to a 64 bit unsigned interger and also
+ * @brief check and convert string to a 64 bit unsigned integer and also
  *  check for symbol object names and evaluate expressions
  *
  * @param TextToConvert the target string
@@ -734,7 +734,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 
     if (ModulesCount != 0)
     {
-        for (int i = 0; i < ModulesCount; i++)
+        for (UINT32 i = 0; i < ModulesCount; i++)
         {
             //
             // For logging purpose
@@ -823,7 +823,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     // ----------------------------------------------------------------------------------
     //
 
-    for (int i = 0; i < ModuleInfo->NumberOfModules; i++)
+    for (UINT32 i = 0; i < ModuleInfo->NumberOfModules; i++)
     {
         UINT32 IndexInSymbolBuffer = ModulesCount + i;
 

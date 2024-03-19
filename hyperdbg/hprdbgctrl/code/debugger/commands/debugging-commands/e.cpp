@@ -51,12 +51,12 @@ CommandEditMemoryHelp()
 /**
  * @brief !e* and e* commands handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandEditMemory(vector<string> SplittedCommand, string Command)
+CommandEditMemory(vector<string> SplitCommand, string Command)
 {
     BOOL                 Status;
     UINT64               Address;
@@ -71,7 +71,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     UINT32               ProcId            = 0;
     UINT32               CountOfValues     = 0;
     UINT32               FinalSize         = 0;
-    vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>       SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32               IndexInCommandCaseSensitive = 0;
     BOOLEAN              IsFirstCommand              = TRUE;
 
@@ -84,14 +84,14 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
         ProcId = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplittedCommand.size() <= 2)
+    if (SplitCommand.size() <= 2)
     {
         ShowMessages("incorrect use of the 'e*'\n\n");
         CommandEditMemoryHelp();
         return;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         IndexInCommandCaseSensitive++;
 
@@ -151,7 +151,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
             if (!ConvertStringToUInt32(Section, &ProcId))
             {
-                ShowMessages("please specify a correct hex prcoess id\n\n");
+                ShowMessages("please specify a correct hex process id\n\n");
                 CommandEditMemoryHelp();
                 return;
             }
@@ -175,11 +175,11 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                                                   &Address))
             {
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEditMemoryHelp();
                 return;
             }

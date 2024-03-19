@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 __declspec(dllimport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
+__declspec(dllimport) PSYMBOL_BUFFER GetStackBuffer();
 __declspec(dllimport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 __declspec(dllimport) void PrintSymbol(PSYMBOL Symbol);
 __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);

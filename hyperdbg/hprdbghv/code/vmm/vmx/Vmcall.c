@@ -23,7 +23,7 @@ _Use_decl_annotations_
 NTSTATUS
 VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
 {
-    UINT64                GuestRsp   = NULL;
+    UINT64                GuestRsp   = NULL64_ZERO;
     HYPERCALL_INPUT_VALUE InputValue = {.Flags = GuestRegs->rcx};
 
     switch (InputValue.Fields.CallCode)
@@ -53,7 +53,7 @@ VmxHypervVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu, PGUEST_REGS GuestRegs)
     //
     // Let the top-level hypervisor to manage it
     //
-    AsmHypervVmcall(GuestRegs);
+    AsmHypervVmcall((UINT64)GuestRegs);
 
     //
     // Restore the guest's RSP
@@ -105,7 +105,6 @@ VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
  *
  * @return NTSTATUS
  */
-_Use_decl_annotations_
 NTSTATUS
 VmxVmcallDirectVmcallHandler(VIRTUAL_MACHINE_STATE *    VCpu,
                              UINT64                     VmcallNumber,
@@ -176,9 +175,9 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         CR3_TYPE ProcCr3    = {.Flags = OptionalParam3};
 
         HookResult = EptHookPerformPageHookMonitorAndInlineHook(VCpu,
-                                                                OptionalParam1 /* hook details */,
+                                                                (PVOID)OptionalParam1 /* hook details */,
                                                                 ProcCr3 /* Process cr3 */,
-                                                                OptionalParam2 /* PageHookMask */);
+                                                                (UINT32)OptionalParam2 /* PageHookMask */);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -225,13 +224,13 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        MsrHandlePerformMsrBitmapReadChange(VCpu, OptionalParam1);
+        MsrHandlePerformMsrBitmapReadChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_WRITE:
     {
-        MsrHandlePerformMsrBitmapWriteChange(VCpu, OptionalParam1);
+        MsrHandlePerformMsrBitmapWriteChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -249,7 +248,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_SET_EXCEPTION_BITMAP:
     {
-        HvSetExceptionBitmap(VCpu, OptionalParam1);
+        HvSetExceptionBitmap(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -267,7 +266,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_CHANGE_IO_BITMAP:
     {
-        IoHandlePerformIoBitmapChange(VCpu, OptionalParam1);
+        IoHandlePerformIoBitmapChange(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -277,8 +276,8 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         CR3_TYPE ProcCr3    = {.Flags = OptionalParam2};
 
         HookResult = EptHookPerformPageHook(VCpu,
-                                            OptionalParam1, /* TargetAddress */
-                                            ProcCr3);       /* process cr3 */
+                                            (PVOID)OptionalParam1, /* TargetAddress */
+                                            ProcCr3);              /* process cr3 */
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -360,7 +359,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_UNSET_EXCEPTION_BITMAP:
     {
-        HvUnsetExceptionBitmap(VCpu, OptionalParam1);
+        HvUnsetExceptionBitmap(VCpu, (UINT32)OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -454,7 +453,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_DISABLE_OR_ENABLE_MBEC:
     {
-        ModeBasedExecHookEnableOrDisable(VCpu, OptionalParam1);
+        ModeBasedExecHookEnableOrDisable(VCpu, (UINT32)OptionalParam1);
 
         VmcallStatus = STATUS_SUCCESS;
         break;
@@ -494,7 +493,7 @@ VmcallTest(_In_ UINT64 Param1,
     //
     LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
                           "$",
-                          1,
+                          sizeof(CHAR),
                           TRUE);
 
     return STATUS_SUCCESS;

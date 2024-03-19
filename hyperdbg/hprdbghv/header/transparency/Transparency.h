@@ -39,7 +39,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason);
 //////////////////////////////////////////////////
 
 /**
- * @brief The measurments from user-mode and kernel-mode
+ * @brief The measurements from user-mode and kernel-mode
  *
  */
 typedef struct _TRANSPARENCY_MEASUREMENTS

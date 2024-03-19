@@ -39,7 +39,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
 #endif // ENV_WINDOWS
 
     //
-    // Allocating a 4-KByte Contigous Memory region
+    // Allocating a 4-KByte Contiguous Memory region
     //
     VmxonSize   = 2 * VMXON_SIZE;
     VmxonRegion = CrsAllocateContiguousZeroedMemory(VmxonSize + ALIGNMENT_PAGE_SIZE);
@@ -51,13 +51,13 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
 
     VmxonRegionPhysicalAddr = VirtualAddressToPhysicalAddress(VmxonRegion);
 
-    AlignedVmxonRegion = (BYTE *)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmxonRegion = (UINT64)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogDebugInfo("VMXON Region Address : %llx", AlignedVmxonRegion);
 
     //
     // 4 kb >= buffers are aligned, just a double check to ensure if it's aligned
     //
-    AlignedVmxonRegionPhysicalAddr = (BYTE *)((ULONG_PTR)(VmxonRegionPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmxonRegionPhysicalAddr = (UINT64)((ULONG_PTR)(VmxonRegionPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogDebugInfo("VMXON Region Physical Address : %llx", AlignedVmxonRegionPhysicalAddr);
 
     //
@@ -86,7 +86,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // We save the allocated buffer (not the aligned buffer) because we want to free it in vmx termination
     //
-    VCpu->VmxonRegionVirtualAddress = VmxonRegion;
+    VCpu->VmxonRegionVirtualAddress = (UINT64)VmxonRegion;
 
     return TRUE;
 }
@@ -118,7 +118,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
 #endif // ENV_WINDOWS
 
     //
-    // Allocating a 4-KByte Contigous Memory region
+    // Allocating a 4-KByte Contiguous Memory region
     //
     VmcsSize   = 2 * VMCS_SIZE;
     VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE);
@@ -130,10 +130,10 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
 
     VmcsPhysicalAddr = VirtualAddressToPhysicalAddress(VmcsRegion);
 
-    AlignedVmcsRegion = (BYTE *)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmcsRegion = (UINT64)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogDebugInfo("VMCS region address : %llx", AlignedVmcsRegion);
 
-    AlignedVmcsRegionPhysicalAddr = (BYTE *)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmcsRegionPhysicalAddr = (UINT64)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogDebugInfo("VMCS region physical address : %llx", AlignedVmcsRegionPhysicalAddr);
 
     //
@@ -152,7 +152,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // We save the allocated buffer (not the aligned buffer)
     // because we want to free it in vmx termination
     //
-    VCpu->VmcsRegionVirtualAddress = VmcsRegion;
+    VCpu->VmcsRegionVirtualAddress = (UINT64)VmcsRegion;
 
     return TRUE;
 }
@@ -169,11 +169,11 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate stack for the VM Exit Handler
     //
-    VCpu->VmmStack = CrsAllocateZeroedNonPagedPool(VMM_STACK_SIZE);
+    VCpu->VmmStack = (UINT64)CrsAllocateZeroedNonPagedPool(VMM_STACK_SIZE);
 
-    if (VCpu->VmmStack == NULL)
+    if (VCpu->VmmStack == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg vmm stack");
+        LogError("Err, insufficient memory in allocating vmm stack");
         return FALSE;
     }
 
@@ -183,7 +183,7 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief Allocate a buffer forr Msr Bitmap
+ * @brief Allocate a buffer for Msr Bitmap
  *
  * @param VCpu The virtual processor's state
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
@@ -195,15 +195,15 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     // Allocate memory for MSR Bitmap
     // Should be aligned
     //
-    VCpu->MsrBitmapVirtualAddress = CrsAllocateZeroedNonPagedPool(PAGE_SIZE);
+    VCpu->MsrBitmapVirtualAddress = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE);
 
-    if (VCpu->MsrBitmapVirtualAddress == NULL)
+    if (VCpu->MsrBitmapVirtualAddress == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg MSR Bitmaps");
+        LogError("Err, insufficient memory in allocating MSR Bitmaps");
         return FALSE;
     }
 
-    VCpu->MsrBitmapPhysicalAddress = VirtualAddressToPhysicalAddress(VCpu->MsrBitmapVirtualAddress);
+    VCpu->MsrBitmapPhysicalAddress = VirtualAddressToPhysicalAddress((PVOID)VCpu->MsrBitmapVirtualAddress);
 
     LogDebugInfo("MSR Bitmap virtual address  : 0x%llx", VCpu->MsrBitmapVirtualAddress);
     LogDebugInfo("MSR Bitmap physical address : 0x%llx", VCpu->MsrBitmapPhysicalAddress);
@@ -212,7 +212,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief Allocate a buffer forr I/O Bitmap
+ * @brief Allocate a buffer for I/O Bitmap
  *
  * @param ProcessorID
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
@@ -223,15 +223,15 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (A)
     //
-    VCpu->IoBitmapVirtualAddressA = CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+    VCpu->IoBitmapVirtualAddressA = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
 
-    if (VCpu->IoBitmapVirtualAddressA == NULL)
+    if (VCpu->IoBitmapVirtualAddressA == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg I/O Bitmaps A");
+        LogError("Err, insufficient memory in allocating I/O Bitmaps A");
         return FALSE;
     }
 
-    VCpu->IoBitmapPhysicalAddressA = VirtualAddressToPhysicalAddress(VCpu->IoBitmapVirtualAddressA);
+    VCpu->IoBitmapPhysicalAddressA = VirtualAddressToPhysicalAddress((PVOID)VCpu->IoBitmapVirtualAddressA);
 
     LogDebugInfo("I/O Bitmap A Virtual Address  : 0x%llx", VCpu->IoBitmapVirtualAddressA);
     LogDebugInfo("I/O Bitmap A Physical Address : 0x%llx", VCpu->IoBitmapPhysicalAddressA);
@@ -239,15 +239,15 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (B)
     //
-    VCpu->IoBitmapVirtualAddressB = CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+    VCpu->IoBitmapVirtualAddressB = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
 
-    if (VCpu->IoBitmapVirtualAddressB == NULL)
+    if (VCpu->IoBitmapVirtualAddressB == NULL64_ZERO)
     {
-        LogError("Err, insufficient memory in allocationg I/O Bitmaps B");
+        LogError("Err, insufficient memory in allocating I/O Bitmaps B");
         return FALSE;
     }
 
-    VCpu->IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress(VCpu->IoBitmapVirtualAddressB);
+    VCpu->IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress((PVOID)VCpu->IoBitmapVirtualAddressB);
 
     LogDebugInfo("I/O Bitmap B virtual address  : 0x%llx", VCpu->IoBitmapVirtualAddressB);
     LogDebugInfo("I/O Bitmap B physical address : 0x%llx", VCpu->IoBitmapPhysicalAddressB);
@@ -272,7 +272,7 @@ VmxAllocateInvalidMsrBimap()
         return NULL;
     }
 
-    for (size_t i = 0; i < 0x1000; ++i)
+    for (UINT32 i = 0; i < 0x1000; ++i)
     {
         __try
         {
@@ -280,7 +280,7 @@ VmxAllocateInvalidMsrBimap()
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            SetBit(i, InvalidMsrBitmap);
+            SetBit(i, (unsigned long *)InvalidMsrBitmap);
         }
     }
 

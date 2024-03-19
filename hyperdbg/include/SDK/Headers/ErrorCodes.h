@@ -178,7 +178,7 @@
 #define DEBUGGER_ERROR_INVALID_REGISTER_NUMBER 0xc0000017
 
 /**
- * @brief error, maximum pools were used without continueing debuggee
+ * @brief error, maximum pools were used without continuing debuggee
  *
  */
 #define DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE 0xc0000018
@@ -432,7 +432,7 @@
  * @brief error, the preallocated buffer is not enough for storing event+conditional buffer
  *
  */
-#define DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDTIONALS 0xc0000041
+#define DEBUGGER_ERROR_INSTANT_EVENT_PREALLOCATED_BUFFER_IS_NOT_ENOUGH_FOR_EVENT_AND_CONDITIONALS 0xc0000041
 
 /**
  * @brief error, the regular preallocated buffer not found

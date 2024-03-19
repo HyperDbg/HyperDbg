@@ -16,8 +16,8 @@
  * @details This function is deprecated as we want to supporrt more than 32 processors
  *
  * @param ProcessorNumber The logical core number to execute routine on it
- * @param Routine The fucntion that should be executed on the target core
- * @return BOOLEAN Returns true if it was successfull
+ * @param Routine The function that should be executed on the target core
+ * @return BOOLEAN Returns true if it was successful
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -97,10 +97,10 @@ BOOLEAN
 CommonIsGuestOnUsermode32Bit()
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, VMWRITE might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = NULL64_ZERO;
 
     //
     // Read guest's cs selector
@@ -162,7 +162,8 @@ CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     Log("\n");
-    DisassemblerShowOneInstructionInVmxRootMode(VCpu->LastVmexitRip, CommonIsGuestOnUsermode32Bit());
+    DisassemblerShowOneInstructionInVmxRootMode((PVOID)VCpu->LastVmexitRip,
+                                                CommonIsGuestOnUsermode32Bit());
     Log("\n");
 
     Log(

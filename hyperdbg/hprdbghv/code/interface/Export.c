@@ -25,7 +25,7 @@ VmFuncPerformRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param CoreId Target core's ID
  * @return VOID
@@ -37,7 +37,7 @@ VmFuncSuppressRipIncrement(UINT32 CoreId)
 }
 
 /**
- * @brief Supress unsetting MTF
+ * @brief Suppress unsetting MTF
  *
  * @param CoreId Target core's ID
  * @param Set State of setting or unsetting
@@ -403,10 +403,10 @@ VmFuncGetInterruptibilityState()
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-VmFuncClearSteppingBits(UINT32 Interruptibility)
+UINT64
+VmFuncClearSteppingBits(UINT64 Interruptibility)
 {
     return HvClearSteppingBits(Interruptibility);
 }
@@ -544,7 +544,7 @@ VmFuncUninitVmm()
 }
 
 /**
- * @brief Get the current vmx opeation state
+ * @brief Get the current VMX operation state
  *
  * @return BOOLEAN
  */
@@ -683,13 +683,13 @@ NTSTATUS
 VmFuncVmxVmcall(unsigned long long VmcallNumber,
                 unsigned long long OptionalParam1,
                 unsigned long long OptionalParam2,
-                long long          OptionalParam3)
+                unsigned long long OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }
 
 /**
- * @brief Export for initialize the VMX Broadcast mechansim
+ * @brief Export for initialize the VMX Broadcast mechanism
  *
  * @return VOID
  */
@@ -700,7 +700,7 @@ VmFuncVmxBroadcastInitialize()
 }
 
 /**
- * @brief Export for uninitialize the VMX Broadcast mechansim
+ * @brief Export for uninitialize the VMX Broadcast mechanism
  *
  * @return VOID
  */
@@ -731,7 +731,7 @@ VmFuncEventInjectBreakpoint()
 INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
-    VmxCompatibleStrcmp(Address1, Address2);
+    return VmxCompatibleStrcmp(Address1, Address2);
 }
 
 /**
@@ -744,7 +744,7 @@ VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 {
-    VmxCompatibleWcscmp(Address1, Address2);
+    return VmxCompatibleWcscmp(Address1, Address2);
 }
 
 /**
@@ -758,7 +758,7 @@ VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 {
-    VmxCompatibleMemcmp(Address1, Address2, Count);
+    return VmxCompatibleMemcmp(Address1, Address2, Count);
 }
 
 /**

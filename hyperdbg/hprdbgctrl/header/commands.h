@@ -47,16 +47,16 @@ string
 SeparateTo64BitValue(UINT64 Value);
 
 void
-ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 void
-ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 void
-ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 void
-ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 VOID
 CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead);
@@ -136,7 +136,7 @@ CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
  * @brief Command's function type
  *
  */
-typedef VOID (*CommandFuncType)(vector<string> SplittedCommand, string Command);
+typedef VOID (*CommandFuncType)(vector<string> SplitCommand, string Command);
 
 /**
  * @brief Command's help function type
@@ -413,257 +413,257 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 //////////////////////////////////////////////////
 
 VOID
-CommandTest(vector<string> SplittedCommand, string Command);
+CommandTest(vector<string> SplitCommand, string Command);
 
 VOID
-CommandClearScreen(vector<string> SplittedCommand, string Command);
+CommandClearScreen(vector<string> SplitCommand, string Command);
 
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
+CommandReadMemoryAndDisassembler(vector<string> SplitCommand,
                                  string         Command);
 
 VOID
-CommandConnect(vector<string> SplittedCommand, string Command);
+CommandConnect(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLoad(vector<string> SplittedCommand, string Command);
+CommandLoad(vector<string> SplitCommand, string Command);
 
 VOID
-CommandUnload(vector<string> SplittedCommand, string Command);
+CommandUnload(vector<string> SplitCommand, string Command);
 
 VOID
-CommandScript(vector<string> SplittedCommand, string Command);
+CommandScript(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCpu(vector<string> SplittedCommand, string Command);
+CommandCpu(vector<string> SplitCommand, string Command);
 
 VOID
-CommandExit(vector<string> SplittedCommand, string Command);
+CommandExit(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDisconnect(vector<string> SplittedCommand, string Command);
+CommandDisconnect(vector<string> SplitCommand, string Command);
 
 VOID
-CommandFormats(vector<string> SplittedCommand, string Command);
+CommandFormats(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRdmsr(vector<string> SplittedCommand, string Command);
+CommandRdmsr(vector<string> SplitCommand, string Command);
 
 VOID
-CommandWrmsr(vector<string> SplittedCommand, string Command);
+CommandWrmsr(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPte(vector<string> SplittedCommand, string Command);
+CommandPte(vector<string> SplitCommand, string Command);
 
 VOID
-CommandMonitor(vector<string> SplittedCommand, string Command);
+CommandMonitor(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSyscallAndSysret(vector<string> SplittedCommand, string Command);
+CommandSyscallAndSysret(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEptHook(vector<string> SplittedCommand, string Command);
+CommandEptHook(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEptHook2(vector<string> SplittedCommand, string Command);
+CommandEptHook2(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCpuid(vector<string> SplittedCommand, string Command);
+CommandCpuid(vector<string> SplitCommand, string Command);
 
 VOID
-CommandMsrread(vector<string> SplittedCommand, string Command);
+CommandMsrread(vector<string> SplitCommand, string Command);
 
 VOID
-CommandMsrwrite(vector<string> SplittedCommand, string Command);
+CommandMsrwrite(vector<string> SplitCommand, string Command);
 
 VOID
-CommandTsc(vector<string> SplittedCommand, string Command);
+CommandTsc(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPmc(vector<string> SplittedCommand, string Command);
+CommandPmc(vector<string> SplitCommand, string Command);
 
 VOID
-CommandException(vector<string> SplittedCommand, string Command);
+CommandException(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCrwrite(vector<string> SplittedCommand, string Command);
+CommandCrwrite(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDr(vector<string> SplittedCommand, string Command);
+CommandDr(vector<string> SplitCommand, string Command);
 
 VOID
-CommandInterrupt(vector<string> SplittedCommand, string Command);
+CommandInterrupt(vector<string> SplitCommand, string Command);
 
 VOID
-CommandIoin(vector<string> SplittedCommand, string Command);
+CommandIoin(vector<string> SplitCommand, string Command);
 
 VOID
-CommandIoout(vector<string> SplittedCommand, string Command);
+CommandIoout(vector<string> SplitCommand, string Command);
 
 VOID
-CommandVmcall(vector<string> SplittedCommand, string Command);
+CommandVmcall(vector<string> SplitCommand, string Command);
 
 VOID
-CommandMode(vector<string> SplittedCommand, string Command);
+CommandMode(vector<string> SplitCommand, string Command);
 
 VOID
-CommandTrace(vector<string> SplittedCommand, string Command);
+CommandTrace(vector<string> SplitCommand, string Command);
 
 VOID
-CommandHide(vector<string> SplittedCommand, string Command);
+CommandHide(vector<string> SplitCommand, string Command);
 
 VOID
-CommandUnhide(vector<string> SplittedCommand, string Command);
+CommandUnhide(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLogopen(vector<string> SplittedCommand, string Command);
+CommandLogopen(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLogclose(vector<string> SplittedCommand, string Command);
+CommandLogclose(vector<string> SplitCommand, string Command);
 
 VOID
-CommandVa2pa(vector<string> SplittedCommand, string Command);
+CommandVa2pa(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPa2va(vector<string> SplittedCommand, string Command);
+CommandPa2va(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEvents(vector<string> SplittedCommand, string Command);
+CommandEvents(vector<string> SplitCommand, string Command);
 
 VOID
-CommandG(vector<string> SplittedCommand, string Command);
+CommandG(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLm(vector<string> SplittedCommand, string Command);
+CommandLm(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSleep(vector<string> SplittedCommand, string Command);
+CommandSleep(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEditMemory(vector<string> SplittedCommand, string Command);
+CommandEditMemory(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSearchMemory(vector<string> SplittedCommand, string Command);
+CommandSearchMemory(vector<string> SplitCommand, string Command);
 
 VOID
-CommandMeasure(vector<string> SplittedCommand, string Command);
+CommandMeasure(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSettings(vector<string> SplittedCommand, string Command);
+CommandSettings(vector<string> SplitCommand, string Command);
 
 VOID
-CommandFlush(vector<string> SplittedCommand, string Command);
+CommandFlush(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPause(vector<string> SplittedCommand, string Command);
+CommandPause(vector<string> SplitCommand, string Command);
 
 VOID
-CommandListen(vector<string> SplittedCommand, string Command);
+CommandListen(vector<string> SplitCommand, string Command);
 
 VOID
-CommandStatus(vector<string> SplittedCommand, string Command);
+CommandStatus(vector<string> SplitCommand, string Command);
 
 VOID
-CommandAttach(vector<string> SplittedCommand, string Command);
+CommandAttach(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDetach(vector<string> SplittedCommand, string Command);
+CommandDetach(vector<string> SplitCommand, string Command);
 
 VOID
-CommandStart(vector<string> SplittedCommand, string Command);
+CommandStart(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRestart(vector<string> SplittedCommand, string Command);
+CommandRestart(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSwitch(vector<string> SplittedCommand, string Command);
+CommandSwitch(vector<string> SplitCommand, string Command);
 
 VOID
-CommandKill(vector<string> SplittedCommand, string Command);
+CommandKill(vector<string> SplitCommand, string Command);
 
 VOID
-CommandT(vector<string> SplittedCommand, string Command);
+CommandT(vector<string> SplitCommand, string Command);
 
 VOID
-CommandI(vector<string> SplittedCommand, string Command);
+CommandI(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPrint(vector<string> SplittedCommand, string Command);
+CommandPrint(vector<string> SplitCommand, string Command);
 
 VOID
-CommandOutput(vector<string> SplittedCommand, string Command);
+CommandOutput(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDebug(vector<string> SplittedCommand, string Command);
+CommandDebug(vector<string> SplitCommand, string Command);
 
 VOID
-CommandP(vector<string> SplittedCommand, string Command);
+CommandP(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCore(vector<string> SplittedCommand, string Command);
+CommandCore(vector<string> SplitCommand, string Command);
 
 VOID
-CommandProcess(vector<string> SplittedCommand, string Command);
+CommandProcess(vector<string> SplitCommand, string Command);
 
 VOID
-CommandThread(vector<string> SplittedCommand, string Command);
+CommandThread(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEval(vector<string> SplittedCommand, string Command);
+CommandEval(vector<string> SplitCommand, string Command);
 
 VOID
-CommandR(vector<string> SplittedCommand, string Command);
+CommandR(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBp(vector<string> SplittedCommand, string Command);
+CommandBp(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBl(vector<string> SplittedCommand, string Command);
+CommandBl(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBe(vector<string> SplittedCommand, string Command);
+CommandBe(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBd(vector<string> SplittedCommand, string Command);
+CommandBd(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBc(vector<string> SplittedCommand, string Command);
+CommandBc(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSympath(vector<string> SplittedCommand, string Command);
+CommandSympath(vector<string> SplitCommand, string Command);
 
 VOID
-CommandSym(vector<string> SplittedCommand, string Command);
+CommandSym(vector<string> SplitCommand, string Command);
 
 VOID
-CommandX(vector<string> SplittedCommand, string Command);
+CommandX(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPrealloc(vector<string> SplittedCommand, string Command);
+CommandPrealloc(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPreactivate(vector<string> SplittedCommand, string Command);
+CommandPreactivate(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDtAndStruct(vector<string> SplittedCommand, string Command);
+CommandDtAndStruct(vector<string> SplitCommand, string Command);
 
 VOID
-CommandK(vector<string> SplittedCommand, string Command);
+CommandK(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPe(vector<string> SplittedCommand, string Command);
+CommandPe(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRev(vector<string> SplittedCommand, string Command);
+CommandRev(vector<string> SplitCommand, string Command);
 
 VOID
-CommandTrack(vector<string> SplittedCommand, string Command);
+CommandTrack(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPagein(vector<string> SplittedCommand, string Command);
+CommandPagein(vector<string> SplitCommand, string Command);
 
 VOID
-CommandDump(vector<string> SplittedCommand, string Command);
+CommandDump(vector<string> SplitCommand, string Command);
 
 VOID
-CommandGu(vector<string> SplittedCommand, string Command);
+CommandGu(vector<string> SplitCommand, string Command);

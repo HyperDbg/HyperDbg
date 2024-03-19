@@ -56,9 +56,9 @@ typedef struct _NOTIFY_RECORD
  */
 typedef struct _BUFFER_HEADER
 {
-    UINT32  OpeationNumber; // Operation ID to user-mode
-    UINT32  BufferLength;   // The actual length
-    BOOLEAN Valid;          // Determine whether the buffer was valid to send or not
+    UINT32  OperationNumber; // Operation ID to user-mode
+    UINT32  BufferLength;    // The actual length
+    BOOLEAN Valid;           // Determine whether the buffer was valid to send or not
 } BUFFER_HEADER, *PBUFFER_HEADER;
 
 /**
@@ -67,8 +67,8 @@ typedef struct _BUFFER_HEADER
  */
 typedef struct _LOG_BUFFER_INFORMATION
 {
-    KSPIN_LOCK BufferLock;                       // SpinLock to protect access to the queue
-    KSPIN_LOCK BufferLockForNonImmMessage;       // SpinLock to protect access to the queue of non-imm messages
+    KSPIN_LOCK BufferLock;                 // SpinLock to protect access to the queue
+    KSPIN_LOCK BufferLockForNonImmMessage; // SpinLock to protect access to the queue of non-imm messages
 
     UINT64 BufferForMultipleNonImmediateMessage; // Start address of the buffer for accumulating non-immadiate messages
     UINT32 CurrentLengthOfNonImmBuffer;          // the current size of the buffer for accumulating non-immadiate messages
@@ -76,8 +76,8 @@ typedef struct _LOG_BUFFER_INFORMATION
     //
     // Regular buffers
     //
-    UINT64 BufferStartAddress;  // Start address of the buffer
-    UINT64 BufferEndAddress;    // End address of the buffer
+    UINT64 BufferStartAddress; // Start address of the buffer
+    UINT64 BufferEndAddress;   // End address of the buffer
 
     UINT32 CurrentIndexToSend;  // Current buffer index to send to user-mode
     UINT32 CurrentIndexToWrite; // Current buffer index to write new messages
@@ -85,8 +85,8 @@ typedef struct _LOG_BUFFER_INFORMATION
     //
     // Priority buffers
     //
-    UINT64 BufferStartAddressPriority;  // Start address of the buffer
-    UINT64 BufferEndAddressPriority;    // End address of the buffer
+    UINT64 BufferStartAddressPriority; // Start address of the buffer
+    UINT64 BufferEndAddressPriority;   // End address of the buffer
 
     UINT32 CurrentIndexToSendPriority;  // Current buffer index to send to user-mode for priority buffers
     UINT32 CurrentIndexToWritePriority; // Current buffer index to write new messages for priority buffers

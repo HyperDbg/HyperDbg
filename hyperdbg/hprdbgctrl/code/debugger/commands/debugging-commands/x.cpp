@@ -32,14 +32,14 @@ CommandXHelp()
 /**
  * @brief x command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandX(vector<string> SplittedCommand, string Command)
+CommandX(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("incorrect use of the 'x'\n\n");
         CommandXHelp();
@@ -54,7 +54,7 @@ CommandX(vector<string> SplittedCommand, string Command)
     //
     // Remove x from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

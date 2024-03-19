@@ -160,8 +160,8 @@ EptBuildMtrrMap(VOID)
     IA32_MTRR_PHYSMASK_REGISTER     CurrentPhysMask;
     IA32_MTRR_DEF_TYPE_REGISTER     MTRRDefType;
     PMTRR_RANGE_DESCRIPTOR          Descriptor;
-    ULONG                           CurrentRegister;
-    ULONG                           NumberOfBitsInMask;
+    UINT32                          CurrentRegister;
+    UINT32                          NumberOfBitsInMask;
 
     MTRRCap.AsUInt     = __readmsr(IA32_MTRR_CAPABILITIES);
     MTRRDefType.AsUInt = __readmsr(IA32_MTRR_DEF_TYPE);
@@ -180,7 +180,7 @@ EptBuildMtrrMap(VOID)
     // The IA32_MTRR_DEF_TYPE MSR (named MTRRdefType MSR for the P6 family processors) sets the default
     // properties of the regions of physical memory that are not encompassed by MTRRs
     //
-    g_EptState->DefaultMemoryType = MTRRDefType.DefaultMemoryType;
+    g_EptState->DefaultMemoryType = (UINT8)MTRRDefType.DefaultMemoryType;
 
     //
     // The fixed memory ranges are mapped with 11 fixed-range registers of 64 bits each. Each of these registers is
@@ -198,8 +198,8 @@ EptBuildMtrrMap(VOID)
     //
     if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
     {
-        const ULONG                K64Base  = 0x0;
-        const ULONG                K64Size  = 0x10000;
+        const UINT32               K64Base  = 0x0;
+        const UINT32               K64Size  = 0x10000;
         IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
         for (unsigned int i = 0; i < 8; i++)
         {
@@ -210,8 +210,8 @@ EptBuildMtrrMap(VOID)
             Descriptor->FixedRange          = TRUE;
         }
 
-        const ULONG K16Base = 0x80000;
-        const ULONG K16Size = 0x4000;
+        const UINT32 K16Base = 0x80000;
+        const UINT32 K16Size = 0x4000;
         for (unsigned int i = 0; i < 2; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K16Types = {__readmsr(IA32_MTRR_FIX16K_80000 + i)};
@@ -225,8 +225,8 @@ EptBuildMtrrMap(VOID)
             }
         }
 
-        const ULONG K4Base = 0xC0000;
-        const ULONG K4Size = 0x1000;
+        const UINT32 K4Base = 0xC0000;
+        const UINT32 K4Size = 0x1000;
         for (unsigned int i = 0; i < 8; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K4Types = {__readmsr(IA32_MTRR_FIX4K_C0000 + i)};
@@ -270,7 +270,7 @@ EptBuildMtrrMap(VOID)
             // Calculate the total size of the range
             // The lowest bit of the mask that is set to 1 specifies the size of the range
             //
-            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
+            _BitScanForward64((ULONG *)&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
 
             //
             // Size of the range in bytes + Base Address
@@ -332,7 +332,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 
     //
     // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertable.
+    // These pointers occupy the same place in the table and are directly convertible.
     //
     PML2Pointer = (PEPT_PML2_POINTER)PML2;
 
@@ -397,7 +397,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
 
     //
     // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertable.
+    // These pointers occupy the same place in the table and are directly convertible.
     //
     PML2Pointer = (PEPT_PML2_POINTER)PML2;
 
@@ -616,18 +616,20 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     if (EptIsValidForLargePage(PageFrameNumber))
     {
         NewEntry->MemoryType = EptGetMemoryType(PageFrameNumber, TRUE);
+
         return TRUE;
     }
     else
     {
-        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)CrsAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
+
         if (!TargetBuffer)
         {
-            VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+            LogError("Err, cannot allocate page for splitting edge large pages");
             return FALSE;
         }
 
-        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * PAGE_SIZE);
+        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * SIZE_2_MB);
     }
 }
 
@@ -756,16 +758,16 @@ EptAllocateAndCreateIdentityPageTable(VOID)
 BOOLEAN
 EptLogicalProcessorInitialize(VOID)
 {
-    ULONG               LogicalProcessorsCount;
+    ULONG               ProcessorsCount;
     PVMM_EPT_PAGE_TABLE PageTable;
     EPT_POINTER         EPTP = {0};
 
     //
     // Get number of processors
     //
-    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t i = 0; i < LogicalProcessorsCount; i++)
+    for (size_t i = 0; i < ProcessorsCount; i++)
     {
         //
         // Allocate the identity mapped page table
@@ -777,7 +779,7 @@ EptLogicalProcessorInitialize(VOID)
             //
             // Try to deallocate previous pools (if any)
             //
-            for (size_t j = 0; j < LogicalProcessorsCount; j++)
+            for (size_t j = 0; j < ProcessorsCount; j++)
             {
                 if (g_GuestState[j].EptPageTable != NULL)
                 {
@@ -846,7 +848,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     PVOID   TargetPage;
     UINT64  CurrentRip;
     UINT32  CurrentInstructionLength;
-    BOOLEAN IsHandled;
+    BOOLEAN IsHandled               = FALSE;
     BOOLEAN ResultOfHandlingHook    = FALSE;
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
@@ -869,7 +871,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             //
             // Reaching here means that the hooks was actually caused VM-exit because of
             // our configurations, but here we double whether the hook needs to trigger
-            // any event or not becuase the hooking address (physical) might not be in the
+            // any event or not because the hooking address (physical) might not be in the
             // target range. For example we might hook 0x123b000 to 0x123b300 but the hook
             // happens on 0x123b4600, so we perform the necessary checks here
             //
@@ -996,7 +998,6 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
-_Use_decl_annotations_
 BOOLEAN
 EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
 {
@@ -1008,7 +1009,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification, GuestPhysicalAddr))
+    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification))
     {
         return TRUE;
     }
@@ -1094,7 +1095,7 @@ EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
     }
     else
     {
-        LogError("Err, invald invalidation parameter");
+        LogError("Err, invalid invalidation parameter");
     }
 }
 

@@ -50,7 +50,7 @@ CommandPauseRequest()
     //
     if (g_IsConnectedToRemoteDebuggee)
     {
-        RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+        RemoteConnectionSendCommand("pause", (UINT32)strlen("pause") + 1);
     }
     else if (g_ActiveProcessDebuggingState.IsActive && UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken))
     {
@@ -63,14 +63,14 @@ CommandPauseRequest()
 /**
  * @brief pause command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPause(vector<string> SplittedCommand, string Command)
+CommandPause(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() != 1)
+    if (SplitCommand.size() != 1)
     {
         ShowMessages("incorrect use of the 'pause'\n\n");
         CommandPauseHelp();

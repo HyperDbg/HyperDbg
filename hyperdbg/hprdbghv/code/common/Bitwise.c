@@ -14,36 +14,36 @@
 /**
  * @brief Check whether the bit is set or not
  *
- * @param nth
+ * @param BitNumber
  * @param addr
  * @return int
  */
 int
-TestBit(int nth, unsigned long * addr)
+TestBit(int BitNumber, unsigned long * addr)
 {
-    return (BITMAP_ENTRY(nth, addr) >> BITMAP_SHIFT(nth)) & 1;
+    return (BITMAP_ENTRY(BitNumber, addr) >> BITMAP_SHIFT(BitNumber)) & 1;
 }
 
 /**
  * @brief unset the bit
  *
- * @param nth
+ * @param BitNumber
  * @param addr
  */
 void
-ClearBit(int nth, unsigned long * addr)
+ClearBit(int BitNumber, unsigned long * addr)
 {
-    BITMAP_ENTRY(nth, addr) &= ~(1UL << BITMAP_SHIFT(nth));
+    BITMAP_ENTRY(BitNumber, addr) &= ~(1UL << BITMAP_SHIFT(BitNumber));
 }
 
 /**
  * @brief set the bit
  *
- * @param nth
+ * @param BitNumber
  * @param addr
  */
 void
-SetBit(int nth, unsigned long * addr)
+SetBit(int BitNumber, unsigned long * addr)
 {
-    BITMAP_ENTRY(nth, addr) |= (1UL << BITMAP_SHIFT(nth));
+    BITMAP_ENTRY(BitNumber, addr) |= (1UL << BITMAP_SHIFT(BitNumber));
 }

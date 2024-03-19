@@ -35,14 +35,14 @@ CommandLogopenHelp()
 /**
  * @brief .logopen command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandLogopen(vector<string> SplittedCommand, string Command)
+CommandLogopen(vector<string> SplitCommand, string Command)
 {
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("please specify a file\n");
         CommandLogopenHelp();
@@ -64,7 +64,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
     //
     // Remove .logopen from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

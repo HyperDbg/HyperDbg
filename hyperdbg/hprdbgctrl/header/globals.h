@@ -37,7 +37,7 @@ UINT32 g_VirtualAddressWidth = 0;
 BOOLEAN g_IsInterpreterOnString = FALSE;
 
 /**
- * @brief Is interpreter ecountered a back slash at previous run
+ * @brief Is interpreter encountered a back slash at previous run
  */
 BOOLEAN g_IsInterpreterPreviousCharacterABackSlash = FALSE;
 

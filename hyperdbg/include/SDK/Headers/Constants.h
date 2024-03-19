@@ -18,7 +18,7 @@
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 8
-#define VERSION_PATCH 1
+#define VERSION_PATCH 2
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -218,7 +218,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief Default buffer count of packets for message tracing
- * @details number of packets storage for regualr buffers
+ * @details number of packets storage for regular buffers
  */
 #define MaximumPacketsCapacity 1000
 
@@ -240,7 +240,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief size of user-mode buffer
- * @details Because of Opeation code at the start of the
+ * @details Because of operation code at the start of the
  * buffer + 1 for null-termminating
  *
  */
@@ -304,7 +304,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief The size of each chunk of memory used in the 'memcpy' function
- * of the script engine for transfering buffers in the VMX-root mode
+ * of the script engine for transferring buffers in the VMX-root mode
  *
  */
 #define DebuggerScriptEngineMemcpyMovingBufferSize 64
@@ -423,29 +423,29 @@ const unsigned char BuildSignature[] = {
  * user-mode
  * @details Message area >= 0x5
  */
-#define OPERATION_LOG_INFO_MESSAGE          0x1
-#define OPERATION_LOG_WARNING_MESSAGE       0x2
-#define OPERATION_LOG_ERROR_MESSAGE         0x3
-#define OPERATION_LOG_NON_IMMEDIATE_MESSAGE 0x4
-#define OPERATION_LOG_WITH_TAG              0x5
+#define OPERATION_LOG_INFO_MESSAGE          1U
+#define OPERATION_LOG_WARNING_MESSAGE       2U
+#define OPERATION_LOG_ERROR_MESSAGE         3U
+#define OPERATION_LOG_NON_IMMEDIATE_MESSAGE 4U
+#define OPERATION_LOG_WITH_TAG              5U
 
 #define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM \
-    0x6 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_USER_INPUT     0x7 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
+    6U | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_USER_INPUT     7U | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_REGISTER_EVENT 8U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT \
-    0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_CLEAR_EVENTS                            0xa | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER 0xb | OPERATION_MANDATORY_DEBUGGEE_BIT
+    9 | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS                            10U | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER 11U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED \
-    0xc | OPERATION_MANDATORY_DEBUGGEE_BIT
+    12U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
-    0xd | OPERATION_MANDATORY_DEBUGGEE_BIT
+    13U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
-    0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
+    14U | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 #define OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE \
-    0xf | OPERATION_MANDATORY_DEBUGGEE_BIT
+    15U | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //       Breakpoints & Debug Breakpoints        //
@@ -538,7 +538,7 @@ const unsigned char BuildSignature[] = {
 
 /**
  * @brief maximum supported modules to load
- * their symbol informations
+ * their symbol information
  */
 #define MAXIMUM_SUPPORTED_SYMBOLS 1000
 
@@ -710,7 +710,7 @@ const unsigned char BuildSignature[] = {
 #define DEBUGGEE_BP_APPLY_TO_ALL_THREADS 0xffffffff
 
 /**
- * @brief for reading all regisers in r command.
+ * @brief for reading all registers in r command.
  *
  */
 #define DEBUGGEE_SHOW_ALL_REGISTERS 0xffffffff

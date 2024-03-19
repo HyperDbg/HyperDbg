@@ -229,7 +229,7 @@ ScriptEngineSymbolAbortLoading()
     //
     // A wrapper for aborting download and reload
     //
-    return SymbolAbortLoading();
+    SymbolAbortLoading();
 }
 
 /**
@@ -265,14 +265,18 @@ ScriptEngineParse(char * str)
     PTOKEN_LIST    MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
+    // will modify here later
+    PSYMBOL_BUFFER UserDefinedFunctions = NewSymbolBuffer();
+
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
     char *                   ErrorMessage = NULL;
 
     static FirstCall = 1;
     if (FirstCall)
     {
-        IdTable   = NewTokenList();
-        FirstCall = 0;
+        IdTable                  = NewTokenList();
+        FunctionParameterIdTable = NewTokenList();
+        FirstCall                = 0;
     }
 
     PTOKEN TopToken = NewUnknownToken();
@@ -337,7 +341,7 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, UserDefinedFunctions, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -347,7 +351,7 @@ ScriptEngineParse(char * str)
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
-                    Error = SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN;
+                    Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
                     break;
                 }
 
@@ -355,7 +359,7 @@ ScriptEngineParse(char * str)
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
-                    Error = SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN;
+                    Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
                     break;
                 }
                 RemoveToken(&TopToken);
@@ -369,12 +373,14 @@ ScriptEngineParse(char * str)
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
+
                 TerminalId = GetTerminalId(CurrentIn);
                 if (TerminalId == INVALID)
                 {
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
+
                 RuleId = ParseTable[NonTerminalId][TerminalId];
                 if (RuleId == INVALID)
                 {
@@ -387,7 +393,7 @@ ScriptEngineParse(char * str)
                 //
                 for (int i = RhsSize[RuleId] - 1; i >= 0; i--)
                 {
-                    PTOKEN Token = &Rhs[RuleId][i];
+                    PTOKEN Token = (PTOKEN)&Rhs[RuleId][i];
 
                     if (Token->Type == EPSILON)
                         break;
@@ -420,7 +426,7 @@ ScriptEngineParse(char * str)
                 {
                     WaitForWaitStatementBooleanExpression = TRUE;
                 }
-                CodeGen(MatchedStack, CodeBuffer, TopToken, &Error);
+                CodeGen(MatchedStack, UserDefinedFunctions, CodeBuffer, TopToken, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -470,11 +476,20 @@ ScriptEngineParse(char * str)
     if (MatchedStack)
         RemoveTokenList(MatchedStack);
 
+    if (UserDefinedFunctions)
+        RemoveSymbolBuffer(UserDefinedFunctions);
+
     if (CurrentIn)
         RemoveToken(&CurrentIn);
 
     if (TopToken)
         RemoveToken(&TopToken);
+
+    if (FunctionParameterIdTable)
+    {
+        RemoveTokenList(FunctionParameterIdTable);
+        FunctionParameterIdTable = NewTokenList();
+    }
 
     return CodeBuffer;
 }
@@ -488,20 +503,25 @@ ScriptEngineParse(char * str)
  * @param Error
  */
 void
-CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
+CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     PTOKEN Op0  = NULL;
     PTOKEN Op1  = NULL;
     PTOKEN Op2  = NULL;
     PTOKEN Temp = NULL;
 
-    PSYMBOL OperatorSymbol = NULL;
-    PSYMBOL Op0Symbol      = NULL;
-    PSYMBOL Op1Symbol      = NULL;
-    PSYMBOL Op2Symbol      = NULL;
-    PSYMBOL TempSymbol     = NULL;
+    PSYMBOL         OperatorSymbol = NULL;
+    PSYMBOL         Op0Symbol      = NULL;
+    PSYMBOL         Op1Symbol      = NULL;
+    PSYMBOL         Op2Symbol      = NULL;
+    PSYMBOL         TempSymbol     = NULL;
+    VARIABLE_TYPE * VariableType   = NULL;
 
-    OperatorSymbol = ToSymbol(Operator, Error);
+    //
+    // It is in user-defined function if CurrentFunctionSymbol is not null
+    //
+    static PSYMBOL CurrentFunctionSymbol = NULL;
+    OperatorSymbol                       = ToSymbol(Operator, Error);
 
 #ifdef _SCRIPT_ENGINE_CODEGEN_DBG_EN
     //
@@ -522,7 +542,355 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
     while (TRUE)
     {
-        if (!strcmp(Operator->Value, "@MOV"))
+        if (IsVariableType(Operator))
+        {
+            PTOKEN PToken = CopyToken(Operator);
+            PToken->Type  = INPUT_VARIABLE_TYPE;
+            Push(MatchedStack, PToken);
+        }
+        else if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
+        {
+            Op0          = Pop(MatchedStack);
+            VariableType = HandleType(MatchedStack);
+
+            if (VariableType == VARIABLE_TYPE_UNKNOWN)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                break;
+            }
+
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
+            //
+            // Add jmp instruction to Code Buffer
+            //
+            PSYMBOL JumpInstruction = NewSymbol();
+            JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            JumpInstruction->Value  = FUNC_JMP;
+            PushSymbol(CodeBuffer, JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
+
+            //
+            // Push jump address
+            //
+
+            PSYMBOL JumpAddressSymbol = NewSymbol();
+            JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+            JumpAddressSymbol->Value  = 0xffffffffffffffff;
+            PushSymbol(CodeBuffer, JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
+
+            PushSymbol(UserDefinedFunctions, NewFunctionSymbol(Op0->Value, VariableType));
+            CurrentFunctionSymbol = NewFunctionSymbol(Op0->Value, VariableType);
+            PushSymbol(CodeBuffer, CurrentFunctionSymbol);
+
+            PushSymbol(CodeBuffer, OperatorSymbol);
+
+            PSYMBOL StackTempNumberSymbol = NewSymbol();
+            StackTempNumberSymbol->Type   = SYMBOL_NUM_TYPE;
+            StackTempNumberSymbol->Value  = 0xffffffffffffffff;
+            PushSymbol(CodeBuffer, StackTempNumberSymbol);
+            RemoveSymbol(&StackTempNumberSymbol);
+        }
+        else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER"))
+        {
+            Op0          = Pop(MatchedStack);
+            VariableType = HandleType(MatchedStack);
+
+            if (VariableType == VARIABLE_TYPE_UNKNOWN)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                break;
+            }
+
+            Op0Symbol = NewSymbol();
+            free((void *)Op0Symbol->Value);
+            Op0Symbol->Value = NewFunctionParameterIdentifier(Op0);
+            SetType(&Op0Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
+
+            PushSymbol(UserDefinedFunctions, Op0Symbol);
+        }
+        else if (!strcmp(Operator->Value, "@END_OF_USER_DEFINED_FUNCTION"))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            UINT64  CurrentPointer = CodeBuffer->Pointer;
+            PSYMBOL Symbol         = NULL;
+
+            BOOL         Found = FALSE;
+            unsigned int i     = 0;
+            // for loop not able to begin from CodeBuffer->Pointer to 0 because of string and wstring's size
+            for (; i < CodeBuffer->Pointer;)
+            {
+                Symbol = CodeBuffer->Head + i;
+
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)CurrentFunctionSymbol->Value, (const char *)Symbol->Value))
+                {
+                    Found = TRUE;
+                    break;
+                }
+                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
+                {
+                    int temp = GetSymbolHeapSize(Symbol);
+                    i += temp;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            if (!Found)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
+            //
+            // skip executing user-defined function first time
+            //
+            Symbol        = CodeBuffer->Head + i - 1;
+            Symbol->Value = CurrentPointer;
+
+            long long unsigned StackTempNumber = 0;
+            for (int j = i; j < CurrentPointer; j++)
+            {
+                Symbol = CodeBuffer->Head + j;
+                if (Symbol->Type == SYMBOL_STACK_TEMP_TYPE && (Symbol->Value + 1) > StackTempNumber)
+                {
+                    StackTempNumber = Symbol->Value + 1;
+                }
+            }
+
+            Symbol        = CodeBuffer->Head + i + 2;
+            Symbol->Value = StackTempNumber;
+
+            CurrentFunctionSymbol = NULL;
+        }
+        else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE"))
+        {
+            if (!CurrentFunctionSymbol)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            if (CurrentFunctionSymbol->VariableType != (unsigned long long)VARIABLE_TYPE_VOID)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE;
+                break;
+            }
+            PushSymbol(CodeBuffer, OperatorSymbol);
+        }
+        else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE"))
+        {
+            if (!CurrentFunctionSymbol)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            if (CurrentFunctionSymbol->VariableType == (unsigned long long)VARIABLE_TYPE_VOID)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
+                break;
+            }
+
+            PushSymbol(CodeBuffer, OperatorSymbol);
+
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+            PushSymbol(CodeBuffer, Op0Symbol);
+            FreeTemp(Op0);
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
+
+        else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION"))
+        {
+            PSYMBOL      Symbol        = NULL;
+            unsigned int i             = 0;
+            PTOKEN       FunctionToken = Top(MatchedStack);
+            BOOL         Found         = FALSE;
+
+            //
+            // find function's address
+            //
+            for (; i < CodeBuffer->Pointer;)
+            {
+                Symbol = CodeBuffer->Head + i;
+
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
+                {
+                    Found = TRUE;
+                    break;
+                }
+                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
+                {
+                    int temp = GetSymbolHeapSize(Symbol);
+                    i += temp;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            if (!Found)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION;
+                break;
+            }
+
+            FunctionToken->Type = FUNCTION_TYPE;
+            PushSymbol(CodeBuffer, OperatorSymbol);
+        }
+        else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION_PARAMETER"))
+        {
+            // will rewrite here to input variable's type
+            PushSymbol(CodeBuffer, OperatorSymbol);
+
+            Op0Symbol = ToSymbol(Top(MatchedStack), Error);
+            PushSymbol(CodeBuffer, Op0Symbol);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
+        else if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE") || !strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
+        {
+            PSYMBOL      Symbol                    = NULL;
+            unsigned int i                         = 0;
+            int          TargetFunctionVariableNum = 0;
+            int          VariableNum               = 0;
+            PTOKEN       FunctionToken             = NULL;
+            BOOL         Found                     = FALSE;
+            PTOKEN       ReturnValueToken          = NULL;
+
+            while (MatchedStack->Pointer > 0)
+            {
+                FunctionToken = Pop(MatchedStack);
+
+                if (FunctionToken->Type == FUNCTION_TYPE)
+                {
+                    break;
+                }
+                else
+                {
+                    VariableNum++;
+                    // RemoveToken(&FunctionToken);
+                }
+            }
+
+            //
+            // find function's address
+            //
+            for (; i < CodeBuffer->Pointer;)
+            {
+                Symbol = CodeBuffer->Head + i;
+
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
+                {
+                    Found = TRUE;
+                    break;
+                }
+                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
+                {
+                    int temp = GetSymbolHeapSize(Symbol);
+                    i += temp;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            if (!Found)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION;
+                break;
+            }
+
+            // will rewrite here
+            for (unsigned int j = 0; j < UserDefinedFunctions->Pointer; j++)
+            {
+                Symbol = UserDefinedFunctions->Head + j;
+                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
+                {
+                    j++;
+                    Symbol = UserDefinedFunctions->Head + j;
+                    while (Symbol->Type != SYMBOL_USER_DEFINED_FUNCTION_TYPE && j < UserDefinedFunctions->Pointer)
+                    {
+                        TargetFunctionVariableNum++;
+                        j++;
+                        Symbol = UserDefinedFunctions->Head + j;
+                    }
+                    goto ExitLoop;
+                }
+            }
+
+        ExitLoop:
+
+            if (VariableNum != TargetFunctionVariableNum)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
+            //
+            // Add call user-defined function instruction
+            //
+            PushSymbol(CodeBuffer, OperatorSymbol);
+
+            //
+            // Add function's address
+            //
+            PSYMBOL JumpAddressSymbol = NewSymbol();
+            JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+            JumpAddressSymbol->Value  = i;
+            PushSymbol(CodeBuffer, JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
+
+            //
+            // Add return address
+            //
+            JumpAddressSymbol        = NewSymbol();
+            JumpAddressSymbol->Type  = SYMBOL_RETURN_ADDRESS_TYPE;
+            JumpAddressSymbol->Value = CodeBuffer->Pointer + 1;
+            PushSymbol(CodeBuffer, JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
+
+            if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
+            {
+                if (FunctionToken->Type == (TOKEN_TYPE)VARIABLE_TYPE_VOID)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
+                    break;
+                }
+
+                //
+                // Add return variable symbol
+                //
+                Temp = NewTemp(Error, CurrentFunctionSymbol);
+                Push(MatchedStack, Temp);
+
+                PSYMBOL Symbol = NewSymbol();
+                Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+                Symbol->Value  = FUNC_MOV_RETURN_VALUE;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+
+                TempSymbol = ToSymbol(Temp, Error);
+                PushSymbol(CodeBuffer, TempSymbol);
+
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
+            }
+
+            RemoveToken(&FunctionToken);
+        }
+        else if (!strcmp(Operator->Value, "@MOV"))
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
@@ -532,20 +900,36 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             if (Op1->Type == GLOBAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
-                free(Op1Symbol->Value);
+                free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewGlobalIdentifier(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
             }
             else if (Op1->Type == LOCAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
-                free(Op1Symbol->Value);
+                free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewLocalIdentifier(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
             }
             else
             {
                 Op1Symbol = ToSymbol(Op1, Error);
+            }
+
+            if (MatchedStack->Pointer > 0)
+            {
+                if (Top(MatchedStack)->Type == INPUT_VARIABLE_TYPE)
+                {
+                    VariableType = HandleType(MatchedStack);
+
+                    if (VariableType == VARIABLE_TYPE_UNKNOWN)
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                        break;
+                    }
+
+                    Op1Symbol->VariableType = (unsigned long long)VariableType;
+                }
             }
 
             PushSymbol(CodeBuffer, Op0Symbol);
@@ -579,7 +963,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -648,8 +1032,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             unsigned int FirstArgPointer = CodeBuffer->Pointer;
 
-            PSYMBOL Symbol;
-            int     ArgCount = TempStack->Pointer;
+            PSYMBOL      Symbol;
+            unsigned int ArgCount = TempStack->Pointer;
             for (int i = TempStack->Pointer - 1; i >= 0; i--)
             {
                 Symbol = TempStack->Head + i;
@@ -739,7 +1123,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -787,7 +1171,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -839,7 +1223,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -886,7 +1270,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (!strcmp(Operator->Value, "@JZ"))
         {
-            UINT64 CurrentPointer = CodeBuffer->Pointer;
+            // UINT64 CurrentPointer = CodeBuffer->Pointer;
             PushSymbol(CodeBuffer, OperatorSymbol);
 
             PSYMBOL JumpAddressSymbol = NewSymbol();
@@ -901,7 +1285,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, Op0Symbol);
 
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
 
@@ -974,7 +1358,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, OperatorCopy);
 
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1070,7 +1454,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, OperatorCopy);
 
             char str[20];
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1148,7 +1532,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             // Push current pointer into matched stack
             //
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
@@ -1168,7 +1552,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             RemoveSymbol(&JnzInstruction);
 
             //
-            // Add JZ addresss to Code CodeBuffer
+            // Add JZ address to Code CodeBuffer
             //
             PSYMBOL JnzAddressSymbol = NewSymbol();
             JnzAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -1201,7 +1585,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             RemoveSymbol(&JumpInstruction);
 
             //
-            // Add jmp addresss to Code CodeBuffer
+            // Add jmp address to Code CodeBuffer
             //
             PSYMBOL JumpAddressSymbol = NewSymbol();
             JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -1218,7 +1602,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             // Push current pointer into matched stack
             //
             char str[20] = {0};
-            sprintf(str, "%llu", CodeBuffer->Pointer);
+            sprintf(str, "%llu", (UINT64)CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
 
@@ -1277,13 +1661,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, JzAddressToken);
 
             //
-            // Push @INC_DEC token to mathced stack
+            // Push @INC_DEC token to matched stack
             //
             PTOKEN IncDecToken = NewToken(SEMANTIC_RULE, "@INC_DEC");
             Push(MatchedStack, IncDecToken);
 
             //
-            // Push start of inc_dec address to mathced stack
+            // Push start of inc_dec address to matched stack
             //
             Push(MatchedStack, JumpAddressToken);
         }
@@ -1494,7 +1878,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1523,7 +1907,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1550,7 +1934,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1573,7 +1957,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1602,7 +1986,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1723,6 +2107,7 @@ ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     PTOKEN                    FirstToken,
     PTOKEN_LIST               MatchedStack,
+    PSYMBOL_BUFFER            UserDefinedFunctions,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
@@ -1768,7 +2153,7 @@ ScriptEngineBooleanExpresssionParse(
     {
         TopToken       = Top(Stack);
         int TerminalId = LalrGetTerminalId(CurrentIn);
-        StateId        = DecimalToSignedInt(TopToken->Value);
+        StateId        = (int)DecimalToSignedInt(TopToken->Value);
         if (StateId == INVALID || TerminalId < 0)
         {
             *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -1823,9 +2208,9 @@ ScriptEngineBooleanExpresssionParse(
         else if (Action < 0) // Reduce
         {
             StateId      = -Action;
-            Lhs          = &LalrLhs[StateId - 1];
+            Lhs          = (PTOKEN)&LalrLhs[StateId - 1];
             RhsSize      = LalrGetRhsSize(StateId - 1);
-            SemanticRule = &LalrSemanticRules[StateId - 1];
+            SemanticRule = (PTOKEN)&LalrSemanticRules[StateId - 1];
 
             for (int i = 0; i < 2 * RhsSize; i++)
             {
@@ -1854,7 +2239,7 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    CodeGen(MatchedStack, CodeBuffer, SemanticRule, Error);
+                    CodeGen(MatchedStack, UserDefinedFunctions, CodeBuffer, SemanticRule, Error);
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
                         break;
@@ -1863,7 +2248,7 @@ ScriptEngineBooleanExpresssionParse(
             }
 
             Temp    = Top(Stack);
-            StateId = DecimalToSignedInt(Temp->Value);
+            StateId = (int)DecimalToSignedInt(Temp->Value);
 
             Goto = LalrGotoTable[StateId][LalrGetNonTerminalId(Lhs)];
 
@@ -1898,10 +2283,20 @@ PSYMBOL
 NewSymbol(void)
 {
     PSYMBOL Symbol;
-    Symbol        = (PSYMBOL)malloc(sizeof(SYMBOL));
-    Symbol->Value = 0;
-    Symbol->Len   = 0;
-    Symbol->Type  = 0;
+    Symbol = (PSYMBOL)malloc(sizeof(SYMBOL));
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
+    Symbol->Value        = 0;
+    Symbol->Len          = 0;
+    Symbol->Type         = 0;
+    Symbol->VariableType = 0;
     return Symbol;
 }
 
@@ -1915,11 +2310,21 @@ PSYMBOL
 NewStringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
-    int     BufferSize = (2 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
-    Symbol             = (unsigned long long)calloc(sizeof(SYMBOL), BufferSize);
+    int     BufferSize = (3 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
+    Symbol             = (PSYMBOL)calloc(sizeof(SYMBOL), BufferSize);
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
-    Symbol->Len = Token->Len;
+    Symbol->Len          = Token->Len;
+    Symbol->VariableType = 0;
     return Symbol;
 }
 
@@ -1933,13 +2338,66 @@ PSYMBOL
 NewWstringSymbol(PTOKEN Token)
 {
     PSYMBOL Symbol;
-    int     BufferSize = (2 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
-    Symbol             = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
+    int     BufferSize = (3 * sizeof(unsigned long long) + Token->Len) / sizeof(SYMBOL) + 1;
+    Symbol             = (PSYMBOL)malloc(BufferSize * sizeof(SYMBOL));
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
-    Symbol->Len = Token->Len;
+    Symbol->Len          = Token->Len;
+    Symbol->VariableType = 0;
     return Symbol;
 }
+
+/**
+ * @brief
+ *
+ * @return PSYMBOL
+ */
+PSYMBOL
+NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
+{
+    int     Length = (int)strlen(FunctionName);
+    PSYMBOL Symbol = NewSymbol();
+    Symbol         = (PSYMBOL)malloc(sizeof(SYMBOL));
+
+    if (Symbol == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
+    Symbol->Value = (unsigned long long)calloc(Length + 1, sizeof(char));
+
+    if (Symbol->Value == 0ull)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
+    memcpy((void *)Symbol->Value, FunctionName, Length);
+    Symbol->Len          = Length;
+    Symbol->Type         = SYMBOL_USER_DEFINED_FUNCTION_TYPE;
+    Symbol->VariableType = (long long unsigned)VariableType;
+    return Symbol;
+}
+
+/**
+ * @brief
+ *
+ * @return PSYMBOL
+ */
 
 /**
  * @brief Returns the number of SYMBOL objects (24 bytes) allocated by string or wstring sybmol
@@ -1950,7 +2408,7 @@ NewWstringSymbol(PTOKEN Token)
 unsigned int
 GetSymbolHeapSize(PSYMBOL Symbol)
 {
-    int Temp = (2 * sizeof(unsigned long long) + Symbol->Len) / sizeof(SYMBOL) + 1;
+    int Temp = (3 * sizeof(unsigned long long) + (int)Symbol->Len) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -1977,7 +2435,7 @@ PrintSymbol(PSYMBOL Symbol)
 {
     if (Symbol->Type == SYMBOL_STRING_TYPE)
     {
-        printf("Type:%llx, Value:%s\n", Symbol->Type, &Symbol->Value);
+        printf("Type:%llx, Value:0x%p\n", Symbol->Type, &Symbol->Value);
     }
     else
     {
@@ -2002,22 +2460,27 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         Symbol->Value = GetGlobalIdentifierVal(Token);
         SetType(&Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
         return Symbol;
+
     case LOCAL_ID:
         Symbol->Value = GetLocalIdentifierVal(Token);
         SetType(&Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
         return Symbol;
+
     case DECIMAL:
         Symbol->Value = DecimalToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
         return Symbol;
+
     case HEX:
         Symbol->Value = HexToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
         return Symbol;
+
     case OCTAL:
         Symbol->Value = OctalToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
         return Symbol;
+
     case BINARY:
         Symbol->Value = BinaryToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
@@ -2037,9 +2500,15 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         Symbol->Value = SemanticRuleToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_SEMANTIC_RULE_TYPE);
         return Symbol;
+
     case TEMP:
         Symbol->Value = DecimalToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_TEMP_TYPE);
+        return Symbol;
+
+    case STACK_TEMP:
+        Symbol->Value = DecimalToInt(Token->Value);
+        SetType(&Symbol->Type, SYMBOL_STACK_TEMP_TYPE);
         return Symbol;
 
     case STRING:
@@ -2049,6 +2518,11 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     case WSTRING:
         RemoveSymbol(&Symbol);
         return NewWstringSymbol(Token);
+
+    case FUNCTION_PARAMETER_ID:
+        Symbol->Value = GetFunctionParameterIdentifier(Token);
+        SetType(&Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
+        return Symbol;
 
     default:
         *Error        = SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE;
@@ -2067,7 +2541,16 @@ PSYMBOL_BUFFER
 NewSymbolBuffer(void)
 {
     PSYMBOL_BUFFER SymbolBuffer;
-    SymbolBuffer          = (PSYMBOL_BUFFER)malloc(sizeof(*SymbolBuffer));
+    SymbolBuffer = (PSYMBOL_BUFFER)malloc(sizeof(*SymbolBuffer));
+
+    if (SymbolBuffer == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        return NULL;
+    }
+
     SymbolBuffer->Pointer = 0;
     SymbolBuffer->Size    = SYMBOL_BUFFER_INIT_SIZE;
     SymbolBuffer->Head    = (PSYMBOL)malloc(SymbolBuffer->Size * sizeof(SYMBOL));
@@ -2120,7 +2603,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             //
             // Calculate new size for the symbol B
             //
-            int NewSize = SymbolBuffer->Size;
+            unsigned int NewSize = SymbolBuffer->Size;
             do
             {
                 NewSize *= 2;
@@ -2130,6 +2613,12 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             // Allocate a new buffer for string list with doubled length
             //
             PSYMBOL NewHead = (PSYMBOL)malloc(NewSize * sizeof(SYMBOL));
+
+            if (NewHead == NULL)
+            {
+                printf("err, could not allocate buffer");
+                return NULL;
+            }
 
             //
             // Copy old buffer to new buffer
@@ -2142,7 +2631,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             free(SymbolBuffer->Head);
 
             //
-            // Upadate Head and size of SymbolBuffer
+            // Update Head and size of SymbolBuffer
             //
             SymbolBuffer->Size = NewSize;
             SymbolBuffer->Head = NewHead;
@@ -2174,6 +2663,12 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             //
             PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
 
+            if (NewHead == NULL)
+            {
+                printf("err, could not allocate buffer");
+                return NULL;
+            }
+
             //
             // Copy old Buffer to new buffer
             //
@@ -2185,7 +2680,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             free(SymbolBuffer->Head);
 
             //
-            // Upadate Head and size of SymbolBuffer
+            // Update Head and size of SymbolBuffer
             //
             SymbolBuffer->Size *= 2;
             SymbolBuffer->Head = NewHead;
@@ -2204,7 +2699,7 @@ void
 PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 {
     PSYMBOL Symbol;
-    for (int i = 0; i < SymbolBuffer->Pointer;)
+    for (unsigned int i = 0; i < SymbolBuffer->Pointer;)
     {
         Symbol = SymbolBuffer->Head + i;
 
@@ -2310,6 +2805,12 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     int    MessageSize = 16 + 100 + (CurrentTokenIdx - CurrentLineIdx) + (LineEnd - CurrentLineIdx);
     char * Message     = (char *)malloc(MessageSize);
 
+    if (Message == NULL)
+    {
+        printf("err, could not allocate buffer");
+        return NULL;
+    }
+
     //
     // add line number
     //
@@ -2321,8 +2822,8 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     //
     // add the line which error happened at
     //
-
     strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
+
     strcat(Message, "\n");
 
     //
@@ -2346,7 +2847,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
         strcat(Message, "Invalid Syntax");
         return Message;
 
-    case SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN:
+    case SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN:
         strcat(Message, "Syntax Error: ");
         strcat(Message, "Unknown Token");
         return Message;
@@ -2366,8 +2867,20 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
         strcat(Message, "Please split the expression to many smaller expressions.");
         return Message;
 
+    case SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION:
+        strcat(Message, "Undefined Function");
+        return Message;
+    case SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE:
+        strcat(Message, "Undefined Variable Type");
+        return Message;
+    case SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE:
+        strcat(Message, "Returning a value in void function");
+        return Message;
+    case SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE:
+        strcat(Message, "Not returning a value in noo-void function");
+        return Message;
     default:
-        strcat(Message, "Unkown Error: ");
+        strcat(Message, "Unknown Error: ");
         return Message;
     }
 }
@@ -2415,7 +2928,7 @@ GetLocalIdentifierVal(PTOKEN Token)
 }
 
 /**
- * @brief Allocates a new gloabal variable and returns the integer assigned to it
+ * @brief Allocates a new global variable and returns the integer assigned to it
  *
  * @param Token
  * @return int
@@ -2440,6 +2953,41 @@ NewLocalIdentifier(PTOKEN Token)
     PTOKEN CopiedToken = CopyToken(Token);
     IdTable            = Push(IdTable, CopiedToken);
     return IdTable->Pointer - 1;
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ * @return int
+ */
+int
+NewFunctionParameterIdentifier(PTOKEN Token)
+{
+    PTOKEN CopiedToken       = CopyToken(Token);
+    FunctionParameterIdTable = Push(FunctionParameterIdTable, CopiedToken);
+    return FunctionParameterIdTable->Pointer - 1;
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ * @return int
+ */
+int
+GetFunctionParameterIdentifier(PTOKEN Token)
+{
+    PTOKEN CurrentToken;
+    for (uintptr_t i = 0; i < FunctionParameterIdTable->Pointer; i++)
+    {
+        CurrentToken = *(FunctionParameterIdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return (int)i;
+        }
+    }
+    return -1;
 }
 
 /**
@@ -2488,6 +3036,10 @@ LalrIsOperandType(PTOKEN Token)
     {
         return TRUE;
     }
+    else if (Token->Type == FUNCTION_PARAMETER_ID)
+    {
+        return TRUE;
+    }
     else if (Token->Type == DECIMAL)
     {
         return TRUE;
@@ -2525,4 +3077,15 @@ LalrIsOperandType(PTOKEN Token)
         return TRUE;
     }
     return FALSE;
+}
+
+PSYMBOL_BUFFER
+GetStackBuffer()
+{
+    PSYMBOL_BUFFER StackBuffer = NewSymbolBuffer();
+    for (int i = 0; i < 128; i++)
+    {
+        PushSymbol(StackBuffer, NewSymbol());
+    }
+    return StackBuffer;
 }

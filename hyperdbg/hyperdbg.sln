@@ -158,6 +158,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "include\SDK
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_driver", "include\SDK\Examples\hyperdbg_driver\hyperdbg_driver.vcxproj", "{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -21,13 +21,13 @@ volatile LONG OneCoreLock;
 /**
  * @brief This function synchronize the function execution for a single core
  * You should only used it for one core, not in multiple threads simultaneously
- * The function that needs to use this featue (Routine parameter function) should
+ * The function that needs to use this feature (Routine parameter function) should
  * have the when it ends :
  *
  *              SpinlockUnlock(&OneCoreLock);
  *
  * @param CoreNumber core number that the target function should run on it
- * @param Routine the target function that should be runned
+ * @param Routine the target function that should be ran
  * @param DeferredContext an optional parameter to Routine
  * @return NTSTATUS
  */
@@ -35,14 +35,14 @@ NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
 {
     PRKDPC Dpc;
-    UINT32 ProcessorCount;
+    ULONG  ProcessorsCount;
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Check if the core number is not invalid
     //
-    if (CoreNumber >= ProcessorCount)
+    if (CoreNumber >= ProcessorsCount)
     {
         return STATUS_INVALID_PARAMETER;
     }
@@ -60,15 +60,15 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,            // Dpc
-                    Routine,        // DeferredRoutine
-                    DeferredContext // DeferredContext
+    KeInitializeDpc(Dpc,                         // Dpc
+                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+                    DeferredContext              // DeferredContext
     );
 
     //
     // Set the target core
     //
-    KeSetTargetProcessorDpc(Dpc, CoreNumber);
+    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
 
     //
     // it's sure will be executed, but we want to free the above
@@ -127,7 +127,6 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentProcessorIndex = 0;
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 

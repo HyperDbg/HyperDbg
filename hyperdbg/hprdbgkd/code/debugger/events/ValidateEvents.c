@@ -35,7 +35,7 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     TempPid = EventDetails->ProcessId;
     if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
     {
-        TempPid = PsGetCurrentProcessId();
+        TempPid = HANDLE_TO_UINT32(PsGetCurrentProcessId());
     }
 
     //
@@ -44,7 +44,7 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     // to another process is not possible, we'll return
     // an error
     //
-    if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
+    if (InputFromVmxRoot && TempPid != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
     {
         ResultsToReturn->IsSuccessful = FALSE;
         ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
@@ -57,8 +57,8 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     //
     if (InputFromVmxRoot)
     {
-        if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL ||
-            VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam2) == NULL)
+        if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL ||
+            VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam2) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -71,8 +71,8 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     }
     else
     {
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL ||
-            VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam2, TempPid) == NULL)
+        if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL ||
+            VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam2, TempPid) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -115,6 +115,8 @@ ValidateEventException(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
     //
@@ -152,6 +154,8 @@ ValidateEventInterrupt(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                        PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                        BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the exception entry is between 32 to 255
     //
@@ -187,6 +191,8 @@ ValidateEventTrapExec(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
                       PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                       BOOLEAN                           InputFromVmxRoot)
 {
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
     //
     // Check if the execution mode is valid or not
     //
@@ -232,7 +238,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
 
     if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
     {
-        TempPid = PsGetCurrentProcessId();
+        TempPid = HANDLE_TO_UINT32(PsGetCurrentProcessId());
     }
 
     //
@@ -241,7 +247,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     // to another process is not possible, we'll return
     // an error
     //
-    if (InputFromVmxRoot && TempPid != PsGetCurrentProcessId())
+    if (InputFromVmxRoot && TempPid != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
     {
         ResultsToReturn->IsSuccessful = FALSE;
         ResultsToReturn->Error        = DEBUGGER_ERROR_PROCESS_ID_CANNOT_BE_SPECIFIED_WHILE_APPLYING_EVENT_FROM_VMX_ROOT_MODE;
@@ -254,7 +260,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     //
     if (InputFromVmxRoot)
     {
-        if (VirtualAddressToPhysicalAddressOnTargetProcess(EventDetails->Options.OptionalParam1) == NULL)
+        if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -267,7 +273,7 @@ ValidateEventEptHookHiddenBreakpointAndInlineHooks(PDEBUGGER_GENERAL_EVENT_DETAI
     }
     else
     {
-        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->Options.OptionalParam1, TempPid) == NULL)
+        if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL)
         {
             //
             // Address is invalid (Set the error)

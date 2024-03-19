@@ -29,11 +29,11 @@ EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vecto
     Inject.Fields.Vector        = Vector;
     Inject.Fields.DeliverCode   = DeliverErrorCode;
 
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, Inject.Flags);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, Inject.Flags);
 
     if (DeliverErrorCode)
     {
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        VmxVmwrite64(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
     }
 }
 
@@ -49,8 +49,8 @@ EventInjectBreakpoint()
 
     EventInjectInterruption(INTERRUPT_TYPE_SOFTWARE_EXCEPTION, EXCEPTION_VECTOR_BREAKPOINT, FALSE, 0);
 
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 
 /**
@@ -65,8 +65,8 @@ EventInjectGeneralProtection()
 
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT, TRUE, 0);
 
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
+    VmxVmread32P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 
 /**
@@ -137,12 +137,12 @@ EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
 VOID
 EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    ULONG ErrorCode = 0;
+    UINT32 ErrorCode = 0;
 
     //
     // Re-inject it
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
 
     //
     // re-write error code (if any)
@@ -152,12 +152,12 @@ EventInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
         //
         // Read the error code
         //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+        VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
 
         //
         // Write the error code
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        VmxVmwrite64(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
     }
 }
 
@@ -191,7 +191,7 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //
     // Re-inject the interrupt/exception
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
 
     //
     // re-write error code (if any)
@@ -201,7 +201,7 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         // Write the error code
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, PageFaultCode.AsUInt);
+        VmxVmwrite64(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, PageFaultCode.AsUInt);
     }
 }
 
@@ -222,9 +222,11 @@ EventInjectPageFaultRangeAddress(VIRTUAL_MACHINE_STATE * VCpu,
                                  UINT64                  AddressTo,
                                  UINT32                  PageFaultCode)
 {
+    UNREFERENCED_PARAMETER(VCpu);
+
     //
     // Indicate that the VMM is waiting for interrupt-window to
-    // be openned to inject page-fault
+    // be opened to inject page-fault
     //
     g_WaitingForInterruptWindowToInjectPageFault = TRUE;
 

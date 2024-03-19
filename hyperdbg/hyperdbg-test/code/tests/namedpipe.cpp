@@ -49,7 +49,7 @@ NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 Input
 }
 
 /**
- * @brief wait for client conncetion
+ * @brief wait for client connection
  *
  * @param PipeHandle
  * @return BOOLEAN
@@ -360,7 +360,7 @@ NamedPipeServerExample()
     SentMessageResult = NamedPipeServerSendMessageToClient(
         PipeHandle,
         BufferToSend,
-        strlen(BufferToSend) + 1);
+        (int)strlen(BufferToSend) + 1);
 
     if (!SentMessageResult)
     {
@@ -406,7 +406,7 @@ NamedPipeClientExample()
     }
 
     SentMessageResult =
-        NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
+        NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
 
     if (!SentMessageResult)
     {

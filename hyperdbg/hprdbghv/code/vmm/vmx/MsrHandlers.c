@@ -60,23 +60,23 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmread(VMCS_GUEST_SYSENTER_CS, &Msr);
+            VmxVmread64P(VMCS_GUEST_SYSENTER_CS, &Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmread(VMCS_GUEST_SYSENTER_ESP, &Msr);
+            VmxVmread64P(VMCS_GUEST_SYSENTER_ESP, &Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmread(VMCS_GUEST_SYSENTER_EIP, &Msr);
+            VmxVmread64P(VMCS_GUEST_SYSENTER_EIP, &Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmread(VMCS_GUEST_GS_BASE, &Msr);
+            VmxVmread64P(VMCS_GUEST_GS_BASE, &Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmread(VMCS_GUEST_FS_BASE, &Msr);
+            VmxVmread64P(VMCS_GUEST_FS_BASE, &Msr.Flags);
             break;
 
         case HV_X64_MSR_GUEST_IDLE:
@@ -108,7 +108,7 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Check whether the MSR should cause #GP or not
             //
-            if (/* TargetMsr >= 0x0 && */ TargetMsr <= 0xfff && TestBit(TargetMsr, g_MsrBitmapInvalidMsrs) != NULL)
+            if (TargetMsr <= 0xfff && TestBit(TargetMsr, (unsigned long *)g_MsrBitmapInvalidMsrs) != NULL64_ZERO)
             {
                 //
                 // Invalid MSR between 0x0 to 0xfff
@@ -136,8 +136,8 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             break;
         }
 
-        GuestRegs->rax = NULL;
-        GuestRegs->rdx = NULL;
+        GuestRegs->rax = NULL64_ZERO;
+        GuestRegs->rdx = NULL64_ZERO;
 
         GuestRegs->rax = Msr.Fields.Low;
         GuestRegs->rdx = Msr.Fields.High;
@@ -224,23 +224,23 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmwrite(VMCS_GUEST_GS_BASE, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_GS_BASE, Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmwrite(VMCS_GUEST_FS_BASE, Msr.Flags);
+            VmxVmwrite64(VMCS_GUEST_FS_BASE, Msr.Flags);
             break;
 
         default:
@@ -248,7 +248,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Perform the WRMSR
             //
-            __writemsr(GuestRegs->rcx, Msr.Flags);
+            __writemsr((unsigned long)GuestRegs->rcx, Msr.Flags);
             break;
         }
     }
@@ -269,10 +269,10 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
  * @param Msr MSR Address
  * @param ReadDetection set read bit
  * @param WriteDetection set write bit
- * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ * @return BOOLEAN Returns true if the MSR Bitmap is successfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
@@ -286,22 +286,22 @@ MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDete
     {
         if (ReadDetection)
         {
-            SetBit(Msr, VCpu->MsrBitmapVirtualAddress);
+            SetBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            SetBit(Msr, VCpu->MsrBitmapVirtualAddress + 2048);
+            SetBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(Msr - 0xC0000000, VCpu->MsrBitmapVirtualAddress + 1024);
+            SetBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
         }
         if (WriteDetection)
         {
-            SetBit(Msr - 0xC0000000, VCpu->MsrBitmapVirtualAddress + 3072);
+            SetBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
         }
     }
     else
@@ -318,10 +318,10 @@ MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDete
  * @param Msr MSR Address
  * @param ReadDetection Unset read bit
  * @param WriteDetection Unset write bit
- * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ * @return BOOLEAN Returns true if the MSR Bitmap is successfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
@@ -335,22 +335,22 @@ MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Msr, BOOLEAN ReadDe
     {
         if (ReadDetection)
         {
-            ClearBit(Msr, VCpu->MsrBitmapVirtualAddress);
+            ClearBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr, VCpu->MsrBitmapVirtualAddress + 2048);
+            ClearBit(Msr, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            ClearBit(Msr - 0xC0000000, VCpu->MsrBitmapVirtualAddress + 1024);
+            ClearBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
         }
         if (WriteDetection)
         {
-            ClearBit(Msr - 0xC0000000, VCpu->MsrBitmapVirtualAddress + 3072);
+            ClearBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
         }
     }
     else
@@ -373,13 +373,13 @@ MsrHandleFilterMsrReadBitmap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, VCpu->MsrBitmapVirtualAddress + 1024);
+    ClearBit(0x102, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, VCpu->MsrBitmapVirtualAddress);
-    ClearBit(0xe8, VCpu->MsrBitmapVirtualAddress);
+    ClearBit(0xe7, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
+    ClearBit(0xe8, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
 }
 
 /**
@@ -395,19 +395,19 @@ MsrHandleFilterMsrWriteBitmap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, VCpu->MsrBitmapVirtualAddress + 3072);
+    ClearBit(0x102, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, VCpu->MsrBitmapVirtualAddress + 2048);
-    ClearBit(0xe8, VCpu->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe7, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0xe8, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
 
     //
     // Ignore IA32_SPEC_CTRL (0x00000048), and IA32_PRED_CMD (0x00000049)
     //
-    ClearBit(0x48, VCpu->MsrBitmapVirtualAddress + 2048);
-    ClearBit(0x49, VCpu->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x48, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0x49, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
 }
 
 /**
@@ -419,14 +419,14 @@ MsrHandleFilterMsrWriteBitmap(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask)
+MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask)
 {
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(VCpu->MsrBitmapVirtualAddress, 0xff, 2048);
+        memset((void *)VCpu->MsrBitmapVirtualAddress, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -455,7 +455,7 @@ MsrHandlePerformMsrBitmapReadReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(VCpu->MsrBitmapVirtualAddress, 0x0, 2048);
+    memset((void *)VCpu->MsrBitmapVirtualAddress, 0x0, 2048);
 }
 /**
  * @brief Change MSR Bitmap for write
@@ -466,14 +466,14 @@ MsrHandlePerformMsrBitmapReadReset(VIRTUAL_MACHINE_STATE * VCpu)
  * @return VOID
  */
 VOID
-MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 MsrMask)
+MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask)
 {
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((UINT64)VCpu->MsrBitmapVirtualAddress + 2048, 0xff, 2048);
+        memset((void *)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -502,5 +502,5 @@ MsrHandlePerformMsrBitmapWriteReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((UINT64)VCpu->MsrBitmapVirtualAddress + 2048, 0x0, 2048);
+    memset((void *)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0x0, 2048);
 }

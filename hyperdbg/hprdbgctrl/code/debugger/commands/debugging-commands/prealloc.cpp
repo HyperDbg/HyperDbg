@@ -46,19 +46,19 @@ CommandPreallocHelp()
 /**
  * @brief prealloc command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandPrealloc(vector<string> SplittedCommand, string Command)
+CommandPrealloc(vector<string> SplitCommand, string Command)
 {
     BOOL                      Status;
     ULONG                     ReturnedLength;
     UINT64                    Count;
     DEBUGGER_PREALLOC_COMMAND PreallocRequest = {0};
 
-    if (SplittedCommand.size() != 3)
+    if (SplitCommand.size() != 3)
     {
         ShowMessages("incorrect use of the 'prealloc'\n\n");
         CommandPreallocHelp();
@@ -68,65 +68,65 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
     //
     // Set the type of pre-allocation
     //
-    if (!SplittedCommand.at(1).compare("thread-interception"))
+    if (!SplitCommand.at(1).compare("thread-interception"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION;
     }
-    else if (!SplittedCommand.at(1).compare("monitor") || !SplittedCommand.at(1).compare("!monitor"))
+    else if (!SplitCommand.at(1).compare("monitor") || !SplitCommand.at(1).compare("!monitor"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR;
     }
-    else if (!SplittedCommand.at(1).compare("epthook") || !SplittedCommand.at(1).compare("!epthook"))
+    else if (!SplitCommand.at(1).compare("epthook") || !SplitCommand.at(1).compare("!epthook"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK;
     }
-    else if (!SplittedCommand.at(1).compare("epthook2") || !SplittedCommand.at(1).compare("!epthook2"))
+    else if (!SplitCommand.at(1).compare("epthook2") || !SplitCommand.at(1).compare("!epthook2"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_EPTHOOK2;
     }
-    else if (!SplittedCommand.at(1).compare("regular-event"))
+    else if (!SplitCommand.at(1).compare("regular-event"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_EVENT;
     }
-    else if (!SplittedCommand.at(1).compare("big-event"))
+    else if (!SplitCommand.at(1).compare("big-event"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_EVENT;
     }
-    else if (!SplittedCommand.at(1).compare("regular-safe-buffer"))
+    else if (!SplitCommand.at(1).compare("regular-safe-buffer"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_REGULAR_SAFE_BUFFER;
     }
-    else if (!SplittedCommand.at(1).compare("big-safe-buffer"))
+    else if (!SplitCommand.at(1).compare("big-safe-buffer"))
     {
         PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_BIG_SAFE_BUFFER;
     }
     else
     {
         //
-        // Couldn't resolve or unkonwn parameter
+        // Couldn't resolve or unknown parameter
         //
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplittedCommand.at(1).c_str());
+                     SplitCommand.at(1).c_str());
         return;
     }
 
     //
     // Get the count of needed pre-allocated buffers
     //
-    if (!SymbolConvertNameOrExprToAddress(SplittedCommand.at(2), &Count))
+    if (!SymbolConvertNameOrExprToAddress(SplitCommand.at(2), &Count))
     {
         //
-        // Couldn't resolve or unkonwn parameter
+        // Couldn't resolve or unknown parameter
         //
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplittedCommand.at(2).c_str());
+                     SplitCommand.at(2).c_str());
         return;
     }
 
     //
     // Set the counter
     //
-    PreallocRequest.Count = Count;
+    PreallocRequest.Count = (UINT32)Count;
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 

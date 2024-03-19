@@ -149,7 +149,7 @@ typedef enum _LOG_TYPE
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
 /**
- * @brief Log, initilize boot information and debug information
+ * @brief Log, initialize boot information and debug information
  *
  */
 #define LogDebugInfo(format, ...)                                                     \

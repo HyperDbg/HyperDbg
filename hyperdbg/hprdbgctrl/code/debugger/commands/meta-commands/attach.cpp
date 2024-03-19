@@ -36,14 +36,14 @@ CommandAttachHelp()
 /**
  * @brief .attach command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandAttach(vector<string> SplittedCommand, string Command)
+CommandAttach(vector<string> SplitCommand, string Command)
 {
-    UINT64  TargetPid = 0;
+    UINT32  TargetPid = 0;
     BOOLEAN NextIsPid = FALSE;
 
     //
@@ -67,7 +67,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     // It's a attach to a target PID
     //
-    if (SplittedCommand.size() >= 4)
+    if (SplitCommand.size() >= 4)
     {
         ShowMessages("incorrect use of the '.attach'\n\n");
         CommandAttachHelp();
@@ -85,7 +85,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    for (auto item : SplittedCommand)
+    for (auto item : SplitCommand)
     {
         //
         // Find out whether the user enters pid or not
@@ -94,7 +94,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         {
             NextIsPid = FALSE;
 
-            if (!ConvertStringToUInt64(item, &TargetPid))
+            if (!ConvertStringToUInt32(item, &TargetPid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandAttachHelp();

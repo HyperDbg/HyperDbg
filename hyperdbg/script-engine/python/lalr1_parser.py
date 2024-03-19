@@ -34,7 +34,7 @@ class LALR1Parser:
         # Left Hand Side(Lhs)
         self.LhsList = []
 
-        # Set of all termials and noneterminals
+        # Set of all terminals and noneterminals
         self.TerminalSet = set()
         self.NonTerminalSet = set()
 
@@ -49,8 +49,8 @@ class LALR1Parser:
 
 
         # INVALID rule indicator
-        self.INVALID = -999 
-        self.ACCEPT =   999
+        self.INVALID = 0x80000000 
+        self.ACCEPT = 0x7fffffff
 
         self.FunctionsDict = dict()
         self.OperatorsList = []
@@ -461,7 +461,7 @@ class LALR1Parser:
                 # print("OpenParanthesisCount = ", OpenParenthesesCount, end = "\n\n")
 
                 # if OpenParenthesesCount == 0: 
-                #     print("1) LALR Rturned...\n")
+                #     print("1) LALR Returned...\n")
                 #     return Tokens
 
                 # print("Shift ", StateId, ": ")

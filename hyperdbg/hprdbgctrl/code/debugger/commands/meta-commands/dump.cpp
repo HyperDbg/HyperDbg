@@ -54,12 +54,12 @@ CommandDumpHelp()
 /**
  * @brief .dump command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDump(vector<string> SplittedCommand, string Command)
+CommandDump(vector<string> SplitCommand, string Command)
 {
     wstring                   Filepath;
     UINT32                    ActualLength;
@@ -74,10 +74,10 @@ CommandDump(vector<string> SplittedCommand, string Command)
     BOOLEAN                   IsTheFirstAddr      = FALSE;
     BOOLEAN                   IsTheSecondAddr     = FALSE;
     BOOLEAN                   IsDumpPathSpecified = FALSE;
-    string                    FirstCommand        = SplittedCommand.front();
+    string                    FirstCommand        = SplitCommand.front();
     DEBUGGER_READ_MEMORY_TYPE MemoryType          = DEBUGGER_READ_VIRTUAL_ADDRESS;
 
-    if (SplittedCommand.size() <= 4)
+    if (SplitCommand.size() <= 4)
     {
         ShowMessages("err, incorrect use of the '.dump' command\n\n");
         CommandDumpHelp();
@@ -93,7 +93,7 @@ CommandDump(vector<string> SplittedCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (IsFirstCommand == TRUE)
         {
@@ -242,7 +242,7 @@ CommandDump(vector<string> SplittedCommand, string Command)
     //
     // Compute the length
     //
-    Length = EndAddress - StartAddress;
+    Length = (UINT32)(EndAddress - StartAddress);
 
     ActualLength = NULL;
     Iterator     = Length / PAGE_SIZE;

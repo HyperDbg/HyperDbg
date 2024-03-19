@@ -15,7 +15,7 @@
 //			  External Functions				//
 //////////////////////////////////////////////////
 
-UINT64
+VOID
 KdHyperDbgTest(UINT16 Byte);
 
 VOID

@@ -25,7 +25,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
+HvSetGuestSelector(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector);
 
 /**
  * @brief Returns the Cpu Based and Secondary Processor Based Controls and other
@@ -33,10 +33,10 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
  *
  * @param Ctl
  * @param Msr
- * @return ULONG
+ * @return UINT32
  */
-ULONG
-HvAdjustControls(ULONG Ctl, ULONG Msr);
+UINT32
+HvAdjustControls(UINT32 Ctl, UINT32 Msr);
 
 /**
  * @brief Handle Cpuid
@@ -56,7 +56,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu);
  * @return VOID
  */
 VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
+HvFillGuestSelectorData(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector);
 
 /**
  * @brief Handle Guest's Control Registers Access
@@ -77,7 +77,7 @@ VOID
 HvResumeToNextInstruction();
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param VCpu The virtual processor's state
  *
@@ -361,10 +361,10 @@ HvGetInterruptibilityState();
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-HvClearSteppingBits(UINT32 Interruptibility);
+UINT64
+HvClearSteppingBits(UINT64 Interruptibility);
 
 /**
  * @brief Set guest's interruptibility state

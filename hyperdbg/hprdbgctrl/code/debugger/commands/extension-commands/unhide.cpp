@@ -30,18 +30,18 @@ CommandUnhideHelp()
 /**
  * @brief !unhide command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandUnhide(vector<string> SplittedCommand, string Command)
+CommandUnhide(vector<string> SplitCommand, string Command)
 {
     BOOLEAN                                     Status;
     ULONG                                       ReturnedLength;
     DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE UnhideRequest = {0};
 
-    if (SplittedCommand.size() >= 2)
+    if (SplitCommand.size() >= 2)
     {
         ShowMessages("incorrect use of the '!unhide'\n\n");
         CommandUnhideHelp();

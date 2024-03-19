@@ -234,7 +234,7 @@ TransparentRandn(int Average, int Sigma)
     int U1, r1, U2, r2, W, Mult;
     int X1, X2 = 0, XS1;
     int LogTemp = 0;
-    
+
     do
     {
         r1 = TransparentGetRand();
@@ -327,14 +327,14 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
         //
         // Move the process name string to the end of the buffer
         //
-        RtlCopyBytes((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS),
-                     (UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE),
+        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
                      Measurements->LengthOfProcessName);
 
         //
         // Set the process name location
         //
-        PidAndNameBuffer->ProcessName = (UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS);
+        PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
     }
 
     //
@@ -342,6 +342,8 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
     // vm-exits for them
     //
     InsertHeadList(&g_TransparentModeMeasurements->ProcessList, &(PidAndNameBuffer->OtherProcesses));
+
+    return TRUE;
 }
 
 /**
@@ -415,7 +417,7 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
 }
 
 /**
- * @brief Deactive transparent-mode
+ * @brief Deactivate transparent-mode
  *
  * @return NTSTATUS
  */
@@ -490,10 +492,10 @@ TransparentUnhideDebugger()
 BOOLEAN
 TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 {
-    int         Aux                = 0;
+    UINT32      Aux                = 0;
     PLIST_ENTRY TempList           = 0;
     PCHAR       CurrentProcessName = 0;
-    PCHAR       CurrentProcessId;
+    UINT32      CurrentProcessId;
     UINT64      CurrrentTime;
     HANDLE      CurrentThreadId;
     BOOLEAN     Result                      = TRUE;
@@ -512,7 +514,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
     //
     // Find the current process id and name
     //
-    CurrentProcessId   = PsGetCurrentProcessId();
+    CurrentProcessId   = HANDLE_TO_UINT32(PsGetCurrentProcessId());
     CurrentProcessName = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
 
     //
@@ -578,7 +580,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         // It's a new thread Id reset everything
         //
         VCpu->TransparencyState.ThreadId                        = CurrentThreadId;
-        VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc = NULL;
+        VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc = NULL64_ZERO;
         VCpu->TransparencyState.CpuidAfterRdtscDetected         = FALSE;
     }
 
@@ -588,7 +590,7 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 
     if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSC || ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
     {
-        if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc == NULL)
+        if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc == NULL64_ZERO)
         {
             //
             // It's a timing and the previous time for the thread is null
@@ -605,15 +607,15 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
 
             // LogInfo("Possible RDTSC+CPUID+RDTSC");
         }
-        else if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL &&
+        else if (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL64_ZERO &&
                  VCpu->TransparencyState.CpuidAfterRdtscDetected == FALSE)
         {
             //
             // It's a new rdtscp, let's save the new value
             //
             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc +=
-                TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
-                                 g_TransparentModeMeasurements->CpuidStandardDeviation);
+                TransparentRandn((UINT32)g_TransparentModeMeasurements->CpuidAverage,
+                                 (UINT32)g_TransparentModeMeasurements->CpuidStandardDeviation);
             ;
         }
 
@@ -639,16 +641,16 @@ TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
         Result = FALSE;
     }
     else if (ExitReason == VMX_EXIT_REASON_EXECUTE_CPUID &&
-             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL)
+             VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL64_ZERO)
     {
         //
         // The guy executed one or more CPUIDs after an rdtscp so we
         //  need to add new cpuid value to previous timer and also
-        //  we need to store it somewhere to remeber this behavior
+        //  we need to store it somewhere to remember this behavior
         //
         VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc +=
-            TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
-                             g_TransparentModeMeasurements->CpuidStandardDeviation);
+            TransparentRandn((UINT32)g_TransparentModeMeasurements->CpuidAverage,
+                             (UINT32)g_TransparentModeMeasurements->CpuidStandardDeviation);
 
         VCpu->TransparencyState.CpuidAfterRdtscDetected = TRUE;
     }

@@ -25,7 +25,7 @@ typedef struct _MODULE_SYMBOL_DETAIL
     BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
     BOOLEAN IsLocalSymbolPath;    // TRUE if the ModuleSymbolPath is a real path
                                   // and FALSE if ModuleSymbolPath is just a module name
-    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is avilable(if exists in the sympath)
+    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is available(if exists in the sympath)
     BOOLEAN IsUserMode;           // TRUE if the module is a user-mode module
     BOOLEAN Is32Bit;              // TRUE if the module is a 32-bit
     UINT64  BaseAddress;
@@ -94,7 +94,7 @@ static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize,
  */
 typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
 {
-    UINT64 KernelStatus; // Kerenl put the status in this field
+    UINT64 KernelStatus; // Kernel put the status in this field
 
 } DEBUGGEE_SYMBOL_UPDATE_RESULT, *PDEBUGGEE_SYMBOL_UPDATE_RESULT;
 

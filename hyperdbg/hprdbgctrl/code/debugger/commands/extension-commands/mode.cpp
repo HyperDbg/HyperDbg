@@ -38,12 +38,12 @@ CommandModeHelp()
 /**
  * @brief !mode command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandMode(vector<string> SplittedCommand, string Command)
+CommandMode(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -53,7 +53,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
     BOOLEAN                            SetMode                = FALSE;
     DEBUGGER_EVENT_MODE_TYPE           TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_INVALID;
@@ -63,8 +63,8 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplittedCommand,
-            &SplittedCommandCaseSensitive,
+            &SplitCommand,
+            &SplitCommandCaseSensitive,
             TRAP_EXECUTION_MODE_CHANGED,
             &Event,
             &EventLength,
@@ -94,7 +94,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     // Check for size
     //
-    if (SplittedCommand.size() > 2)
+    if (SplitCommand.size() > 2)
     {
         ShowMessages("incorrect use of the '!mode'\n");
         CommandModeHelp();
@@ -106,7 +106,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplittedCommand)
+    for (auto Section : SplitCommand)
     {
         if (!Section.compare("!mode"))
         {
@@ -130,7 +130,7 @@ CommandMode(vector<string> SplittedCommand, string Command)
         else
         {
             //
-            // Couldn't resolve or unkonwn parameter
+            // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
                          Section.c_str());

@@ -10,6 +10,12 @@
  */
 #pragma once
 
+#ifdef HYPERDBG_HPRDBGCTRL
+#    define IMPORT_EXPORT_CTRL __declspec(dllexport)
+#else
+#    define IMPORT_EXPORT_CTRL __declspec(dllimport)
+#endif
+
 //
 // Header file of HPRDBGCTRL
 // Imports
@@ -21,27 +27,27 @@ extern "C" {
 //
 // Support Detection
 //
-__declspec(dllimport) bool HyperDbgVmxSupportDetection();
-__declspec(dllimport) void HyperDbgReadVendorString(char *);
+IMPORT_EXPORT_CTRL bool HyperDbgVmxSupportDetection();
+IMPORT_EXPORT_CTRL void HyperDbgReadVendorString(char *);
 
 //
 // VMM Module
 //
-__declspec(dllimport) int HyperDbgLoadVmm();
-__declspec(dllimport) int HyperDbgUnloadVmm();
-__declspec(dllimport) int HyperDbgInstallVmmDriver();
-__declspec(dllimport) int HyperDbgUninstallVmmDriver();
-__declspec(dllimport) int HyperDbgStopVmmDriver();
+IMPORT_EXPORT_CTRL int HyperDbgLoadVmm();
+IMPORT_EXPORT_CTRL int HyperDbgUnloadVmm();
+IMPORT_EXPORT_CTRL int HyperDbgInstallVmmDriver();
+IMPORT_EXPORT_CTRL int HyperDbgUninstallVmmDriver();
+IMPORT_EXPORT_CTRL int HyperDbgStopVmmDriver();
 
 //
 // General imports
 //
-__declspec(dllimport) int HyperDbgInterpreter(char * Command);
-__declspec(dllimport) void HyperDbgShowSignature();
-__declspec(dllimport) void HyperDbgSetTextMessageCallback(Callback handler);
-__declspec(dllimport) int HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[]);
-__declspec(dllimport) bool HyperDbgContinuePreviousCommand();
-__declspec(dllimport) bool HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset);
+IMPORT_EXPORT_CTRL int HyperDbgInterpreter(char * Command);
+IMPORT_EXPORT_CTRL void HyperDbgShowSignature();
+IMPORT_EXPORT_CTRL void HyperDbgSetTextMessageCallback(Callback handler);
+IMPORT_EXPORT_CTRL int HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[]);
+IMPORT_EXPORT_CTRL bool HyperDbgContinuePreviousCommand();
+IMPORT_EXPORT_CTRL bool HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset);
 
 #ifdef __cplusplus
 }

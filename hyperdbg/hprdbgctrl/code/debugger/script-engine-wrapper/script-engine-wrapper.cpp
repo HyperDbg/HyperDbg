@@ -320,6 +320,14 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     if (!g_ScriptGlobalVariables)
     {
         g_ScriptGlobalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+
+        if (g_ScriptGlobalVariables == NULL)
+        {
+            ShowMessages("err, could not allocate memory for user-mode global variables");
+
+            return;
+        }
+
         RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
@@ -331,6 +339,16 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     if (!g_ScriptLocalVariables)
     {
         g_ScriptLocalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+
+        if (g_ScriptLocalVariables == NULL)
+        {
+            free(g_ScriptGlobalVariables);
+
+            ShowMessages("err, could not allocate memory for user-mode local variables");
+
+            return;
+        }
+
         RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
@@ -342,6 +360,17 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     if (!g_ScriptTempVariables)
     {
         g_ScriptTempVariables = (UINT64 *)malloc(MAX_TEMP_COUNT * sizeof(UINT64));
+
+        if (g_ScriptTempVariables == NULL)
+        {
+            free(g_ScriptGlobalVariables);
+            free(g_ScriptLocalVariables);
+
+            ShowMessages("err, could not allocate memory for user-mode temp variables");
+
+            return;
+        }
+
         RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
     }
 
@@ -358,9 +387,17 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
 
+    //
+    //
+    //
+    PSYMBOL_BUFFER StackBuffer       = GetStackBuffer();
+    int            StackIndx         = 0;
+    int            StackBaseIndx     = 0;
+    int            StackTempBaseIndx = 0;
+
     if (CodeBuffer->Message == NULL)
     {
-        for (int i = 0; i < CodeBuffer->Pointer;)
+        for (UINT64 i = 0; i < CodeBuffer->Pointer;)
         {
             //
             // Fill the action buffer but as we're in user-mode here
@@ -386,6 +423,10 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                                     &VariablesList,
                                     CodeBuffer,
                                     &i,
+                                    StackBuffer,
+                                    &StackIndx,
+                                    &StackBaseIndx,
+                                    &StackTempBaseIndx,
                                     &ErrorSymbol) == TRUE)
             {
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
@@ -484,11 +525,24 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate UNICODE_STRING 1
     //
     WCHAR           MyString1[40]   = L"Hi come from stupid struct 1!";
-    UINT32          SizeOfMyString1 = wcslen(MyString1) * sizeof(WCHAR) + 2;
+    UINT32          SizeOfMyString1 = (UINT32)wcslen(MyString1) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr1     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
-    AllocationsForCastings->Buff1   = (CHAR *)UnicodeStr1;
-    WCHAR * Buff1                   = (WCHAR *)malloc(SizeOfMyString1);
-    AllocationsForCastings->Buff2   = (CHAR *)Buff1;
+
+    if (UnicodeStr1 == NULL)
+    {
+        return NULL;
+    }
+
+    AllocationsForCastings->Buff1 = (CHAR *)UnicodeStr1;
+    WCHAR * Buff1                 = (WCHAR *)malloc(SizeOfMyString1);
+
+    if (Buff1 == NULL)
+    {
+        free(UnicodeStr1);
+        return NULL;
+    }
+
+    AllocationsForCastings->Buff2 = (CHAR *)Buff1;
     RtlZeroMemory(Buff1, SizeOfMyString1);
     UnicodeStr1->Buffer = Buff1;
     UnicodeStr1->Length = UnicodeStr1->MaximumLength = SizeOfMyString1;
@@ -498,11 +552,30 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate UNICODE_STRING 2
     //
     WCHAR           MyString2[40]   = L"Goodbye I'm at stupid struct 2!";
-    UINT32          SizeOfMyString2 = wcslen(MyString2) * sizeof(WCHAR) + 2;
+    UINT32          SizeOfMyString2 = (UINT32)wcslen(MyString2) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr2     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
-    AllocationsForCastings->Buff3   = (CHAR *)UnicodeStr2;
-    WCHAR * Buff2                   = (WCHAR *)malloc(SizeOfMyString2);
-    AllocationsForCastings->Buff4   = (CHAR *)Buff2;
+
+    if (UnicodeStr2 == NULL)
+    {
+        free(UnicodeStr1);
+        free(Buff1);
+
+        return NULL;
+    }
+
+    AllocationsForCastings->Buff3 = (CHAR *)UnicodeStr2;
+    WCHAR * Buff2                 = (WCHAR *)malloc(SizeOfMyString2);
+
+    if (Buff2 == NULL)
+    {
+        free(UnicodeStr1);
+        free(Buff1);
+        free(UnicodeStr2);
+
+        return NULL;
+    }
+
+    AllocationsForCastings->Buff4 = (CHAR *)Buff2;
     RtlZeroMemory(Buff2, SizeOfMyString2);
     UnicodeStr2->Buffer = Buff2;
     UnicodeStr2->Length = UnicodeStr2->MaximumLength = SizeOfMyString2;
@@ -512,6 +585,17 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate STUPID_STRUCT1
     //
     PSTUPID_STRUCT1 StupidStruct1 = (PSTUPID_STRUCT1)malloc(sizeof(STUPID_STRUCT1));
+
+    if (StupidStruct1 == NULL)
+    {
+        free(UnicodeStr1);
+        free(Buff1);
+        free(UnicodeStr2);
+        free(Buff2);
+
+        return NULL;
+    }
+
     AllocationsForCastings->Buff5 = (CHAR *)StupidStruct1;
     StupidStruct1->Flag32         = 0x3232;
     StupidStruct1->Flag64         = 0x6464;
@@ -522,6 +606,18 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     // Allocate STUPID_STRUCT2
     //
     PSTUPID_STRUCT2 StupidStruct2 = (PSTUPID_STRUCT2)malloc(sizeof(STUPID_STRUCT2));
+
+    if (StupidStruct2 == NULL)
+    {
+        free(UnicodeStr1);
+        free(Buff1);
+        free(UnicodeStr2);
+        free(Buff2);
+        free(StupidStruct1);
+
+        return NULL;
+    }
+
     AllocationsForCastings->Buff6 = (CHAR *)StupidStruct2;
 
     StupidStruct2->Sina32        = 0x32;
@@ -554,6 +650,12 @@ ScriptEngineWrapperTestParser(const string & Expr)
     } TEST_STRUCT, *PTEST_STRUCT;
 
     PTEST_STRUCT TestStruct = (PTEST_STRUCT)malloc(sizeof(TEST_STRUCT));
+
+    if (TestStruct == NULL)
+    {
+        return;
+    }
+
     RtlZeroMemory(TestStruct, sizeof(TEST_STRUCT));
 
     TestStruct->Var1 = 0x41414141;
@@ -565,8 +667,16 @@ ScriptEngineWrapperTestParser(const string & Expr)
     wchar_t testw[] =
         L"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
+
     char * RspReg = (char *)malloc(0x100);
-    memcpy(RspReg, testw, 0x100);
+
+    if (RspReg == NULL)
+    {
+        ShowMessages("err, unable to allocate stack for script engine tests");
+        return;
+    }
+
+    memcpy(RspReg, testw, sizeof(testw));
 
     GuestRegs.rax = 0x1;
     GuestRegs.rcx = (UINT64)AllocateStructForCasting(&AllocationsForCastings); // TestStruct

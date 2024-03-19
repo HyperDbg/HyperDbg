@@ -67,6 +67,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,6 +76,7 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
@@ -110,6 +112,7 @@ copy "$(OutDir)hprdbghv.dll" "$(OutDir)SDK\Libraries\hprdbghv.dll"</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,6 +123,7 @@ copy "$(OutDir)hprdbghv.dll" "$(OutDir)SDK\Libraries\hprdbghv.dll"</Command>
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"

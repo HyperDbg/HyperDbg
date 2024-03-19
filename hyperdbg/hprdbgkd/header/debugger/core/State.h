@@ -137,7 +137,7 @@ typedef struct _DEBUGGEE_HALTED_CORE_TASK
 {
     BOOLEAN PerformHaltedTask;
     BOOLEAN LockAgainAfterTask;
-    UINT32  TargetTask;
+    UINT64  TargetTask;
     PVOID   Context;
     UINT64  KernelStatus;
 

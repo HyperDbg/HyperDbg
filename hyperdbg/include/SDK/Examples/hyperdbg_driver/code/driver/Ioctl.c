@@ -68,7 +68,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Status = LogRegisterEventBasedNotification(DeviceObject, Irp);
                 break;
             default:
-                LogError("Err, unknow notification type from user-mode");
+                LogError("Err, unknown notification type from user-mode");
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }

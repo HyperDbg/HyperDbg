@@ -24,8 +24,8 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check if we reached to the target thread or not
     //
-    if ((g_ThreadSwitch.ThreadId != NULL && g_ThreadSwitch.ThreadId == PsGetCurrentThreadId()) ||
-        (g_ThreadSwitch.Thread != NULL && g_ThreadSwitch.Thread == PsGetCurrentThread()))
+    if ((g_ThreadSwitch.ThreadId != NULL_ZERO && g_ThreadSwitch.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId())) ||
+        (g_ThreadSwitch.Thread != NULL64_ZERO && g_ThreadSwitch.Thread == PsGetCurrentThread()))
     {
         //
         // Halt the debuggee, we have found the target thread
@@ -63,13 +63,13 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Initialized with NULL
     //
-    g_ThreadSwitch.Thread   = NULL;
-    g_ThreadSwitch.ThreadId = NULL;
+    g_ThreadSwitch.Thread   = NULL64_ZERO;
+    g_ThreadSwitch.ThreadId = NULL_ZERO;
 
     //
     // Check to avoid invalid switch
     //
-    if (ThreadId == NULL && EThread == NULL)
+    if (ThreadId == NULL_ZERO && EThread == NULL64_ZERO)
     {
         return FALSE;
     }
@@ -79,7 +79,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     if (EThread != NULL)
     {
-        if (CheckAccessValidityAndSafety(EThread, sizeof(BYTE)))
+        if (CheckAccessValidityAndSafety((UINT64)EThread, sizeof(BYTE)))
         {
             g_ThreadSwitch.Thread = EThread;
         }
@@ -91,7 +91,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
             return FALSE;
         }
     }
-    else if (ThreadId != NULL)
+    else if (ThreadId != NULL_ZERO)
     {
         g_ThreadSwitch.ThreadId = ThreadId;
     }
@@ -103,7 +103,7 @@ ThreadSwitch(PROCESSOR_DEBUGGING_STATE * DbgState,
                                     DEBUGGER_HALTED_CORE_TASK_SET_THREAD_INTERCEPTION,
                                     TRUE,
                                     TRUE,
-                                    CheckByClockInterrupt);
+                                    (PVOID)CheckByClockInterrupt);
 
     return TRUE;
 }
@@ -127,7 +127,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
 {
     UINT64                              ThreadListHead;
     UINT32                              EnumerationCount   = 0;
-    UINT64                              Thread             = NULL;
+    UINT64                              Thread             = (UINT64)NULL;
     LIST_ENTRY                          ThreadLinks        = {0};
     CLIENT_ID                           ThreadCid          = {0};
     UINT32                              MaximumBufferCount = 0;
@@ -153,7 +153,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS)
     {
-        MaximumBufferCount = ListSaveBuffSize / sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY);
+        MaximumBufferCount = (UINT32)(ListSaveBuffSize / sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY));
     }
 
     UINT32 ThreadListHeadOffset       = ThreadListSymbolInfo->ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
@@ -165,11 +165,11 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Validate params
     //
-    if (ThreadListHeadOffset == NULL ||
-        ThreadListEntryOffset == NULL ||
-        CidOffset == NULL ||
-        ActiveProcessLinksOffset == NULL ||
-        PsActiveProcessHeadAddress == NULL)
+    if (ThreadListHeadOffset == NULL_ZERO ||
+        ThreadListEntryOffset == NULL_ZERO ||
+        CidOffset == NULL_ZERO ||
+        ActiveProcessLinksOffset == NULL_ZERO ||
+        PsActiveProcessHeadAddress == NULL64_ZERO)
     {
         return FALSE;
     }
@@ -177,12 +177,12 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
     //
     // Set the target process
     //
-    if (ThreadListSymbolInfo->Process == NULL)
+    if (ThreadListSymbolInfo->Process == NULL64_ZERO)
     {
         //
         // Means that it's for the current process
         //
-        ThreadListSymbolInfo->Process = PsGetCurrentProcess();
+        ThreadListSymbolInfo->Process = (UINT64)PsGetCurrentProcess();
         ThreadListHead                = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
     }
     else
@@ -218,7 +218,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         Log("PROCESS\t%llx\tIMAGE\t%s\n",
             ThreadListSymbolInfo->Process,
-            CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process));
+            CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process));
     }
 
     //
@@ -275,13 +275,13 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             //
             // Save the details
             //
-            SavingEntries[EnumerationCount - 1].Eprocess = ThreadListSymbolInfo->Process;
-            SavingEntries[EnumerationCount - 1].Pid      = ThreadCid.UniqueProcess;
-            SavingEntries[EnumerationCount - 1].Tid      = ThreadCid.UniqueThread;
-            SavingEntries[EnumerationCount - 1].Ethread  = Thread;
+            SavingEntries[EnumerationCount - 1].Eprocess  = ThreadListSymbolInfo->Process;
+            SavingEntries[EnumerationCount - 1].ProcessId = HANDLE_TO_UINT32(ThreadCid.UniqueProcess);
+            SavingEntries[EnumerationCount - 1].ThreadId  = HANDLE_TO_UINT32(ThreadCid.UniqueThread);
+            SavingEntries[EnumerationCount - 1].Ethread   = Thread;
 
             RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
-                          CommonGetProcessNameFromProcessControlBlock(ThreadListSymbolInfo->Process),
+                          CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process),
                           15);
 
             break;
@@ -332,11 +332,11 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         //
         // Debugger wants to know current tid, nt!_ETHREAD and process name, etc.
         //
-        TidRequest->ProcessId = PsGetCurrentProcessId();
-        TidRequest->ThreadId  = PsGetCurrentThreadId();
-        TidRequest->Process   = PsGetCurrentProcess();
-        TidRequest->Thread    = PsGetCurrentThread();
-        MemoryMapperReadMemorySafe(CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
+        TidRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+        TidRequest->ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
+        TidRequest->Process   = (UINT64)PsGetCurrentProcess();
+        TidRequest->Thread    = (UINT64)PsGetCurrentThread();
+        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -352,7 +352,7 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         //
         if (!ThreadSwitch(DbgState,
                           TidRequest->ThreadId,
-                          TidRequest->Thread,
+                          (PETHREAD)TidRequest->Thread,
                           TidRequest->CheckByClockInterrupt))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
@@ -375,7 +375,7 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
                             NULL,
                             NULL,
-                            NULL))
+                            (UINT64)NULL))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
             break;
@@ -539,7 +539,7 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         // No longer need to store such gs:188 value
         //
-        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = NULL;
+        DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = (UINT64)NULL;
     }
 }
 
@@ -644,7 +644,7 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count,
                             NULL,
-                            NULL);
+                            (UINT64)NULL);
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
@@ -694,10 +694,10 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 BOOLEAN
 ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest)
 {
-    GetInformationThreadRequest->ProcessId = PsGetCurrentProcessId();
-    GetInformationThreadRequest->Process   = PsGetCurrentProcess();
-    GetInformationThreadRequest->Thread    = PsGetCurrentThread();
-    GetInformationThreadRequest->ThreadId  = PsGetCurrentThreadId();
+    GetInformationThreadRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+    GetInformationThreadRequest->Process   = (UINT64)PsGetCurrentProcess();
+    GetInformationThreadRequest->Thread    = (UINT64)PsGetCurrentThread();
+    GetInformationThreadRequest->ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
 
     RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
                   CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),

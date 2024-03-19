@@ -90,8 +90,6 @@ ReadIrpBasedBuffer()
     UINT32                 OperationCode;
     DWORD                  ErrorNum;
     HANDLE                 Handle;
-    BOOLEAN                OutputSourceFound;
-    PLIST_ENTRY            TempList;
 
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
@@ -138,7 +136,7 @@ ReadIrpBasedBuffer()
     }
 
     //
-    // allocate buffer for transfering messages
+    // allocate buffer for transferring messages
     //
     char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
 
@@ -168,7 +166,7 @@ ReadIrpBasedBuffer()
             if (!Status)
             {
                 //
-                // Error occured for second time, and we show the error message
+                // Error occurred for second time, and we show the error message
                 //
                 // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
@@ -227,7 +225,7 @@ ReadIrpBasedBuffer()
     }
     catch (const std::exception &)
     {
-        ShowMessages("err, exception occured in creating handle or parsing buffer\n");
+        ShowMessages("err, exception occurred in creating handle or parsing buffer\n");
     }
     free(OutputBuffer);
 
@@ -372,8 +370,6 @@ ReversingMachineStart()
 int
 HyperDbgUnloadReversingMachine()
 {
-    BOOL Status;
-
     //
     // Check if driver is loaded
     //
@@ -427,7 +423,7 @@ HyperDbgLoadReversingMachine()
     else
     {
         ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environemnt !\n");
+                     "environment !\n");
         return 1;
     }
 

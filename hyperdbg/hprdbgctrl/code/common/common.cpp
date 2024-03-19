@@ -39,25 +39,25 @@ SeparateTo64BitValue(UINT64 Value)
 /**
  * @brief print bits and bytes for d* commands
  *
- * @param size
- * @param ptr
+ * @param Size
+ * @param Ptr
  * @return VOID
  */
 VOID
-PrintBits(size_t const size, void const * const ptr)
+PrintBits(const UINT32 Size, const void * Ptr)
 {
-    unsigned char * b = (unsigned char *)ptr;
-    unsigned char   byte;
+    unsigned char * Buf = (unsigned char *)Ptr;
+    unsigned char   Byte;
     int             i, j;
 
-    for (i = size - 1; i >= 0; i--)
+    for (i = Size - 1; i >= 0; i--)
     {
         for (j = 7; j >= 0; j--)
         {
-            byte = (b[i] >> j) & 1;
-            ShowMessages("%u", byte);
+            Byte = (Buf[i] >> j) & 1;
+            ShowMessages("%u", Byte);
         }
-        ShowMessages(" ", byte);
+        ShowMessages(" ", Byte);
     }
 }
 
@@ -390,14 +390,14 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
                 *Result = i;
                 return TRUE;
             }
-            catch (std::invalid_argument const & e)
+            catch (std::invalid_argument const &)
             {
                 //
                 // Bad input: std::invalid_argument thrown
                 //
                 return FALSE;
             }
-            catch (std::out_of_range const & e)
+            catch (std::out_of_range const &)
             {
                 //
                 // Integer overflow: std::out_of_range thrown
@@ -420,7 +420,7 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
         else
         {
             //
-            // It's hex numer
+            // It's hex number
             //
             UINT32 TempResult;
             TempResult = stoi(TextToConvert, nullptr, 16);
@@ -505,7 +505,7 @@ HPRDBGCTRL_API bool
 HyperDbgVmxSupportDetection()
 {
     //
-    // Call asm function
+    // Call assembly function
     //
     return AsmVmxSupportDetection();
 }
@@ -513,39 +513,39 @@ HyperDbgVmxSupportDetection()
 /**
  * @brief SetPrivilege enables/disables process token privilege
  *
- * @param hToken
- * @param lpszPrivilege
- * @param bEnablePrivilege
+ * @param Token
+ * @param Privilege
+ * @param EnablePrivilege
  * @return BOOL
  */
 BOOL
-SetPrivilege(HANDLE  hToken,          // access token handle
-             LPCTSTR lpszPrivilege,   // name of privilege to enable/disable
-             BOOL    bEnablePrivilege // to enable or disable privilege
+SetPrivilege(HANDLE  Token,          // access token handle
+             LPCTSTR Privilege,      // name of privilege to enable/disable
+             BOOL    EnablePrivilege // to enable or disable privilege
 )
 {
-    TOKEN_PRIVILEGES tp;
-    LUID             luid;
+    TOKEN_PRIVILEGES Tp;
+    LUID             Luid;
 
-    if (!LookupPrivilegeValue(NULL,          // lookup privilege on local system
-                              lpszPrivilege, // privilege to lookup
-                              &luid))        // receives LUID of privilege
+    if (!LookupPrivilegeValue(NULL,      // lookup privilege on local system
+                              Privilege, // privilege to lookup
+                              &Luid))    // receives LUID of privilege
     {
         ShowMessages("err, in LookupPrivilegeValue (%x)\n", GetLastError());
         return FALSE;
     }
 
-    tp.PrivilegeCount     = 1;
-    tp.Privileges[0].Luid = luid;
-    if (bEnablePrivilege)
-        tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    Tp.PrivilegeCount     = 1;
+    Tp.Privileges[0].Luid = Luid;
+    if (EnablePrivilege)
+        Tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
     else
-        tp.Privileges[0].Attributes = 0;
+        Tp.Privileges[0].Attributes = 0;
 
     //
     // Enable the privilege or disable all privileges.
     //
-    if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
+    if (!AdjustTokenPrivileges(Token, FALSE, &Tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
     {
         ShowMessages("err, in AdjustTokenPrivileges (%x)\n", GetLastError());
         return FALSE;
@@ -743,7 +743,7 @@ StringToWString(std::wstring & ws, const std::string & s)
 VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
 {
-    int  Len = Command.length();
+    int  Len = (int)Command.length();
     bool Qot = false, Sqot = false;
     int  ArgLen;
 
@@ -1077,11 +1077,11 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Address should be accessed in more than one page
             //
-            UINT64 ReadSize = AddressToCheck;
+            UINT32 ReadSize = 0;
 
             while (Size != 0)
             {
-                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+                ReadSize = (UINT32)((UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress);
 
                 if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
                 {
@@ -1128,9 +1128,9 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
         //
 
         //
-        // There is no way to perfom this check! The below implementation doesn't satisfy
+        // There is no way to perform this check! The below implementation doesn't satisfy
         // our needs for address checks, but we're not trying to ask kernel about it as
-        // HyperDbg's script engine is not designed to be runned these functions in user-mode
+        // HyperDbg's script engine is not designed to be ran these functions in user-mode
         // so we left it unimplemented to avoid crashes in the main program
         //
         return FALSE;
@@ -1147,11 +1147,11 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
             //
             // Address should be accessed in more than one page
             //
-            UINT64 ReadSize = AddressToCheck;
+            UINT32 ReadSize = 0;
 
             while (Size != 0)
             {
-                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+                ReadSize = (UINT32)((UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress);
 
                 if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
                 {

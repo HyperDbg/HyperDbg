@@ -64,7 +64,7 @@ CommandStructHelp()
 {
     ShowMessages("struct : displays a data type, enum, or structure derived from PDB symbols.\n\n");
 
-    ShowMessages("syntax : \struct [Module!SymbolName (string)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
+    ShowMessages("syntax : struct [Module!SymbolName (string)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
                  "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
                  "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
                  "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
@@ -281,7 +281,7 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<string> ExtraArgs,
     }
 
     //
-    // Check if user enetered yes/no or string when expected or not
+    // Check if user entered yes/no or string when expected or not
     //
     if (NextItemIsYesNo || NextItemIsString || NextItemIsInline || NextItemIsFileName || NextItemIsProcessId)
     {
@@ -401,8 +401,10 @@ CommandDtShowDataBasedOnSymbolTypes(
                                          IsPhysicalAddress ? DEBUGGER_READ_PHYSICAL_ADDRESS : DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          TargetPid,
-                                         StructureSize,
+                                         (UINT32)StructureSize,
                                          &DtOptions);
+
+        return TRUE;
     }
     else
     {
@@ -417,12 +419,12 @@ CommandDtShowDataBasedOnSymbolTypes(
 /**
  * @brief dt and struct command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDtAndStruct(vector<string> SplittedCommand, string Command)
+CommandDtAndStruct(vector<string> SplitCommand, string Command)
 {
     std::string TempTypeNameHolder;
     std::string PdbexArgs                          = "";
@@ -435,8 +437,8 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     //
     // Check if command is 'struct' or not
     //
-    if (!SplittedCommand.at(0).compare("struct") ||
-        !SplittedCommand.at(0).compare("structure"))
+    if (!SplitCommand.at(0).compare("struct") ||
+        !SplitCommand.at(0).compare("structure"))
     {
         IsStruct = TRUE;
     }
@@ -448,7 +450,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     //
     // Check if command is '!dt' for physical address or not
     //
-    if (!SplittedCommand.at(0).compare("!dt"))
+    if (!SplitCommand.at(0).compare("!dt"))
     {
         IsPhysicalAddress = TRUE;
     }
@@ -457,9 +459,9 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
         IsPhysicalAddress = FALSE;
     }
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
-        ShowMessages("incorrect use of the '%s'\n\n", SplittedCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
 
         if (IsStruct)
         {
@@ -481,7 +483,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     //
     // Remove dt, struct, or structure from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again
@@ -491,18 +493,18 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     //
     // Check for the first and second arguments
     //
-    vector<string> TempSplittedCommand {Split(Command, ' ')};
+    vector<string> TempSplitCommand {Split(Command, ' ')};
 
     //
     // If the size is zero, then it's only a type name
     //
-    if (TempSplittedCommand.size() == 1)
+    if (TempSplitCommand.size() == 1)
     {
         //
         // Call the dt parser wrapper, it's only a structure (type) name
         // Call it with default configuration
         //
-        CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(0).c_str(),
+        CommandDtShowDataBasedOnSymbolTypes(TempSplitCommand.at(0).c_str(),
                                             NULL,
                                             IsStruct,
                                             NULL,
@@ -521,31 +523,31 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
         //
         // Check if the first parameter is an address or valid expression
         //
-        if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(0).c_str(),
+        if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplitCommand.at(0).c_str(),
                                                           &TargetAddress))
         {
             //
             // No it's not, we'll get the first argument as the structure (type) name
             // And we have to check whether the second argument is a buffer address or not
             //
-            if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(1).c_str(),
+            if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplitCommand.at(1).c_str(),
                                                               &TargetAddress))
             {
                 //
                 // The second argument is also not buffer address
                 // probably the user entered a structure (type) name along with some params
                 //
-                TempTypeNameHolder = TempSplittedCommand.at(0);
+                TempTypeNameHolder = TempSplitCommand.at(0);
 
                 //
                 // Remove the first argument
                 //
-                TempSplittedCommand.erase(TempSplittedCommand.begin());
+                TempSplitCommand.erase(TempSplitCommand.begin());
 
                 //
                 // Convert to pdbex args
                 //
-                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
+                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplitCommand, PdbexArgs, &TargetPid))
                 {
                     if (IsStruct)
                     {
@@ -576,13 +578,13 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 // The second argument is a buffer address
                 // The user entered a structure (type) name along with buffer address
                 //
-                if (TempSplittedCommand.size() == 2)
+                if (TempSplitCommand.size() == 2)
                 {
                     //
                     // There is not parameters, only a symbol name and then a buffer address
                     // Call it with default configuration
                     //
-                    CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(0).c_str(),
+                    CommandDtShowDataBasedOnSymbolTypes(TempSplitCommand.at(0).c_str(),
                                                         TargetAddress,
                                                         IsStruct,
                                                         BufferAddressRetrievedFromDebuggee,
@@ -597,18 +599,18 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                     // the second argument which is buffer address, there are other parameters, so
                     // we WON'T call it with default parameters
                     //
-                    TempTypeNameHolder = TempSplittedCommand.at(0);
+                    TempTypeNameHolder = TempSplitCommand.at(0);
 
                     //
                     // Remove the first, and the second arguments
                     //
-                    TempSplittedCommand.erase(TempSplittedCommand.begin());
-                    TempSplittedCommand.erase(TempSplittedCommand.begin());
+                    TempSplitCommand.erase(TempSplitCommand.begin());
+                    TempSplitCommand.erase(TempSplitCommand.begin());
 
                     //
                     // Convert to pdbex args
                     //
-                    if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
+                    if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplitCommand, PdbexArgs, &TargetPid))
                     {
                         if (IsStruct)
                         {
@@ -641,13 +643,13 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
             // The first argument is a buffer address, so we get the first argument as
             // a buffer address and the second argument as the structure (type) name
             //
-            if (TempSplittedCommand.size() == 2)
+            if (TempSplitCommand.size() == 2)
             {
                 //
                 // There is not parameters, only a buffer address and then a symbol name
                 // Call it with default configuration
                 //
-                CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(1).c_str(),
+                CommandDtShowDataBasedOnSymbolTypes(TempSplitCommand.at(1).c_str(),
                                                     TargetAddress,
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
@@ -662,18 +664,18 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 // argument which is structure (type) name, there are other parameters, so
                 // we WON'T call it with default parameters
                 //
-                TempTypeNameHolder = TempSplittedCommand.at(1);
+                TempTypeNameHolder = TempSplitCommand.at(1);
 
                 //
                 // Remove the first, and the second arguments
                 //
-                TempSplittedCommand.erase(TempSplittedCommand.begin());
-                TempSplittedCommand.erase(TempSplittedCommand.begin());
+                TempSplitCommand.erase(TempSplitCommand.begin());
+                TempSplitCommand.erase(TempSplitCommand.begin());
 
                 //
                 // Convert to pdbex args
                 //
-                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
+                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplitCommand, PdbexArgs, &TargetPid))
                 {
                     if (IsStruct)
                     {

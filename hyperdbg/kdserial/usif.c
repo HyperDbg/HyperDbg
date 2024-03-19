@@ -62,7 +62,6 @@ Return Value:
 --*/
 
 {
-    DbgBreakPoint();
     UNREFERENCED_PARAMETER(LoadOptions);
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
@@ -100,8 +99,6 @@ Return Value:
 --*/
 
 {
-    DbgBreakPoint();
-
     if ((Port == NULL) || (Port->Address == NULL))
     {
         return FALSE;
@@ -139,10 +136,10 @@ Return Value:
 --*/
 
 {
-    DbgBreakPoint();
-
     ULONG Stat;
     ULONG Value;
+
+    *Byte = 0;
 
     if ((Port == NULL) || (Port->Address == NULL))
     {

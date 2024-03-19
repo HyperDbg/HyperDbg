@@ -16,11 +16,11 @@
  *
  * @param Ctl
  * @param Msr
- * @return ULONG Returns the Cpu Based and Secondary Processor Based Controls
+ * @return UINT32 Returns the Cpu Based and Secondary Processor Based Controls
  *  and other controls based on hardware support
  */
-ULONG
-HvAdjustControls(ULONG Ctl, ULONG Msr)
+UINT32
+HvAdjustControls(UINT32 Ctl, UINT32 Msr)
 {
     MSR MsrValue = {0};
 
@@ -39,7 +39,7 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
  * @return BOOLEAN
  */
 BOOLEAN
-HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
+HvSetGuestSelector(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
     VmxGetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
@@ -49,10 +49,10 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
         SegmentSelector.Attributes.Unusable = TRUE;
     }
 
-    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    VmxVmwrite64(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    VmxVmwrite64(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
+    VmxVmwrite64(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
 }
@@ -103,7 +103,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[0] = HYPERV_CPUID_INTERFACE;
             CpuInfo[1] = 'epyH'; // [HyperDbg]
             CpuInfo[2] = 'gbDr';
-            CpuInfo[3] = NULL;
+            CpuInfo[3] = 0;
         }
         else if (Regs->rax == HYPERV_CPUID_INTERFACE)
         {
@@ -167,8 +167,8 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
-            __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
-            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
+            VmxVmwrite64(VMCS_GUEST_CR0, *RegPtr);
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
 
             break;
 
@@ -180,7 +180,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             //
             // Apply the new cr3
             //
-            __vmx_vmwrite(VMCS_GUEST_CR3, NewCr3Reg.Flags);
+            VmxVmwrite64(VMCS_GUEST_CR3, NewCr3Reg.Flags);
 
             //
             // Invalidate as we used VPID tags so the vm-exit won't
@@ -214,8 +214,8 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
-            __vmx_vmwrite(VMCS_GUEST_CR4, *RegPtr);
-            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
+            VmxVmwrite64(VMCS_GUEST_CR4, *RegPtr);
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
 
             break;
 
@@ -273,7 +273,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
  * @return VOID
  */
 VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
+HvFillGuestSelectorData(PVOID GdtBase, UINT32 SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
@@ -287,10 +287,10 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
     SegmentSelector.Attributes.Reserved1 = 0;
     SegmentSelector.Attributes.Reserved2 = 0;
 
-    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    VmxVmwrite64(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    VmxVmwrite64(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
+    VmxVmwrite64(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
 /**
@@ -301,8 +301,8 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 VOID
 HvResumeToNextInstruction()
 {
-    UINT64 ResumeRIP             = NULL;
-    UINT64 CurrentRIP            = NULL;
+    UINT64 ResumeRIP             = NULL64_ZERO;
+    UINT64 CurrentRIP            = NULL64_ZERO;
     size_t ExitInstructionLength = 0;
 
     __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
@@ -310,11 +310,11 @@ HvResumeToNextInstruction()
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
-    __vmx_vmwrite(VMCS_GUEST_RIP, ResumeRIP);
+    VmxVmwrite64(VMCS_GUEST_RIP, ResumeRIP);
 }
 
 /**
- * @brief Supress the incrementation of RIP
+ * @brief Suppress the incrementation of RIP
  *
  * @param VCpu The virtual processor's state
  *
@@ -348,12 +348,12 @@ HvPerformRipIncrement(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 HvSetMonitorTrapFlag(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -367,7 +367,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -401,12 +401,12 @@ HvSetRflagTrapFlag(BOOLEAN Set)
 VOID
 HvSetLoadDebugControls(BOOLEAN Set)
 {
-    ULONG VmentryControls = 0;
+    UINT32 VmentryControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
 
     if (Set)
     {
@@ -420,7 +420,7 @@ HvSetLoadDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
 }
 
 /**
@@ -432,12 +432,12 @@ HvSetLoadDebugControls(BOOLEAN Set)
 VOID
 HvSetSaveDebugControls(BOOLEAN Set)
 {
-    ULONG VmexitControls = 0;
+    UINT32 VmexitControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
 
     if (Set)
     {
@@ -451,7 +451,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -487,7 +487,7 @@ HvRestoreRegisters()
     __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
     __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
-    AsmReloadGdtr(GdtrBase, GdtrLimit);
+    AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
 
     //
     // Restore IDTR
@@ -495,7 +495,7 @@ HvRestoreRegisters()
     __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
     __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
-    AsmReloadIdtr(IdtrBase, IdtrLimit);
+    AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
 }
 
 /**
@@ -508,12 +508,12 @@ HvRestoreRegisters()
 VOID
 HvSetPmcVmexit(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -527,7 +527,7 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -574,7 +574,7 @@ HvWriteExceptionBitmap(UINT32 BitmapMask)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_EXCEPTION_BITMAP, BitmapMask);
+    VmxVmwrite64(VMCS_CTRL_EXCEPTION_BITMAP, BitmapMask);
 }
 
 /**
@@ -591,7 +591,7 @@ HvReadExceptionBitmap()
     //
     // Read the current bitmap
     //
-    __vmx_vmread(VMCS_CTRL_EXCEPTION_BITMAP, &ExceptionBitmap);
+    VmxVmread32P(VMCS_CTRL_EXCEPTION_BITMAP, &ExceptionBitmap);
 
     return ExceptionBitmap;
 }
@@ -605,12 +605,12 @@ HvReadExceptionBitmap()
 VOID
 HvSetInterruptWindowExiting(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -627,7 +627,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -639,13 +639,13 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 VOID
 HvSetPmlEnableFlag(BOOLEAN Set)
 {
-    ULONG AdjSecCtrl;
-    ULONG SecondaryProcBasedVmExecControls = 0;
+    UINT32 AdjSecCtrl;
+    UINT32 SecondaryProcBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
 
     //
     // PML enable flag
@@ -664,7 +664,7 @@ HvSetPmlEnableFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
+    VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**
@@ -676,13 +676,13 @@ HvSetPmlEnableFlag(BOOLEAN Set)
 VOID
 HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
 {
-    ULONG AdjSecCtrl;
-    ULONG SecondaryProcBasedVmExecControls = 0;
+    UINT32 AdjSecCtrl;
+    UINT32 SecondaryProcBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &SecondaryProcBasedVmExecControls);
 
     //
     // PML enable flag
@@ -701,7 +701,7 @@ HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
+    VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, AdjSecCtrl);
 }
 
 /**
@@ -713,12 +713,12 @@ HvSetModeBasedExecutionEnableFlag(BOOLEAN Set)
 VOID
 HvSetNmiWindowExiting(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
+    UINT32 CpuBasedVmExecControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -735,7 +735,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+    VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -751,12 +751,12 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs = VCpu->Regs;
+    UINT64 *                      GpRegs = (UINT64 *)VCpu->Regs;
 
     //
     // The implementation is derived from Hvpp
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
+    VmxVmread64P(VMCS_EXIT_QUALIFICATION, &ExitQualification.AsUInt);
 
     UINT64 GpRegister = GpRegs[ExitQualification.GeneralPurposeRegister];
 
@@ -806,7 +806,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read guest cr4
     //
-    __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
+    VmxVmread64P(VMCS_GUEST_CR4, &Cr4.AsUInt);
 
     if (ExitQualification.DebugRegister == 4 || ExitQualification.DebugRegister == 5)
     {
@@ -843,7 +843,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read the DR7
     //
-    __vmx_vmread(VMCS_GUEST_DR7, &Dr7);
+    VmxVmread64P(VMCS_GUEST_DR7, &Dr7.AsUInt);
 
     if (Dr7.GeneralDetect)
     {
@@ -856,7 +856,7 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 
         Dr7.GeneralDetect = FALSE;
 
-        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.AsUInt);
+        VmxVmwrite64(VMCS_GUEST_DR7, Dr7.AsUInt);
 
         EventInjectDebugBreakpoint();
 
@@ -952,14 +952,14 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 HvSetNmiExiting(BOOLEAN Set)
 {
-    ULONG PinBasedControls = 0;
-    ULONG VmExitControls   = 0;
+    UINT32 PinBasedControls = 0;
+    UINT32 VmExitControls   = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -975,8 +975,8 @@ HvSetNmiExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -988,12 +988,12 @@ HvSetNmiExiting(BOOLEAN Set)
 VOID
 HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
 {
-    ULONG PinBasedControls = 0;
+    UINT32 PinBasedControls = 0;
 
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    VmxVmread32P(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
 
     if (Set)
     {
@@ -1007,7 +1007,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
 }
 
 /**
@@ -1085,7 +1085,7 @@ HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (VCpu->PendingExternalInterrupts[0] != NULL)
+        if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
         {
             //
             // Enable Interrupt-window exiting.
@@ -1132,10 +1132,10 @@ UINT16
 HvGetCsSelector()
 {
     //
-    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // Only 16 bit is needed however, vmwrite might write on other bits
     // and corrupt other variables, that's why we get 64bit
     //
-    UINT64 CsSel = NULL;
+    UINT64 CsSel = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
@@ -1150,7 +1150,7 @@ HvGetCsSelector()
 UINT64
 HvGetRflags()
 {
-    UINT64 Rflags = NULL;
+    UINT64 Rflags = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
@@ -1166,7 +1166,7 @@ HvGetRflags()
 VOID
 HvSetRflags(UINT64 Rflags)
 {
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags);
+    VmxVmwrite64(VMCS_GUEST_RFLAGS, Rflags);
 }
 
 /**
@@ -1177,7 +1177,7 @@ HvSetRflags(UINT64 Rflags)
 UINT64
 HvGetRip()
 {
-    UINT64 Rip = NULL;
+    UINT64 Rip = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_RIP, &Rip);
 
@@ -1193,7 +1193,7 @@ HvGetRip()
 VOID
 HvSetRip(UINT64 Rip)
 {
-    __vmx_vmwrite(VMCS_GUEST_RIP, Rip);
+    VmxVmwrite64(VMCS_GUEST_RIP, Rip);
 }
 
 /**
@@ -1204,7 +1204,7 @@ HvSetRip(UINT64 Rip)
 UINT64
 HvGetInterruptibilityState()
 {
-    UINT64 InterruptibilityState = NULL;
+    UINT64 InterruptibilityState = NULL64_ZERO;
 
     __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
@@ -1214,12 +1214,12 @@ HvGetInterruptibilityState()
 /**
  * @brief Clear STI and MOV SS bits
  *
- * @return UINT32
+ * @return UINT64
  */
-UINT32
-HvClearSteppingBits(UINT32 Interruptibility)
+UINT64
+HvClearSteppingBits(UINT64 Interruptibility)
 {
-    UINT32 InterruptibilityState = Interruptibility;
+    UINT64 InterruptibilityState = Interruptibility;
 
     InterruptibilityState &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
 
@@ -1235,7 +1235,7 @@ HvClearSteppingBits(UINT32 Interruptibility)
 VOID
 HvSetInterruptibilityState(UINT64 InterruptibilityState)
 {
-    __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
+    VmxVmwrite64(VMCS_GUEST_INTERRUPTIBILITY_STATE, InterruptibilityState);
 }
 
 /**
@@ -1251,7 +1251,7 @@ HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check if there is at least an interrupt that needs to be delivered
     //
-    if (VCpu->PendingExternalInterrupts[0] != NULL)
+    if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
     {
         //
         // Enable Interrupt-window exiting.
@@ -1321,7 +1321,7 @@ HvDisableExternalInterruptsAndInterruptWindow(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
 {
-    ULONG   ProcessorCount;
+    ULONG   ProcessorsCount;
     BOOLEAN Result = FALSE;
 
     //
@@ -1348,12 +1348,12 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // We have a zeroed guest state
     //
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
     // Set the core's id and initialize memory mapper
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (UINT32 i = 0; i < ProcessorsCount; i++)
     {
         g_GuestState[i].CoreId = i;
     }

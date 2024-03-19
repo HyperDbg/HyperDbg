@@ -24,9 +24,8 @@ BOOLEAN
 CommonIsProcessExist(UINT32 ProcId)
 {
     PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId(ProcId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
@@ -53,12 +52,12 @@ NTSTATUS
 CommonGetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
 {
     NTSTATUS Status;
-    Status = STATUS_SUCCESS;
-    OBJECT_ATTRIBUTES ObjAttr;
-    CLIENT_ID         Cid;
+    Status                    = STATUS_SUCCESS;
+    OBJECT_ATTRIBUTES ObjAttr = {0};
+    CLIENT_ID         Cid     = {0};
     InitializeObjectAttributes(&ObjAttr, NULL, 0, NULL, NULL);
 
-    Cid.UniqueProcess = ProcessId;
+    Cid.UniqueProcess = (HANDLE)ProcessId;
     Cid.UniqueThread  = (HANDLE)0;
 
     Status = ZwOpenProcess(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
@@ -102,48 +101,50 @@ CommonUndocumentedNtOpenProcess(
     HANDLE          ProcessId,
     KPROCESSOR_MODE AccessMode)
 {
-    NTSTATUS     status = STATUS_SUCCESS;
-    ACCESS_STATE accessState;
-    char         auxData[0x200];
-    PEPROCESS    processObject = NULL;
-    HANDLE       processHandle = NULL;
+    NTSTATUS     Status = STATUS_SUCCESS;
+    ACCESS_STATE AccessState;
+    CHAR         AuxData[0x200] = {0};
+    PEPROCESS    ProcessObject  = NULL;
+    HANDLE       ProcHandle     = NULL;
 
-    status = SeCreateAccessState(
-        &accessState,
-        auxData,
+    Status = SeCreateAccessState(
+        &AccessState,
+        AuxData,
         DesiredAccess,
         (PGENERIC_MAPPING)((PCHAR)*PsProcessType + 52));
 
-    if (!NT_SUCCESS(status))
-        return status;
-
-    accessState.PreviouslyGrantedAccess |= accessState.RemainingDesiredAccess;
-    accessState.RemainingDesiredAccess = 0;
-
-    status = PsLookupProcessByProcessId(ProcessId, &processObject);
-
-    if (!NT_SUCCESS(status))
+    if (!NT_SUCCESS(Status))
     {
-        SeDeleteAccessState(&accessState);
-        return status;
+        return Status;
     }
-    status = ObOpenObjectByPointer(
-        processObject,
+
+    AccessState.PreviouslyGrantedAccess |= AccessState.RemainingDesiredAccess;
+    AccessState.RemainingDesiredAccess = 0;
+
+    Status = PsLookupProcessByProcessId(ProcessId, &ProcessObject);
+
+    if (!NT_SUCCESS(Status))
+    {
+        SeDeleteAccessState(&AccessState);
+        return Status;
+    }
+    Status = ObOpenObjectByPointer(
+        ProcessObject,
         0,
-        &accessState,
+        &AccessState,
         0,
         *PsProcessType,
         AccessMode,
-        &processHandle);
+        &ProcHandle);
 
-    SeDeleteAccessState(&accessState);
+    SeDeleteAccessState(&AccessState);
 
-    ObDereferenceObject(processObject);
+    ObDereferenceObject(ProcessObject);
 
-    if (NT_SUCCESS(status))
-        *ProcessHandle = processHandle;
+    if (NT_SUCCESS(Status))
+        *ProcessHandle = ProcHandle;
 
-    return status;
+    return Status;
 }
 
 /**
@@ -161,7 +162,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     HANDLE    ProcessHandle = NULL;
     PEPROCESS Process       = NULL;
 
-    if (ProcessId == NULL)
+    if (ProcessId == NULL_ZERO)
     {
         return FALSE;
     }
@@ -194,7 +195,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         CommonUndocumentedNtOpenProcess(
             &ProcessHandle,
             PROCESS_ALL_ACCESS,
-            ProcessId,
+            (HANDLE)ProcessId,
             KernelMode);
 
         if (ProcessHandle == NULL)
@@ -231,7 +232,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     default:
 
         //
-        // Unknow killing method
+        // Unknown killing method
         //
         return FALSE;
         break;
@@ -254,11 +255,11 @@ _Use_decl_annotations_
 BOOLEAN
 CommonValidateCoreNumber(UINT32 CoreNumber)
 {
-    ULONG CoreCount;
+    ULONG ProcessorsCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    if (CoreNumber >= CoreCount)
+    if (CoreNumber >= ProcessorsCount)
     {
         return FALSE;
     }

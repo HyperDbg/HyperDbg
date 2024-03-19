@@ -223,7 +223,7 @@ typedef enum _DEBUGGER_EVENT_TRACE_TYPE
 } DEBUGGER_EVENT_TRACE_TYPE;
 
 /**
- * @brief different types of modifing events request (enable/disable/clear)
+ * @brief different types of modifying events request (enable/disable/clear)
  *
  */
 typedef enum _DEBUGGER_MODIFY_EVENTS_TYPE
@@ -241,7 +241,7 @@ typedef enum _DEBUGGER_MODIFY_EVENTS_TYPE
 typedef struct _DEBUGGER_MODIFY_EVENTS
 {
     UINT64 Tag;          // Tag of the target event that we want to modify
-    UINT64 KernelStatus; // Kerenl put the status in this field
+    UINT64 KernelStatus; // Kernel put the status in this field
     DEBUGGER_MODIFY_EVENTS_TYPE
     TypeOfAction;      // Determines what's the action (enable | disable | clear)
     BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
@@ -254,7 +254,7 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
  */
 typedef struct _DEBUGGER_SHORT_CIRCUITING_EVENT
 {
-    UINT64  KernelStatus;      // Kerenl put the status in this field
+    UINT64  KernelStatus;      // Kernel put the status in this field
     BOOLEAN IsShortCircuiting; // Determines whether to perform short circuting (on | off)
 
 } DEBUGGER_SHORT_CIRCUITING_EVENT, *PDEBUGGER_SHORT_CIRCUITING_EVENT;
@@ -395,7 +395,7 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 } DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
 
 /**
- * @brief Each event can have mulitple actions
+ * @brief Each event can have multiple actions
  * @details THIS STRUCTURE IS ONLY USED IN USER MODE
  * WE USE SEPARATE STRUCTURE FOR ACTIONS IN
  * KERNEL MODE

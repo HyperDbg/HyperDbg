@@ -194,4 +194,4 @@ UINT64 g_PageFaultInjectionAddressTo;
  * @brief The error code for page-fault injection
  *
  */
-UINT64 g_PageFaultInjectionErrorCode;
+UINT32 g_PageFaultInjectionErrorCode;

@@ -188,19 +188,19 @@ ErrorMessage:
 /**
  * @brief handler of ? command
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandEval(vector<string> SplittedCommand, string Command)
+CommandEval(vector<string> SplitCommand, string Command)
 {
     PVOID  CodeBuffer;
     UINT64 BufferAddress;
     UINT32 BufferLength;
     UINT32 Pointer;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("incorrect use of the '?'\n\n");
         CommandEvalHelp();
@@ -215,7 +215,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
     //
     // Remove the first command from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

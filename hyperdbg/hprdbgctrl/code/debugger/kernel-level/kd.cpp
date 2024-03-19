@@ -110,7 +110,7 @@ KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 }
 
 /**
- * @brief calculate the checksum of recived buffer from debugger
+ * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
  * @param LengthReceived
@@ -779,7 +779,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForProcessList != NULL)
     {
@@ -832,7 +832,7 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
 
     //
     // Check if the command really needs these information or not
-    // it's because some of the command don't need symbol offset informations
+    // it's because some of the command don't need symbol offset information
     //
     if (SymDetailsForThreadList != NULL)
     {
@@ -1130,7 +1130,7 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBre
 }
 
 /**
- * @brief Sends seach query request packet to the debuggee
+ * @brief Sends search query request packet to the debuggee
  * @param SearchRequestBuffer
  * @param SearchRequestBufferSize
  *
@@ -1251,7 +1251,7 @@ KdSendPausePacketToDebuggee()
 }
 
 /**
- * @brief Get Windows name, version and build to send to debuggger
+ * @brief Get Windows name, version and build to send to debugger
  *
  * @param BufferToSave
  *
@@ -1329,7 +1329,6 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    BOOL   Status;             /* Status */
     char   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
@@ -1420,7 +1419,6 @@ BOOLEAN
 KdReceivePacketFromDebugger(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    BOOL   Status;             /* Status */
     char   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
@@ -1897,8 +1895,6 @@ BOOLEAN
 KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
                                         BOOLEAN IsNamedPipe)
 {
-StartAgain:
-
     BOOL  Status;        /* Status */
     DWORD EventMask = 0; /* Event mask to trigger */
 
@@ -2221,7 +2217,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               0,                            // Non Overlapped I/O
@@ -2240,7 +2236,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             Comm = CreateFile(PortNo,                       // Friendly name
                               GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                              0,                            // No Sharing, ports cant be shared
+                              0,                            // No Sharing, ports can't be shared
                               NULL,                         // No Security
                               OPEN_EXISTING,                // Open existing port only
                               FILE_FLAG_OVERLAPPED,         // Overlapped I/O
@@ -2277,7 +2273,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         SerialParams.DCBlength = sizeof(SerialParams);
 
         //
-        // retreives the current settings
+        // retrieves the current settings
         //
         Status = GetCommState(Comm, &SerialParams);
 
@@ -2777,6 +2773,16 @@ KdCloseConnection()
     {
         if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
         {
+            //
+            // The messages (and outputs) should no longer be passed
+            // to the debugger, so we'll indicate that debugger is not
+            // connected anymore
+            //
+            g_IsSerialConnectedToRemoteDebugger = FALSE;
+
+            //
+            // Unload VMM
+            //
             HyperDbgUnloadVmm();
         }
     }
@@ -2792,12 +2798,12 @@ KdCloseConnection()
             //
             // It's a debugger, we should send the close packet to debuggee
             //
-            ShowMessages("unloading debugger vmm module on debuggee...\n");
+            ShowMessages("unloading debugger vmm module on debuggee...");
 
             //
             // Send another packet so the user-mode is not waiting for new packet
             //
-            !KdCommandPacketToDebuggee(
+            KdCommandPacketToDebuggee(
                 DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
                 DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET);
         }
@@ -3022,7 +3028,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
         //
         // By the way, we don't need to send an input buffer
         // to the kernel, but let's keep it like this, if we
-        // want to pass some other aguments to the kernel in
+        // want to pass some other arguments to the kernel in
         // the future
         //
         Status = DeviceIoControl(
@@ -3117,7 +3123,6 @@ VOID
 KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 CurrentSymbolInfoIndex, UINT32 TotalSymbols)
 {
     BOOLEAN                       Result;
-    ULONG                         ReturnedLength;
     PDEBUGGER_UPDATE_SYMBOL_TABLE UsermodeSymDetailRequest;
 
     UsermodeSymDetailRequest =

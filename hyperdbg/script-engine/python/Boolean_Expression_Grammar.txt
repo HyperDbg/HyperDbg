@@ -91,12 +91,11 @@ E12->.TwoOpFunc4 ( WstringNumber , WstringNumber ) @.TwoOpFunc4
 
 E12->( BE )
 
-
 # Types must have '_' at the first
 E12->_register @PUSH
 E12->_global_id @PUSH
 E12->_local_id @PUSH
-
+E12->_function_parameter_id @PUSH 
 
 # numbers 
 E12->_hex @PUSH

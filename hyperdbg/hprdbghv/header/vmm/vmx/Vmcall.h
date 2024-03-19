@@ -162,7 +162,7 @@
 /**
  * @brief VMCALL to reset exception bitmap on VMCS
  * @details THIS VMCALL SHOULD BE USED ONLY IN
- * RESETING (CLEARING) EXCEPTION EVENTS
+ * RESETTING (CLEARING) EXCEPTION EVENTS
  *
  */
 #define VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x00000019
@@ -326,7 +326,6 @@ VmxHandleVmcallVmExit(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
  *
  * @return NTSTATUS
  */
-_Use_decl_annotations_
 NTSTATUS
 VmxVmcallDirectVmcallHandler(VIRTUAL_MACHINE_STATE *    VCpu,
                              UINT64                     VmcallNumber,

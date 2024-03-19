@@ -173,7 +173,7 @@ typedef enum _DEBUGGER_PREALLOC_COMMAND_TYPE
 typedef struct _DEBUGGER_PREALLOC_COMMAND
 {
     DEBUGGER_PREALLOC_COMMAND_TYPE Type;
-    UINT64                         Count;
+    UINT32                         Count;
     UINT32                         KernelStatus;
 
 } DEBUGGER_PREALLOC_COMMAND, *PDEBUGGER_PREALLOC_COMMAND;
@@ -490,7 +490,7 @@ typedef enum _DEBUGGER_EDIT_MEMORY_BYTE_SIZE
 typedef struct _DEBUGGER_EDIT_MEMORY
 {
     UINT32                         Result;     // Result from kernel
-    UINT64                         Address;    // Target adddress to modify
+    UINT64                         Address;    // Target address to modify
     UINT32                         ProcessId;  // specifies the process id
     DEBUGGER_EDIT_MEMORY_TYPE      MemoryType; // Type of memory
     DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;   // Modification size
@@ -535,7 +535,7 @@ typedef enum _DEBUGGER_SEARCH_MEMORY_BYTE_SIZE
  */
 typedef struct _DEBUGGER_SEARCH_MEMORY
 {
-    UINT64                           Address;    // Target adddress to start searching
+    UINT64                           Address;    // Target address to start searching
     UINT64                           Length;     // Length of bytes to search
     UINT32                           ProcessId;  // specifies the process id
     DEBUGGER_SEARCH_MEMORY_TYPE      MemoryType; // Type of memory
@@ -723,7 +723,7 @@ typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 typedef struct _DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY
 {
     UINT64 Eprocess;
-    UINT32 Pid;
+    UINT32 ProcessId;
     UINT64 Cr3;
     UCHAR  ImageFileName[15 + 1];
 
@@ -738,8 +738,8 @@ typedef struct _DEBUGGEE_THREAD_LIST_DETAILS_ENTRY
 {
     UINT64 Eprocess;
     UINT64 Ethread;
-    UINT64 Pid;
-    UINT64 Tid;
+    UINT32 ProcessId;
+    UINT32 ThreadId;
     UCHAR  ImageFileName[15 + 1];
 
 } DEBUGGEE_THREAD_LIST_DETAILS_ENTRY, *PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY;

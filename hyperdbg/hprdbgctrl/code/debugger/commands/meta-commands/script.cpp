@@ -28,7 +28,7 @@ CommandScriptHelp()
 {
     ShowMessages(".script : runs a HyperDbg script.\n\n");
 
-    ShowMessages("syntax : \.script [FilePath (string)] [Args (string)]\n");
+    ShowMessages("syntax : .script [FilePath (string)] [Args (string)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.ds\n");
@@ -258,16 +258,16 @@ HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[])
 /**
  * @brief .script command handler
  *
- * @param SplittedCommand
+ * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandScript(vector<string> SplittedCommand, string Command)
+CommandScript(vector<string> SplitCommand, string Command)
 {
     vector<string> PathAndArgs;
 
-    if (SplittedCommand.size() == 1)
+    if (SplitCommand.size() == 1)
     {
         ShowMessages("please specify a file\n");
         CommandScriptHelp();
@@ -282,7 +282,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
     //
     // Remove .script from it
     //
-    Command.erase(0, SplittedCommand.at(0).size());
+    Command.erase(0, SplitCommand.at(0).size());
 
     //
     // Trim it again

@@ -12,10 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//                 Structures	    			//
-//////////////////////////////////////////////////
-
-//////////////////////////////////////////////////
 //                     Enums	    			//
 //////////////////////////////////////////////////
 
@@ -23,21 +19,21 @@
  * @brief IN Instruction or OUT Instruction
  *
  */
-typedef enum
+typedef enum _IO_ACCESS_INSTR
 {
     AccessOut = 0,
     AccessIn  = 1,
-};
+} IO_ACCESS_INSTR;
 
 /**
  * @brief Immediate value or in DX
  *
  */
-typedef enum
+typedef enum _IO_OP_ENCODING
 {
     OpEncodingDx  = 0,
     OpEncodingImm = 1,
-};
+} IO_OP_ENCODING;
 
 //////////////////////////////////////////////////
 //        I/O Instructions Functions            //
@@ -171,7 +167,7 @@ VOID
 IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
-IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Port);
+IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port);
 
 VOID
 IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu);
