@@ -28,6 +28,79 @@ CommandRdmsrHelp()
     ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
 
+/// defines the GetLogicalProcessorInformationEx function
+typedef BOOL (WINAPI *glpie_t)(
+    LOGICAL_PROCESSOR_RELATIONSHIP,
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
+    PDWORD);
+
+/**
+ * @brief classic way to get number of cores in windows
+ * 
+ * @return size_t
+ */
+static size_t
+get_windows_compatible_n_cores()
+{
+    SYSTEM_INFO SysInfo;
+    GetSystemInfo(&SysInfo);
+    return SysInfo.dwNumberOfProcessors;
+}
+
+/*
+ * Windows NUMA support is particular
+ * https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex#remarks
+ *
+ * New api here:
+ * https://learn.microsoft.com/en-us/windows/win32/procthread/numa-support
+ */
+static size_t
+get_windows_numa_n_cores()
+{
+    uint8_t * buffer   = NULL;
+    size_t    n_cores  = 0;
+    DWORD     length   = 0;
+    HMODULE   kernel32 = GetModuleHandleW(L"kernel32.dll");
+
+    glpie_t GetLogicalProcessorInformationEx = (glpie_t)GetProcAddress(kernel32, "GetLogicalProcessorInformationEx");
+    if (!GetLogicalProcessorInformationEx)
+    {
+        return 0;
+    }
+
+    GetLogicalProcessorInformationEx(RelationAll, NULL, &length);
+    if (length < 1 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+        return 0;
+    }
+
+    buffer = (uint8_t *)malloc(length);
+    if (!buffer || !GetLogicalProcessorInformationEx(RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &length))
+    {
+        free(buffer);
+        return 0;
+    }
+
+    for (DWORD offset = 0; offset < length;)
+    {
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)(buffer + offset);
+        offset += info->Size;
+        if (info->Relationship != RelationProcessorCore)
+        {
+            continue;
+        }
+        for (WORD group = 0; group < info->Processor.GroupCount; ++group)
+        {
+            for (KAFFINITY mask = info->Processor.GroupMask[group].Mask; mask != 0; mask >>= 1)
+            {
+                n_cores += mask & 1;
+            }
+        }
+    }
+    free(buffer);
+    return n_cores;
+}
+
 /**
  * @brief rdmsr command handler
  *
@@ -39,7 +112,6 @@ VOID
 CommandRdmsr(vector<string> SplitCommand, string Command)
 {
     BOOL                           Status;
-    SYSTEM_INFO                    SysInfo;
     DWORD                          NumCPU;
     DEBUGGER_READ_AND_WRITE_ON_MSR MsrReadRequest;
     ULONG                          ReturnedLength;
@@ -116,8 +188,8 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
     //
     // Find logical cores count
     //
-    GetSystemInfo(&SysInfo);
-    NumCPU = SysInfo.dwNumberOfProcessors;
+    size_t n_cores = get_windows_numa_n_cores();
+    NumCPU = n_cores > 0 ? n_cores : get_windows_compatible_n_cores();
 
     //
     // allocate buffer for transferring messages
