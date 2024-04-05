@@ -632,7 +632,6 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
-        else
 
         default:
             if (*c >= '0' && *c <= '9')
@@ -898,7 +897,7 @@ Scan(char * str, char * c)
 
         Token = GetToken(c, str);
 
-        if ((char)*c == EOF)
+        if ((int)*c == EOF)
         {
             ReturnEndOfString = TRUE;
         }

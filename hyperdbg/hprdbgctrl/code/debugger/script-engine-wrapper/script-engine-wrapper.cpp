@@ -673,6 +673,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
     if (RspReg == NULL)
     {
         ShowMessages("err, unable to allocate stack for script engine tests");
+        free(TestStruct);
         return;
     }
 

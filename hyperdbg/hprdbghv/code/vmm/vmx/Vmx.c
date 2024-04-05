@@ -1385,7 +1385,7 @@ VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR S
 
     SegmentSelector->Selector = Selector;
     SegmentSelector->Limit    = __segmentlimit(Selector);
-    SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
+    SegmentSelector->Base     = ((UINT64)Descriptor32->BaseAddressLow | (UINT64)Descriptor32->BaseAddressMiddle << 16 | (UINT64)Descriptor32->BaseAddressHigh << 24);
 
     SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
 

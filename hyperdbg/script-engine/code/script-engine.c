@@ -2373,6 +2373,7 @@ NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
         //
         // There was an error allocating buffer
         //
+        free(Symbol);
         return NULL;
     }
 
@@ -2383,6 +2384,7 @@ NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
         //
         // There was an error allocating buffer
         //
+        free(Symbol);
         return NULL;
     }
 
