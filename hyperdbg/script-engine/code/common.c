@@ -41,6 +41,7 @@ NewUnknownToken()
         //
         // There was an error allocating buffer
         //
+        free(Token);
         return NULL;
     }
 
@@ -85,6 +86,7 @@ NewToken(TOKEN_TYPE Type, char * Value)
         //
         // There was an error allocating buffer
         //
+        free(Token);
         return NULL;
     }
 
@@ -329,6 +331,7 @@ CopyToken(PTOKEN Token)
         //
         // There was an error allocating buffer
         //
+        free(TokenCopy);
         return NULL;
     }
 

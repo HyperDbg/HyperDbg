@@ -1003,6 +1003,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     if (FieldNameW == NULL)
     {
         printf("err, could not allocate buffer");
+        free(TypeNameW);
         return FALSE;
     }
 
