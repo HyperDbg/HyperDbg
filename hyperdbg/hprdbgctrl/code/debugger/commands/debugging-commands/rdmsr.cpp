@@ -29,76 +29,78 @@ CommandRdmsrHelp()
 }
 
 /// defines the GetLogicalProcessorInformationEx function
-typedef BOOL (WINAPI *glpie_t)(
+typedef BOOL(WINAPI * glpie_t)(
     LOGICAL_PROCESSOR_RELATIONSHIP,
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
     PDWORD);
 
 /**
  * @brief classic way to get number of cores in windows
- * 
- * @return size_t
+ *
+ * @return SIZE_T
  */
-static size_t
-get_windows_compatible_n_cores()
+static SIZE_T
+GetWindowsCompatibleNumberOfCores()
 {
     SYSTEM_INFO SysInfo;
     GetSystemInfo(&SysInfo);
-    return SysInfo.dwNumberOfProcessors;
+    return (SIZE_T)SysInfo.dwNumberOfProcessors;
 }
 
 /*
- * Windows NUMA support is particular
+ * @brief Windows NUMA support is particular
  * https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex#remarks
  *
  * New api here:
  * https://learn.microsoft.com/en-us/windows/win32/procthread/numa-support
+ *
+ * @return SIZE_T
  */
-static size_t
-get_windows_numa_n_cores()
+static SIZE_T
+GetWindowsNumaNumberOfCores()
 {
-    uint8_t * buffer   = NULL;
-    size_t    n_cores  = 0;
-    DWORD     length   = 0;
-    HMODULE   kernel32 = GetModuleHandleW(L"kernel32.dll");
+    uint8_t * Buffer   = NULL;
+    SIZE_T    NumCores = 0;
+    DWORD     Length   = 0;
+    HMODULE   Kernel32 = GetModuleHandleW(L"kernel32.dll");
 
-    glpie_t GetLogicalProcessorInformationEx = (glpie_t)GetProcAddress(kernel32, "GetLogicalProcessorInformationEx");
+    glpie_t GetLogicalProcessorInformationEx = (glpie_t)GetProcAddress(Kernel32, "GetLogicalProcessorInformationEx");
     if (!GetLogicalProcessorInformationEx)
     {
         return 0;
     }
 
-    GetLogicalProcessorInformationEx(RelationAll, NULL, &length);
-    if (length < 1 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    GetLogicalProcessorInformationEx(RelationAll, NULL, &Length);
+    if (Length < 1 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
         return 0;
     }
 
-    buffer = (uint8_t *)malloc(length);
-    if (!buffer || !GetLogicalProcessorInformationEx(RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &length))
+    Buffer = (uint8_t *)malloc(Length);
+    if (!Buffer || !GetLogicalProcessorInformationEx(RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)Buffer, &Length))
     {
-        free(buffer);
+        free(Buffer);
         return 0;
     }
 
-    for (DWORD offset = 0; offset < length;)
+    for (DWORD Offset = 0; Offset < Length;)
     {
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)(buffer + offset);
-        offset += info->Size;
-        if (info->Relationship != RelationProcessorCore)
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX Info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)(Buffer + Offset);
+        Offset += Info->Size;
+        if (Info->Relationship != RelationProcessorCore)
         {
             continue;
         }
-        for (WORD group = 0; group < info->Processor.GroupCount; ++group)
+        for (WORD group = 0; group < Info->Processor.GroupCount; ++group)
         {
-            for (KAFFINITY mask = info->Processor.GroupMask[group].Mask; mask != 0; mask >>= 1)
+            for (KAFFINITY Mask = Info->Processor.GroupMask[group].Mask; Mask != 0; Mask >>= 1)
             {
-                n_cores += mask & 1;
+                NumCores += Mask & 1;
             }
         }
     }
-    free(buffer);
-    return n_cores;
+    free(Buffer);
+    return NumCores;
 }
 
 /**
@@ -112,7 +114,7 @@ VOID
 CommandRdmsr(vector<string> SplitCommand, string Command)
 {
     BOOL                           Status;
-    DWORD                          NumCPU;
+    SIZE_T                         NumCPU;
     DEBUGGER_READ_AND_WRITE_ON_MSR MsrReadRequest;
     ULONG                          ReturnedLength;
     UINT64                         Msr;
@@ -188,8 +190,8 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
     //
     // Find logical cores count
     //
-    size_t n_cores = get_windows_numa_n_cores();
-    NumCPU = n_cores > 0 ? n_cores : get_windows_compatible_n_cores();
+    SIZE_T NumCores = GetWindowsNumaNumberOfCores();
+    NumCPU          = NumCores > 0 ? NumCores : GetWindowsCompatibleNumberOfCores();
 
     //
     // allocate buffer for transferring messages
@@ -204,7 +206,7 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
         &MsrReadRequest,                       // Input Buffer to driver.
         SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Input buffer length
         OutputBuffer,                          // Output Buffer from driver.
-        sizeof(UINT64) * NumCPU,               // Length of output buffer in bytes.
+        (DWORD)(sizeof(UINT64) * NumCPU),      // Length of output buffer in bytes.
         &ReturnedLength,                       // Bytes placed in buffer.
         NULL                                   // synchronous call
     );
@@ -225,7 +227,7 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
         //
         // Show all cores
         //
-        for (size_t i = 0; i < NumCPU; i++)
+        for (SIZE_T i = 0; i < NumCPU; i++)
         {
             ShowMessages("core : 0x%x - msr[%llx] = %s\n", i, Msr, SeparateTo64BitValue((OutputBuffer[i])).c_str());
         }
