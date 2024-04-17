@@ -554,6 +554,11 @@ const unsigned char BuildSignature[] = {
 //            Debuggee Communication            //
 //////////////////////////////////////////////////
 
+/**
+ * @brief constant indicator of a HyperDbg packet
+ * @warning used in hwdbg
+ *
+ */
 #define INDICATOR_OF_HYPERDBG_PACKET \
     0x4859504552444247 // HYPERDBG = 0x4859504552444247
 
