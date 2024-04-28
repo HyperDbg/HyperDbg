@@ -17,8 +17,8 @@
  * @warning This file should be changed along with hwdbg files
  *
  */
-typedef enum _HWDBG_ACTION
+typedef enum _HWDBG_ACTION_ENUMS
 {
     hwdbgActionSendVersion = 0,
     hwdbgActionSendPinInformation,
-} HWDBG_ACTION;
+} HWDBG_ACTION_ENUMS;
