@@ -41,7 +41,7 @@ If you're interested in understanding the internal design and architecture of hy
 
 ## Publications
 
-In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
+In case you use one of **HyperDbg**'s components in your work, please consider citing our papers.
 
 **1. [HyperDbg: Reinventing Hardware-Assisted Debugging (CCS'22)](https://dl.acm.org/doi/abs/10.1145/3548606.3560649)** [[arXiv](https://arxiv.org/abs/2207.05676)]
 
@@ -52,6 +52,17 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
   booktitle={Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security},
   pages={1709--1723},
   year={2022}
+}
+```
+
+**2. [The Reversing Machine: Reconstructing Memory Assumptions](https://arxiv.org/pdf/2405.00298)** [[arXiv](https://arxiv.org/abs/2405.00298)]
+
+```
+@misc{karvandi2024reversing,
+  Author = {Mohammad Sina Karvandi and Soroush Meghdadizanjani and Sima Arasteh and Saleh Khalaj Monfared and Mohammad K. Fallah and Saeid Gorgin and Jeong-A Lee and Erik van der Kouwe},
+  Title = {The Reversing Machine: Reconstructing Memory Assumptions},
+  Year = {2024},
+  Eprint = {arXiv:2405.00298},
 }
 ```
 
