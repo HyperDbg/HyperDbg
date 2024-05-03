@@ -140,6 +140,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
 
 /**
  * @brief enum for different packet types in HyperDbg packets
+ * @warning used in hwdbg
  *
  */
 typedef enum _DEBUGGER_REMOTE_PACKET_TYPE
@@ -153,22 +154,22 @@ typedef enum _DEBUGGER_REMOTE_PACKET_TYPE
     //
     // Debugger to debuggee (user-mode)
     //
-    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE = 2,
 
     //
     // Debuggee to debugger (user-mode and kernel-mode, vmx-root mode)
     //
-    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER = 3,
 
     //
-    // Debugger to debuggee (hardware)
+    // Debugger to debuggee (hardware), used in hwdbg
     //
-    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL = 1,
+    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL = 4,
 
     //
-    // Debuggee to debugger (hardware)
+    // Debuggee to debugger (hardware), used in hwdbg
     //
-    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_HARDWARE_LEVEL,
+    DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_HARDWARE_LEVEL = 5,
 
 } DEBUGGER_REMOTE_PACKET_TYPE;
 

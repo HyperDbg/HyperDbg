@@ -373,12 +373,6 @@
     <ClCompile Include="code\debugger\driver-loader\install.cpp">
       <Filter>code\debugger\driver-loader</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\script-engine-wrapper\script-engine.cpp">
-      <Filter>code\debugger\script-engine</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\script-engine-wrapper\script-engine-wrapper.cpp">
-      <Filter>code\debugger\script-engine</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\tests\tests.cpp">
       <Filter>code\debugger\tests</Filter>
     </ClCompile>
@@ -432,9 +426,6 @@
     </ClCompile>
     <ClCompile Include="code\debugger\kernel-level\kd.cpp">
       <Filter>code\debugger\kernel-level</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp">
-      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp">
       <Filter>code\debugger\kernel-level</Filter>
@@ -501,6 +492,15 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\debugging-commands\gu.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\script-engine\script-engine.cpp">
+      <Filter>code\debugger\script-engine</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\script-engine\script-engine-wrapper.cpp">
+      <Filter>code\debugger\script-engine</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\script-engine\symbol.cpp">
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

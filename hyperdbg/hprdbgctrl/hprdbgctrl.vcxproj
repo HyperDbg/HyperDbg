@@ -179,7 +179,9 @@
     <ClCompile Include="code\debugger\misc\callstack.cpp" />
     <ClCompile Include="code\debugger\misc\disassembler.cpp" />
     <ClCompile Include="code\debugger\misc\readmem.cpp" />
-    <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp" />
+    <ClCompile Include="code\debugger\script-engine\script-engine-wrapper.cpp" />
+    <ClCompile Include="code\debugger\script-engine\script-engine.cpp" />
+    <ClCompile Include="code\debugger\script-engine\symbol.cpp" />
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
@@ -267,8 +269,6 @@
     <ClCompile Include="code\debugger\communication\tcpclient.cpp" />
     <ClCompile Include="code\debugger\communication\tcpserver.cpp" />
     <ClCompile Include="code\debugger\driver-loader\install.cpp" />
-    <ClCompile Include="code\debugger\script-engine-wrapper\script-engine-wrapper.cpp" />
-    <ClCompile Include="code\debugger\script-engine-wrapper\script-engine.cpp" />
     <ClCompile Include="code\debugger\tests\tests.cpp" />
     <ClCompile Include="code\debugger\transparency\gaussian-rng.cpp" />
     <ClCompile Include="code\debugger\transparency\transparency.cpp" />
