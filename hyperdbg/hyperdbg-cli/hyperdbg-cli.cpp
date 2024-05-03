@@ -20,8 +20,6 @@
 
 using namespace std;
 
-#pragma comment(lib, "HPRDBGCTRL.lib")
-
 /**
  * @brief CLI main function
  *

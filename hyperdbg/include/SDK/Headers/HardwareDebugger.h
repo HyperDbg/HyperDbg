@@ -19,8 +19,10 @@
  */
 typedef enum _HWDBG_ACTION_ENUMS
 {
-    hwdbgActionSendVersion = 0,
-    hwdbgActionSendPinInformation,
+    hwdbgActionSendVersion           = 0,
+    hwdbgActionSendPinInformation    = 1,
+    hwdbgActionConfigureScriptBuffer = 2,
+
 } HWDBG_ACTION_ENUMS;
 
 /**
@@ -30,6 +32,8 @@ typedef enum _HWDBG_ACTION_ENUMS
  */
 typedef enum _HWDBG_RESPONSE_ENUMS
 {
-    hwdbgResponseVersion = 0,
-    hwdbgResponsePinInformation,
+    hwdbgResponseVersion                         = 0,
+    hwdbgResponsePinInformation                  = 1,
+    hwdbgResponseScriptBufferConfigurationResult = 2,
+
 } HWDBG_RESPONSE_ENUMS;
