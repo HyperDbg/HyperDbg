@@ -10,9 +10,10 @@ New release of the HyperDbg Debugger.
 ### Added
 - Added hwdbg headers ([link](https://hwdbg.hyperdbg.org))
 - Added support NUMA configuration with multiple count CPU sockets ([link](https://github.com/HyperDbg/HyperDbg/commit/040f70024fdad879ecf2ff2b31da066d4ed759fc))
+- Added citation to TRM paper ([link](https://arxiv.org/abs/2405.00298))
 
 ### Changed
-- Change release flag of to Mtd
+- Change release flag of hyperdbg-cli to Multi-threaded Debug (/MTd)
 - Fix bitwise extended type, fixed memleaks, remove excess else and cmp int with EOF ([link](https://github.com/HyperDbg/HyperDbg/commit/7bcf1e5c71364aa3177eef0929c07463155ce5c6))
 
 ## [0.8.2.0] - 2024-03-19
