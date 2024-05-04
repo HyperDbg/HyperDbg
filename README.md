@@ -58,11 +58,11 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 **2. [The Reversing Machine: Reconstructing Memory Assumptions](https://arxiv.org/pdf/2405.00298)** [[arXiv](https://arxiv.org/abs/2405.00298)]
 
 ```
-@misc{karvandi2024reversing,
-  Author = {Mohammad Sina Karvandi and Soroush Meghdadizanjani and Sima Arasteh and Saleh Khalaj Monfared and Mohammad K. Fallah and Saeid Gorgin and Jeong-A Lee and Erik van der Kouwe},
-  Title = {The Reversing Machine: Reconstructing Memory Assumptions},
-  Year = {2024},
-  Eprint = {arXiv:2405.00298},
+@article{karvandi2024reversing,
+  title={The Reversing Machine: Reconstructing Memory Assumptions},
+  author={Karvandi, Mohammad Sina and Meghdadizanjani, Soroush and Arasteh, Sima and Monfared, Saleh Khalaj and Fallah, Mohammad K and Gorgin, Saeid and Lee, Jeong-A and van der Kouwe, Erik},
+  journal={arXiv preprint arXiv:2405.00298},
+  year={2024}
 }
 ```
 
