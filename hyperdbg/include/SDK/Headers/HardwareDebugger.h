@@ -12,6 +12,10 @@
  */
 #pragma once
 
+//////////////////////////////////////////////////
+//                   Enums                      //
+//////////////////////////////////////////////////
+
 /**
  * @brief Different action of hwdbg
  * @warning This file should be changed along with hwdbg files
@@ -19,9 +23,9 @@
  */
 typedef enum _HWDBG_ACTION_ENUMS
 {
-    hwdbgActionSendVersion           = 0,
-    hwdbgActionSendPinInformation    = 1,
-    hwdbgActionConfigureScriptBuffer = 2,
+    hwdbgActionSendVersion           = 1,
+    hwdbgActionSendPinInformation    = 2,
+    hwdbgActionConfigureScriptBuffer = 3,
 
 } HWDBG_ACTION_ENUMS;
 
@@ -32,8 +36,54 @@ typedef enum _HWDBG_ACTION_ENUMS
  */
 typedef enum _HWDBG_RESPONSE_ENUMS
 {
-    hwdbgResponseVersion                         = 0,
-    hwdbgResponsePinInformation                  = 1,
-    hwdbgResponseScriptBufferConfigurationResult = 2,
+    hwdbgResponseInvalidPacketOrError            = 1,
+    hwdbgResponseVersion                         = 2,
+    hwdbgResponsePinInformation                  = 3,
+    hwdbgResponseScriptBufferConfigurationResult = 4,
 
 } HWDBG_RESPONSE_ENUMS;
+
+/**
+ * @brief Different error codes in hwdbg
+ * @warning This file should be changed along with hwdbg files
+ *
+ */
+typedef enum _HWDBG_ERROR_ENUMS
+{
+    hwdbgErrorInvalidPacket = 1,
+
+} HWDBG_ERROR_ENUMS;
+
+//////////////////////////////////////////////////
+//                   Structures                 //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The structure of port information in hwdbg
+ *
+ */
+typedef struct _HWDBG_PORT_INFORMATION
+{
+    UINT32 CountOfPorts;
+
+    /*
+
+    Here the pin information details will be available
+
+        UINT16     | UINT16
+        Port Index | Port Size
+
+    */
+
+} HWDBG_PORT_INFORMATION, *PHWDBG_PORT_INFORMATION;
+
+/**
+ * @brief The structure of port information (each item) in hwdbg
+ *
+ */
+typedef struct _HWDBG_PORT_INFORMATION_ITEMS
+{
+    UINT16 PortIndex;
+    UINT16 PortSize;
+
+} HWDBG_PORT_INFORMATION_ITEMS, *PHWDBG_PORT_INFORMATION_ITEMS;
