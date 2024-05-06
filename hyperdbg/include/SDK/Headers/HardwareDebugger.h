@@ -68,10 +68,10 @@ typedef struct _HWDBG_PORT_INFORMATION
 
     /*
 
-    Here the pin information details will be available
+    Here the pin information details will be available.
 
-        UINT16     | UINT16
-        Port Index | Port Size
+        UINT32
+        Port Size
 
     */
 
@@ -83,7 +83,6 @@ typedef struct _HWDBG_PORT_INFORMATION
  */
 typedef struct _HWDBG_PORT_INFORMATION_ITEMS
 {
-    UINT16 PortIndex;
-    UINT16 PortSize;
+    UINT32 PortSize;
 
 } HWDBG_PORT_INFORMATION_ITEMS, *PHWDBG_PORT_INFORMATION_ITEMS;
