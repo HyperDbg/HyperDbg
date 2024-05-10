@@ -727,7 +727,7 @@ InterpretScript(vector<string> * SplitCommand,
     vector<int>    IndexesToRemove;
     UINT32         Index            = 0;
     UINT32         NewIndexToRemove = 0;
-    UINT32         OpenBracket      = 0;
+    INT32          OpenBracket      = 0; // Should be signed
     UINT32         CountOfOpenBrackets;
     UINT32         CountOfCloseBrackets;
     UINT32         IndexInCommandCaseSensitive       = 0;
