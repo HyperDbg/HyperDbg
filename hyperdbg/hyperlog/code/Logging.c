@@ -9,18 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include <ntddk.h>
-#include <ntstrsafe.h>
-#include <Windef.h>
-
-#define HYPERDBG_KERNEL_MODE
-#define HYPERDBG_HYPER_LOG
-
-#include "SDK/HyperDbgSdk.h"
-#include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLogImports.h"
-#include "components/spinlock/header/Spinlock.h"
-#include "Logging.h"
+#include "pch.h"
 
 /**
  * @brief Checks whether the message tracing operates on vmx-root mode or not
@@ -116,7 +105,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     // Initialize buffers for trace message and data messages
     //(we have two buffers one for vmx root and one for vmx non-root)
     //
-    MessageBufferInformation = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(LOG_BUFFER_INFORMATION) * 2, POOLTAG);
+    MessageBufferInformation = PlatformMemAllocateZeroedNonPagedPool(sizeof(LOG_BUFFER_INFORMATION) * 2);
 
     if (!MessageBufferInformation)
     {
@@ -124,32 +113,27 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     }
 
     //
-    // Zeroing the memory
-    //
-    RtlZeroMemory(MessageBufferInformation, sizeof(LOG_BUFFER_INFORMATION) * 2);
-
-    //
     // Allocate VmxTempMessage and VmxLogMessage
     //
     VmxTempMessage = NULL;
-    VmxTempMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize * ProcessorsCount, POOLTAG);
+    VmxTempMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
 
     if (!VmxTempMessage)
     {
-        ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+        PlatformMemFreePool(MessageBufferInformation);
         MessageBufferInformation = NULL;
         return FALSE; // STATUS_INSUFFICIENT_RESOURCES
     }
 
     VmxLogMessage = NULL;
-    VmxLogMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize * ProcessorsCount, POOLTAG);
+    VmxLogMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
 
     if (!VmxLogMessage)
     {
-        ExFreePoolWithTag(MessageBufferInformation, POOLTAG);
+        PlatformMemFreePool(MessageBufferInformation);
         MessageBufferInformation = NULL;
 
-        ExFreePoolWithTag(VmxTempMessage, POOLTAG);
+        PlatformMemFreePool(VmxTempMessage);
         VmxTempMessage = NULL;
 
         return FALSE; // STATUS_INSUFFICIENT_RESOURCES
@@ -177,8 +161,8 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // allocate the buffer for regular buffers
         //
-        MessageBufferInformation[i].BufferStartAddress                   = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, LogBufferSize, POOLTAG);
-        MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
+        MessageBufferInformation[i].BufferStartAddress                   = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSize);
+        MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = (UINT64)PlatformMemAllocateNonPagedPool(PacketChunkSize);
 
         if (!MessageBufferInformation[i].BufferStartAddress ||
             !MessageBufferInformation[i].BufferForMultipleNonImmediateMessage)
@@ -189,7 +173,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // allocate the buffer for priority buffers
         //
-        MessageBufferInformation[i].BufferStartAddressPriority = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, LogBufferSizePriority, POOLTAG);
+        MessageBufferInformation[i].BufferStartAddressPriority = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSizePriority);
 
         if (!MessageBufferInformation[i].BufferStartAddressPriority)
         {
@@ -236,24 +220,24 @@ LogUnInitialize()
         //
         if (MessageBufferInformation[i].BufferStartAddress != NULL64_ZERO)
         {
-            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferStartAddress, POOLTAG);
+            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferStartAddress);
         }
 
         if (MessageBufferInformation[i].BufferStartAddressPriority != NULL64_ZERO)
         {
-            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
+            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferStartAddressPriority);
         }
 
         if (MessageBufferInformation[i].BufferForMultipleNonImmediateMessage != NULL64_ZERO)
         {
-            ExFreePoolWithTag((PVOID)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
+            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage);
         }
     }
 
     //
     // de-allocate buffers for trace message and data messages
     //
-    ExFreePoolWithTag((PVOID)MessageBufferInformation, POOLTAG);
+    PlatformMemFreePool((PVOID)MessageBufferInformation);
     MessageBufferInformation = NULL;
 }
 
@@ -1024,7 +1008,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // To avoid buffer collision and buffer re-writing in VMX non-root, allocate pool
         //
-        LogMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
+        LogMessage = PlatformMemAllocateNonPagedPool(PacketChunkSize);
 
         if (LogMessage == NULL)
         {
@@ -1033,14 +1017,14 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
             //
             return FALSE;
         }
-        TempMessage = ExAllocatePool2(POOL_FLAG_NON_PAGED, PacketChunkSize, POOLTAG);
+        TempMessage = PlatformMemAllocateNonPagedPool(PacketChunkSize);
 
         if (TempMessage == NULL)
         {
             //
             // Insufficient space
             //
-            ExFreePoolWithTag(LogMessage, POOLTAG);
+            PlatformMemFreePool(LogMessage);
             return FALSE;
         }
     }
@@ -1159,8 +1143,8 @@ FreeBufferAndReturn:
 
     if (!IsVmxRootMode)
     {
-        ExFreePoolWithTag(LogMessage, POOLTAG);
-        ExFreePoolWithTag(TempMessage, POOLTAG);
+        PlatformMemFreePool(LogMessage);
+        PlatformMemFreePool(TempMessage);
     }
 
     return Result;
@@ -1463,7 +1447,7 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
 
     if (NotifyRecord != NULL)
     {
-        ExFreePoolWithTag(NotifyRecord, POOLTAG);
+        PlatformMemFreePool(NotifyRecord);
     }
 }
 
@@ -1498,7 +1482,7 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Allocate a record and save all the event context
         //
-        NotifyRecord = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, sizeof(NOTIFY_RECORD), POOLTAG);
+        NotifyRecord = PlatformMemAllocateNonPagedPoolWithQuota(sizeof(NOTIFY_RECORD));
 
         if (NULL == NotifyRecord)
         {
@@ -1607,7 +1591,7 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Allocate a record and save all the event context
     //
-    NotifyRecord = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, sizeof(NOTIFY_RECORD), POOLTAG);
+    NotifyRecord = PlatformMemAllocateNonPagedPoolWithQuota(sizeof(NOTIFY_RECORD));
 
     if (NULL == NotifyRecord)
     {
@@ -1635,7 +1619,7 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     if (!NT_SUCCESS(Status))
     {
         DbgPrint("Err, unable to reference user mode event object, status = 0x%x", Status);
-        ExFreePoolWithTag(NotifyRecord, POOLTAG);
+        PlatformMemFreePool(NotifyRecord);
         return Status;
     }
 

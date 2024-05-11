@@ -46,6 +46,20 @@ PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes)
 }
 
 /**
+ * @brief Allocate a non-paged buffer (use QUOTA)
+ *
+ * @param NumberOfBytes
+ * @return PVOID
+ */
+PVOID
+PlatformMemAllocateNonPagedPoolWithQuota(SIZE_T NumberOfBytes)
+{
+    PVOID Result = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, NumberOfBytes, POOLTAG);
+
+    return Result;
+}
+
+/**
  * @brief Allocate a non-paged buffer (zeroed)
  *
  * @param NumberOfBytes
