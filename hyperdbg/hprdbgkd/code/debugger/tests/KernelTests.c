@@ -100,7 +100,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         //
         // Free the previous pool
         //
-        CrsFreePool((PVOID)TempPool);
+        PlatformMemFreePool((PVOID)TempPool);
     }
 
     LogInfo("All the kernel events are triggered");

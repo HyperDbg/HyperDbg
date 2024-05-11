@@ -368,7 +368,7 @@ VmxPerformVirtualizationOnAllCores()
     //
     // Allocate	global variable to hold Ept State
     //
-    g_EptState = CrsAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
+    g_EptState = PlatformMemAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
 
     if (!g_EptState)
     {
@@ -639,10 +639,10 @@ VmxTerminate()
         //
         MmFreeContiguousMemory((PVOID)VCpu->VmxonRegionVirtualAddress);
         MmFreeContiguousMemory((PVOID)VCpu->VmcsRegionVirtualAddress);
-        CrsFreePool((PVOID)VCpu->VmmStack);
-        CrsFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
-        CrsFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
-        CrsFreePool((PVOID)VCpu->IoBitmapVirtualAddressB);
+        PlatformMemFreePool((PVOID)VCpu->VmmStack);
+        PlatformMemFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
+        PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
+        PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressB);
 
         return TRUE;
     }
@@ -1130,7 +1130,7 @@ VmxPerformTermination()
     //
     // Free the buffer related to MSRs that cause #GP
     //
-    CrsFreePool(g_MsrBitmapInvalidMsrs);
+    PlatformMemFreePool(g_MsrBitmapInvalidMsrs);
     g_MsrBitmapInvalidMsrs = NULL;
 
     //
@@ -1149,7 +1149,7 @@ VmxPerformTermination()
     //
     // Free EptState
     //
-    CrsFreePool(g_EptState);
+    PlatformMemFreePool(g_EptState);
     g_EptState = NULL;
 
     //

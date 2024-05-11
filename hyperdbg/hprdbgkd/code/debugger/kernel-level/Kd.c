@@ -26,7 +26,7 @@ KdInitializeKernelDebugger()
     //
     // for (size_t i = 0; i < CoreCount; i++)
     // {
-    //     g_DbgState[i].KdDpcObject = CrsAllocateNonPagedPool(sizeof(KDPC));
+    //     g_DbgState[i].KdDpcObject = PlatformMemAllocateNonPagedPool(sizeof(KDPC));
     //
     //     if (g_DbgState[i].KdDpcObject == NULL)
     //     {

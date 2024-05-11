@@ -76,6 +76,12 @@
 #include "components/spinlock/header/Spinlock.h"
 
 //
+// Platform independent headers
+//
+#include "platform/kernel/header/Mem.h"
+#include "platform/kernel/header/Environment.h"
+
+//
 // Optimization algorithms
 //
 #include "components/optimizations/header/AvlTree.h"

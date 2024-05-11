@@ -111,7 +111,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     // Allocate the buffer
     //
     ProcessDebuggingDetail = (USERMODE_DEBUGGING_PROCESS_DETAILS *)
-        CrsAllocateZeroedNonPagedPool(sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
+        PlatformMemAllocateZeroedNonPagedPool(sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     if (!ProcessDebuggingDetail)
     {
@@ -139,7 +139,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     //
     if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
     {
-        CrsFreePool(ProcessDebuggingDetail);
+        PlatformMemFreePool(ProcessDebuggingDetail);
         return (UINT64)NULL;
     }
 
@@ -243,7 +243,7 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
         //
         // Unallocate the pool
         //
-        CrsFreePool(ProcessDebuggingDetails);
+        PlatformMemFreePool(ProcessDebuggingDetails);
     }
 }
 
@@ -284,7 +284,7 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
     //
     // Unallocate the pool
     //
-    CrsFreePool(ProcessDebuggingDetails);
+    PlatformMemFreePool(ProcessDebuggingDetails);
 
     return TRUE;
 }

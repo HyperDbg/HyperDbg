@@ -621,7 +621,7 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     }
     else
     {
-        TargetBuffer = (PVOID)CrsAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        TargetBuffer = (PVOID)PlatformMemAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
         if (!TargetBuffer)
         {
@@ -655,7 +655,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     // Allocate address anywhere in the OS's memory space and
     // zero out all entries to ensure all unused entries are marked Not Present
     //
-    PageTable = CrsAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
+    PageTable = PlatformMemAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
 
     if (PageTable == NULL)
     {

@@ -19,7 +19,7 @@
  * @return PVOID
  */
 PVOID
-CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
 {
     PVOID            Result          = NULL;
     PHYSICAL_ADDRESS MaxPhysicalAddr = {.QuadPart = MAXULONG64};
@@ -38,7 +38,7 @@ CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
  * @return PVOID
  */
 PVOID
-CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes)
 {
     PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
 
@@ -52,7 +52,7 @@ CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
  * @return PVOID
  */
 PVOID
-CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
 {
     PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
 
@@ -69,7 +69,7 @@ CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
  * @return VOID
  */
 VOID
-CrsFreePool(PVOID BufferAddress)
+PlatformMemFreePool(PVOID BufferAddress)
 {
     ExFreePoolWithTag(BufferAddress, POOLTAG);
 }

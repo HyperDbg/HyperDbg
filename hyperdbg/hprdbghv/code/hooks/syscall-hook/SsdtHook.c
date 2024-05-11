@@ -43,7 +43,7 @@ SyscallHookGetKernelBase(PULONG ImageSize)
         return NULL;
     }
 
-    SystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)CrsAllocateNonPagedPool(SystemInfoBufferSize * 2);
+    SystemInfoBuffer = (PSYSTEM_MODULE_INFORMATION)PlatformMemAllocateNonPagedPool(SystemInfoBufferSize * 2);
 
     if (!SystemInfoBuffer)
     {
@@ -243,7 +243,7 @@ NtCreateFileHook(
         FileHandle               = *FileHandle;
         ObjectName.Length        = ObjectAttributes->ObjectName->Length;
         ObjectName.MaximumLength = ObjectAttributes->ObjectName->MaximumLength;
-        ObjectName.Buffer        = CrsAllocateZeroedNonPagedPool(ObjectName.MaximumLength);
+        ObjectName.Buffer        = PlatformMemAllocateZeroedNonPagedPool(ObjectName.MaximumLength);
         RtlCopyUnicodeString(&ObjectName, ObjectAttributes->ObjectName);
 
         ConvertStatus = RtlUnicodeStringToAnsiString(&FileNameA, ObjectAttributes->ObjectName, TRUE);
@@ -255,7 +255,7 @@ NtCreateFileHook(
 
     if (ObjectName.Buffer)
     {
-        CrsFreePool(ObjectName.Buffer);
+        PlatformMemFreePool(ObjectName.Buffer);
     }
 
     return NtCreateFileOrig(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);

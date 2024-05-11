@@ -132,7 +132,7 @@ DebuggerInitialize()
     //
     if (!g_ScriptGlobalVariables)
     {
-        g_ScriptGlobalVariables = CrsAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
+        g_ScriptGlobalVariables = PlatformMemAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
     }
 
     if (!g_ScriptGlobalVariables)
@@ -162,7 +162,7 @@ DebuggerInitialize()
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = CrsAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
+            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = PlatformMemAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
@@ -175,7 +175,7 @@ DebuggerInitialize()
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = CrsAllocateNonPagedPool(MAX_TEMP_COUNT * sizeof(UINT64));
+            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = PlatformMemAllocateNonPagedPool(MAX_TEMP_COUNT * sizeof(UINT64));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
@@ -293,7 +293,7 @@ DebuggerUninitialize()
     //
     if (g_ScriptGlobalVariables != NULL)
     {
-        CrsFreePool(g_ScriptGlobalVariables);
+        PlatformMemFreePool(g_ScriptGlobalVariables);
         g_ScriptGlobalVariables = NULL;
     }
 
@@ -306,13 +306,13 @@ DebuggerUninitialize()
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
-            CrsFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable);
+            PlatformMemFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable);
             CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = NULL;
         }
 
         if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
         {
-            CrsFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable);
+            PlatformMemFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable);
             CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = NULL;
         }
     }
@@ -440,7 +440,7 @@ DebuggerCreateEvent(BOOLEAN                           Enabled,
         //
         // If it's not coming from the VMX-root mode then we're allocating it from the OS buffers
         //
-        Event = CrsAllocateZeroedNonPagedPool(EventBufferSize);
+        Event = PlatformMemAllocateZeroedNonPagedPool(EventBufferSize);
 
         if (!Event)
         {
@@ -600,7 +600,7 @@ DebuggerAllocateSafeRequestedBuffer(SIZE_T                            SizeOfRequ
     }
     else
     {
-        RequestedBuffer = CrsAllocateZeroedNonPagedPool(SizeOfRequestedSafeBuffer);
+        RequestedBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfRequestedSafeBuffer);
 
         if (!RequestedBuffer)
         {
@@ -751,7 +751,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // If it's not coming from the VMX-root mode then we're allocating it from the OS buffers
         //
-        Action = CrsAllocateZeroedNonPagedPool(ActionBufferSize);
+        Action = PlatformMemAllocateZeroedNonPagedPool(ActionBufferSize);
 
         if (Action == NULL)
         {
@@ -791,7 +791,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
             }
 
             //
@@ -819,7 +819,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
             }
 
             //
@@ -859,7 +859,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
             }
 
             //
@@ -887,7 +887,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
             }
 
             //
@@ -925,11 +925,11 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
 
                 if (RequestedBuffer != NULL)
                 {
-                    CrsFreePool(RequestedBuffer);
+                    PlatformMemFreePool(RequestedBuffer);
                 }
             }
 
@@ -975,11 +975,11 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
             }
             else
             {
-                CrsFreePool(Action);
+                PlatformMemFreePool(Action);
 
                 if (RequestedBuffer != 0)
                 {
-                    CrsFreePool(RequestedBuffer);
+                    PlatformMemFreePool(RequestedBuffer);
                 }
             }
 
@@ -2525,7 +2525,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
             }
             else
             {
-                CrsFreePool((PVOID)CurrentAction->RequestedBuffer.RequstBufferAddress);
+                PlatformMemFreePool((PVOID)CurrentAction->RequestedBuffer.RequstBufferAddress);
             }
         }
 
@@ -2540,7 +2540,7 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
         }
         else
         {
-            CrsFreePool(CurrentAction);
+            PlatformMemFreePool(CurrentAction);
         }
     }
     //
@@ -2612,7 +2612,7 @@ DebuggerRemoveEvent(UINT64 Tag, BOOLEAN PoolManagerAllocatedMemory)
     }
     else
     {
-        CrsFreePool(Event);
+        PlatformMemFreePool(Event);
     }
 
     return TRUE;

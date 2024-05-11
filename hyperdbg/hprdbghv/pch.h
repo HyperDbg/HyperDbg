@@ -50,6 +50,10 @@
 //
 #include "Configuration.h"
 #include "macros/MetaMacros.h"
+
+//
+// Platform independent headers
+//
 #include "platform/kernel/header/Mem.h"
 #include "platform/kernel/header/Environment.h"
 

@@ -21,4 +21,16 @@
 //
 
 PVOID
-CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
+
+// ----------------------------------------------------------------------------
+// Cross Platform Memory Allocate/Free Functions
+//
+PVOID
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes);
+
+PVOID
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
+
+VOID
+PlatformMemFreePool(PVOID BufferAddress);

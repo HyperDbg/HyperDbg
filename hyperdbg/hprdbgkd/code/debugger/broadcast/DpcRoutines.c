@@ -50,7 +50,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Allocate Memory for DPC
     //
-    Dpc = CrsAllocateZeroedNonPagedPool(sizeof(KDPC));
+    Dpc = PlatformMemAllocateZeroedNonPagedPool(sizeof(KDPC));
 
     if (!Dpc)
     {
@@ -91,7 +91,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
         //
         // We can't get the lock, probably sth goes wrong !
         //
-        CrsFreePool(Dpc);
+        PlatformMemFreePool(Dpc);
         return STATUS_UNSUCCESSFUL;
     }
 
@@ -110,7 +110,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Now it's safe to deallocate the bugger
     //
-    CrsFreePool(Dpc);
+    PlatformMemFreePool(Dpc);
 
     return STATUS_SUCCESS;
 }
