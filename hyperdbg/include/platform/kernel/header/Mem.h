@@ -1,7 +1,8 @@
 /**
- * @file CrossApi.h
+ * @file Mem.h
  * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
- * @brief Cross platform APIs
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Cross platform APIs for memory allocation
  * @details
  * @version 0.1
  * @date 2022-01-17
