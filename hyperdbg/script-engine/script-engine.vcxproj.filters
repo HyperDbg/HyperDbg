@@ -9,6 +9,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{53ae7bcb-e612-4a1a-89db-de1e77f2d730}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -31,6 +34,9 @@
     </ClInclude>
     <ClInclude Include="header\type.h">
       <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\Environment.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

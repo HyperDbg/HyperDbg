@@ -69,6 +69,12 @@
     <Filter Include="code\rev">
       <UniqueIdentifier>{4d49c742-e10d-4d2b-9178-e65c665c99a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{0467199d-cfbb-4020-a550-48df489d65e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{81ab704c-2463-4499-867a-f259a77bd2ab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -133,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="header\rev-ctrl.h">
       <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\Environment.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

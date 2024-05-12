@@ -9,6 +9,12 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+
+//
+// Environment headers
+//
+#include "platform/user/header/Environment.h"
+
 #include <Windows.h>
 #include <string>
 #include <conio.h>

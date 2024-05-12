@@ -9,6 +9,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{7884782a-2386-47f5-aeed-fabdefcc888d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common-utils.cpp">
@@ -33,6 +36,9 @@
     </ClInclude>
     <ClInclude Include="header\symbol-parser.h">
       <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\Environment.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

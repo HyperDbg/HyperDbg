@@ -109,6 +109,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\Environment.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\routines.h" />
     <ClInclude Include="pch.h" />

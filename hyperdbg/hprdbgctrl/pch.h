@@ -12,13 +12,13 @@
 #pragma once
 
 //
-// add headers that you want to pre-compile here
+// Environment headers
 //
+#include "platform/user/header/Environment.h"
 
 //
 // Windows SDK headers
 //
-
 #define WIN32_LEAN_AND_MEAN
 
 //
@@ -161,25 +161,29 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // Libraries
 //
 
-#pragma comment(lib, "ntdll.lib")
+#ifdef ENV_WINDOWS
+
+#    pragma comment(lib, "ntdll.lib")
 
 //
 // For path combine
 //
-#pragma comment(lib, "Shlwapi.lib")
+#    pragma comment(lib, "Shlwapi.lib")
 
 //
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 // for tcpclient.cpp and tcpserver.cpp
 //
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment(lib, "AdvApi32.lib")
+#    pragma comment(lib, "Ws2_32.lib")
+#    pragma comment(lib, "Mswsock.lib")
+#    pragma comment(lib, "AdvApi32.lib")
 
 //
 // For GetModuleFileNameExA on script-engine for user-mode
 // Kernel32.lib is not needed, but seems that it's the library
 // for Windows 7
 //
-#pragma comment(lib, "Psapi.lib")
-#pragma comment(lib, "Kernel32.lib")
+#    pragma comment(lib, "Psapi.lib")
+#    pragma comment(lib, "Kernel32.lib")
+
+#endif // ENV_WINDOWS

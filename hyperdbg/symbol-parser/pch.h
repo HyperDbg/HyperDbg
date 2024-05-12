@@ -11,6 +11,11 @@
  */
 #pragma once
 
+//
+// Environment headers
+//
+#include "platform/user/header/Environment.h"
+
 #include <Windows.h>
 #include <string>
 #include <iomanip>

@@ -12,6 +12,11 @@
 #pragma once
 
 //
+// Environment headers
+//
+#include "platform/user/header/Environment.h"
+
+//
 // Exclude rarely-used stuff from Windows headers
 //
 #define WIN32_LEAN_AND_MEAN
