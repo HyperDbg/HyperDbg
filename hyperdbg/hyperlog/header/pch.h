@@ -17,11 +17,21 @@
 #pragma warning(disable : 4201) // Suppress nameless struct/union warning
 
 //
+// Environment headers
+//
+#include "platform/kernel/header/Environment.h"
+
+#ifdef ENV_WINDOWS
+
+//
 // Windows defined functions
 //
-#include <ntddk.h>
-#include <ntstrsafe.h>
-#include <Windef.h>
+#    include <ntddk.h>
+#    include <ntstrsafe.h>
+#    include <Windef.h>
+
+#endif // ENV_WINDOWS
+
 //
 // Scope definitions
 //
@@ -39,4 +49,3 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/Mem.h"
-#include "platform/kernel/header/Environment.h"

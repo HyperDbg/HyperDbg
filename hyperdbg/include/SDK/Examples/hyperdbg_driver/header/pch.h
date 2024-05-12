@@ -9,18 +9,27 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include <ntifs.h>
-#include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
-#include <ntstrsafe.h>
-#include <Windef.h>
 
 //
 // Scope definitions
 //
 #define HYPERDBG_KERNEL_MODE
 #define HYPERDBG_RM
+
+//
+// Environment headers
+//
+#include "platform/kernel/header/Environment.h"
+
+#ifdef ENV_WINDOWS
+
+//
+// General WDK headers
+//
+#    include <ntifs.h>
+#    include <Windef.h>
+
+#endif // ENV_WINDOWS
 
 //
 // Definition of Intel primitives (External header)
