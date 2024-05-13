@@ -35,7 +35,7 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 ## Tutorials
 
-The **OpenSecurityTraining2's "Reversing with HyperDbg (Dbg3301)"** tutorial series, available on [**OST2's website**](https://ost2.fyi/Dbg3301) and [**YouTube**](https://www.youtube.com/playlist?list=PLUFkSN0XLZ-kF1f143wlw8ujlH2A45nZY) is the recommended way to get started with and learn HyperDbg, guiding you through the initial steps of using HyperDbg, covering essential concepts, principles, debugging functionalities, along with practical examples and numerous reverse engineering methods that are unique to HyperDbg.
+The **OpenSecurityTraining2's "Reversing with HyperDbg (Dbg3301)**" tutorial series, available on [**OST2's website**](https://ost2.fyi/Dbg3301) (_preferred_) and [**YouTube**](https://www.youtube.com/playlist?list=PLUFkSN0XLZ-kF1f143wlw8ujlH2A45nZY) is the recommended way to get started with and learn HyperDbg. It guides you through the initial steps of using HyperDbg, covering essential concepts, principles, and debugging functionalities, along with practical examples and numerous reverse engineering methods that are unique to HyperDbg.
 
 If you're interested in understanding the internal design and architecture of hypervisors and HyperDbg, you can read the [**Hypervisor From Scratch**](https://rayanfam.com/tutorials) tutorials.
 
