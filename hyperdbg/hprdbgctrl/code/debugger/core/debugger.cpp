@@ -65,18 +65,10 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_INVALID_ADDRESS:
 
-        if (g_IsSerialConnectedToRemoteDebuggee)
-        {
-            ShowMessages("err, invalid address (%x)\n"
-                         "address may be paged out or unavailable on the page table due to 'demand paging'\n"
-                         "please refer to the documentation for the '.pagein' command for further information\n",
-                         Error);
-        }
-        else
-        {
-            ShowMessages("err, invalid address (%x)\n",
-                         Error);
-        }
+        ShowMessages("err, invalid address (%x)\n"
+                     "address may be paged-out or unavailable on the page table due to 'demand paging'\n"
+                     "please refer to https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address for further information\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_CORE_ID:
