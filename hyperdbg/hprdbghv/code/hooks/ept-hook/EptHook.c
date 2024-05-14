@@ -534,10 +534,8 @@ EptHookPerformHook(PVOID   TargetAddress,
                    UINT32  ProcessId,
                    BOOLEAN ApplyDirectlyFromVmxRoot)
 {
-
     if (ApplyDirectlyFromVmxRoot)
     {
-
         DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
 
         //
@@ -558,7 +556,6 @@ EptHookPerformHook(PVOID   TargetAddress,
     }
     else
     {
-
         //
         // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
         //
