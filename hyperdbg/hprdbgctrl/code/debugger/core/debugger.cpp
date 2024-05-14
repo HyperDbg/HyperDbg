@@ -64,8 +64,19 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_INVALID_ADDRESS:
-        ShowMessages("err, invalid address (%x)\n",
-                     Error);
+
+        if (g_IsSerialConnectedToRemoteDebuggee)
+        {
+            ShowMessages("err, invalid address (%x)\n"
+                         "address may be paged out or unavailable on the page table due to 'demand paging'\n"
+                         "please refer to the documentation for the '.pagein' command for further information\n",
+                         Error);
+        }
+        else
+        {
+            ShowMessages("err, invalid address (%x)\n",
+                         Error);
+        }
         break;
 
     case DEBUGGER_ERROR_INVALID_CORE_ID:
