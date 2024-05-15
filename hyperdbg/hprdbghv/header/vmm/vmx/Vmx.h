@@ -379,6 +379,9 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 UINT64 *
 VmxAllocateInvalidMsrBimap();
 
+BOOLEAN
+VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
 VOID
 VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
 

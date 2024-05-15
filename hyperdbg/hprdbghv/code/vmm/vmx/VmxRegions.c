@@ -214,7 +214,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Allocate a buffer for I/O Bitmap
  *
- * @param ProcessorID
+ * @param VCpu
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
  */
 BOOLEAN
@@ -285,4 +285,39 @@ VmxAllocateInvalidMsrBimap()
     }
 
     return InvalidMsrBitmap;
+}
+
+/**
+ * @brief Allocate a buffer for host IDT
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 IdtSize = HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64);
+
+    //
+    // Make sure the memory is aligned
+    //
+    if (PAGE_SIZE > IdtSize)
+    {
+        IdtSize = PAGE_SIZE;
+    }
+
+    //
+    // Allocate aligned memory for host IDT
+    //
+    VCpu->HostIdt = (UINT64)PlatformMemAllocateZeroedNonPagedPool(IdtSize); // should be aligned
+
+    if (VCpu->HostIdt == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host IDT");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host IDT virtual address : 0x%llx", VCpu->HostIdt);
+
+    return TRUE;
 }

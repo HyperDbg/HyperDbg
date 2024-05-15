@@ -12,6 +12,164 @@
 #include "pch.h"
 
 /**
+ * @brief Create an interrupt gate that points to the supplied interrupt handler
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64
+IdtEmulationCreateInterruptGate(PVOID Handler)
+{
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 Gate           = {0};
+    SEGMENT_SELECTOR                     HostCsSelector = {0, 0, 1};
+
+    Gate.InterruptStackTable      = 0;
+    Gate.SegmentSelector          = HostCsSelector.AsUInt;
+    Gate.MustBeZero0              = 0;
+    Gate.Type                     = SEGMENT_DESCRIPTOR_TYPE_INTERRUPT_GATE;
+    Gate.MustBeZero1              = 0;
+    Gate.DescriptorPrivilegeLevel = 0;
+    Gate.Present                  = 1;
+    Gate.Reserved                 = 0;
+
+    UINT64 Offset     = (UINT64)Handler;
+    Gate.OffsetLow    = (Offset >> 0) & 0xFFFF;
+    Gate.OffsetMiddle = (Offset >> 16) & 0xFFFF;
+    Gate.OffsetHigh   = (Offset >> 32) & 0xFFFFFFFF;
+
+    return Gate;
+}
+
+/**
+ * @brief Prepare Host IDT
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // Function related to handling host IDT are a modified version of the following project:
+    //      https://github.com/jonomango/hv/blob/main/hv
+    //
+
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * CurrentIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)VCpu->HostIdt;
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(CurrentIdt, HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+
+    //
+    // Fill the entries
+    //
+    CurrentIdt[0]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0);
+    CurrentIdt[1]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1);
+    CurrentIdt[2]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2);
+    CurrentIdt[3]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3);
+    CurrentIdt[4]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4);
+    CurrentIdt[5]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5);
+    CurrentIdt[6]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6);
+    CurrentIdt[7]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7);
+    CurrentIdt[8]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8);
+    CurrentIdt[10] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10);
+    CurrentIdt[11] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11);
+    CurrentIdt[12] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12);
+    CurrentIdt[13] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13);
+    CurrentIdt[14] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14);
+    CurrentIdt[16] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16);
+    CurrentIdt[17] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17);
+    CurrentIdt[18] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18);
+    CurrentIdt[19] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19);
+    CurrentIdt[20] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20);
+    CurrentIdt[30] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30);
+}
+
+/**
+ * @brief Handle Page-fault exception bitmap VM-exits
+ *
+ * @param VCpu The virtual processor's state
+ * @param InterruptExit interrupt exit information
+ *
+ * @return VOID
+ */
+VOID
+IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
+{
+    //
+    // Function related to handling host IDT are a modified version of the following project:
+    //      https://github.com/jonomango/hv/blob/main/hv
+    //
+
+    switch (IntrTrapFrame->vector)
+    {
+    case EXCEPTION_VECTOR_NMI:
+    {
+        //
+        // host NMIs
+        //
+        // LogInfo("NMI Received!");
+
+        break;
+    }
+    default:
+    {
+        //
+        // host exceptions
+        //
+
+        //
+        // no registered exception handler
+        //
+        if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
+        {
+            /*
+            LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
+                    IntrTrapFrame->rip,
+                    IntrTrapFrame->vector);
+                    */
+
+            //
+            // ensure a triple-fault
+            //
+            SEGMENT_DESCRIPTOR_REGISTER_64 Idtr;
+            Idtr.BaseAddress = IntrTrapFrame->rsp;
+            Idtr.Limit       = 0xFFF;
+            __lidt(&Idtr);
+
+            break;
+        }
+
+        /*
+        LogInfo("Handling host exception. RIP=%llx. Vector=%x",
+                IntrTrapFrame->rip,
+                IntrTrapFrame->vector);
+                */
+
+        //
+        // jump to the exception handler
+        //
+        IntrTrapFrame->rip = IntrTrapFrame->r10;
+
+        HOST_EXCEPTION_INFO * HostExceptionInfo = (HOST_EXCEPTION_INFO *)IntrTrapFrame->r11;
+
+        HostExceptionInfo->ExceptionOccurred = TRUE;
+        HostExceptionInfo->Vector            = IntrTrapFrame->vector;
+        HostExceptionInfo->Error             = IntrTrapFrame->error;
+
+        //
+        // slightly helps prevent infinite exceptions
+        //
+        IntrTrapFrame->r10 = 0;
+        IntrTrapFrame->r11 = 0;
+    }
+    }
+}
+
+/**
  * @brief Handle Page-fault exception bitmap VM-exits
  *
  * @param VCpu The virtual processor's state

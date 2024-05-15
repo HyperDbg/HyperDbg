@@ -318,6 +318,17 @@ VmxInitialize()
             //
             return FALSE;
         }
+
+        //
+        // Allocating Host IDT
+        //
+        if (!VmxAllocateHostIdt(GuestState))
+        {
+            //
+            // Some error in allocating Host IDT
+            //
+            return FALSE;
+        }
     }
 
     //
@@ -556,6 +567,11 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", CurrentCore);
 
     //
+    // Prepare Host IDT
+    //
+    IdtEmulationPrepareHostIdt(VCpu);
+
+    //
     // Clear the VMCS State
     //
     if (!VmxClearVmcsState(VCpu))
@@ -643,6 +659,7 @@ VmxTerminate()
         PlatformMemFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
         PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
         PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressB);
+        PlatformMemFreePool((PVOID)VCpu->HostIdt);
 
         return TRUE;
     }
@@ -849,7 +866,12 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
 
     VmxVmwrite64(VMCS_HOST_GDTR_BASE, AsmGetGdtBase());
+
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
     VmxVmwrite64(VMCS_HOST_IDTR_BASE, AsmGetIdtBase());
+#else
+    VmxVmwrite64(VMCS_HOST_IDTR_BASE, VCpu->HostIdt);
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
 
     VmxVmwrite64(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
     VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));

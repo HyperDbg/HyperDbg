@@ -296,3 +296,225 @@ AsmTestWrapperWithTestTags(unsigned long long Param1,
                            unsigned long long Param2,
                            unsigned long long Param3,
                            unsigned long long Param4);
+
+//
+// ====================  Interrupt Handler Functions ====================
+// File : Interrupt Handlers.asm.asm
+//
+
+/**
+ * @brief The 0th entry in IDT
+ *
+ */
+extern void
+InterruptHandler0();
+
+/**
+ * @brief The 1st entry in IDT
+ *
+ */
+extern void
+InterruptHandler1();
+
+/**
+ * @brief The 2nd entry in IDT
+ *
+ */
+extern void
+InterruptHandler2();
+
+/**
+ * @brief The 3rd entry in IDT
+ *
+ */
+extern void
+InterruptHandler3();
+
+/**
+ * @brief The 4th entry in IDT
+ *
+ */
+extern void
+InterruptHandler4();
+
+/**
+ * @brief The 5th entry in IDT
+ *
+ */
+extern void
+InterruptHandler5();
+
+/**
+ * @brief The 6th entry in IDT
+ *
+ */
+extern void
+InterruptHandler6();
+
+/**
+ * @brief The 7th entry in IDT
+ *
+ */
+extern void
+InterruptHandler7();
+
+/**
+ * @brief The 8th entry in IDT
+ *
+ */
+extern void
+InterruptHandler8();
+
+/**
+ * @brief The 9th entry in IDT
+ *
+ */
+extern void
+InterruptHandler9();
+
+/**
+ * @brief The 10th entry in IDT
+ *
+ */
+extern void
+InterruptHandler10();
+
+/**
+ * @brief The 11th entry in IDT
+ *
+ */
+extern void
+InterruptHandler11();
+
+/**
+ * @brief The 12th entry in IDT
+ *
+ */
+extern void
+InterruptHandler12();
+
+/**
+ * @brief The 13th entry in IDT
+ *
+ */
+extern void
+InterruptHandler13();
+
+/**
+ * @brief The 14th entry in IDT
+ *
+ */
+extern void
+InterruptHandler14();
+
+/**
+ * @brief The 15th entry in IDT
+ *
+ */
+extern void
+InterruptHandler15();
+
+/**
+ * @brief The 16th entry in IDT
+ *
+ */
+extern void
+InterruptHandler16();
+
+/**
+ * @brief The 17th entry in IDT
+ *
+ */
+extern void
+InterruptHandler17();
+
+/**
+ * @brief The 18th entry in IDT
+ *
+ */
+extern void
+InterruptHandler18();
+
+/**
+ * @brief The 19th entry in IDT
+ *
+ */
+extern void
+InterruptHandler19();
+
+/**
+ * @brief The 20th entry in IDT
+ *
+ */
+extern void
+InterruptHandler20();
+
+/**
+ * @brief The 21st entry in IDT
+ *
+ */
+extern void
+InterruptHandler21();
+
+/**
+ * @brief The 22nd entry in IDT
+ *
+ */
+extern void
+InterruptHandler22();
+
+/**
+ * @brief The 23rd entry in IDT
+ *
+ */
+extern void
+InterruptHandler23();
+
+/**
+ * @brief The 24th entry in IDT
+ *
+ */
+extern void
+InterruptHandler24();
+
+/**
+ * @brief The 25th entry in IDT
+ *
+ */
+extern void
+InterruptHandler25();
+
+/**
+ * @brief The 26th entry in IDT
+ *
+ */
+extern void
+InterruptHandler26();
+
+/**
+ * @brief The 27th entry in IDT
+ *
+ */
+extern void
+InterruptHandler27();
+
+/**
+ * @brief The 28th entry in IDT
+ *
+ */
+extern void
+InterruptHandler28();
+
+/**
+ * @brief The 29th entry in IDT
+ *
+ */
+extern void
+InterruptHandler29();
+
+/**
+ * @brief The 30th entry in IDT
+ *
+ */
+extern void
+InterruptHandler30();
