@@ -117,20 +117,23 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     }
     default:
     {
+        g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
+
+        break;
+
         //
         // host exceptions
         //
 
+        /*
         //
         // no registered exception handler
         //
         if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
         {
-            /*
-            LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
-                    IntrTrapFrame->rip,
-                    IntrTrapFrame->vector);
-                    */
+            // LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
+            //         IntrTrapFrame->rip,
+            //         IntrTrapFrame->vector);
 
             //
             // ensure a triple-fault
@@ -143,11 +146,9 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
             break;
         }
 
-        /*
-        LogInfo("Handling host exception. RIP=%llx. Vector=%x",
-                IntrTrapFrame->rip,
-                IntrTrapFrame->vector);
-                */
+        // LogInfo("Handling host exception. RIP=%llx. Vector=%x",
+        //         IntrTrapFrame->rip,
+        //         IntrTrapFrame->vector);
 
         //
         // jump to the exception handler
@@ -165,6 +166,8 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         IntrTrapFrame->r10 = 0;
         IntrTrapFrame->r11 = 0;
+
+        */
     }
     }
 }

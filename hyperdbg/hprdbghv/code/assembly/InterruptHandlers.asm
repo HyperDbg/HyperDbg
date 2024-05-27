@@ -65,7 +65,7 @@ generic_interrupt_handler proc
   ; first argument is the trap frame
   mov rcx, rsp
 
-  ; call handle_host_interrupt
+  ; call IdtEmulationhandleHostInterrupt
   sub rsp, 20h
   call IdtEmulationhandleHostInterrupt
   add rsp, 20h
@@ -97,6 +97,7 @@ generic_interrupt_handler proc
   add rsp, 8
 
   iretq
+
 generic_interrupt_handler endp
 
 ;------------------------------------------------------------------------

@@ -162,6 +162,10 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
+        LogInfo("g_LastExceptionOccuredInHost: ", g_LastExceptionOccuredInHost);
+        DbgBreakPoint();
+        LogInfo("g_LastExceptionOccuredInHost: ", g_LastExceptionOccuredInHost);
+
         DispatchEventCpuid(VCpu);
 
         break;
