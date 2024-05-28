@@ -96,7 +96,7 @@ class ScriptExecutionEngine(
         //
         // Create a Vec containing script symbol elements
         //
-        val scriptSymbols = Wire(Vec(maximumNumberOfSupportedScriptOperators, new SYMBOL))
+        val scriptSymbols = Wire(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
 
         for (j <- 0 until maximumNumberOfSupportedScriptOperators) {
           scriptSymbols(j) := stageRegs(i + j).scriptSymbol

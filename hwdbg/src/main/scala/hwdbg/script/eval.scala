@@ -46,7 +46,7 @@ class ScriptEngineEval(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(Vec(maximumNumberOfSupportedScriptOperators, new SYMBOL))
+    val operator = Input(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
 
     val currentStage = Input(UInt(log2Ceil(maximumNumberOfStages).W))
     val nextStage = Output(UInt(log2Ceil(maximumNumberOfStages).W))
@@ -116,7 +116,7 @@ object ScriptEngineEval {
       portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
   )(
       en: Bool,
-      operator: Vec[SYMBOL],
+      operator: Vec[Symbol],
       currentStage: UInt,
       inputPin: Vec[UInt]
   ): (UInt, Vec[UInt]) = {
