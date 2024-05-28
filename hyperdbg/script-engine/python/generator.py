@@ -6,7 +6,7 @@ class Generator():
         self.SourceFile = open("..\\code\\parse-table.c", "w")
         self.HeaderFile = open("..\\header\\parse-table.h", "w")   
         self.CommonHeaderFile = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.h", "w")
-        self.CommonHeaderFileScala = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.scala", "w")
+        self.CommonHeaderFileScala = open("..\\..\\..\\hwdbg\\src\\main\\scala\\hwdbg\\script\\script_definitions.scala", "w")
         self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile, self.CommonHeaderFileScala)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)
 
@@ -35,6 +35,19 @@ class Generator():
 
 
     def WriteCommonHeader(self):
+    
+        #
+        # Write scala headers
+        #
+        self.CommonHeaderFileScala.write("""package hwdbg.script
+
+import chisel3._
+import chisel3.util._
+
+""")
+        #
+        # Write C/C++ headers
+        #
         self.CommonHeaderFile.write(
          """#pragma once
 #ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
