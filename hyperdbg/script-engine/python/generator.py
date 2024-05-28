@@ -44,6 +44,17 @@ class Generator():
 import chisel3._
 import chisel3.util._
 
+/**
+ * @brief
+ *   The structure of SYMBOL used in script engine of HyperDbg
+ */
+class Symbol extends Bundle {
+  val Type = UInt(64.W) // long long unsigned is 64 bits
+  val Len = UInt(64.W)
+  val VariableType = UInt(64.W)
+  val Value = UInt(64.W)
+}
+
 """)
         #
         # Write C/C++ headers
