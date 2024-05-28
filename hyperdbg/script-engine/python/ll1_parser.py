@@ -17,7 +17,7 @@ from util import *
 from lalr1_parser import *
 
 class LL1Parser:
-    def __init__(self, SourceFile, HeaderFile, CommonHeaderFile):
+    def __init__(self, SourceFile, HeaderFile, CommonHeaderFile, CommonHeaderFileScala):
         # The file which contains the grammar of the language 
         self.GrammarFile = open("Grammar.txt", "r")
 
@@ -25,6 +25,7 @@ class LL1Parser:
         self.SourceFile = SourceFile
         self.HeaderFile = HeaderFile
         self.CommonHeaderFile = CommonHeaderFile 
+        self.CommonHeaderFileScala = CommonHeaderFileScala 
         
 
         # Lists which used for storing the rules:
@@ -423,24 +424,56 @@ class LL1Parser:
 
         
     def WriteSemanticMaps(self):
-
-        Counter = 0                
+        
+        self.CommonHeaderFileScala.write("object ScriptEvalFunc {\n  object ScriptOperators extends ChiselEnum {\n    val ")
+        Counter = 0
+        FirstItem = True
+        CheckForDuplicateList = []
+        
         for X in self.OperatorsOneOperand:
-            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
-            Counter += 1
+        
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+                if FirstItem == True:
+                    self.CommonHeaderFileScala.write("sFunc" + X.capitalize())
+                    FirstItem = False
+                else:
+                    self.CommonHeaderFileScala.write(", sFunc" + X.capitalize())
+                    
+                CheckForDuplicateList.append(X)
+                Counter += 1
 
         for X in self.OperatorsTwoOperand:
-            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
-            Counter += 1
+        
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+                self.CommonHeaderFileScala.write(", sFunc" + X.capitalize())
+                CheckForDuplicateList.append(X)
+                Counter += 1
         
         for X in self.SemantiRulesList:
-            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
-            Counter += 1
-
+        
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+                self.CommonHeaderFileScala.write(", sFunc" + X.capitalize())
+                CheckForDuplicateList.append(X)
+                Counter += 1
+        
         for X in self.keywordList:
-            self.CommonHeaderFile.write("#ifndef FUNC_" + X.upper() + "\n#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n#endif // !FUNC_" + X.upper() + "\n\n")
-            Counter += 1
-
+        
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+                
+                #
+                # Check if it's the last item
+                #
+                self.CommonHeaderFileScala.write(", sFunc" + X.capitalize() + "")
+                    
+                CheckForDuplicateList.append(X)
+                Counter += 1
+                
+            
+        self.CommonHeaderFileScala.write(" = Value\n  }\n} ")
 
 
         self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")
@@ -464,7 +497,7 @@ class LL1Parser:
 
 
     def WriteRegisterMaps(self):
-        self.CommonHeaderFile.write("typedef enum REGS_ENUM {\n")
+        self.CommonHeaderFile.write("\ntypedef enum REGS_ENUM {\n")
         Counter = 0          
         for X in self.RegistersList:
             if Counter == len(self.RegistersList)-1:
