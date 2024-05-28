@@ -318,6 +318,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     UINT64       IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
     UINT64       IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
     UINT64       IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
+    UINT32       QueuedNmi;                                                     // Queued NMIs
     UINT32       PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
                                                                                 // blocking and waits for interrupt-window exiting
                                                                                 // From hvpp :

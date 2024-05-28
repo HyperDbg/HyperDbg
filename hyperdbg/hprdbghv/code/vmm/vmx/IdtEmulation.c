@@ -108,10 +108,12 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     {
     case EXCEPTION_VECTOR_NMI:
     {
+        HvSetNmiWindowExiting(TRUE);
+
         //
         // host NMIs
         //
-        // LogInfo("NMI Received!");
+        LogInfo("NMI Received!");
 
         break;
     }
@@ -119,21 +121,18 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     {
         g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
 
-        break;
-
         //
         // host exceptions
         //
 
-        /*
         //
         // no registered exception handler
         //
         if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
         {
-            // LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
-            //         IntrTrapFrame->rip,
-            //         IntrTrapFrame->vector);
+            LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
+                    IntrTrapFrame->rip,
+                    IntrTrapFrame->vector);
 
             //
             // ensure a triple-fault
@@ -146,9 +145,9 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
             break;
         }
 
-        // LogInfo("Handling host exception. RIP=%llx. Vector=%x",
-        //         IntrTrapFrame->rip,
-        //         IntrTrapFrame->vector);
+        LogInfo("Handling host exception. RIP=%llx. Vector=%x",
+                IntrTrapFrame->rip,
+                IntrTrapFrame->vector);
 
         //
         // jump to the exception handler
@@ -166,8 +165,6 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         IntrTrapFrame->r10 = 0;
         IntrTrapFrame->r11 = 0;
-
-        */
     }
     }
 }
@@ -482,9 +479,29 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 VOID
 IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UNREFERENCED_PARAMETER(VCpu);
+    VCpu->QueuedNmi--;
 
-    LogError("Why NMI-window exiting happens?");
+    //
+    // inject the NMI into the guest
+    //
+    EventInjectNmi(VCpu);
+
+    if (VCpu->QueuedNmi == 0)
+    {
+        //
+        // disable NMI-window exiting since we have no more NMIs to inject
+        //
+        HvSetNmiWindowExiting(FALSE);
+    }
+
+    //
+    // there is the possibility that a host NMI occurred right before we
+    // disabled NMI-window exiting. make sure to re-enable it if this is the case
+    //
+    if (VCpu->QueuedNmi > 0)
+    {
+        HvSetNmiWindowExiting(TRUE);
+    }
 }
 
 /**
