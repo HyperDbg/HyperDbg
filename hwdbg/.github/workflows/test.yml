@@ -1,0 +1,59 @@
+name: Continuous Integration
+
+on:
+  push:
+    tags: ['*']
+    branches: ['main']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  verilator-version: v5.012
+  verilator-install-dir: verilator-install
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cleanup
+        run: sed -i "s/%NAME%/test/g" build.sc
+      - name: Cache Scala
+        uses: coursier/cache-action@v6
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          jvm: adopt:11
+          apps: sbt mill
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get install ccache
+      - name: Get Cached Verilator
+        id: get-cached-verilator
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.verilator-install-dir }}
+          key: verilator-${{ env.verilator-version }}
+      - name: Install Verilator
+        if: steps.get-cached-verilator.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install git help2man perl python3 make autoconf g++ flex bison numactl perl-doc libfl-dev
+          git clone https://github.com/verilator/verilator
+          unset VERILATOR_ROOT
+          cd verilator
+          git checkout ${{ env.verilator-version  }}
+          autoconf
+          ./configure --prefix=$(pwd)/../${{ env.verilator-install-dir }}
+          make
+          make install
+      - name: Set PATH
+        run: |
+          echo "$(pwd)/${{ env.verilator-install-dir }}/bin" >> $GITHUB_PATH
+          echo VERILATOR_ROOT="$(pwd)/${{ env.verilator-install-dir }}/share/verilator" >> $GITHUB_ENV
+          ln -sf $(pwd)/${{ env.verilator-install-dir }}/bin/verilator_bin $(pwd)/${{ env.verilator-install-dir }}/share/verilator/verilator_bin
+      - name: SBT Test
+        run: sbt test
+      - name: mill Test
+        run: mill _.test
