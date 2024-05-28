@@ -13,13 +13,13 @@
 #pragma once
 
 //
-// add headers that you want to pre-compile here
+// Environment headers
 //
+#include "platform/user/header/Environment.h"
 
 //
 // Windows SDK headers
 //
-
 #define WIN32_LEAN_AND_MEAN
 
 //

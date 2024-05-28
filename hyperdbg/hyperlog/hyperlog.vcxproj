@@ -66,6 +66,8 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
@@ -81,6 +83,8 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
@@ -97,11 +101,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\Mem.c" />
     <ClCompile Include="code\Logging.c" />
     <ClCompile Include="code\UnloadDll.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
+    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
+    <ClInclude Include="..\include\platform\kernel\header\Mem.h" />
     <ClInclude Include="header\Logging.h" />
     <ClInclude Include="header\pch.h" />
     <ClInclude Include="header\UnloadDll.h" />

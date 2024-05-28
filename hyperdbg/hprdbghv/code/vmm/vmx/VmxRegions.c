@@ -42,7 +42,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // Allocating a 4-KByte Contiguous Memory region
     //
     VmxonSize   = 2 * VMXON_SIZE;
-    VmxonRegion = CrsAllocateContiguousZeroedMemory(VmxonSize + ALIGNMENT_PAGE_SIZE);
+    VmxonRegion = PlatformMemAllocateContiguousZeroedMemory(VmxonSize + ALIGNMENT_PAGE_SIZE);
     if (VmxonRegion == NULL)
     {
         LogError("Err, couldn't allocate buffer for VMXON region");
@@ -121,7 +121,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // Allocating a 4-KByte Contiguous Memory region
     //
     VmcsSize   = 2 * VMCS_SIZE;
-    VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE);
+    VmcsRegion = PlatformMemAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE);
     if (VmcsRegion == NULL)
     {
         LogError("Err, couldn't allocate Buffer for VMCS region");
@@ -169,7 +169,7 @@ VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate stack for the VM Exit Handler
     //
-    VCpu->VmmStack = (UINT64)CrsAllocateZeroedNonPagedPool(VMM_STACK_SIZE);
+    VCpu->VmmStack = (UINT64)PlatformMemAllocateZeroedNonPagedPool(VMM_STACK_SIZE);
 
     if (VCpu->VmmStack == NULL64_ZERO)
     {
@@ -195,7 +195,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     // Allocate memory for MSR Bitmap
     // Should be aligned
     //
-    VCpu->MsrBitmapVirtualAddress = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE);
+    VCpu->MsrBitmapVirtualAddress = (UINT64)PlatformMemAllocateZeroedNonPagedPool(PAGE_SIZE);
 
     if (VCpu->MsrBitmapVirtualAddress == NULL64_ZERO)
     {
@@ -223,7 +223,7 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (A)
     //
-    VCpu->IoBitmapVirtualAddressA = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+    VCpu->IoBitmapVirtualAddressA = (UINT64)PlatformMemAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
 
     if (VCpu->IoBitmapVirtualAddressA == NULL64_ZERO)
     {
@@ -239,7 +239,7 @@ VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Allocate memory for I/O Bitmap (B)
     //
-    VCpu->IoBitmapVirtualAddressB = (UINT64)CrsAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
+    VCpu->IoBitmapVirtualAddressB = (UINT64)PlatformMemAllocateZeroedNonPagedPool(PAGE_SIZE); // should be aligned
 
     if (VCpu->IoBitmapVirtualAddressB == NULL64_ZERO)
     {
@@ -265,7 +265,7 @@ VmxAllocateInvalidMsrBimap()
 {
     UINT64 * InvalidMsrBitmap;
 
-    InvalidMsrBitmap = CrsAllocateZeroedNonPagedPool(0x1000 / 0x8);
+    InvalidMsrBitmap = PlatformMemAllocateZeroedNonPagedPool(0x1000 / 0x8);
 
     if (InvalidMsrBitmap == NULL)
     {

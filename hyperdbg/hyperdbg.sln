@@ -163,6 +163,30 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_driver", "include\
 		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "platform", "platform", "{9A711E36-8A78-4CE6-A34D-F681AF89A919}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{015523BA-4326-4A84-9CB5-E1E9B6182209}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{6498728B-D9B0-4CAB-A9E3-ACE5BC371010}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\kernel\code\Mem.c = include\platform\kernel\code\Mem.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FFF1-A730-433E-8D26-13DA5B653825}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\kernel\header\Environment.h = include\platform\kernel\header\Environment.h
+		include\platform\kernel\header\Mem.h = include\platform\kernel\header\Mem.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{DBE32379-8D5A-4454-A1B6-ACC407881898}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\header\Environment.h = include\platform\user\header\Environment.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|ARM64 = debug|ARM64
@@ -334,6 +358,13 @@ Global
 		{9749520E-64FF-4633-855B-54BC541CDBB6} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {9749520E-64FF-4633-855B-54BC541CDBB6}
 		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5} = {9749520E-64FF-4633-855B-54BC541CDBB6}
+		{9A711E36-8A78-4CE6-A34D-F681AF89A919} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{015523BA-4326-4A84-9CB5-E1E9B6182209} = {9A711E36-8A78-4CE6-A34D-F681AF89A919}
+		{D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7} = {9A711E36-8A78-4CE6-A34D-F681AF89A919}
+		{6498728B-D9B0-4CAB-A9E3-ACE5BC371010} = {D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7}
+		{AA41FFF1-A730-433E-8D26-13DA5B653825} = {D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7}
+		{4BF590C3-1032-4DD2-BF87-BB9E5781977C} = {015523BA-4326-4A84-9CB5-E1E9B6182209}
+		{DBE32379-8D5A-4454-A1B6-ACC407881898} = {015523BA-4326-4A84-9CB5-E1E9B6182209}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

@@ -15,6 +15,9 @@
     <Filter Include="code\tests">
       <UniqueIdentifier>{0dd2fc9a-1efe-43ae-963c-f3e04a9d5f33}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{3b15cfee-d573-4538-aa01-0bac669f0360}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\tests\hyperdbg-test.cpp">
@@ -45,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="header\routines.h">
       <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\Environment.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

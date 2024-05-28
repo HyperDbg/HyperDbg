@@ -26,7 +26,7 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
     //
     if (!g_GuestState)
     {
-        g_GuestState = CrsAllocateNonPagedPool(BufferSizeInByte);
+        g_GuestState = PlatformMemAllocateNonPagedPool(BufferSizeInByte);
 
         if (!g_GuestState)
         {
@@ -51,6 +51,6 @@ GlobalGuestStateAllocateZeroedMemory(VOID)
 VOID
 GlobalGuestStateFreeMemory(VOID)
 {
-    CrsFreePool(g_GuestState);
+    PlatformMemFreePool(g_GuestState);
     g_GuestState = NULL;
 }

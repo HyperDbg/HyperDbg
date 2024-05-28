@@ -25,7 +25,7 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
     //
     // Allocate global variable to hold Debugging(s) state
     //
-    g_DbgState = CrsAllocateZeroedNonPagedPool(BufferSizeInByte);
+    g_DbgState = PlatformMemAllocateZeroedNonPagedPool(BufferSizeInByte);
 
     if (!g_DbgState)
     {
@@ -48,7 +48,7 @@ GlobalDebuggingStateAllocateZeroedMemory(VOID)
 VOID
 GlobalDebuggingStateFreeMemory(VOID)
 {
-    CrsFreePool(g_DbgState);
+    PlatformMemFreePool(g_DbgState);
     g_DbgState = NULL;
 }
 
@@ -65,7 +65,7 @@ GlobalEventsAllocateZeroedMemory(VOID)
     //
     if (!g_Events)
     {
-        g_Events = CrsAllocateNonPagedPool(sizeof(DEBUGGER_CORE_EVENTS));
+        g_Events = PlatformMemAllocateNonPagedPool(sizeof(DEBUGGER_CORE_EVENTS));
     }
 
     if (g_Events)
@@ -89,7 +89,7 @@ GlobalEventsFreeMemory(VOID)
 {
     if (g_Events != NULL)
     {
-        CrsFreePool(g_Events);
+        PlatformMemFreePool(g_Events);
         g_Events = NULL;
     }
 }

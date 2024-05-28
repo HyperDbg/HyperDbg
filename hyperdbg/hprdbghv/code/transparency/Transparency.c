@@ -293,7 +293,7 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
     //
     // Allocate the Buffer
     //
-    PidAndNameBuffer = CrsAllocateZeroedNonPagedPool(SizeOfBuffer);
+    PidAndNameBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfBuffer);
 
     if (PidAndNameBuffer == NULL)
     {
@@ -363,7 +363,7 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
         //
         // Allocate the measurements buffer
         //
-        g_TransparentModeMeasurements = (PTRANSPARENCY_MEASUREMENTS)CrsAllocateZeroedNonPagedPool(sizeof(TRANSPARENCY_MEASUREMENTS));
+        g_TransparentModeMeasurements = (PTRANSPARENCY_MEASUREMENTS)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENCY_MEASUREMENTS));
 
         if (!g_TransparentModeMeasurements)
         {
@@ -463,13 +463,13 @@ TransparentUnhideDebugger()
             //
             // Free the buffer
             //
-            CrsFreePool(BufferToDeAllocate);
+            PlatformMemFreePool(BufferToDeAllocate);
         }
 
         //
         // Deallocate the measurements buffer
         //
-        CrsFreePool(g_TransparentModeMeasurements);
+        PlatformMemFreePool(g_TransparentModeMeasurements);
         g_TransparentModeMeasurements = NULL;
 
         return STATUS_SUCCESS;

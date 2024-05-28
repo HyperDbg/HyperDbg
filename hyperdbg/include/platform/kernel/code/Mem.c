@@ -1,7 +1,8 @@
 /**
- * @file CrossApi.c
+ * @file mem.c
  * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
- * @brief Implementation of cross APIs for different platforms
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Implementation of cross APIs for different platforms for memory allocation
  * @details
  * @version 0.1
  * @date 2022-01-17
@@ -18,7 +19,7 @@
  * @return PVOID
  */
 PVOID
-CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
 {
     PVOID            Result          = NULL;
     PHYSICAL_ADDRESS MaxPhysicalAddr = {.QuadPart = MAXULONG64};
@@ -37,9 +38,23 @@ CrsAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
  * @return PVOID
  */
 PVOID
-CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes)
 {
     PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+
+    return Result;
+}
+
+/**
+ * @brief Allocate a non-paged buffer (use QUOTA)
+ *
+ * @param NumberOfBytes
+ * @return PVOID
+ */
+PVOID
+PlatformMemAllocateNonPagedPoolWithQuota(SIZE_T NumberOfBytes)
+{
+    PVOID Result = ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, NumberOfBytes, POOLTAG);
 
     return Result;
 }
@@ -51,7 +66,7 @@ CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
  * @return PVOID
  */
 PVOID
-CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
 {
     PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
 
@@ -68,7 +83,7 @@ CrsAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
  * @return VOID
  */
 VOID
-CrsFreePool(PVOID BufferAddress)
+PlatformMemFreePool(PVOID BufferAddress)
 {
     ExFreePoolWithTag(BufferAddress, POOLTAG);
 }

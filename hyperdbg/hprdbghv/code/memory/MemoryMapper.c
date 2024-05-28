@@ -680,7 +680,7 @@ MemoryMapperInitialize()
     //
     // Allocate the memory buffer structure
     //
-    g_MemoryMapper = CrsAllocateZeroedNonPagedPool(sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorsCount);
+    g_MemoryMapper = PlatformMemAllocateZeroedNonPagedPool(sizeof(MEMORY_MAPPER_ADDRESSES) * ProcessorsCount);
 
     //
     // Set the core's id and initialize memory mapper

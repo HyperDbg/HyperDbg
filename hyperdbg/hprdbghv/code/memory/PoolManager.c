@@ -23,7 +23,7 @@ PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
     //
     // Allocate global requesting variable
     //
-    g_RequestNewAllocation = CrsAllocateZeroedNonPagedPool(NumberOfBytes);
+    g_RequestNewAllocation = PlatformMemAllocateZeroedNonPagedPool(NumberOfBytes);
 
     if (!g_RequestNewAllocation)
     {
@@ -36,7 +36,7 @@ PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
 VOID
 PlmgrFreeRequestNewAllocation(VOID)
 {
-    CrsFreePool(g_RequestNewAllocation);
+    PlatformMemFreePool(g_RequestNewAllocation);
     g_RequestNewAllocation = NULL;
 }
 
@@ -105,7 +105,7 @@ PoolManagerUninitialize()
         //
         if (!PoolTable->AlreadyFreed)
         {
-            CrsFreePool((PVOID)PoolTable->Address);
+            PlatformMemFreePool((PVOID)PoolTable->Address);
         }
 
         //
@@ -116,7 +116,7 @@ PoolManagerUninitialize()
         //
         // Free the record itself
         //
-        CrsFreePool(PoolTable);
+        PlatformMemFreePool(PoolTable);
     }
 
     SpinlockUnlock(&LockForReadingPool);
@@ -256,7 +256,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
     {
         POOL_TABLE * SinglePool = NULL;
 
-        SinglePool = CrsAllocateZeroedNonPagedPool(sizeof(POOL_TABLE));
+        SinglePool = PlatformMemAllocateZeroedNonPagedPool(sizeof(POOL_TABLE));
 
         if (!SinglePool)
         {
@@ -267,11 +267,11 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         // Allocate the buffer
         //
-        SinglePool->Address = (UINT64)CrsAllocateZeroedNonPagedPool(Size);
+        SinglePool->Address = (UINT64)PlatformMemAllocateZeroedNonPagedPool(Size);
 
         if (!SinglePool->Address)
         {
-            CrsFreePool(SinglePool);
+            PlatformMemFreePool(SinglePool);
 
             LogError("Err, insufficient memory");
             return FALSE;
@@ -377,7 +377,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // This item should be freed
                 //
-                CrsFreePool((PVOID)PoolTable->Address);
+                PlatformMemFreePool((PVOID)PoolTable->Address);
 
                 //
                 // Now we should remove the entry from the g_ListOfAllocatedPoolsHead
@@ -387,7 +387,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // Free the structure pool
                 //
-                CrsFreePool(PoolTable);
+                PlatformMemFreePool(PoolTable);
             }
         }
 

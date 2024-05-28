@@ -212,9 +212,6 @@
     <ClCompile Include="code\vmm\vmx\VmxBroadcast.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="code\platform\CrossApi.c">
-      <Filter>code\platform</Filter>
-    </ClCompile>
     <ClCompile Include="code\globals\GlobalVariableManagement.c">
       <Filter>code\globals</Filter>
     </ClCompile>
@@ -302,6 +299,9 @@
     <ClCompile Include="code\interface\DirectVmcall.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\Mem.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -372,12 +372,6 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h">
       <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
-    <ClInclude Include="header\platform\CrossApi.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="header\platform\Environment.h">
-      <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariableManagement.h">
       <Filter>header\globals</Filter>
@@ -558,6 +552,12 @@
     </ClInclude>
     <ClInclude Include="header\interface\DirectVmcall.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\Mem.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

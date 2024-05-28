@@ -1133,7 +1133,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // We support up to MaximumSearchResults search results
     //
-    SearchResultsStorage = CrsAllocateZeroedNonPagedPool(MaximumSearchResults * sizeof(UINT64));
+    SearchResultsStorage = PlatformMemAllocateZeroedNonPagedPool(MaximumSearchResults * sizeof(UINT64));
 
     if (SearchResultsStorage == NULL)
     {
@@ -1189,7 +1189,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Free the results pool
     //
-    CrsFreePool(SearchResultsStorage);
+    PlatformMemFreePool(SearchResultsStorage);
 
     return STATUS_SUCCESS;
 }

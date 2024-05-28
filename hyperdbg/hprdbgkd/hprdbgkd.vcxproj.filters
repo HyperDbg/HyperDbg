@@ -130,6 +130,12 @@
     <Filter Include="header\debugger\meta-events">
       <UniqueIdentifier>{f308a8ae-1e28-465b-ae2f-4d307fa48177}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{63a2a7a9-943a-43a6-9c81-4831088d3628}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{49d6a936-9fcf-4c74-af16-445b1b3625d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\driver\Driver.c">
@@ -254,6 +260,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\meta-events\MetaDispatch.c">
       <Filter>code\debugger\meta-events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\Mem.c">
+      <Filter>code\platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -382,6 +391,12 @@
     </ClInclude>
     <ClInclude Include="header\debugger\meta-events\MetaDispatch.h">
       <Filter>header\debugger\meta-events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\Mem.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

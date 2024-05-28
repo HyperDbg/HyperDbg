@@ -5,10 +5,21 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{3eacd448-7ca9-42c0-b5a1-2848161f69a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{8eb27fe0-dacb-404f-abef-ee81eda88a6e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hyperdbg-cli.cpp">
       <Filter>code</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\Environment.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

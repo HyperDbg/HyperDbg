@@ -64,7 +64,10 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_INVALID_ADDRESS:
-        ShowMessages("err, invalid address (%x)\n",
+
+        ShowMessages("err, invalid address (%x)\n"
+                     "address may be paged-out or unavailable on the page table due to 'demand paging'\n"
+                     "please refer to https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address for further information\n",
                      Error);
         break;
 

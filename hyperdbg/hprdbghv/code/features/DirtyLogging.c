@@ -57,7 +57,7 @@ DirtyLoggingInitialize()
     {
         if (g_GuestState[i].PmlBufferAddress == NULL)
         {
-            g_GuestState[i].PmlBufferAddress = CrsAllocateNonPagedPool(PAGE_SIZE);
+            g_GuestState[i].PmlBufferAddress = PlatformMemAllocateNonPagedPool(PAGE_SIZE);
         }
 
         if (g_GuestState[i].PmlBufferAddress == NULL)
@@ -69,7 +69,7 @@ DirtyLoggingInitialize()
             {
                 if (g_GuestState[j].PmlBufferAddress != NULL)
                 {
-                    CrsFreePool(g_GuestState[j].PmlBufferAddress);
+                    PlatformMemFreePool(g_GuestState[j].PmlBufferAddress);
                 }
             }
 
@@ -200,7 +200,7 @@ DirtyLoggingUninitialize()
     {
         if (g_GuestState[i].PmlBufferAddress != NULL)
         {
-            CrsFreePool(g_GuestState[i].PmlBufferAddress);
+            PlatformMemFreePool(g_GuestState[i].PmlBufferAddress);
         }
     }
 }

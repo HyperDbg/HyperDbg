@@ -6,7 +6,8 @@ class Generator():
         self.SourceFile = open("..\\code\\parse-table.c", "w")
         self.HeaderFile = open("..\\header\\parse-table.h", "w")   
         self.CommonHeaderFile = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.h", "w")
-        self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile)
+        self.CommonHeaderFileScala = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.scala", "w")
+        self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile, self.CommonHeaderFileScala)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)
 
     def Run(self):     

@@ -129,6 +129,7 @@
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\Mem.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\common\Bitwise.c" />
@@ -158,7 +159,6 @@
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
-    <ClCompile Include="code\platform\CrossApi.c" />
     <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
@@ -227,6 +227,8 @@
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
+    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
+    <ClInclude Include="..\include\platform\kernel\header\Mem.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />
@@ -255,8 +257,6 @@
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
-    <ClInclude Include="header\platform\CrossApi.h" />
-    <ClInclude Include="header\platform\Environment.h" />
     <ClInclude Include="header\transparency\Transparency.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />

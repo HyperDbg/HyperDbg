@@ -12,6 +12,11 @@
 #pragma once
 
 //
+// Environment headers
+//
+#include "platform/user/header/Environment.h"
+
+//
 // General Headers
 //
 #include <Windows.h>

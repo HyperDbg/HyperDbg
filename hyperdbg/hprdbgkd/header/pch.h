@@ -20,14 +20,20 @@
 #define SCRIPT_ENGINE_KERNEL_MODE
 
 //
+// Environment headers
+//
+#include "platform/kernel/header/Environment.h"
+
+#ifdef ENV_WINDOWS
+
+//
 // General WDK headers
 //
-#include <ntifs.h>
-#include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
-#include <ntstrsafe.h>
-#include <Windef.h>
+#    include <ntifs.h>
+#    include <ntstrsafe.h>
+#    include <Windef.h>
+
+#endif // ENV_WINDOWS
 
 //
 // Definition of Intel primitives (External header)
@@ -74,6 +80,11 @@
 // Spinlock component
 //
 #include "components/spinlock/header/Spinlock.h"
+
+//
+// Platform independent headers
+//
+#include "platform/kernel/header/Mem.h"
 
 //
 // Optimization algorithms

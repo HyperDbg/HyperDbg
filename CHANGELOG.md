@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5.0] - 2024-05-XX
+New release of the HyperDbg Debugger.
+
+### Changed
+- The error message for invalid address is changed ([more information](https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address))
+
 ## [0.8.4.0] - 2024-05-10
 New release of the HyperDbg Debugger.
 
