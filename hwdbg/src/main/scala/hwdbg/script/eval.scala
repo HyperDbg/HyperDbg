@@ -32,7 +32,7 @@ class ScriptEngineEval(
 ) extends Module {
 
   //
-  // Import state enum
+  // Import operators enum
   //
   import hwdbg.script.ScriptEvalFunc.ScriptOperators
   import hwdbg.script.ScriptEvalFunc.ScriptOperators._

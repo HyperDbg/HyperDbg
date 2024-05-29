@@ -29,6 +29,12 @@ class ScriptEngineSetValue(
     portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
 ) extends Module {
 
+  //
+  // Import script data types enum
+  //
+  import hwdbg.script.ScriptConstantTypes.ScriptDataTypes
+  import hwdbg.script.ScriptConstantTypes.ScriptDataTypes._
+
   val io = IO(new Bundle {
 
     //
@@ -54,10 +60,28 @@ class ScriptEngineSetValue(
   })
 
   //
-  // Output pins
+  // Assign operator type (split the signal into only usable part)
   //
-  // val outputPin = Wire(Vec(numberOfPins, UInt(1.W)))
+  LogInfo(debug)("Usable size of Type in the SYMBOL: " + ScriptDataTypes().getWidth)
+  val mainOperatorType = io.operator.Type(ScriptDataTypes().getWidth - 1, 0).asTypeOf(ScriptDataTypes())
 
+  //
+  // *** Implementing the setting data logic ***
+  //
+
+  //
+  // Apply the chip enable signal
+  //
+  when(io.en === true.B) {
+
+    switch(mainOperatorType) {
+
+      is(symbolGlobalIdType) { 
+      }
+      is(symbolLocalIdType) {
+      }
+    }
+  }
 
   //
   // Connect the output signals
