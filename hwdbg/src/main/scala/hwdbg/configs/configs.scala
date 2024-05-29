@@ -77,7 +77,7 @@ object ScriptEngineConfigurations {
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS: Int = 2
+  val MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS: Int = 3 // 2 for get value and 1 for set value
 
   //
   // Script variable length

@@ -76,9 +76,35 @@ class ScriptEngineSetValue(
 
     switch(mainOperatorType) {
 
-      is(symbolGlobalIdType) { 
+      is(symbolGlobalIdType) {
+        //
+        // To be implemented
+        //
+       }
+      is(symbolLocalIdType) { 
+        //
+        // To be implemented
+        //
       }
-      is(symbolLocalIdType) {
+      is(symbolTempType) { 
+        //
+        // To be implemented
+        //
+      }
+      is(symbolRegisterType) { 
+        //
+        // To be implemented
+        //
+      }
+      is(symbolStackTempType) { 
+        //
+        // To be implemented
+        //
+      }
+      is(symbolFunctionParameterIdType) { 
+        //
+        // To be implemented
+        //
       }
     }
   }
@@ -86,8 +112,9 @@ class ScriptEngineSetValue(
   //
   // Connect the output signals
   //
-  // io.outputPin := outputPin
-  //io.outputValue := 0.U
+  for (i <- 0 until numberOfPins) {
+    io.outputPin(i) := 0.U
+  }
 
 }
 
@@ -100,7 +127,7 @@ object ScriptEngineSetValue {
       portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
   )(
       en: Bool,
-      operator: Vec[Symbol],
+      operator: Symbol,
       inputValue: UInt
   ): (Vec[UInt]) = {
 

@@ -100,7 +100,23 @@ class ScriptExecutionEngine(
         val scriptSymbols = Wire(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
 
         for (j <- 0 until maximumNumberOfSupportedScriptOperators) {
-          scriptSymbols(j) := stageRegs(i + j).scriptSymbol
+
+          //
+          // Only connect those wires that stage is valid for them
+          //
+          if (maximumNumberOfStages > i + j) {
+              scriptSymbols(j) := stageRegs(i + j).scriptSymbol
+          } else {
+
+            //
+            // As we're on the last items of the stages and there is no more stage, 
+            // we'll send zero as the symbol for the next stage
+            //
+            scriptSymbols(j).Type := 0.U
+            scriptSymbols(j).Len := 0.U
+            scriptSymbols(j).VariableType := 0.U
+            scriptSymbols(j).Value := 0.U
+          }
         }
 
         //

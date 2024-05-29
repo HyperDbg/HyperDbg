@@ -58,6 +58,8 @@ class ScriptEngineGetValue(
     val outputValue = Output(UInt(scriptVariableLength.W)) // output value
   })
 
+  val outputValue = WireInit(0.U(scriptVariableLength.W))
+
   //
   // Assign operator type (split the signal into only usable part)
   //
@@ -76,8 +78,43 @@ class ScriptEngineGetValue(
     switch(mainOperatorType) {
 
       is(symbolGlobalIdType) { 
+        //
+        // To be implemented
+        //
       }
       is(symbolLocalIdType) {
+        //
+        // To be implemented
+        //
+      }
+      is(symbolNumType) {
+        
+        outputValue := io.operator.Value
+      }
+      is(symbolRegisterType) {
+        //
+        // To be implemented
+        //
+      }
+      is(symbolPseudoRegType) { 
+        //
+        // To be implemented
+        //
+      }
+      is(symbolTempType) {
+        //
+        // To be implemented
+        //
+      }
+      is(symbolStackTempType) {
+        //
+        // To be implemented
+        //
+      }
+      is(symbolFunctionParameterIdType) {
+        //
+        // To be implemented
+        //
       }
     }
   }
@@ -85,8 +122,7 @@ class ScriptEngineGetValue(
   //
   // Connect the output signals
   //
-  // io.outputPin := outputPin
-  io.outputValue := 0.U
+  io.outputValue := outputValue
 
 }
 
@@ -99,7 +135,7 @@ object ScriptEngineGetValue {
       portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
   )(
       en: Bool,
-      operator: Vec[Symbol],
+      operator: Symbol,
       inputPin: Vec[UInt]
   ): (UInt) = {
 

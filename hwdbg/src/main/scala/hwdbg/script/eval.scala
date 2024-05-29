@@ -59,7 +59,43 @@ class ScriptEngineEval(
     val outputPin = Output(Vec(numberOfPins, UInt(1.W))) // output pins
   })
 
+  //-------------------------------------------------------------------------
+  // Get value module
   //
+  val getValueModuleOutput = Wire(Vec(maximumNumberOfSupportedScriptOperators - 1, UInt(scriptVariableLength.W)))
+
+  for (i <- 0 until maximumNumberOfSupportedScriptOperators - 1) {
+
+      getValueModuleOutput(i) := ScriptEngineGetValue(
+        debug,
+        numberOfPins,
+        scriptVariableLength,
+        portsConfiguration
+    )(
+        io.en,
+        io.operators(i),
+        io.inputPin
+    )
+  }
+  
+  //-------------------------------------------------------------------------
+  // Set value module
+  //
+  val setValueModuleInput = Wire(UInt(scriptVariableLength.W)) // operators should be applied to this wire
+  setValueModuleInput := 0. U ////////////////////// Test should be removed
+
+  io.outputPin := ScriptEngineSetValue(
+        debug,
+        numberOfPins,
+        scriptVariableLength,
+        portsConfiguration
+    )(
+        io.en,
+        io.operators(maximumNumberOfSupportedScriptOperators - 1), // last operator is for set value
+        setValueModuleInput
+    )
+
+  //-------------------------------------------------------------------------
   // Output pins
   //
   // val outputPin = Wire(Vec(numberOfPins, UInt(1.W)))
@@ -71,7 +107,7 @@ class ScriptEngineEval(
   LogInfo(debug)("Usable size of Value in the SYMBOL: " + ScriptOperators().getWidth)
   val mainOperatorValue = io.operators(0).Value(ScriptOperators().getWidth - 1, 0).asTypeOf(ScriptOperators())
 
-  //
+  //-------------------------------------------------------------------------
   // *** Implementing the evaluation engine ***
   //
 
