@@ -79,6 +79,11 @@ object ScriptEngineConfigurations {
   //
   val MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS: Int = 2
 
+  //
+  // Script variable length
+  //
+  val SCRIPT_VARIABLE_LENGTH: Int = 64
+
 }
 
 /**

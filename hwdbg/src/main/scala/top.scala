@@ -26,6 +26,7 @@ class DebuggerModule(
     numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
     maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
     maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
+    scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
     bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
     bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
     portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
@@ -68,6 +69,7 @@ class DebuggerModule(
       numberOfPins,
       maximumNumberOfStages,
       maximumNumberOfSupportedScriptOperators,
+      scriptVariableLength,
       bramAddrWidth,
       bramDataWidth,
       portsConfiguration
@@ -98,6 +100,7 @@ object Main extends App {
         DebuggerConfigurations.NUMBER_OF_PINS,
         ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
         ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
+        ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
         DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
         DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
         DebuggerPorts.PORT_PINS_MAP

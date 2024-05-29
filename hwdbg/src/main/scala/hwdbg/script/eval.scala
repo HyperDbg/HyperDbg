@@ -27,6 +27,7 @@ class ScriptEngineEval(
     numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
     maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
     maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
+    scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
     portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
 ) extends Module {
 
@@ -46,7 +47,7 @@ class ScriptEngineEval(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
+    val operators = Input(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
 
     val currentStage = Input(UInt(log2Ceil(maximumNumberOfStages).W))
     val nextStage = Output(UInt(log2Ceil(maximumNumberOfStages).W))
@@ -68,7 +69,7 @@ class ScriptEngineEval(
   // Assign operator value (split the signal into only usable part)
   //
   LogInfo(debug)("Usable size of Value in the SYMBOL: " + ScriptOperators().getWidth)
-  val mainOperatorValue = io.operator(0).Value(ScriptOperators().getWidth - 1, 0).asTypeOf(ScriptOperators())
+  val mainOperatorValue = io.operators(0).Value(ScriptOperators().getWidth - 1, 0).asTypeOf(ScriptOperators())
 
   //
   // *** Implementing the evaluation engine ***
@@ -81,7 +82,7 @@ class ScriptEngineEval(
 
     switch(mainOperatorValue) {
 
-      is(sFuncInc) {
+      is(sFuncInc) { 
         nextStage := io.currentStage + 1.U
       }
       is(sFuncDec) {
@@ -113,10 +114,11 @@ object ScriptEngineEval {
       numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
       maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
       maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
+      scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
       portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
   )(
       en: Bool,
-      operator: Vec[Symbol],
+      operators: Vec[Symbol],
       currentStage: UInt,
       inputPin: Vec[UInt]
   ): (UInt, Vec[UInt]) = {
@@ -127,6 +129,7 @@ object ScriptEngineEval {
         numberOfPins,
         maximumNumberOfStages,
         maximumNumberOfSupportedScriptOperators,
+        scriptVariableLength,
         portsConfiguration
       )
     )
@@ -138,7 +141,7 @@ object ScriptEngineEval {
     // Configure the input signals
     //
     scriptEngineEvalModule.io.en := en
-    scriptEngineEvalModule.io.operator := operator
+    scriptEngineEvalModule.io.operators := operators
     scriptEngineEvalModule.io.currentStage := currentStage
     scriptEngineEvalModule.io.inputPin := inputPin
 
