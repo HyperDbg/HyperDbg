@@ -19,25 +19,19 @@ class Symbol extends Bundle {
  *   Constant values for the script engine
  */
 object ScriptConstants {
-  val SYMBOL_GLOBAL_ID_TYPE = 0
-  val SYMBOL_LOCAL_ID_TYPE = 1
-  val SYMBOL_NUM_TYPE = 2
-  val SYMBOL_REGISTER_TYPE = 3
-  val SYMBOL_PSEUDO_REG_TYPE = 4
-  val SYMBOL_SEMANTIC_RULE_TYPE = 5
-  val SYMBOL_TEMP_TYPE = 6
-  val SYMBOL_STRING_TYPE = 7
-  val SYMBOL_VARIABLE_COUNT_TYPE = 8
   val SYMBOL_MEM_VALID_CHECK_MASK = 1 << 31
-  val SYMBOL_INVALID = 9
-  val SYMBOL_WSTRING_TYPE = 10
-  val SYMBOL_USER_DEFINED_FUNCTION_TYPE = 11
-  val SYMBOL_FUNCTION_PARAMETER_ID_TYPE = 12
-  val SYMBOL_RETURN_ADDRESS_TYPE = 13
-  val SYMBOL_STACK_TEMP_TYPE = 14
-  val SYMBOL_FUNCTION_PARAMETER_TYPE = 15
   val INVALID = 0x80000000
   val LALR_ACCEPT = 0x7fffffff
+}
+
+/**
+ * @brief
+ *   Constant type values for the script engine
+ */
+object ScriptConstantTypes {
+  object ScriptDataTypes extends ChiselEnum {
+    val symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
+  }
 }
 
 object ScriptEvalFunc {
