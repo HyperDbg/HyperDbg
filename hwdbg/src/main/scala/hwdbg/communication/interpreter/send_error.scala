@@ -19,7 +19,6 @@ import chisel3._
 import chisel3.util.{switch, is}
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 
 class InterpreterSendError(

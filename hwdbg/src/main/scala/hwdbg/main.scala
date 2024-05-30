@@ -18,7 +18,6 @@ package hwdbg
 import chisel3._
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 import hwdbg.types._
 import hwdbg.utils._
@@ -75,15 +74,9 @@ class DebuggerMain(
   })
 
   //
-  // Printing the versioning info
+  // Create an instance of the debugger
   //
-  val encodedVersion = Version.getEncodedVersion
-  LogInfo(true)("=======================================================================")
-  LogInfo(true)(s"Generating code for hwdbg v${Version.extractMajor(encodedVersion)}.${Version.extractMinor(encodedVersion)}.${Version
-      .extractPatch(encodedVersion)} ($encodedVersion)")
-  LogInfo(true)("Please visit https://hwdbg.hyperdbg.org/docs for more information...")
-  LogInfo(true)("hwdbg is released under the GNU Public License v3 (GPLv3).")
-  LogInfo(true)("=======================================================================")
+  val debuggerInstance = HwdbgInstanceInformation.createInstanceInformation()
 
   //
   // Wire signals for the synchronizer

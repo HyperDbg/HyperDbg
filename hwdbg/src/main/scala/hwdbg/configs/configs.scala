@@ -18,6 +18,40 @@ package hwdbg.configs
 import chisel3._
 import chisel3.util._
 
+import hwdbg.utils._
+
+/**
+ * @brief
+ *   Version of hwdbg
+ * @warning
+ *   will be checked with HyperDbg
+ */
+object Version {
+
+  //
+  // Constant version info
+  //
+  val VERSION_MAJOR: Int = 0
+  val VERSION_MINOR: Int = 1
+  val VERSION_PATCH: Int = 0
+
+  def getEncodedVersion: Int = {
+    (VERSION_MAJOR << 16) | (VERSION_MINOR << 8) | VERSION_PATCH
+  }
+
+  def extractMajor(encodedVersion: Int): Int = {
+    encodedVersion >> 16
+  }
+
+  def extractMinor(encodedVersion: Int): Int = {
+    (encodedVersion >> 8) & 0xff // Masking to get only the 8 bits
+  }
+
+  def extractPatch(encodedVersion: Int): Int = {
+    encodedVersion & 0xff // Masking to get only the 8 bits
+  }
+}
+
 /**
  * @brief
  *   The configuration of ports and pins
@@ -111,4 +145,112 @@ object MemoryCommunicationConfigurations {
   // Base address of PL to PS SRAM communication memory
   //
   val BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION: Int = DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE / 2
+}
+
+/**
+ * The structure of script capabilities information in hwdbg.
+ */
+case class HwdbgInstanceInformation(
+  Version: Int,                 // Target version of HyperDbg (same as hwdbg)
+  NumberOfSupportedStages: Int, // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+  ScriptVariableBitLength: Int, // Maximum length of variables (and other script elements)
+  CountOfPorts: Int,            // Number of ports
+  Capabilities: Long            // Capabilities bitmask
+)
+
+object HwdbgScriptCapabilities {
+  val Inc: Long = 1L << 0
+  val Dec: Long = 1L << 1
+  val Or: Long = 1L << 2
+  val Xor: Long = 1L << 3
+  val And: Long = 1L << 4
+  val Asr: Long = 1L << 5
+  val Asl: Long = 1L << 6
+  val Add: Long = 1L << 7
+  val Sub: Long = 1L << 8
+  val Mul: Long = 1L << 9
+  val Div: Long = 1L << 10
+  val Mod: Long = 1L << 11
+  val Gt: Long = 1L << 12
+  val Lt: Long = 1L << 13
+  val Egt: Long = 1L << 14
+  val Elt: Long = 1L << 15
+  val Equal: Long = 1L << 16
+  val Neq: Long = 1L << 17
+  val Jmp: Long = 1L << 18
+  val Jz: Long = 1L << 19
+  val Jnz: Long = 1L << 20
+  val Mov: Long = 1L << 21
+  val Printf: Long = 1L << 22
+
+  def allCapabilities: Seq[Long] = Seq(
+    Inc, Dec, Or, Xor, And, Asr, Asl, Add, Sub, Mul, Div, Mod, Gt, Lt,
+    Egt, Elt, Equal, Neq, Jmp, Jz, Jnz, Mov, Printf
+  )
+}
+
+object HwdbgInstanceInformation {
+
+  //
+  // Utility method to create a bitmask from a sequence of capabilities
+  //
+  def createCapabilitiesMask(capabilities: Seq[Long]): Long = {
+    capabilities.foldLeft(0L)(_ | _)
+  }
+
+
+  //
+  // Function to create an instance of HWDBGInstanceInformation
+  //
+  def createInstanceInformation(): HwdbgInstanceInformation = {
+
+    //  
+    // Define the capabilities you want to enable
+    //
+    val capabilities = Seq(
+      HwdbgScriptCapabilities.Inc,
+      HwdbgScriptCapabilities.Dec,
+      HwdbgScriptCapabilities.Or,
+      HwdbgScriptCapabilities.Xor,
+      HwdbgScriptCapabilities.And,
+      HwdbgScriptCapabilities.Asl,
+      HwdbgScriptCapabilities.Add,
+      HwdbgScriptCapabilities.Sub,
+      HwdbgScriptCapabilities.Mul,
+      HwdbgScriptCapabilities.Div,
+      HwdbgScriptCapabilities.Mod,
+      HwdbgScriptCapabilities.Gt,
+      HwdbgScriptCapabilities.Lt,
+      HwdbgScriptCapabilities.Egt,
+      HwdbgScriptCapabilities.Elt,
+      HwdbgScriptCapabilities.Equal,
+      HwdbgScriptCapabilities.Neq,
+      HwdbgScriptCapabilities.Jmp,
+      HwdbgScriptCapabilities.Jz,
+      HwdbgScriptCapabilities.Jnz,
+      HwdbgScriptCapabilities.Mov,
+      HwdbgScriptCapabilities.Printf
+    )
+
+    val capabilitiesMask = createCapabilitiesMask(capabilities)
+
+    //
+    // Printing the versioning info
+    //
+    LogInfo(true)("=======================================================================")
+    val encodedVersion = Version.getEncodedVersion
+    LogInfo(true)(s"Generating code for hwdbg v${Version.extractMajor(encodedVersion)}.${Version.extractMinor(encodedVersion)}.${Version
+        .extractPatch(encodedVersion)} ($encodedVersion)")
+    LogInfo(true)("Please visit https://hwdbg.hyperdbg.org/docs for more information...")
+    LogInfo(true)("hwdbg is released under the GNU Public License v3 (GPLv3).")
+    LogInfo(true)("=======================================================================")
+
+    HwdbgInstanceInformation(
+      Version = Version.getEncodedVersion,
+      NumberOfSupportedStages = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
+      ScriptVariableBitLength = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
+      CountOfPorts = DebuggerPorts.PORT_PINS_MAP.size,
+      Capabilities = capabilitiesMask
+    )
+  }
 }
