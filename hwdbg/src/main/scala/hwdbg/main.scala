@@ -74,9 +74,16 @@ class DebuggerMain(
   })
 
   //
-  // Create an instance of the debugger
+  // *** Create an instance of the debugger ***
   //
-  val debuggerInstance = HwdbgInstanceInformation.createInstanceInformation()
+  val debuggerInstance = HwdbgInstanceInformation.createInstanceInformation(
+                              version = Version.getEncodedVersion,
+                              maximumNumberOfStages = maximumNumberOfStages,
+                              scriptVariableLength = scriptVariableLength,
+                              numberOfPins = numberOfPins,
+                              numberOfPorts = portsConfiguration.size,
+                              enabledCapabilities = ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES
+    )
 
   //
   // Wire signals for the synchronizer
