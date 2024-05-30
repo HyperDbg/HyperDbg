@@ -30,8 +30,9 @@ object DebuggerPacketInterpreterEnums {
 
 class DebuggerPacketInterpreter(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+    bramAddrWidth: Int,
+    bramDataWidth: Int,
+    portsConfiguration: Map[Int, Int]
 ) extends Module {
 
   //
@@ -282,7 +283,8 @@ class DebuggerPacketInterpreter(
             ) =
               InterpreterPortInformation(
                 debug,
-                bramDataWidth
+                bramDataWidth,
+                portsConfiguration
               )(
                 io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
               )
@@ -410,8 +412,9 @@ object DebuggerPacketInterpreter {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+      bramAddrWidth: Int,
+      bramDataWidth: Int,
+      portsConfiguration: Map[Int, Int]
   )(
       en: Bool,
       requestedActionOfThePacketInput: UInt,
@@ -425,7 +428,8 @@ object DebuggerPacketInterpreter {
       new DebuggerPacketInterpreter(
         debug,
         bramAddrWidth,
-        bramDataWidth
+        bramDataWidth,
+        portsConfiguration
       )
     )
 

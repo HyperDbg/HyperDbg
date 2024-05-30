@@ -56,11 +56,11 @@ object InitRegMemFromFileTools {
 
 class InitRegMemFromFile(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    emulateBlockRamDelay: Boolean = MemoryCommunicationConfigurations.ENABLE_BLOCK_RAM_DELAY,
-    memoryFile: String = TestingConfigurations.BRAM_INITIALIZATION_FILE_PATH,
-    addrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    width: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    size: Int = MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE
+    emulateBlockRamDelay: Boolean,
+    memoryFile: String,
+    addrWidth: Int,
+    width: Int,
+    size: Int
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -113,11 +113,11 @@ object InitRegMemFromFile {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      emulateBlockRamDelay: Boolean = MemoryCommunicationConfigurations.ENABLE_BLOCK_RAM_DELAY,
-      memoryFile: String = TestingConfigurations.BRAM_INITIALIZATION_FILE_PATH,
-      addrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      width: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      size: Int = MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE
+      emulateBlockRamDelay: Boolean,
+      memoryFile: String,
+      addrWidth: Int,
+      width: Int,
+      size: Int
   )(
       enable: Bool,
       write: Bool,

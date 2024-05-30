@@ -24,9 +24,9 @@ import hwdbg.stage._
 
 class ScriptEngineGetValue(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-    scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    numberOfPins: Int,
+    scriptVariableLength: Int,
+    portsConfiguration: Map[Int, Int]
 ) extends Module {
 
   //

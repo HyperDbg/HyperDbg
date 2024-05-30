@@ -23,7 +23,7 @@ import hwdbg.configs._
 
 class InterpreterSendVersion(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+    bramDataWidth: Int
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -82,7 +82,7 @@ object InterpreterSendVersion {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+      bramDataWidth: Int
   )(
       en: Bool
   ): (Bool, Bool, UInt) = {

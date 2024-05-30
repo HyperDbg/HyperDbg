@@ -24,11 +24,11 @@ import hwdbg.stage._
 
 class ScriptEngineEval(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-    maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-    maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-    scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    numberOfPins: Int,
+    maximumNumberOfStages: Int,
+    maximumNumberOfSupportedScriptOperators: Int,
+    scriptVariableLength: Int,
+    portsConfiguration: Map[Int, Int]
 ) extends Module {
 
   //
@@ -147,11 +147,11 @@ object ScriptEngineEval {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-      maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-      maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-      scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      numberOfPins: Int,
+      maximumNumberOfStages: Int,
+      maximumNumberOfSupportedScriptOperators: Int,
+      scriptVariableLength: Int,
+      portsConfiguration: Map[Int, Int]
   )(
       en: Bool,
       operators: Vec[Symbol],

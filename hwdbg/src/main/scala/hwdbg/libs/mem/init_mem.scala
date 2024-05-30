@@ -22,10 +22,10 @@ import hwdbg.configs._
 
 class InitMemInline(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    memoryFile: String = TestingConfigurations.BRAM_INITIALIZATION_FILE_PATH,
-    addrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    width: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    size: Int = MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE
+    memoryFile: String,
+    addrWidth: Int,
+    width: Int,
+    size: Int
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -61,10 +61,10 @@ object InitMemInline {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      memoryFile: String = TestingConfigurations.BRAM_INITIALIZATION_FILE_PATH,
-      addrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      width: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      size: Int = MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE
+      memoryFile: String,
+      addrWidth: Int,
+      width: Int,
+      size: Int
   )(
       enable: Bool,
       write: Bool,

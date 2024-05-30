@@ -19,7 +19,6 @@ import chisel3._
 import chisel3.util.{switch, is, log2Ceil}
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 import hwdbg.utils._
 
@@ -31,8 +30,8 @@ object InterpreterPortInformationEnums {
 
 class InterpreterPortInformation(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    bramDataWidth: Int,
+    portsConfiguration: Map[Int, Int]
 ) extends Module {
 
   //
@@ -204,8 +203,8 @@ object InterpreterPortInformation {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      bramDataWidth: Int,
+      portsConfiguration: Map[Int, Int]
   )(
       en: Bool
   ): (Bool, Bool, UInt) = {

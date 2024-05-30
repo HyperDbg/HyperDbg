@@ -179,13 +179,13 @@ object ScriptExecutionEngine {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-      maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-      maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-      scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
-      bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      numberOfPins: Int,
+      maximumNumberOfStages: Int,
+      maximumNumberOfSupportedScriptOperators: Int,
+      scriptVariableLength: Int,
+      bramAddrWidth: Int,
+      bramDataWidth: Int,
+      portsConfiguration: Map[Int, Int]
   )(
       en: Bool,
       inputPin: Vec[UInt]

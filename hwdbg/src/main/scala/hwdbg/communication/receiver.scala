@@ -33,8 +33,8 @@ object DebuggerPacketReceiverEnums {
 
 class DebuggerPacketReceiver(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+    bramAddrWidth: Int,
+    bramDataWidth: Int
 ) extends Module {
 
   //
@@ -379,8 +379,8 @@ object DebuggerPacketReceiver {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+      bramAddrWidth: Int,
+      bramDataWidth: Int
   )(
       en: Bool,
       plInSignal: Bool,

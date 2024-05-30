@@ -23,8 +23,8 @@ import hwdbg.script._
 
 class StageRegisters(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-    maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES
+    numberOfPins: Int,
+    maximumNumberOfStages: Int
 ) extends Bundle {
   val pinValues = Vec(numberOfPins, UInt(1.W)) // The value of each pin in each stage (should be passed to the next stage)
   val scriptSymbol = new Symbol // Interpreted script symbol for the target stage (should NOT be passed to the next stage)
