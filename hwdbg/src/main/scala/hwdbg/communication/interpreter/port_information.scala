@@ -30,6 +30,7 @@ object InterpreterPortInformationEnums {
 
 class InterpreterPortInformation(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+    instanceInfo: HwdbgInstanceInformation,
     bramDataWidth: Int,
     portsConfiguration: Map[Int, Int]
 ) extends Module {
@@ -203,6 +204,7 @@ object InterpreterPortInformation {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+      instanceInfo: HwdbgInstanceInformation,
       bramDataWidth: Int,
       portsConfiguration: Map[Int, Int]
   )(
@@ -212,6 +214,7 @@ object InterpreterPortInformation {
     val interpreterPortInformation = Module(
       new InterpreterPortInformation(
         debug,
+        instanceInfo,
         bramDataWidth,
         portsConfiguration
       )

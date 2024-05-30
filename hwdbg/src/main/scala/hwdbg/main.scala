@@ -31,6 +31,7 @@ class DebuggerMain(
     maximumNumberOfStages: Int,
     maximumNumberOfSupportedScriptOperators: Int,
     scriptVariableLength: Int,
+    scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
     bramDataWidth: Int,
     portsConfiguration: Map[Int, Int]
@@ -76,13 +77,14 @@ class DebuggerMain(
   //
   // *** Create an instance of the debugger ***
   //
-  val debuggerInstance = HwdbgInstanceInformation.createInstanceInformation(
+  val instanceInfo = HwdbgInstanceInformation.createInstanceInformation(
                               version = Version.getEncodedVersion,
                               maximumNumberOfStages = maximumNumberOfStages,
                               scriptVariableLength = scriptVariableLength,
+                              maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
                               numberOfPins = numberOfPins,
                               numberOfPorts = portsConfiguration.size,
-                              enabledCapabilities = ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES
+                              enabledCapabilities = scriptCapabilities
     )
 
   //
@@ -100,10 +102,7 @@ class DebuggerMain(
   val (outputPin) =
     ScriptExecutionEngine(
       debug,
-      numberOfPins,
-      maximumNumberOfStages,
-      maximumNumberOfSupportedScriptOperators,
-      scriptVariableLength,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth,
       portsConfiguration
@@ -126,6 +125,7 @@ class DebuggerMain(
   ) =
     DebuggerPacketInterpreter(
       debug,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth,
       portsConfiguration
@@ -199,6 +199,7 @@ object DebuggerMain {
       maximumNumberOfStages: Int,
       maximumNumberOfSupportedScriptOperators: Int,
       scriptVariableLength: Int,
+      scriptCapabilities: Seq[Long],
       bramAddrWidth: Int,
       bramDataWidth: Int,
       portsConfiguration: Map[Int, Int]
@@ -216,6 +217,7 @@ object DebuggerMain {
         maximumNumberOfStages,
         maximumNumberOfSupportedScriptOperators,
         scriptVariableLength,
+        scriptCapabilities,
         bramAddrWidth,
         bramDataWidth,
         portsConfiguration

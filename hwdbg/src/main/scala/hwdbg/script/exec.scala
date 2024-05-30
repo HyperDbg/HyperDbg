@@ -23,10 +23,7 @@ import hwdbg.stage._
 
 class ScriptExecutionEngine(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-    maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-    maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-    scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
+    instanceInfo: HwdbgInstanceInformation,
     bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
     bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
     portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
@@ -42,25 +39,25 @@ class ScriptExecutionEngine(
     //
     // Input/Output signals
     //
-    val inputPin = Input(Vec(numberOfPins, UInt(1.W))) // input pins
-    val outputPin = Output(Vec(numberOfPins, UInt(1.W))) // output pins
+    val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
+    val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
   })
 
   //
   // Output pins
   //
-  val outputPin = Wire(Vec(numberOfPins, UInt(1.W)))
+  val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
 
   //
   // Stage registers
   //
-  val stageRegs = Reg(Vec(maximumNumberOfStages, new StageRegisters(debug, numberOfPins, maximumNumberOfStages)))
+  val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new StageRegisters(debug, instanceInfo)))
 
   // -----------------------------------------------------------------------
   //
   // *** Move each register (input vector) to the next stage at each clock ***
   //
-  for (i <- 0 until maximumNumberOfStages) {
+  for (i <- 0 until instanceInfo.maximumNumberOfStages) {
 
     if (i == 0) {
 
@@ -75,7 +72,7 @@ class ScriptExecutionEngine(
       //
       stageRegs(i).targetStage := 0.U
 
-    } else if (i == (maximumNumberOfStages - 1)) {
+    } else if (i == (instanceInfo.maximumNumberOfStages - 1)) {
 
       //
       // At the last stage, the state registers should be passed to the output
@@ -97,14 +94,14 @@ class ScriptExecutionEngine(
         //
         // Create a Vec containing script symbol elements
         //
-        val scriptSymbols = Wire(Vec(maximumNumberOfSupportedScriptOperators, new Symbol))
+        val scriptSymbols = Wire(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol))
 
-        for (j <- 0 until maximumNumberOfSupportedScriptOperators) {
+        for (j <- 0 until instanceInfo.maximumNumberOfSupportedScriptOperators) {
 
           //
           // Only connect those wires that stage is valid for them
           //
-          if (maximumNumberOfStages > i + j) {
+          if (instanceInfo.maximumNumberOfStages > i + j) {
               scriptSymbols(j) := stageRegs(i + j).scriptSymbol
           } else {
 
@@ -127,10 +124,7 @@ class ScriptExecutionEngine(
           outputPin
         ) = ScriptEngineEval(
           debug,
-          numberOfPins,
-          maximumNumberOfStages,
-          maximumNumberOfSupportedScriptOperators,
-          scriptVariableLength,
+          instanceInfo,
           portsConfiguration
         )(
           io.en,
@@ -179,10 +173,7 @@ object ScriptExecutionEngine {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int,
-      maximumNumberOfStages: Int,
-      maximumNumberOfSupportedScriptOperators: Int,
-      scriptVariableLength: Int,
+      instanceInfo: HwdbgInstanceInformation,
       bramAddrWidth: Int,
       bramDataWidth: Int,
       portsConfiguration: Map[Int, Int]
@@ -194,17 +185,14 @@ object ScriptExecutionEngine {
     val scriptExecutionEngineModule = Module(
       new ScriptExecutionEngine(
         debug,
-        numberOfPins,
-        maximumNumberOfStages,
-        maximumNumberOfSupportedScriptOperators,
-        scriptVariableLength,
+        instanceInfo,
         bramAddrWidth,
         bramDataWidth,
         portsConfiguration
       )
     )
 
-    val outputPin = Wire(Vec(numberOfPins, UInt(1.W)))
+    val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
 
     //
     // Configure the input signals

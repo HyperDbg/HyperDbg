@@ -24,8 +24,7 @@ import hwdbg.stage._
 
 class ScriptEngineSetValue(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int,
-    scriptVariableLength: Int,
+    instanceInfo: HwdbgInstanceInformation,
     portsConfiguration: Map[Int, Int]
 ) extends Module {
 
@@ -50,12 +49,12 @@ class ScriptEngineSetValue(
     //
     // Input value
     //
-    val inputValue = Input(UInt(scriptVariableLength.W)) // input value
+    val inputValue = Input(UInt(instanceInfo.scriptVariableLength.W)) // input value
 
     //
     // Input signals
     //
-    val outputPin = Output(Vec(numberOfPins, UInt(1.W))) // output pins
+    val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
 
   })
 
@@ -112,7 +111,7 @@ class ScriptEngineSetValue(
   //
   // Connect the output signals
   //
-  for (i <- 0 until numberOfPins) {
+  for (i <- 0 until instanceInfo.numberOfPins) {
     io.outputPin(i) := 0.U
   }
 
@@ -122,8 +121,7 @@ object ScriptEngineSetValue {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int,
-      scriptVariableLength: Int,
+      instanceInfo: HwdbgInstanceInformation,
       portsConfiguration: Map[Int, Int]
   )(
       en: Bool,
@@ -134,13 +132,12 @@ object ScriptEngineSetValue {
     val scriptEngineSetValueModule = Module(
       new ScriptEngineSetValue(
         debug,
-        numberOfPins,
-        scriptVariableLength,
+        instanceInfo,
         portsConfiguration
       )
     )
 
-    val outputPin = Wire(Vec(numberOfPins, UInt(1.W)))
+    val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
 
     //
     // Configure the input signals

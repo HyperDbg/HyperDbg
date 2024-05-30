@@ -179,12 +179,13 @@ object MemoryCommunicationConfigurations {
  * @details Same as _HWDBG_INSTANCE_INFORMATION in HyperDbg
  */
 case class HwdbgInstanceInformation(
-  Version: Int,                 // Target version of HyperDbg (same as hwdbg)
+  version: Int,                 // Target version of HyperDbg (same as hwdbg)
   maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
   scriptVariableLength: Int, // Maximum length of variables (and other script elements)
-  NumberOfPins: Int,            // Number of pins
-  NumberOfPorts: Int,           // Number of ports
-  Capabilities: Long            // Capabilities bitmask
+  maximumNumberOfSupportedScriptOperators: Int, // Maximum supported operators in a single func
+  numberOfPins: Int,            // Number of pins
+  numberOfPorts: Int,           // Number of ports
+  scriptCapabilities: Long            // Capabilities bitmask
 )
 
 object HwdbgScriptCapabilities {
@@ -234,6 +235,7 @@ object HwdbgInstanceInformation {
     version: Int,
     maximumNumberOfStages: Int,
     scriptVariableLength: Int,
+    maximumNumberOfSupportedScriptOperators: Int,
     numberOfPins: Int,
     numberOfPorts: Int,
     enabledCapabilities: Seq[Long]
@@ -252,12 +254,13 @@ object HwdbgInstanceInformation {
 
 
     HwdbgInstanceInformation(
-      Version = version,
+      version = version,
       maximumNumberOfStages = maximumNumberOfStages,
       scriptVariableLength = scriptVariableLength,
-      NumberOfPins = numberOfPins,
-      NumberOfPorts = numberOfPorts,
-      Capabilities = capabilitiesMask
+      maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+      numberOfPins = numberOfPins,
+      numberOfPorts = numberOfPorts,
+      scriptCapabilities = capabilitiesMask
     )
   }
 }

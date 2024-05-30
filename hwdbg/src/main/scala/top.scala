@@ -27,6 +27,7 @@ class DebuggerModule(
     maximumNumberOfStages: Int,
     maximumNumberOfSupportedScriptOperators: Int,
     scriptVariableLength: Int,
+    scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
     bramDataWidth: Int,
     portsConfiguration: Map[Int, Int]
@@ -70,6 +71,7 @@ class DebuggerModule(
       maximumNumberOfStages,
       maximumNumberOfSupportedScriptOperators,
       scriptVariableLength,
+      scriptCapabilities,
       bramAddrWidth,
       bramDataWidth,
       portsConfiguration
@@ -101,6 +103,7 @@ object Main extends App {
         ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
         ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
         ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
+        ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES,
         DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
         DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
         DebuggerPorts.PORT_PINS_MAP

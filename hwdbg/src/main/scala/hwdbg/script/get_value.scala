@@ -24,8 +24,7 @@ import hwdbg.stage._
 
 class ScriptEngineGetValue(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int,
-    scriptVariableLength: Int,
+    instanceInfo: HwdbgInstanceInformation,
     portsConfiguration: Map[Int, Int]
 ) extends Module {
 
@@ -50,15 +49,15 @@ class ScriptEngineGetValue(
     //
     // Input signals
     //
-    val inputPin = Input(Vec(numberOfPins, UInt(1.W))) // input pins
+    val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
 
     //
     // Output value
     //
-    val outputValue = Output(UInt(scriptVariableLength.W)) // output value
+    val outputValue = Output(UInt(instanceInfo.scriptVariableLength.W)) // output value
   })
 
-  val outputValue = WireInit(0.U(scriptVariableLength.W))
+  val outputValue = WireInit(0.U(instanceInfo.scriptVariableLength.W))
 
   //
   // Assign operator type (split the signal into only usable part)
@@ -130,8 +129,7 @@ object ScriptEngineGetValue {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-      scriptVariableLength: Int = ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
+      instanceInfo: HwdbgInstanceInformation,
       portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
   )(
       en: Bool,
@@ -142,13 +140,12 @@ object ScriptEngineGetValue {
     val scriptEngineGetValueModule = Module(
       new ScriptEngineGetValue(
         debug,
-        numberOfPins,
-        scriptVariableLength,
+        instanceInfo,
         portsConfiguration
       )
     )
 
-    val outputValue = Wire(UInt(scriptVariableLength.W))
+    val outputValue = Wire(UInt(instanceInfo.scriptVariableLength.W))
 
     //
     // Configure the input signals
