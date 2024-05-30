@@ -868,4 +868,11 @@ InitializeCommandsDictionary()
     g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+
+    //
+    // hwdbg commands
+    //
+    g_CommandsList["!hwdbg"] = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
+    g_CommandsList["hwdbg"]  = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
+    g_CommandsList[".hwdbg"] = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
 }

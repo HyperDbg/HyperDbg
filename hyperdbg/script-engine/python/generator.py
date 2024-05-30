@@ -1,3 +1,19 @@
+"""
+ * @file generator.py
+ * @author M.H. Gholamrezei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Script engine LL(1) Parse table generator 
+ * @details This program reads grammar from Greammar.txt file 
+ *          placed in the same directory of the program 
+ *          and creates parse_table.h and parse_table.c which is 
+ *          used by the parser of script engine. 
+ * @version 0.1
+ * @date 2020-10-24
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ 
+ """
+
 from ll1_parser import *
 from lalr1_parser import *
 

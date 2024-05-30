@@ -75,6 +75,9 @@
     <Filter Include="code\platform">
       <UniqueIdentifier>{81ab704c-2463-4499-867a-f259a77bd2ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\commands\hwdbg-commands">
+      <UniqueIdentifier>{00b0ccc1-7b0a-431a-9b01-8aff285f14cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -510,6 +513,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\script-engine\symbol.cpp">
       <Filter>code\debugger\script-engine</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\hwdbg-commands\hwdbg.cpp">
+      <Filter>code\debugger\commands\hwdbg-commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

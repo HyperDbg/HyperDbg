@@ -164,6 +164,7 @@
     <ClCompile Include="code\debugger\commands\extension-commands\trace.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\track.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\mode.cpp" />
+    <ClCompile Include="code\debugger\commands\hwdbg-commands\hwdbg.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\dump.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\kill.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\pagein.cpp" />
