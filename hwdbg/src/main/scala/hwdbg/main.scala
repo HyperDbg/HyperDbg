@@ -34,14 +34,14 @@ class DebuggerMain(
     scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
     bramDataWidth: Int,
-    portsConfiguration: Map[Int, Int]
+    portsConfiguration: Array[Int]
 ) extends Module {
 
   //
   // Ensure sum of input port values equals numberOfPins (NUMBER_OF_PINS)
   //
   require(
-    portsConfiguration.values.sum == numberOfPins,
+    portsConfiguration.sum == numberOfPins,
     "err, the sum of the portsConfiguration (PORT_PINS_MAP) values must equal the numberOfPins (NUMBER_OF_PINS)."
   )
 
@@ -84,7 +84,8 @@ class DebuggerMain(
                               maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
                               numberOfPins = numberOfPins,
                               numberOfPorts = portsConfiguration.size,
-                              enabledCapabilities = scriptCapabilities
+                              enabledCapabilities = scriptCapabilities,
+                              portsConfiguration = portsConfiguration
     )
 
   //
@@ -104,8 +105,7 @@ class DebuggerMain(
       debug,
       instanceInfo,
       bramAddrWidth,
-      bramDataWidth,
-      portsConfiguration
+      bramDataWidth
     )(
       io.en,
       io.inputPin
@@ -127,8 +127,7 @@ class DebuggerMain(
       debug,
       instanceInfo,
       bramAddrWidth,
-      bramDataWidth,
-      portsConfiguration
+      bramDataWidth
     )(
       io.en,
       requestedActionOfThePacketOutput,
@@ -202,7 +201,7 @@ object DebuggerMain {
       scriptCapabilities: Seq[Long],
       bramAddrWidth: Int,
       bramDataWidth: Int,
-      portsConfiguration: Map[Int, Int]
+      portsConfiguration: Array[Int]
   )(
       en: Bool,
       inputPin: Vec[UInt],

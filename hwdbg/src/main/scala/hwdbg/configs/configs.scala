@@ -65,7 +65,7 @@ object DebuggerPorts {
   //                port 0 (in) -> contains 12 pins
   //                port 1 (in) -> contains 9 pins
   //
-  val PORT_PINS_MAP: Map[Int, Int] = Map(0 -> 12, 1 -> 9, 2 -> 11)
+  val PORT_PINS_MAP: Array[Int] = Array(12, 9, 11)
 
 }
 
@@ -122,28 +122,28 @@ object ScriptEngineConfigurations {
   // Define the capabilities you want to enable
   //
     val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
-      HwdbgScriptCapabilities.Inc,
-      HwdbgScriptCapabilities.Dec,
-      HwdbgScriptCapabilities.Or,
-      HwdbgScriptCapabilities.Xor,
-      HwdbgScriptCapabilities.And,
-      HwdbgScriptCapabilities.Asl,
-      HwdbgScriptCapabilities.Add,
-      HwdbgScriptCapabilities.Sub,
-      HwdbgScriptCapabilities.Mul,
-      HwdbgScriptCapabilities.Div,
-      HwdbgScriptCapabilities.Mod,
-      HwdbgScriptCapabilities.Gt,
-      HwdbgScriptCapabilities.Lt,
-      HwdbgScriptCapabilities.Egt,
-      HwdbgScriptCapabilities.Elt,
-      HwdbgScriptCapabilities.Equal,
-      HwdbgScriptCapabilities.Neq,
-      HwdbgScriptCapabilities.Jmp,
-      HwdbgScriptCapabilities.Jz,
-      HwdbgScriptCapabilities.Jnz,
-      HwdbgScriptCapabilities.Mov,
-      HwdbgScriptCapabilities.Printf
+      HwdbgScriptCapabilities.inc,
+      HwdbgScriptCapabilities.dec,
+      HwdbgScriptCapabilities.or,
+      HwdbgScriptCapabilities.xor,
+      HwdbgScriptCapabilities.and,
+      HwdbgScriptCapabilities.asl,
+      HwdbgScriptCapabilities.add,
+      HwdbgScriptCapabilities.sub,
+      HwdbgScriptCapabilities.mul,
+      HwdbgScriptCapabilities.div,
+      HwdbgScriptCapabilities.mod,
+      HwdbgScriptCapabilities.gt,
+      HwdbgScriptCapabilities.lt,
+      HwdbgScriptCapabilities.egt,
+      HwdbgScriptCapabilities.elt,
+      HwdbgScriptCapabilities.equal,
+      HwdbgScriptCapabilities.neq,
+      HwdbgScriptCapabilities.jmp,
+      HwdbgScriptCapabilities.jz,
+      HwdbgScriptCapabilities.jnz,
+      HwdbgScriptCapabilities.mov,
+      HwdbgScriptCapabilities.printf
     )
 }
 
@@ -185,37 +185,38 @@ case class HwdbgInstanceInformation(
   maximumNumberOfSupportedScriptOperators: Int, // Maximum supported operators in a single func
   numberOfPins: Int,            // Number of pins
   numberOfPorts: Int,           // Number of ports
-  scriptCapabilities: Long            // Capabilities bitmask
+  scriptCapabilities: Long,            // Capabilities bitmask
+  portsConfiguration: Array[Int]   // Port arrangement
 )
 
 object HwdbgScriptCapabilities {
-  val Inc: Long = 1L << 0
-  val Dec: Long = 1L << 1
-  val Or: Long = 1L << 2
-  val Xor: Long = 1L << 3
-  val And: Long = 1L << 4
-  val Asr: Long = 1L << 5
-  val Asl: Long = 1L << 6
-  val Add: Long = 1L << 7
-  val Sub: Long = 1L << 8
-  val Mul: Long = 1L << 9
-  val Div: Long = 1L << 10
-  val Mod: Long = 1L << 11
-  val Gt: Long = 1L << 12
-  val Lt: Long = 1L << 13
-  val Egt: Long = 1L << 14
-  val Elt: Long = 1L << 15
-  val Equal: Long = 1L << 16
-  val Neq: Long = 1L << 17
-  val Jmp: Long = 1L << 18
-  val Jz: Long = 1L << 19
-  val Jnz: Long = 1L << 20
-  val Mov: Long = 1L << 21
-  val Printf: Long = 1L << 22
+  val inc: Long = 1L << 0
+  val dec: Long = 1L << 1
+  val or: Long = 1L << 2
+  val xor: Long = 1L << 3
+  val and: Long = 1L << 4
+  val asr: Long = 1L << 5
+  val asl: Long = 1L << 6
+  val add: Long = 1L << 7
+  val sub: Long = 1L << 8
+  val mul: Long = 1L << 9
+  val div: Long = 1L << 10
+  val mod: Long = 1L << 11
+  val gt: Long = 1L << 12
+  val lt: Long = 1L << 13
+  val egt: Long = 1L << 14
+  val elt: Long = 1L << 15
+  val equal: Long = 1L << 16
+  val neq: Long = 1L << 17
+  val jmp: Long = 1L << 18
+  val jz: Long = 1L << 19
+  val jnz: Long = 1L << 20
+  val mov: Long = 1L << 21
+  val printf: Long = 1L << 22
 
   def allCapabilities: Seq[Long] = Seq(
-    Inc, Dec, Or, Xor, And, Asr, Asl, Add, Sub, Mul, Div, Mod, Gt, Lt,
-    Egt, Elt, Equal, Neq, Jmp, Jz, Jnz, Mov, Printf
+    inc, dec, or, xor, and, asr, asl, add, sub, mul, div, mod, gt, lt,
+    egt, elt, equal, neq, jmp, jz, jnz, mov, printf
   )
 }
 
@@ -238,7 +239,8 @@ object HwdbgInstanceInformation {
     maximumNumberOfSupportedScriptOperators: Int,
     numberOfPins: Int,
     numberOfPorts: Int,
-    enabledCapabilities: Seq[Long]
+    enabledCapabilities: Seq[Long],
+    portsConfiguration: Array[Int]
   ): HwdbgInstanceInformation = {
 
     val capabilitiesMask = createCapabilitiesMask(enabledCapabilities)
@@ -260,7 +262,8 @@ object HwdbgInstanceInformation {
       maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
       numberOfPins = numberOfPins,
       numberOfPorts = numberOfPorts,
-      scriptCapabilities = capabilitiesMask
+      scriptCapabilities = capabilitiesMask,
+      portsConfiguration = portsConfiguration
     )
   }
 }

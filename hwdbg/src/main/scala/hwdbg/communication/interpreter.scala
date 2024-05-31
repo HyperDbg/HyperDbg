@@ -32,8 +32,7 @@ class DebuggerPacketInterpreter(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation,
     bramAddrWidth: Int,
-    bramDataWidth: Int,
-    portsConfiguration: Map[Int, Int]
+    bramDataWidth: Int
 ) extends Module {
 
   //
@@ -286,8 +285,7 @@ class DebuggerPacketInterpreter(
               InterpreterPortInformation(
                 debug,
                 instanceInfo,
-                bramDataWidth,
-                portsConfiguration
+                bramDataWidth
               )(
                 io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
               )
@@ -417,8 +415,7 @@ object DebuggerPacketInterpreter {
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
       instanceInfo: HwdbgInstanceInformation,
       bramAddrWidth: Int,
-      bramDataWidth: Int,
-      portsConfiguration: Map[Int, Int]
+      bramDataWidth: Int
   )(
       en: Bool,
       requestedActionOfThePacketInput: UInt,
@@ -433,8 +430,7 @@ object DebuggerPacketInterpreter {
         debug,
         instanceInfo,
         bramAddrWidth,
-        bramDataWidth,
-        portsConfiguration
+        bramDataWidth
       )
     )
 

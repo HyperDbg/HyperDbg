@@ -24,8 +24,7 @@ import hwdbg.stage._
 
 class ScriptEngineGetValue(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    portsConfiguration: Map[Int, Int]
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -129,8 +128,7 @@ object ScriptEngineGetValue {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       operator: Symbol,
@@ -140,8 +138,7 @@ object ScriptEngineGetValue {
     val scriptEngineGetValueModule = Module(
       new ScriptEngineGetValue(
         debug,
-        instanceInfo,
-        portsConfiguration
+        instanceInfo
       )
     )
 

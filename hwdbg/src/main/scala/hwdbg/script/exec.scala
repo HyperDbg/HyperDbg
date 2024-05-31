@@ -24,9 +24,8 @@ import hwdbg.stage._
 class ScriptExecutionEngine(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation,
-    bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    bramAddrWidth: Int,
+    bramDataWidth: Int
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -124,8 +123,7 @@ class ScriptExecutionEngine(
           outputPin
         ) = ScriptEngineEval(
           debug,
-          instanceInfo,
-          portsConfiguration
+          instanceInfo
         )(
           io.en,
           scriptSymbols,
@@ -175,8 +173,7 @@ object ScriptExecutionEngine {
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
       instanceInfo: HwdbgInstanceInformation,
       bramAddrWidth: Int,
-      bramDataWidth: Int,
-      portsConfiguration: Map[Int, Int]
+      bramDataWidth: Int
   )(
       en: Bool,
       inputPin: Vec[UInt]
@@ -187,8 +184,7 @@ object ScriptExecutionEngine {
         debug,
         instanceInfo,
         bramAddrWidth,
-        bramDataWidth,
-        portsConfiguration
+        bramDataWidth
       )
     )
 

@@ -31,7 +31,7 @@ class DebuggerModuleTestingBRAM(
     scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
     bramDataWidth: Int,
-    portsConfiguration: Map[Int, Int]
+    portsConfiguration: Array[Int]
 ) extends Module {
   val io = IO(new Bundle {
 

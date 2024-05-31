@@ -24,8 +24,7 @@ import hwdbg.stage._
 
 class ScriptEngineEval(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    portsConfiguration: Map[Int, Int]
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -65,8 +64,7 @@ class ScriptEngineEval(
 
       getValueModuleOutput(i) := ScriptEngineGetValue(
         debug,
-        instanceInfo,
-        portsConfiguration
+        instanceInfo
     )(
         io.en,
         io.operators(i),
@@ -82,8 +80,7 @@ class ScriptEngineEval(
 
   io.outputPin := ScriptEngineSetValue(
         debug,
-        instanceInfo,
-        portsConfiguration
+        instanceInfo
     )(
         io.en,
         io.operators(instanceInfo.maximumNumberOfSupportedScriptOperators - 1), // last operator is for set value
@@ -142,8 +139,7 @@ object ScriptEngineEval {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      portsConfiguration: Map[Int, Int]
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       operators: Vec[Symbol],
@@ -154,8 +150,7 @@ object ScriptEngineEval {
     val scriptEngineEvalModule = Module(
       new ScriptEngineEval(
         debug,
-        instanceInfo,
-        portsConfiguration
+        instanceInfo
       )
     )
 

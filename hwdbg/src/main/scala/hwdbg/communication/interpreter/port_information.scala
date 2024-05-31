@@ -31,8 +31,7 @@ object InterpreterPortInformationEnums {
 class InterpreterPortInformation(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation,
-    bramDataWidth: Int,
-    portsConfiguration: Map[Int, Int]
+    bramDataWidth: Int
 ) extends Module {
 
   //
@@ -65,12 +64,12 @@ class InterpreterPortInformation(
   //
   // Get number of input/output ports
   //
-  val numberOfPorts = portsConfiguration.size
+  val numberOfPorts = instanceInfo.portsConfiguration.size
 
   //
   // Convert input port pins into vector
   //
-  // val pinsVec = VecInit(portsConfiguration.values.toSeq.map(_.U))
+  // val pinsVec = VecInit(instanceInfo.portsConfiguration.values.toSeq.map(_.U))
   val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(bramDataWidth.W))))
 
   //
@@ -123,9 +122,11 @@ class InterpreterPortInformation(
         //
         LogInfo(debug)("Iterating over input pins:")
 
-        portsConfiguration.foreach { case (port, pins) =>
-          LogInfo(debug)(s"Port $port has $pins pins")
-          pinsVec(port) := pins.U
+        var portNum: Int = 0
+        for (pin <- instanceInfo.portsConfiguration) {
+          LogInfo(debug)(s"Port $portNum has $pin pins")
+          pinsVec(portNum) := pin.U
+          portNum = portNum + 1
         }
 
         //
@@ -206,7 +207,6 @@ object InterpreterPortInformation {
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
       instanceInfo: HwdbgInstanceInformation,
       bramDataWidth: Int,
-      portsConfiguration: Map[Int, Int]
   )(
       en: Bool
   ): (Bool, Bool, UInt) = {
@@ -215,8 +215,7 @@ object InterpreterPortInformation {
       new InterpreterPortInformation(
         debug,
         instanceInfo,
-        bramDataWidth,
-        portsConfiguration
+        bramDataWidth
       )
     )
 
