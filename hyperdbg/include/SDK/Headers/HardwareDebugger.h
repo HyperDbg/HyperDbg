@@ -83,34 +83,36 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
 
     struct _HWDBG_SCRIPT_CAPABILITIES
     {
-        UINT64 Inc : 1;
-        UINT64 Dec : 1;
-        UINT64 Or : 1;
-        UINT64 Xor : 1;
-        UINT64 And : 1;
-        UINT64 Asr : 1;
-        UINT64 Asl : 1;
-        UINT64 Add : 1;
-        UINT64 Sub : 1;
-        UINT64 Mul : 1;
-        UINT64 Div : 1;
-        UINT64 Mod : 1;
-        UINT64 Gt : 1;
-        UINT64 Lt : 1;
-        UINT64 Egt : 1;
-        UINT64 Elt : 1;
-        UINT64 Equal : 1;
-        UINT64 Neq : 1;
-        UINT64 Jmp : 1;
-        UINT64 Jz : 1;
-        UINT64 Jnz : 1;
-        UINT64 Mov : 1;
-        UINT64 Printf : 1;
+        UINT64 inc : 1;
+        UINT64 dec : 1;
+        UINT64 or : 1;
+        UINT64 xor : 1;
+        UINT64 and : 1;
+        UINT64 asr : 1;
+        UINT64 asl : 1;
+        UINT64 add : 1;
+        UINT64 sub : 1;
+        UINT64 mul : 1;
+        UINT64 div : 1;
+        UINT64 mod : 1;
+        UINT64 gt : 1;
+        UINT64 lt : 1;
+        UINT64 egt : 1;
+        UINT64 elt : 1;
+        UINT64 equal : 1;
+        UINT64 neq : 1;
+        UINT64 jmp : 1;
+        UINT64 jz : 1;
+        UINT64 jnz : 1;
+        UINT64 mov : 1;
+        UINT64 printf : 1;
 
     } scriptCapabilities;
 
     //
     // Here the details of port arrangements are located (HWDBG_PORT_INFORMATION_ITEMS)
+    // As the following type:
+    //   HWDBG_PORT_INFORMATION_ITEMS portsConfiguration[numberOfPorts]   ; Port arrangement
     //
 
 } HWDBG_SCRIPT_CAPABILITIES_INFORMATION, *PHWDBG_SCRIPT_CAPABILITIES_INFORMATION;
