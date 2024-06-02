@@ -86,12 +86,12 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
 
     //
-    // Fill the entries
+    // Add customize interrupt handlers
     //
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0, &VmxHostIdt[0]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[1]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[1]); // #DB
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2, &VmxHostIdt[2]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[3]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[3]); // #BP
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4, &VmxHostIdt[4]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5, &VmxHostIdt[5]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6, &VmxHostIdt[6]);
@@ -101,7 +101,7 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11, &VmxHostIdt[11]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12, &VmxHostIdt[12]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13, &VmxHostIdt[13]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[14]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[14]); // #PF
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16, &VmxHostIdt[16]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17, &VmxHostIdt[17]);
     IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18, &VmxHostIdt[18]);
