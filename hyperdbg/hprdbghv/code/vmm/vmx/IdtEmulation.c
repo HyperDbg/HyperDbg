@@ -64,8 +64,6 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
                  WindowsIdt,
                  HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
 
-    /////////////////////////////////////////////////////////////////////
-
     /*
     for (size_t i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
     {
@@ -82,7 +80,10 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     }
     */
 
-    //////////////////////////////////////////////////////////////////////
+    //
+    // Function related to handling host IDT are a modified version of the following project:
+    //      https://github.com/jonomango/hv/blob/main/hv
+    //
 
     //
     // Fill the entries
@@ -120,77 +121,39 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
 {
-    //
-    // Function related to handling host IDT are a modified version of the following project:
-    //      https://github.com/jonomango/hv/blob/main/hv
-    //
+    g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
 
     switch (IntrTrapFrame->vector)
     {
     case EXCEPTION_VECTOR_NMI:
-
-        HvSetNmiWindowExiting(TRUE);
 
         //
         // host NMIs
         //
         LogInfo("NMI Received!");
 
+        //
+        // Check if NMI needs to be injected back to the guest or not
+        //
+        if (VmxBroadcastHandleNmiCallback(NULL64_ZERO, FALSE) == TRUE)
+        {
+            //
+            // Inject NMI when the NMI Window opened
+            //
+            HvSetNmiWindowExiting(TRUE);
+        }
+
         break;
 
     default:
-        g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
 
         //
         // host exceptions
         //
 
-        //
-        // no registered exception handler
-        //
-        if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
-        {
-            LogInfo("Unhandled exception, RIP=%llx, Vector=%x",
-                    IntrTrapFrame->rip,
-                    IntrTrapFrame->vector);
-
-            //
-            // ensure a triple-fault
-            //
-            /*
-            SEGMENT_DESCRIPTOR_REGISTER_64 Idtr;
-            Idtr.BaseAddress = IntrTrapFrame->rsp;
-            Idtr.Limit       = 0xFFF;
-            __lidt(&Idtr);
-            */
-
-            break;
-        }
-
         LogInfo("Handling host exception, RIP=%llx, Vector=%x",
                 IntrTrapFrame->rip,
                 IntrTrapFrame->vector);
-
-        //
-        // jump to the exception handler
-        //
-        /*
-        IntrTrapFrame->rip = IntrTrapFrame->r10;
-
-        HOST_EXCEPTION_INFO * HostExceptionInfo = (HOST_EXCEPTION_INFO *)IntrTrapFrame->r11;
-
-        HostExceptionInfo->ExceptionOccurred = TRUE;
-        HostExceptionInfo->Vector            = IntrTrapFrame->vector;
-        HostExceptionInfo->Error             = IntrTrapFrame->error;
-        */
-
-        //
-        // slightly helps prevent infinite exceptions
-        //
-        /*
-        IntrTrapFrame->r10 = 0;
-        IntrTrapFrame->r11 = 0;
-        */
 
         break;
     }
@@ -506,29 +469,15 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 VOID
 IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VCpu->QueuedNmi--;
-
     //
-    // inject the NMI into the guest
+    // Inject the NMI into the guest
     //
     EventInjectNmi(VCpu);
 
-    if (VCpu->QueuedNmi == 0)
-    {
-        //
-        // disable NMI-window exiting since we have no more NMIs to inject
-        //
-        HvSetNmiWindowExiting(FALSE);
-    }
-
     //
-    // there is the possibility that a host NMI occurred right before we
-    // disabled NMI-window exiting. make sure to re-enable it if this is the case
+    // Disable NMI-window exiting since we have no more NMIs to inject
     //
-    if (VCpu->QueuedNmi > 0)
-    {
-        HvSetNmiWindowExiting(TRUE);
-    }
+    HvSetNmiWindowExiting(FALSE);
 }
 
 /**
