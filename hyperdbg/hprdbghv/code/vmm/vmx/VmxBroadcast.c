@@ -28,10 +28,14 @@ VmxBroadcastInitialize()
     //
     ApicInitialize();
 
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
+
     //
     // Register NMI handler for vmx-root
     //
     g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+#endif //  USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
 
     //
     // Broadcast on all core to cause exit for NMIs
@@ -57,10 +61,14 @@ VmxBroadcastUninitialize()
     //
     g_NmiBroadcastingInitialized = FALSE;
 
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
+
     //
     // De-register NMI handler
     //
     KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+#endif //  USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
 
     //
     // Broadcast on all core to cause not to exit for NMIs
