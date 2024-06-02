@@ -318,6 +318,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     UINT64       IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
     UINT64       IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
     UINT64       IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
+    UINT32       QueuedNmi;                                                     // Queued NMIs
     UINT32       PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
                                                                                 // blocking and waits for interrupt-window exiting
                                                                                 // From hvpp :
@@ -328,6 +329,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    UINT64                  HostIdt;                                            // host interrupt descriptor table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)
 
     //
     // EPT Descriptors

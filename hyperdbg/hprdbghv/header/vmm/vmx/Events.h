@@ -120,6 +120,9 @@ VOID
 EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+EventInjectNmi(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress);
 
 VOID

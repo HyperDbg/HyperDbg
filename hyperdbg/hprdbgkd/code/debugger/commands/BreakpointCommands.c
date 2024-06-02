@@ -283,6 +283,7 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             // traps by using 'test trap off', so stepping still works
             //
 
+
             //
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached)

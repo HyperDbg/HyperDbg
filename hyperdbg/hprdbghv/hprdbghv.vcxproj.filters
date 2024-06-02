@@ -582,5 +582,8 @@
     <MASM Include="code\assembly\AsmVmxOperation.asm">
       <Filter>code\assembly</Filter>
     </MASM>
+    <MASM Include="code\assembly\InterruptHandlers.asm">
+      <Filter>code\assembly</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

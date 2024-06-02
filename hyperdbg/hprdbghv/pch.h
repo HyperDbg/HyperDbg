@@ -37,6 +37,7 @@
 #    include <ntifs.h>
 #    include <ntstrsafe.h>
 #    include <Windef.h>
+#    include <assert.h>
 
 #endif // ENV_WINDOWS
 

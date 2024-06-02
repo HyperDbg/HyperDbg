@@ -188,6 +188,7 @@
     <MASM Include="code\assembly\AsmVmexitHandler.asm" />
     <MASM Include="code\assembly\AsmVmxContextState.asm" />
     <MASM Include="code\assembly\AsmVmxOperation.asm" />
+    <MASM Include="code\assembly\AsmInterruptHandlers.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Allocator.h" />

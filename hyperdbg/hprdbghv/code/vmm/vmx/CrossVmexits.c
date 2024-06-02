@@ -59,5 +59,5 @@ VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // We won't further continue after this error
     //
-    DbgBreakPoint();
+    // DbgBreakPoint();
 }
