@@ -125,25 +125,20 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     //      https://github.com/jonomango/hv/blob/main/hv
     //
 
-    LogInfo("I'm here, vector: %x", IntrTrapFrame->vector);
-    return;
-
-    /*
     switch (IntrTrapFrame->vector)
     {
     case EXCEPTION_VECTOR_NMI:
-    {
+
         HvSetNmiWindowExiting(TRUE);
 
         //
         // host NMIs
         //
-        //  LogInfo("NMI Received!");
+        LogInfo("NMI Received!");
 
         break;
-    }
+
     default:
-    {
         g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
 
         //
@@ -155,28 +150,31 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
         {
-            //  LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
-            //          IntrTrapFrame->rip,
-            //          IntrTrapFrame->vector);
+            LogInfo("Unhandled exception, RIP=%llx, Vector=%x",
+                    IntrTrapFrame->rip,
+                    IntrTrapFrame->vector);
 
             //
             // ensure a triple-fault
             //
+            /*
             SEGMENT_DESCRIPTOR_REGISTER_64 Idtr;
             Idtr.BaseAddress = IntrTrapFrame->rsp;
             Idtr.Limit       = 0xFFF;
             __lidt(&Idtr);
+            */
 
             break;
         }
 
-        //  LogInfo("Handling host exception. RIP=%llx. Vector=%x",
-        //          IntrTrapFrame->rip,
-        //          IntrTrapFrame->vector);
+        LogInfo("Handling host exception, RIP=%llx, Vector=%x",
+                IntrTrapFrame->rip,
+                IntrTrapFrame->vector);
 
         //
         // jump to the exception handler
         //
+        /*
         IntrTrapFrame->rip = IntrTrapFrame->r10;
 
         HOST_EXCEPTION_INFO * HostExceptionInfo = (HOST_EXCEPTION_INFO *)IntrTrapFrame->r11;
@@ -184,15 +182,18 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         HostExceptionInfo->ExceptionOccurred = TRUE;
         HostExceptionInfo->Vector            = IntrTrapFrame->vector;
         HostExceptionInfo->Error             = IntrTrapFrame->error;
+        */
 
         //
         // slightly helps prevent infinite exceptions
         //
+        /*
         IntrTrapFrame->r10 = 0;
         IntrTrapFrame->r11 = 0;
+        */
+
+        break;
     }
-    }
-    */
 }
 
 /**

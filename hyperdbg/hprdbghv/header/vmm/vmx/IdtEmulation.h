@@ -20,7 +20,7 @@
  * IDT as the host IDT in VMCS or not
  *
  */
-#define USE_DEFAULT_OS_IDT_AS_HOST_IDT FALSE
+#define USE_DEFAULT_OS_IDT_AS_HOST_IDT TRUE
 
 /**
  * @brief Maximum number of interrupt entries in IDT
