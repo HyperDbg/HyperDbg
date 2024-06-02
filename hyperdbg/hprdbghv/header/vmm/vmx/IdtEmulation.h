@@ -160,7 +160,7 @@ typedef struct _INTERRUPT_TRAP_FRAME
 } INTERRUPT_TRAP_FRAME, *PINTERRUPT_TRAP_FRAME;
 
 //
-// remember to update this value in InterruptHandlers.asm
+// remember to update this value in AsmInterruptHandlers.asm
 //
 static_assert(sizeof(INTERRUPT_TRAP_FRAME) == (0x78 + 0x38), "Size of INTERRUPT_TRAP_FRAME is not as expected");
 

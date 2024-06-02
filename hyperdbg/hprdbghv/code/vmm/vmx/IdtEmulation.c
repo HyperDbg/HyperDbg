@@ -15,30 +15,28 @@
  * @brief Create an interrupt gate that points to the supplied interrupt handler
  *
  * @param VCpu The virtual processor's state
+ * @param Entry
  *
  * @return VOID
  */
-SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64
-IdtEmulationCreateInterruptGate(PVOID Handler)
+VOID
+IdtEmulationCreateInterruptGate(PVOID Handler, SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * Entry)
 {
-    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 Gate           = {0};
-    SEGMENT_SELECTOR                     HostCsSelector = {0, 0, 1};
+    // SEGMENT_SELECTOR HostCsSelector = {0, 0, 1};
+    //
+    // Entry->InterruptStackTable      = 0;
+    // Entry->SegmentSelector          = HostCsSelector.AsUInt;
+    // Entry->MustBeZero0              = 0;
+    // Entry->Type                     = SEGMENT_DESCRIPTOR_TYPE_INTERRUPT_GATE;
+    // Entry->MustBeZero1              = 0;
+    // Entry->DescriptorPrivilegeLevel = 0;
+    // Entry->Present                  = 1;
+    // Entry->Reserved                 = 0;
 
-    Gate.InterruptStackTable      = 0;
-    Gate.SegmentSelector          = HostCsSelector.AsUInt;
-    Gate.MustBeZero0              = 0;
-    Gate.Type                     = SEGMENT_DESCRIPTOR_TYPE_INTERRUPT_GATE;
-    Gate.MustBeZero1              = 0;
-    Gate.DescriptorPrivilegeLevel = 0;
-    Gate.Present                  = 1;
-    Gate.Reserved                 = 0;
-
-    UINT64 Offset     = (UINT64)Handler;
-    Gate.OffsetLow    = (Offset >> 0) & 0xFFFF;
-    Gate.OffsetMiddle = (Offset >> 16) & 0xFFFF;
-    Gate.OffsetHigh   = (Offset >> 32) & 0xFFFFFFFF;
-
-    return Gate;
+    UINT64 Offset       = (UINT64)Handler;
+    Entry->OffsetLow    = (Offset >> 0) & 0xFFFF;
+    Entry->OffsetMiddle = (Offset >> 16) & 0xFFFF;
+    Entry->OffsetHigh   = (Offset >> 32) & 0xFFFFFFFF;
 }
 
 /**
@@ -51,41 +49,64 @@ IdtEmulationCreateInterruptGate(PVOID Handler)
 VOID
 IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    //
-    // Function related to handling host IDT are a modified version of the following project:
-    //      https://github.com/jonomango/hv/blob/main/hv
-    //
-
-    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * CurrentIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)VCpu->HostIdt;
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * VmxHostIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)VCpu->HostIdt;
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * WindowsIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)AsmGetIdtBase();
 
     //
     // Zero the memory
     //
-    RtlZeroMemory(CurrentIdt, HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+    RtlZeroMemory(VmxHostIdt, HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+
+    //
+    // Copy OS interrupt (IDT) entries
+    //
+    RtlCopyBytes(VmxHostIdt,
+                 WindowsIdt,
+                 HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+
+    /////////////////////////////////////////////////////////////////////
+
+    /*
+    for (size_t i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
+    {
+        SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 CurrentEntry = WindowsIdt[i];
+
+        UINT64 Offset = 0;
+        Offset |= ((UINT64)CurrentEntry.OffsetLow) << 0;
+        Offset |= ((UINT64)CurrentEntry.OffsetMiddle) << 16;
+        Offset |= ((UINT64)CurrentEntry.OffsetHigh) << 32;
+
+        // LogInfo("IDT Entry [%d] at: %llx", i, Offset);
+
+        IdtEmulationCreateInterruptGate((PVOID)Offset, &VmxHostIdt[i]);
+    }
+    */
+
+    //////////////////////////////////////////////////////////////////////
 
     //
     // Fill the entries
     //
-    CurrentIdt[0]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0);
-    CurrentIdt[1]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1);
-    CurrentIdt[2]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2);
-    CurrentIdt[3]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3);
-    CurrentIdt[4]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4);
-    CurrentIdt[5]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5);
-    CurrentIdt[6]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6);
-    CurrentIdt[7]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7);
-    CurrentIdt[8]  = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8);
-    CurrentIdt[10] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10);
-    CurrentIdt[11] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11);
-    CurrentIdt[12] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12);
-    CurrentIdt[13] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13);
-    CurrentIdt[14] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14);
-    CurrentIdt[16] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16);
-    CurrentIdt[17] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17);
-    CurrentIdt[18] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18);
-    CurrentIdt[19] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19);
-    CurrentIdt[20] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20);
-    CurrentIdt[30] = IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0, &VmxHostIdt[0]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[1]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2, &VmxHostIdt[2]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[3]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4, &VmxHostIdt[4]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5, &VmxHostIdt[5]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6, &VmxHostIdt[6]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7, &VmxHostIdt[7]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8, &VmxHostIdt[8]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10, &VmxHostIdt[10]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11, &VmxHostIdt[11]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12, &VmxHostIdt[12]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13, &VmxHostIdt[13]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[14]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16, &VmxHostIdt[16]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17, &VmxHostIdt[17]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18, &VmxHostIdt[18]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19, &VmxHostIdt[19]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20, &VmxHostIdt[20]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30, &VmxHostIdt[30]);
 }
 
 /**
@@ -104,6 +125,10 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     //      https://github.com/jonomango/hv/blob/main/hv
     //
 
+    LogInfo("I'm here, vector: %x", IntrTrapFrame->vector);
+    return;
+
+    /*
     switch (IntrTrapFrame->vector)
     {
     case EXCEPTION_VECTOR_NMI:
@@ -113,7 +138,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         // host NMIs
         //
-        LogInfo("NMI Received!");
+        //  LogInfo("NMI Received!");
 
         break;
     }
@@ -130,9 +155,9 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         if (!IntrTrapFrame->r10 || !IntrTrapFrame->r11)
         {
-            LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
-                    IntrTrapFrame->rip,
-                    IntrTrapFrame->vector);
+            //  LogInfo("Unhandled exception. RIP=%llx. Vector=%x.",
+            //          IntrTrapFrame->rip,
+            //          IntrTrapFrame->vector);
 
             //
             // ensure a triple-fault
@@ -145,9 +170,9 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
             break;
         }
 
-        LogInfo("Handling host exception. RIP=%llx. Vector=%x",
-                IntrTrapFrame->rip,
-                IntrTrapFrame->vector);
+        //  LogInfo("Handling host exception. RIP=%llx. Vector=%x",
+        //          IntrTrapFrame->rip,
+        //          IntrTrapFrame->vector);
 
         //
         // jump to the exception handler
@@ -167,6 +192,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         IntrTrapFrame->r11 = 0;
     }
     }
+    */
 }
 
 /**

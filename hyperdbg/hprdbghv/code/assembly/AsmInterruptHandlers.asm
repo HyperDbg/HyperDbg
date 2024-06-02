@@ -40,7 +40,7 @@ trap_frame ends
 ;------------------------------------------------------------------------
 
 ; the generic interrupt handler that every stub will eventually jump to
-generic_interrupt_handler proc
+GenericInterruptHandler proc
   ; allocate space for the trap_frame structure (minus the size of the
   ; _MACHINE_FRAME, error code, and interrupt vector)
   sub rsp, 78h
@@ -98,31 +98,31 @@ generic_interrupt_handler proc
 
   iretq
 
-generic_interrupt_handler endp
+GenericInterruptHandler endp
 
 ;------------------------------------------------------------------------
 
 ; pushes error code to stack
-DEFINE_ISR macro interrupt_vector:req, proc_name:req
-proc_name proc
+DEFINE_ISR macro InterruptVector:req, ProcName:req
+ProcName proc
   ; interrupt vector is stored right before the machine frame
-  push interrupt_vector
+  push InterruptVector
 
-  jmp generic_interrupt_handler
-proc_name endp
+  jmp GenericInterruptHandler
+ProcName endp
 endm
 
 ; doesn't push error code to stack
-DEFINE_ISR_NO_ERROR macro interrupt_vector:req, proc_name:req
-proc_name proc
+DEFINE_ISR_NO_ERROR macro InterruptVector:req, ProcName:req
+ProcName proc
   ; push a dummy error code onto the stack
   push 0
 
   ; interrupt vector is stored right before the machine frame
-  push interrupt_vector
+  push InterruptVector
 
-  jmp generic_interrupt_handler
-proc_name endp
+  jmp GenericInterruptHandler
+ProcName endp
 endm
 
 ;------------------------------------------------------------------------
