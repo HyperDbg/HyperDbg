@@ -134,8 +134,10 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
 
         //
         // Check if NMI needs to be injected back to the guest or not
+        // Trap frame is sent because as this function unreference this
+        // parameter, NULL cannot be sent
         //
-        if (VmxBroadcastHandleNmiCallback(NULL64_ZERO, FALSE) == TRUE)
+        if (VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE) == TRUE)
         {
             //
             // Inject NMI when the NMI Window opened
