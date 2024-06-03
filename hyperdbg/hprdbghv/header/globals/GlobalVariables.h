@@ -195,9 +195,3 @@ UINT64 g_PageFaultInjectionAddressTo;
  *
  */
 UINT32 g_PageFaultInjectionErrorCode;
-
-/**
- * @brief The vector of last exception occured in host
- *
- */
-UINT32 g_LastExceptionOccuredInHost;

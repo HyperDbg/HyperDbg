@@ -121,7 +121,15 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
 {
-    g_LastExceptionOccuredInHost = IntrTrapFrame->vector;
+    UINT64 PageFaultCr2;
+    ULONG  CurrentCore;
+    CurrentCore                  = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCore];
+
+    //
+    // Store the latest exception vector
+    //
+    VCpu->LastExceptionOccuredInHost = IntrTrapFrame->vector;
 
     switch (IntrTrapFrame->vector)
     {
@@ -130,12 +138,14 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         // host NMIs
         //
-        LogInfo("NMI Received!");
+        // LogInfo("NMI received!");
 
         //
         // Check if NMI needs to be injected back to the guest or not
+        // Trap frame is sent because as this function unreference this
+        // parameter, NULL cannot be sent
         //
-        if (VmxBroadcastHandleNmiCallback(NULL64_ZERO, FALSE) == TRUE)
+        if (!VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE))
         {
             //
             // Inject NMI when the NMI Window opened
@@ -145,13 +155,23 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
 
         break;
 
+    case EXCEPTION_VECTOR_PAGE_FAULT:
+
+        //
+        // host page-fault
+        //
+        PageFaultCr2 = __readcr2();
+
+        LogInfo("Page-fault received, CR2: %llx", PageFaultCr2);
+
+        break;
+
     default:
 
         //
         // host exceptions
         //
-
-        LogInfo("Handling host exception, RIP=%llx, Vector=%x",
+        LogInfo("Host exception, RIP=%llx, Vector=%x",
                 IntrTrapFrame->rip,
                 IntrTrapFrame->vector);
 
