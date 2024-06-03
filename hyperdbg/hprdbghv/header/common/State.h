@@ -330,6 +330,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
     UINT64                  HostIdt;                                            // host interrupt descriptor table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)
+    UINT8                   LastExceptionOccuredInHost;                         // The vector of last exception occured in host
 
     //
     // EPT Descriptors
