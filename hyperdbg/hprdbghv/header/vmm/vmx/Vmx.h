@@ -359,29 +359,6 @@ VmxTerminate();
 VOID
 VmxPerformTermination();
 
-_Success_(return != FALSE)
-BOOLEAN
-VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
-
-_Success_(return != FALSE)
-BOOLEAN
-VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-VmxAllocateVmmStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-BOOLEAN
-VmxAllocateIoBitmaps(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
-UINT64 *
-VmxAllocateInvalidMsrBimap();
-
-BOOLEAN
-VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
-
 VOID
 VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
 
@@ -423,10 +400,6 @@ VmxGetCurrentExecutionMode();
 
 BOOLEAN
 VmxGetCurrentLaunchState();
-
-_Success_(return)
-BOOLEAN
-VmxGetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 
 UINT32
 VmxCompatibleStrlen(const CHAR * S);

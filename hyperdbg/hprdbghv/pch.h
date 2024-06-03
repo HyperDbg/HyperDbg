@@ -76,6 +76,7 @@
 // VMX and EPT Types
 //
 #include "vmm/vmx/Vmx.h"
+#include "vmm/vmx/VmxRegions.h"
 #include "vmm/ept/Ept.h"
 #include "SDK/Imports/HyperDbgVmmImports.h"
 
@@ -97,6 +98,7 @@
 #include "memory/Layout.h"
 #include "memory/SwitchLayout.h"
 #include "memory/AddressCheck.h"
+#include "memory/Segmentation.h"
 #include "common/Bitwise.h"
 #include "common/Common.h"
 #include "components/spinlock/header/Spinlock.h"

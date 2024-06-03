@@ -302,6 +302,9 @@
     <ClCompile Include="..\include\platform\kernel\code\Mem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="code\memory\Segmentation.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -559,6 +562,12 @@
     <ClInclude Include="..\include\platform\kernel\header\Mem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="header\memory\Segmentation.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\VmxRegions.h">
+      <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">
@@ -582,8 +591,8 @@
     <MASM Include="code\assembly\AsmVmxOperation.asm">
       <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="code\assembly\InterruptHandlers.asm">
-      <Filter>code\assembly</Filter>
+    <MASM Include="code\assembly\AsmInterruptHandlers.asm">
+      <Filter>code</Filter>
     </MASM>
   </ItemGroup>
 </Project>

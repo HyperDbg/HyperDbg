@@ -321,3 +321,38 @@ VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     return TRUE;
 }
+
+/**
+ * @brief Allocate a buffer for host GDT
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostGdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 GdtSize = HOST_GDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_64);
+
+    //
+    // Make sure the memory is aligned
+    //
+    if (PAGE_SIZE > GdtSize)
+    {
+        GdtSize = PAGE_SIZE;
+    }
+
+    //
+    // Allocate aligned memory for host GDT
+    //
+    VCpu->HostGdt = (UINT64)PlatformMemAllocateZeroedNonPagedPool(GdtSize); // should be aligned
+
+    if (VCpu->HostGdt == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host GDT");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host GDT virtual address : 0x%llx", VCpu->HostGdt);
+
+    return TRUE;
+}
