@@ -34,4 +34,14 @@
 
 _Success_(return)
 BOOLEAN
-SegmentGetDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
+SegmentGetDescriptor(_In_ PUCHAR                 GdtBase,
+                     _In_ UINT16                 Selector,
+                     _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
+
+VOID
+SegmentPrepareHostGdt(
+    SEGMENT_DESCRIPTOR_32 * WindowsGdtBase,
+    UINT16                  WindowsGdtLimit,
+    UINT16                  TrSelector,
+    SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
+    TASK_STATE_SEGMENT_64 * AllocatedHostTss);

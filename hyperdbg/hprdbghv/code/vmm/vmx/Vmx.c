@@ -332,6 +332,32 @@ VmxInitialize()
             return FALSE;
         }
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+        //
+        // Allocating Host GDT
+        //
+        if (!VmxAllocateHostGdt(GuestState))
+        {
+            //
+            // Some error in allocating Host GDT
+            //
+            return FALSE;
+        }
+
+        //
+        // Allocating Host TSS
+        //
+        if (!VmxAllocateHostTss(GuestState))
+        {
+            //
+            // Some error in allocating Host TSS
+            //
+            return FALSE;
+        }
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
     }
 
     //
@@ -569,12 +595,26 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", CurrentCore);
 
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
     //
     // Prepare Host IDT
     //
-#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
     IdtEmulationPrepareHostIdt(VCpu);
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+    //
+    // Prepare Host GDT and TSS
+    //
+    SegmentPrepareHostGdt((SEGMENT_DESCRIPTOR_32 *)AsmGetGdtBase(),
+                          AsmGetGdtLimit(),
+                          AsmGetTr(),
+                          (SEGMENT_DESCRIPTOR_32 *)VCpu->HostGdt,
+                          (TASK_STATE_SEGMENT_64 *)VCpu->HostTss);
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
     //
     // Clear the VMCS State
@@ -667,6 +707,10 @@ VmxTerminate()
 #if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
         PlatformMemFreePool((PVOID)VCpu->HostIdt);
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+        PlatformMemFreePool((PVOID)VCpu->HostGdt);
+        PlatformMemFreePool((PVOID)VCpu->HostTss);
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
         return TRUE;
     }
@@ -758,8 +802,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     UINT32                  SecondaryProcBasedVmExecControls;
     PVOID                   HostRsp;
     UINT64                  GdtBase         = 0;
-    VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
     IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
+    VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR
@@ -866,18 +910,34 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
     VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+    SegmentGetDescriptor((PUCHAR)VCpu->HostGdt, AsmGetTr(), &SegmentSelector);
+
+    VmxVmwrite64(VMCS_HOST_TR_BASE, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_HOST_GDTR_BASE, VCpu->HostGdt);
+
+#else
+
     SegmentGetDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
+
     VmxVmwrite64(VMCS_HOST_TR_BASE, SegmentSelector.Base);
     VmxVmwrite64(VMCS_HOST_GDTR_BASE, AsmGetGdtBase());
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
     VmxVmwrite64(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
     VmxVmwrite64(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
 
-#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
-    VmxVmwrite64(VMCS_HOST_IDTR_BASE, AsmGetIdtBase());
-#else
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
     VmxVmwrite64(VMCS_HOST_IDTR_BASE, VCpu->HostIdt);
-#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == TRUE
+
+#else
+
+    VmxVmwrite64(VMCS_HOST_IDTR_BASE, AsmGetIdtBase());
+
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
     VmxVmwrite64(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
     VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));

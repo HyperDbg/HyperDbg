@@ -21,7 +21,9 @@
  */
 _Use_decl_annotations_
 BOOLEAN
-SegmentGetDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
+SegmentGetDescriptor(PUCHAR                GdtBase,
+                     UINT16                Selector,
+                     PVMX_SEGMENT_SELECTOR SegmentSelector)
 {
     SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
     SEGMENT_DESCRIPTOR_32 * Descriptor32;
@@ -75,4 +77,37 @@ SegmentGetDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR Segm
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Initialize the host GDT
+ *
+ * @param WindowsGdtBase
+ * @param WindowsGdtLimit
+ * @param TrSelector
+ * @param AllocatedHostGdt
+ * @param AllocatedHostTss
+ *
+ * @return VOID
+ */
+VOID
+SegmentPrepareHostGdt(
+    SEGMENT_DESCRIPTOR_32 * WindowsGdtBase,
+    UINT16                  WindowsGdtLimit,
+    UINT16                  TrSelector,
+    SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
+    TASK_STATE_SEGMENT_64 * AllocatedHostTss)
+{
+    ///////////////////////////////////////////////////////////////////////
+
+    //
+    // Copy current OS GDT into host GDT
+    // Note that the limit is the maximum addressable byte offset within the segment,
+    // so the actual size of the GDT is limit + 1
+    //
+    UNREFERENCED_PARAMETER(TrSelector);
+    UNREFERENCED_PARAMETER(AllocatedHostTss);
+    RtlCopyBytes(AllocatedHostGdt, WindowsGdtBase, WindowsGdtLimit + 1);
+
+    ///////////////////////////////////////////////////////////////////////
 }
