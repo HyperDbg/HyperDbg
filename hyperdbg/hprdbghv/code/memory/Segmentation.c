@@ -82,9 +82,10 @@ SegmentGetDescriptor(PUCHAR                GdtBase,
 /**
  * @brief Initialize the host GDT
  *
- * @param WindowsGdtBase
- * @param WindowsGdtLimit
+ * @param OsGdtBase
+ * @param OsGdtLimit
  * @param TrSelector
+ * @param HostStack
  * @param AllocatedHostGdt
  * @param AllocatedHostTss
  *
@@ -92,22 +93,95 @@ SegmentGetDescriptor(PUCHAR                GdtBase,
  */
 VOID
 SegmentPrepareHostGdt(
-    SEGMENT_DESCRIPTOR_32 * WindowsGdtBase,
-    UINT16                  WindowsGdtLimit,
+    SEGMENT_DESCRIPTOR_32 * OsGdtBase,
+    UINT16                  OsGdtLimit,
     UINT16                  TrSelector,
+    UINT64                  HostStack,
     SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
     TASK_STATE_SEGMENT_64 * AllocatedHostTss)
 {
-    ///////////////////////////////////////////////////////////////////////
+    UINT64 EndOfStack = 0;
 
     //
     // Copy current OS GDT into host GDT
     // Note that the limit is the maximum addressable byte offset within the segment,
     // so the actual size of the GDT is limit + 1
     //
-    UNREFERENCED_PARAMETER(TrSelector);
-    UNREFERENCED_PARAMETER(AllocatedHostTss);
-    RtlCopyBytes(AllocatedHostGdt, WindowsGdtBase, WindowsGdtLimit + 1);
+    RtlCopyBytes(AllocatedHostGdt, OsGdtBase, OsGdtLimit + 1);
 
-    ///////////////////////////////////////////////////////////////////////
+    //
+    // Make sure host TSS is empty
+    //
+    RtlZeroBytes(AllocatedHostTss, sizeof(TASK_STATE_SEGMENT_64));
+
+    //
+    // Setup TSS memory for host (same host stack is used for all interrupts and privilege levels)
+    //
+    EndOfStack = ((UINT64)HostStack + HOST_INTERRUPT_STACK_SIZE - 1);
+    EndOfStack = ((UINT64)((ULONG_PTR)(EndOfStack) & ~(16 - 1)));
+
+    LogInfo("Host Interrupt Stack, from: %llx, to: %llx", HostStack, EndOfStack);
+
+    AllocatedHostTss->Rsp0 = EndOfStack;
+    AllocatedHostTss->Rsp1 = EndOfStack;
+    AllocatedHostTss->Rsp2 = EndOfStack;
+    AllocatedHostTss->Ist1 = EndOfStack;
+    AllocatedHostTss->Ist2 = EndOfStack;
+    AllocatedHostTss->Ist3 = EndOfStack;
+    AllocatedHostTss->Ist4 = EndOfStack;
+    AllocatedHostTss->Ist5 = EndOfStack;
+    AllocatedHostTss->Ist6 = EndOfStack;
+    AllocatedHostTss->Ist7 = EndOfStack;
+
+    //
+    // Setup the TSS segment descriptor
+    //
+    SEGMENT_DESCRIPTOR_64 * GdtTssDesc = (SEGMENT_DESCRIPTOR_64 *)&AllocatedHostGdt[TrSelector];
+
+    //
+    // Point the TSS descriptor to our TSS
+    //
+    UINT64 Base                   = (UINT64)AllocatedHostTss;
+    GdtTssDesc->BaseAddressLow    = (Base >> 00) & 0xFFFF;
+    GdtTssDesc->BaseAddressMiddle = (Base >> 16) & 0xFF;
+    GdtTssDesc->BaseAddressHigh   = (Base >> 24) & 0xFF;
+    GdtTssDesc->BaseAddressUpper  = (Base >> 32) & 0xFFFFFFFF;
+
+    ////////////////////////////////////////////////////////////////////
+
+    // SEGMENT_SELECTOR HostCsSelector = {0, 0, 1};
+    // SEGMENT_SELECTOR HostTrSelector = {0, 0, 2};
+    //
+    // //
+    // // Setup the CS segment descriptor
+    // //
+    // SEGMENT_DESCRIPTOR_32 CsDesc    = AllocatedHostGdt[HostCsSelector.Index];
+    // CsDesc.Type                     = SEGMENT_DESCRIPTOR_TYPE_CODE_EXECUTE_READ;
+    // CsDesc.DescriptorType           = SEGMENT_DESCRIPTOR_TYPE_CODE_OR_DATA;
+    // CsDesc.DescriptorPrivilegeLevel = 0;
+    // CsDesc.Present                  = 1;
+    // CsDesc.LongMode                 = 1;
+    // CsDesc.DefaultBig               = 0;
+    // CsDesc.Granularity              = 0;
+    //
+    // //
+    // // Setup the TSS segment descriptor
+    // //
+    // SEGMENT_DESCRIPTOR_64 * TssDesc   = (SEGMENT_DESCRIPTOR_64 *)&AllocatedHostGdt[HostTrSelector.Index];
+    // TssDesc->Type                     = SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY;
+    // TssDesc->DescriptorType           = SEGMENT_DESCRIPTOR_TYPE_SYSTEM;
+    // TssDesc->DescriptorPrivilegeLevel = 0;
+    // TssDesc->Present                  = 1;
+    // TssDesc->Granularity              = 0;
+    // TssDesc->SegmentLimitLow          = 0x67;
+    // TssDesc->SegmentLimitHigh         = 0;
+    //
+    // //
+    // // Point the TSS descriptor to our TSS
+    // //
+    // UINT64 Base                = (UINT64)AllocatedHostTss;
+    // TssDesc->BaseAddressLow    = (Base >> 00) & 0xFFFF;
+    // TssDesc->BaseAddressMiddle = (Base >> 16) & 0xFF;
+    // TssDesc->BaseAddressHigh   = (Base >> 24) & 0xFF;
+    // TssDesc->BaseAddressUpper  = (Base >> 32) & 0xFFFFFFFF;
 }

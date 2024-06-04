@@ -357,6 +357,17 @@ VmxInitialize()
             return FALSE;
         }
 
+        //
+        // Allocating Host Interrupt Stack
+        //
+        if (!VmxAllocateHostInterruptStack(GuestState))
+        {
+            //
+            // Some error in allocating Interrupt Stack
+            //
+            return FALSE;
+        }
+
 #endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
     }
 
@@ -611,6 +622,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     SegmentPrepareHostGdt((SEGMENT_DESCRIPTOR_32 *)AsmGetGdtBase(),
                           AsmGetGdtLimit(),
                           AsmGetTr(),
+                          VCpu->HostInterruptStack,
                           (SEGMENT_DESCRIPTOR_32 *)VCpu->HostGdt,
                           (TASK_STATE_SEGMENT_64 *)VCpu->HostTss);
 
@@ -710,6 +722,7 @@ VmxTerminate()
 #if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
         PlatformMemFreePool((PVOID)VCpu->HostGdt);
         PlatformMemFreePool((PVOID)VCpu->HostTss);
+        PlatformMemFreePool((PVOID)VCpu->HostInterruptStack);
 #endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
         return TRUE;

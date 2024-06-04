@@ -383,3 +383,25 @@ VmxAllocateHostTss(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     return TRUE;
 }
+
+/**
+ * @brief Allocate a buffer for host interrupt stack
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostInterruptStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->HostInterruptStack = (UINT64)PlatformMemAllocateZeroedNonPagedPool(HOST_INTERRUPT_STACK_SIZE);
+
+    if (VCpu->HostInterruptStack == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host interrupt stack");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host interrupt stack virtual address : 0x%llx", VCpu->HostInterruptStack);
+
+    return TRUE;
+}

@@ -26,7 +26,13 @@
  * @brief Maximum number of entries in GDT
  *
  */
-#define HOST_GDT_DESCRIPTOR_COUNT 4
+#define HOST_GDT_DESCRIPTOR_COUNT 10 // approximately
+
+/**
+ * @brief Size of host interrupt stack
+ *
+ */
+#define HOST_INTERRUPT_STACK_SIZE 4 * PAGE_SIZE
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -40,8 +46,9 @@ SegmentGetDescriptor(_In_ PUCHAR                 GdtBase,
 
 VOID
 SegmentPrepareHostGdt(
-    SEGMENT_DESCRIPTOR_32 * WindowsGdtBase,
-    UINT16                  WindowsGdtLimit,
+    SEGMENT_DESCRIPTOR_32 * OsGdtBase,
+    UINT16                  OsGdtLimit,
     UINT16                  TrSelector,
+    UINT64                  HostStack,
     SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
     TASK_STATE_SEGMENT_64 * AllocatedHostTss);
