@@ -100,8 +100,6 @@ SegmentPrepareHostGdt(
     SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
     TASK_STATE_SEGMENT_64 * AllocatedHostTss)
 {
-    UINT64 EndOfStack = 0;
-
     //
     // Copy current OS GDT into host GDT
     // Note that the limit is the maximum addressable byte offset within the segment,
@@ -114,13 +112,17 @@ SegmentPrepareHostGdt(
     //
     RtlZeroBytes(AllocatedHostTss, sizeof(TASK_STATE_SEGMENT_64));
 
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+
+    UINT64 EndOfStack = 0;
+
     //
     // Setup TSS memory for host (same host stack is used for all interrupts and privilege levels)
     //
     EndOfStack = ((UINT64)HostStack + HOST_INTERRUPT_STACK_SIZE - 1);
     EndOfStack = ((UINT64)((ULONG_PTR)(EndOfStack) & ~(16 - 1)));
 
-    LogInfo("Host Interrupt Stack, from: %llx, to: %llx", HostStack, EndOfStack);
+    LogDebugInfo("Host Interrupt Stack, from: %llx, to: %llx", HostStack, EndOfStack);
 
     AllocatedHostTss->Rsp0 = EndOfStack;
     AllocatedHostTss->Rsp1 = EndOfStack;
@@ -132,6 +134,12 @@ SegmentPrepareHostGdt(
     AllocatedHostTss->Ist5 = EndOfStack;
     AllocatedHostTss->Ist6 = EndOfStack;
     AllocatedHostTss->Ist7 = EndOfStack;
+
+#else
+
+    UNREFERENCED_PARAMETER(HostStack);
+
+#endif // USE_INTERRUPT_STACK_TABLE == TRUE
 
     //
     // Setup the TSS segment descriptor

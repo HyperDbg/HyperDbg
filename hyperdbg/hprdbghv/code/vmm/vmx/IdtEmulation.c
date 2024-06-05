@@ -37,6 +37,23 @@ IdtEmulationCreateInterruptGate(PVOID Handler, SEGMENT_DESCRIPTOR_INTERRUPT_GATE
     Entry->OffsetLow    = (Offset >> 0) & 0xFFFF;
     Entry->OffsetMiddle = (Offset >> 16) & 0xFFFF;
     Entry->OffsetHigh   = (Offset >> 32) & 0xFFFFFFFF;
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+
+    //
+    // Use first index (IST1)
+    //
+    Entry->InterruptStackTable = 1;
+
+#else
+
+    //
+    // Make sure to unset IST since we didn't use a separate stack pointer
+    // on TSS entry at GDT
+    //
+    Entry->InterruptStackTable = 0;
+
+#endif // USE_INTERRUPT_STACK_TABLE == TRUE
 }
 
 /**

@@ -34,6 +34,12 @@
  */
 #define HOST_INTERRUPT_STACK_SIZE 4 * PAGE_SIZE
 
+/**
+ * @brief Use Interrupt Stack Table (IST1..IST7)
+ *
+ */
+#define USE_INTERRUPT_STACK_TABLE FALSE
+
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////

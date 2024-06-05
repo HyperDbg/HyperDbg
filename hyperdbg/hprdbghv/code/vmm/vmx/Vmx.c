@@ -357,6 +357,10 @@ VmxInitialize()
             return FALSE;
         }
 
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+
         //
         // Allocating Host Interrupt Stack
         //
@@ -368,7 +372,7 @@ VmxInitialize()
             return FALSE;
         }
 
-#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+#endif // USE_INTERRUPT_STACK_TABLE == TRUE
     }
 
     //
@@ -719,11 +723,15 @@ VmxTerminate()
 #if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
         PlatformMemFreePool((PVOID)VCpu->HostIdt);
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
 #if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
         PlatformMemFreePool((PVOID)VCpu->HostGdt);
         PlatformMemFreePool((PVOID)VCpu->HostTss);
-        PlatformMemFreePool((PVOID)VCpu->HostInterruptStack);
 #endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+        PlatformMemFreePool((PVOID)VCpu->HostInterruptStack);
+#endif // USE_INTERRUPT_STACK_TABLE == FALSE
 
         return TRUE;
     }
