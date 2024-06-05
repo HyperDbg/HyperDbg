@@ -120,7 +120,8 @@ KdReadMemory(_In_ PGUEST_REGS                            Regs,
              _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
 
 static BOOLEAN
-KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore);
+KdSwitchCore(PROCESSOR_DEBUGGING_STATE *   DbgState,
+             DEBUGGEE_CHANGE_CORE_PACKET * ChangeCorePacket);
 
 static VOID
 KdCloseConnectionAndUnloadDebuggee();
@@ -150,6 +151,12 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 
 static VOID
 KdQuerySystemState();
+
+static BOOLEAN
+KdCheckAllCoresAreLocked();
+
+static BOOLEAN
+KdCheckTargetCoreIsLocked(UINT32 CoreNumber);
 
 static BOOLEAN
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent);

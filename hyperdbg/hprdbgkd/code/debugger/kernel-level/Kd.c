@@ -729,28 +729,48 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
  * @brief change the current operating core to new core
  *
  * @param DbgState The state of the debugger on the current core
- * @param NewCore
+ * @param ChangeCorePacket
  * @return BOOLEAN
  */
 BOOLEAN
-KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
+KdSwitchCore(PROCESSOR_DEBUGGING_STATE *   DbgState,
+             DEBUGGEE_CHANGE_CORE_PACKET * ChangeCorePacket)
 {
     ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    if (DbgState->CoreId == ChangeCorePacket->NewCore)
+    {
+        //
+        // The operating core and the target core is the same, no need for further action
+        //
+        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return FALSE; // Return FALSE to not unlock anything
+    }
 
     //
     // Check if core is valid or not
     //
-    if (NewCore >= ProcessorsCount)
+    if (ChangeCorePacket->NewCore >= ProcessorsCount)
     {
         //
         // Invalid core count
         //
+        ChangeCorePacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE;
         return FALSE;
     }
 
     //
     // *** Core is valid ***
     //
+
+    //
+    // Check to see whether this core is locked or not
+    //
+    if (!KdCheckTargetCoreIsLocked(ChangeCorePacket->NewCore))
+    {
+        ChangeCorePacket->Result = DEBUGGER_ERROR_TARGET_SWITCHING_CORE_IS_NOT_LOCKED;
+        return FALSE;
+    }
 
     //
     // Check if we should enable interrupts in this core or not
@@ -768,14 +788,14 @@ KdSwitchCore(PROCESSOR_DEBUGGING_STATE * DbgState, UINT32 NewCore)
     //
     // Set new operating core
     //
-    g_DbgState[NewCore].MainDebuggingCore = TRUE;
+    g_DbgState[ChangeCorePacket->NewCore].MainDebuggingCore = TRUE;
 
     //
     // Unlock the new core
     // *** We should not unlock the spinlock here as the other core might
     // simultaneously start sending packets and corrupt our packets ***
     //
-
+    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;
 }
 
@@ -1572,9 +1592,20 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
                                                           sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET));
 
     //
-    // Parse event from the VMX-root mode
+    // Check to see whether all cores are halted (in instant event)
     //
-    DebuggerParseEvent(GeneralEventDetail, DebuggerEventAndActionResult, TRUE);
+    if (!KdCheckAllCoresAreLocked())
+    {
+        DebuggerEventAndActionResult->IsSuccessful = FALSE;
+        DebuggerEventAndActionResult->Error        = DEBUGGER_ERROR_NOT_ALL_CORES_ARE_LOCKED_FOR_APPLYING_INSTANT_EVENT;
+    }
+    else
+    {
+        //
+        // Parse event from the VMX-root mode
+        //
+        DebuggerParseEvent(GeneralEventDetail, DebuggerEventAndActionResult, TRUE);
+    }
 
     return FALSE;
 
@@ -1658,6 +1689,67 @@ KdQueryRflagTrapState()
                 i,
                 g_TrapFlagState.ThreadInformation[i].Fields.ProcessId,
                 g_TrapFlagState.ThreadInformation[i].Fields.ThreadId);
+    }
+}
+
+/**
+ * @brief Check whether all cores are locked or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckAllCoresAreLocked()
+{
+    ULONG ProcessorsCount;
+
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Query core debugging Lock info
+    //
+    for (size_t i = 0; i < ProcessorsCount; i++)
+    {
+        if (!SpinlockCheckLock(&g_DbgState[i].Lock))
+        {
+            //
+            // We found one core that is not locked
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // Reaching here means all cores are locked
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Check whether a specific target core is locked or not
+ * @param CoreNumber
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckTargetCoreIsLocked(UINT32 CoreNumber)
+{
+    //
+    // Query core debugging Lock info
+    //
+
+    if (!SpinlockCheckLock(&g_DbgState[CoreNumber].Lock))
+    {
+        //
+        //  This core is not locked
+        //
+        return FALSE;
+    }
+    else
+    {
+        //
+        // Target core is locked
+        //
+        return TRUE;
     }
 }
 
@@ -2409,36 +2501,20 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-                if (DbgState->CoreId != ChangeCorePacket->NewCore)
+                //
+                // Switch to new core
+                //
+                if (KdSwitchCore(DbgState, ChangeCorePacket))
                 {
                     //
-                    // Switch to new core
+                    // No need to wait for new commands
                     //
-                    if (KdSwitchCore(DbgState, ChangeCorePacket->NewCore))
-                    {
-                        //
-                        // No need to wait for new commands
-                        //
-                        EscapeFromTheLoop = TRUE;
+                    EscapeFromTheLoop = TRUE;
 
-                        //
-                        // Unlock the new core
-                        //
-                        UnlockTheNewCore = TRUE;
-
-                        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-                    }
-                    else
-                    {
-                        ChangeCorePacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE;
-                    }
-                }
-                else
-                {
                     //
-                    // The operating core and the target core is the same, no need for further action
+                    // Unlock the new core
                     //
-                    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+                    UnlockTheNewCore = TRUE;
                 }
 
                 //
