@@ -40,3 +40,9 @@ VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 VmxAllocateHostGdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+VmxAllocateHostTss(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+VmxAllocateHostInterruptStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);

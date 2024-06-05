@@ -9,6 +9,8 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - Using a separate HOST IDT in VMCS (not OS IDT) ([fix to this [VM escape](https://www.unknowncheats.me/forum/c-and-c-/390593-vm-escape-via-nmi.html) issue])
+- Using a dedicated HOST GDT and TSS Stack
+- Checking for race-condition of not locked cores before applying instant-events and switching cores
 - The error message for invalid address is changed ([more information](https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address))
 
 ## [0.8.4.0] - 2024-05-10

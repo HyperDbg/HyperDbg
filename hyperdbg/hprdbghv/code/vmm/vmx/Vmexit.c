@@ -162,6 +162,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
+        //
+        // Dispatch and trigger the CPUID instruction events
+        //
         DispatchEventCpuid(VCpu);
 
         break;

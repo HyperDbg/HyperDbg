@@ -26,7 +26,19 @@
  * @brief Maximum number of entries in GDT
  *
  */
-#define HOST_GDT_DESCRIPTOR_COUNT 4
+#define HOST_GDT_DESCRIPTOR_COUNT 10 // approximately
+
+/**
+ * @brief Size of host interrupt stack
+ *
+ */
+#define HOST_INTERRUPT_STACK_SIZE 4 * PAGE_SIZE
+
+/**
+ * @brief Use Interrupt Stack Table (IST1..IST7)
+ *
+ */
+#define USE_INTERRUPT_STACK_TABLE FALSE
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -34,4 +46,15 @@
 
 _Success_(return)
 BOOLEAN
-SegmentGetDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
+SegmentGetDescriptor(_In_ PUCHAR                 GdtBase,
+                     _In_ UINT16                 Selector,
+                     _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
+
+VOID
+SegmentPrepareHostGdt(
+    SEGMENT_DESCRIPTOR_32 * OsGdtBase,
+    UINT16                  OsGdtLimit,
+    UINT16                  TrSelector,
+    UINT64                  HostStack,
+    SEGMENT_DESCRIPTOR_32 * AllocatedHostGdt,
+    TASK_STATE_SEGMENT_64 * AllocatedHostTss);

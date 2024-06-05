@@ -519,6 +519,20 @@
  */
 #define DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL 0xc000004f
 
+/**
+ * @brief error, not all cores are locked (probably due to a race condition in HyperDbg) in
+ * instant-event mechanism
+ *
+ */
+#define DEBUGGER_ERROR_NOT_ALL_CORES_ARE_LOCKED_FOR_APPLYING_INSTANT_EVENT 0xc0000050
+
+/**
+ * @brief error, switching to the target core is not possible because core is not locked
+ * (probably due to a race condition in HyperDbg)
+ *
+ */
+#define DEBUGGER_ERROR_TARGET_SWITCHING_CORE_IS_NOT_LOCKED 0xc0000051
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

@@ -356,3 +356,52 @@ VmxAllocateHostGdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 
     return TRUE;
 }
+
+/**
+ * @brief Allocate a buffer for host TSS
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostTss(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 TssSize = PAGE_SIZE; // Make sure the memory is aligned
+
+    //
+    // Allocate aligned memory for host TSS
+    //
+    VCpu->HostTss = (UINT64)PlatformMemAllocateZeroedNonPagedPool(TssSize); // should be aligned
+
+    if (VCpu->HostTss == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host TSS");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host TSS virtual address : 0x%llx", VCpu->HostTss);
+
+    return TRUE;
+}
+
+/**
+ * @brief Allocate a buffer for host interrupt stack
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostInterruptStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->HostInterruptStack = (UINT64)PlatformMemAllocateZeroedNonPagedPool(HOST_INTERRUPT_STACK_SIZE);
+
+    if (VCpu->HostInterruptStack == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host interrupt stack");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host interrupt stack virtual address : 0x%llx", VCpu->HostInterruptStack);
+
+    return TRUE;
+}
