@@ -181,6 +181,15 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         HookingAddresses.StartAddress = TempStartAddress;
         HookingAddresses.EndAddress   = TempEndAddress;
 
+        if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->InitOptions.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+        {
+            HookingAddresses.MemoryType = DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS;
+        }
+        else
+        {
+            HookingAddresses.MemoryType = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS;
+        }
+
         //
         // Apply the hook
         //
@@ -311,19 +320,33 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     }
 
     //
-    // We convert the Event's optional parameters physical address because
-    // vm-exit occurs and we have the physical address to compare in the case of
-    // hidden hook rw events.
+    // Check if address is virtual or physical
     //
-    if (InputFromVmxRoot)
+    if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
     {
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam1);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam2);
+        //
+        // It's a physical address so we just save the addresses without conversion
+        //
+        Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+        Event->Options.OptionalParam2 = Event->InitOptions.OptionalParam2;
     }
     else
     {
-        Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam1, TempProcessId);
-        Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam2, TempProcessId);
+        //
+        // It's a virtual address, we convert the Event's optional parameters physical address
+        // because vm-exit occurs and we have the physical address to compare in the case of
+        // hidden hook rw events
+        //
+        if (InputFromVmxRoot)
+        {
+            Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam1);
+            Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)Event->InitOptions.OptionalParam2);
+        }
+        else
+        {
+            Event->Options.OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam1, TempProcessId);
+            Event->Options.OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId((PVOID)Event->InitOptions.OptionalParam2, TempProcessId);
+        }
     }
 
     //
@@ -331,6 +354,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     //
     Event->Options.OptionalParam3 = Event->InitOptions.OptionalParam1;
     Event->Options.OptionalParam4 = Event->InitOptions.OptionalParam2;
+    Event->Options.OptionalParam5 = Event->InitOptions.OptionalParam3; // This parameter shows whether the address is physical or virtual
 
     //
     // Check if we should restore the event if it was not successful

@@ -55,32 +55,55 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     // Check whether address is valid or not based on whether the event needs
     // to be applied directly from VMX-root mode or not
     //
-    if (InputFromVmxRoot)
+    if ((DEBUGGER_HOOK_MEMORY_TYPE)EventDetails->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
     {
-        if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL ||
-            VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam2) == (UINT64)NULL)
+        //
+        // Validation of a physical address
+        //
+        if (CheckAddressPhysical(EventDetails->Options.OptionalParam1) == FALSE ||
+            CheckAddressPhysical(EventDetails->Options.OptionalParam2) == FALSE)
         {
             //
-            // Address is invalid (Set the error)
+            // Physical address is invalid (Set the error)
             //
 
             ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_PHYSICAL_ADDRESS;
             return FALSE;
         }
     }
     else
     {
-        if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL ||
-            VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam2, TempPid) == (UINT64)NULL)
+        //
+        // Validation of a virtual address
+        //
+        if (InputFromVmxRoot)
         {
-            //
-            // Address is invalid (Set the error)
-            //
+            if (VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam1) == (UINT64)NULL ||
+                VirtualAddressToPhysicalAddressOnTargetProcess((PVOID)EventDetails->Options.OptionalParam2) == (UINT64)NULL)
+            {
+                //
+                // Virtual address is invalid (Set the error)
+                //
 
-            ResultsToReturn->IsSuccessful = FALSE;
-            ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
-            return FALSE;
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
+        }
+        else
+        {
+            if (VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam1, TempPid) == (UINT64)NULL ||
+                VirtualAddressToPhysicalAddressByProcessId((PVOID)EventDetails->Options.OptionalParam2, TempPid) == (UINT64)NULL)
+            {
+                //
+                // Address is invalid (Set the error)
+                //
+
+                ResultsToReturn->IsSuccessful = FALSE;
+                ResultsToReturn->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return FALSE;
+            }
         }
     }
 

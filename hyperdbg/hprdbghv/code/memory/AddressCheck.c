@@ -112,7 +112,7 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
 /**
  * @brief Checks if the physical address is correct or not based on physical address width
  *
- * @param VAddr Physical address to check
+ * @param PAddr Physical address to check
  *
  * @return BOOLEAN
  */
