@@ -221,6 +221,16 @@ typedef enum _DEBUGGER_READ_READING_TYPE
 } DEBUGGER_READ_READING_TYPE;
 
 /**
+ * @brief different type of memory addresses
+ *
+ */
+typedef enum _DEBUGGER_HOOK_MEMORY_TYPE
+{
+    DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS,
+    DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS
+} DEBUGGER_HOOK_MEMORY_TYPE;
+
+/**
  * @brief different type of addresses
  *
  */
