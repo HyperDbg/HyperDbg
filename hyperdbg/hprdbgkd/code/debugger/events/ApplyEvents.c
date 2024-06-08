@@ -270,14 +270,31 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
                 //
                 if (InputFromVmxRoot)
                 {
-                    TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(TempStartAddressRestore,
-                                                                                       (UINT64)NULL);
+                    if (HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+                    {
+                        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)NULL,
+                                                                                           TempStartAddressRestore);
+                    }
+                    else
+                    {
+                        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(TempStartAddressRestore,
+                                                                                           (UINT64)NULL);
+                    }
                 }
                 else
                 {
-                    ConfigureEptHookUnHookSingleAddress(TempStartAddressRestore,
-                                                        (UINT64)NULL,
-                                                        Event->ProcessId);
+                    if (HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+                    {
+                        ConfigureEptHookUnHookSingleAddress((UINT64)NULL,
+                                                            TempStartAddressRestore,
+                                                            NULL_ZERO);
+                    }
+                    else
+                    {
+                        ConfigureEptHookUnHookSingleAddress(TempStartAddressRestore,
+                                                            (UINT64)NULL,
+                                                            Event->ProcessId);
+                    }
                 }
 
                 //
