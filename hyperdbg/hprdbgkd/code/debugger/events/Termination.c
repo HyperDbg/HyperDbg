@@ -107,13 +107,14 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    UINT64 RemainingSize;
-    UINT64 PagesBytes;
-    UINT64 ConstEndAddress;
-    UINT64 TempNextPageAddr;
-    UINT64 TempStartAddress = Event->Options.OptionalParam3;
-    UINT64 TempEndAddress   = Event->Options.OptionalParam4;
-    ConstEndAddress         = TempEndAddress;
+    UINT64                    RemainingSize;
+    UINT64                    PagesBytes;
+    UINT64                    ConstEndAddress;
+    UINT64                    TempNextPageAddr;
+    UINT64                    TempStartAddress = Event->Options.OptionalParam3;
+    UINT64                    TempEndAddress   = Event->Options.OptionalParam4;
+    DEBUGGER_HOOK_MEMORY_TYPE MemoryType       = (DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam5;
+    ConstEndAddress                            = TempEndAddress;
 
     //
     // Because there are different EPT hooks, like READ, WRITE, EXECUTE,
@@ -168,14 +169,31 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
 
         if (InputFromVmxRoot)
         {
-            TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempStartAddress,
-                                                                               (UINT64)NULL);
+            if (MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+            {
+                TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)NULL,
+                                                                                   (UINT64)TempStartAddress);
+            }
+            else
+            {
+                TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempStartAddress,
+                                                                                   (UINT64)NULL);
+            }
         }
         else
         {
-            ConfigureEptHookUnHookSingleAddress((UINT64)TempStartAddress,
-                                                (UINT64)NULL,
-                                                Event->ProcessId);
+            if (MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+            {
+                ConfigureEptHookUnHookSingleAddress((UINT64)NULL,
+                                                    (UINT64)TempStartAddress,
+                                                    NULL_ZERO);
+            }
+            else
+            {
+                ConfigureEptHookUnHookSingleAddress((UINT64)TempStartAddress,
+                                                    (UINT64)NULL,
+                                                    Event->ProcessId);
+            }
         }
 
         //
@@ -1646,7 +1664,7 @@ TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                            
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx root-mode
  *
- * @param VirtualAddress Virtual address to unhook
+ * @param VirtualAddress Virtual address to unhook (optional)
  * @param PhysAddress Physical address to unhook (optional)
  *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false

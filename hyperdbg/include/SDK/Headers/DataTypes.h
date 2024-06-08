@@ -303,6 +303,16 @@ typedef struct _DIRECT_VMCALL_PARAMETERS
 //////////////////////////////////////////////////
 
 /**
+ * @brief different type of memory addresses
+ *
+ */
+typedef enum _DEBUGGER_HOOK_MEMORY_TYPE
+{
+    DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS,
+    DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS
+} DEBUGGER_HOOK_MEMORY_TYPE;
+
+/**
  * @brief Temporary $context used in some EPT hook commands
  *
  */
@@ -319,12 +329,13 @@ typedef struct _EPT_HOOKS_CONTEXT
  */
 typedef struct _EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR
 {
-    UINT64  StartAddress;
-    UINT64  EndAddress;
-    BOOLEAN SetHookForRead;
-    BOOLEAN SetHookForWrite;
-    BOOLEAN SetHookForExec;
-    UINT64  Tag;
+    UINT64                    StartAddress;
+    UINT64                    EndAddress;
+    BOOLEAN                   SetHookForRead;
+    BOOLEAN                   SetHookForWrite;
+    BOOLEAN                   SetHookForExec;
+    DEBUGGER_HOOK_MEMORY_TYPE MemoryType;
+    UINT64                    Tag;
 
 } EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR, *PEPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR;
 

@@ -524,6 +524,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_INVALID_PHYSICAL_ADDRESS:
+        ShowMessages("err, invalid physical address (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

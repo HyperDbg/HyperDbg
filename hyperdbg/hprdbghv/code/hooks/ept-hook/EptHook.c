@@ -985,7 +985,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     ULONG                   ProcessorsCount;
     EPT_PML1_ENTRY          ChangedEntry;
     SIZE_T                  PhysicalBaseAddress;
-    PVOID                   AlignedTargetVa;
+    PVOID                   AlignedTargetVaOrPa;
     PVOID                   TargetBuffer;
     PVOID                   TargetAddress;
     PVOID                   HookFunction;
@@ -1024,7 +1024,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         TargetAddress = (PVOID)((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress;
     }
 
-    AlignedTargetVa = PAGE_ALIGN(TargetAddress);
+    AlignedTargetVaOrPa = PAGE_ALIGN(TargetAddress);
 
     //
     // Here we have to change the CR3, it is because we are in SYSTEM process
@@ -1032,10 +1032,21 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     // user mode address of another process) then the translation is invalid
     //
 
-    //
-    // based on the CR3 of target core
-    //
-    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(AlignedTargetVa, ProcessCr3);
+    if (!EptHiddenHook &&
+        ((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+    {
+        //
+        // The address itself is a physical address, no need for conversion
+        //
+        PhysicalBaseAddress = (SIZE_T)AlignedTargetVaOrPa;
+    }
+    else
+    {
+        //
+        // based on the CR3 of target core
+        //
+        PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(AlignedTargetVaOrPa, ProcessCr3);
+    }
 
     if (!PhysicalBaseAddress)
     {
@@ -1099,9 +1110,22 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Save the start of the target physical address
         //
-        HookedPage->StartOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
-            (PVOID)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress),
-            ProcessCr3);
+        if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+        {
+            //
+            // Physical address
+            //
+            HookedPage->StartOfTargetPhysicalAddress = (SIZE_T)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress);
+        }
+        else
+        {
+            //
+            // Virtual address
+            //
+            HookedPage->StartOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
+                (PVOID)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->StartAddress),
+                ProcessCr3);
+        }
 
         if (!HookedPage->StartOfTargetPhysicalAddress)
         {
@@ -1114,9 +1138,22 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // Save the end of the target physical address
         //
-        HookedPage->EndOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
-            (PVOID)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->EndAddress),
-            ProcessCr3);
+        if (((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+        {
+            //
+            // Physical address
+            //
+            HookedPage->EndOfTargetPhysicalAddress = (SIZE_T)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->EndAddress);
+        }
+        else
+        {
+            //
+            // Virtual address
+            //
+            HookedPage->EndOfTargetPhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(
+                (PVOID)(((EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR *)HookingDetails)->EndAddress),
+                ProcessCr3);
+        }
 
         if (!HookedPage->EndOfTargetPhysicalAddress)
         {
@@ -1149,7 +1186,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         // The following line can't be used in user mode addresses
         // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
         //
-        MemoryMapperReadMemorySafe((UINT64)AlignedTargetVa, &HookedPage->FakePageContents, PAGE_SIZE);
+        MemoryMapperReadMemorySafe((UINT64)AlignedTargetVaOrPa, &HookedPage->FakePageContents, PAGE_SIZE);
 
         //
         // Restore to original process

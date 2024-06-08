@@ -21,13 +21,13 @@ CommandMonitorHelp()
 {
     ShowMessages("!monitor : monitors address range for read and writes.\n\n");
 
-    ShowMessages("syntax : \t!monitor [Attribute (string)] [FromAddress (hex)] "
+    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [FromAddress (hex)] "
                  "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }] [output {OutputName (string)}]\n");
 
-    ShowMessages("syntax : \t!monitor [Attribute (string)] [FromAddress (hex)] "
+    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [FromAddress (hex)] "
                  "[l Length (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
@@ -36,11 +36,13 @@ CommandMonitorHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000\n");
+    ShowMessages("\t\te.g : !monitor pa rw c01000 l 1000\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 l 230d0\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
     ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
     ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor w c01000 c01000+2500 core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 l 500 core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor wx fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
@@ -65,14 +67,16 @@ CommandMonitor(vector<string> SplitCommand, string Command)
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
     UINT32                             HookLength                  = 0;
-    UINT64                             OptionalParam1   = 0; // Set the 'from' target address
-    UINT64                             OptionalParam2   = 0; // Set the 'to' target address
-    BOOLEAN                            SetFrom          = FALSE;
-    BOOLEAN                            SetTo            = FALSE;
-    BOOLEAN                            IsNextLength     = FALSE;
-    BOOLEAN                            LengthAlreadySet = FALSE;
-    BOOLEAN                            SetAttributes    = FALSE;
+    UINT64                             OptionalParam1              = 0; // Set the 'from' target address
+    UINT64                             OptionalParam2              = 0; // Set the 'to' target address
+    BOOLEAN                            SetFrom                     = FALSE;
+    BOOLEAN                            SetTo                       = FALSE;
+    BOOLEAN                            IsNextLength                = FALSE;
+    BOOLEAN                            LengthAlreadySet            = FALSE;
+    BOOLEAN                            SetAttributes               = FALSE;
+    BOOLEAN                            HookMemoryTypeSet           = FALSE;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
+    DEBUGGER_HOOK_MEMORY_TYPE          HookMemoryType              = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS; // by default virtual address
     UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
@@ -176,6 +180,18 @@ CommandMonitor(vector<string> SplitCommand, string Command)
         else if (!Section.compare("l") && !SetTo && !LengthAlreadySet)
         {
             IsNextLength = TRUE;
+            continue;
+        }
+        else if (!Section.compare("va") && !HookMemoryTypeSet)
+        {
+            HookMemoryType    = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS;
+            HookMemoryTypeSet = TRUE;
+            continue;
+        }
+        else if (!Section.compare("pa") && !HookMemoryTypeSet)
+        {
+            HookMemoryType    = DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS;
+            HookMemoryTypeSet = TRUE;
             continue;
         }
         else
@@ -286,6 +302,7 @@ CommandMonitor(vector<string> SplitCommand, string Command)
     //
     Event->Options.OptionalParam1 = OptionalParam1;
     Event->Options.OptionalParam2 = OptionalParam2;
+    Event->Options.OptionalParam3 = HookMemoryType;
 
     //
     // Send the ioctl to the kernel for event registration

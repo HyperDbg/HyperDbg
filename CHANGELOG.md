@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0.0] - 2024-XX-XX
 New release of the HyperDbg Debugger.
 
+### Added
+- The **!monitor** command now physical address hooking ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor))
+
 ### Changed
-- Using a separate HOST IDT in VMCS (not OS IDT) ([fix to this [VM escape](https://www.unknowncheats.me/forum/c-and-c-/390593-vm-escape-via-nmi.html) issue])
+- Using a separate HOST IDT in VMCS (not OS IDT) (fix to this [VM escape](https://www.unknowncheats.me/forum/c-and-c-/390593-vm-escape-via-nmi.html) issues)
 - Using a dedicated HOST GDT and TSS Stack
 - Checking for race-condition of not locked cores before applying instant-events and switching cores
 - The error message for invalid address is changed ([more information](https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address))
+- Fix the problem of not locking all cores after running the '.pagein' command
 
 ## [0.8.4.0] - 2024-05-10
 New release of the HyperDbg Debugger.

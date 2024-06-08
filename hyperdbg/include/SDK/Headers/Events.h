@@ -273,6 +273,8 @@ typedef struct _DEBUGGER_EVENT_OPTIONS
     UINT64 OptionalParam2; // Optional parameter
     UINT64 OptionalParam3; // Optional parameter
     UINT64 OptionalParam4; // Optional parameter
+    UINT64 OptionalParam5; // Optional parameter
+    UINT64 OptionalParam6; // Optional parameter
 
 } DEBUGGER_EVENT_OPTIONS, *PDEBUGGER_EVENT_OPTIONS;
 
