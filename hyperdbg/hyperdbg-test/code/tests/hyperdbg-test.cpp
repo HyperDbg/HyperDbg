@@ -36,6 +36,14 @@ main(int argc, char * argv[])
     }
 
     Buffer = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    if (!Buffer)
+    {
+        printf("err, could not allocate communication buffer\n");
+        _getch();
+        return 1;
+    }
+
     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     strcpy_s(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE, "Hey there, Are you HyperDbg?");
 
@@ -56,6 +64,9 @@ main(int argc, char * argv[])
             // Unable to create handle
             //
             free(Buffer);
+
+            printf("err, unable to create handle\n");
+            _getch();
             return 1;
         }
 
@@ -68,6 +79,9 @@ main(int argc, char * argv[])
             // Sending error
             //
             free(Buffer);
+
+            printf("err, unable to send message\n");
+            _getch();
             return 1;
         }
 
@@ -79,6 +93,9 @@ main(int argc, char * argv[])
             // Nothing to read
             //
             free(Buffer);
+
+            printf("err, unable to read message\n");
+            _getch();
             return 1;
         }
 
@@ -98,7 +115,7 @@ main(int argc, char * argv[])
             strcpy_s(
                 Buffer,
                 TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
-                "Wow! I miss you... Would you plz send me the kernel information?");
+                "Wow! I miss you... Would you plz send test cases?");
 
             SentMessageResult =
                 NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
@@ -109,6 +126,9 @@ main(int argc, char * argv[])
                 // Sending error
                 //
                 free(Buffer);
+
+                printf("err, sending error\n");
+                _getch();
                 return 1;
             }
 
@@ -124,13 +144,19 @@ main(int argc, char * argv[])
                 // Nothing to read
                 //
                 free(Buffer);
+
+                printf("err, nothing to read\n");
+                _getch();
                 return 1;
             }
 
             //
             // Dispatch the test case number
             //
-            TestCreateLookupTable(PipeHandle, (PVOID)Buffer, ReadBytes);
+
+            ///  TestCreateLookupTable(PipeHandle, (PVOID)Buffer, ReadBytes);
+            printf("!!!! Read to run the test cases !!!!");
+            _getch();
 
             //
             // Close the pipe connection
