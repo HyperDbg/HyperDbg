@@ -408,10 +408,18 @@ UINT32
 VmxCompatibleWcslen(const wchar_t * S);
 
 INT32
-VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
+VmxCompatibleStrcmp(const CHAR * Address1,
+                    const CHAR * Address2,
+                    SIZE_T       Num,
+                    BOOLEAN      IsStrncmp);
 
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+VmxCompatibleWcscmp(const wchar_t * Address1,
+                    const wchar_t * Address2,
+                    SIZE_T          Num,
+                    BOOLEAN         IsWcsncmp);
 
 INT32
-VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
+VmxCompatibleMemcmp(const CHAR * Address1,
+                    const CHAR * Address2,
+                    size_t       Count);

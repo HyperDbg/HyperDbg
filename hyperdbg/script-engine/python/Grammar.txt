@@ -23,7 +23,7 @@
 .TwoOpFunc3->strcmp
 
 # ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
-.ThreeOpFunc3->memcmp
+.ThreeOpFunc3->memcmp strncmp wcsncmp
 
 # OneOpFunc4 input is a number or a wstring and returns a number.
 .OneOpFunc4->wcslen

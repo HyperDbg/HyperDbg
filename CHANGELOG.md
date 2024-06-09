@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.0.0] - 2024-XX-XX
+## [0.9.0.0] - 2024-06-09
 New release of the HyperDbg Debugger.
 
 ### Added
 - The **!monitor** command now physical address hooking ([link](https://docs.hyperdbg.org/commands/extension-commands/monitor))
+- **hwdbg** is merged to HyperDbg codebase ([link](https://hwdbg.hyperdbg.org))
+- **strncmp(Str1, Str2, Num)**, and **wcsncmp(WStr1, WStr2, Num)** functions in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/strncmp))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcsncmp))
 
 ### Changed
 - Using a separate HOST IDT in VMCS (not OS IDT) (fix to this [VM escape](https://www.unknowncheats.me/forum/c-and-c-/390593-vm-escape-via-nmi.html) issues)

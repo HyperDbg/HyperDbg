@@ -2035,6 +2035,120 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         break;
 
+    case FUNC_STRNCMP:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        if (Src1->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                         sizeof(SYMBOL));
+            SrcVal1 = (UINT64)&Src1->Value;
+        }
+        else
+        {
+            SrcVal1 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+        }
+
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        if (Src2->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
+                         sizeof(SYMBOL));
+            SrcVal2 = (UINT64)&Src2->Value;
+        }
+        else
+        {
+            SrcVal2 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+        }
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionStrncmp((const char *)SrcVal2, (const char *)SrcVal1, SrcVal0);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+
+        break;
+
+    case FUNC_WCSNCMP:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        if (Src1->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                         sizeof(SYMBOL));
+            SrcVal1 = (UINT64)&Src1->Value;
+        }
+        else
+        {
+            SrcVal1 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+        }
+
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        if (Src2->Type == SYMBOL_STRING_TYPE)
+        {
+            *Indx =
+                *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
+                         sizeof(SYMBOL));
+            SrcVal2 = (UINT64)&Src2->Value;
+        }
+        else
+        {
+            SrcVal2 =
+                GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+        }
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionWcsncmp((const wchar_t *)SrcVal2, (const wchar_t *)SrcVal1, SrcVal0);
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
+
+        break;
+
     case FUNC_PRINTF:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

@@ -1460,17 +1460,23 @@ VmxCompatibleWcslen(const wchar_t * S)
 }
 
 /**
- * @brief implementation of vmx-root mode compatible strcmp
+ * @brief implementation of vmx-root mode compatible strcmp and strncmp
  * @param Address1
  * @param Address2
+ * @param Num
+ * param IsStrncmp
  *
  * @return INT32 0x2 indicates error, otherwise the same result as strcmp in string.h
  */
 INT32
-VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+VmxCompatibleStrcmp(const CHAR * Address1,
+                    const CHAR * Address2,
+                    SIZE_T       Num,
+                    BOOLEAN      IsStrncmp)
 {
     CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
+    UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
@@ -1507,6 +1513,27 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 
     do
     {
+        //
+        // Check to see if we have byte number constraints
+        //
+        if (IsStrncmp)
+        {
+            if (Count == Num)
+            {
+                //
+                // Maximum number of bytes reached
+                //
+                break;
+            }
+            else
+            {
+                //
+                // Maximum number of bytes not reached
+                //
+                Count++;
+            }
+        }
+
         /*
         C1 = *Address1;
         */
@@ -1571,17 +1598,23 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 }
 
 /**
- * @brief implementation of vmx-root mode compatible wcscmp
+ * @brief implementation of vmx-root mode compatible wcscmp and wcsncmp
  * @param Address1
  * @param Address2
+ * @param Num
+ * @param IsWcsncmp
  *
  * @return INT32 0x2 indicates error, otherwise the same result as wcscmp in string.h
  */
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+VmxCompatibleWcscmp(const wchar_t * Address1,
+                    const wchar_t * Address2,
+                    SIZE_T          Num,
+                    BOOLEAN         IsWcsncmp)
 {
     wchar_t  C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
+    UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
@@ -1618,6 +1651,27 @@ VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 
     do
     {
+        //
+        // Check to see if we have byte number constraints
+        //
+        if (IsWcsncmp)
+        {
+            if (Count == Num)
+            {
+                //
+                // Maximum number of bytes reached
+                //
+                break;
+            }
+            else
+            {
+                //
+                // Maximum number of bytes not reached
+                //
+                Count++;
+            }
+        }
+
         /*
         C1 = *Address1;
         */
