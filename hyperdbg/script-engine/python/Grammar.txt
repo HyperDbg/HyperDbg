@@ -23,7 +23,10 @@
 .TwoOpFunc3->strcmp
 
 # ThreeOpFunc3 the first two inputs are numbers or strings and the third input is a number and returns a number.
-.ThreeOpFunc3->memcmp strncmp wcsncmp
+.ThreeOpFunc3->memcmp strncmp
+
+# ThreeOpFunc4 the first two inputs are numbers or wstrings and the third input is a number and returns a number.
+.ThreeOpFunc4->wcsncmp
 
 # OneOpFunc4 input is a number or a wstring and returns a number.
 .OneOpFunc4->wcslen
@@ -117,6 +120,7 @@ CALL_FUNC_STATEMENT->.ThreeOpFunc3 ( StringNumber , StringNumber , EXPRESSION @.
 CALL_FUNC_STATEMENT->.OneOpFunc4 ( WstringNumber @.OneOpFunc4 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.TwoOpFunc4 ( WstringNumber , WstringNumber @.TwoOpFunc4 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.ThreeOpFunc2 ( EXPRESSION , EXPRESSION , EXPRESSION @.ThreeOpFunc2 )
+CALL_FUNC_STATEMENT->.ThreeOpFunc4 ( WstringNumber , WstringNumber , EXPRESSION @.ThreeOpFunc4 ) @IGNORE_LVALUE
 
 VA->, EXPRESSION VA
 VA->eps
@@ -194,6 +198,7 @@ E12->.TwoOpFunc3 ( StringNumber , StringNumber @.TwoOpFunc3 )
 E12->.ThreeOpFunc3 ( StringNumber , StringNumber , EXPRESSION @.ThreeOpFunc3 )
 E12->.OneOpFunc4 ( WstringNumber @.OneOpFunc4 )
 E12->.TwoOpFunc4 ( WstringNumber , WstringNumber @.TwoOpFunc4 )
+E12->.ThreeOpFunc4 ( WstringNumber , WstringNumber , EXPRESSION @.ThreeOpFunc4 )
 
 E12->( EXPRESSION )
 
