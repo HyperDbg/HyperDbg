@@ -68,9 +68,9 @@ NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
     //
     // Wait for the client to connect
     //
-    BOOL bClientConnected = ConnectNamedPipe(PipeHandle, NULL);
+    BOOL ClientConnected = ConnectNamedPipe(PipeHandle, NULL);
 
-    if (FALSE == bClientConnected)
+    if (FALSE == ClientConnected)
     {
         ShowMessages("err, occurred while connecting to the client (%x)\n",
                      GetLastError());

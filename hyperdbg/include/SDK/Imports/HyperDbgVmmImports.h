@@ -204,7 +204,13 @@ IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 
 IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Num);
+
+IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+
+IMPORT_EXPORT_VMM INT32
+VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
@@ -513,8 +519,6 @@ LayoutGetExactGuestProcessCr3();
 //////////////////////////////////////////////////
 //         Memory Management Functions 	   		//
 //////////////////////////////////////////////////
-
-
 
 // ----------------------------------------------------------------------------
 // PTE-related Functions

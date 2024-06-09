@@ -18,7 +18,6 @@ package hwdbg
 import chisel3._
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 import hwdbg.types._
 import hwdbg.utils._
@@ -28,19 +27,21 @@ import hwdbg.communication.interpreter._
 
 class DebuggerMain(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-    maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-    maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-    bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    numberOfPins: Int,
+    maximumNumberOfStages: Int,
+    maximumNumberOfSupportedScriptOperators: Int,
+    scriptVariableLength: Int,
+    scriptCapabilities: Seq[Long],
+    bramAddrWidth: Int,
+    bramDataWidth: Int,
+    portsConfiguration: Array[Int]
 ) extends Module {
 
   //
   // Ensure sum of input port values equals numberOfPins (NUMBER_OF_PINS)
   //
   require(
-    portsConfiguration.values.sum == numberOfPins,
+    portsConfiguration.sum == numberOfPins,
     "err, the sum of the portsConfiguration (PORT_PINS_MAP) values must equal the numberOfPins (NUMBER_OF_PINS)."
   )
 
@@ -74,15 +75,18 @@ class DebuggerMain(
   })
 
   //
-  // Printing the versioning info
+  // *** Create an instance of the debugger ***
   //
-  val encodedVersion = Version.getEncodedVersion
-  LogInfo(true)("=======================================================================")
-  LogInfo(true)(s"Generating code for hwdbg v${Version.extractMajor(encodedVersion)}.${Version.extractMinor(encodedVersion)}.${Version
-      .extractPatch(encodedVersion)} ($encodedVersion)")
-  LogInfo(true)("Please visit https://hwdbg.hyperdbg.org/docs for more information...")
-  LogInfo(true)("hwdbg is released under the GNU Public License v3 (GPLv3).")
-  LogInfo(true)("=======================================================================")
+  val instanceInfo = HwdbgInstanceInformation.createInstanceInformation(
+                              version = Version.getEncodedVersion,
+                              maximumNumberOfStages = maximumNumberOfStages,
+                              scriptVariableLength = scriptVariableLength,
+                              maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+                              numberOfPins = numberOfPins,
+                              numberOfPorts = portsConfiguration.size,
+                              enabledCapabilities = scriptCapabilities,
+                              portsConfiguration = portsConfiguration
+    )
 
   //
   // Wire signals for the synchronizer
@@ -99,12 +103,9 @@ class DebuggerMain(
   val (outputPin) =
     ScriptExecutionEngine(
       debug,
-      numberOfPins,
-      maximumNumberOfStages,
-      maximumNumberOfSupportedScriptOperators,
+      instanceInfo,
       bramAddrWidth,
-      bramDataWidth,
-      portsConfiguration
+      bramDataWidth
     )(
       io.en,
       io.inputPin
@@ -124,6 +125,7 @@ class DebuggerMain(
   ) =
     DebuggerPacketInterpreter(
       debug,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth
     )(
@@ -192,12 +194,14 @@ object DebuggerMain {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      numberOfPins: Int = DebuggerConfigurations.NUMBER_OF_PINS,
-      maximumNumberOfStages: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES,
-      maximumNumberOfSupportedScriptOperators: Int = ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS,
-      bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      numberOfPins: Int,
+      maximumNumberOfStages: Int,
+      maximumNumberOfSupportedScriptOperators: Int,
+      scriptVariableLength: Int,
+      scriptCapabilities: Seq[Long],
+      bramAddrWidth: Int,
+      bramDataWidth: Int,
+      portsConfiguration: Array[Int]
   )(
       en: Bool,
       inputPin: Vec[UInt],
@@ -211,6 +215,8 @@ object DebuggerMain {
         numberOfPins,
         maximumNumberOfStages,
         maximumNumberOfSupportedScriptOperators,
+        scriptVariableLength,
+        scriptCapabilities,
         bramAddrWidth,
         bramDataWidth,
         portsConfiguration

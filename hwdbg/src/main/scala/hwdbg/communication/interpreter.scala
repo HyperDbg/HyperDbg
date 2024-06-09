@@ -30,8 +30,9 @@ object DebuggerPacketInterpreterEnums {
 
 class DebuggerPacketInterpreter(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+    instanceInfo: HwdbgInstanceInformation,
+    bramAddrWidth: Int,
+    bramDataWidth: Int
 ) extends Module {
 
   //
@@ -243,6 +244,7 @@ class DebuggerPacketInterpreter(
             ) =
               InterpreterSendVersion(
                 debug,
+                instanceInfo,
                 bramDataWidth
               )(
                 io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
@@ -282,6 +284,7 @@ class DebuggerPacketInterpreter(
             ) =
               InterpreterPortInformation(
                 debug,
+                instanceInfo,
                 bramDataWidth
               )(
                 io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
@@ -410,8 +413,9 @@ object DebuggerPacketInterpreter {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int = DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+      instanceInfo: HwdbgInstanceInformation,
+      bramAddrWidth: Int,
+      bramDataWidth: Int
   )(
       en: Bool,
       requestedActionOfThePacketInput: UInt,
@@ -424,6 +428,7 @@ object DebuggerPacketInterpreter {
     val debuggerPacketInterpreter = Module(
       new DebuggerPacketInterpreter(
         debug,
+        instanceInfo,
         bramAddrWidth,
         bramDataWidth
       )

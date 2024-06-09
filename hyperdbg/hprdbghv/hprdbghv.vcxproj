@@ -158,6 +158,7 @@
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
+    <ClCompile Include="code\memory\Segmentation.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
@@ -188,6 +189,7 @@
     <MASM Include="code\assembly\AsmVmexitHandler.asm" />
     <MASM Include="code\assembly\AsmVmxContextState.asm" />
     <MASM Include="code\assembly\AsmVmxOperation.asm" />
+    <MASM Include="code\assembly\AsmInterruptHandlers.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dependencies\zydis\dependencies\zycore\include\Zycore\Allocator.h" />
@@ -256,6 +258,7 @@
     <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
+    <ClInclude Include="header\memory\Segmentation.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\transparency\Transparency.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
@@ -274,6 +277,7 @@
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h" />
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h" />
+    <ClInclude Include="header\vmm\vmx\VmxRegions.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

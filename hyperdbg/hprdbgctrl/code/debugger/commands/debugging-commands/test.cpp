@@ -99,37 +99,38 @@ CommandTestPerformKernelTestsIoctl()
 /**
  * @brief perform test on the remote process
  *
- * @param KernelSideInformation Information from kernel
- * @param KernelSideInformationSize Information from kernel ()
- *
  * @return BOOLEAN returns true if the results was true and false if the results
  * was not ok
  */
 BOOLEAN
-CommandTestPerformTest(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION KernelSideInformation, UINT32 KernelSideInformationSize)
+CommandTestPerformTest()
 {
     BOOLEAN ResultOfTest = FALSE;
     HANDLE  PipeHandle;
     HANDLE  ThreadHandle;
     HANDLE  ProcessHandle;
     UINT32  ReadBytes;
-    CHAR *  Buffer = {0};
+    CHAR *  Buffer = NULL;
 
     //
     // Allocate memory
     //
     Buffer = (CHAR *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    if (!Buffer)
+    {
+        ShowMessages("err, enable allocate communication buffer\n");
+        return FALSE;
+    }
+
     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     //
     // Create tests process to create a thread for us
     //
-    if (!CreateProcessAndOpenPipeConnection(
-            KernelSideInformation,
-            KernelSideInformationSize,
-            &PipeHandle,
-            &ThreadHandle,
-            &ProcessHandle))
+    if (!CreateProcessAndOpenPipeConnection(&PipeHandle,
+                                            &ThreadHandle,
+                                            &ProcessHandle))
     {
         ShowMessages("err, enable to connect to the test process\n");
 
@@ -146,7 +147,22 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION KernelSideInfo
     // Wait for the result of test to be received
     //
 
-WaitForResponse:
+SendCommandAndWaitForResponse:
+
+    CHAR TestCommand[] = "this is a test command";
+
+    BOOLEAN SentMessageResult = NamedPipeServerSendMessageToClient(
+        PipeHandle,
+        TestCommand,
+        (UINT32)strlen(TestCommand) + 1);
+
+    if (!SentMessageResult)
+    {
+        //
+        // error in sending
+        //
+        return FALSE;
+    }
 
     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     ReadBytes =
@@ -162,35 +178,7 @@ WaitForResponse:
         return FALSE;
     }
 
-    if (strcmp(Buffer, "perform-kernel-test") == 0)
-    {
-        //
-        // Send IOCTL to perform kernel tasks
-        //
-        CommandTestPerformKernelTestsIoctl();
-
-        goto WaitForResponse;
-    }
-    else if (strcmp(Buffer, "success") == 0)
-    {
-        ResultOfTest = TRUE;
-    }
-    else if (Buffer[0] == 'c' &&
-             Buffer[1] == 'm' &&
-             Buffer[2] == 'd' &&
-             Buffer[3] == ':')
-    {
-        //
-        // It's a command as it starts with "cmd:"
-        //
-        ShowMessages("command is : %s\n", &Buffer[4]);
-        HyperDbgInterpreter(&Buffer[4]);
-        goto WaitForResponse;
-    }
-    else
-    {
-        ResultOfTest = FALSE;
-    }
+    goto SendCommandAndWaitForResponse;
 
     //
     // Close connection and remote process
@@ -200,72 +188,6 @@ WaitForResponse:
     free(Buffer);
 
     return ResultOfTest;
-}
-
-/**
- * @brief test command for VMI mode
- *
- * @return VOID
- */
-VOID
-CommandTestInVmiMode()
-{
-    BOOL  Status;
-    ULONG ReturnedLength;
-    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION
-    KernelSideTestInformationRequestArray;
-
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
-
-    //
-    // *** Read kernel-side debugging information ***
-    //
-    KernelSideTestInformationRequestArray = (DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
-
-    RtlZeroMemory(KernelSideTestInformationRequestArray, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
-
-    //
-    // Send Ioctl to the kernel
-    //
-    Status = DeviceIoControl(
-        g_DeviceHandle,                                   // Handle to device
-        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,      // IO Control Code (IOCTL)
-        KernelSideTestInformationRequestArray,            // Input Buffer to driver.
-        SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION, // Input buffer
-                                                          // length
-        KernelSideTestInformationRequestArray,            // Output Buffer from driver.
-        TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,         // Length
-                                                          // of
-                                                          // output
-                                                          // buffer
-                                                          // in
-                                                          // bytes.
-        &ReturnedLength,                                  // Bytes placed in buffer.
-        NULL                                              // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
-    }
-
-    //
-    // Means to check just one command
-    //
-    if (CommandTestPerformTest(KernelSideTestInformationRequestArray, ReturnedLength))
-    {
-        ShowMessages("all the tests were successful :)\n");
-    }
-    else
-    {
-        ShowMessages("all or at least one of the tests failed :(\n");
-    }
-
-    //
-    // Free the kernel-side buffer
-    //
-    free(KernelSideTestInformationRequestArray);
 }
 
 /**
@@ -446,9 +368,9 @@ CommandTest(vector<string> SplitCommand, string Command)
     if (SplitCommand.size() == 1)
     {
         //
-        // For testing in vmi mode
+        // For testing functionalities
         //
-        CommandTestInVmiMode();
+        CommandTestPerformTest();
     }
     else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("query"))
     {

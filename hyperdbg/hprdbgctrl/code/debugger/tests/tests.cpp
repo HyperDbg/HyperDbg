@@ -102,17 +102,13 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
 /**
  * @brief Create a Process And Open Pipe Connection object
  *
- * @param KernelInformation Details from kernel to create lookup table
- * @param KernelInformationSize Size of KernelInformation
  * @param ConnectionPipeHandle Pointer to receive Pipe Handle
  * @param ThreadHandle Pointer to receive Thread Handle
  * @param ProcessHandle Pointer to receive Process Handle
  * @return BOOLEAN
  */
 BOOLEAN
-CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
-                                   UINT32  KernelInformationSize,
-                                   PHANDLE ConnectionPipeHandle,
+CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle)
 {
@@ -138,7 +134,25 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
     }
 
     BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    if (!BufferToRead)
+    {
+        //
+        // Enable to allocate buffer
+        //
+        return FALSE;
+    }
+
     BufferToSend = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    if (!BufferToSend)
+    {
+        //
+        // Enable to allocate buffer
+        //
+        free(BufferToSend);
+        return FALSE;
+    }
 
     RtlZeroMemory(BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     RtlZeroMemory(BufferToSend, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
@@ -164,7 +178,6 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
         //
         // Test process not found
         //
-
         free(BufferToRead);
         free(BufferToSend);
 
@@ -247,47 +260,31 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
                 return FALSE;
             }
 
-            if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send me the "
-                                     "kernel information?") == 0)
+            if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send test cases?") == 0)
             {
-                {
-                    //
-                    // Send the kernel information
-                    //
-                    SentMessageResult = NamedPipeServerSendMessageToClient(
-                        PipeHandle,
-                        (char *)KernelInformation,
-                        KernelInformationSize);
+                //
+                // Set the output handles
+                //
+                *ConnectionPipeHandle = PipeHandle;
+                *ThreadHandle         = ProcessInfo.hThread;
+                *ProcessHandle        = ProcessInfo.hProcess;
 
-                    if (!SentMessageResult)
-                    {
-                        //
-                        // error in sending
-                        //
+                free(BufferToRead);
+                free(BufferToSend);
 
-                        free(BufferToRead);
-                        free(BufferToSend);
-
-                        return FALSE;
-                    }
-                }
+                return TRUE;
             }
 
-            //
-            // Set the output handles
-            //
-            *ConnectionPipeHandle = PipeHandle;
-            *ThreadHandle         = ProcessInfo.hThread;
-            *ProcessHandle        = ProcessInfo.hProcess;
+            ShowMessages("err, could not handshake with the test process\n");
 
             free(BufferToRead);
             free(BufferToSend);
 
-            return TRUE;
+            return FALSE;
         }
         else
         {
-            ShowMessages("the process could not be started\n");
+            ShowMessages("err, the process could not be started\n");
 
             free(BufferToRead);
             free(BufferToSend);

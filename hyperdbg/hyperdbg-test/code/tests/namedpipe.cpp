@@ -325,6 +325,7 @@ NamedPipeServerExample()
     char      BufferToRead[BufferSize] = {0};
     char      BufferToSend[BufferSize] = "test message to send from server !!!";
 
+    printf("create name pipe\n");
     PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
                                            BufferSize,
                                            BufferSize);
@@ -336,6 +337,9 @@ NamedPipeServerExample()
         return 1;
     }
 
+    printf("success!\n");
+    printf("wait for the client connection\n");
+
     if (!NamedPipeServerWaitForClientConntection(PipeHandle))
     {
         //
@@ -343,6 +347,9 @@ NamedPipeServerExample()
         //
         return 1;
     }
+
+    printf("client connected\n");
+    printf("read client message\n");
 
     ReadBytes =
         NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);

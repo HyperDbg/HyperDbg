@@ -12,6 +12,192 @@
 #include "pch.h"
 
 /**
+ * @brief Create an interrupt gate that points to the supplied interrupt handler
+ *
+ * @param VCpu The virtual processor's state
+ * @param Entry
+ *
+ * @return VOID
+ */
+VOID
+IdtEmulationCreateInterruptGate(PVOID Handler, SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * Entry)
+{
+    // SEGMENT_SELECTOR HostCsSelector = {0, 0, 1};
+    //
+    // Entry->InterruptStackTable      = 0;
+    // Entry->SegmentSelector          = HostCsSelector.AsUInt;
+    // Entry->MustBeZero0              = 0;
+    // Entry->Type                     = SEGMENT_DESCRIPTOR_TYPE_INTERRUPT_GATE;
+    // Entry->MustBeZero1              = 0;
+    // Entry->DescriptorPrivilegeLevel = 0;
+    // Entry->Present                  = 1;
+    // Entry->Reserved                 = 0;
+
+    UINT64 Offset       = (UINT64)Handler;
+    Entry->OffsetLow    = (Offset >> 0) & 0xFFFF;
+    Entry->OffsetMiddle = (Offset >> 16) & 0xFFFF;
+    Entry->OffsetHigh   = (Offset >> 32) & 0xFFFFFFFF;
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+
+    //
+    // Use first index (IST1)
+    //
+    Entry->InterruptStackTable = 1;
+
+#else
+
+    //
+    // Make sure to unset IST since we didn't use a separate stack pointer
+    // on TSS entry at GDT
+    //
+    Entry->InterruptStackTable = 0;
+
+#endif // USE_INTERRUPT_STACK_TABLE == TRUE
+}
+
+/**
+ * @brief Prepare Host IDT
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * VmxHostIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)VCpu->HostIdt;
+    SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 * WindowsIdt = (SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 *)AsmGetIdtBase();
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(VmxHostIdt, HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+
+    //
+    // Copy OS interrupt (IDT) entries
+    //
+    RtlCopyBytes(VmxHostIdt,
+                 WindowsIdt,
+                 HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
+
+    /*
+    for (size_t i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
+    {
+        SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 CurrentEntry = WindowsIdt[i];
+
+        UINT64 Offset = 0;
+        Offset |= ((UINT64)CurrentEntry.OffsetLow) << 0;
+        Offset |= ((UINT64)CurrentEntry.OffsetMiddle) << 16;
+        Offset |= ((UINT64)CurrentEntry.OffsetHigh) << 32;
+
+        // LogInfo("IDT Entry [%d] at: %llx", i, Offset);
+
+        IdtEmulationCreateInterruptGate((PVOID)Offset, &VmxHostIdt[i]);
+    }
+    */
+
+    //
+    // Function related to handling host IDT are a modified version of the following project:
+    //      https://github.com/jonomango/hv/blob/main/hv
+    //
+
+    //
+    // Add customize interrupt handlers
+    //
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0, &VmxHostIdt[0]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[1]); // #DB
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2, &VmxHostIdt[2]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[3]); // #BP
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4, &VmxHostIdt[4]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5, &VmxHostIdt[5]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6, &VmxHostIdt[6]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7, &VmxHostIdt[7]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8, &VmxHostIdt[8]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10, &VmxHostIdt[10]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11, &VmxHostIdt[11]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12, &VmxHostIdt[12]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13, &VmxHostIdt[13]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[14]); // #PF
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16, &VmxHostIdt[16]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17, &VmxHostIdt[17]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18, &VmxHostIdt[18]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19, &VmxHostIdt[19]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20, &VmxHostIdt[20]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30, &VmxHostIdt[30]);
+}
+
+/**
+ * @brief Handle Page-fault exception bitmap VM-exits
+ *
+ * @param VCpu The virtual processor's state
+ * @param InterruptExit interrupt exit information
+ *
+ * @return VOID
+ */
+VOID
+IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
+{
+    UINT64 PageFaultCr2;
+    ULONG  CurrentCore;
+    CurrentCore                  = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCore];
+
+    //
+    // Store the latest exception vector
+    //
+    VCpu->LastExceptionOccuredInHost = IntrTrapFrame->vector;
+
+    switch (IntrTrapFrame->vector)
+    {
+    case EXCEPTION_VECTOR_NMI:
+
+        //
+        // host NMIs
+        //
+        // LogInfo("NMI received!");
+
+        //
+        // Check if NMI needs to be injected back to the guest or not
+        // Trap frame is sent because as this function unreference this
+        // parameter, NULL cannot be sent
+        //
+        if (!VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE))
+        {
+            //
+            // Inject NMI when the NMI Window opened
+            //
+            HvSetNmiWindowExiting(TRUE);
+        }
+
+        break;
+
+    case EXCEPTION_VECTOR_PAGE_FAULT:
+
+        //
+        // host page-fault
+        //
+        PageFaultCr2 = __readcr2();
+
+        LogInfo("Page-fault received, CR2: %llx", PageFaultCr2);
+
+        break;
+
+    default:
+
+        //
+        // host exceptions
+        //
+        LogInfo("Host exception, RIP=%llx, RSP=%llx, Vector=%x",
+                IntrTrapFrame->rip,
+                IntrTrapFrame->rsp,
+                IntrTrapFrame->vector);
+
+        break;
+    }
+}
+
+/**
  * @brief Handle Page-fault exception bitmap VM-exits
  *
  * @param VCpu The virtual processor's state
@@ -321,9 +507,15 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 VOID
 IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UNREFERENCED_PARAMETER(VCpu);
+    //
+    // Inject the NMI into the guest
+    //
+    EventInjectNmi(VCpu);
 
-    LogError("Why NMI-window exiting happens?");
+    //
+    // Disable NMI-window exiting since we have no more NMIs to inject
+    //
+    HvSetNmiWindowExiting(FALSE);
 }
 
 /**

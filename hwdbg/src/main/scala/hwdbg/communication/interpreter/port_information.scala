@@ -19,7 +19,6 @@ import chisel3._
 import chisel3.util.{switch, is, log2Ceil}
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 import hwdbg.utils._
 
@@ -31,8 +30,8 @@ object InterpreterPortInformationEnums {
 
 class InterpreterPortInformation(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-    portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+    instanceInfo: HwdbgInstanceInformation,
+    bramDataWidth: Int
 ) extends Module {
 
   //
@@ -65,12 +64,12 @@ class InterpreterPortInformation(
   //
   // Get number of input/output ports
   //
-  val numberOfPorts = portsConfiguration.size
+  val numberOfPorts = instanceInfo.portsConfiguration.size
 
   //
   // Convert input port pins into vector
   //
-  // val pinsVec = VecInit(portsConfiguration.values.toSeq.map(_.U))
+  // val pinsVec = VecInit(instanceInfo.portsConfiguration.values.toSeq.map(_.U))
   val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(bramDataWidth.W))))
 
   //
@@ -123,9 +122,11 @@ class InterpreterPortInformation(
         //
         LogInfo(debug)("Iterating over input pins:")
 
-        portsConfiguration.foreach { case (port, pins) =>
-          LogInfo(debug)(s"Port $port has $pins pins")
-          pinsVec(port) := pins.U
+        var portNum: Int = 0
+        for (pin <- instanceInfo.portsConfiguration) {
+          LogInfo(debug)(s"Port $portNum has $pin pins")
+          pinsVec(portNum) := pin.U
+          portNum = portNum + 1
         }
 
         //
@@ -204,8 +205,8 @@ object InterpreterPortInformation {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
-      portsConfiguration: Map[Int, Int] = DebuggerPorts.PORT_PINS_MAP
+      instanceInfo: HwdbgInstanceInformation,
+      bramDataWidth: Int,
   )(
       en: Bool
   ): (Bool, Bool, UInt) = {
@@ -213,8 +214,8 @@ object InterpreterPortInformation {
     val interpreterPortInformation = Module(
       new InterpreterPortInformation(
         debug,
-        bramDataWidth,
-        portsConfiguration
+        instanceInfo,
+        bramDataWidth
       )
     )
 

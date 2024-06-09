@@ -318,6 +318,61 @@ VmxInitialize()
             //
             return FALSE;
         }
+
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+        //
+        // Allocating Host IDT
+        //
+        if (!VmxAllocateHostIdt(GuestState))
+        {
+            //
+            // Some error in allocating Host IDT
+            //
+            return FALSE;
+        }
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+        //
+        // Allocating Host GDT
+        //
+        if (!VmxAllocateHostGdt(GuestState))
+        {
+            //
+            // Some error in allocating Host GDT
+            //
+            return FALSE;
+        }
+
+        //
+        // Allocating Host TSS
+        //
+        if (!VmxAllocateHostTss(GuestState))
+        {
+            //
+            // Some error in allocating Host TSS
+            //
+            return FALSE;
+        }
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+
+        //
+        // Allocating Host Interrupt Stack
+        //
+        if (!VmxAllocateHostInterruptStack(GuestState))
+        {
+            //
+            // Some error in allocating Interrupt Stack
+            //
+            return FALSE;
+        }
+
+#endif // USE_INTERRUPT_STACK_TABLE == TRUE
     }
 
     //
@@ -555,6 +610,28 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", CurrentCore);
 
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+    //
+    // Prepare Host IDT
+    //
+    IdtEmulationPrepareHostIdt(VCpu);
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+    //
+    // Prepare Host GDT and TSS
+    //
+    SegmentPrepareHostGdt((SEGMENT_DESCRIPTOR_32 *)AsmGetGdtBase(),
+                          AsmGetGdtLimit(),
+                          AsmGetTr(),
+                          VCpu->HostInterruptStack,
+                          (SEGMENT_DESCRIPTOR_32 *)VCpu->HostGdt,
+                          (TASK_STATE_SEGMENT_64 *)VCpu->HostTss);
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
     //
     // Clear the VMCS State
     //
@@ -643,6 +720,18 @@ VmxTerminate()
         PlatformMemFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
         PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
         PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressB);
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+        PlatformMemFreePool((PVOID)VCpu->HostIdt);
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+        PlatformMemFreePool((PVOID)VCpu->HostGdt);
+        PlatformMemFreePool((PVOID)VCpu->HostTss);
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+#if USE_INTERRUPT_STACK_TABLE == TRUE
+        PlatformMemFreePool((PVOID)VCpu->HostInterruptStack);
+#endif // USE_INTERRUPT_STACK_TABLE == FALSE
 
         return TRUE;
     }
@@ -734,8 +823,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     UINT32                  SecondaryProcBasedVmExecControls;
     PVOID                   HostRsp;
     UINT64                  GdtBase         = 0;
-    VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
     IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
+    VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR
@@ -842,14 +931,34 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
     VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
-    VmxGetSegmentDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
+#if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
+
+    SegmentGetDescriptor((PUCHAR)VCpu->HostGdt, AsmGetTr(), &SegmentSelector);
+
     VmxVmwrite64(VMCS_HOST_TR_BASE, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_HOST_GDTR_BASE, VCpu->HostGdt);
+
+#else
+
+    SegmentGetDescriptor((PUCHAR)AsmGetGdtBase(), AsmGetTr(), &SegmentSelector);
+
+    VmxVmwrite64(VMCS_HOST_TR_BASE, SegmentSelector.Base);
+    VmxVmwrite64(VMCS_HOST_GDTR_BASE, AsmGetGdtBase());
+
+#endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
     VmxVmwrite64(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
     VmxVmwrite64(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
 
-    VmxVmwrite64(VMCS_HOST_GDTR_BASE, AsmGetGdtBase());
+#if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
+
+    VmxVmwrite64(VMCS_HOST_IDTR_BASE, VCpu->HostIdt);
+
+#else
+
     VmxVmwrite64(VMCS_HOST_IDTR_BASE, AsmGetIdtBase());
+
+#endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
     VmxVmwrite64(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
     VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
@@ -1351,83 +1460,23 @@ VmxCompatibleWcslen(const wchar_t * S)
 }
 
 /**
- * @brief Get Segment Descriptor
- *
- * @param SegmentSelector
- * @param Selector
- * @param GdtBase
- * @return BOOLEAN
- */
-_Use_decl_annotations_
-BOOLEAN
-VmxGetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
-{
-    SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
-    SEGMENT_DESCRIPTOR_32 * Descriptor32;
-    SEGMENT_SELECTOR        SegSelector = {.AsUInt = Selector};
-
-    if (!SegmentSelector)
-        return FALSE;
-
-#define SELECTOR_TABLE_LDT 0x1
-#define SELECTOR_TABLE_GDT 0x0
-
-    //
-    // Ignore LDT
-    //
-    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT))
-    {
-        return FALSE;
-    }
-
-    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32 *)(GdtBase);
-    Descriptor32      = &DescriptorTable32[SegSelector.Index];
-
-    SegmentSelector->Selector = Selector;
-    SegmentSelector->Limit    = __segmentlimit(Selector);
-    SegmentSelector->Base     = ((UINT64)Descriptor32->BaseAddressLow | (UINT64)Descriptor32->BaseAddressMiddle << 16 | (UINT64)Descriptor32->BaseAddressHigh << 24);
-
-    SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
-
-    if (SegSelector.Table == 0 && SegSelector.Index == 0)
-    {
-        SegmentSelector->Attributes.Unusable = TRUE;
-    }
-
-    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) || (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE))
-    {
-        //
-        // this is a TSS or callgate etc, save the base high part
-        //
-
-        UINT64 SegmentLimitHigh;
-        SegmentLimitHigh      = (*(UINT64 *)((PUCHAR)Descriptor32 + 8));
-        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (SegmentLimitHigh << 32);
-    }
-
-    if (SegmentSelector->Attributes.Granularity)
-    {
-        //
-        // 4096-bit granularity is enabled for this segment, scale the limit
-        //
-        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief implementation of vmx-root mode compatible strcmp
+ * @brief implementation of vmx-root mode compatible strcmp and strncmp
  * @param Address1
  * @param Address2
+ * @param Num
+ * param IsStrncmp
  *
  * @return INT32 0x2 indicates error, otherwise the same result as strcmp in string.h
  */
 INT32
-VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
+VmxCompatibleStrcmp(const CHAR * Address1,
+                    const CHAR * Address2,
+                    SIZE_T       Num,
+                    BOOLEAN      IsStrncmp)
 {
     CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
+    UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
@@ -1464,6 +1513,27 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 
     do
     {
+        //
+        // Check to see if we have byte number constraints
+        //
+        if (IsStrncmp)
+        {
+            if (Count == Num)
+            {
+                //
+                // Maximum number of bytes reached
+                //
+                break;
+            }
+            else
+            {
+                //
+                // Maximum number of bytes not reached
+                //
+                Count++;
+            }
+        }
+
         /*
         C1 = *Address1;
         */
@@ -1528,17 +1598,23 @@ VmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 }
 
 /**
- * @brief implementation of vmx-root mode compatible wcscmp
+ * @brief implementation of vmx-root mode compatible wcscmp and wcsncmp
  * @param Address1
  * @param Address2
+ * @param Num
+ * @param IsWcsncmp
  *
  * @return INT32 0x2 indicates error, otherwise the same result as wcscmp in string.h
  */
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+VmxCompatibleWcscmp(const wchar_t * Address1,
+                    const wchar_t * Address2,
+                    SIZE_T          Num,
+                    BOOLEAN         IsWcsncmp)
 {
     wchar_t  C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
+    UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
     CR3_TYPE GuestCr3;
     CR3_TYPE OriginalCr3;
@@ -1575,6 +1651,27 @@ VmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 
     do
     {
+        //
+        // Check to see if we have byte number constraints
+        //
+        if (IsWcsncmp)
+        {
+            if (Count == Num)
+            {
+                //
+                // Maximum number of bytes reached
+                //
+                break;
+            }
+            else
+            {
+                //
+                // Maximum number of bytes not reached
+                //
+                Count++;
+            }
+        }
+
         /*
         C1 = *Address1;
         */

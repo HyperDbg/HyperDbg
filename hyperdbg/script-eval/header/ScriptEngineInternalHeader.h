@@ -218,7 +218,13 @@ UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
 
 UINT64
+ScriptEngineFunctionStrncmp(const char * Address1, const char * Address2, size_t Num);
+
+UINT64
 ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+
+UINT64
+ScriptEngineFunctionWcsncmp(const wchar_t * Address1, const wchar_t * Address2, size_t Num);
 
 UINT64
 ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t Count);

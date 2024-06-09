@@ -364,24 +364,6 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL
 /* ==============================================================================================
  */
 
-#define SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION \
-    sizeof(DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION)
-
-/**
- * @brief request for collecting debuggee's kernel-side test information
- *
- */
-typedef struct _DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION
-{
-    UINT64 Value;
-    char   Tag[32];
-
-} DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION,
-    *PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION;
-
-/* ==============================================================================================
- */
-
 #define SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER \
     sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)
 

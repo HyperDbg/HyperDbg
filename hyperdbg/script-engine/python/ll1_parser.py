@@ -1,6 +1,7 @@
 """
  * @file ll1_parse_table_generator.py
  * @author M.H. Gholamrezei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Script engine LL(1) Parse table generator 
  * @details This program reads grammar from Greammar.txt file 
  *          placed in the same directory of the program 
@@ -426,6 +427,7 @@ class LL1Parser:
     def WriteSemanticMaps(self):
         
         self.CommonHeaderFileScala.write("object ScriptEvalFunc {\n  object ScriptOperators extends ChiselEnum {\n    val ")
+        
         Counter = 0
         FirstItem = True
         CheckForDuplicateList = []

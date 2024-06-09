@@ -1,3 +1,0 @@
-output create TestOutputName namedpipe \\\\.\\Pipe\\HyperDbgOutputTest
-output open TestOutputName
-!epthook [ExAllocatePoolWithTag] script { print(@rax); } output {TestOutputName}

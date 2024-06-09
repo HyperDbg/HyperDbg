@@ -173,6 +173,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE               0x8
 #define DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER                    0x10
 #define DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN           0x20
+#define DEBUGGER_COMMAND_ATTRIBUTE_HWDBG                              0x40
 
 /**
  * @brief Absolute local commands
@@ -667,3 +668,9 @@ CommandDump(vector<string> SplitCommand, string Command);
 
 VOID
 CommandGu(vector<string> SplitCommand, string Command);
+
+//
+// hwdbg commands
+//
+VOID
+CommandHwdbg(vector<string> SplitCommand, string Command);

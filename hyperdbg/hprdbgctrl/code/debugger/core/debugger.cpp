@@ -498,7 +498,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_THE_TARGET_EVENT_IS_DISABLED_BUT_CANNOT_BE_CLEARED_PRIRITY_BUFFER_IS_FULL:
-        ShowMessages("err, The event(s) that you've requested are disabled, yet HyperDbg cannot remove (clear) them in "
+        ShowMessages("err, the event(s) that you've requested are disabled, yet HyperDbg cannot remove (clear) them in "
                      "the subsequent run due to the user-mode priority buffers being at full capacity. "
                      "This typically occurs when you attempt to clear numerous events without resuming the debuggee. "
                      "Since these unserviced events remain in the queue, HyperDbg is unable to clear them. "
@@ -506,6 +506,26 @@ ShowErrorMessage(UINT32 Error)
                      "Afterward, you can pause the debuggee again and request the removal of new events (%x)\n"
                      "for more information on how to resolve this issue "
                      "please visit: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_NOT_ALL_CORES_ARE_LOCKED_FOR_APPLYING_INSTANT_EVENT:
+        ShowMessages("err, the event cannot be applied since not all cores are locked! "
+                     "If you are using the instant-event mechanism or switching between cores, this will likely halt the system. "
+                     "This may be caused by a race condition, but continuing and halting the debugger might resolve it. "
+                     "If the problem persists, please open an issue and provide steps to reproduce it (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_TARGET_SWITCHING_CORE_IS_NOT_LOCKED:
+        ShowMessages("err, target core is not locked! "
+                     "This may be caused by a race condition, continuing and halting the debugger might resolve it. "
+                     "If the problem persists, please open an issue and provide steps to reproduce it (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INVALID_PHYSICAL_ADDRESS:
+        ShowMessages("err, invalid physical address (%x)\n",
                      Error);
         break;
 

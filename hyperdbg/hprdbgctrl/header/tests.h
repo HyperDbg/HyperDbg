@@ -26,9 +26,7 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
-                                   UINT32  KernelInformationSize,
-                                   PHANDLE ConnectionPipeHandle,
+CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle);
 VOID

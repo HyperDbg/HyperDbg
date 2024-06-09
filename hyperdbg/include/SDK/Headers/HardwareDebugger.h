@@ -59,25 +59,6 @@ typedef enum _HWDBG_ERROR_ENUMS
 //////////////////////////////////////////////////
 
 /**
- * @brief The structure of port information in hwdbg
- *
- */
-typedef struct _HWDBG_PORT_INFORMATION
-{
-    UINT32 CountOfPorts;
-
-    /*
-
-    Here the pin information details will be available.
-
-        UINT32
-        Port Size
-
-    */
-
-} HWDBG_PORT_INFORMATION, *PHWDBG_PORT_INFORMATION;
-
-/**
  * @brief The structure of port information (each item) in hwdbg
  *
  */
@@ -86,3 +67,52 @@ typedef struct _HWDBG_PORT_INFORMATION_ITEMS
     UINT32 PortSize;
 
 } HWDBG_PORT_INFORMATION_ITEMS, *PHWDBG_PORT_INFORMATION_ITEMS;
+
+/**
+ * @brief The structure of script capabilities information in hwdbg
+ *
+ */
+typedef struct _HWDBG_INSTANCE_INFORMATION
+{
+    UINT32 Version;                                 // Target version of HyperDbg (same as hwdbg)
+    UINT32 MaximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+    UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
+    UINT32 maximumNumberOfSupportedScriptOperators; // maximum supported operators in a single func
+    UINT32 numberOfPins;                            // Number of pins
+    UINT32 numberOfPorts;                           // Number of ports
+
+    struct _HWDBG_SCRIPT_CAPABILITIES
+    {
+        UINT64 inc : 1;
+        UINT64 dec : 1;
+        UINT64 or : 1;
+        UINT64 xor : 1;
+        UINT64 and : 1;
+        UINT64 asr : 1;
+        UINT64 asl : 1;
+        UINT64 add : 1;
+        UINT64 sub : 1;
+        UINT64 mul : 1;
+        UINT64 div : 1;
+        UINT64 mod : 1;
+        UINT64 gt : 1;
+        UINT64 lt : 1;
+        UINT64 egt : 1;
+        UINT64 elt : 1;
+        UINT64 equal : 1;
+        UINT64 neq : 1;
+        UINT64 jmp : 1;
+        UINT64 jz : 1;
+        UINT64 jnz : 1;
+        UINT64 mov : 1;
+        UINT64 printf : 1;
+
+    } scriptCapabilities;
+
+    //
+    // Here the details of port arrangements are located (HWDBG_PORT_INFORMATION_ITEMS)
+    // As the following type:
+    //   HWDBG_PORT_INFORMATION_ITEMS portsConfiguration[numberOfPorts]   ; Port arrangement
+    //
+
+} HWDBG_SCRIPT_CAPABILITIES_INFORMATION, *PHWDBG_SCRIPT_CAPABILITIES_INFORMATION;

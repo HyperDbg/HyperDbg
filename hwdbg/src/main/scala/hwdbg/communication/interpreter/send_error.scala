@@ -19,12 +19,11 @@ import chisel3._
 import chisel3.util.{switch, is}
 import circt.stage.ChiselStage
 
-import hwdbg.version._
 import hwdbg.configs._
 
 class InterpreterSendError(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+    bramDataWidth: Int
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -84,7 +83,7 @@ object InterpreterSendError {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramDataWidth: Int = DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH
+      bramDataWidth: Int
   )(
       en: Bool,
       lastError: UInt

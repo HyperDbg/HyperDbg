@@ -400,9 +400,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="code\assembly\AsmKernelSideTests.asm">
-      <Filter>code\assembly</Filter>
-    </MASM>
     <MASM Include="code\assembly\AsmDebugger.asm">
       <Filter>code\assembly</Filter>
     </MASM>

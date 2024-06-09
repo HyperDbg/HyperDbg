@@ -87,6 +87,23 @@ EventInjectUndefinedOpcode(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
+ * @brief Inject NMI to the guest (Event Injection)
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+EventInjectNmi(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    EventInjectInterruption(INTERRUPT_TYPE_NMI, EXCEPTION_VECTOR_NMI, FALSE, 0);
+
+    //
+    // Suppress RIP increment
+    //
+    HvSuppressRipIncrement(VCpu);
+}
+
+/**
  * @brief Inject Debug Breakpoint Exception
  *
  * @return VOID

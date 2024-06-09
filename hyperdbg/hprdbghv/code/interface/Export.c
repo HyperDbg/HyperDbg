@@ -731,7 +731,21 @@ VmFuncEventInjectBreakpoint()
 INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 {
-    return VmxCompatibleStrcmp(Address1, Address2);
+    return VmxCompatibleStrcmp(Address1, Address2, NULL_ZERO, FALSE);
+}
+
+/**
+ * @brief VMX-root compatible strncmp
+ * @param Address1
+ * @param Address2
+ * @param Num
+ *
+ * @return INT32
+ */
+INT32
+VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Num)
+{
+    return VmxCompatibleStrcmp(Address1, Address2, Num, TRUE);
 }
 
 /**
@@ -744,7 +758,21 @@ VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2)
 INT32
 VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 {
-    return VmxCompatibleWcscmp(Address1, Address2);
+    return VmxCompatibleWcscmp(Address1, Address2, NULL_ZERO, FALSE);
+}
+
+/**
+ * @brief VMX-root compatible wcsncmp
+ * @param Address1
+ * @param Address2
+ * @param Num
+ *
+ * @return INT32
+ */
+INT32
+VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num)
+{
+    return VmxCompatibleWcscmp(Address1, Address2, Num, TRUE);
 }
 
 /**

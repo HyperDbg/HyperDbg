@@ -1572,6 +1572,7 @@ ScriptEngineFunctionEventInjectErrorCode(UINT32 InterruptionType, UINT32 Vector,
  *
  * @param Address1
  * @param Address2
+ *
  * @return UINT64
  */
 UINT64
@@ -1590,10 +1591,35 @@ ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2)
 }
 
 /**
+ * @brief Implementation of strcmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @param Num
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionStrncmp(const char * Address1, const char * Address2, size_t Num)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = strncmp(Address1, Address2, Num);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleStrncmp(Address1, Address2, Num);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
  * @brief Implementation of wcscmp function
  *
  * @param Address1
  * @param Address2
+ *
  * @return UINT64
  */
 UINT64
@@ -1606,6 +1632,30 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     Result = VmFuncVmxCompatibleWcscmp(Address1, Address2);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of wcsncmp function
+ *
+ * @param Address1
+ * @param Address2
+ * @param Num
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionWcsncmp(const wchar_t * Address1, const wchar_t * Address2, size_t Num)
+{
+    UINT64 Result = 0;
+#ifdef SCRIPT_ENGINE_USER_MODE
+    Result = wcsncmp(Address1, Address2, Num);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Result = VmFuncVmxCompatibleWcsncmp(Address1, Address2, Num);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;

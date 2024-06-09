@@ -214,7 +214,7 @@ VmxAllocateMsrBitmap(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 /**
  * @brief Allocate a buffer for I/O Bitmap
  *
- * @param ProcessorID
+ * @param VCpu
  * @return BOOLEAN Returns true if allocation was successful otherwise returns false
  */
 BOOLEAN
@@ -285,4 +285,123 @@ VmxAllocateInvalidMsrBimap()
     }
 
     return InvalidMsrBitmap;
+}
+
+/**
+ * @brief Allocate a buffer for host IDT
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 IdtSize = HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64);
+
+    //
+    // Make sure the memory is aligned
+    //
+    if (PAGE_SIZE > IdtSize)
+    {
+        IdtSize = PAGE_SIZE;
+    }
+
+    //
+    // Allocate aligned memory for host IDT
+    //
+    VCpu->HostIdt = (UINT64)PlatformMemAllocateZeroedNonPagedPool(IdtSize); // should be aligned
+
+    if (VCpu->HostIdt == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host IDT");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host IDT virtual address : 0x%llx", VCpu->HostIdt);
+
+    return TRUE;
+}
+
+/**
+ * @brief Allocate a buffer for host GDT
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostGdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 GdtSize = HOST_GDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_64);
+
+    //
+    // Make sure the memory is aligned
+    //
+    if (PAGE_SIZE > GdtSize)
+    {
+        GdtSize = PAGE_SIZE;
+    }
+
+    //
+    // Allocate aligned memory for host GDT
+    //
+    VCpu->HostGdt = (UINT64)PlatformMemAllocateZeroedNonPagedPool(GdtSize); // should be aligned
+
+    if (VCpu->HostGdt == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host GDT");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host GDT virtual address : 0x%llx", VCpu->HostGdt);
+
+    return TRUE;
+}
+
+/**
+ * @brief Allocate a buffer for host TSS
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostTss(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 TssSize = PAGE_SIZE; // Make sure the memory is aligned
+
+    //
+    // Allocate aligned memory for host TSS
+    //
+    VCpu->HostTss = (UINT64)PlatformMemAllocateZeroedNonPagedPool(TssSize); // should be aligned
+
+    if (VCpu->HostTss == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host TSS");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host TSS virtual address : 0x%llx", VCpu->HostTss);
+
+    return TRUE;
+}
+
+/**
+ * @brief Allocate a buffer for host interrupt stack
+ *
+ * @param VCpu
+ * @return BOOLEAN Returns true if allocation was successful otherwise returns false
+ */
+BOOLEAN
+VmxAllocateHostInterruptStack(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->HostInterruptStack = (UINT64)PlatformMemAllocateZeroedNonPagedPool(HOST_INTERRUPT_STACK_SIZE);
+
+    if (VCpu->HostInterruptStack == NULL64_ZERO)
+    {
+        LogError("Err, insufficient memory in allocating host interrupt stack");
+        return FALSE;
+    }
+
+    LogDebugInfo("Host interrupt stack virtual address : 0x%llx", VCpu->HostInterruptStack);
+
+    return TRUE;
 }
