@@ -22,13 +22,15 @@ import circt.stage.ChiselStage
 import hwdbg.configs._
 import hwdbg.utils._
 
-object InterpreterPortInformationEnums {
+object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
-    val sIdle, sSendCountOfPorts, sSendPortItems, sDone = Value
+    val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
+    sSendMaximumNumberOfSupportedScriptOperators, sSendNumberOfPins, sSendNumberOfPorts,
+    sSendScriptCapabilities, sSendPortsConfiguration, sDone = Value
   }
 }
 
-class InterpreterPortInformation(
+class InterpreterInstanceInfo(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation,
     bramDataWidth: Int
@@ -37,8 +39,8 @@ class InterpreterPortInformation(
   //
   // Import state enum
   //
-  import InterpreterPortInformationEnums.State
-  import InterpreterPortInformationEnums.State._
+  import InterpreterInstanceInfoEnums.State
+  import InterpreterInstanceInfoEnums.State._
 
   val io = IO(new Bundle {
 
@@ -99,43 +101,117 @@ class InterpreterPortInformation(
       is(sIdle) {
 
         //
-        // Going to the next state (sending count of input ports)
+        // Going to the next state (sending the version of the debugger)
         //
-        state := sSendCountOfPorts
+        state := sSendVersion
       }
-      is(sSendCountOfPorts) {
+      is(sSendVersion) {
 
         //
-        // Send count of input.output ports
+        // Set the version
         //
-        LogInfo(debug)("Number of ports (PORT_PINS_MAP): " + numberOfPorts)
-
-        sendingData := numberOfPorts.U
+        sendingData := instanceInfo.version.U
 
         //
-        // Data is valid
+        // The output is valid
         //
         dataValidOutput := true.B
 
-        //
-        // Fill the port info
-        //
-        LogInfo(debug)("Iterating over input pins:")
-
-        var portNum: Int = 0
-        for (pin <- instanceInfo.portsConfiguration) {
-          LogInfo(debug)(s"Port $portNum has $pin pins")
-          pinsVec(portNum) := pin.U
-          portNum = portNum + 1
-        }
-
-        //
-        // Going to the next state (sending count of input ports)
-        //
-        state := sSendPortItems
+        state := sSendMaximumNumberOfStages
 
       }
-      is(sSendPortItems) {
+      is(sSendMaximumNumberOfStages) {
+
+        //
+        // Set the maximum number of stages supported by this instance of the debugger
+        //
+        sendingData := instanceInfo.maximumNumberOfStages.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendScriptVariableLength
+
+      }
+      is(sSendScriptVariableLength) {
+
+        //
+        // Set the script variable length of this instance of the debugger
+        //
+        sendingData := instanceInfo.scriptVariableLength.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendMaximumNumberOfSupportedScriptOperators
+
+      }
+      is(sSendMaximumNumberOfSupportedScriptOperators) {
+
+        //
+        // Set the maximum number of supported operators by this instance of the 
+        // debugger in the script engine
+        //
+        sendingData := instanceInfo.maximumNumberOfSupportedScriptOperators.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendNumberOfPins
+
+      }
+      is(sSendNumberOfPins) {
+
+        //
+        // Set the number of pins in this instance of the debugger
+        //
+        sendingData := instanceInfo.numberOfPins.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendNumberOfPorts
+
+      }
+      is(sSendNumberOfPorts) {
+
+        //
+        // Set the number of ports in this instance of the debugger
+        //
+        sendingData := instanceInfo.numberOfPorts.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendScriptCapabilities
+
+      }
+      is(sSendScriptCapabilities) {
+
+        //
+        // Set the supported operators capabilities of this instance of the debugger
+        //
+        sendingData := instanceInfo.scriptCapabilities.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendPortsConfiguration
+
+      }
+      is(sSendPortsConfiguration) {
 
         //
         // Send input port items
@@ -170,7 +246,7 @@ class InterpreterPortInformation(
           //
           // Stay at the same state
           //
-          state := sSendPortItems
+          state := sSendPortsConfiguration
         }
 
       }
@@ -201,7 +277,7 @@ class InterpreterPortInformation(
 
 }
 
-object InterpreterPortInformation {
+object InterpreterInstanceInfo {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
@@ -211,8 +287,8 @@ object InterpreterPortInformation {
       en: Bool
   ): (Bool, Bool, UInt) = {
 
-    val interpreterPortInformation = Module(
-      new InterpreterPortInformation(
+    val interpreterInstanceInfo = Module(
+      new InterpreterInstanceInfo(
         debug,
         instanceInfo,
         bramDataWidth
@@ -226,14 +302,14 @@ object InterpreterPortInformation {
     //
     // Configure the input signals
     //
-    interpreterPortInformation.io.en := en
+    interpreterInstanceInfo.io.en := en
 
     //
     // Configure the output signals
     //
-    noNewDataSender := interpreterPortInformation.io.noNewDataSender
-    dataValidOutput := interpreterPortInformation.io.dataValidOutput
-    sendingData := interpreterPortInformation.io.sendingData
+    noNewDataSender := interpreterInstanceInfo.io.noNewDataSender
+    dataValidOutput := interpreterInstanceInfo.io.dataValidOutput
+    sendingData := interpreterInstanceInfo.io.sendingData
 
     //
     // Return the output result

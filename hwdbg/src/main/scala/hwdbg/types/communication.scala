@@ -146,9 +146,8 @@ class HwdbgPortInformationItems() extends Bundle {
  */
 object HwdbgActionEnums extends Enumeration {
 
-  val hwdbgActionSendVersion = Value(1)
-  val hwdbgActionSendPinInformation = Value(2)
-  val hwdbgActionConfigureScriptBuffer = Value(3)
+  val hwdbgActionSendInstanceInfo = Value(1)
+  val hwdbgActionConfigureScriptBuffer = Value(2)
 
 }
 
@@ -163,9 +162,8 @@ object HwdbgActionEnums extends Enumeration {
 object HwdbgResponseEnums extends Enumeration {
 
   val hwdbgResponseInvalidPacketOrError = Value(1)
-  val hwdbgResponseVersion = Value(2)
-  val hwdbgResponsePinInformation = Value(3)
-  val hwdbgResponseScriptBufferConfigurationResult = Value(4)
+  val hwdbgResponseInstanceInfo = Value(2)
+  val hwdbgResponseScriptBufferConfigurationResult = Value(3)
 
 }
 

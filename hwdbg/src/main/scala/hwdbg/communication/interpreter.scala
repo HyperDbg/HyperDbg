@@ -132,32 +132,16 @@ class DebuggerPacketInterpreter(
         //
         val inputAction = io.requestedActionOfThePacketInput
 
-        when(inputAction === HwdbgActionEnums.hwdbgActionSendVersion.id.U) {
+        when(inputAction === HwdbgActionEnums.hwdbgActionSendInstanceInfo.id.U) {
 
           //
-          // *** Configure sending version ***
-          //
-
-          //
-          // Set the response packet type
-          //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseVersion.id.U
-
-          //
-          // This action needs a response
-          //
-          state := sSendResponse
-
-        }.elsewhen(inputAction === HwdbgActionEnums.hwdbgActionSendPinInformation.id.U) {
-
-          //
-          // *** Configure sending pin information ***
+          // *** Configure sending instance info ***
           //
 
           //
           // Set the response packet type
           //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponsePinInformation.id.U
+          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseInstanceInfo.id.U
 
           //
           // This action needs a response
@@ -228,53 +212,14 @@ class DebuggerPacketInterpreter(
           // -------------------------------------------------------------------------
           // Now, the response needs to be sent
           //
-          when(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseVersion.id.U) {
+          when(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseInstanceInfo.id.U) {
 
             //
-            // *** Send version ***
-            //
-
-            //
-            // Instantiate the version sender module
-            //
-            val (
-              noNewDataSenderModule,
-              dataValidOutputModule,
-              sendingDataModule
-            ) =
-              InterpreterSendVersion(
-                debug,
-                instanceInfo,
-                bramDataWidth
-              )(
-                io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
-              )
-
-            //
-            // Set data validity
-            //
-            dataValidOutput := dataValidOutputModule
-
-            //
-            // Set data
-            //
-            sendingData := sendingDataModule
-
-            //
-            // Once sending data is done, we'll go to the Done state
-            //
-            when(noNewDataSenderModule === true.B) {
-              state := sDone
-            }
-
-          }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponsePinInformation.id.U) {
-
-            //
-            // *** Send pin information ***
+            // *** Send instance information ***
             //
 
             //
-            // Instantiate the port information module
+            // Instantiate the instance info module
             //
 
             val (
@@ -282,7 +227,7 @@ class DebuggerPacketInterpreter(
               dataValidOutputModule,
               sendingDataModule
             ) =
-              InterpreterPortInformation(
+              InterpreterInstanceInfo(
                 debug,
                 instanceInfo,
                 bramDataWidth
