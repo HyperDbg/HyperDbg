@@ -26,7 +26,7 @@ class StageRegisters(
     instanceInfo: HwdbgInstanceInformation
 ) extends Bundle {
   val pinValues = Vec(instanceInfo.numberOfPins, UInt(1.W)) // The value of each pin in each stage (should be passed to the next stage)
-  val scriptSymbol = new Symbol // Interpreted script symbol for the target stage (should NOT be passed to the next stage)
+  val scriptSymbol = new Symbol(instanceInfo.scriptVariableLength) // Interpreted script symbol for the target stage (should NOT be passed to the next stage)
   val targetStage = UInt(
     log2Ceil(instanceInfo.maximumNumberOfStages).W
   ) // Target stage that needs to be executed for the current pin values (should be passed to the next stage)

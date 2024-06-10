@@ -185,6 +185,7 @@ class DebuggerPacketReceiver(
         LogInfo(debug)(
           f"Comparing first 0x${BitwiseFunction.getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1))}%x number of the indicator (little-endian)"
         )
+        
         when(io.rdData === BitwiseFunction.getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1)).U) {
 
           //

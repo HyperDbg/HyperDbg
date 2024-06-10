@@ -116,7 +116,7 @@ object ScriptEngineConfigurations {
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 64
+  val SCRIPT_VARIABLE_LENGTH: Int = 8
 
   //  
   // Define the capabilities you want to enable

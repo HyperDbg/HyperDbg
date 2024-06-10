@@ -43,7 +43,7 @@ class ScriptEngineEval(
     //
     // Evaluation operator symbol
     //
-    val operators = Input(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol))
+    val operators = Input(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol(instanceInfo.scriptVariableLength)))
 
     val currentStage = Input(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
     val nextStage = Output(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
