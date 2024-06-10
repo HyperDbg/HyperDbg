@@ -3,7 +3,7 @@
 52444247 ; +0x8   | Indicator
 48595045 ; +0xc   | Indicator
 00000004 ; +0x10  | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)
-00000001 ; +0x14  | RequestedActionOfThePacket - hwdbgActionSendVersion (0x1) 
+00000001 ; +0x14  | RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1) 
 00000000 ; +0x18  |
 00000000 ; +0x1c  |
 00000000 ; +0x20  |
