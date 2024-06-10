@@ -64,11 +64,22 @@ import chisel3.util._
  * @brief
  *   The structure of SYMBOL used in script engine of HyperDbg
  */
-class Symbol extends Bundle {
-  val Type = UInt(64.W) // long long unsigned is 64 bits
-  val Len = UInt(64.W)
-  val VariableType = UInt(64.W)
-  val Value = UInt(64.W)
+class Symbol(
+    scriptVariableLength: Int
+) extends Bundle {
+  
+  //
+  // Ensure that the script variable length is at least 8 bits or 1 byte
+  //
+  require(
+    scriptVariableLength >= 8,
+    f"err, the minimum script variable length is 8 bits (1 byte)." 
+  )
+
+  val Type = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
+  val Len = UInt(scriptVariableLength.W)
+  val VariableType = UInt(scriptVariableLength.W)
+  val Value = UInt(scriptVariableLength.W)
 }
 
 /**
