@@ -33,7 +33,7 @@ object LogInfo {
 
 object BitwiseFunction {
 
-  def printFirstNBits(num: Long, n: Int): Long = {
+  def getFirstNBits(num: Long, n: Int): Long = {
 
     val mask = (1L << n) - 1 // Create a bitmask with the first 'n' bits set to 1
     val shifted = num >>> (java.lang.Long.SIZE - n) // Shift the bits to the right to keep the first 'n' bits
@@ -42,7 +42,7 @@ object BitwiseFunction {
     firstNBits
   }
 
-  def printBitsInRange(num: Long, start: Int, end: Int): Long = {
+  def getBitsInRange(num: Long, start: Int, end: Int): Long = {
 
     require(start >= 0 && start <= 63, "Starting point must be between 0 and 63")
     require(end >= 0 && end <= 63, "Ending point must be between 0 and 63")

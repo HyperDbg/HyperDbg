@@ -26,7 +26,7 @@ object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
     val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
     sSendMaximumNumberOfSupportedScriptOperators, sSendNumberOfPins, sSendNumberOfPorts,
-    sSendScriptCapabilities, sSendPortsConfiguration, sDone = Value
+    sSendScriptCapabilities1, sSendScriptCapabilities2, sSendPortsConfiguration, sDone = Value
   }
 }
 
@@ -71,8 +71,8 @@ class InterpreterInstanceInfo(
   //
   // Convert input port pins into vector
   //
-  // val pinsVec = VecInit(instanceInfo.portsConfiguration.values.toSeq.map(_.U))
-  val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(bramDataWidth.W))))
+  // val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(bramDataWidth.W))))
+  val pinsVec = VecInit(instanceInfo.portsConfiguration.map(_.U))
 
   //
   // Determine the width for numberOfSentPins
@@ -193,15 +193,32 @@ class InterpreterInstanceInfo(
         //
         dataValidOutput := true.B
 
-        state := sSendScriptCapabilities
+        state := sSendScriptCapabilities1
 
       }
-      is(sSendScriptCapabilities) {
+      is(sSendScriptCapabilities1) {
 
         //
-        // Set the supported operators capabilities of this instance of the debugger
+        // Set the first bits of the supported operators capabilities of this instance 
+        // of the debugger
         //
-        sendingData := instanceInfo.scriptCapabilities.U
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, bramDataWidth - 1).U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendScriptCapabilities2
+
+      }
+      is(sSendScriptCapabilities2) {
+
+        //
+        // Set the second bits of the supported operators capabilities of this instance 
+        // of the debugger
+        //
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, bramDataWidth, bramDataWidth + bramDataWidth - 1).U
 
         //
         // The output is valid
@@ -248,7 +265,6 @@ class InterpreterInstanceInfo(
           //
           state := sSendPortsConfiguration
         }
-
       }
       is(sDone) {
 

@@ -183,9 +183,9 @@ class DebuggerPacketReceiver(
         // Check whether the indicator is valid or not
         //
         LogInfo(debug)(
-          f"Comparing first 0x${BitwiseFunction.printBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1))}%x number of the indicator (little-endian)"
+          f"Comparing first 0x${BitwiseFunction.getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1))}%x number of the indicator (little-endian)"
         )
-        when(io.rdData === BitwiseFunction.printBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1)).U) {
+        when(io.rdData === BitwiseFunction.getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1)).U) {
 
           //
           // Indicator of packet is valid

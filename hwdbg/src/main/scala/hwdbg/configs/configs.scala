@@ -63,9 +63,9 @@ object DebuggerPorts {
   // of pins to ports (used for inputs/outputs)
   //    For example,
   //                port 0 (in) -> contains 12 pins
-  //                port 1 (in) -> contains 9 pins
+  //                port 1 (in) -> contains 20 pins
   //
-  val PORT_PINS_MAP: Array[Int] = Array(12, 9, 11)
+  val PORT_PINS_MAP: Array[Int] = Array(12, 20)
 
 }
 
