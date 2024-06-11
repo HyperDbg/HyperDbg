@@ -13,6 +13,12 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//                 Definitions                  //
+//////////////////////////////////////////////////
+
+#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_content_after_emulation.txt"
+
+//////////////////////////////////////////////////
 //                   Enums                      //
 //////////////////////////////////////////////////
 
@@ -81,29 +87,29 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
 
     struct _HWDBG_SCRIPT_CAPABILITIES
     {
-        UINT64 inc : 1;
-        UINT64 dec : 1;
-        UINT64 or : 1;
-        UINT64 xor : 1;
-        UINT64 and : 1;
-        UINT64 asr : 1;
-        UINT64 asl : 1;
-        UINT64 add : 1;
-        UINT64 sub : 1;
-        UINT64 mul : 1;
-        UINT64 div : 1;
-        UINT64 mod : 1;
-        UINT64 gt : 1;
-        UINT64 lt : 1;
-        UINT64 egt : 1;
-        UINT64 elt : 1;
-        UINT64 equal : 1;
-        UINT64 neq : 1;
-        UINT64 jmp : 1;
-        UINT64 jz : 1;
-        UINT64 jnz : 1;
-        UINT64 mov : 1;
-        UINT64 printf : 1;
+        UINT64 op_inc : 1;
+        UINT64 op_dec : 1;
+        UINT64 op_or : 1;
+        UINT64 op_xor : 1;
+        UINT64 op_and : 1;
+        UINT64 op_asr : 1;
+        UINT64 op_asl : 1;
+        UINT64 op_add : 1;
+        UINT64 op_sub : 1;
+        UINT64 op_mul : 1;
+        UINT64 op_div : 1;
+        UINT64 op_mod : 1;
+        UINT64 op_gt : 1;
+        UINT64 op_lt : 1;
+        UINT64 op_egt : 1;
+        UINT64 op_elt : 1;
+        UINT64 op_equal : 1;
+        UINT64 op_neq : 1;
+        UINT64 op_jmp : 1;
+        UINT64 op_jz : 1;
+        UINT64 op_jnz : 1;
+        UINT64 op_mov : 1;
+        UINT64 op_printf : 1;
 
     } scriptCapabilities;
 

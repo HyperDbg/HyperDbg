@@ -39,6 +39,6 @@ BOOLEAN
 ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Function);
 
 BOOLEAN
-SetupDriverName(const CHAR *                                  DriverName,
-                _Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
-                ULONG                                         BufferLength);
+SetupPathForFileName(const CHAR *                                  FileName,
+                     _Inout_updates_bytes_all_(BufferLength) PCHAR FileLocation,
+                     ULONG                                         BufferLength);

@@ -34,10 +34,16 @@
 #define VMM_DRIVER_NAME "hprdbghv"
 
 /**
- * @brief name of HyperDbg's VMM driver
+ * @brief name of HyperDbg's debugger driver
  *
  */
 #define KERNEL_DEBUGGER_DRIVER_NAME "hprdbgkd"
+
+/**
+ * @brief name of HyperDbg's debugger driver + extension
+ *
+ */
+#define KERNEL_DEBUGGER_DRIVER_NAME_AND_EXTENSION "hprdbgkd.sys"
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //

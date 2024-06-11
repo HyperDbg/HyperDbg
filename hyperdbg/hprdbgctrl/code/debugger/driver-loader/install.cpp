@@ -427,22 +427,22 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 }
 
 /**
- * @brief Setup driver name
+ * @brief Setup file name
  *
- * @param DriverName
- * @param DriverLocation
+ * @param FileName
+ * @param FileLocation
  * @param BufferLength
  *
  * @return BOOLEAN
  */
 BOOLEAN
-SetupDriverName(const CHAR *                                  DriverName,
-                _Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
-                ULONG                                         BufferLength)
+SetupPathForFileName(const CHAR *                                  FileName,
+                     _Inout_updates_bytes_all_(BufferLength) PCHAR FileLocation,
+                     ULONG                                         BufferLength)
 {
     HANDLE  FileHandle;
-    DWORD   DriverLocLen = 0;
-    HMODULE ProcHandle   = GetModuleHandle(NULL);
+    DWORD   FileLocLen = 0;
+    HMODULE ProcHandle = GetModuleHandle(NULL);
     char *  Pos;
 
     //
@@ -454,9 +454,9 @@ SetupDriverName(const CHAR *                                  DriverName,
   // We use the location of running exe instead of
   // finding driver based on current directory
   //
-  DriverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
+  FileLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
 
-  if (DriverLocLen == 0) {
+  if (FileLocLen == 0) {
 
     ShowMessages("err, GetCurrentDirectory failed (%x)\n", GetLastError());
 
@@ -464,9 +464,9 @@ SetupDriverName(const CHAR *                                  DriverName,
   }
   */
 
-    GetModuleFileName(ProcHandle, DriverLocation, BufferLength);
+    GetModuleFileName(ProcHandle, FileLocation, BufferLength);
 
-    Pos = strrchr(DriverLocation, '\\');
+    Pos = strrchr(FileLocation, '\\');
     if (Pos != NULL)
     {
         //
@@ -480,27 +480,22 @@ SetupDriverName(const CHAR *                                  DriverName,
     // Setup path name to driver file
     //
     if (FAILED(
-            StringCbCat(DriverLocation, BufferLength, "\\")))
+            StringCbCat(FileLocation, BufferLength, "\\")))
     {
         return FALSE;
     }
     if (FAILED(
-            StringCbCat(DriverLocation, BufferLength, DriverName)))
-    {
-        return FALSE;
-    }
-    if (FAILED(
-            StringCbCat(DriverLocation, BufferLength, ".sys")))
+            StringCbCat(FileLocation, BufferLength, FileName)))
     {
         return FALSE;
     }
 
     //
-    // Insure driver file is in the specified directory
+    // Insure file is in the specified directory
     //
-    if ((FileHandle = CreateFile(DriverLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+    if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
-        ShowMessages("%s.sys is not loaded.\n", KERNEL_DEBUGGER_DRIVER_NAME);
+        ShowMessages("err, target file is not loaded\n");
 
         //
         // Indicate failure

@@ -190,29 +190,29 @@ case class HwdbgInstanceInformation(
 )
 
 object HwdbgScriptCapabilities {
-  val inc: Long = 1L << 0
-  val dec: Long = 1L << 1
-  val or: Long = 1L << 2
-  val xor: Long = 1L << 3
-  val and: Long = 1L << 4
-  val asr: Long = 1L << 5
-  val asl: Long = 1L << 6
-  val add: Long = 1L << 7
-  val sub: Long = 1L << 8
-  val mul: Long = 1L << 9
-  val div: Long = 1L << 10
-  val mod: Long = 1L << 11
-  val gt: Long = 1L << 12
-  val lt: Long = 1L << 13
-  val egt: Long = 1L << 14
-  val elt: Long = 1L << 15
-  val equal: Long = 1L << 16
-  val neq: Long = 1L << 17
-  val jmp: Long = 1L << 18
-  val jz: Long = 1L << 19
-  val jnz: Long = 1L << 20
-  val mov: Long = 1L << 21
-  val printf: Long = 1L << 22
+  val op_inc: Long = 1L << 0
+  val op_dec: Long = 1L << 1
+  val op_or: Long = 1L << 2
+  val op_xor: Long = 1L << 3
+  val op_and: Long = 1L << 4
+  val op_asr: Long = 1L << 5
+  val op_asl: Long = 1L << 6
+  val op_add: Long = 1L << 7
+  val op_sub: Long = 1L << 8
+  val op_mul: Long = 1L << 9
+  val op_div: Long = 1L << 10
+  val op_mod: Long = 1L << 11
+  val op_gt: Long = 1L << 12
+  val op_lt: Long = 1L << 13
+  val op_egt: Long = 1L << 14
+  val op_elt: Long = 1L << 15
+  val op_equal: Long = 1L << 16
+  val op_neq: Long = 1L << 17
+  val op_jmp: Long = 1L << 18
+  val op_jz: Long = 1L << 19
+  val op_jnz: Long = 1L << 20
+  val op_mov: Long = 1L << 21
+  val op_printf: Long = 1L << 22
 
   def allCapabilities: Seq[Long] = Seq(
     inc, dec, or, xor, and, asr, asl, add, sub, mul, div, mod, gt, lt,

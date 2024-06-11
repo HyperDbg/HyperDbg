@@ -448,7 +448,7 @@ HyperDbgInstallVmmDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupDriverName(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, sizeof(g_DriverLocation)))
+    if (!SetupPathForFileName(KERNEL_DEBUGGER_DRIVER_NAME_AND_EXTENSION, g_DriverLocation, sizeof(g_DriverLocation)))
     {
         return 1;
     }
