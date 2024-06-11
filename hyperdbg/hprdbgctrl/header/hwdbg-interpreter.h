@@ -15,7 +15,17 @@
 //				   Definitions                  //
 //////////////////////////////////////////////////
 
-#define DEFAULT_INITIAL_DEBUGGEE_TO_DEBUGGER_OFFSET 0x200
+/**
+ * @brief Path to read the sample of the instance info
+ *
+ */
+#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_instance_info.txt"
+
+/**
+ * @brief Path to write the sample of the script buffer
+ *
+ */
+#define HWDBG_TEST_SCRIPT_BUFFER_PATH "..\\..\\..\\..\\hwdbg\\src\\test\\bram\\script_buffer.hex.txt"
 
 //////////////////////////////////////////////////
 //				    Functions                   //

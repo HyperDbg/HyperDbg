@@ -71,7 +71,7 @@ ParseLine(const std::string & Line)
  * @return BOOLEAN
  */
 BOOLEAN
-FillMemoryFromFile(const std::string & FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+FillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
 {
     std::ifstream File(FileName);
     std::string   Line;
@@ -80,7 +80,7 @@ FillMemoryFromFile(const std::string & FileName, UINT32 * MemoryBuffer, size_t B
 
     if (!File.is_open())
     {
-        ShowMessages("err, unable to open file %s\n", FileName.c_str());
+        ShowMessages("err, unable to open file %s\n", FileName);
         return FALSE;
     }
 
@@ -115,6 +115,69 @@ FillMemoryFromFile(const std::string & FileName, UINT32 * MemoryBuffer, size_t B
 }
 
 /**
+ * @brief Function to write the memory buffer to a file in the specified format
+ *
+ * @param FileName
+ * @param MemoryBuffer
+ * @param BufferSize
+ * @return BOOLEAN
+ */
+BOOLEAN
+FillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+{
+    std::ofstream File(FileName);
+
+    if (!File.is_open())
+    {
+        printf("err, unable to open file %s\n", FileName);
+        return FALSE;
+    }
+
+    size_t Address = 0;
+    for (size_t I = 0; I < BufferSize; ++I)
+    {
+        File << std::hex << std::setw(8) << std::setfill('0') << MemoryBuffer[I];
+        File << " ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
+
+        if (I == 0)
+        {
+            File << "   | Checksum";
+        }
+        else if (I == 1)
+        {
+            File << "   | Checksum";
+        }
+        else if (I == 2)
+        {
+            File << "   | Indicator";
+        }
+        else if (I == 3)
+        {
+            File << "   | Indicator";
+        }
+        else if (I == 4)
+        {
+            File << "   | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)";
+        }
+        else if (I == 5)
+        {
+            File << "   | RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1)";
+        }
+        else if (I == 6)
+        {
+            File << "   | Start of Optional Data";
+        }
+
+        File << "\n";
+        Address += 4;
+    }
+
+    File.close();
+
+    return TRUE;
+}
+
+/**
  * @brief !hwdbg command handler
  *
  * @param SplitCommand
@@ -143,10 +206,12 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         UINT32       PortNum                = 0;
         UINT32       MemoryBuffer[BufferSize];
 
-        if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath)) &&
+        if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
             FillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
         {
+            //
             // Print the content of MemoryBuffer for verification
+            //
             for (SIZE_T I = 0; I < BufferSize; ++I)
             {
                 ShowMessages("%08x ", MemoryBuffer[I]);
@@ -174,6 +239,15 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
             {
                 ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
                 PortNum++;
+            }
+
+            //
+            // Write content of the memory into a file
+            //
+            if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                FillFileFromMemory(TestFilePath, MemoryBuffer, BufferSize))
+            {
+                ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
             }
         }
         else

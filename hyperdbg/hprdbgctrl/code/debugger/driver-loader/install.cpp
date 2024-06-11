@@ -432,13 +432,15 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
  * @param FileName
  * @param FileLocation
  * @param BufferLength
+ * @param CheckFileExists
  *
  * @return BOOLEAN
  */
 BOOLEAN
 SetupPathForFileName(const CHAR *                                  FileName,
                      _Inout_updates_bytes_all_(BufferLength) PCHAR FileLocation,
-                     ULONG                                         BufferLength)
+                     ULONG                                         BufferLength,
+                     BOOLEAN                                       CheckFileExists)
 {
     HANDLE  FileHandle;
     DWORD   FileLocLen = 0;
@@ -490,25 +492,28 @@ SetupPathForFileName(const CHAR *                                  FileName,
         return FALSE;
     }
 
-    //
-    // Insure file is in the specified directory
-    //
-    if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+    if (CheckFileExists)
     {
-        ShowMessages("err, target file is not loaded\n");
+        //
+        // ensure file is in the specified directory
+        //
+        if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+        {
+            ShowMessages("err, target file is not loaded\n");
+
+            //
+            // Indicate failure
+            //
+            return FALSE;
+        }
 
         //
-        // Indicate failure
+        // Close open file handle
         //
-        return FALSE;
-    }
-
-    //
-    // Close open file handle
-    //
-    if (FileHandle)
-    {
-        CloseHandle(FileHandle);
+        if (FileHandle)
+        {
+            CloseHandle(FileHandle);
+        }
     }
 
     //

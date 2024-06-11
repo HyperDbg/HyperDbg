@@ -16,7 +16,17 @@
 //                 Definitions                  //
 //////////////////////////////////////////////////
 
-#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_instance_info.txt"
+/**
+ * @brief Initial debuggee to debugger offset
+ *
+ */
+#define DEFAULT_INITIAL_DEBUGGEE_TO_DEBUGGER_OFFSET 0x200
+
+/**
+ * @brief Initial debugger to debuggee offset
+ *
+ */
+#define DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET 0x0
 
 //////////////////////////////////////////////////
 //                   Enums                      //
