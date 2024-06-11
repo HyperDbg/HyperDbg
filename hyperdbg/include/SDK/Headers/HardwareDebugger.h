@@ -82,6 +82,8 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     UINT32 MaximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
     UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
     UINT32 maximumNumberOfSupportedScriptOperators; // maximum supported operators in a single func
+    UINT32 debuggerAreaOffset;                      // The memory offset of debugger
+    UINT32 debuggeeAreaOffset;                      // The memory offset of debuggee
     UINT32 numberOfPins;                            // Number of pins
     UINT32 numberOfPorts;                           // Number of ports
 
