@@ -25,8 +25,9 @@ import hwdbg.utils._
 object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
     val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
-    sSendMaximumNumberOfSupportedScriptOperators, sSendNumberOfPins, sSendNumberOfPorts,
-    sSendScriptCapabilities1, sSendScriptCapabilities2, sSendPortsConfiguration, sDone = Value
+    sSendMaximumNumberOfSupportedScriptOperators, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
+    sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1, sSendScriptCapabilities2, 
+    sSendPortsConfiguration, sDone = Value
   }
 }
 
@@ -157,6 +158,38 @@ class InterpreterInstanceInfo(
         // debugger in the script engine
         //
         sendingData := instanceInfo.maximumNumberOfSupportedScriptOperators.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendDebuggerAreaOffset
+
+      }
+      is(sSendDebuggerAreaOffset) {
+
+        //
+        // Set the start offset of the debugger to the debuggee memory for this
+        // instance of the debugger
+        //
+        sendingData := instanceInfo.debuggerAreaOffset.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendDebuggeeAreaOffset
+
+      }
+      is(sSendDebuggeeAreaOffset) {
+
+        //
+        // Set the start offset of the debuggee to the debugger memory for this
+        // instance of the debugger
+        //
+        sendingData := instanceInfo.debuggeeAreaOffset.U
 
         //
         // The output is valid

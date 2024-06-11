@@ -30,6 +30,7 @@ object SendReceiveSynchronizerEnums {
 
 class SendReceiveSynchronizer(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+    instanceInfo: HwdbgInstanceInformation,
     bramAddrWidth: Int,
     bramDataWidth: Int
 ) extends Module {
@@ -119,6 +120,7 @@ class SendReceiveSynchronizer(
   ) =
     DebuggerPacketReceiver(
       debug,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth
     )(
@@ -142,6 +144,7 @@ class SendReceiveSynchronizer(
   ) =
     DebuggerPacketSender(
       debug,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth
     )(
@@ -305,6 +308,7 @@ object SendReceiveSynchronizer {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+      instanceInfo: HwdbgInstanceInformation,
       bramAddrWidth: Int,
       bramDataWidth: Int
   )(
@@ -323,6 +327,7 @@ object SendReceiveSynchronizer {
     val sendReceiveSynchronizerModule = Module(
       new SendReceiveSynchronizer(
         debug,
+        instanceInfo,
         bramAddrWidth,
         bramDataWidth
       )

@@ -122,28 +122,28 @@ object ScriptEngineConfigurations {
   // Define the capabilities you want to enable
   //
     val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
-      HwdbgScriptCapabilities.inc,
-      HwdbgScriptCapabilities.dec,
-      HwdbgScriptCapabilities.or,
-      HwdbgScriptCapabilities.xor,
-      HwdbgScriptCapabilities.and,
-      HwdbgScriptCapabilities.asl,
-      HwdbgScriptCapabilities.add,
-      HwdbgScriptCapabilities.sub,
-      HwdbgScriptCapabilities.mul,
-      HwdbgScriptCapabilities.div,
-      HwdbgScriptCapabilities.mod,
-      HwdbgScriptCapabilities.gt,
-      HwdbgScriptCapabilities.lt,
-      HwdbgScriptCapabilities.egt,
-      HwdbgScriptCapabilities.elt,
-      HwdbgScriptCapabilities.equal,
-      HwdbgScriptCapabilities.neq,
-      HwdbgScriptCapabilities.jmp,
-      HwdbgScriptCapabilities.jz,
-      HwdbgScriptCapabilities.jnz,
-      HwdbgScriptCapabilities.mov,
-      HwdbgScriptCapabilities.printf
+      HwdbgScriptCapabilities.op_inc,
+      HwdbgScriptCapabilities.op_dec,
+      HwdbgScriptCapabilities.op_or,
+      HwdbgScriptCapabilities.op_xor,
+      HwdbgScriptCapabilities.op_and,
+      HwdbgScriptCapabilities.op_asl,
+      HwdbgScriptCapabilities.op_add,
+      HwdbgScriptCapabilities.op_sub,
+      HwdbgScriptCapabilities.op_mul,
+      HwdbgScriptCapabilities.op_div,
+      HwdbgScriptCapabilities.op_mod,
+      HwdbgScriptCapabilities.op_gt,
+      HwdbgScriptCapabilities.op_lt,
+      HwdbgScriptCapabilities.op_egt,
+      HwdbgScriptCapabilities.op_elt,
+      HwdbgScriptCapabilities.op_equal,
+      HwdbgScriptCapabilities.op_neq,
+      HwdbgScriptCapabilities.op_jmp,
+      HwdbgScriptCapabilities.op_jz,
+      HwdbgScriptCapabilities.op_jnz,
+      HwdbgScriptCapabilities.op_mov,
+      HwdbgScriptCapabilities.op_printf
     )
 }
 
@@ -183,6 +183,8 @@ case class HwdbgInstanceInformation(
   maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
   scriptVariableLength: Int, // Maximum length of variables (and other script elements)
   maximumNumberOfSupportedScriptOperators: Int, // Maximum supported operators in a single func
+  debuggerAreaOffset: Int, // The memory offset of debugger
+  debuggeeAreaOffset: Int, // The memory offset of debuggee
   numberOfPins: Int,            // Number of pins
   numberOfPorts: Int,           // Number of ports
   scriptCapabilities: Long,            // Capabilities bitmask
@@ -215,8 +217,8 @@ object HwdbgScriptCapabilities {
   val op_printf: Long = 1L << 22
 
   def allCapabilities: Seq[Long] = Seq(
-    inc, dec, or, xor, and, asr, asl, add, sub, mul, div, mod, gt, lt,
-    egt, elt, equal, neq, jmp, jz, jnz, mov, printf
+    op_inc, op_dec, op_or, op_xor, op_and, op_asr, op_asl, op_add, op_sub, op_mul, op_div, op_mod, op_gt, op_lt,
+    op_egt, op_elt, op_equal, op_neq, op_jmp, op_jz, op_jnz, op_mov, op_printf
   )
 }
 
@@ -237,6 +239,8 @@ object HwdbgInstanceInformation {
     maximumNumberOfStages: Int,
     scriptVariableLength: Int,
     maximumNumberOfSupportedScriptOperators: Int,
+    debuggerAreaOffset: Int,
+    debuggeeAreaOffset: Int,
     numberOfPins: Int,
     numberOfPorts: Int,
     enabledCapabilities: Seq[Long],
@@ -260,6 +264,8 @@ object HwdbgInstanceInformation {
       maximumNumberOfStages = maximumNumberOfStages,
       scriptVariableLength = scriptVariableLength,
       maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+      debuggerAreaOffset = debuggerAreaOffset,
+      debuggeeAreaOffset = debuggeeAreaOffset,
       numberOfPins = numberOfPins,
       numberOfPorts = numberOfPorts,
       scriptCapabilities = capabilitiesMask,

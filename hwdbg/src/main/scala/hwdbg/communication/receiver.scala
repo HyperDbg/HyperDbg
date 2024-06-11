@@ -33,6 +33,7 @@ object DebuggerPacketReceiverEnums {
 
 class DebuggerPacketReceiver(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+    instanceInfo: HwdbgInstanceInformation,
     bramAddrWidth: Int,
     bramDataWidth: Int
 ) extends Module {
@@ -151,7 +152,7 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read Checksum from BRAM (Not Used)
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.checksum).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.checksum).U
 
         //
         // Goes to the next section
@@ -164,7 +165,7 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read Indicator from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.indicator).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.indicator).U
 
         //
         // Goes to the next section
@@ -177,7 +178,7 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read TypeOfThePacket from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.typeOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.typeOfThePacket).U
 
         //
         // Check whether the indicator is valid or not
@@ -209,12 +210,12 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read RequestedActionOfThePacket from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.requestedActionOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.requestedActionOfThePacket).U
 
         //
         // Save the address into a register
         //
-        regRdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.requestedActionOfThePacket + (bramDataWidth >> 3)).U
+        regRdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.requestedActionOfThePacket + (bramDataWidth >> 3)).U
 
         //
         // Check whether the type of the packet is valid or not
@@ -380,6 +381,7 @@ object DebuggerPacketReceiver {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+      instanceInfo: HwdbgInstanceInformation,
       bramAddrWidth: Int,
       bramDataWidth: Int
   )(
@@ -393,6 +395,7 @@ object DebuggerPacketReceiver {
     val debuggerPacketReceiver = Module(
       new DebuggerPacketReceiver(
         debug,
+        instanceInfo,
         bramAddrWidth,
         bramDataWidth
       )

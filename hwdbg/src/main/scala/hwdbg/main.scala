@@ -30,6 +30,8 @@ class DebuggerMain(
     numberOfPins: Int,
     maximumNumberOfStages: Int,
     maximumNumberOfSupportedScriptOperators: Int,
+    debuggerAreaOffset: Int,
+    debuggeeAreaOffset: Int,
     scriptVariableLength: Int,
     scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
@@ -82,6 +84,8 @@ class DebuggerMain(
                               maximumNumberOfStages = maximumNumberOfStages,
                               scriptVariableLength = scriptVariableLength,
                               maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+                              debuggerAreaOffset = debuggerAreaOffset,
+                              debuggeeAreaOffset = debuggeeAreaOffset,
                               numberOfPins = numberOfPins,
                               numberOfPorts = portsConfiguration.size,
                               enabledCapabilities = scriptCapabilities,
@@ -153,6 +157,7 @@ class DebuggerMain(
   ) =
     SendReceiveSynchronizer(
       debug,
+      instanceInfo,
       bramAddrWidth,
       bramDataWidth
     )(
@@ -197,6 +202,8 @@ object DebuggerMain {
       numberOfPins: Int,
       maximumNumberOfStages: Int,
       maximumNumberOfSupportedScriptOperators: Int,
+      debuggerAreaOffset: Int,
+      debuggeeAreaOffset: Int,
       scriptVariableLength: Int,
       scriptCapabilities: Seq[Long],
       bramAddrWidth: Int,
@@ -215,6 +222,8 @@ object DebuggerMain {
         numberOfPins,
         maximumNumberOfStages,
         maximumNumberOfSupportedScriptOperators,
+        debuggerAreaOffset,
+        debuggeeAreaOffset,
         scriptVariableLength,
         scriptCapabilities,
         bramAddrWidth,
