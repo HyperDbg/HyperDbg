@@ -11,6 +11,10 @@
  */
 #pragma once
 
+//////////////////////////////////////////////////
+//				  Definitions                   //
+//////////////////////////////////////////////////
+
 /**
  * @brief Number of tests for each instruction sets
  * @details used to generate test cases for rdts+cpuid+rdtsc

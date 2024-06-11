@@ -11,6 +11,13 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+extern std::vector<UINT32>        g_HwdbgPortConfiguration;
+;
+
 /**
  * @brief help of the !hwdbg command
  *
@@ -133,6 +140,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     {
         TCHAR        TestFilePath[MAX_PATH] = {0};
         const SIZE_T BufferSize             = 256; // Adjust based on the number of memory entries of the file
+        UINT32       PortNum                = 0;
         UINT32       MemoryBuffer[BufferSize];
 
         if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath)) &&
@@ -144,6 +152,33 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                 ShowMessages("%08x ", MemoryBuffer[I]);
                 ShowMessages("\n");
             }
+        }
+
+        //
+        // Interpret packet
+        //
+        if (HwdbgInterpretPacket(MemoryBuffer, BufferSize))
+        {
+            ShowMessages("instance info interpreted successfully\n");
+
+            ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
+            ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
+            ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
+            ShowMessages("Debuggee Maximum Number Of Supported Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedScriptOperators);
+            ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggerAreaOffset);
+            ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggeeAreaOffset);
+            ShowMessages("Debuggee Number Of Pins: 0x%x\n", g_HwdbgInstanceInfo.numberOfPins);
+            ShowMessages("Debuggee Number Of Ports: 0x%x\n", g_HwdbgInstanceInfo.numberOfPorts);
+
+            for (auto item : g_HwdbgPortConfiguration)
+            {
+                ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
+                PortNum++;
+            }
+        }
+        else
+        {
+            ShowMessages("err, unable to interpret instance info packet of the debuggee");
         }
 
         //

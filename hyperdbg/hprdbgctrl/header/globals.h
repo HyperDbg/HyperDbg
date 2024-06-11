@@ -646,3 +646,25 @@ UINT64 g_CurrentExprEvalResult;
  *
  */
 BOOLEAN g_CurrentExprEvalResultHasError;
+
+//////////////////////////////////////////////////
+//				      hwdbg                     //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Instance information of the current hwdbg debuggee
+ *
+ */
+HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+
+/**
+ * @brief Shows whether the instance info is valid (received) or not
+ *
+ */
+BOOLEAN g_HwdbgInstanceInfoIsValid;
+
+/**
+ * @brief Ports configuration of hwdbg
+ *
+ */
+std::vector<UINT32> g_HwdbgPortConfiguration;

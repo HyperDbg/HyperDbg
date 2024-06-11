@@ -158,6 +158,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/rev-ctrl.h"
 
 //
+// hwdbg
+//
+#include "header/hwdbg-interpreter.h"
+
+//
 // Libraries
 //
 

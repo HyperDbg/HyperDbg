@@ -16,7 +16,7 @@
 //                 Definitions                  //
 //////////////////////////////////////////////////
 
-#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_content_after_emulation.txt"
+#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_instance_info.txt"
 
 //////////////////////////////////////////////////
 //                   Enums                      //
@@ -78,8 +78,8 @@ typedef struct _HWDBG_PORT_INFORMATION_ITEMS
  */
 typedef struct _HWDBG_INSTANCE_INFORMATION
 {
-    UINT32 Version;                                 // Target version of HyperDbg (same as hwdbg)
-    UINT32 MaximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+    UINT32 version;                                 // Target version of HyperDbg (same as hwdbg)
+    UINT32 maximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
     UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
     UINT32 maximumNumberOfSupportedScriptOperators; // maximum supported operators in a single func
     UINT32 debuggerAreaOffset;                      // The memory offset of debugger
@@ -121,4 +121,4 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //   HWDBG_PORT_INFORMATION_ITEMS portsConfiguration[numberOfPorts]   ; Port arrangement
     //
 
-} HWDBG_SCRIPT_CAPABILITIES_INFORMATION, *PHWDBG_SCRIPT_CAPABILITIES_INFORMATION;
+} HWDBG_INSTANCE_INFORMATION, *PHWDBG_INSTANCE_INFORMATION;
