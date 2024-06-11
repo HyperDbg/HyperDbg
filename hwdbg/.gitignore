@@ -363,4 +363,4 @@ hs_err_pid*
 generated/
 
 # BRAM emulation content
-# bram_content_after_emulation.txt
+# bram_instance_info.txt
