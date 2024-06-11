@@ -33,3 +33,16 @@
 
 BOOLEAN
 HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived);
+
+BOOLEAN
+HwdbgInterpreterFillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+
+BOOLEAN
+HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+
+BOOLEAN
+HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
+                               size_t   BufferLength,
+                               int      CompressBitSize,
+                               size_t * NewBufferSize,
+                               size_t * NumberOfBytesPerChunk);

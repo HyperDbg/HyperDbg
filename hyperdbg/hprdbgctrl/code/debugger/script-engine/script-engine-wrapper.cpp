@@ -302,7 +302,7 @@ PrintSymbolBufferWrapper(PVOID SymbolBuffer)
 }
 
 /**
- * @brief test function
+ * @brief Script engine evaluation wrapper
  * @param GuestRegs
  * @param Expr
  *
@@ -388,7 +388,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     SYMBOL        ErrorSymbol  = {0};
 
     //
-    //
+    // Making symbol buffer
     //
     PSYMBOL_BUFFER StackBuffer       = GetStackBuffer();
     int            StackIndx         = 0;

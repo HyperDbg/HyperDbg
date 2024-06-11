@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
 extern std::vector<UINT32>        g_HwdbgPortConfiguration;
 ;
 
@@ -32,149 +33,6 @@ CommandHwdbgHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !hwdbg script { @hw_pin1 = 0; }\n");
-}
-
-/**
- * @brief Function to parse a single line of the memory content
- *
- * @param Line
- * @return VOID
- */
-std::vector<UINT32>
-ParseLine(const std::string & Line)
-{
-    std::vector<UINT32> Values;
-    std::stringstream   Ss(Line);
-    std::string         Token;
-
-    // Skip the memory address part
-    std::getline(Ss, Token, ':');
-
-    // Read the hex value
-    while (std::getline(Ss, Token, ' '))
-    {
-        if (Token.length() == 8 && std::all_of(Token.begin(), Token.end(), ::isxdigit))
-        {
-            Values.push_back(static_cast<UINT32>(std::stoul(Token, nullptr, 16)));
-        }
-    }
-
-    return Values;
-}
-
-/**
- * @brief Function to read the file and fill the memory buffer
- *
- * @param FileName
- * @param MemoryBuffer
- * @param BufferSize
- * @return BOOLEAN
- */
-BOOLEAN
-FillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
-{
-    std::ifstream File(FileName);
-    std::string   Line;
-    BOOLEAN       Result = TRUE;
-    size_t        Index  = 0;
-
-    if (!File.is_open())
-    {
-        ShowMessages("err, unable to open file %s\n", FileName);
-        return FALSE;
-    }
-
-    while (getline(File, Line))
-    {
-        if (Index >= BufferSize)
-        {
-            Result = FALSE;
-            ShowMessages("err, buffer overflow, file contains more data than buffer can hold\n");
-            break;
-        }
-
-        vector<UINT32> Values = ParseLine(Line);
-
-        for (UINT32 Value : Values)
-        {
-            if (Index < BufferSize)
-            {
-                MemoryBuffer[Index++] = Value;
-            }
-            else
-            {
-                ShowMessages("err, buffer overflow, file contains more data than buffer can hold\n");
-                File.close();
-                return FALSE;
-            }
-        }
-    }
-
-    File.close();
-    return Result;
-}
-
-/**
- * @brief Function to write the memory buffer to a file in the specified format
- *
- * @param FileName
- * @param MemoryBuffer
- * @param BufferSize
- * @return BOOLEAN
- */
-BOOLEAN
-FillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
-{
-    std::ofstream File(FileName);
-
-    if (!File.is_open())
-    {
-        printf("err, unable to open file %s\n", FileName);
-        return FALSE;
-    }
-
-    size_t Address = 0;
-    for (size_t I = 0; I < BufferSize; ++I)
-    {
-        File << std::hex << std::setw(8) << std::setfill('0') << MemoryBuffer[I];
-        File << " ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
-
-        if (I == 0)
-        {
-            File << "   | Checksum";
-        }
-        else if (I == 1)
-        {
-            File << "   | Checksum";
-        }
-        else if (I == 2)
-        {
-            File << "   | Indicator";
-        }
-        else if (I == 3)
-        {
-            File << "   | Indicator";
-        }
-        else if (I == 4)
-        {
-            File << "   | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)";
-        }
-        else if (I == 5)
-        {
-            File << "   | RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1)";
-        }
-        else if (I == 6)
-        {
-            File << "   | Start of Optional Data";
-        }
-
-        File << "\n";
-        Address += 4;
-    }
-
-    File.close();
-
-    return TRUE;
 }
 
 /**
@@ -196,10 +54,12 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
+    size_t                             NewCompressedBufferSize     = 0;
+    size_t                             NumberOfBytesPerChunk       = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("test"))
+    if (SplitCommand.size() >= 2 && !SplitCommand.at(1).compare("test"))
     {
         TCHAR        TestFilePath[MAX_PATH] = {0};
         const SIZE_T BufferSize             = 256; // Adjust based on the number of memory entries of the file
@@ -207,7 +67,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         UINT32       MemoryBuffer[BufferSize];
 
         if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
-            FillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
+            HwdbgInterpreterFillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
         {
             //
             // Print the content of MemoryBuffer for verification
@@ -245,7 +105,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
             // Write content of the memory into a file
             //
             if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
-                FillFileFromMemory(TestFilePath, MemoryBuffer, BufferSize))
+                HwdbgInterpreterFillFileFromMemory(TestFilePath, MemoryBuffer, BufferSize))
             {
                 ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
             }
@@ -281,13 +141,74 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d):\n",
                      ActionScript->ScriptBufferSize,
-                     ActionScript->ScriptBufferSize / 32,
-                     ActionScript->ScriptBufferSize * 8);
+                     ActionScript->ScriptBufferSize / sizeof(SYMBOL), // by default four 8 bytes which is equal to 32
+                     ActionScript->ScriptBufferSize * 8               // Converted to bits
+        );
+
         CHAR * ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));
 
         for (size_t i = 0; i < ActionScript->ScriptBufferSize; i++)
         {
-            ShowMessages("%02x ", ScriptBuffer[i]);
+            ShowMessages("%02X ", ScriptBuffer[i]);
+        }
+
+        ShowMessages("\n");
+
+        //
+        // Now, converting the script based on supported script variable length
+        //
+        if (g_HwdbgInstanceInfoIsValid)
+        {
+            if (g_HwdbgInstanceInfo.scriptVariableLength == sizeof(UINT64) * 8)
+            {
+                NewCompressedBufferSize = ActionScript->ScriptBufferSize;
+                ShowMessages("the script variable length is same as default length; thus, does not need conversion\n");
+            }
+            else
+            {
+                //
+                // Conversion needed
+                //
+                if (g_HwdbgInstanceInfo.scriptVariableLength >= sizeof(BYTE) * 8)
+                {
+                    //
+                    // The script variable length is valid (at least 8 bit (1 byte)
+                    //
+
+                    //
+                    // Compress script buffer
+                    //
+                    if (HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
+                                                       ActionScript->ScriptBufferSize,
+                                                       g_HwdbgInstanceInfo.scriptVariableLength,
+                                                       &NewCompressedBufferSize,
+                                                       &NumberOfBytesPerChunk) == TRUE)
+                    {
+                        ShowMessages("---------------------------------------------------------");
+                        ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
+
+                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n",
+                                     NewCompressedBufferSize,
+                                     NewCompressedBufferSize / (NumberOfBytesPerChunk * 4), // Multiplied by 4 because there are 4 fields in SYMBOL structure
+                                     NewCompressedBufferSize * 8,                           // Converted to bits
+                                     NumberOfBytesPerChunk);
+
+                        for (size_t i = 0; i < NewCompressedBufferSize; i++)
+                        {
+                            ShowMessages("%02X ", (UINT32)ScriptBuffer[i]);
+                        }
+
+                        ShowMessages("\n");
+                    }
+                }
+                else
+                {
+                    //
+                    // The script variable length is not valid (at least 8 bit (1 byte)
+                    //
+                    ShowMessages("err, the script variable length should be at least 8 bits (1 byte)\n");
+                }
+            }
         }
 
         //

@@ -1,18 +1,34 @@
 #pragma once
 #ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
-typedef struct SYMBOL {
-	long long unsigned Type;
+
+typedef struct SYMBOL
+{
+    //
+    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
+    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
+    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
+    // HWDBG BIT COMPRESSION
+    //
+    long long unsigned Type;
     long long unsigned Len;
     long long unsigned VariableType;
-	long long unsigned Value;
-} SYMBOL, * PSYMBOL;
+    long long unsigned Value;
+    //
+    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
+    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
+    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
+    // HWDBG BIT COMPRESSION
+    //
+} SYMBOL, *PSYMBOL;
+
 typedef struct SYMBOL_BUFFER {
-	PSYMBOL Head;
-	unsigned int Pointer;
-	unsigned int Size;
-	char* Message;
+    PSYMBOL Head;
+    unsigned int Pointer;
+    unsigned int Size;
+    char* Message;
 } SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+
 typedef struct SYMBOL_MAP
 {
     char* Name;
@@ -25,7 +41,6 @@ typedef struct ACTION_BUFFER {
   long long unsigned Context;
   char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
-
 
 #define SYMBOL_GLOBAL_ID_TYPE 0
 #define SYMBOL_LOCAL_ID_TYPE 1
