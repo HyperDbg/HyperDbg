@@ -93,7 +93,7 @@ class ScriptExecutionEngine(
         //
         // Create a Vec containing script symbol elements
         //
-        val scriptSymbols = Wire(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol))
+        val scriptSymbols = Wire(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol(instanceInfo.scriptVariableLength)))
 
         for (j <- 0 until instanceInfo.maximumNumberOfSupportedScriptOperators) {
 

@@ -43,7 +43,7 @@ class ScriptEngineSetValue(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(new Symbol)
+    val operator = Input(new Symbol(instanceInfo.scriptVariableLength))
 
     //
     // Input value
