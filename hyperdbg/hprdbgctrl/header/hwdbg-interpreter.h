@@ -15,7 +15,17 @@
 //				   Definitions                  //
 //////////////////////////////////////////////////
 
-#define DEFAULT_INITIAL_DEBUGGEE_TO_DEBUGGER_OFFSET 0x200
+/**
+ * @brief Path to read the sample of the instance info
+ *
+ */
+#define HWDBG_TEST_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_instance_info.txt"
+
+/**
+ * @brief Path to write the sample of the script buffer
+ *
+ */
+#define HWDBG_TEST_SCRIPT_BUFFER_PATH "..\\..\\..\\..\\hwdbg\\src\\test\\bram\\script_buffer.hex.txt"
 
 //////////////////////////////////////////////////
 //				    Functions                   //
@@ -23,3 +33,16 @@
 
 BOOLEAN
 HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived);
+
+BOOLEAN
+HwdbgInterpreterFillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+
+BOOLEAN
+HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+
+BOOLEAN
+HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
+                               size_t   BufferLength,
+                               int      CompressBitSize,
+                               size_t * NewBufferSize,
+                               size_t * NumberOfBytesPerChunk);

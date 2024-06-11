@@ -41,4 +41,5 @@ ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Func
 BOOLEAN
 SetupPathForFileName(const CHAR *                                  FileName,
                      _Inout_updates_bytes_all_(BufferLength) PCHAR FileLocation,
-                     ULONG                                         BufferLength);
+                     ULONG                                         BufferLength,
+                     BOOLEAN                                       CheckFileExists);
