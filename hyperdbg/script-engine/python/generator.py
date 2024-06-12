@@ -62,9 +62,9 @@ import chisel3.util._
 
 /**
  * @brief
- *   The structure of SYMBOL used in script engine of HyperDbg
+ *   The structure of HWDBG_SHORT_SYMBOL used in script engine of HyperDbg
  */
-class Symbol(
+class HwdbgShortSymbol(
     scriptVariableLength: Int
 ) extends Bundle {
   
@@ -78,8 +78,6 @@ class Symbol(
 
   val Type = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
   val Len = UInt(scriptVariableLength.W)
-  val VariableType = UInt(scriptVariableLength.W)
-  val Value = UInt(scriptVariableLength.W)
 }
 
 /**
@@ -113,23 +111,19 @@ object ScriptConstantTypes {
 
 typedef struct SYMBOL
 {
-    //
-    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
-    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
-    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
-    // HWDBG BIT COMPRESSION
-    //
     long long unsigned Type;
     long long unsigned Len;
     long long unsigned VariableType;
     long long unsigned Value;
-    //
-    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
-    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
-    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
-    // HWDBG BIT COMPRESSION
-    //
+    
 } SYMBOL, *PSYMBOL;
+
+typedef struct HWDBG_SHORT_SYMBOL
+{
+    long long unsigned Type;
+    long long unsigned Value;
+    
+} HWDBG_SHORT_SYMBOL, *PHWDBG_SHORT_SYMBOL;
 
 typedef struct SYMBOL_BUFFER {
     PSYMBOL Head;

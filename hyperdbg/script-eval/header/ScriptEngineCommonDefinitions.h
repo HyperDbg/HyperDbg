@@ -4,23 +4,19 @@
 
 typedef struct SYMBOL
 {
-    //
-    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
-    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
-    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
-    // HWDBG BIT COMPRESSION
-    //
     long long unsigned Type;
     long long unsigned Len;
     long long unsigned VariableType;
     long long unsigned Value;
-    //
-    // DO NOT CHANGE THE FIELDS OF THIS STRUCTURE (EITHER ADD OR REMOVE)
-    // WITHOUT COORDINATION WITH SINA (THE SIZE ALSO SHOULD NOT BE CHANGED)
-    // THIS STRUCTURE IS USED IN HWDBG AND SIZE SHOULD REMAIN CONSTANT FOR
-    // HWDBG BIT COMPRESSION
-    //
+    
 } SYMBOL, *PSYMBOL;
+
+typedef struct HWDBG_SHORT_SYMBOL
+{
+    long long unsigned Type;
+    long long unsigned Value;
+    
+} HWDBG_SHORT_SYMBOL, *PHWDBG_SHORT_SYMBOL;
 
 typedef struct SYMBOL_BUFFER {
     PSYMBOL Head;
