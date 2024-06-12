@@ -174,6 +174,289 @@ ParseLine(const std::string & Line)
 }
 
 /**
+ * @brief Shows the script capablities of the target debuggee
+ *
+ * @param InstanceInfo
+ *
+ * @return VOID
+ */
+VOID
+HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
+{
+    ShowMessages("\nThis debuggee supports the following operatiors:\n");
+    ShowMessages("\tincrement: %s \n", InstanceInfo->scriptCapabilities.func_inc ? "supported" : "not supported");
+    ShowMessages("\tdecrement: %s \n", InstanceInfo->scriptCapabilities.func_dec ? "supported" : "not supported");
+    ShowMessages("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
+    ShowMessages("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
+    ShowMessages("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
+    ShowMessages("\tarithmetic shift right: %s \n", InstanceInfo->scriptCapabilities.func_asr ? "supported" : "not supported");
+    ShowMessages("\tarithmetic shift left: %s \n", InstanceInfo->scriptCapabilities.func_asl ? "supported" : "not supported");
+    ShowMessages("\taddition: %s \n", InstanceInfo->scriptCapabilities.func_add ? "supported" : "not supported");
+    ShowMessages("\tsubtraction: %s \n", InstanceInfo->scriptCapabilities.func_sub ? "supported" : "not supported");
+    ShowMessages("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
+    ShowMessages("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
+    ShowMessages("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
+    ShowMessages("\tgreater than: %s \n", InstanceInfo->scriptCapabilities.func_gt ? "supported" : "not supported");
+    ShowMessages("\tless than: %s \n", InstanceInfo->scriptCapabilities.func_lt ? "supported" : "not supported");
+    ShowMessages("\tgreater than or equal to: %s \n", InstanceInfo->scriptCapabilities.func_egt ? "supported" : "not supported");
+    ShowMessages("\tless than or equal to: %s \n", InstanceInfo->scriptCapabilities.func_elt ? "supported" : "not supported");
+    ShowMessages("\tequal: %s \n", InstanceInfo->scriptCapabilities.func_equal ? "supported" : "not supported");
+    ShowMessages("\tnot equal: %s \n", InstanceInfo->scriptCapabilities.func_neq ? "supported" : "not supported");
+    ShowMessages("\tjump: %s \n", InstanceInfo->scriptCapabilities.func_jmp ? "supported" : "not supported");
+    ShowMessages("\tjump if zero: %s \n", InstanceInfo->scriptCapabilities.func_jz ? "supported" : "not supported");
+    ShowMessages("\tjump if not zero: %s \n", InstanceInfo->scriptCapabilities.func_jnz ? "supported" : "not supported");
+    ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
+    ShowMessages("\tprint: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
+    ShowMessages("\treference: %s \n", InstanceInfo->scriptCapabilities.func_reference ? "supported" : "not supported");
+    ShowMessages("\tdereference: %s \n", InstanceInfo->scriptCapabilities.func_dereference ? "supported" : "not supported");
+    ShowMessages("\n");
+}
+
+/**
+ * @brief Check the script capablities with the target script buffer
+ *
+ * @param InstanceInfo
+ * @param ScriptBuffer
+ *
+ * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
+ */
+BOOLEAN
+HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                                        PVOID                        ScriptBuffer,
+                                                        UINT32                       CountOfScriptSymbolChunks)
+{
+    BOOLEAN  NotSupported = FALSE;
+    SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
+
+    for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
+    {
+        switch (SymbolArray[i].Type)
+        {
+        case FUNC_INC:
+            if (!InstanceInfo->scriptCapabilities.func_inc)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, increment is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_DEC:
+            if (!InstanceInfo->scriptCapabilities.func_dec)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, decrement is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_OR:
+            if (!InstanceInfo->scriptCapabilities.func_or)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, OR is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_XOR:
+            if (!InstanceInfo->scriptCapabilities.func_xor)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, XOR is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_AND:
+            if (!InstanceInfo->scriptCapabilities.func_and)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, AND is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_ASR:
+            if (!InstanceInfo->scriptCapabilities.func_asr)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, arithmetic shift right is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_ASL:
+            if (!InstanceInfo->scriptCapabilities.func_asl)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, arithmetic shift left is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_ADD:
+            if (!InstanceInfo->scriptCapabilities.func_add)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, addition is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_SUB:
+            if (!InstanceInfo->scriptCapabilities.func_sub)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, subtraction is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_MUL:
+            if (!InstanceInfo->scriptCapabilities.func_mul)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, multiplication is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_DIV:
+            if (!InstanceInfo->scriptCapabilities.func_div)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, division is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_MOD:
+            if (!InstanceInfo->scriptCapabilities.func_mod)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, modulus is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_GT:
+            if (!InstanceInfo->scriptCapabilities.func_gt)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, greater than is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_LT:
+            if (!InstanceInfo->scriptCapabilities.func_lt)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, less than is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_EGT:
+            if (!InstanceInfo->scriptCapabilities.func_egt)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, greater than or equal to is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_ELT:
+            if (!InstanceInfo->scriptCapabilities.func_elt)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, less than or equal to is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_EQUAL:
+            if (!InstanceInfo->scriptCapabilities.func_equal)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, equal is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_NEQ:
+            if (!InstanceInfo->scriptCapabilities.func_neq)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, not equal is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_JMP:
+            if (!InstanceInfo->scriptCapabilities.func_jmp)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, jump is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_JZ:
+            if (!InstanceInfo->scriptCapabilities.func_jz)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, jump if zero is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_JNZ:
+            if (!InstanceInfo->scriptCapabilities.func_jnz)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, jump if not zero is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_MOV:
+            if (!InstanceInfo->scriptCapabilities.func_mov)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, move is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_PRINTF:
+            if (!InstanceInfo->scriptCapabilities.func_printf)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, printf is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_REFERENCE:
+            if (!InstanceInfo->scriptCapabilities.func_reference)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, reference is not supported by the debuggee\n");
+            }
+            break;
+
+        case FUNC_DEREFERENCE:
+            if (!InstanceInfo->scriptCapabilities.func_dereference)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, dereference is not supported by the debuggee\n");
+            }
+            break;
+
+        default:
+
+            NotSupported = TRUE;
+            ShowMessages("err, undefined operator for hwdbg: %d (0x%x)\n",
+                         SymbolArray[i].Type,
+                         SymbolArray[i].Type);
+
+            break;
+        }
+    }
+
+    //
+    // Script capabilities support this buffer
+    //
+    if (NotSupported)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}
+
+/**
  * @brief Function to read the file and fill the memory buffer
  *
  * @param FileName

@@ -88,6 +88,9 @@ typedef struct _HWDBG_PORT_INFORMATION_ITEMS
  */
 typedef struct _HWDBG_INSTANCE_INFORMATION
 {
+    //
+    // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE
+    //
     UINT32 version;                                 // Target version of HyperDbg (same as hwdbg)
     UINT32 maximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
     UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
@@ -97,31 +100,45 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     UINT32 numberOfPins;                            // Number of pins
     UINT32 numberOfPorts;                           // Number of ports
 
+    //
+    // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE
+    //
+
     struct _HWDBG_SCRIPT_CAPABILITIES
     {
-        UINT64 op_inc : 1;
-        UINT64 op_dec : 1;
-        UINT64 op_or : 1;
-        UINT64 op_xor : 1;
-        UINT64 op_and : 1;
-        UINT64 op_asr : 1;
-        UINT64 op_asl : 1;
-        UINT64 op_add : 1;
-        UINT64 op_sub : 1;
-        UINT64 op_mul : 1;
-        UINT64 op_div : 1;
-        UINT64 op_mod : 1;
-        UINT64 op_gt : 1;
-        UINT64 op_lt : 1;
-        UINT64 op_egt : 1;
-        UINT64 op_elt : 1;
-        UINT64 op_equal : 1;
-        UINT64 op_neq : 1;
-        UINT64 op_jmp : 1;
-        UINT64 op_jz : 1;
-        UINT64 op_jnz : 1;
-        UINT64 op_mov : 1;
-        UINT64 op_printf : 1;
+        //
+        // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
+        // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file
+        //
+        UINT64 func_inc : 1;
+        UINT64 func_dec : 1;
+        UINT64 func_or : 1;
+        UINT64 func_xor : 1;
+        UINT64 func_and : 1;
+        UINT64 func_asr : 1;
+        UINT64 func_asl : 1;
+        UINT64 func_add : 1;
+        UINT64 func_sub : 1;
+        UINT64 func_mul : 1;
+        UINT64 func_div : 1;
+        UINT64 func_mod : 1;
+        UINT64 func_gt : 1;
+        UINT64 func_lt : 1;
+        UINT64 func_egt : 1;
+        UINT64 func_elt : 1;
+        UINT64 func_equal : 1;
+        UINT64 func_neq : 1;
+        UINT64 func_jmp : 1;
+        UINT64 func_jz : 1;
+        UINT64 func_jnz : 1;
+        UINT64 func_mov : 1;
+        UINT64 func_printf : 1;
+        UINT64 func_reference : 1;
+        UINT64 func_dereference : 1;
+        //
+        // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
+        // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file
+        //
 
     } scriptCapabilities;
 

@@ -46,3 +46,11 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
                                int      CompressBitSize,
                                size_t * NewBufferSize,
                                size_t * NumberOfBytesPerChunk);
+
+VOID
+HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo);
+
+BOOLEAN
+HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                                        PVOID                        ScriptBuffer,
+                                                        UINT32                       CountOfScriptSymbolChunks);

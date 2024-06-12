@@ -67,112 +67,112 @@ typedef struct ACTION_BUFFER {
 
 #define FUNC_INC 0
 #define FUNC_DEC 1
-#define FUNC_REFERENCE 2
-#define FUNC_DEREFERENCE 3
-#define FUNC_OR 4
-#define FUNC_XOR 5
-#define FUNC_AND 6
-#define FUNC_ASR 7
-#define FUNC_ASL 8
-#define FUNC_ADD 9
-#define FUNC_SUB 10
-#define FUNC_MUL 11
-#define FUNC_DIV 12
-#define FUNC_MOD 13
-#define FUNC_GT 14
-#define FUNC_LT 15
-#define FUNC_EGT 16
-#define FUNC_ELT 17
-#define FUNC_EQUAL 18
-#define FUNC_NEQ 19
-#define FUNC_START_OF_IF 20
-#define FUNC_JMP 21
-#define FUNC_JZ 22
-#define FUNC_JNZ 23
-#define FUNC_JMP_TO_END_AND_JZCOMPLETED 24
-#define FUNC_END_OF_IF 25
-#define FUNC_START_OF_WHILE 26
-#define FUNC_END_OF_WHILE 27
-#define FUNC_VARGSTART 28
-#define FUNC_MOV 29
-#define FUNC_START_OF_DO_WHILE 30
-#define FUNC_ 31
-#define FUNC_START_OF_DO_WHILE_COMMANDS 32
-#define FUNC_END_OF_DO_WHILE 33
-#define FUNC_START_OF_FOR 34
-#define FUNC_FOR_INC_DEC 35
-#define FUNC_START_OF_FOR_OMMANDS 36
-#define FUNC_IGNORE_LVALUE 37
-#define FUNC_END_OF_USER_DEFINED_FUNCTION 38
-#define FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE 39
-#define FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE 40
-#define FUNC_CALL_USER_DEFINED_FUNCTION_PARAMETER 41
-#define FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE 42
-#define FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE 43
-#define FUNC_CALL_USER_DEFINED_FUNCTION 44
-#define FUNC_START_OF_USER_DEFINED_FUNCTION 45
-#define FUNC_MOV_RETURN_VALUE 46
-#define FUNC_VOID 47
-#define FUNC_BOOL 48
-#define FUNC_CHAR 49
-#define FUNC_SHORT 50
-#define FUNC_INT 51
-#define FUNC_LONG 52
-#define FUNC_UNSIGNED 53
-#define FUNC_SIGNED 54
-#define FUNC_FLOAT 55
-#define FUNC_DOUBLE 56
-#define FUNC_PRINT 57
-#define FUNC_FORMATS 58
-#define FUNC_EVENT_ENABLE 59
-#define FUNC_EVENT_DISABLE 60
-#define FUNC_EVENT_CLEAR 61
-#define FUNC_TEST_STATEMENT 62
-#define FUNC_SPINLOCK_LOCK 63
-#define FUNC_SPINLOCK_UNLOCK 64
-#define FUNC_EVENT_SC 65
-#define FUNC_PRINTF 66
-#define FUNC_PAUSE 67
-#define FUNC_FLUSH 68
-#define FUNC_EVENT_TRACE_STEP 69
-#define FUNC_EVENT_TRACE_STEP_IN 70
-#define FUNC_EVENT_TRACE_STEP_OUT 71
-#define FUNC_EVENT_TRACE_INSTRUMENTATION_STEP 72
-#define FUNC_EVENT_TRACE_INSTRUMENTATION_STEP_IN 73
-#define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT 74
-#define FUNC_EVENT_INJECT 75
-#define FUNC_POI 76
-#define FUNC_DB 77
-#define FUNC_DD 78
-#define FUNC_DW 79
-#define FUNC_DQ 80
-#define FUNC_NEG 81
-#define FUNC_HI 82
-#define FUNC_LOW 83
-#define FUNC_NOT 84
-#define FUNC_CHECK_ADDRESS 85
-#define FUNC_DISASSEMBLE_LEN 86
-#define FUNC_DISASSEMBLE_LEN32 87
-#define FUNC_DISASSEMBLE_LEN64 88
-#define FUNC_INTERLOCKED_INCREMENT 89
-#define FUNC_INTERLOCKED_DECREMENT 90
-#define FUNC_PHYSICAL_TO_VIRTUAL 91
-#define FUNC_VIRTUAL_TO_PHYSICAL 92
-#define FUNC_ED 93
-#define FUNC_EB 94
-#define FUNC_EQ 95
-#define FUNC_INTERLOCKED_EXCHANGE 96
-#define FUNC_INTERLOCKED_EXCHANGE_ADD 97
-#define FUNC_INTERLOCKED_COMPARE_EXCHANGE 98
-#define FUNC_STRLEN 99
-#define FUNC_STRCMP 100
-#define FUNC_MEMCMP 101
-#define FUNC_STRNCMP 102
-#define FUNC_WCSNCMP 103
-#define FUNC_WCSLEN 104
-#define FUNC_WCSCMP 105
-#define FUNC_EVENT_INJECT_ERROR_CODE 106
-#define FUNC_MEMCPY 107
+#    define FUNC_REFERENCE                                                    2
+#    define FUNC_DEREFERENCE                                                  3
+#    define FUNC_OR                                                           4
+#    define FUNC_XOR                                                          5
+#    define FUNC_AND                                                          6
+#    define FUNC_ASR                                                          7
+#    define FUNC_ASL                                                          8
+#    define FUNC_ADD                                                          9
+#    define FUNC_SUB                                                          10
+#    define FUNC_MUL                                                          11
+#    define FUNC_DIV                                                          12
+#    define FUNC_MOD                                                          13
+#    define FUNC_GT                                                           14
+#    define FUNC_LT                                                           15
+#    define FUNC_EGT                                                          16
+#    define FUNC_ELT                                                          17
+#    define FUNC_EQUAL                                                        18
+#    define FUNC_NEQ                                                          19
+#    define FUNC_START_OF_IF                                                  20
+#    define FUNC_JMP                                                          21
+#    define FUNC_JZ                                                           22
+#    define FUNC_JNZ                                                          23
+#    define FUNC_JMP_TO_END_AND_JZCOMPLETED                                   24
+#    define FUNC_END_OF_IF                                                    25
+#    define FUNC_START_OF_WHILE                                               26
+#    define FUNC_END_OF_WHILE                                                 27
+#    define FUNC_VARGSTART                                                    28
+#    define FUNC_MOV                                                          29
+#    define FUNC_START_OF_DO_WHILE                                            30
+#    define FUNC_                                                             31
+#    define FUNC_START_OF_DO_WHILE_COMMANDS                                   32
+#    define FUNC_END_OF_DO_WHILE                                              33
+#    define FUNC_START_OF_FOR                                                 34
+#    define FUNC_FOR_INC_DEC                                                  35
+#    define FUNC_START_OF_FOR_OMMANDS                                         36
+#    define FUNC_IGNORE_LVALUE                                                37
+#    define FUNC_END_OF_USER_DEFINED_FUNCTION                                 38
+#    define FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE                   39
+#    define FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE                40
+#    define FUNC_CALL_USER_DEFINED_FUNCTION_PARAMETER                         41
+#    define FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE 42
+#    define FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE    43
+#    define FUNC_CALL_USER_DEFINED_FUNCTION                                   44
+#    define FUNC_START_OF_USER_DEFINED_FUNCTION                               45
+#    define FUNC_MOV_RETURN_VALUE                                             46
+#    define FUNC_VOID                                                         47
+#    define FUNC_BOOL                                                         48
+#    define FUNC_CHAR                                                         49
+#    define FUNC_SHORT                                                        50
+#    define FUNC_INT                                                          51
+#    define FUNC_LONG                                                         52
+#    define FUNC_UNSIGNED                                                     53
+#    define FUNC_SIGNED                                                       54
+#    define FUNC_FLOAT                                                        55
+#    define FUNC_DOUBLE                                                       56
+#    define FUNC_PRINT                                                        57
+#    define FUNC_FORMATS                                                      58
+#    define FUNC_EVENT_ENABLE                                                 59
+#    define FUNC_EVENT_DISABLE                                                60
+#    define FUNC_EVENT_CLEAR                                                  61
+#    define FUNC_TEST_STATEMENT                                               62
+#    define FUNC_SPINLOCK_LOCK                                                63
+#    define FUNC_SPINLOCK_UNLOCK                                              64
+#    define FUNC_EVENT_SC                                                     65
+#    define FUNC_PRINTF                                                       66
+#    define FUNC_PAUSE                                                        67
+#    define FUNC_FLUSH                                                        68
+#    define FUNC_EVENT_TRACE_STEP                                             69
+#    define FUNC_EVENT_TRACE_STEP_IN                                          70
+#    define FUNC_EVENT_TRACE_STEP_OUT                                         71
+#    define FUNC_EVENT_TRACE_INSTRUMENTATION_STEP                             72
+#    define FUNC_EVENT_TRACE_INSTRUMENTATION_STEP_IN                          73
+#    define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT                                    74
+#    define FUNC_EVENT_INJECT                                                 75
+#    define FUNC_POI                                                          76
+#    define FUNC_DB                                                           77
+#    define FUNC_DD                                                           78
+#    define FUNC_DW                                                           79
+#    define FUNC_DQ                                                           80
+#    define FUNC_NEG                                                          81
+#    define FUNC_HI                                                           82
+#    define FUNC_LOW                                                          83
+#    define FUNC_NOT                                                          84
+#    define FUNC_CHECK_ADDRESS                                                85
+#    define FUNC_DISASSEMBLE_LEN                                              86
+#    define FUNC_DISASSEMBLE_LEN32                                            87
+#    define FUNC_DISASSEMBLE_LEN64                                            88
+#    define FUNC_INTERLOCKED_INCREMENT                                        89
+#    define FUNC_INTERLOCKED_DECREMENT                                        90
+#    define FUNC_PHYSICAL_TO_VIRTUAL                                          91
+#    define FUNC_VIRTUAL_TO_PHYSICAL                                          92
+#    define FUNC_ED                                                           93
+#    define FUNC_EB                                                           94
+#    define FUNC_EQ                                                           95
+#    define FUNC_INTERLOCKED_EXCHANGE                                         96
+#    define FUNC_INTERLOCKED_EXCHANGE_ADD                                     97
+#    define FUNC_INTERLOCKED_COMPARE_EXCHANGE                                 98
+#    define FUNC_STRLEN                                                       99
+#    define FUNC_STRCMP                                                       100
+#    define FUNC_MEMCMP                                                       101
+#    define FUNC_STRNCMP                                                      102
+#    define FUNC_WCSNCMP                                                      103
+#    define FUNC_WCSLEN                                                       104
+#    define FUNC_WCSCMP                                                       105
+#    define FUNC_EVENT_INJECT_ERROR_CODE                                      106
+#    define FUNC_MEMCPY                                                       107
 
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,
