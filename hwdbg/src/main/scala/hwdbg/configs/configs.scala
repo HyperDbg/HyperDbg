@@ -125,7 +125,7 @@ object ScriptEngineConfigurations {
       HwdbgScriptCapabilities.func_inc,
       HwdbgScriptCapabilities.func_dec,
       HwdbgScriptCapabilities.func_or,
-      // HwdbgScriptCapabilities.func_xor,
+      HwdbgScriptCapabilities.func_xor,
       HwdbgScriptCapabilities.func_and,
       HwdbgScriptCapabilities.func_asl,
       HwdbgScriptCapabilities.func_add,
@@ -144,8 +144,6 @@ object ScriptEngineConfigurations {
       HwdbgScriptCapabilities.func_jnz,
       HwdbgScriptCapabilities.func_mov,
       // HwdbgScriptCapabilities.func_printf,
-      HwdbgScriptCapabilities.func_reference,
-      HwdbgScriptCapabilities.func_dereference
     )
 }
 
@@ -217,13 +215,11 @@ object HwdbgScriptCapabilities {
   val func_jnz: Long = 1L << 20
   val func_mov: Long = 1L << 21
   val func_printf: Long = 1L << 22
-  val func_reference: Long = 1L << 23
-  val func_dereference: Long = 1L << 24
 
   def allCapabilities: Seq[Long] = Seq(
     func_inc, func_dec, func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
-    func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf, func_reference, func_dereference
-  )
+    func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf
+  )r
 }
 
 object HwdbgInstanceInformation {
