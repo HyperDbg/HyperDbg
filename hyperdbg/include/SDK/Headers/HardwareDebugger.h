@@ -133,8 +133,7 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
         UINT64 func_jnz : 1;
         UINT64 func_mov : 1;
         UINT64 func_printf : 1;
-        UINT64 func_reference : 1;
-        UINT64 func_dereference : 1;
+
         //
         // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
         // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file

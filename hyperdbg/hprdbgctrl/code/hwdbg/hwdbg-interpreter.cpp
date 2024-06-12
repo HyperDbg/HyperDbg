@@ -207,8 +207,6 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
     ShowMessages("\tjump if not zero: %s \n", InstanceInfo->scriptCapabilities.func_jnz ? "supported" : "not supported");
     ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
     ShowMessages("\tprint: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
-    ShowMessages("\treference: %s \n", InstanceInfo->scriptCapabilities.func_reference ? "supported" : "not supported");
-    ShowMessages("\tdereference: %s \n", InstanceInfo->scriptCapabilities.func_dereference ? "supported" : "not supported");
     ShowMessages("\n");
 }
 
@@ -230,7 +228,13 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
 
     for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
     {
-        switch (SymbolArray[i].Type)
+        if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
+        {
+            ShowMessages("found a non-semnatic rule type at: 0x%x\n", i);
+            continue;
+        }
+
+        switch (SymbolArray[i].Value)
         {
         case FUNC_INC:
             if (!InstanceInfo->scriptCapabilities.func_inc)
@@ -413,22 +417,6 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
             {
                 NotSupported = TRUE;
                 ShowMessages("err, printf is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_REFERENCE:
-            if (!InstanceInfo->scriptCapabilities.func_reference)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, reference is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_DEREFERENCE:
-            if (!InstanceInfo->scriptCapabilities.func_dereference)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, dereference is not supported by the debuggee\n");
             }
             break;
 
