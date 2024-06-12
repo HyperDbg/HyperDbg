@@ -125,7 +125,7 @@ object ScriptEngineConfigurations {
       HwdbgScriptCapabilities.func_inc,
       HwdbgScriptCapabilities.func_dec,
       HwdbgScriptCapabilities.func_or,
-      HwdbgScriptCapabilities.func_xor,
+      // HwdbgScriptCapabilities.func_xor,
       HwdbgScriptCapabilities.func_and,
       HwdbgScriptCapabilities.func_asl,
       HwdbgScriptCapabilities.func_add,
@@ -143,9 +143,9 @@ object ScriptEngineConfigurations {
       HwdbgScriptCapabilities.func_jz,
       HwdbgScriptCapabilities.func_jnz,
       HwdbgScriptCapabilities.func_mov,
-      HwdbgScriptCapabilities.func_printf,
+      // HwdbgScriptCapabilities.func_printf,
       HwdbgScriptCapabilities.func_reference,
-      HwdbgScriptCapabilities.func_dereference,
+      HwdbgScriptCapabilities.func_dereference
     )
 }
 
