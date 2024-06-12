@@ -230,8 +230,12 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
-            ShowMessages("found a non-semnatic rule type at: 0x%x\n", i);
+            ShowMessages("  \tfound a non-semnatic rule (operand) type: 0x%x, at: 0x%x\n", SymbolArray[i].Type, i);
             continue;
+        }
+        else
+        {
+            ShowMessages("- found a semnatic rule (operator) value: 0x%x, at: 0x%x\n", SymbolArray[i].Value, i);
         }
 
         switch (SymbolArray[i].Value)
@@ -628,6 +632,67 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
     // Free the temporary buffer
     //
     free(TempBuffer);
+
+    return TRUE;
+}
+
+/**
+ * @brief Function to compress the buffer
+ *
+ * @param Buffer
+ * @param BufferLength
+ * @param NewBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
+                                                      size_t   SymbolBufferLength,
+                                                      size_t * NewBufferSize)
+
+{
+    SIZE_T NumberOfSymbols = SymbolBufferLength / sizeof(SymbolBuffer[0]);
+
+    *NewBufferSize = NumberOfSymbols * sizeof(HWDBG_SHORT_SYMBOL);
+
+    //
+    // Create a temporary buffer to hold the compressed data
+    //
+    HWDBG_SHORT_SYMBOL * HwdbgShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)malloc(*NewBufferSize);
+
+    if (!HwdbgShortSymbolBuffer)
+    {
+        ShowMessages("err, could not allocate compression buffer\n");
+        return FALSE;
+    }
+
+    //
+    // Zeroing the short symbol buffer
+    //
+    RtlZeroMemory(HwdbgShortSymbolBuffer, *NewBufferSize);
+
+    //
+    // Filling the short symbol buffer from original buffer
+    //
+    for (size_t i = 0; i < NumberOfSymbols; i++)
+    {
+        //
+        // Move the symbol buffer into a short symbol buffer
+        //
+        HwdbgShortSymbolBuffer[i].Type  = SymbolBuffer[i].Type;
+        HwdbgShortSymbolBuffer[i].Value = SymbolBuffer[i].Value;
+    }
+
+    //
+    // Copy the compressed data back to the original buffer
+    //
+    RtlZeroMemory(SymbolBuffer, SymbolBufferLength);
+    memcpy(SymbolBuffer, HwdbgShortSymbolBuffer, *NewBufferSize);
+
+    //
+    // Free the temporary buffer
+    //
+    free(HwdbgShortSymbolBuffer);
 
     return TRUE;
 }

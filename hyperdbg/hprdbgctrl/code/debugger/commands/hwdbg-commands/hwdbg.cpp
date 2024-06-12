@@ -146,7 +146,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         // Print the actual script
         //
-        ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d):\n\n",
+        ShowMessages("\nHyperDbg (general) script buffer (size=%d, stages=%d, flip-flops=%d):\n\n",
                      ActionScript->ScriptBufferSize,
                      ActionScript->ScriptBufferSize / sizeof(SYMBOL), // by default four 8 bytes which is equal to 32
                      ActionScript->ScriptBufferSize * 8               // Converted to bits
@@ -175,55 +175,54 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
             //
             if (g_HwdbgInstanceInfoIsValid)
             {
-                if (g_HwdbgInstanceInfo.scriptVariableLength == sizeof(UINT64) * 8)
+                //
+                // Conversion needed
+                //
+                if (g_HwdbgInstanceInfo.scriptVariableLength >= sizeof(BYTE) * 8)
                 {
-                    NewCompressedBufferSize = ActionScript->ScriptBufferSize;
-                    ShowMessages("the script variable length is same as default length; thus, does not need conversion\n");
+                    //
+                    // The script variable length is valid (at least 8 bit (1 byte)
+                    //
+
+                    //
+                    // Compress script buffer
+                    //
+                    if (
+                        HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
+                                                                              ActionScript->ScriptBufferSize,
+                                                                              &NewCompressedBufferSize) == TRUE
+
+                        &&
+
+                        HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
+                                                       NewCompressedBufferSize,
+                                                       g_HwdbgInstanceInfo.scriptVariableLength,
+                                                       &NewCompressedBufferSize,
+                                                       &NumberOfBytesPerChunk) == TRUE)
+                    {
+                        ShowMessages("\n---------------------------------------------------------\n");
+                        ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
+
+                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
+                                     NewCompressedBufferSize,
+                                     NewCompressedBufferSize / (NumberOfBytesPerChunk * 2), // Multiplied by 2 because there are 2 fields in HWDBG_SHORT_SYMBOL structure
+                                     NewCompressedBufferSize * 8,                           // Converted to bits
+                                     NumberOfBytesPerChunk);
+
+                        for (size_t i = 0; i < NewCompressedBufferSize; i++)
+                        {
+                            ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
+                        }
+
+                        ShowMessages("\n");
+                    }
                 }
                 else
                 {
                     //
-                    // Conversion needed
+                    // The script variable length is not valid (at least 8 bit (1 byte)
                     //
-                    if (g_HwdbgInstanceInfo.scriptVariableLength >= sizeof(BYTE) * 8)
-                    {
-                        //
-                        // The script variable length is valid (at least 8 bit (1 byte)
-                        //
-
-                        //
-                        // Compress script buffer
-                        //
-                        if (HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
-                                                           ActionScript->ScriptBufferSize,
-                                                           g_HwdbgInstanceInfo.scriptVariableLength,
-                                                           &NewCompressedBufferSize,
-                                                           &NumberOfBytesPerChunk) == TRUE)
-                        {
-                            ShowMessages("\n---------------------------------------------------------\n");
-                            ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
-
-                            ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
-                                         NewCompressedBufferSize,
-                                         NewCompressedBufferSize / (NumberOfBytesPerChunk * 4), // Multiplied by 4 because there are 4 fields in SYMBOL structure
-                                         NewCompressedBufferSize * 8,                           // Converted to bits
-                                         NumberOfBytesPerChunk);
-
-                            for (size_t i = 0; i < NewCompressedBufferSize; i++)
-                            {
-                                ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
-                            }
-
-                            ShowMessages("\n");
-                        }
-                    }
-                    else
-                    {
-                        //
-                        // The script variable length is not valid (at least 8 bit (1 byte)
-                        //
-                        ShowMessages("err, the script variable length should be at least 8 bits (1 byte)\n");
-                    }
+                    ShowMessages("err, the script variable length should be at least 8 bits (1 byte)\n");
                 }
             }
         }

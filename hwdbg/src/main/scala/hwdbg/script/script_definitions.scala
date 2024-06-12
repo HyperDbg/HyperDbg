@@ -5,9 +5,9 @@ import chisel3.util._
 
 /**
  * @brief
- *   The structure of SYMBOL used in script engine of HyperDbg
+ *   The structure of HWDBG_SHORT_SYMBOL used in script engine of HyperDbg
  */
-class Symbol(
+class HwdbgShortSymbol(
     scriptVariableLength: Int
 ) extends Bundle {
   
@@ -21,8 +21,6 @@ class Symbol(
 
   val Type = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
   val Len = UInt(scriptVariableLength.W)
-  val VariableType = UInt(scriptVariableLength.W)
-  val Value = UInt(scriptVariableLength.W)
 }
 
 /**
