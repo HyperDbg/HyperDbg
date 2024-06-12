@@ -122,28 +122,30 @@ object ScriptEngineConfigurations {
   // Define the capabilities you want to enable
   //
     val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
-      HwdbgScriptCapabilities.op_inc,
-      HwdbgScriptCapabilities.op_dec,
-      HwdbgScriptCapabilities.op_or,
-      HwdbgScriptCapabilities.op_xor,
-      HwdbgScriptCapabilities.op_and,
-      HwdbgScriptCapabilities.op_asl,
-      HwdbgScriptCapabilities.op_add,
-      HwdbgScriptCapabilities.op_sub,
-      HwdbgScriptCapabilities.op_mul,
-      HwdbgScriptCapabilities.op_div,
-      HwdbgScriptCapabilities.op_mod,
-      HwdbgScriptCapabilities.op_gt,
-      HwdbgScriptCapabilities.op_lt,
-      HwdbgScriptCapabilities.op_egt,
-      HwdbgScriptCapabilities.op_elt,
-      HwdbgScriptCapabilities.op_equal,
-      HwdbgScriptCapabilities.op_neq,
-      HwdbgScriptCapabilities.op_jmp,
-      HwdbgScriptCapabilities.op_jz,
-      HwdbgScriptCapabilities.op_jnz,
-      HwdbgScriptCapabilities.op_mov,
-      HwdbgScriptCapabilities.op_printf
+      HwdbgScriptCapabilities.func_inc,
+      HwdbgScriptCapabilities.func_dec,
+      HwdbgScriptCapabilities.func_or,
+      HwdbgScriptCapabilities.func_xor,
+      HwdbgScriptCapabilities.func_and,
+      HwdbgScriptCapabilities.func_asl,
+      HwdbgScriptCapabilities.func_add,
+      HwdbgScriptCapabilities.func_sub,
+      HwdbgScriptCapabilities.func_mul,
+      HwdbgScriptCapabilities.func_div,
+      HwdbgScriptCapabilities.func_mod,
+      HwdbgScriptCapabilities.func_gt,
+      HwdbgScriptCapabilities.func_lt,
+      HwdbgScriptCapabilities.func_egt,
+      HwdbgScriptCapabilities.func_elt,
+      HwdbgScriptCapabilities.func_equal,
+      HwdbgScriptCapabilities.func_neq,
+      HwdbgScriptCapabilities.func_jmp,
+      HwdbgScriptCapabilities.func_jz,
+      HwdbgScriptCapabilities.func_jnz,
+      HwdbgScriptCapabilities.func_mov,
+      HwdbgScriptCapabilities.func_printf,
+      HwdbgScriptCapabilities.func_reference,
+      HwdbgScriptCapabilities.func_dereference,
     )
 }
 
@@ -192,33 +194,35 @@ case class HwdbgInstanceInformation(
 )
 
 object HwdbgScriptCapabilities {
-  val op_inc: Long = 1L << 0
-  val op_dec: Long = 1L << 1
-  val op_or: Long = 1L << 2
-  val op_xor: Long = 1L << 3
-  val op_and: Long = 1L << 4
-  val op_asr: Long = 1L << 5
-  val op_asl: Long = 1L << 6
-  val op_add: Long = 1L << 7
-  val op_sub: Long = 1L << 8
-  val op_mul: Long = 1L << 9
-  val op_div: Long = 1L << 10
-  val op_mod: Long = 1L << 11
-  val op_gt: Long = 1L << 12
-  val op_lt: Long = 1L << 13
-  val op_egt: Long = 1L << 14
-  val op_elt: Long = 1L << 15
-  val op_equal: Long = 1L << 16
-  val op_neq: Long = 1L << 17
-  val op_jmp: Long = 1L << 18
-  val op_jz: Long = 1L << 19
-  val op_jnz: Long = 1L << 20
-  val op_mov: Long = 1L << 21
-  val op_printf: Long = 1L << 22
+  val func_inc: Long = 1L << 0
+  val func_dec: Long = 1L << 1
+  val func_or: Long = 1L << 2
+  val func_xor: Long = 1L << 3
+  val func_and: Long = 1L << 4
+  val func_asr: Long = 1L << 5
+  val func_asl: Long = 1L << 6
+  val func_add: Long = 1L << 7
+  val func_sub: Long = 1L << 8
+  val func_mul: Long = 1L << 9
+  val func_div: Long = 1L << 10
+  val func_mod: Long = 1L << 11
+  val func_gt: Long = 1L << 12
+  val func_lt: Long = 1L << 13
+  val func_egt: Long = 1L << 14
+  val func_elt: Long = 1L << 15
+  val func_equal: Long = 1L << 16
+  val func_neq: Long = 1L << 17
+  val func_jmp: Long = 1L << 18
+  val func_jz: Long = 1L << 19
+  val func_jnz: Long = 1L << 20
+  val func_mov: Long = 1L << 21
+  val func_printf: Long = 1L << 22
+  val func_reference: Long = 1L << 23
+  val func_dereference: Long = 1L << 24
 
   def allCapabilities: Seq[Long] = Seq(
-    op_inc, op_dec, op_or, op_xor, op_and, op_asr, op_asl, op_add, op_sub, op_mul, op_div, op_mod, op_gt, op_lt,
-    op_egt, op_elt, op_equal, op_neq, op_jmp, op_jz, op_jnz, op_mov, op_printf
+    func_inc, func_dec, func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
+    func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf, func_reference, func_dereference
   )
 }
 
