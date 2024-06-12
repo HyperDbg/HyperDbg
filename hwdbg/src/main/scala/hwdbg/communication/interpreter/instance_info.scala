@@ -232,10 +232,11 @@ class InterpreterInstanceInfo(
       is(sSendScriptCapabilities1) {
 
         //
-        // Set the first bits of the supported operators capabilities of this instance 
+        // Set the first bits (most significant) of the supported operators capabilities of this instance 
         // of the debugger
         //
-        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, bramDataWidth - 1).U
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, bramDataWidth, bramDataWidth + bramDataWidth - 1).U
+
 
         //
         // The output is valid
@@ -248,10 +249,10 @@ class InterpreterInstanceInfo(
       is(sSendScriptCapabilities2) {
 
         //
-        // Set the second bits of the supported operators capabilities of this instance 
+        // Set the second bits (least significant) of the supported operators capabilities of this instance 
         // of the debugger
         //
-        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, bramDataWidth, bramDataWidth + bramDataWidth - 1).U
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, bramDataWidth - 1).U
 
         //
         // The output is valid
