@@ -1997,6 +1997,40 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             FreeTemp(Op0);
             FreeTemp(Op1);
         }
+
+        else if (IsType15Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            PTOKEN  Op2       = Pop(MatchedStack);
+            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op2Symbol);
+
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            FreeTemp(Op2);
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
         else
         {
             *Error = SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE;

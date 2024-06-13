@@ -107,15 +107,6 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                 ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
                 PortNum++;
             }
-
-            //
-            // Write content of the memory into a file
-            //
-            if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
-                HwdbgInterpreterFillFileFromMemory(TestFilePath, MemoryBuffer, BufferSize))
-            {
-                ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
-            }
         }
         else
         {
@@ -214,7 +205,22 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                             ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
                         }
 
-                        ShowMessages("\n");
+                        ShowMessages("\nwriting script configuration packet into the file");
+
+                        //
+                        // Write script configuration packet into a file
+                        //
+                        if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                            HwdbgInterpreterSendPacketAndBufferToHwdbg(
+                                &g_HwdbgInstanceInfo,
+                                TestFilePath,
+                                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+                                hwdbgActionConfigureScriptBuffer,
+                                ScriptBuffer,
+                                (UINT32)NewCompressedBufferSize))
+                        {
+                            ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
+                        }
                     }
                 }
                 else

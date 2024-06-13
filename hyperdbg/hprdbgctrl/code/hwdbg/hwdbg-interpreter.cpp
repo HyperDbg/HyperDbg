@@ -509,7 +509,10 @@ HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgInterpreterFillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+HwdbgInterpreterFillFileFromMemory(
+    const TCHAR * FileName,
+    UINT32 *      MemoryBuffer,
+    size_t        BufferSize)
 {
     std::ofstream File(FileName);
 
@@ -520,7 +523,7 @@ HwdbgInterpreterFillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer
     }
 
     size_t Address = 0;
-    for (size_t I = 0; I < BufferSize; ++I)
+    for (size_t I = 0; I < BufferSize / sizeof(UINT32); ++I)
     {
         File << std::hex << std::setw(8) << std::setfill('0') << MemoryBuffer[I];
         File << " ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
@@ -543,11 +546,11 @@ HwdbgInterpreterFillFileFromMemory(const TCHAR * FileName, UINT32 * MemoryBuffer
         }
         else if (I == 4)
         {
-            File << "   | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)";
+            File << "  | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)";
         }
         else if (I == 5)
         {
-            File << "   | RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1)";
+            File << "  |------------------------- FIXMEEEEEEEEEEEEEEEEEEEEEE RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1)";
         }
         else if (I == 6)
         {
@@ -693,6 +696,145 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
     // Free the temporary buffer
     //
     free(HwdbgShortSymbolBuffer);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends a HyperDbg packet + a buffer to the hwdbg
+ *
+ * @param InstanceInfo
+ * @param FileName
+ * @param PacketType
+ * @param RequestedAction
+ * @param Buffer
+ * @param BufferLength
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                           const TCHAR *                FileName,
+                                           DEBUGGER_REMOTE_PACKET_TYPE  PacketType,
+                                           HWDBG_ACTION_ENUMS           RequestedAction,
+                                           CHAR *                       Buffer,
+                                           UINT32                       BufferLength)
+{
+    DEBUGGER_REMOTE_PACKET Packet          = {0};
+    SIZE_T                 CommandMaxSize  = 0;
+    SIZE_T                 FinalBufferSize = 0;
+
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        CommandMaxSize = InstanceInfo->debuggeeAreaOffset - InstanceInfo->debuggerAreaOffset;
+    }
+    else
+    {
+        //
+        // Use default limitation
+        //
+        CommandMaxSize = DEFAULT_INITIAL_DEBUGGEE_TO_DEBUGGER_OFFSET - DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET;
+    }
+
+    //
+    // If buffer is not available, then the length is zero
+    //
+    if (Buffer == NULL)
+    {
+        BufferLength = 0;
+    }
+
+    //
+    // Compute the final buffer size
+    //
+    FinalBufferSize = sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength;
+
+    //
+    // Check if buffer not pass the boundary
+    //
+    if (FinalBufferSize > CommandMaxSize)
+    {
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to hwdbg (%d > %d)",
+                     FinalBufferSize,
+                     CommandMaxSize);
+
+        return FALSE;
+    }
+
+    //
+    // Make the packet's structure
+    //
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKET;
+    Packet.TypeOfThePacket = PacketType;
+
+    //
+    // Set the requested action
+    //
+    Packet.RequestedActionOfThePacket = (DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION)RequestedAction;
+
+    //
+    // calculate checksum of the packet
+    //
+    Packet.Checksum =
+        KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                              sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+    if (Buffer != NULL)
+    {
+        Packet.Checksum += KdComputeDataChecksum((PVOID)Buffer, BufferLength);
+    }
+
+    //
+    // If there is an offset for debugger to debuggee command, we'll apply it here
+    //
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        FinalBufferSize += InstanceInfo->debuggerAreaOffset;
+    }
+    else
+    {
+        FinalBufferSize += DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET;
+    }
+
+    //
+    // Allocate a buffer for storing the header packet + buffer (if not empty)
+    //
+    CHAR * FinalBuffer = (CHAR *)malloc(FinalBufferSize);
+
+    if (!FinalBuffer)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(FinalBuffer, FinalBufferSize);
+
+    //
+    // Leave the offset
+    //
+    SIZE_T Offset = g_HwdbgInstanceInfoIsValid ? InstanceInfo->debuggerAreaOffset : DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET;
+
+    //
+    // Copy the packet into the FinalBuffer
+    //
+    memcpy(FinalBuffer + Offset, &Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+
+    //
+    // Copy the buffer (if available) into the FinalBuffer
+    //
+    if (Buffer != NULL)
+    {
+        memcpy(FinalBuffer + Offset + sizeof(DEBUGGER_REMOTE_PACKET), Buffer, BufferLength);
+    }
+
+    //
+    // Here you would send FinalBuffer to the hardware debugger
+    //
+    HwdbgInterpreterFillFileFromMemory(FileName, (UINT32 *)FinalBuffer, FinalBufferSize);
+
+    //
+    // Free the allocated memory after use
+    //
+    free(FinalBuffer);
 
     return TRUE;
 }

@@ -59,3 +59,11 @@ BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
                                                         UINT32                       CountOfScriptSymbolChunks);
+
+BOOLEAN
+HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                           const TCHAR *                FileName,
+                                           DEBUGGER_REMOTE_PACKET_TYPE  PacketType,
+                                           HWDBG_ACTION_ENUMS           RequestedAction,
+                                           CHAR *                       Buffer,
+                                           UINT32                       BufferLength);
