@@ -999,6 +999,26 @@ IsType14Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is ThreeOpFunc4
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType15Func(PTOKEN Operator)
+{
+    unsigned int n = THREEOPFUNC4_LENGTH;
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ThreeOpFunc4[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token type is VariableType
  *
  * @param Operator
