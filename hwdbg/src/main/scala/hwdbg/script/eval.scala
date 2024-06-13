@@ -40,13 +40,15 @@ class ScriptEngineEval(
     //
     val en = Input(Bool()) // chip enable signal
 
-    val currentStage = Input(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+    //
+    // Stage configuration signals
+    //
+    val stageConfig = Input(new Stage(debug, instanceInfo))
     val nextStage = Output(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
     //
-    // Input/Output signals
+    // Output signals
     //
-    val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
   })
 
@@ -54,7 +56,6 @@ class ScriptEngineEval(
   //-------------------------------------------------------------------------
   // Output pins
   //
-  // val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
   val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
 
@@ -74,8 +75,7 @@ class ScriptEngineEval(
   // Connect the output signals
   //
   io.nextStage := nextStage
-  // io.outputPin := outputPin
-  io.outputPin := io.inputPin
+  io.outputPin := io.stageConfig.pinValues
 
 }
 
@@ -86,8 +86,7 @@ object ScriptEngineEval {
       instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
-      currentStage: UInt,
-      inputPin: Vec[UInt]
+      stageConfig: Stage
   ): (UInt, Vec[UInt]) = {
 
     val scriptEngineEvalModule = Module(
@@ -104,8 +103,7 @@ object ScriptEngineEval {
     // Configure the input signals
     //
     scriptEngineEvalModule.io.en := en
-    scriptEngineEvalModule.io.currentStage := currentStage
-    scriptEngineEvalModule.io.inputPin := inputPin
+    scriptEngineEvalModule.io.stageConfig := stageConfig
 
     //
     // Configure the output signals

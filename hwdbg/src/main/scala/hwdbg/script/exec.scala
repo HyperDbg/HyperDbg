@@ -50,7 +50,7 @@ class ScriptExecutionEngine(
   //
   // Stage registers
   //
-  val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new StageRegisters(debug, instanceInfo)))
+  val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new Stage(debug, instanceInfo)))
 
   // -----------------------------------------------------------------------
   //
@@ -101,8 +101,7 @@ class ScriptExecutionEngine(
           instanceInfo
         )(
           io.en,
-          stageRegs(i).targetStage,
-          stageRegs(i).pinValues
+          stageRegs(i)
         )
 
         //
