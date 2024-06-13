@@ -66,7 +66,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         UINT32       PortNum                = 0;
         UINT32       MemoryBuffer[BufferSize];
 
-        if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
+        if (SetupPathForFileName(HWDBG_TEST_READ_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
             HwdbgInterpreterFillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
         {
             //
@@ -210,9 +210,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                         ShowMessages("\nwriting script configuration packet into the file");
 
                         //
-                        // Write script configuration packet into a file
+                        // *** Write script configuration packet into a file ***
                         //
-                        if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                        if (SetupPathForFileName(HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
                             HwdbgInterpreterSendPacketAndBufferToHwdbg(
                                 &g_HwdbgInstanceInfo,
                                 TestFilePath,
@@ -221,7 +221,26 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                                 ScriptBuffer,
                                 (UINT32)NewCompressedBufferSize))
                         {
-                            ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
+                            ShowMessages("script buffer successfully written into file: %s\n", TestFilePath);
+                        }
+                        else
+                        {
+                            ShowMessages("err, unable to write script buffer into file: %s\n", TestFilePath);
+                        }
+
+                        //
+                        // *** Write test instance info request into a file ***
+                        //
+                        if (SetupPathForFileName(HWDBG_TEST_WRITE_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                            HwdbgInterpreterSendPacketAndBufferToHwdbg(
+                                &g_HwdbgInstanceInfo,
+                                TestFilePath,
+                                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+                                hwdbgActionSendInstanceInfo,
+                                NULL,
+                                NULL_ZERO))
+                        {
+                            ShowMessages("instance info successfully written into file: %s\n", TestFilePath);
                         }
                     }
                 }
