@@ -17,7 +17,7 @@
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
 extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
 extern std::vector<UINT32>        g_HwdbgPortConfiguration;
-;
+extern const char *               HwdbgActionEnumNames[];
 
 /**
  * @brief help of the !hwdbg command
@@ -54,6 +54,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
+    UINT32                             NumberOfStagesForScript     = 0;
     size_t                             NewCompressedBufferSize     = 0;
     size_t                             NumberOfBytesPerChunk       = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
@@ -66,7 +67,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         UINT32       PortNum                = 0;
         UINT32       MemoryBuffer[BufferSize];
 
-        if (SetupPathForFileName(HWDBG_TEST_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
+        if (SetupPathForFileName(HWDBG_TEST_READ_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
             HwdbgInterpreterFillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
         {
             //
@@ -89,7 +90,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
             ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
             ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
             ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
-            ShowMessages("Debuggee Maximum Number Of Supported Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedScriptOperators);
+            ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators);
+            ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
+            ShowMessages("Debuggee Shared Memory Size: 0x%x\n", g_HwdbgInstanceInfo.sharedMemorySize);
             ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggerAreaOffset);
             ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggeeAreaOffset);
             ShowMessages("Debuggee Script Capabilities Mask: 0x%llx\n", g_HwdbgInstanceInfo.scriptCapabilities);
@@ -139,8 +142,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         ShowMessages("\nHyperDbg (general) script buffer (size=%d, stages=%d, flip-flops=%d):\n\n",
                      ActionScript->ScriptBufferSize,
-                     ActionScript->ScriptBufferSize / sizeof(SYMBOL), // by default four 8 bytes which is equal to 32
-                     ActionScript->ScriptBufferSize * 8               // Converted to bits
+                     NumberOfStagesForScript,
+                     ActionScript->ScriptBufferSize * 8 // Converted to bits
         );
 
         CHAR * ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));
@@ -157,7 +160,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         if (HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
                                                                     ScriptBuffer,
-                                                                    ActionScript->ScriptBufferSize / sizeof(SYMBOL)))
+                                                                    ActionScript->ScriptBufferSize / sizeof(SYMBOL),
+                                                                    &NumberOfStagesForScript))
         {
             ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
 
@@ -178,13 +182,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                     //
                     // Compress script buffer
                     //
-                    if (
-                        HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
+                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
                                                                               ActionScript->ScriptBufferSize,
-                                                                              &NewCompressedBufferSize) == TRUE
-
-                        &&
-
+                                                                              &NewCompressedBufferSize) == TRUE &&
                         HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
                                                        NewCompressedBufferSize,
                                                        g_HwdbgInstanceInfo.scriptVariableLength,
@@ -196,8 +196,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
 
                         ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
-                                     NewCompressedBufferSize / (NumberOfBytesPerChunk * 2), // Multiplied by 2 because there are 2 fields in HWDBG_SHORT_SYMBOL structure
-                                     NewCompressedBufferSize * 8,                           // Converted to bits
+                                     NumberOfStagesForScript,
+                                     NewCompressedBufferSize * 8, // Converted to bits
                                      NumberOfBytesPerChunk);
 
                         for (size_t i = 0; i < NewCompressedBufferSize; i++)
@@ -205,12 +205,12 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                             ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
                         }
 
-                        ShowMessages("\nwriting script configuration packet into the file");
+                        ShowMessages("writing script configuration packet into the file\n");
 
                         //
-                        // Write script configuration packet into a file
+                        // *** Write script configuration packet into a file ***
                         //
-                        if (SetupPathForFileName(HWDBG_TEST_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                        if (SetupPathForFileName(HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
                             HwdbgInterpreterSendPacketAndBufferToHwdbg(
                                 &g_HwdbgInstanceInfo,
                                 TestFilePath,
@@ -219,7 +219,26 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                                 ScriptBuffer,
                                 (UINT32)NewCompressedBufferSize))
                         {
-                            ShowMessages("Script buffer successfully written into file: %s\n", TestFilePath);
+                            ShowMessages("\n[*] script buffer successfully written into file: %s\n", TestFilePath);
+                        }
+                        else
+                        {
+                            ShowMessages("err, unable to write script buffer into file: %s\n", TestFilePath);
+                        }
+
+                        //
+                        // *** Write test instance info request into a file ***
+                        //
+                        if (SetupPathForFileName(HWDBG_TEST_WRITE_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
+                            HwdbgInterpreterSendPacketAndBufferToHwdbg(
+                                &g_HwdbgInstanceInfo,
+                                TestFilePath,
+                                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+                                hwdbgActionSendInstanceInfo,
+                                NULL,
+                                NULL_ZERO))
+                        {
+                            ShowMessages("[*] instance info successfully written into file: %s\n", TestFilePath);
                         }
                     }
                 }

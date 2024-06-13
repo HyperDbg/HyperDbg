@@ -20,7 +20,7 @@ class HwdbgShortSymbol(
   )
 
   val Type = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
-  val Len = UInt(scriptVariableLength.W)
+  val Value = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
 }
 
 /**

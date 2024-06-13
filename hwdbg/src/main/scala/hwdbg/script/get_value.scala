@@ -43,7 +43,7 @@ class ScriptEngineGetValue(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(new Symbol(instanceInfo.scriptVariableLength))
+    val operator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
     // Input signals
@@ -87,7 +87,9 @@ class ScriptEngineGetValue(
       }
       is(symbolNumType) {
         
-        outputValue := io.operator.Value
+        //
+        // To be implemented
+        //
       }
       is(symbolRegisterType) {
         //
@@ -131,7 +133,7 @@ object ScriptEngineGetValue {
       instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
-      operator: Symbol,
+      operator: HwdbgShortSymbol,
       inputPin: Vec[UInt]
   ): (UInt) = {
 

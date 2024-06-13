@@ -25,7 +25,8 @@ import hwdbg.utils._
 object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
     val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
-    sSendMaximumNumberOfSupportedScriptOperators, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
+    sSendMaximumNumberOfSupportedGetScriptOperators, sSendMaximumNumberOfSupportedSetScriptOperators,
+    sSendSharedMemorySize, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
     sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1, sSendScriptCapabilities2, 
     sSendPortsConfiguration, sDone = Value
   }
@@ -148,16 +149,47 @@ class InterpreterInstanceInfo(
         //
         dataValidOutput := true.B
 
-        state := sSendMaximumNumberOfSupportedScriptOperators
+        state := sSendMaximumNumberOfSupportedGetScriptOperators
 
       }
-      is(sSendMaximumNumberOfSupportedScriptOperators) {
+      is(sSendMaximumNumberOfSupportedGetScriptOperators) {
 
         //
-        // Set the maximum number of supported operators by this instance of the 
+        // Set the maximum number of supported GET operators by this instance of the 
         // debugger in the script engine
         //
-        sendingData := instanceInfo.maximumNumberOfSupportedScriptOperators.U
+        sendingData := instanceInfo.maximumNumberOfSupportedGetScriptOperators.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendMaximumNumberOfSupportedSetScriptOperators
+
+      }
+      is(sSendMaximumNumberOfSupportedSetScriptOperators) {
+
+        //
+        // Set the maximum number of supported SET operators by this instance of the 
+        // debugger in the script engine
+        //
+        sendingData := instanceInfo.maximumNumberOfSupportedSetScriptOperators.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendSharedMemorySize
+
+      }
+      is(sSendSharedMemorySize) {
+
+        //
+        // Set the shared memory size used by this instance of the debugger
+        //
+        sendingData := instanceInfo.sharedMemorySize.U
 
         //
         // The output is valid

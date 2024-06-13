@@ -41,68 +41,55 @@ class ScriptEngineEval(
     val en = Input(Bool()) // chip enable signal
 
     //
-    // Evaluation operator symbol
+    // Stage configuration signals
     //
-    val operators = Input(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators, new Symbol(instanceInfo.scriptVariableLength)))
-
-    val currentStage = Input(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+    val stageConfig = Input(new Stage(debug, instanceInfo))
     val nextStage = Output(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
     //
-    // Input/Output signals
+    // Output signals
     //
-    val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
   })
 
-  //-------------------------------------------------------------------------
-  // Get value module
-  //
-  val getValueModuleOutput = Wire(Vec(instanceInfo.maximumNumberOfSupportedScriptOperators - 1, UInt(instanceInfo.scriptVariableLength.W)))
-
-  for (i <- 0 until instanceInfo.maximumNumberOfSupportedScriptOperators - 1) {
-
-      getValueModuleOutput(i) := ScriptEngineGetValue(
-        debug,
-        instanceInfo
-    )(
-        io.en,
-        io.operators(i),
-        io.inputPin
-    )
-  }
-  
-  //-------------------------------------------------------------------------
-  // Set value module
-  //
-  val setValueModuleInput = Wire(UInt(instanceInfo.scriptVariableLength.W)) // operators should be applied to this wire
-  setValueModuleInput := 0. U ////////////////////// Test should be removed
-
-  io.outputPin := ScriptEngineSetValue(
-        debug,
-        instanceInfo
-    )(
-        io.en,
-        io.operators(instanceInfo.maximumNumberOfSupportedScriptOperators - 1), // last operator is for set value
-        setValueModuleInput
-    )
 
   //-------------------------------------------------------------------------
   // Output pins
   //
-  // val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
   val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
   //
   // Assign operator value (split the signal into only usable part)
   //
   LogInfo(debug)("Usable size of Value in the SYMBOL: " + ScriptOperators().getWidth)
-  val mainOperatorValue = io.operators(0).Value(ScriptOperators().getWidth - 1, 0).asTypeOf(ScriptOperators())
+  val mainOperatorValue = io.stageConfig.stageSymbol.Value(ScriptOperators().getWidth - 1, 0).asTypeOf(ScriptOperators())
+
+  //-------------------------------------------------------------------------
+  // Get value module
+  //
+  val getValueModuleOutput = Wire(Vec(instanceInfo.maximumNumberOfSupportedGetScriptOperators, UInt(instanceInfo.scriptVariableLength.W)))
+
+  for (i <- 0 until instanceInfo.maximumNumberOfSupportedGetScriptOperators) {
+
+      getValueModuleOutput(i) := ScriptEngineGetValue(
+        debug,
+        instanceInfo
+    )(
+        io.en,
+        io.stageConfig.getOperatorSymbol(i),
+        io.stageConfig.pinValues
+    )
+  }
 
   //-------------------------------------------------------------------------
   // *** Implementing the evaluation engine ***
   //
+  //
+  val srcVal0 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val srcVal1 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val desVal = WireInit(0.U(instanceInfo.scriptVariableLength.W))
 
+  
   //
   // Apply the chip enable signal
   //
@@ -110,13 +97,36 @@ class ScriptEngineEval(
 
     switch(mainOperatorValue) {
 
-      is(sFuncInc) { 
-        nextStage := io.currentStage + 1.U
+      is(sFuncAdd) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_add) == true) {
+
+          srcVal0 := getValueModuleOutput(0)
+          srcVal1 := getValueModuleOutput(1)
+
+          desVal := srcVal0 + srcVal1
+        }
       }
       is(sFuncDec) {
-        nextStage := io.currentStage + 2.U
+        
       }
     }
+  }
+  
+  //-------------------------------------------------------------------------
+  // Set value module
+  //
+  val setValueModuleInput = Wire(Vec(instanceInfo.maximumNumberOfSupportedSetScriptOperators, Vec(instanceInfo.numberOfPins, UInt(1.W))))
+
+  for (i <- 0 until instanceInfo.maximumNumberOfSupportedSetScriptOperators) {
+
+  setValueModuleInput(i) := ScriptEngineSetValue(
+        debug,
+        instanceInfo
+    )(
+        io.en,
+        io.stageConfig.setOperatorSymbol(i),
+        desVal
+    )
   }
 
   // ---------------------------------------------------------------------
@@ -130,8 +140,7 @@ class ScriptEngineEval(
   // Connect the output signals
   //
   io.nextStage := nextStage
-  // io.outputPin := outputPin
-  io.outputPin := io.inputPin
+  io.outputPin := setValueModuleInput(0)
 
 }
 
@@ -142,9 +151,7 @@ object ScriptEngineEval {
       instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
-      operators: Vec[Symbol],
-      currentStage: UInt,
-      inputPin: Vec[UInt]
+      stageConfig: Stage
   ): (UInt, Vec[UInt]) = {
 
     val scriptEngineEvalModule = Module(
@@ -161,9 +168,7 @@ object ScriptEngineEval {
     // Configure the input signals
     //
     scriptEngineEvalModule.io.en := en
-    scriptEngineEvalModule.io.operators := operators
-    scriptEngineEvalModule.io.currentStage := currentStage
-    scriptEngineEvalModule.io.inputPin := inputPin
+    scriptEngineEvalModule.io.stageConfig := stageConfig
 
     //
     // Configure the output signals

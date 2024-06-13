@@ -215,16 +215,21 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
  *
  * @param InstanceInfo
  * @param ScriptBuffer
+ * @param CountOfScriptSymbolChunks
+ * @param NumberOfStages
  *
  * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
  */
 BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
-                                                        UINT32                       CountOfScriptSymbolChunks)
+                                                        UINT32                       CountOfScriptSymbolChunks,
+                                                        UINT32 *                     NumberOfStages)
 {
     BOOLEAN  NotSupported = FALSE;
     SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
+
+    UINT32 Stages = 0;
 
     for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
     {
@@ -235,6 +240,7 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
         }
         else
         {
+            Stages++;
             ShowMessages("- found a semnatic rule (operator) value: 0x%x, at: 0x%x\n", SymbolArray[i].Value, i);
         }
 
@@ -436,6 +442,11 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     }
 
     //
+    // Set the number of stages
+    //
+    *NumberOfStages = Stages;
+
+    //
     // Script capabilities support this buffer
     //
     if (NotSupported)
@@ -503,16 +514,21 @@ HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer
 /**
  * @brief Function to write the memory buffer to a file in the specified format
  *
+ * @param InstanceInfo
  * @param FileName
  * @param MemoryBuffer
  * @param BufferSize
+ * @param RequestedAction
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 HwdbgInterpreterFillFileFromMemory(
-    const TCHAR * FileName,
-    UINT32 *      MemoryBuffer,
-    size_t        BufferSize)
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    const TCHAR *                FileName,
+    UINT32 *                     MemoryBuffer,
+    size_t                       BufferSize,
+    HWDBG_ACTION_ENUMS           RequestedAction)
 {
     std::ofstream File(FileName);
 
@@ -550,17 +566,37 @@ HwdbgInterpreterFillFileFromMemory(
         }
         else if (I == 5)
         {
-            File << "  |------------------------- FIXMEEEEEEEEEEEEEEEEEEEEEE RequestedActionOfThePacket - hwdbgActionSendInstanceInfo (0x1)";
+            File << "  | RequestedActionOfThePacket - Value" << " (0x" << std::hex << std::setw(1) << std::setfill('0') << RequestedAction << ")";
         }
         else if (I == 6)
         {
-            File << "   | Start of Optional Data";
+            File << "  | Start of Optional Data";
         }
 
         File << "\n";
         Address += 4;
     }
 
+    //
+    // Add zeros to the end of the file to fill the shared memory
+    //
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        while (Address < InstanceInfo->sharedMemorySize)
+        {
+            File << "00000000 ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
+            Address += 4;
+
+            if (Address < InstanceInfo->sharedMemorySize)
+            {
+                File << "\n";
+            }
+        }
+    }
+
+    //
+    // Close the file
+    //
     File.close();
 
     return TRUE;
@@ -829,7 +865,7 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
     //
     // Here you would send FinalBuffer to the hardware debugger
     //
-    HwdbgInterpreterFillFileFromMemory(FileName, (UINT32 *)FinalBuffer, FinalBufferSize);
+    HwdbgInterpreterFillFileFromMemory(InstanceInfo, FileName, (UINT32 *)FinalBuffer, FinalBufferSize, RequestedAction);
 
     //
     // Free the allocated memory after use
