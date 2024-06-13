@@ -43,7 +43,7 @@ class ScriptEngineSetValue(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(new Symbol(instanceInfo.scriptVariableLength))
+    val operator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
     // Input value
@@ -123,7 +123,7 @@ object ScriptEngineSetValue {
       instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
-      operator: Symbol,
+      operator: HwdbgShortSymbol,
       inputValue: UInt
   ): (Vec[UInt]) = {
 

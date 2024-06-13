@@ -111,7 +111,13 @@ object ScriptEngineConfigurations {
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS: Int = 3 // 2 for get value and 1 for set value
+  val MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS: Int = 2 // for get values
+
+  //
+  // Maximum number of stages
+  //
+  val MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int = 1 // for get value 
+
 
   //
   // Script variable length
@@ -182,7 +188,9 @@ case class HwdbgInstanceInformation(
   version: Int,                 // Target version of HyperDbg (same as hwdbg)
   maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
   scriptVariableLength: Int, // Maximum length of variables (and other script elements)
-  maximumNumberOfSupportedScriptOperators: Int, // Maximum supported operators in a single func
+  maximumNumberOfSupportedGetScriptOperators: Int, // Maximum supported GET operators in a single func
+  maximumNumberOfSupportedSetScriptOperators: Int, // Maximum supported SET operators in a single func
+  sharedMemorySize: Int, // Size of shared memory
   debuggerAreaOffset: Int, // The memory offset of debugger
   debuggeeAreaOffset: Int, // The memory offset of debuggee
   numberOfPins: Int,            // Number of pins
@@ -219,7 +227,7 @@ object HwdbgScriptCapabilities {
   def allCapabilities: Seq[Long] = Seq(
     func_inc, func_dec, func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
     func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf
-  )r
+  )
 }
 
 object HwdbgInstanceInformation {
@@ -238,7 +246,9 @@ object HwdbgInstanceInformation {
     version: Int,
     maximumNumberOfStages: Int,
     scriptVariableLength: Int,
-    maximumNumberOfSupportedScriptOperators: Int,
+    maximumNumberOfSupportedGetScriptOperators: Int,
+    maximumNumberOfSupportedSetScriptOperators: Int,
+    sharedMemorySize: Int,
     debuggerAreaOffset: Int,
     debuggeeAreaOffset: Int,
     numberOfPins: Int,
@@ -263,7 +273,9 @@ object HwdbgInstanceInformation {
       version = version,
       maximumNumberOfStages = maximumNumberOfStages,
       scriptVariableLength = scriptVariableLength,
-      maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+      maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
+      maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
+      sharedMemorySize = sharedMemorySize,
       debuggerAreaOffset = debuggerAreaOffset,
       debuggeeAreaOffset = debuggeeAreaOffset,
       numberOfPins = numberOfPins,
