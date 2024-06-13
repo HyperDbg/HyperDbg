@@ -91,14 +91,16 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //
     // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE
     //
-    UINT32 version;                                 // Target version of HyperDbg (same as hwdbg)
-    UINT32 maximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
-    UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
-    UINT32 maximumNumberOfSupportedScriptOperators; // maximum supported operators in a single func
-    UINT32 debuggerAreaOffset;                      // The memory offset of debugger
-    UINT32 debuggeeAreaOffset;                      // The memory offset of debuggee
-    UINT32 numberOfPins;                            // Number of pins
-    UINT32 numberOfPorts;                           // Number of ports
+    UINT32 version;                                    // Target version of HyperDbg (same as hwdbg)
+    UINT32 maximumNumberOfStages;                      // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+    UINT32 scriptVariableLength;                       // maximum length of variables (and other script elements)
+    UINT32 maximumNumberOfSupportedGetScriptOperators; // Maximum supported GET operators in a single func
+    UINT32 maximumNumberOfSupportedSetScriptOperators; // Maximum supported SET operators in a single func
+    UINT32 sharedMemorySize;                           // Size of shared memory
+    UINT32 debuggerAreaOffset;                         // The memory offset of debugger
+    UINT32 debuggeeAreaOffset;                         // The memory offset of debuggee
+    UINT32 numberOfPins;                               // Number of pins
+    UINT32 numberOfPorts;                              // Number of ports
 
     //
     // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE

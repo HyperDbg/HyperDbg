@@ -17,7 +17,7 @@
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
 extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
 extern std::vector<UINT32>        g_HwdbgPortConfiguration;
-;
+extern const char *               HwdbgActionEnumNames[];
 
 /**
  * @brief help of the !hwdbg command
@@ -89,7 +89,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
             ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
             ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
             ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
-            ShowMessages("Debuggee Maximum Number Of Supported Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedScriptOperators);
+            ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators);
+            ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
+            ShowMessages("Debuggee Shared Memory Size: 0x%x\n", g_HwdbgInstanceInfo.sharedMemorySize);
             ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggerAreaOffset);
             ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggeeAreaOffset);
             ShowMessages("Debuggee Script Capabilities Mask: 0x%llx\n", g_HwdbgInstanceInfo.scriptCapabilities);
