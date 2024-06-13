@@ -1927,8 +1927,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            PTOKEN  Op2       = Pop(MatchedStack);
-            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
 
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
@@ -1939,13 +1939,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
 
-            FreeTemp(Op2);
 
             //
             // Free the operand if it is a temp value
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
+            FreeTemp(Op2);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -2007,8 +2007,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            PTOKEN  Op2       = Pop(MatchedStack);
-            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
 
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
@@ -2019,13 +2019,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
 
-            FreeTemp(Op2);
-
             //
             // Free the operand if it is a temp value
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
+            FreeTemp(Op2);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;

@@ -2107,7 +2107,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        if (Src1->Type == SYMBOL_STRING_TYPE)
+        if (Src1->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
                 *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
@@ -2125,7 +2125,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *Indx = *Indx + 1;
 
-        if (Src2->Type == SYMBOL_STRING_TYPE)
+        if (Src2->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
                 *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
