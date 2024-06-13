@@ -200,6 +200,7 @@ case class HwdbgInstanceInformation(
 )
 
 object HwdbgScriptCapabilities {
+
   val func_inc: Long = 1L << 0
   val func_dec: Long = 1L << 1
   val func_or: Long = 1L << 2
@@ -228,9 +229,6 @@ object HwdbgScriptCapabilities {
     func_inc, func_dec, func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
     func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf
   )
-}
-
-object HwdbgInstanceInformation {
 
   //
   // Utility method to create a bitmask from a sequence of capabilities
@@ -238,6 +236,17 @@ object HwdbgInstanceInformation {
   def createCapabilitiesMask(capabilities: Seq[Long]): Long = {
     capabilities.foldLeft(0L)(_ | _)
   }
+
+  //
+  // Function to check if a capability is supported
+  //
+  def isCapabilitySupported(supportedCapabilities: Long, capability: Long): Boolean = {
+    (supportedCapabilities & capability) != 0
+  }
+  
+}
+
+object HwdbgInstanceInformation {
 
   //
   // Function to create an instance of HwdbgInstanceInformation
@@ -257,7 +266,7 @@ object HwdbgInstanceInformation {
     portsConfiguration: Array[Int]
   ): HwdbgInstanceInformation = {
 
-    val capabilitiesMask = createCapabilitiesMask(enabledCapabilities)
+    val capabilitiesMask = HwdbgScriptCapabilities.createCapabilitiesMask(enabledCapabilities)
 
     //
     // Printing the versioning info

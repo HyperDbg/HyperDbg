@@ -80,14 +80,42 @@ class ScriptEngineEval(
         io.stageConfig.pinValues
     )
   }
+
+  //-------------------------------------------------------------------------
+  // *** Implementing the evaluation engine ***
+  //
+  //
+  val srcVal0 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val srcVal1 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val desVal = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+
+  
+  //
+  // Apply the chip enable signal
+  //
+  when(io.en === true.B) {
+
+    switch(mainOperatorValue) {
+
+      is(sFuncAdd) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_add) == true) {
+
+          srcVal0 := getValueModuleOutput(0)
+          srcVal1 := getValueModuleOutput(1)
+
+          desVal := srcVal0 + srcVal1
+        }
+      }
+      is(sFuncDec) {
+        
+      }
+    }
+  }
   
   //-------------------------------------------------------------------------
   // Set value module
   //
   val setValueModuleInput = Wire(Vec(instanceInfo.maximumNumberOfSupportedSetScriptOperators, Vec(instanceInfo.numberOfPins, UInt(1.W))))
-
-  val testValueToSet = Wire(UInt(instanceInfo.scriptVariableLength.W)) // operators should be applied to this wire
-  testValueToSet := 0. U ////////////////////// Test should be removed
 
   for (i <- 0 until instanceInfo.maximumNumberOfSupportedSetScriptOperators) {
 
@@ -97,31 +125,9 @@ class ScriptEngineEval(
     )(
         io.en,
         io.stageConfig.setOperatorSymbol(i),
-        testValueToSet
+        desVal
     )
   }
-
-  //-------------------------------------------------------------------------
-  // *** Implementing the evaluation engine ***
-  //
-  //
-
-  //
-  // Apply the chip enable signal
-  //
-  when(io.en === true.B) {
-
-    switch(mainOperatorValue) {
-
-      is(sFuncInc) { 
-        
-      }
-      is(sFuncDec) {
-        
-      }
-    }
-  }
-
 
   // ---------------------------------------------------------------------
 
