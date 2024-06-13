@@ -1,7 +1,7 @@
 Content of BRAM after emulation:
 
 PS to PL area:
-mem_0:   00000000   | Checksum
+mem_0:   0000005a   | Checksum
 mem_1:   00000000   | Checksum
 mem_2:   52444247   | Indicator
 mem_3:   48595045   | Indicator
