@@ -54,6 +54,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
+    UINT32                             NumberOfStagesForScript     = 0;
     size_t                             NewCompressedBufferSize     = 0;
     size_t                             NumberOfBytesPerChunk       = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
@@ -141,8 +142,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         ShowMessages("\nHyperDbg (general) script buffer (size=%d, stages=%d, flip-flops=%d):\n\n",
                      ActionScript->ScriptBufferSize,
-                     ActionScript->ScriptBufferSize / sizeof(SYMBOL), // by default four 8 bytes which is equal to 32
-                     ActionScript->ScriptBufferSize * 8               // Converted to bits
+                     NumberOfStagesForScript,
+                     ActionScript->ScriptBufferSize * 8 // Converted to bits
         );
 
         CHAR * ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));
@@ -159,7 +160,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         if (HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
                                                                     ScriptBuffer,
-                                                                    ActionScript->ScriptBufferSize / sizeof(SYMBOL)))
+                                                                    ActionScript->ScriptBufferSize / sizeof(SYMBOL),
+                                                                    &NumberOfStagesForScript))
         {
             ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
 
@@ -180,13 +182,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                     //
                     // Compress script buffer
                     //
-                    if (
-                        HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
+                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
                                                                               ActionScript->ScriptBufferSize,
-                                                                              &NewCompressedBufferSize) == TRUE
-
-                        &&
-
+                                                                              &NewCompressedBufferSize) == TRUE &&
                         HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
                                                        NewCompressedBufferSize,
                                                        g_HwdbgInstanceInfo.scriptVariableLength,
@@ -198,8 +196,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
 
                         ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
-                                     NewCompressedBufferSize / (NumberOfBytesPerChunk * 2), // Multiplied by 2 because there are 2 fields in HWDBG_SHORT_SYMBOL structure
-                                     NewCompressedBufferSize * 8,                           // Converted to bits
+                                     NumberOfStagesForScript,
+                                     NewCompressedBufferSize * 8, // Converted to bits
                                      NumberOfBytesPerChunk);
 
                         for (size_t i = 0; i < NewCompressedBufferSize; i++)
@@ -207,7 +205,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                             ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
                         }
 
-                        ShowMessages("\nwriting script configuration packet into the file");
+                        ShowMessages("writing script configuration packet into the file\n");
 
                         //
                         // *** Write script configuration packet into a file ***
@@ -221,7 +219,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                                 ScriptBuffer,
                                 (UINT32)NewCompressedBufferSize))
                         {
-                            ShowMessages("script buffer successfully written into file: %s\n", TestFilePath);
+                            ShowMessages("\n[*] script buffer successfully written into file: %s\n", TestFilePath);
                         }
                         else
                         {
@@ -240,7 +238,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                                 NULL,
                                 NULL_ZERO))
                         {
-                            ShowMessages("instance info successfully written into file: %s\n", TestFilePath);
+                            ShowMessages("[*] instance info successfully written into file: %s\n", TestFilePath);
                         }
                     }
                 }

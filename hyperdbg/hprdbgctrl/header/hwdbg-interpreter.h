@@ -69,7 +69,8 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
 BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
-                                                        UINT32                       CountOfScriptSymbolChunks);
+                                                        UINT32                       CountOfScriptSymbolChunks,
+                                                        UINT32 *                     NumberOfStages);
 
 BOOLEAN
 HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * InstanceInfo,

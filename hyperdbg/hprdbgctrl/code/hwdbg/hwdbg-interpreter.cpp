@@ -215,16 +215,21 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
  *
  * @param InstanceInfo
  * @param ScriptBuffer
+ * @param CountOfScriptSymbolChunks
+ * @param NumberOfStages
  *
  * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
  */
 BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
-                                                        UINT32                       CountOfScriptSymbolChunks)
+                                                        UINT32                       CountOfScriptSymbolChunks,
+                                                        UINT32 *                     NumberOfStages)
 {
     BOOLEAN  NotSupported = FALSE;
     SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
+
+    UINT32 Stages = 0;
 
     for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
     {
@@ -235,6 +240,7 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
         }
         else
         {
+            Stages++;
             ShowMessages("- found a semnatic rule (operator) value: 0x%x, at: 0x%x\n", SymbolArray[i].Value, i);
         }
 
@@ -436,6 +442,11 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     }
 
     //
+    // Set the number of stages
+    //
+    *NumberOfStages = Stages;
+
+    //
     // Script capabilities support this buffer
     //
     if (NotSupported)
@@ -569,17 +580,23 @@ HwdbgInterpreterFillFileFromMemory(
     //
     // Add zeros to the end of the file to fill the shared memory
     //
-    while (Address < InstanceInfo->sharedMemorySize)
+    if (g_HwdbgInstanceInfoIsValid)
     {
-        File << "00000000 ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
-        Address += 4;
-
-        if (Address < InstanceInfo->sharedMemorySize)
+        while (Address < InstanceInfo->sharedMemorySize)
         {
-            File << "\n";
+            File << "00000000 ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
+            Address += 4;
+
+            if (Address < InstanceInfo->sharedMemorySize)
+            {
+                File << "\n";
+            }
         }
     }
 
+    //
+    // Close the file
+    //
     File.close();
 
     return TRUE;
