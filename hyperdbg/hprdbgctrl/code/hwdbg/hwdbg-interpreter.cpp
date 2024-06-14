@@ -84,7 +84,7 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
         //
         switch (TheActualPacket->RequestedActionOfThePacket)
         {
-        case hwdbgResponseInvalidPacketOrError:
+        case hwdbgResponseSuccessOrErrorMessage:
 
             Result = TRUE;
 
@@ -117,16 +117,6 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
             {
                 g_HwdbgPortConfiguration.push_back(InstanceInfoPorts[i]);
             }
-
-            break;
-
-        case hwdbgResponseScriptBufferConfigurationResult:
-
-            Result = TRUE;
-
-            //
-            // Todo: implement it
-            //
 
             break;
 
