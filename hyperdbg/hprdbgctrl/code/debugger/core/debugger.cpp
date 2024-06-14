@@ -104,7 +104,9 @@ ShowErrorMessage(UINT32 Error)
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS:
         ShowMessages("err, edit memory request has invalid address based on "
                      "current process layout, the address might be valid but not "
-                     "present in the ram (%x)\n",
+                     "present in the ram (%x)\n"
+                     "address may be paged-out or unavailable on the page table due to 'demand paging'\n"
+                     "please refer to https://docs.hyperdbg.org/tips-and-tricks/considerations/accessing-invalid-address for further information\n",
                      Error);
         break;
 

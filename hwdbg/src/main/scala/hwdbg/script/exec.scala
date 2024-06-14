@@ -36,6 +36,13 @@ class ScriptExecutionEngine(
     val en = Input(Bool()) // chip enable signal
 
     //
+    // Script stage configuration signals
+    //
+    val moveToNextStage = Input(Bool()) // whether configuration finished configuring the current stage or not?
+    val configureStage = Input(Bool()) // whether the configuration of stage should start or not?
+    val targetOperator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
+
+    //
     // Input/Output signals
     //
     val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
@@ -51,6 +58,36 @@ class ScriptExecutionEngine(
   // Stage registers
   //
   val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new Stage(debug, instanceInfo)))
+
+  //
+  // Stage configuration registers
+  //
+  val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+
+  // -----------------------------------------------------------------------
+  //
+  // *** Configure stage buffers ***
+  //
+  when (io.configureStage === true.B) {
+
+    when (io.moveToNextStage === true.B){
+      //
+      // Move to the configuration for the next stage
+      //
+      configStageNumber := configStageNumber + 1.U
+    }.otherwise {
+      //
+      // Configure the current stage
+      //
+      stageRegs(configStageNumber).stageSymbol := io.targetOperator
+    }
+  }.otherwise {
+
+    //
+    // Not configuring anymore, reset the stage number
+    //
+    configStageNumber := 0.U
+  }
 
   // -----------------------------------------------------------------------
   //
@@ -149,6 +186,9 @@ object ScriptExecutionEngine {
       bramDataWidth: Int
   )(
       en: Bool,
+      moveToNextStage: Bool,
+      configureStage: Bool,
+      targetOperator: HwdbgShortSymbol,
       inputPin: Vec[UInt]
   ): (Vec[UInt]) = {
 
@@ -167,6 +207,9 @@ object ScriptExecutionEngine {
     // Configure the input signals
     //
     scriptExecutionEngineModule.io.en := en
+    scriptExecutionEngineModule.io.moveToNextStage := moveToNextStage
+    scriptExecutionEngineModule.io.configureStage := configureStage
+    scriptExecutionEngineModule.io.targetOperator := targetOperator
     scriptExecutionEngineModule.io.inputPin := inputPin
 
     //

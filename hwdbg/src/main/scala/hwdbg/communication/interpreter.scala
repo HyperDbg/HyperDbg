@@ -21,6 +21,7 @@ import circt.stage.ChiselStage
 
 import hwdbg.configs._
 import hwdbg.types._
+import hwdbg.script._
 
 object DebuggerPacketInterpreterEnums {
   object State extends ChiselEnum {
@@ -72,6 +73,12 @@ class DebuggerPacketInterpreter(
     val requestedActionOfThePacketOutput = Output(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W)) // the requested action
     val sendingData = Output(UInt(bramDataWidth.W)) // data to be sent to the debugger
 
+    //
+    // Script stage configuration signals
+    //
+    val moveToNextStage = Output(Bool()) // whether configuration finished configuring the current stage or not?
+    val configureStage = Output(Bool()) // whether the configuration of stage should start or not?
+    val targetOperator = Output(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
   })
 
   //
@@ -82,7 +89,7 @@ class DebuggerPacketInterpreter(
   //
   // Last error register
   //
-  val lastError = RegInit(0.U(bramDataWidth.W))
+  val lastSuccesOrErrorMessage = RegInit(0.U(bramDataWidth.W))
 
   //
   // Output pins
@@ -96,6 +103,13 @@ class DebuggerPacketInterpreter(
   val sendingData = WireInit(0.U(bramDataWidth.W))
 
   val regRequestedActionOfThePacketOutput = RegInit(0.U(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
+
+  val moveToNextStage = WireInit(false.B)
+  val configureStage = WireInit(false.B)
+  val initialSymbol = Wire(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
+  initialSymbol.Type := 0.U
+  initialSymbol.Value := 0.U
+  val targetOperator = WireInit(initialSymbol)
 
   //
   // Apply the chip enable signal
@@ -153,16 +167,62 @@ class DebuggerPacketInterpreter(
           //
           // *** Configure the internal buffer with script ***
           //
+          val (
+            readNextData,
+            finishedConfiguration,
+            moduleConfigureStage,
+            moduleMoveToNextStage,
+            moduleTargetOperator
+          ) =
+              InterpreterScriptBufferHandler(
+                debug,
+                instanceInfo,
+                bramDataWidth
+              )(
+                io.en,
+                io.dataValidInput,
+                io.receivingData
+              )
 
           //
-          // Set the response packet type
+          // Connect the script stage configuration signals
           //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseScriptBufferConfigurationResult.id.U
+          configureStage := moduleConfigureStage
+          moveToNextStage := moduleMoveToNextStage
+          targetOperator := moduleTargetOperator
 
-          //
-          // This action needs a response
-          //
-          state := sSendResponse
+          when (finishedConfiguration === true.B) {
+
+            //
+            // *** Script stage buffer configuration finished! ***
+            //
+
+            //
+            // Set the response packet type
+            //
+            regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U
+
+            //
+            // Set the success message 
+            //
+            lastSuccesOrErrorMessage := HwdbgSuccessOrErrorEnums.hwdbgOperationWasSuccessful.id.U
+
+            //
+            // This action needs a response
+            //
+            state := sSendResponse
+
+          }.otherwise {
+            
+            //
+            // *** Script stage buffer configuration NOT finished, read the buffer ***
+            //
+
+            //
+            // Stay at the same state
+            //
+            state := sNewActionReceived
+          }
 
         }.otherwise {
 
@@ -173,12 +233,12 @@ class DebuggerPacketInterpreter(
           //
           // Set the response packet type
           //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseInvalidPacketOrError.id.U
+          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U
 
           //
           // Set the latest error
           //
-          lastError := HwdbgErrorEnums.hwdbgErrorInvalidPacket.id.U
+          lastSuccesOrErrorMessage := HwdbgSuccessOrErrorEnums.hwdbgErrorInvalidPacket.id.U
 
           //
           // This action needs a response
@@ -252,22 +312,10 @@ class DebuggerPacketInterpreter(
               state := sDone
             }
 
-          }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseScriptBufferConfigurationResult.id.U) {
+          }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U) {
 
             //
-            // *** Send result of applying script ***
-            //
-
-            //
-            // TODO: To be implemented
-            //
-            state := sDone
-
-          }.otherwise {
-
-            //
-            // *** Invalid (packet) response ***
-            // This will happen in case of 'HwdbgResponseEnums.hwdbgResponseInvalidPacketOrError'
+            // *** Send result of applying command (and errors) ***
             //
 
             //
@@ -278,12 +326,12 @@ class DebuggerPacketInterpreter(
               dataValidOutputModule,
               sendingDataModule
             ) =
-              InterpreterSendError(
+              InterpreterSendSuccessOrError(
                 debug,
                 bramDataWidth
               )(
                 io.sendWaitForBuffer, // send waiting for buffer as an activation signal to the module
-                lastError
+                lastSuccesOrErrorMessage
               )
 
             //
@@ -352,6 +400,9 @@ class DebuggerPacketInterpreter(
   io.requestedActionOfThePacketOutput := regRequestedActionOfThePacketOutput
   io.sendingData := sendingData
 
+  io.configureStage := configureStage
+  io.moveToNextStage := moveToNextStage
+  io.targetOperator := targetOperator
 }
 
 object DebuggerPacketInterpreter {
@@ -368,7 +419,7 @@ object DebuggerPacketInterpreter {
       dataValidInput: Bool,
       receivingData: UInt,
       sendWaitForBuffer: Bool
-  ): (Bool, Bool, Bool, Bool, Bool, UInt, UInt) = {
+  ): (Bool, Bool, Bool, Bool, Bool, UInt, UInt, Bool, Bool, HwdbgShortSymbol) = {
 
     val debuggerPacketInterpreter = Module(
       new DebuggerPacketInterpreter(
@@ -388,6 +439,10 @@ object DebuggerPacketInterpreter {
 
     val requestedActionOfThePacketOutput = Wire(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
     val sendingData = Wire(UInt(bramDataWidth.W))
+
+    val moveToNextStage = Wire(Bool())
+    val configureStage = Wire(Bool())
+    val targetOperator = Wire(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
     // Configure the input signals
@@ -427,6 +482,13 @@ object DebuggerPacketInterpreter {
     sendingData := debuggerPacketInterpreter.io.sendingData
 
     //
+    // Configure the output signals related to stage configuration
+    //
+    moveToNextStage := debuggerPacketInterpreter.io.moveToNextStage
+    configureStage := debuggerPacketInterpreter.io.configureStage
+    targetOperator := debuggerPacketInterpreter.io.targetOperator
+
+    //
     // Return the output result
     //
     (
@@ -436,7 +498,10 @@ object DebuggerPacketInterpreter {
       noNewDataSender,
       dataValidOutput,
       requestedActionOfThePacketOutput,
-      sendingData
+      sendingData,
+      moveToNextStage,
+      configureStage,
+      targetOperator
     )
   }
 }

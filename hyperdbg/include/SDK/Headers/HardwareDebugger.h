@@ -51,22 +51,22 @@ typedef enum _HWDBG_ACTION_ENUMS
  */
 typedef enum _HWDBG_RESPONSE_ENUMS
 {
-    hwdbgResponseInvalidPacketOrError            = 1,
-    hwdbgResponseInstanceInfo                    = 2,
-    hwdbgResponseScriptBufferConfigurationResult = 3,
+    hwdbgResponseSuccessOrErrorMessage = 1,
+    hwdbgResponseInstanceInfo          = 2,
 
 } HWDBG_RESPONSE_ENUMS;
 
 /**
- * @brief Different error codes in hwdbg
+ * @brief Different success or error codes in hwdbg
  * @warning This file should be changed along with hwdbg files
  *
  */
-typedef enum _HWDBG_ERROR_ENUMS
+typedef enum _HWDBG_SUCCESS_OR_ERROR_ENUMS
 {
-    hwdbgErrorInvalidPacket = 1,
+    hwdbgOperationWasSuccessful = 0x7FFFFFFF,
+    hwdbgErrorInvalidPacket     = 1,
 
-} HWDBG_ERROR_ENUMS;
+} HWDBG_SUCCESS_OR_ERROR_ENUMS;
 
 //////////////////////////////////////////////////
 //                   Structures                 //
