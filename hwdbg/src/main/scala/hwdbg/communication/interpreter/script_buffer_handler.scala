@@ -83,8 +83,8 @@ class InterpreterScriptBufferHandler(
   val finishedConfiguration = WireInit(false.B)
   val configureStage = WireInit(false.B)
   val moveToNextStage = WireInit(false.B)
-  val regTargetOperator = Reg(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
+  val regTargetOperator = Reg(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
   //
   // Apply the chip enable signal
@@ -230,6 +230,7 @@ class InterpreterScriptBufferHandler(
   io.readNextData := readNextData
 
   io.finishedConfiguration := finishedConfiguration
+  io.configureStage := configureStage
   io.moveToNextStage := moveToNextStage
   io.targetOperator := regTargetOperator
 

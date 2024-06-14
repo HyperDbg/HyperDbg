@@ -36,6 +36,13 @@ class ScriptExecutionEngine(
     val en = Input(Bool()) // chip enable signal
 
     //
+    // Script stage configuration signals
+    //
+    val moveToNextStage = Input(Bool()) // whether configuration finished configuring the current stage or not?
+    val configureStage = Input(Bool()) // whether the configuration of stage should start or not?
+    val targetOperator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
+
+    //
     // Input/Output signals
     //
     val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
@@ -149,6 +156,9 @@ object ScriptExecutionEngine {
       bramDataWidth: Int
   )(
       en: Bool,
+      moveToNextStage: Bool,
+      configureStage: Bool,
+      targetOperator: HwdbgShortSymbol,
       inputPin: Vec[UInt]
   ): (Vec[UInt]) = {
 
@@ -167,6 +177,9 @@ object ScriptExecutionEngine {
     // Configure the input signals
     //
     scriptExecutionEngineModule.io.en := en
+    scriptExecutionEngineModule.io.moveToNextStage := moveToNextStage
+    scriptExecutionEngineModule.io.configureStage := configureStage
+    scriptExecutionEngineModule.io.targetOperator := targetOperator
     scriptExecutionEngineModule.io.inputPin := inputPin
 
     //

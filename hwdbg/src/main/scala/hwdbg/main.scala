@@ -114,20 +114,6 @@ class DebuggerMain(
   val sendWaitForBuffer = Wire(Bool())
 
   // -----------------------------------------------------------------------
-  // Create instance from script execution engine
-  //
-  val (outputPin) =
-    ScriptExecutionEngine(
-      debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
-    )(
-      io.en,
-      io.inputPin
-    )
-
-  // -----------------------------------------------------------------------
   // Create instance from interpreter
   //
   val (
@@ -137,7 +123,10 @@ class DebuggerMain(
     noNewDataSender,
     dataValidInterpreterOutput,
     requestedActionOfThePacketInterpreterOutput,
-    sendingData
+    sendingData,
+    moveToNextStage,
+    configureStage,
+    targetOperator
   ) =
     DebuggerPacketInterpreter(
       debug,
@@ -151,6 +140,23 @@ class DebuggerMain(
       dataValidOutput,
       receivingData,
       sendWaitForBuffer
+    )
+
+  // -----------------------------------------------------------------------
+  // Create instance from script execution engine
+  //
+  val (outputPin) =
+    ScriptExecutionEngine(
+      debug,
+      instanceInfo,
+      bramAddrWidth,
+      bramDataWidth
+    )(
+      io.en,
+      moveToNextStage,
+      configureStage,
+      targetOperator,
+      io.inputPin
     )
 
   // -----------------------------------------------------------------------
