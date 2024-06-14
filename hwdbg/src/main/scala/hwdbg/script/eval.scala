@@ -50,8 +50,8 @@ class ScriptEngineEval(
     // Output signals
     //
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
-  })
-
+  })  
+ 
 
   //-------------------------------------------------------------------------
   // Output pins

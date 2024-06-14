@@ -1,10 +1,10 @@
 /**
  * @file
- *   send_error.scala
+ *   send_success_or_error.scala
  * @author
  *   Sina Karvandi (sina@hyperdbg.org)
  * @brief
- *   Send an indication of invalid packet (in interpreter)
+ *   Send an indication of invalid packet error or success message (in the interpreter)
  * @details
  * @version 0.1
  * @date
@@ -21,7 +21,7 @@ import circt.stage.ChiselStage
 
 import hwdbg.configs._
 
-class InterpreterSendError(
+class InterpreterSendSuccessOrError(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     bramDataWidth: Int
 ) extends Module {
@@ -32,7 +32,7 @@ class InterpreterSendError(
     // Chip signals
     //
     val en = Input(Bool()) // chip enable signal
-    val lastError = Input(UInt(bramDataWidth.W)) // input last error
+    val lastSuccessOrError = Input(UInt(bramDataWidth.W)) // input last error
 
     //
     // Sending singals
@@ -58,7 +58,7 @@ class InterpreterSendError(
     //
     // Set the version
     //
-    sendingData := io.lastError
+    sendingData := io.lastSuccessOrError
 
     //
     // Sending the version in one clock cycle
@@ -79,18 +79,18 @@ class InterpreterSendError(
 
 }
 
-object InterpreterSendError {
+object InterpreterSendSuccessOrError {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
       bramDataWidth: Int
   )(
       en: Bool,
-      lastError: UInt
+      lastSuccessOrError: UInt
   ): (Bool, Bool, UInt) = {
 
-    val interpreterSendError = Module(
-      new InterpreterSendError(
+    val interpreterSendSuccessOrError = Module(
+      new InterpreterSendSuccessOrError(
         debug,
         bramDataWidth
       )
@@ -103,15 +103,15 @@ object InterpreterSendError {
     //
     // Configure the input signals
     //
-    interpreterSendError.io.en := en
-    interpreterSendError.io.lastError := lastError
+    interpreterSendSuccessOrError.io.en := en
+    interpreterSendSuccessOrError.io.lastSuccessOrError := lastSuccessOrError
 
     //
     // Configure the output signals
     //
-    noNewDataSender := interpreterSendError.io.noNewDataSender
-    dataValidOutput := interpreterSendError.io.dataValidOutput
-    sendingData := interpreterSendError.io.sendingData
+    noNewDataSender := interpreterSendSuccessOrError.io.noNewDataSender
+    dataValidOutput := interpreterSendSuccessOrError.io.dataValidOutput
+    sendingData := interpreterSendSuccessOrError.io.sendingData
 
     //
     // Return the output result

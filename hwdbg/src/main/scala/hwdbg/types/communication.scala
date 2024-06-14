@@ -161,7 +161,7 @@ object HwdbgActionEnums extends Enumeration {
  */
 object HwdbgResponseEnums extends Enumeration {
 
-  val hwdbgResponseInvalidPacketOrError = Value(1)
+  val hwdbgResponseSuccessOrErrorMessage = Value(1)
   val hwdbgResponseInstanceInfo = Value(2)
   val hwdbgResponseScriptBufferConfigurationResult = Value(3)
 
@@ -173,10 +173,11 @@ object HwdbgResponseEnums extends Enumeration {
  * @brief
  *   Different responses of hwdbg (SHARED WITH HYPERDBG) (HWDBG_ERROR_ENUMS)
  * @warning
- *   Used in HyperDbg
+ *   
  */
-object HwdbgErrorEnums extends Enumeration {
+object HwdbgSuccessOrErrorEnums extends Enumeration {
 
+  val hwdbgOperationWasSuccessful = Value(0xFFFFFFFF)
   val hwdbgErrorInvalidPacket = Value(1)
 
 }

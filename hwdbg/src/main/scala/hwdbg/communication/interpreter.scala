@@ -82,7 +82,7 @@ class DebuggerPacketInterpreter(
   //
   // Last error register
   //
-  val lastError = RegInit(0.U(bramDataWidth.W))
+  val lastSuccesOrErrorMessage = RegInit(0.U(bramDataWidth.W))
 
   //
   // Output pins
@@ -173,12 +173,12 @@ class DebuggerPacketInterpreter(
           //
           // Set the response packet type
           //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseInvalidPacketOrError.id.U
+          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U
 
           //
           // Set the latest error
           //
-          lastError := HwdbgErrorEnums.hwdbgErrorInvalidPacket.id.U
+          lastSuccesOrErrorMessage := HwdbgSuccessOrErrorEnums.hwdbgErrorInvalidPacket.id.U
 
           //
           // This action needs a response
@@ -263,11 +263,10 @@ class DebuggerPacketInterpreter(
             //
             state := sDone
 
-          }.otherwise {
+          }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U) {
 
             //
-            // *** Invalid (packet) response ***
-            // This will happen in case of 'HwdbgResponseEnums.hwdbgResponseInvalidPacketOrError'
+            // *** Send result of applying command (and errors) ***
             //
 
             //
@@ -278,12 +277,12 @@ class DebuggerPacketInterpreter(
               dataValidOutputModule,
               sendingDataModule
             ) =
-              InterpreterSendError(
+              InterpreterSendSuccessOrError(
                 debug,
                 bramDataWidth
               )(
                 io.sendWaitForBuffer, // send waiting for buffer as an activation signal to the module
-                lastError
+                lastSuccesOrErrorMessage
               )
 
             //
