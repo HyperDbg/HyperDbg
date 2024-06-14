@@ -59,6 +59,36 @@ class ScriptExecutionEngine(
   //
   val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new Stage(debug, instanceInfo)))
 
+  //
+  // Stage configuration registers
+  //
+  val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+
+  // -----------------------------------------------------------------------
+  //
+  // *** Configure stage buffers ***
+  //
+  when (io.configureStage === true.B) {
+
+    when (io.moveToNextStage === true.B){
+      //
+      // Move to the configuration for the next stage
+      //
+      configStageNumber := configStageNumber + 1.U
+    }.otherwise {
+      //
+      // Configure the current stage
+      //
+      stageRegs(configStageNumber).stageSymbol := io.targetOperator
+    }
+  }.otherwise {
+
+    //
+    // Not configuring anymore, reset the stage number
+    //
+    configStageNumber := 0.U
+  }
+
   // -----------------------------------------------------------------------
   //
   // *** Move each register (input vector) to the next stage at each clock ***

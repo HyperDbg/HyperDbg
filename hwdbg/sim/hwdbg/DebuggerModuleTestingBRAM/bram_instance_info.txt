@@ -133,11 +133,11 @@ mem_127: 00000000
 PL to PS area:
 mem_128: 00000000   | Checksum
 mem_129: 00000000   | Checksum
-mem_130: 52444247   | Indicator
-mem_131: 48595045   | Indicator
-mem_132: 00000005   | TypeOfThePacket
-mem_133: 00000001   | RequestedActionOfThePacket
-mem_134: 7fffffff   | Start of Optional Data
+mem_130: 00000000   | Indicator
+mem_131: 00000000   | Indicator
+mem_132: 00000000   | TypeOfThePacket
+mem_133: 00000000   | RequestedActionOfThePacket
+mem_134: 00000000   | Start of Optional Data
 mem_135: 00000000
 mem_136: 00000000
 mem_137: 00000000
