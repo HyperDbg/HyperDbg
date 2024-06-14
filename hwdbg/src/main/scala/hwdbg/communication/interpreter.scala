@@ -157,7 +157,13 @@ class DebuggerPacketInterpreter(
           //
           // Set the response packet type
           //
-          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseScriptBufferConfigurationResult.id.U
+          regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U
+
+          //
+          // Set the success message 
+          //
+          lastSuccesOrErrorMessage := HwdbgSuccessOrErrorEnums.hwdbgOperationWasSuccessful.id.U
+
 
           //
           // This action needs a response
@@ -251,17 +257,6 @@ class DebuggerPacketInterpreter(
             when(noNewDataSenderModule === true.B) {
               state := sDone
             }
-
-          }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseScriptBufferConfigurationResult.id.U) {
-
-            //
-            // *** Send result of applying script ***
-            //
-
-            //
-            // TODO: To be implemented
-            //
-            state := sDone
 
           }.elsewhen(regRequestedActionOfThePacketOutput === HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U) {
 

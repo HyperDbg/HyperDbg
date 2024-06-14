@@ -163,7 +163,6 @@ object HwdbgResponseEnums extends Enumeration {
 
   val hwdbgResponseSuccessOrErrorMessage = Value(1)
   val hwdbgResponseInstanceInfo = Value(2)
-  val hwdbgResponseScriptBufferConfigurationResult = Value(3)
 
 }
 
@@ -177,7 +176,7 @@ object HwdbgResponseEnums extends Enumeration {
  */
 object HwdbgSuccessOrErrorEnums extends Enumeration {
 
-  val hwdbgOperationWasSuccessful = Value(0xFFFFFFFF)
+  val hwdbgOperationWasSuccessful = Value(0x7FFFFFFF)
   val hwdbgErrorInvalidPacket = Value(1)
 
 }
