@@ -49,6 +49,14 @@ class DebuggerMain(
     "err, the sum of the portsConfiguration (PORT_PINS_MAP) values must equal the numberOfPins (NUMBER_OF_PINS)."
   )
 
+  //
+  // Ensure script variable length is not bigger than BRAM data width
+  //
+  require(
+    bramDataWidth > scriptVariableLength,
+    "err, the script variable length should not be bigger than BRAM data width."
+  )
+
   val io = IO(new Bundle {
 
     //
