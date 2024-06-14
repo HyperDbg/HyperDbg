@@ -170,6 +170,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     UINT64                                     HardwareDebugRegisterForStepping;
     UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
     UINT64 *                                   ScriptEngineCoreSpecificTempVariable;
+    UINT64 *                                   ScriptEngineCoreSpecificStackBuffer;
     PKDPC                                      KdDpcObject;                       // DPC object to be used in kernel debugger
     CHAR                                       KdRecvBuffer[MaxSerialPacketSize]; // Used for debugging buffers (receiving buffers from serial devices)
 

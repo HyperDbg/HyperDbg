@@ -390,10 +390,36 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     // Making symbol buffer
     //
-    PSYMBOL_BUFFER StackBuffer       = GetStackBuffer();
-    int            StackIndx         = 0;
-    int            StackBaseIndx     = 0;
-    int            StackTempBaseIndx = 0;
+
+    PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)malloc(sizeof(SYMBOL_BUFFER));
+    if (StackBuffer == NULL)
+    {
+        free(g_ScriptGlobalVariables);
+        free(g_ScriptLocalVariables);
+
+        ShowMessages("err, could not allocate memory for user-mode stack buffer");
+
+        return;
+    }
+    StackBuffer->Pointer = 0;
+    StackBuffer->Size    = 0;
+    StackBuffer->Message = NULL;
+    StackBuffer->Head    = (PSYMBOL)malloc(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+    if (StackBuffer->Head == NULL)
+    {
+        free(g_ScriptGlobalVariables);
+        free(g_ScriptLocalVariables);
+        free(StackBuffer);
+        ShowMessages("err, could not allocate memory for user-mode stack buffer");
+
+        return;
+    }
+    RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+
+
+    int StackIndx         = 0;
+    int StackBaseIndx     = 0;
+    int StackTempBaseIndx = 0;
 
     if (CodeBuffer->Message == NULL)
     {
