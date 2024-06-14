@@ -385,23 +385,6 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
         // Was successful, nothing to do
         //
     }
-    else if (
-        EditMemoryRequest.Result ==
-        DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS)
-    {
-        ShowMessages("err, the address is invalid in system process layout\n");
-    }
-    else if (
-        EditMemoryRequest.Result ==
-        DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS)
-    {
-        ShowMessages("err, the address is invalid based on your specific process id\n");
-    }
-    else if (EditMemoryRequest.Result ==
-             DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER)
-    {
-        ShowMessages("invalid parameter\n");
-    }
     else
     {
         ShowErrorMessage(EditMemoryRequest.Result);
