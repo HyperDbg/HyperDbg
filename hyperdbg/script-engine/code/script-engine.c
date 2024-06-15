@@ -3113,14 +3113,3 @@ LalrIsOperandType(PTOKEN Token)
     }
     return FALSE;
 }
-
-PSYMBOL_BUFFER
-GetStackBuffer()
-{
-    PSYMBOL_BUFFER StackBuffer = NewSymbolBuffer();
-    for (int i = 0; i < 128; i++)
-    {
-        PushSymbol(StackBuffer, NewSymbol());
-    }
-    return StackBuffer;
-}

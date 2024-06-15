@@ -625,6 +625,8 @@ const unsigned char BuildSignature[] = {
 
 #define MAX_TEMP_COUNT 128
 
+#define MAX_STACK_BUFFER_COUNT 128
+
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.
 #define MAX_VAR_COUNT 512
