@@ -38,7 +38,7 @@ class ScriptExecutionEngine(
     //
     // Script stage configuration signals
     //
-    val moveToNextStage = Input(Bool()) // whether configuration finished configuring the current stage or not?
+    val finishedScriptConfiguration = Input(Bool()) // whether script configuration finished or not?
     val configureStage = Input(Bool()) // whether the configuration of stage should start or not?
     val targetOperator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
 
@@ -69,24 +69,20 @@ class ScriptExecutionEngine(
   // *** Configure stage buffers ***
   //
   when (io.configureStage === true.B) {
-
-    when (io.moveToNextStage === true.B){
-      //
-      // Move to the configuration for the next stage
-      //
-      configStageNumber := configStageNumber + 1.U
-    }.otherwise {
+    
       //
       // Configure the current stage
       //
       stageRegs(configStageNumber).stageSymbol := io.targetOperator
-    }
-  }.otherwise {
 
-    //
-    // Not configuring anymore, reset the stage number
-    //
-    configStageNumber := 0.U
+      when (io.finishedScriptConfiguration === true.B) {
+        //
+        // Not configuring anymore, reset the stage number
+        //
+        configStageNumber := 0.U
+      }.otherwise {
+        configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
+      }
   }
 
   // -----------------------------------------------------------------------
@@ -173,7 +169,16 @@ class ScriptExecutionEngine(
   //
   // Connect the output signals
   //
-  io.outputPin := outputPin
+  // io.outputPin := outputPin
+  for (i <- 0 until instanceInfo.numberOfPins) { // test should be remove (add to infer stage config regs)
+
+    val testttt = RegInit(0.U(1.W))
+    for (j <- 0 until instanceInfo.maximumNumberOfStages) { 
+      testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+    }
+
+    io.outputPin(i) := testttt | outputPin(i)
+  }
 
 }
 
@@ -186,7 +191,7 @@ object ScriptExecutionEngine {
       bramDataWidth: Int
   )(
       en: Bool,
-      moveToNextStage: Bool,
+      finishedScriptConfiguration: Bool,
       configureStage: Bool,
       targetOperator: HwdbgShortSymbol,
       inputPin: Vec[UInt]
@@ -207,7 +212,7 @@ object ScriptExecutionEngine {
     // Configure the input signals
     //
     scriptExecutionEngineModule.io.en := en
-    scriptExecutionEngineModule.io.moveToNextStage := moveToNextStage
+    scriptExecutionEngineModule.io.finishedScriptConfiguration := finishedScriptConfiguration
     scriptExecutionEngineModule.io.configureStage := configureStage
     scriptExecutionEngineModule.io.targetOperator := targetOperator
     scriptExecutionEngineModule.io.inputPin := inputPin

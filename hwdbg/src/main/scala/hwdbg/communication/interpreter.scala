@@ -76,7 +76,7 @@ class DebuggerPacketInterpreter(
     //
     // Script stage configuration signals
     //
-    val moveToNextStage = Output(Bool()) // whether configuration finished configuring the current stage or not?
+    val finishedScriptConfiguration = Output(Bool()) // whether script configuration finished or not?
     val configureStage = Output(Bool()) // whether the configuration of stage should start or not?
     val targetOperator = Output(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
   })
@@ -92,6 +92,11 @@ class DebuggerPacketInterpreter(
   val lastSuccesOrErrorMessage = RegInit(0.U(bramDataWidth.W))
 
   //
+  // Last error register
+  //
+  val enablePinOfScriptBufferHandler = RegInit(false.B)
+
+  //
   // Output pins
   //
   val noNewDataReceiver = WireInit(false.B)
@@ -104,7 +109,7 @@ class DebuggerPacketInterpreter(
 
   val regRequestedActionOfThePacketOutput = RegInit(0.U(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
 
-  val moveToNextStage = WireInit(false.B)
+  val finishedScriptConfiguration = WireInit(false.B)
   val configureStage = WireInit(false.B)
   val initialSymbol = Wire(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
   initialSymbol.Type := 0.U
@@ -167,11 +172,16 @@ class DebuggerPacketInterpreter(
           //
           // *** Configure the internal buffer with script ***
           //
+
+          //
+          // Enable the buffer config module
+          //
+          enablePinOfScriptBufferHandler := true.B
+
           val (
-            readNextData,
-            finishedConfiguration,
+            moduleReadNextData,
+            moduleFinishedScriptConfiguration,
             moduleConfigureStage,
-            moduleMoveToNextStage,
             moduleTargetOperator
           ) =
               InterpreterScriptBufferHandler(
@@ -179,7 +189,7 @@ class DebuggerPacketInterpreter(
                 instanceInfo,
                 bramDataWidth
               )(
-                io.en,
+                enablePinOfScriptBufferHandler,
                 io.dataValidInput,
                 io.receivingData
               )
@@ -187,15 +197,22 @@ class DebuggerPacketInterpreter(
           //
           // Connect the script stage configuration signals
           //
+          readNextData := moduleReadNextData
           configureStage := moduleConfigureStage
-          moveToNextStage := moduleMoveToNextStage
+          finishedScriptConfiguration := moduleFinishedScriptConfiguration
           targetOperator := moduleTargetOperator
 
-          when (finishedConfiguration === true.B) {
+          when (moduleFinishedScriptConfiguration === true.B) {
 
             //
             // *** Script stage buffer configuration finished! ***
             //
+
+          //
+          // Disable the buffer config module
+          //
+          enablePinOfScriptBufferHandler := false.B
+
 
             //
             // Set the response packet type
@@ -401,7 +418,7 @@ class DebuggerPacketInterpreter(
   io.sendingData := sendingData
 
   io.configureStage := configureStage
-  io.moveToNextStage := moveToNextStage
+  io.finishedScriptConfiguration := finishedScriptConfiguration
   io.targetOperator := targetOperator
 }
 
@@ -440,7 +457,7 @@ object DebuggerPacketInterpreter {
     val requestedActionOfThePacketOutput = Wire(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
     val sendingData = Wire(UInt(bramDataWidth.W))
 
-    val moveToNextStage = Wire(Bool())
+    val finishedScriptConfiguration = Wire(Bool())
     val configureStage = Wire(Bool())
     val targetOperator = Wire(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
@@ -484,7 +501,7 @@ object DebuggerPacketInterpreter {
     //
     // Configure the output signals related to stage configuration
     //
-    moveToNextStage := debuggerPacketInterpreter.io.moveToNextStage
+    finishedScriptConfiguration := debuggerPacketInterpreter.io.finishedScriptConfiguration
     configureStage := debuggerPacketInterpreter.io.configureStage
     targetOperator := debuggerPacketInterpreter.io.targetOperator
 
@@ -499,7 +516,7 @@ object DebuggerPacketInterpreter {
       dataValidOutput,
       requestedActionOfThePacketOutput,
       sendingData,
-      moveToNextStage,
+      finishedScriptConfiguration,
       configureStage,
       targetOperator
     )

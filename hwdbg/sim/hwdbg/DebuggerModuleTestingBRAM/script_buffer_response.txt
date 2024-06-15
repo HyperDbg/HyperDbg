@@ -1,37 +1,37 @@
 Content of BRAM after emulation:
 
 PS to PL area:
-mem_0:   0000005a   | Checksum
+mem_0:   000000de   | Checksum
 mem_1:   00000000   | Checksum
 mem_2:   52444247   | Indicator
 mem_3:   48595045   | Indicator
 mem_4:   00000004   | TypeOfThePacket
-mem_5:   00000001   | RequestedActionOfThePacket
-mem_6:   00000000   | Start of Optional Data
-mem_7:   00000000
-mem_8:   00000000
-mem_9:   00000000
-mem_10:  00000000
-mem_11:  00000000
+mem_5:   00000002   | RequestedActionOfThePacket
+mem_6:   0000000b   | Start of Optional Data
+mem_7:   00000005
+mem_8:   00000010
+mem_9:   00000002
+mem_10:  00000055
+mem_11:  00000003
 mem_12:  00000000
-mem_13:  00000000
+mem_13:  00000006
 mem_14:  00000000
-mem_15:  00000000
-mem_16:  00000000
-mem_17:  00000000
-mem_18:  00000000
-mem_19:  00000000
+mem_15:  00000005
+mem_16:  00000016
+mem_17:  00000002
+mem_18:  0000000c
+mem_19:  00000006
 mem_20:  00000000
-mem_21:  00000000
-mem_22:  00000000
-mem_23:  00000000
-mem_24:  00000000
-mem_25:  00000000
+mem_21:  00000005
+mem_22:  0000001d
+mem_23:  00000002
+mem_24:  00000085
+mem_25:  00000003
 mem_26:  00000000
-mem_27:  00000000
-mem_28:  00000000
-mem_29:  00000000
-mem_30:  00000000
+mem_27:  00000005
+mem_28:  00000015
+mem_29:  00000002
+mem_30:  0000000c
 mem_31:  00000000
 mem_32:  00000000
 mem_33:  00000000
@@ -136,21 +136,21 @@ mem_129: 00000000   | Checksum
 mem_130: 52444247   | Indicator
 mem_131: 48595045   | Indicator
 mem_132: 00000005   | TypeOfThePacket
-mem_133: 00000002   | RequestedActionOfThePacket
-mem_134: 00000100   | Start of Optional Data
-mem_135: 00000020
-mem_136: 00000020
-mem_137: 00000002
-mem_138: 00000001
-mem_139: 00000400
+mem_133: 00000001   | RequestedActionOfThePacket
+mem_134: 7fffffff   | Start of Optional Data
+mem_135: 00000000
+mem_136: 00000000
+mem_137: 00000000
+mem_138: 00000000
+mem_139: 00000000
 mem_140: 00000000
-mem_141: 00000200
-mem_142: 00000020
-mem_143: 00000002
-mem_144: 003fffdf
+mem_141: 00000000
+mem_142: 00000000
+mem_143: 00000000
+mem_144: 00000000
 mem_145: 00000000
-mem_146: 0000000c
-mem_147: 00000014
+mem_146: 00000000
+mem_147: 00000000
 mem_148: 00000000
 mem_149: 00000000
 mem_150: 00000000

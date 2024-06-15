@@ -207,6 +207,7 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
  * @param ScriptBuffer
  * @param CountOfScriptSymbolChunks
  * @param NumberOfStages
+ * @param NumberOfOperands
  *
  * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
  */
@@ -214,18 +215,21 @@ BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
                                                         UINT32                       CountOfScriptSymbolChunks,
-                                                        UINT32 *                     NumberOfStages)
+                                                        UINT32 *                     NumberOfStages,
+                                                        UINT32 *                     NumberOfOperands)
 {
     BOOLEAN  NotSupported = FALSE;
     SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
 
-    UINT32 Stages = 0;
+    UINT32 Stages   = 0;
+    UINT32 Operands = 0;
 
     for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
             ShowMessages("  \tfound a non-semnatic rule (operand) type: 0x%x, at: 0x%x\n", SymbolArray[i].Type, i);
+            Operands++;
             continue;
         }
         else
@@ -435,6 +439,11 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     // Set the number of stages
     //
     *NumberOfStages = Stages;
+
+    //
+    // Set the number of operands
+    //
+    *NumberOfOperands = Operands;
 
     //
     // Script capabilities support this buffer
@@ -863,4 +872,73 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
     free(FinalBuffer);
 
     return TRUE;
+}
+
+/**
+ * @brief Sends a HyperDbg script packet to the hwdbg
+ *
+ * @param InstanceInfo
+ * @param FileName
+ * @param Buffer
+ * @param BufferLength
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                 const TCHAR *                FileName,
+                                 UINT32                       NumberOfSymbols,
+                                 CHAR *                       Buffer,
+                                 UINT32                       BufferLength)
+{
+    HWDBG_SCRIPT_BUFFER ScriptBuffer = {0};
+    BOOLEAN             Result       = FALSE;
+
+    //
+    // Make the packet's structure
+    //
+    ScriptBuffer.scriptNumberOfSymbols = NumberOfSymbols;
+
+    //
+    // Allocate a buffer for storing the header packet + buffer (if not empty)
+    //
+    CHAR * FinalBuffer = (CHAR *)malloc(BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
+
+    if (!FinalBuffer)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(FinalBuffer, BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
+
+    //
+    // Copy the packet into the FinalBuffer
+    //
+    memcpy(FinalBuffer, &ScriptBuffer, sizeof(HWDBG_SCRIPT_BUFFER));
+
+    //
+    // Copy the buffer (if available) into the FinalBuffer
+    //
+    if (Buffer != NULL)
+    {
+        memcpy(FinalBuffer + sizeof(HWDBG_SCRIPT_BUFFER), Buffer, BufferLength);
+    }
+
+    //
+    // Here we would send FinalBuffer to the hardware debugger
+    //
+    Result = HwdbgInterpreterSendPacketAndBufferToHwdbg(
+        InstanceInfo,
+        FileName,
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+        hwdbgActionConfigureScriptBuffer,
+        FinalBuffer,
+        BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
+
+    //
+    // Free the allocated memory after use
+    //
+    free(FinalBuffer);
+
+    return Result;
 }

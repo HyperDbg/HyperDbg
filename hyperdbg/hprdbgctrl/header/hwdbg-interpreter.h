@@ -70,7 +70,8 @@ BOOLEAN
 HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                                         PVOID                        ScriptBuffer,
                                                         UINT32                       CountOfScriptSymbolChunks,
-                                                        UINT32 *                     NumberOfStages);
+                                                        UINT32 *                     NumberOfStages,
+                                                        UINT32 *                     NumberOfOperands);
 
 BOOLEAN
 HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
@@ -79,3 +80,10 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
                                            HWDBG_ACTION_ENUMS           RequestedAction,
                                            CHAR *                       Buffer,
                                            UINT32                       BufferLength);
+
+BOOLEAN
+HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                 const TCHAR *                FileName,
+                                 UINT32                       NumberOfSymbols,
+                                 CHAR *                       Buffer,
+                                 UINT32                       BufferLength);

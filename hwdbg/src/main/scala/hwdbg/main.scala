@@ -53,7 +53,7 @@ class DebuggerMain(
   // Ensure script variable length is not bigger than BRAM data width
   //
   require(
-    bramDataWidth > scriptVariableLength,
+    bramDataWidth >= scriptVariableLength,
     "err, the script variable length should not be bigger than BRAM data width."
   )
 
@@ -124,7 +124,7 @@ class DebuggerMain(
     dataValidInterpreterOutput,
     requestedActionOfThePacketInterpreterOutput,
     sendingData,
-    moveToNextStage,
+    finishedScriptConfiguration,
     configureStage,
     targetOperator
   ) =
@@ -153,7 +153,7 @@ class DebuggerMain(
       bramDataWidth
     )(
       io.en,
-      moveToNextStage,
+      finishedScriptConfiguration,
       configureStage,
       targetOperator,
       io.inputPin

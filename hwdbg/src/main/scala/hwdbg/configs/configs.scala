@@ -106,7 +106,7 @@ object ScriptEngineConfigurations {
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_STAGES: Int = 10
+  val MAXIMUM_NUMBER_OF_STAGES: Int = 32
 
   //
   // Maximum number of stages
@@ -122,7 +122,7 @@ object ScriptEngineConfigurations {
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 8
+  val SCRIPT_VARIABLE_LENGTH: Int = 32
 
   //  
   // Define the capabilities you want to enable

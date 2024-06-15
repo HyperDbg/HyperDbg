@@ -59,8 +59,7 @@ class InterpreterScriptBufferHandler(
     //
     // Script stage configuration signals
     //
-    val finishedConfiguration = Output(Bool()) // whether configuration finished or not?
-    val moveToNextStage = Output(Bool()) // whether configuration finished configuring the current stage or not?
+    val finishedScriptConfiguration = Output(Bool()) // whether configuration finished or not?
     val configureStage = Output(Bool()) // whether the configuration of stage should start or not?
     val targetOperator = Output(new HwdbgShortSymbol(instanceInfo.scriptVariableLength)) // Current operator to be configured
   })
@@ -80,9 +79,8 @@ class InterpreterScriptBufferHandler(
   //
   val readNextData = WireInit(false.B)
 
-  val finishedConfiguration = WireInit(false.B)
-  val configureStage = WireInit(false.B)
-  val moveToNextStage = WireInit(false.B)
+  val finishedScriptConfiguration = WireInit(false.B)
+  val configureStage = RegInit(false.B)
 
   val regTargetOperator = Reg(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
@@ -134,13 +132,12 @@ class InterpreterScriptBufferHandler(
       }
       is(sReadTypeOfOperator) {
 
+        //
+        // Not valid for configuring yet
+        //
+        configureStage := false.B
 
         when(io.dataValidInput) {
-
-            //
-            // Configure the stages
-            //
-            configureStage := true.B
 
             //
             // Request next data
@@ -180,6 +177,11 @@ class InterpreterScriptBufferHandler(
             regTargetOperator.Value := io.receivingData
 
             //
+            // Decrement the remaining symbols
+            //
+            regScriptNumberOfSymbols := regScriptNumberOfSymbols - 1.U
+
+            //
             // Check if reading is scripts are finished or not
             //
             when (regScriptNumberOfSymbols === 0.U) {
@@ -188,6 +190,7 @@ class InterpreterScriptBufferHandler(
                 // Configurartion was done
                 //
                 state := sDone
+
             }.otherwise {
 
             //
@@ -199,7 +202,6 @@ class InterpreterScriptBufferHandler(
             // Again, read the next type
             //
             state := sReadTypeOfOperator
-
             }
         } .otherwise {
 
@@ -212,9 +214,14 @@ class InterpreterScriptBufferHandler(
       is(sDone) {
 
         //
+        // Not valid for configuring anymore
+        //
+        configureStage := false.B
+
+        //
         // Finished configuration
         //
-        finishedConfiguration := true.B
+        finishedScriptConfiguration := true.B
 
         //
         // Move to the idle state
@@ -229,9 +236,8 @@ class InterpreterScriptBufferHandler(
   //
   io.readNextData := readNextData
 
-  io.finishedConfiguration := finishedConfiguration
+  io.finishedScriptConfiguration := finishedScriptConfiguration
   io.configureStage := configureStage
-  io.moveToNextStage := moveToNextStage
   io.targetOperator := regTargetOperator
 
 }
@@ -246,7 +252,7 @@ object InterpreterScriptBufferHandler {
       en: Bool,
       dataValidInput: Bool,
       receivingData: UInt
-  ): (Bool, Bool, Bool, Bool, HwdbgShortSymbol) = {
+  ): (Bool, Bool, Bool, HwdbgShortSymbol) = {
 
     val interpreterScriptBufferHandler = Module(
       new InterpreterScriptBufferHandler(
@@ -258,9 +264,8 @@ object InterpreterScriptBufferHandler {
 
     val readNextData = Wire(Bool())
 
-    val finishedConfiguration = Wire(Bool())
+    val finishedScriptConfiguration = Wire(Bool())
     val configureStage = Wire(Bool())
-    val moveToNextStage = Wire(Bool())
     val targetOperator = Wire(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
@@ -282,9 +287,8 @@ object InterpreterScriptBufferHandler {
     //
     // Configure the output signals related to configuring stage operators
     //
-    finishedConfiguration := interpreterScriptBufferHandler.io.finishedConfiguration
+    finishedScriptConfiguration := interpreterScriptBufferHandler.io.finishedScriptConfiguration
     configureStage := interpreterScriptBufferHandler.io.configureStage
-    moveToNextStage := interpreterScriptBufferHandler.io.moveToNextStage
     targetOperator := interpreterScriptBufferHandler.io.targetOperator
 
     //
@@ -292,9 +296,8 @@ object InterpreterScriptBufferHandler {
     //
     (
       readNextData,
-      finishedConfiguration,
+      finishedScriptConfiguration,
       configureStage,
-      moveToNextStage,
       targetOperator
     )
   }

@@ -55,6 +55,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
     UINT32                             NumberOfStagesForScript     = 0;
+    UINT32                             NumberOfOperandsForScript   = 0;
     size_t                             NewCompressedBufferSize     = 0;
     size_t                             NumberOfBytesPerChunk       = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
@@ -114,6 +115,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         else
         {
             ShowMessages("err, unable to interpret instance info packet of the debuggee");
+            return;
         }
 
         //
@@ -140,9 +142,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         // Print the actual script
         //
-        ShowMessages("\nHyperDbg (general) script buffer (size=%d, stages=%d, flip-flops=%d):\n\n",
+        ShowMessages("\nHyperDbg (general) script buffer (size=%d, flip-flops=%d):\n\n",
                      ActionScript->ScriptBufferSize,
-                     NumberOfStagesForScript,
                      ActionScript->ScriptBufferSize * 8 // Converted to bits
         );
 
@@ -161,7 +162,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         if (HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
                                                                     ScriptBuffer,
                                                                     ActionScript->ScriptBufferSize / sizeof(SYMBOL),
-                                                                    &NumberOfStagesForScript))
+                                                                    &NumberOfStagesForScript,
+                                                                    &NumberOfOperandsForScript))
         {
             ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
 
@@ -194,9 +196,10 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                         ShowMessages("\n---------------------------------------------------------\n");
                         ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
 
-                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
+                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, operands=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
                                      NumberOfStagesForScript,
+                                     NumberOfOperandsForScript,
                                      NewCompressedBufferSize * 8, // Converted to bits
                                      NumberOfBytesPerChunk);
 
@@ -211,13 +214,11 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                         // *** Write script configuration packet into a file ***
                         //
                         if (SetupPathForFileName(HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
-                            HwdbgInterpreterSendPacketAndBufferToHwdbg(
-                                &g_HwdbgInstanceInfo,
-                                TestFilePath,
-                                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
-                                hwdbgActionConfigureScriptBuffer,
-                                ScriptBuffer,
-                                (UINT32)NewCompressedBufferSize))
+                            HwdbgInterpreterSendScriptPacket(&g_HwdbgInstanceInfo,
+                                                             TestFilePath,
+                                                             NumberOfStagesForScript + NumberOfOperandsForScript - 1, // Number of symbols = Number of stages + Number of operands - 1
+                                                             ScriptBuffer,
+                                                             (UINT32)NewCompressedBufferSize))
                         {
                             ShowMessages("\n[*] script buffer successfully written into file: %s\n", TestFilePath);
                         }

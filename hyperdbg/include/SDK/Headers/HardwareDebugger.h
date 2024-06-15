@@ -150,3 +150,19 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //
 
 } HWDBG_INSTANCE_INFORMATION, *PHWDBG_INSTANCE_INFORMATION;
+
+/**
+ * @brief The structure of script buffer in hwdbg
+ *
+ */
+typedef struct _HWDBG_SCRIPT_BUFFER
+{
+    UINT32 scriptNumberOfSymbols; // Number of symbols in the script
+
+    //
+    // Here the script buffer is located
+    //
+    // UINT8 scriptBuffer[scriptNumberOfSymbols]; // The script buffer
+    //
+
+} HWDBG_SCRIPT_BUFFER, *PHWDBG_SCRIPT_BUFFER;
