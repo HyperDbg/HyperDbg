@@ -53,7 +53,7 @@ class DebuggerMain(
   // Ensure script variable length is not bigger than BRAM data width
   //
   require(
-    bramDataWidth > scriptVariableLength,
+    bramDataWidth >= scriptVariableLength,
     "err, the script variable length should not be bigger than BRAM data width."
   )
 

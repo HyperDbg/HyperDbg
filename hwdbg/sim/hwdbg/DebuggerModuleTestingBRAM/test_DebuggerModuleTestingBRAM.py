@@ -15,6 +15,7 @@
 #
 
 import random
+import re
 
 import cocotb
 from cocotb.clock import Clock
@@ -221,7 +222,82 @@ def print_bram_content(dut):
             file.write(final_string + "\n")
             print(final_string)
 
-    print("===================================================================")
+    print("\n===================================================================\n")
+
+#
+# Define a function to extract content of stages
+#
+def extract_stage_details(dut):
+
+    print("Script Stage Registers Configuration:\n")
+    all_elements = dir(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule)
+
+    #
+    # Define the pattern to match
+    #
+    pattern_value = re.compile(r'stageRegs_\d+_stageSymbol_Value')
+    pattern_type = re.compile(r'stageRegs_\d+_stageSymbol_Type')
+
+    #
+    # Filter the list using the patterns
+    #
+    filtered_strings_values = [s for s in all_elements if pattern_value.match(s)]
+    filtered_strings_types = [s for s in all_elements if pattern_type.match(s)]
+
+    #
+    # Sort the lists
+    #
+    sorted_values = sorted(filtered_strings_values, key=extract_number)
+    sorted_types = sorted(filtered_strings_types, key=extract_number)
+
+    #
+    # Print the filtered strings
+    #
+    # print(sorted_values)
+    # print(sorted_types)
+
+    for index, element in enumerate(sorted_values):
+
+        element_values = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, sorted_values[index])
+        element_types = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, sorted_types[index])
+
+        #
+        # Print the target register in binary format
+        #
+        # print(str(element))
+
+        #
+        # Convert binary to int
+        #
+        hex_string_value = ""
+        hex_string_type = ""
+        try:
+            int_content_value = ""
+            int_content_type = ""
+
+            int_content_value = int(str(element_values.value), 2)
+            int_content_type = int(str(element_types.value), 2)
+            
+            #
+            # Convert integer to hexadecimal string with at least 8 characters
+            #
+            hex_string_value = f'{int_content_value:08x}'
+            hex_string_type = f'{int_content_type:08x}'
+
+        except:
+            hex_string_value = str(element_values.value)
+            hex_string_type = str(element_types.value)
+
+        final_string_value = sorted_values[index] + ":   " + hex_string_value
+        final_string_type = sorted_types[index] + " :   " + hex_string_type
+
+        #
+        # Print the value and type
+        #
+        print(final_string_value)
+        print(final_string_type)
+        print("\n")
+ 
 
 
 @cocotb.test()
@@ -388,6 +464,11 @@ async def DebuggerModuleTestingBRAM_test(dut):
     #
     print_bram_content(dut)
 
+    #
+    # Print the script stage configuration
+    #
+    extract_stage_details(dut)
+    
     #
     # Check the final input on the next clock and run the circuit for a couple
     # of more clock cycles

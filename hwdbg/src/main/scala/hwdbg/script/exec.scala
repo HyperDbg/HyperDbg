@@ -79,6 +79,7 @@ class ScriptExecutionEngine(
       //
       // Configure the current stage
       //
+      configStageNumber := configStageNumber + 1.U // Test should be removed
       stageRegs(configStageNumber).stageSymbol := io.targetOperator
     }
   }.otherwise {
@@ -173,7 +174,16 @@ class ScriptExecutionEngine(
   //
   // Connect the output signals
   //
-  io.outputPin := outputPin
+  // io.outputPin := outputPin
+  for (i <- 0 until instanceInfo.numberOfPins) { // test should be remove (add to infer stage config regs)
+
+    val testttt = RegInit(0.U(1.W))
+    for (j <- 0 until instanceInfo.maximumNumberOfStages) { 
+      testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+    }
+
+    io.outputPin(i) := testttt | outputPin(i)
+  }
 
 }
 
