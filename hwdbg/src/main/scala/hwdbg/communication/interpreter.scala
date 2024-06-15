@@ -92,6 +92,11 @@ class DebuggerPacketInterpreter(
   val lastSuccesOrErrorMessage = RegInit(0.U(bramDataWidth.W))
 
   //
+  // Last error register
+  //
+  val enablePinOfScriptBufferHandler = RegInit(false.B)
+
+  //
   // Output pins
   //
   val noNewDataReceiver = WireInit(false.B)
@@ -167,8 +172,14 @@ class DebuggerPacketInterpreter(
           //
           // *** Configure the internal buffer with script ***
           //
+
+          //
+          // Enable the buffer config module
+          //
+          enablePinOfScriptBufferHandler := true.B
+
           val (
-            readNextData,
+            moduleReadNextData,
             finishedConfiguration,
             moduleConfigureStage,
             moduleMoveToNextStage,
@@ -179,7 +190,7 @@ class DebuggerPacketInterpreter(
                 instanceInfo,
                 bramDataWidth
               )(
-                io.en,
+                enablePinOfScriptBufferHandler,
                 io.dataValidInput,
                 io.receivingData
               )
@@ -187,6 +198,7 @@ class DebuggerPacketInterpreter(
           //
           // Connect the script stage configuration signals
           //
+          readNextData := moduleReadNextData
           configureStage := moduleConfigureStage
           moveToNextStage := moduleMoveToNextStage
           targetOperator := moduleTargetOperator
@@ -196,6 +208,12 @@ class DebuggerPacketInterpreter(
             //
             // *** Script stage buffer configuration finished! ***
             //
+
+          //
+          // Disable the buffer config module
+          //
+          enablePinOfScriptBufferHandler := false.B
+
 
             //
             // Set the response packet type
