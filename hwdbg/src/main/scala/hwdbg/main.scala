@@ -124,7 +124,7 @@ class DebuggerMain(
     dataValidInterpreterOutput,
     requestedActionOfThePacketInterpreterOutput,
     sendingData,
-    moveToNextStage,
+    finishedScriptConfiguration,
     configureStage,
     targetOperator
   ) =
@@ -153,7 +153,7 @@ class DebuggerMain(
       bramDataWidth
     )(
       io.en,
-      moveToNextStage,
+      finishedScriptConfiguration,
       configureStage,
       targetOperator,
       io.inputPin
