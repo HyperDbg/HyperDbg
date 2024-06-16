@@ -85,9 +85,8 @@ class ScriptEngineEval(
   // *** Implementing the evaluation engine ***
   //
   //
-  val srcVal0 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
-  val srcVal1 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
-  val desVal = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val srcVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedGetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
+  val desVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedSetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
 
   
   //
@@ -100,10 +99,10 @@ class ScriptEngineEval(
       is(sFuncAdd) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_add) == true) {
 
-          srcVal0 := getValueModuleOutput(0)
-          srcVal1 := getValueModuleOutput(1)
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
 
-          desVal := srcVal0 + srcVal1
+          desVal(0) := srcVal(0) + srcVal(1)
         }
       }
       is(sFuncDec) {
@@ -125,7 +124,7 @@ class ScriptEngineEval(
     )(
         io.en,
         io.stageConfig.setOperatorSymbol(i),
-        desVal,
+        desVal(i),
         io.stageConfig.pinValues
     )
   }
