@@ -125,7 +125,8 @@ class ScriptEngineEval(
     )(
         io.en,
         io.stageConfig.setOperatorSymbol(i),
-        desVal
+        desVal,
+        io.stageConfig.pinValues
     )
   }
 
