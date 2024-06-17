@@ -21,12 +21,24 @@ import chisel3.util._
 import hwdbg.configs._
 import hwdbg.stage._
 
+object ScriptExecutionEngineConfigStage {
+  object State extends ChiselEnum {
+    val sConfigStageSymbol, sConfigGetSymbol, sConfigSetSymbol = Value
+  }
+}
+
 class ScriptExecutionEngine(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation,
     bramAddrWidth: Int,
     bramDataWidth: Int
 ) extends Module {
+
+  //
+  // Import state enum
+  //
+  import ScriptExecutionEngineConfigStage.State
+  import ScriptExecutionEngineConfigStage.State._
 
   val io = IO(new Bundle {
 
@@ -62,27 +74,72 @@ class ScriptExecutionEngine(
   //
   // Stage configuration registers
   //
+  val configState = RegInit(sConfigStageSymbol)
   val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+
+  //
+  // Calculate the maximum of the two values since we only want to use one register for 
+  // both GET and SET
+  //
+  val maxOperators = math.max(instanceInfo.maximumNumberOfSupportedGetScriptOperators, instanceInfo.maximumNumberOfSupportedSetScriptOperators)
+
+  //
+  // Create a register with the width based on the maximum value
+  //
+  val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W))
 
   // -----------------------------------------------------------------------
   //
   // *** Configure stage buffers ***
   //
   when (io.configureStage === true.B) {
-    
-      //
-      // Configure the current stage
-      //
-      stageRegs(configStageNumber).stageSymbol := io.targetOperator
 
-      when (io.finishedScriptConfiguration === true.B) {
+    switch(configState) {
+
+      is(sConfigStageSymbol) {
         //
-        // Not configuring anymore, reset the stage number
+        // Configure the stage symbol (The first symbol is the stage operator)
         //
-        configStageNumber := 0.U
-      }.otherwise {
-        configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
+        stageRegs(configStageNumber).stageSymbol := io.targetOperator
+        configState := sConfigGetSymbol
       }
+      is(sConfigGetSymbol) {
+
+        //
+        // Config GET operator
+        //
+        stageRegs(configStageNumber).getOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+
+        when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedGetScriptOperators - 1).U) {
+
+          configGetSetOperatorNumber := 0.U // reset the counter
+          configState := sConfigSetSymbol // go to the next state
+        }
+      }
+      is(sConfigSetSymbol) {
+        //
+        // Config SET operator
+        //
+        stageRegs(configStageNumber).setOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
+
+        when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedSetScriptOperators - 1).U) {
+
+          configGetSetOperatorNumber := 0.U // reset the counter
+
+          when (io.finishedScriptConfiguration === true.B) {
+            //
+            // Not configuring anymore, reset the stage number
+            //
+            configStageNumber := 0.U
+            configState := sConfigStageSymbol
+          }.otherwise {
+            configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
+            configState := sConfigStageSymbol // the next state is again a stage symbol
+          }
+        }
+      }
+    }
   }
 
   // -----------------------------------------------------------------------

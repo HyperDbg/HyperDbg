@@ -224,6 +224,31 @@ def print_bram_content(dut):
 
     print("\n===================================================================\n")
 
+
+#
+# Define a function to extract content of symbol
+#
+def get_symbol_type_and_value(dut, value, type):
+    element_value = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, value)
+    element_type = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, type)
+
+    hex_string_value = ""
+    hex_string_type = ""
+    try:
+        int_content_value = int(str(element_value.value), 2)
+        int_content_type = int(str(element_type.value), 2)
+
+        hex_string_value = f'{int_content_value:08x}'
+        hex_string_type = f'{int_content_type:08x}'
+    except:
+        hex_string_value = str(element_value.value)
+        hex_string_type = str(element_type.value)
+
+    final_string_value = f'{value}:   {hex_string_value}'
+    final_string_type = f'{type} :   {hex_string_type}'
+
+    return final_string_value, final_string_type
+
 #
 # Define a function to extract content of stages
 #
@@ -258,48 +283,46 @@ def extract_stage_details(dut):
 
     for index, element in enumerate(sorted_values):
 
-        element_values = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, sorted_values[index])
-        element_types = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, sorted_types[index])
-
-        #
-        # Print the target register in binary format
-        #
-        # print(str(element))
-
-        #
-        # Convert binary to int
-        #
-        hex_string_value = ""
-        hex_string_type = ""
-        try:
-            int_content_value = ""
-            int_content_type = ""
-
-            int_content_value = int(str(element_values.value), 2)
-            int_content_type = int(str(element_types.value), 2)
-            
-            #
-            # Convert integer to hexadecimal string with at least 8 characters
-            #
-            hex_string_value = f'{int_content_value:08x}'
-            hex_string_type = f'{int_content_type:08x}'
-
-        except:
-            hex_string_value = str(element_values.value)
-            hex_string_type = str(element_types.value)
-
-        final_string_value = sorted_values[index] + ":   " + hex_string_value
-        final_string_type = sorted_types[index] + " :   " + hex_string_type
+        final_string_type, final_string_value = get_symbol_type_and_value(dut, sorted_values[index], sorted_types[index])
 
         #
         # Print the value and type
         #
         print(final_string_type)
         print(final_string_value)
+        
         print("\n")
+
+        try:
+            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_0_Value", "stageRegs_" + str(index) + "_getOperatorSymbol_0_Type")
+        
+            print("\t Get (0) | " + final_string_type)
+            print("\t Get (0) | " + final_string_value)
+        except:
+            print("\tstage at:" + str(index) + " does not contain a Get (0) buffer")
+
+        print("\n")
+
+        try:
+            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_1_Value", "stageRegs_" + str(index) + "_getOperatorSymbol_1_Type")
+        
+            print("\t Get (1) | " + final_string_type)
+            print("\t Get (1) | " + final_string_value)
+        except:
+            print("\tstage at:" + str(index) + " does not contain a Get (1) buffer")
+
+        print("\n")
+
+        try:
+            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_setOperatorSymbol_0_Value", "stageRegs_" + str(index) + "_setOperatorSymbol_0_Type")
+        
+            print("\t Set (0) | " + final_string_type)
+            print("\t Set (0) | " + final_string_value)
+        except:
+            print("\tstage at:" + str(index) + " does not contain a Set (0) buffer")
+
+        print("\n\n")
  
-
-
 @cocotb.test()
 async def DebuggerModuleTestingBRAM_test(dut):
     """Test hwdbg module (with pre-defined BRAM)"""
