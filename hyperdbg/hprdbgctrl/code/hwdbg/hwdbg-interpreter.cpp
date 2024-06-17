@@ -690,19 +690,37 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
  *
  * @param Buffer
  * @param BufferLength
+ * @param NumberOfStages
  * @param NewBufferSize
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
-                                                      size_t   SymbolBufferLength,
-                                                      size_t * NewBufferSize)
+HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    SYMBOL *                     SymbolBuffer,
+    size_t                       SymbolBufferLength,
+    UINT32                       NumberOfStages,
+    size_t *                     NewBufferSize)
 
 {
+    //
+    // Check if the instance info is valid
+    //
+    if (!g_HwdbgInstanceInfoIsValid)
+    {
+        ShowMessages("err, instance info is not valid\n");
+        return FALSE;
+    }
+
+    //
+    // Compute the number of symbol operators
+    //
+    UINT32 NumberOfOperands = InstanceInfo->maximumNumberOfSupportedGetScriptOperators + InstanceInfo->maximumNumberOfSupportedSetScriptOperators;
+
     SIZE_T NumberOfSymbols = SymbolBufferLength / sizeof(SymbolBuffer[0]);
 
-    *NewBufferSize = NumberOfSymbols * sizeof(HWDBG_SHORT_SYMBOL);
+    *NewBufferSize = (NumberOfStages + NumberOfOperands) * sizeof(HWDBG_SHORT_SYMBOL); // number of stage + maximum number of operands
 
     //
     // Create a temporary buffer to hold the compressed data
@@ -723,13 +741,125 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
     //
     // Filling the short symbol buffer from original buffer
     //
-    for (size_t i = 0; i < NumberOfSymbols; i++)
+    UINT32 IndexOfShortSymbolBuffer = 0;
+
+    for (UINT32 i = 0; i < NumberOfSymbols; i++)
     {
-        //
-        // Move the symbol buffer into a short symbol buffer
-        //
-        HwdbgShortSymbolBuffer[i].Type  = SymbolBuffer[i].Type;
-        HwdbgShortSymbolBuffer[i].Value = SymbolBuffer[i].Value;
+        if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+        {
+            //
+            // *** This is an operator ***
+            //
+
+            //
+            // Move the symbol buffer into a short symbol buffer
+            //
+            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+
+            //
+            // Now we read the number of operands (SET and GET)
+            //
+            UINT32 NumberOfGetOperands = 0;
+            UINT32 NumberOfSetOperands = 0;
+
+            if (!FuncGetNumberOfOperands(SymbolBuffer[i].Value, &NumberOfGetOperands, &NumberOfSetOperands))
+            {
+                ShowMessages("err, unknown operand type for the operator (0x%x)\n",
+                             SymbolBuffer[i].Value);
+
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // Check if the number of GET operands is more than the maximum supported GET operands
+            //
+            if (NumberOfGetOperands > InstanceInfo->maximumNumberOfSupportedGetScriptOperators)
+            {
+                ShowMessages("err, the number of get operands is more than the maximum supported get operands\n");
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // Check if the number of SET operands is more than the maximum supported SET operands
+            //
+            if (NumberOfSetOperands > InstanceInfo->maximumNumberOfSupportedSetScriptOperators)
+            {
+                ShowMessages("err, the number of set operands is more than the maximum supported set operands\n");
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // *** Now we need to fill operands (GET) ***
+            //
+            for (size_t j = 0; j < NumberOfGetOperands; j++)
+            {
+                i++;
+                IndexOfShortSymbolBuffer++;
+
+                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+                {
+                    ShowMessages("err, not expecting a semantic rule at operand: %x\n", SymbolBuffer[i].Value);
+                    free(HwdbgShortSymbolBuffer);
+                    return FALSE;
+                }
+
+                //
+                // Move the symbol buffer into a short symbol buffer
+                //
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+            }
+
+            //
+            // Leave empty space for GET operands that are not used for this operator
+            //
+            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedGetScriptOperators - NumberOfGetOperands;
+
+            //
+            // *** Now we need to fill operands (SET) ***
+            //
+            for (size_t j = 0; j < NumberOfSetOperands; j++)
+            {
+                i++;
+                IndexOfShortSymbolBuffer++;
+
+                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+                {
+                    ShowMessages("err, not expecting a semantic rule at operand: %x\n", SymbolBuffer[i].Value);
+                    free(HwdbgShortSymbolBuffer);
+                    return FALSE;
+                }
+
+                //
+                // Move the symbol buffer into a short symbol buffer
+                //
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+            }
+
+            //
+            // Leave empty space for SET operands that are not used for this operator
+            //
+            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedSetScriptOperators - NumberOfSetOperands;
+
+            //
+            // Increment the index of the short symbol buffer
+            //
+            IndexOfShortSymbolBuffer++;
+        }
+        else
+        {
+            //
+            // Error, we are not expecting a non-semantic rule here
+            //
+            ShowMessages("err, not expecting a non-semantic rule at: %x\n", SymbolBuffer[i].Type);
+            free(HwdbgShortSymbolBuffer);
+            return FALSE;
+        }
     }
 
     //

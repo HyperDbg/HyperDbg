@@ -52,9 +52,12 @@ BOOLEAN
 HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
 
 BOOLEAN
-HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
-                                                      size_t   SymbolBufferLength,
-                                                      size_t * NewBufferSize);
+HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    SYMBOL *                     SymbolBuffer,
+    size_t                       SymbolBufferLength,
+    UINT32                       NumberOfStages,
+    size_t *                     NewBufferSize);
 
 BOOLEAN
 HwdbgInterpreterCompressBuffer(UINT64 * Buffer,

@@ -184,8 +184,10 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                     //
                     // Compress script buffer
                     //
-                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
+                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(&g_HwdbgInstanceInfo,
+                                                                              (SYMBOL *)ScriptBuffer,
                                                                               ActionScript->ScriptBufferSize,
+                                                                              NumberOfStagesForScript,
                                                                               &NewCompressedBufferSize) == TRUE &&
                         HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
                                                        NewCompressedBufferSize,
@@ -196,10 +198,14 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         ShowMessages("\n---------------------------------------------------------\n");
                         ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
 
-                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, operands=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
+                        UINT32 NumberOfOperandsImplemented = NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
+
+                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
                                      NumberOfStagesForScript,
+                                     NumberOfOperandsImplemented,
                                      NumberOfOperandsForScript,
+                                     ((float)NumberOfOperandsForScript / (float)NumberOfOperandsImplemented) * 100,
                                      NewCompressedBufferSize * 8, // Converted to bits
                                      NumberOfBytesPerChunk);
 
@@ -208,7 +214,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                             ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
                         }
 
-                        ShowMessages("writing script configuration packet into the file\n");
+                        ShowMessages("\nwriting script configuration packet into the file\n");
 
                         //
                         // *** Write script configuration packet into a file ***
