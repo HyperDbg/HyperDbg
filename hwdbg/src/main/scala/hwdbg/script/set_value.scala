@@ -51,11 +51,22 @@ class ScriptEngineSetValue(
     val inputValue = Input(UInt(instanceInfo.scriptVariableLength.W)) // input value
 
     //
-    // Input signals
+    // Output signals
     //
+    val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
 
   })
+
+  //
+  // Temp input
+  //
+  val inputPin = io.inputPin.asUInt
+
+  //
+  // Output pins
+  //
+  val outputPin = WireInit(0.U(instanceInfo.numberOfPins.W))
 
   //
   // Assign operator type (split the signal into only usable part)
@@ -75,34 +86,110 @@ class ScriptEngineSetValue(
     switch(mainOperatorType) {
 
       is(symbolGlobalIdType) {
+
         //
-        // To be implemented
+        // To be implemented (Global Variables)
         //
-       }
-      is(symbolLocalIdType) { 
-        //
-        // To be implemented
-        //
+        outputPin := 0.U
       }
-      is(symbolTempType) { 
+      is(symbolLocalIdType) {
+
         //
-        // To be implemented
+        // To be implemented (Local Variables)
         //
+        outputPin := 0.U
       }
-      is(symbolRegisterType) { 
+      is(symbolRegisterType) {
+
         //
-        // To be implemented
+        // Registers are pins (set the value based on less significant bit)
         //
+        inputPin.bitSet(io.operator.Value(log2Ceil(instanceInfo.numberOfPins), 0), io.inputValue(0).asBool)
+        outputPin := inputPin
       }
-      is(symbolStackTempType) { 
+      is(symbolPseudoRegType) { 
+
         //
-        // To be implemented
+        // Iterate based on port configuration
         //
+        var currentPortIndex: Int = 0
+        var currentPortNum: Int = 0
+        val numPorts = instanceInfo.portsConfiguration.length
+
+        for ((port, index) <- instanceInfo.portsConfiguration.zipWithIndex) {
+
+            when(io.operator.Value === currentPortIndex.U) {
+
+                //
+                // Determine the range of bits to be modified
+                //
+                val high = currentPortNum + port - 1
+                val low = currentPortNum
+
+                // Create the modified outputPin based on whether it's the first, last or a middle port
+                val modifiedOutputPin = if (index == 0) {
+
+                    //
+                    // First port: keep higher bits unchanged, set lower bits to input value
+                    //
+                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + io.inputValue(${port - 1}, 0)")
+                    Cat(
+                        inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
+                        io.inputValue(port - 1, 0)// New value for the specified range
+                    )
+                } else if (index == numPorts - 1) {
+
+                    //
+                    // Last port: keep lower bits unchanged, set higher bits to input value
+                    //
+                    LogInfo(debug)(f"Set connecting index=${index} - io.inputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                    Cat(
+                        io.inputValue(port - 1, 0),// New value for the specified range
+                        inputPin(low - 1, 0)        // Bits below the range to keep unchanged
+                    )
+                } else {
+
+                    //
+                    // Middle port: keep both higher and lower bits unchanged
+                    //
+                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + io.inputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                    Cat(
+                        inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
+                        io.inputValue(port - 1, 0),// New value for the specified range
+                        inputPin(low - 1, 0)                               // Bits below the range to keep unchanged
+                    )
+                }
+
+                //
+                // Assign the modified outputPin back to outputPin
+                //
+                outputPin := modifiedOutputPin
+            }
+
+            currentPortNum += port
+            currentPortIndex += 1
+        }
       }
-      is(symbolFunctionParameterIdType) { 
+      is(symbolTempType) {
+
         //
         // To be implemented
         //
+        outputPin := 0.U
+      }
+      is(symbolStackTempType) {
+
+        //
+        // To be implemented
+        //
+        outputPin := 0.U
+      }
+      is(symbolFunctionParameterIdType) {
+
+        //
+        // To be implemented
+        //
+        outputPin := 0.U
       }
     }
   }
@@ -111,7 +198,7 @@ class ScriptEngineSetValue(
   // Connect the output signals
   //
   for (i <- 0 until instanceInfo.numberOfPins) {
-    io.outputPin(i) := 0.U
+    io.outputPin(i) := outputPin(i)
   }
 
 }
@@ -124,7 +211,8 @@ object ScriptEngineSetValue {
   )(
       en: Bool,
       operator: HwdbgShortSymbol,
-      inputValue: UInt
+      inputValue: UInt,
+      inputPin: Vec[UInt],
   ): (Vec[UInt]) = {
 
     val scriptEngineSetValueModule = Module(
@@ -142,6 +230,7 @@ object ScriptEngineSetValue {
     scriptEngineSetValueModule.io.en := en
     scriptEngineSetValueModule.io.operator := operator
     scriptEngineSetValueModule.io.inputValue := inputValue
+    scriptEngineSetValueModule.io.inputPin := inputPin
 
     //
     // Configure the output signal

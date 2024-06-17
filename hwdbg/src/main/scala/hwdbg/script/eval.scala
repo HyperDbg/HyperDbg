@@ -85,9 +85,8 @@ class ScriptEngineEval(
   // *** Implementing the evaluation engine ***
   //
   //
-  val srcVal0 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
-  val srcVal1 = WireInit(0.U(instanceInfo.scriptVariableLength.W))
-  val desVal = WireInit(0.U(instanceInfo.scriptVariableLength.W))
+  val srcVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedGetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
+  val desVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedSetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
 
   
   //
@@ -97,21 +96,164 @@ class ScriptEngineEval(
 
     switch(mainOperatorValue) {
 
+
+      is(sFuncInc) {
+        //
+        // To be implemented
+        //        
+      }
+      is(sFuncDec) {
+        //
+        // To be implemented
+        //  
+      }
+      is(sFuncOr) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_or) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) | srcVal(1)
+        }        
+      }
+      is(sFuncXor) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_xor) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) ^ srcVal(1)
+        }
+      }
+      is(sFuncAsl) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_asl) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) << srcVal(1)(log2Ceil(instanceInfo.scriptVariableLength), 0)
+        }   
+      }
       is(sFuncAdd) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_add) == true) {
 
-          srcVal0 := getValueModuleOutput(0)
-          srcVal1 := getValueModuleOutput(1)
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
 
-          desVal := srcVal0 + srcVal1
+          desVal(0) := srcVal(0) + srcVal(1)
         }
       }
-      is(sFuncDec) {
-        
+      is(sFuncSub) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_sub) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) - srcVal(1)
+        }
+      }
+      is(sFuncMul) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_mul) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) * srcVal(1)
+        }
+      }
+      is(sFuncDiv) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_div) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) / srcVal(1)
+        }
+      }
+      is(sFuncGt) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_gt) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) > srcVal(1)
+        }
+      }
+      is(sFuncEgt) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) >= srcVal(1)
+        }        
+      }
+      is(sFuncElt) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) <= srcVal(1)
+        }         
+      }
+      is(sFuncEqual) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_equal) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) === srcVal(1)
+        }        
+      }
+      is(sFuncNeq) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_neq) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) =/= srcVal(1)
+        }         
+      }
+      is(sFuncJmp) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jmp) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+
+          nextStage := srcVal(0)
+        }           
+      }
+      is(sFuncJz) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jz) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+          
+          when (srcVal(1) === 0.U) { nextStage := srcVal(0) }
+            
+        }         
+      }
+      is(sFuncJnz) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jnz) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+          
+          when (srcVal(1) =/= 0.U) { nextStage := srcVal(0) }
+            
+        }         
+      }
+      is(sFuncMov) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_mov) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+
+          desVal(0) := srcVal(0)
+        }         
       }
     }
   }
-  
+
   //-------------------------------------------------------------------------
   // Set value module
   //
@@ -125,7 +267,8 @@ class ScriptEngineEval(
     )(
         io.en,
         io.stageConfig.setOperatorSymbol(i),
-        desVal
+        desVal(i),
+        io.stageConfig.pinValues
     )
   }
 

@@ -75,46 +75,81 @@ class ScriptEngineGetValue(
 
     switch(mainOperatorType) {
 
-      is(symbolGlobalIdType) { 
+      is(symbolGlobalIdType) {
+
         //
-        // To be implemented
+        // To be implemented (Global Variables)
         //
+        outputValue := 0.U
       }
       is(symbolLocalIdType) {
+
         //
-        // To be implemented
+        // To be implemented (Local Variables)
         //
+        outputValue := 0.U
       }
       is(symbolNumType) {
-        
+
         //
-        // To be implemented
+        // Constant value
         //
+        outputValue := io.operator.Value
       }
       is(symbolRegisterType) {
+
         //
-        // To be implemented
+        // Registers are pins
         //
+        outputValue := io.inputPin(io.operator.Value)
       }
       is(symbolPseudoRegType) { 
+        
         //
-        // To be implemented
+        // Create a vector of wires 
         //
+        val ports = Wire(Vec(instanceInfo.numberOfPorts, UInt(instanceInfo.scriptVariableLength.W)))
+        var currentPortIndex: Int = 0
+        var currentPortNum: Int = 0
+
+        //
+        // Iterate based on port configuration
+        //
+        for (port <- instanceInfo.portsConfiguration) {
+
+          LogInfo(debug)(f"connect port(${currentPortIndex}) to inputPin(${currentPortNum} to ${currentPortNum + port}) for SET")
+          ports(currentPortIndex) := io.inputPin.asUInt(currentPortNum + port - 1, currentPortNum)
+
+          currentPortNum += port
+          currentPortIndex += 1
+        }
+
+        //
+        // Set the output
+        //
+        outputValue := ports(io.operator.Value)
+
       }
       is(symbolTempType) {
+
         //
         // To be implemented
         //
+        outputValue := 0.U
       }
       is(symbolStackTempType) {
+
         //
         // To be implemented
         //
+        outputValue := 0.U
       }
       is(symbolFunctionParameterIdType) {
+
         //
         // To be implemented
         //
+        outputValue := 0.U
       }
     }
   }

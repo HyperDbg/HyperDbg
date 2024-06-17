@@ -208,10 +208,10 @@ class DebuggerPacketInterpreter(
             // *** Script stage buffer configuration finished! ***
             //
 
-          //
-          // Disable the buffer config module
-          //
-          enablePinOfScriptBufferHandler := false.B
+            //
+            // Disable the buffer config module
+            //
+            enablePinOfScriptBufferHandler := false.B
 
 
             //
