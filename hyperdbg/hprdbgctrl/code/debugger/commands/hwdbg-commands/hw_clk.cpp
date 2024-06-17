@@ -222,7 +222,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         if (SetupPathForFileName(HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
                             HwdbgInterpreterSendScriptPacket(&g_HwdbgInstanceInfo,
                                                              TestFilePath,
-                                                             NumberOfStagesForScript + NumberOfOperandsForScript - 1, // Number of symbols = Number of stages + Number of operands - 1
+                                                             NumberOfStagesForScript + NumberOfOperandsImplemented - 1, // Number of symbols = Number of stages + Number of operands - 1
                                                              ScriptBuffer,
                                                              (UINT32)NewCompressedBufferSize))
                         {

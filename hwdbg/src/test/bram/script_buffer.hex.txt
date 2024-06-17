@@ -1,10 +1,10 @@
-0000000a ; +0x0   | Checksum
+0000000e ; +0x0   | Checksum
 00000000 ; +0x4   | Checksum
 52444247 ; +0x8   | Indicator
 48595045 ; +0xc   | Indicator
 00000004 ; +0x10  | TypeOfThePacket - DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL (0x4)
 00000002 ; +0x14  | RequestedActionOfThePacket - Value (0x2)
-0000000b ; +0x18  | Start of Optional Data
+0000000f ; +0x18  | Start of Optional Data
 00000005 ; +0x1c
 00000010 ; +0x20
 00000002 ; +0x24
