@@ -1,7 +1,7 @@
 /**
- * @file hwdbg.cpp
+ * @file hw_clk.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !hwdbg command
+ * @brief !hw_clk command
  * @details
  * @version 0.9
  * @date 2024-05-29
@@ -20,30 +20,30 @@ extern std::vector<UINT32>        g_HwdbgPortConfiguration;
 extern const char *               HwdbgActionEnumNames[];
 
 /**
- * @brief help of the !hwdbg command
+ * @brief help of the !hw_clk command
  *
  * @return VOID
  */
 VOID
-CommandHwdbgHelp()
+CommandHwClkHelp()
 {
-    ShowMessages("!hwdbg : performs actions related to hwdbg hardware debugging.\n\n");
+    ShowMessages("!hw_clk : performs actions related to hwdbg hardware debugging events for each clock cycle.\n\n");
 
-    ShowMessages("syntax : \t!hwdbg  [script { Script (string) }]\n");
+    ShowMessages("syntax : \t!hw_clk  [script { Script (string) }]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !hwdbg script { @hw_pin1 = 0; }\n");
+    ShowMessages("\t\te.g : !hw_clk script { @hw_pin1 = 0; }\n");
 }
 
 /**
- * @brief !hwdbg command handler
+ * @brief !hw_clk command handler
  *
  * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandHwdbg(vector<string> SplitCommand, string Command)
+CommandHwClk(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -265,7 +265,7 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
     else
     {
         ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
-        CommandHwdbgHelp();
+        CommandHwClkHelp();
         return;
     }
 }

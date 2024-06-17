@@ -409,6 +409,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_GU_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
+#define DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_HWDBG
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -673,4 +675,4 @@ CommandGu(vector<string> SplitCommand, string Command);
 // hwdbg commands
 //
 VOID
-CommandHwdbg(vector<string> SplitCommand, string Command);
+CommandHwClk(vector<string> SplitCommand, string Command);

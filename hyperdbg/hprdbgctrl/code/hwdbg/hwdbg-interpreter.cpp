@@ -221,8 +221,10 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     BOOLEAN  NotSupported = FALSE;
     SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
 
-    UINT32 Stages   = 0;
-    UINT32 Operands = 0;
+    UINT32 Stages              = 0;
+    UINT32 Operands            = 0;
+    UINT32 NumberOfGetOperands = 0;
+    UINT32 NumberOfSetOperands = 0;
 
     for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
     {
@@ -236,6 +238,15 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
         {
             Stages++;
             ShowMessages("- found a semnatic rule (operator) value: 0x%x, at: 0x%x\n", SymbolArray[i].Value, i);
+
+            if (ScriptEngineFuncNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
+            {
+                NotSupported = TRUE;
+                ShowMessages("err, unknown operand type for the operator (0x%x)\n",
+                             SymbolArray[i].Type);
+
+                return FALSE;
+            }
         }
 
         switch (SymbolArray[i].Value)

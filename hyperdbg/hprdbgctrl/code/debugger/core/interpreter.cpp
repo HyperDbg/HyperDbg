@@ -872,7 +872,8 @@ InitializeCommandsDictionary()
     //
     // hwdbg commands
     //
-    g_CommandsList["!hwdbg"] = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
-    g_CommandsList["hwdbg"]  = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
-    g_CommandsList[".hwdbg"] = {&CommandHwdbg, &CommandHwdbgHelp, DEBUGGER_COMMAND_ATTRIBUTE_HWDBG};
+    g_CommandsList["!hw_clk"]      = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hw_clock"]    = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 }

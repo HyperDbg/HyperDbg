@@ -20,33 +20,33 @@
 // *** export pdb wrapper as script engine function ***
 //
 __declspec(dllexport) UINT64
-    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) UINT32
-    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
 __declspec(dllexport) UINT32
-    ScriptEngineUnloadAllSymbols();
+ScriptEngineUnloadAllSymbols();
 __declspec(dllexport) UINT32
-    ScriptEngineUnloadModuleSymbol(char * ModuleName);
+ScriptEngineUnloadModuleSymbol(char * ModuleName);
 __declspec(dllexport) UINT32
-    ScriptEngineSearchSymbolForMask(const char * SearchMask);
+ScriptEngineSearchSymbolForMask(const char * SearchMask);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
+ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
+ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
+ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllexport) BOOLEAN
-    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
+ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
 __declspec(dllexport) VOID
-    ScriptEngineSymbolAbortLoading();
+ScriptEngineSymbolAbortLoading();
 __declspec(dllexport) VOID
-    ScriptEngineSetTextMessageCallback(PVOID Handler);
+ScriptEngineSetTextMessageCallback(PVOID Handler);
 
 typedef enum _SCRIPT_ENGINE_ERROR_TYPE
 {
@@ -75,31 +75,35 @@ NewWstringSymbol(PTOKEN Token);
 PSYMBOL
 NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType);
 
-PSYMBOL
-NewVariableSymbol(char * VariableName, VARIABLE_TYPE * VariableType);
-
 unsigned int
 GetSymbolHeapSize(PSYMBOL Symbol);
 
 void
 RemoveSymbol(PSYMBOL * Symbol);
 
-__declspec(dllexport) void PrintSymbol(PSYMBOL Symbol);
+__declspec(dllexport) void
+PrintSymbol(PSYMBOL Symbol);
 
 PSYMBOL_BUFFER
 NewSymbolBuffer(void);
 
-__declspec(dllexport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+__declspec(dllexport) void
+RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 
 PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 
-__declspec(dllexport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
+__declspec(dllexport) void
+PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 
 PSYMBOL
 ToSymbol(PTOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
-__declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
+__declspec(dllexport) PSYMBOL_BUFFER
+ScriptEngineParse(char * str);
+
+__declspec(dllexport) BOOLEAN
+FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);
 
 void
 ScriptEngineBooleanExpresssionParse(
@@ -153,4 +157,5 @@ NewFunctionParameterIdentifier(PTOKEN Token);
 
 int
 GetFunctionParameterIdentifier(PTOKEN Token);
+
 #endif

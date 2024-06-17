@@ -286,4 +286,4 @@ CommandGuHelp();
 // hwdbg commands
 //
 VOID
-CommandHwdbgHelp();
+CommandHwClkHelp();
