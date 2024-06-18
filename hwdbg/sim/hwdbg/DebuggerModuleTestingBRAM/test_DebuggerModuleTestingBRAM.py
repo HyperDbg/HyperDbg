@@ -293,13 +293,23 @@ def extract_stage_details(dut):
         
         print("\n")
 
+        #
+        # Check stage enable bit
+        #
+        try:
+            stage_enabled = "stageRegs_" + str(index) + "_stageEnable"
+            is_stage_enabled = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, stage_enabled)
+            print("\t Stage enabled bit: " + str(is_stage_enabled))
+        except:
+            print("\t Stage enabled bit: (unavailable)")
+
         try:
             final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_0_Value", "stageRegs_" + str(index) + "_getOperatorSymbol_0_Type")
         
             print("\t Get (0) | " + final_string_type)
             print("\t Get (0) | " + final_string_value)
         except:
-            print("\tstage at:" + str(index) + " does not contain a Get (0) buffer")
+            print("\t stage at:" + str(index) + " does not contain a Get (0) buffer")
 
         print("\n")
 
@@ -309,7 +319,7 @@ def extract_stage_details(dut):
             print("\t Get (1) | " + final_string_type)
             print("\t Get (1) | " + final_string_value)
         except:
-            print("\tstage at:" + str(index) + " does not contain a Get (1) buffer")
+            print("\t stage at:" + str(index) + " does not contain a Get (1) buffer")
 
         print("\n")
 
@@ -319,7 +329,7 @@ def extract_stage_details(dut):
             print("\t Set (0) | " + final_string_type)
             print("\t Set (0) | " + final_string_value)
         except:
-            print("\tstage at:" + str(index) + " does not contain a Set (0) buffer")
+            print("\t stage at:" + str(index) + " does not contain a Set (0) buffer")
 
         print("\n\n")
  
