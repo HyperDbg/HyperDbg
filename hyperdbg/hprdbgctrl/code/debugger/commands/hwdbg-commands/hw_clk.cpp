@@ -60,6 +60,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
     size_t                             NumberOfBytesPerChunk       = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
+    HWDBG_SHORT_SYMBOL *               NewScriptBuffer = NULL;
 
     if (SplitCommand.size() >= 2 && !SplitCommand.at(1).compare("test"))
     {
@@ -188,8 +189,9 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                                                                               (SYMBOL *)ScriptBuffer,
                                                                               ActionScript->ScriptBufferSize,
                                                                               NumberOfStagesForScript,
+                                                                              &NewScriptBuffer,
                                                                               &NewCompressedBufferSize) == TRUE &&
-                        HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
+                        HwdbgInterpreterCompressBuffer((UINT64 *)NewScriptBuffer,
                                                        NewCompressedBufferSize,
                                                        g_HwdbgInstanceInfo.scriptVariableLength,
                                                        &NewCompressedBufferSize,
@@ -211,7 +213,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
 
                         for (size_t i = 0; i < NewCompressedBufferSize; i++)
                         {
-                            ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
+                            ShowMessages("%02X ", (UINT8)((CHAR *)NewScriptBuffer)[i]);
                         }
 
                         ShowMessages("\nwriting script configuration packet into the file\n");
@@ -223,7 +225,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                             HwdbgInterpreterSendScriptPacket(&g_HwdbgInstanceInfo,
                                                              TestFilePath,
                                                              NumberOfStagesForScript + NumberOfOperandsImplemented - 1, // Number of symbols = Number of stages + Number of operands - 1
-                                                             ScriptBuffer,
+                                                             NewScriptBuffer,
                                                              (UINT32)NewCompressedBufferSize))
                         {
                             ShowMessages("\n[*] script buffer successfully written into file: %s\n", TestFilePath);
@@ -266,6 +268,10 @@ CommandHwClk(vector<string> SplitCommand, string Command)
         //
         // Free the allocated memory
         //
+        if (NewScriptBuffer != NULL)
+        {
+            free(NewScriptBuffer);
+        }
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
     }
     else

@@ -57,6 +57,7 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     SYMBOL *                     SymbolBuffer,
     size_t                       SymbolBufferLength,
     UINT32                       NumberOfStages,
+    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
     size_t *                     NewBufferSize);
 
 BOOLEAN
@@ -88,5 +89,5 @@ BOOLEAN
 HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                  const TCHAR *                FileName,
                                  UINT32                       NumberOfSymbols,
-                                 CHAR *                       Buffer,
+                                 HWDBG_SHORT_SYMBOL *         Buffer,
                                  UINT32                       BufferLength);

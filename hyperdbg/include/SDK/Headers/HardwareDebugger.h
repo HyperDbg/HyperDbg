@@ -112,8 +112,6 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
         // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
         // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file
         //
-        UINT64 func_inc : 1;
-        UINT64 func_dec : 1;
         UINT64 func_or : 1;
         UINT64 func_xor : 1;
         UINT64 func_and : 1;

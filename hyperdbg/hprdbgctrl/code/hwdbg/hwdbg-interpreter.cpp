@@ -174,8 +174,6 @@ VOID
 HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
 {
     ShowMessages("\nThis debuggee supports the following operatiors:\n");
-    ShowMessages("\tincrement: %s \n", InstanceInfo->scriptCapabilities.func_inc ? "supported" : "not supported");
-    ShowMessages("\tdecrement: %s \n", InstanceInfo->scriptCapabilities.func_dec ? "supported" : "not supported");
     ShowMessages("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
     ShowMessages("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
     ShowMessages("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
@@ -230,14 +228,14 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
-            ShowMessages("  \tfound a non-semnatic rule (operand) type: 0x%x, at: 0x%x\n", SymbolArray[i].Type, i);
+            ShowMessages("  \tfound a non-semnatic rule (operand) - 0x%x | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
             Operands++;
             continue;
         }
         else
         {
             Stages++;
-            ShowMessages("- found a semnatic rule (operator) value: 0x%x, at: 0x%x\n", SymbolArray[i].Value, i);
+            ShowMessages("- found a semnatic rule (operator) - 0x%x | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
 
             if (ScriptEngineFuncNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
             {
@@ -251,22 +249,6 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
 
         switch (SymbolArray[i].Value)
         {
-        case FUNC_INC:
-            if (!InstanceInfo->scriptCapabilities.func_inc)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, increment is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_DEC:
-            if (!InstanceInfo->scriptCapabilities.func_dec)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, decrement is not supported by the debuggee\n");
-            }
-            break;
-
         case FUNC_OR:
             if (!InstanceInfo->scriptCapabilities.func_or)
             {
@@ -688,9 +670,11 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
 /**
  * @brief Function to compress the buffer
  *
- * @param Buffer
- * @param BufferLength
+ * @param InstanceInfo
+ * @param SymbolBuffer
+ * @param SymbolBufferLength
  * @param NumberOfStages
+ * @param NewShortSymbolBuffer
  * @param NewBufferSize
  *
  * @return BOOLEAN
@@ -701,6 +685,7 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     SYMBOL *                     SymbolBuffer,
     size_t                       SymbolBufferLength,
     UINT32                       NumberOfStages,
+    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
     size_t *                     NewBufferSize)
 
 {
@@ -863,15 +848,9 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     }
 
     //
-    // Copy the compressed data back to the original buffer
+    // Set the new short symbol buffer address
     //
-    RtlZeroMemory(SymbolBuffer, SymbolBufferLength);
-    memcpy(SymbolBuffer, HwdbgShortSymbolBuffer, *NewBufferSize);
-
-    //
-    // Free the temporary buffer
-    //
-    free(HwdbgShortSymbolBuffer);
+    *NewShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)HwdbgShortSymbolBuffer;
 
     return TRUE;
 }
@@ -1029,7 +1008,7 @@ BOOLEAN
 HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                  const TCHAR *                FileName,
                                  UINT32                       NumberOfSymbols,
-                                 CHAR *                       Buffer,
+                                 HWDBG_SHORT_SYMBOL *         Buffer,
                                  UINT32                       BufferLength)
 {
     HWDBG_SCRIPT_BUFFER ScriptBuffer = {0};
