@@ -599,7 +599,8 @@ HwdbgInterpreterFillFileFromMemory(
  *
  * @param Buffer
  * @param BufferLength
- * @param CompressBitSize
+ * @param ScriptVariableLength
+ * @param BramDataWidth
  * @param NewBufferSize
  * @param NumberOfBytesPerChunk
  *
@@ -608,13 +609,20 @@ HwdbgInterpreterFillFileFromMemory(
 BOOLEAN
 HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
                                size_t   BufferLength,
-                               int      CompressBitSize,
+                               UINT32   ScriptVariableLength,
+                               UINT32   BramDataWidth,
                                size_t * NewBufferSize,
                                size_t * NumberOfBytesPerChunk)
 {
-    if (CompressBitSize <= 0 || CompressBitSize > 64)
+    if (ScriptVariableLength <= 7 || ScriptVariableLength > 64)
     {
-        ShowMessages("err, invalid bit size, it should be between 1 and 64\n");
+        ShowMessages("err, invalid bit size, it should be between 7 and 64\n");
+        return FALSE;
+    }
+
+    if (ScriptVariableLength > BramDataWidth)
+    {
+        ShowMessages("err, script variable length cannot be more than the BRAM data width\n");
         return FALSE;
     }
 
@@ -626,9 +634,10 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
     //
     // Calculate the number of bytes needed for the new compressed buffer
     //
-    size_t NewBytesPerChunk = (CompressBitSize + 7) / 8; // ceil(CompressBitSize / 8)
+    size_t NewBytesPerChunk = (BramDataWidth + 7) / 8; // ceil(BramDataWidth / 8)
     *NumberOfBytesPerChunk  = NewBytesPerChunk;
-    *NewBufferSize          = NumberOfChunks * NewBytesPerChunk;
+
+    *NewBufferSize = NumberOfChunks * NewBytesPerChunk;
 
     //
     // Create a temporary buffer to hold the compressed data

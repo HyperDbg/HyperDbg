@@ -63,7 +63,8 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 BOOLEAN
 HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
                                size_t   BufferLength,
-                               int      CompressBitSize,
+                               UINT32   ScriptVariableLength,
+                               UINT32   BramDataWidth,
                                size_t * NewBufferSize,
                                size_t * NumberOfBytesPerChunk);
 

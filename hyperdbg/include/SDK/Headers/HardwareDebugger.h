@@ -141,6 +141,9 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
 
     } scriptCapabilities;
 
+    UINT32 bramAddrWidth; // BRAM address width
+    UINT32 bramDataWidth; // BRAM data width
+
     //
     // Here the details of port arrangements are located (HWDBG_PORT_INFORMATION_ITEMS)
     // As the following type:
