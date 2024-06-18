@@ -228,14 +228,14 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
-            ShowMessages("  \tfound a non-semnatic rule (operand) - 0x%x | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
+            ShowMessages("  \t%d. found a non-semnatic rule (operand) | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
             Operands++;
             continue;
         }
         else
         {
             Stages++;
-            ShowMessages("- found a semnatic rule (operator) - 0x%x | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
+            ShowMessages("- %d. found a semnatic rule (operator) | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
 
             if (ScriptEngineFuncNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
             {
@@ -705,7 +705,7 @@ HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
     SIZE_T NumberOfSymbols = SymbolBufferLength / sizeof(SymbolBuffer[0]);
 
-    *NewBufferSize = (NumberOfStages + NumberOfOperands) * sizeof(HWDBG_SHORT_SYMBOL); // number of stage + maximum number of operands
+    *NewBufferSize = NumberOfStages * (NumberOfOperands + 1) * sizeof(HWDBG_SHORT_SYMBOL); // number of stage + maximum number of operands
 
     //
     // Create a temporary buffer to hold the compressed data
