@@ -122,6 +122,7 @@ class ScriptExecutionEngine(
         // Config SET operator
         //
         stageRegs(configStageNumber).setOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
 
         when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedSetScriptOperators - 1).U) {
 

@@ -1,13 +1,13 @@
 Content of BRAM after emulation:
 
 PS to PL area:
-mem_0:   0000000a   | Checksum
+mem_0:   0000000e   | Checksum
 mem_1:   00000000   | Checksum
 mem_2:   52444247   | Indicator
 mem_3:   48595045   | Indicator
 mem_4:   00000004   | TypeOfThePacket
 mem_5:   00000002   | RequestedActionOfThePacket
-mem_6:   0000000b   | Start of Optional Data
+mem_6:   0000000f   | Start of Optional Data
 mem_7:   00000005
 mem_8:   00000010
 mem_9:   00000002
