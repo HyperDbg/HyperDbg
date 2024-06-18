@@ -239,14 +239,14 @@ def get_symbol_type_and_value(dut, value, type):
         int_content_value = int(str(element_value.value), 2)
         int_content_type = int(str(element_type.value), 2)
 
-        hex_string_value = f'{int_content_value:08x}'
-        hex_string_type = f'{int_content_type:08x}'
+        hex_string_value = f'{int_content_value:x}'
+        hex_string_type = f'{int_content_type:x}'
     except:
         hex_string_value = str(element_value.value)
         hex_string_type = str(element_type.value)
 
-    final_string_value = f'{value}:   {hex_string_value}'
-    final_string_type = f'{type} :   {hex_string_type}'
+    final_string_value = f'{value}:   0x{hex_string_value}' + " (bin: " + str(element_value.value) + ")"
+    final_string_type = f'{type} :   0x{hex_string_type}' + " (bin: " + str(element_type.value) + ")"
 
     return final_string_value, final_string_type
 
