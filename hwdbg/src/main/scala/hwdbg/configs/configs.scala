@@ -67,6 +67,7 @@ object DebuggerPorts {
   //
   // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
   val PORT_PINS_MAP: Array[Int] = Array(12, 20)
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
 
 }
 
@@ -85,16 +86,6 @@ object DebuggerConfigurations {
   // Number of input/output pins
   //
   val NUMBER_OF_PINS: Int = 32
-
-  //
-  // Address width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_ADDR_WIDTH: Int = 13
-
-  //
-  // Data width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_DATA_WIDTH: Int = 32
 
 }
 
@@ -123,14 +114,12 @@ object ScriptEngineConfigurations {
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 32
+  val SCRIPT_VARIABLE_LENGTH: Int = 8
 
   //  
   // Define the capabilities you want to enable
   //
     val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
-      HwdbgScriptCapabilities.func_inc,
-      HwdbgScriptCapabilities.func_dec,
       HwdbgScriptCapabilities.func_or,
       HwdbgScriptCapabilities.func_xor,
       HwdbgScriptCapabilities.func_and,
@@ -159,6 +148,16 @@ object ScriptEngineConfigurations {
  *   The constants for memory communication
  */
 object MemoryCommunicationConfigurations {
+
+  //
+  // Address width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_ADDR_WIDTH: Int = 13
+
+  //
+  // Data width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_DATA_WIDTH: Int = 32
 
   //
   // Emulate block RAM by inferring a register to delay one clock cycle
@@ -197,37 +196,37 @@ case class HwdbgInstanceInformation(
   numberOfPins: Int,            // Number of pins
   numberOfPorts: Int,           // Number of ports
   scriptCapabilities: Long,            // Capabilities bitmask
+  bramAddrWidth: Int, // BRAM address width
+  bramDataWidth: Int, // BRAM data width
   portsConfiguration: Array[Int]   // Port arrangement
 )
 
 object HwdbgScriptCapabilities {
 
-  val func_inc: Long = 1L << 0
-  val func_dec: Long = 1L << 1
-  val func_or: Long = 1L << 2
-  val func_xor: Long = 1L << 3
-  val func_and: Long = 1L << 4
-  val func_asr: Long = 1L << 5
-  val func_asl: Long = 1L << 6
-  val func_add: Long = 1L << 7
-  val func_sub: Long = 1L << 8
-  val func_mul: Long = 1L << 9
-  val func_div: Long = 1L << 10
-  val func_mod: Long = 1L << 11
-  val func_gt: Long = 1L << 12
-  val func_lt: Long = 1L << 13
-  val func_egt: Long = 1L << 14
-  val func_elt: Long = 1L << 15
-  val func_equal: Long = 1L << 16
-  val func_neq: Long = 1L << 17
-  val func_jmp: Long = 1L << 18
-  val func_jz: Long = 1L << 19
-  val func_jnz: Long = 1L << 20
-  val func_mov: Long = 1L << 21
-  val func_printf: Long = 1L << 22
+  val func_or: Long = 1L << 0
+  val func_xor: Long = 1L << 1
+  val func_and: Long = 1L << 2
+  val func_asr: Long = 1L << 3
+  val func_asl: Long = 1L << 4
+  val func_add: Long = 1L << 5
+  val func_sub: Long = 1L << 6
+  val func_mul: Long = 1L << 7
+  val func_div: Long = 1L << 8
+  val func_mod: Long = 1L << 9
+  val func_gt: Long = 1L << 10
+  val func_lt: Long = 1L << 11
+  val func_egt: Long = 1L << 12
+  val func_elt: Long = 1L << 13
+  val func_equal: Long = 1L << 14
+  val func_neq: Long = 1L << 15
+  val func_jmp: Long = 1L << 16
+  val func_jz: Long = 1L << 17
+  val func_jnz: Long = 1L << 18
+  val func_mov: Long = 1L << 19
+  val func_printf: Long = 1L << 20
 
   def allCapabilities: Seq[Long] = Seq(
-    func_inc, func_dec, func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
+    func_or, func_xor, func_and, func_asr, func_asl, func_add, func_sub, func_mul, func_div, func_mod, func_gt, func_lt,
     func_egt, func_elt, func_equal, func_neq, func_jmp, func_jz, func_jnz, func_mov, func_printf
   )
 
@@ -264,6 +263,8 @@ object HwdbgInstanceInformation {
     numberOfPins: Int,
     numberOfPorts: Int,
     enabledCapabilities: Seq[Long],
+    bramAddrWidth: Int,
+    bramDataWidth: Int,
     portsConfiguration: Array[Int]
   ): HwdbgInstanceInformation = {
 
@@ -291,6 +292,8 @@ object HwdbgInstanceInformation {
       numberOfPins = numberOfPins,
       numberOfPorts = numberOfPorts,
       scriptCapabilities = capabilitiesMask,
+      bramAddrWidth = bramAddrWidth,
+      bramDataWidth = bramDataWidth,
       portsConfiguration = portsConfiguration
     )
   }

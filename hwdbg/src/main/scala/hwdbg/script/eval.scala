@@ -96,17 +96,6 @@ class ScriptEngineEval(
 
     switch(mainOperatorValue) {
 
-
-      is(sFuncInc) {
-        //
-        // To be implemented
-        //        
-      }
-      is(sFuncDec) {
-        //
-        // To be implemented
-        //  
-      }
       is(sFuncOr) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_or) == true) {
 

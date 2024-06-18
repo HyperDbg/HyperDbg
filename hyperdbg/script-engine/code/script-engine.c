@@ -1939,7 +1939,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
 
-
             //
             // Free the operand if it is a temp value
             //
@@ -3112,4 +3111,198 @@ LalrIsOperandType(PTOKEN Token)
         return TRUE;
     }
     return FALSE;
+}
+
+/**
+ * @brief Script Engine get number of operands
+ *
+ * @param FuncType
+ * @param NumberOfGetOperands
+ * @param NumberOfSetOperands
+ * @param BOOLEAN Whether the function is defined or not
+ */
+BOOLEAN
+FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands)
+{
+    BOOLEAN Result = FALSE;
+
+    switch (FuncType)
+    {
+    case FUNC_INC:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_DEC:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_OR:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_XOR:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_AND:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ASL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ADD:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_SUB:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MUL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_DIV:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MOD:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_GT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_LT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_EGT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ELT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_EQUAL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_NEQ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JMP:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JZ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JNZ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MOV:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    default:
+        //
+        // Not defined
+        //
+        Result = FALSE;
+        break;
+    }
+
+    return Result;
 }

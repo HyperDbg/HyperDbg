@@ -52,14 +52,19 @@ BOOLEAN
 HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
 
 BOOLEAN
-HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(SYMBOL * SymbolBuffer,
-                                                      size_t   SymbolBufferLength,
-                                                      size_t * NewBufferSize);
+HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    SYMBOL *                     SymbolBuffer,
+    size_t                       SymbolBufferLength,
+    UINT32                       NumberOfStages,
+    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
+    size_t *                     NewBufferSize);
 
 BOOLEAN
 HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
                                size_t   BufferLength,
-                               int      CompressBitSize,
+                               UINT32   ScriptVariableLength,
+                               UINT32   BramDataWidth,
                                size_t * NewBufferSize,
                                size_t * NumberOfBytesPerChunk);
 
@@ -85,5 +90,5 @@ BOOLEAN
 HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                  const TCHAR *                FileName,
                                  UINT32                       NumberOfSymbols,
-                                 CHAR *                       Buffer,
+                                 HWDBG_SHORT_SYMBOL *         Buffer,
                                  UINT32                       BufferLength);

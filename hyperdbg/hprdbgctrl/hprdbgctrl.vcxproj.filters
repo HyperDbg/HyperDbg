@@ -520,7 +520,7 @@
     <ClCompile Include="code\debugger\script-engine\symbol.cpp">
       <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\commands\hwdbg-commands\hwdbg.cpp">
+    <ClCompile Include="code\debugger\commands\hwdbg-commands\hw_clk.cpp">
       <Filter>code\debugger\commands\hwdbg-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\hwdbg\hwdbg-interpreter.cpp">

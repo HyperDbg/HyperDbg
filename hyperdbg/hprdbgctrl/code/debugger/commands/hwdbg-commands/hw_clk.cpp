@@ -1,7 +1,7 @@
 /**
- * @file hwdbg.cpp
+ * @file hw_clk.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief !hwdbg command
+ * @brief !hw_clk command
  * @details
  * @version 0.9
  * @date 2024-05-29
@@ -20,46 +20,48 @@ extern std::vector<UINT32>        g_HwdbgPortConfiguration;
 extern const char *               HwdbgActionEnumNames[];
 
 /**
- * @brief help of the !hwdbg command
+ * @brief help of the !hw_clk command
  *
  * @return VOID
  */
 VOID
-CommandHwdbgHelp()
+CommandHwClkHelp()
 {
-    ShowMessages("!hwdbg : performs actions related to hwdbg hardware debugging.\n\n");
+    ShowMessages("!hw_clk : performs actions related to hwdbg hardware debugging events for each clock cycle.\n\n");
 
-    ShowMessages("syntax : \t!hwdbg  [script { Script (string) }]\n");
+    ShowMessages("syntax : \t!hw_clk  [script { Script (string) }]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !hwdbg script { @hw_pin1 = 0; }\n");
+    ShowMessages("\t\te.g : !hw_clk script { @hw_pin1 = 0; }\n");
 }
 
 /**
- * @brief !hwdbg command handler
+ * @brief !hw_clk command handler
  *
  * @param SplitCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandHwdbg(vector<string> SplitCommand, string Command)
+CommandHwClk(vector<string> SplitCommand, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
     UINT32                             EventLength;
-    UINT64                             SpecialTarget               = 0;
-    UINT32                             ActionBreakToDebuggerLength = 0;
-    UINT32                             ActionCustomCodeLength      = 0;
-    UINT32                             ActionScriptLength          = 0;
-    UINT32                             NumberOfStagesForScript     = 0;
-    UINT32                             NumberOfOperandsForScript   = 0;
-    size_t                             NewCompressedBufferSize     = 0;
-    size_t                             NumberOfBytesPerChunk       = 0;
+    UINT64                             SpecialTarget                         = 0;
+    UINT32                             ActionBreakToDebuggerLength           = 0;
+    UINT32                             ActionCustomCodeLength                = 0;
+    UINT32                             ActionScriptLength                    = 0;
+    UINT32                             NumberOfStagesForScript               = 0;
+    UINT32                             NumberOfOperandsForScript             = 0;
+    size_t                             NewCompressedBufferSize               = 0;
+    size_t                             NumberOfNeededFlipFlopsInTargetDevice = 0;
+    size_t                             NumberOfBytesPerChunk                 = 0;
     vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
+    HWDBG_SHORT_SYMBOL *               NewScriptBuffer = NULL;
 
     if (SplitCommand.size() >= 2 && !SplitCommand.at(1).compare("test"))
     {
@@ -105,6 +107,9 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
 
             ShowMessages("Debuggee Number Of Pins: 0x%x\n", g_HwdbgInstanceInfo.numberOfPins);
             ShowMessages("Debuggee Number Of Ports: 0x%x\n", g_HwdbgInstanceInfo.numberOfPorts);
+
+            ShowMessages("Debuggee BRAM Address Width: 0x%x\n", g_HwdbgInstanceInfo.bramAddrWidth);
+            ShowMessages("Debuggee BRAM Data Width: 0x%x (%d bit)\n", g_HwdbgInstanceInfo.bramDataWidth, g_HwdbgInstanceInfo.bramDataWidth);
 
             for (auto item : g_HwdbgPortConfiguration)
             {
@@ -184,31 +189,52 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                     //
                     // Compress script buffer
                     //
-                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer((SYMBOL *)ScriptBuffer,
+                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(&g_HwdbgInstanceInfo,
+                                                                              (SYMBOL *)ScriptBuffer,
                                                                               ActionScript->ScriptBufferSize,
+                                                                              NumberOfStagesForScript,
+                                                                              &NewScriptBuffer,
                                                                               &NewCompressedBufferSize) == TRUE &&
-                        HwdbgInterpreterCompressBuffer((UINT64 *)ScriptBuffer,
+
+                        //
+                        // we put bram data width size here instead of script variable length (g_HwdbgInstanceInfo.scriptVariableLength)
+                        // since we want it to read one symbol filed at a time
+                        //
+                        HwdbgInterpreterCompressBuffer((UINT64 *)NewScriptBuffer,
                                                        NewCompressedBufferSize,
                                                        g_HwdbgInstanceInfo.scriptVariableLength,
+                                                       g_HwdbgInstanceInfo.bramDataWidth,
                                                        &NewCompressedBufferSize,
                                                        &NumberOfBytesPerChunk) == TRUE)
                     {
                         ShowMessages("\n---------------------------------------------------------\n");
-                        ShowMessages("compressed script buffer size: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
 
-                        ShowMessages("hwdbg script buffer (size=%d, stages=%d, operands=%d, flip-flops=%d, number of bytes per chunk: %d):\n\n",
+                        UINT32 NumberOfOperandsImplemented = NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
+
+                        //
+                        // Calculate the number of flip-flops needed in the target device
+                        // + 1 is for the operator symbol itself
+                        //
+                        NumberOfNeededFlipFlopsInTargetDevice = NumberOfStagesForScript *
+                                                                (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1) *
+                                                                g_HwdbgInstanceInfo.scriptVariableLength *
+                                                                sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64);
+
+                        ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
                                      NumberOfStagesForScript,
+                                     NumberOfOperandsImplemented,
                                      NumberOfOperandsForScript,
-                                     NewCompressedBufferSize * 8, // Converted to bits
+                                     ((float)NumberOfOperandsForScript / (float)NumberOfOperandsImplemented) * 100,
+                                     NumberOfNeededFlipFlopsInTargetDevice,
                                      NumberOfBytesPerChunk);
 
                         for (size_t i = 0; i < NewCompressedBufferSize; i++)
                         {
-                            ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
+                            ShowMessages("%02X ", (UINT8)((CHAR *)NewScriptBuffer)[i]);
                         }
 
-                        ShowMessages("writing script configuration packet into the file\n");
+                        ShowMessages("\nwriting script configuration packet into the file\n");
 
                         //
                         // *** Write script configuration packet into a file ***
@@ -216,8 +242,8 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
                         if (SetupPathForFileName(HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH, TestFilePath, sizeof(TestFilePath), FALSE) &&
                             HwdbgInterpreterSendScriptPacket(&g_HwdbgInstanceInfo,
                                                              TestFilePath,
-                                                             NumberOfStagesForScript + NumberOfOperandsForScript - 1, // Number of symbols = Number of stages + Number of operands - 1
-                                                             ScriptBuffer,
+                                                             NumberOfStagesForScript + NumberOfOperandsImplemented - 1, // Number of symbols = Number of stages + Number of operands - 1
+                                                             NewScriptBuffer,
                                                              (UINT32)NewCompressedBufferSize))
                         {
                             ShowMessages("\n[*] script buffer successfully written into file: %s\n", TestFilePath);
@@ -260,12 +286,16 @@ CommandHwdbg(vector<string> SplitCommand, string Command)
         //
         // Free the allocated memory
         //
+        if (NewScriptBuffer != NULL)
+        {
+            free(NewScriptBuffer);
+        }
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
     }
     else
     {
         ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
-        CommandHwdbgHelp();
+        CommandHwClkHelp();
         return;
     }
 }

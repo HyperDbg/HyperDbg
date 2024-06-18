@@ -112,13 +112,37 @@ class ScriptEngineSetValue(
         //
         // Iterate based on port configuration
         //
-        var currentPortIndex: Int = 0
         var currentPortNum: Int = 0
         val numPorts = instanceInfo.portsConfiguration.length
 
         for ((port, index) <- instanceInfo.portsConfiguration.zipWithIndex) {
 
-            when(io.operator.Value === currentPortIndex.U) {
+            LogInfo(debug)(f"========================= port assignment (${index} - port size: ${port}) =========================")
+
+            when(io.operator.Value === index.U) {
+
+                //
+                // If the current port's bit width is bigger than the script variable length,
+                // we need to append zero
+                //
+                val targetInputValue = WireInit(0.U(port.W))
+
+                if (port > instanceInfo.scriptVariableLength) {
+
+                  //
+                  // Since the port size is bigger than the variable size,
+                  // we need to append zeros to the target value
+                  //
+                  LogInfo(debug)(f"Appending zeros (${port - instanceInfo.scriptVariableLength}) to input variable (targetInputValue) to support port num: ${index}")
+                  targetInputValue := Cat(io.inputValue, 0.U((port - instanceInfo.scriptVariableLength).W))
+                }
+                else {
+                  //
+                  // Since the variable size is bigger than the port size,
+                  // we need only a portion of the input value
+                  //
+                  targetInputValue := io.inputValue(port - 1, 0)
+                }
 
                 //
                 // Determine the range of bits to be modified
@@ -132,19 +156,19 @@ class ScriptEngineSetValue(
                     //
                     // First port: keep higher bits unchanged, set lower bits to input value
                     //
-                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + io.inputValue(${port - 1}, 0)")
+                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0)")
                     Cat(
                         inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
-                        io.inputValue(port - 1, 0)// New value for the specified range
+                        targetInputValue// New value for the specified range
                     )
                 } else if (index == numPorts - 1) {
 
                     //
                     // Last port: keep lower bits unchanged, set higher bits to input value
                     //
-                    LogInfo(debug)(f"Set connecting index=${index} - io.inputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                    LogInfo(debug)(f"Set connecting index=${index} - targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
                     Cat(
-                        io.inputValue(port - 1, 0),// New value for the specified range
+                        targetInputValue,// New value for the specified range
                         inputPin(low - 1, 0)        // Bits below the range to keep unchanged
                     )
                 } else {
@@ -152,10 +176,10 @@ class ScriptEngineSetValue(
                     //
                     // Middle port: keep both higher and lower bits unchanged
                     //
-                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + io.inputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
                     Cat(
                         inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
-                        io.inputValue(port - 1, 0),// New value for the specified range
+                        targetInputValue,// New value for the specified range
                         inputPin(low - 1, 0)                               // Bits below the range to keep unchanged
                     )
                 }
@@ -167,7 +191,6 @@ class ScriptEngineSetValue(
             }
 
             currentPortNum += port
-            currentPortIndex += 1
         }
       }
       is(symbolTempType) {

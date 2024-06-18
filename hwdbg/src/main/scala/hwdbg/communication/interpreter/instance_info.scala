@@ -28,14 +28,13 @@ object InterpreterInstanceInfoEnums {
     sSendMaximumNumberOfSupportedGetScriptOperators, sSendMaximumNumberOfSupportedSetScriptOperators,
     sSendSharedMemorySize, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
     sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1, sSendScriptCapabilities2, 
-    sSendPortsConfiguration, sDone = Value
+    sSendBramAddrWidth, sSendBramDataWidth, sSendPortsConfiguration, sDone = Value
   }
 }
 
 class InterpreterInstanceInfo(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -56,7 +55,7 @@ class InterpreterInstanceInfo(
     //
     val noNewDataSender = Output(Bool()) // should sender finish sending buffers or not?
     val dataValidOutput = Output(Bool()) // should sender send next buffer or not?
-    val sendingData = Output(UInt(bramDataWidth.W)) // data to be sent to the debugger
+    val sendingData = Output(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the debugger
 
   })
 
@@ -73,7 +72,7 @@ class InterpreterInstanceInfo(
   //
   // Convert input port pins into vector
   //
-  // val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(bramDataWidth.W))))
+  // val pinsVec = RegInit(VecInit(Seq.fill(numberOfPorts)(0.U(instanceInfo.bramDataWidth.W))))
   val pinsVec = VecInit(instanceInfo.portsConfiguration.map(_.U))
 
   //
@@ -91,7 +90,7 @@ class InterpreterInstanceInfo(
   //
   val noNewDataSender = WireInit(false.B)
   val dataValidOutput = WireInit(false.B)
-  val sendingData = WireInit(0.U(bramDataWidth.W))
+  val sendingData = WireInit(0.U(instanceInfo.bramDataWidth.W))
 
   //
   // Apply the chip enable signal
@@ -267,7 +266,7 @@ class InterpreterInstanceInfo(
         // Set the first bits (most significant) of the supported operators capabilities of this instance 
         // of the debugger
         //
-        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, bramDataWidth, bramDataWidth + bramDataWidth - 1).U
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, instanceInfo.bramDataWidth, instanceInfo.bramDataWidth + instanceInfo.bramDataWidth - 1).U
 
 
         //
@@ -284,7 +283,37 @@ class InterpreterInstanceInfo(
         // Set the second bits (least significant) of the supported operators capabilities of this instance 
         // of the debugger
         //
-        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, bramDataWidth - 1).U
+        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, instanceInfo.bramDataWidth - 1).U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendBramAddrWidth
+
+      }
+      is(sSendBramAddrWidth) {
+
+        //
+        // Set the BRAM address width in this instance of the debugger
+        //
+        sendingData := instanceInfo.bramAddrWidth.U
+
+        //
+        // The output is valid
+        //
+        dataValidOutput := true.B
+
+        state := sSendBramDataWidth
+
+      }
+      is(sSendBramDataWidth) {
+
+        //
+        // Set the BRAM data width in this instance of the debugger
+        //
+        sendingData := instanceInfo.bramDataWidth.U
 
         //
         // The output is valid
@@ -363,8 +392,7 @@ object InterpreterInstanceInfo {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      bramDataWidth: Int,
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool
   ): (Bool, Bool, UInt) = {
@@ -372,14 +400,13 @@ object InterpreterInstanceInfo {
     val interpreterInstanceInfo = Module(
       new InterpreterInstanceInfo(
         debug,
-        instanceInfo,
-        bramDataWidth
+        instanceInfo
       )
     )
 
     val noNewDataSender = Wire(Bool())
     val dataValidOutput = Wire(Bool())
-    val sendingData = Wire(UInt(bramDataWidth.W))
+    val sendingData = Wire(UInt(instanceInfo.bramDataWidth.W))
 
     //
     // Configure the input signals

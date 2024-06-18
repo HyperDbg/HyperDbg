@@ -416,7 +416,6 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     }
     RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-
     int StackIndx         = 0;
     int StackBaseIndx     = 0;
     int StackTempBaseIndx = 0;
@@ -807,4 +806,18 @@ VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer)
 {
     RemoveSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
+}
+
+/**
+ * @brief wrapper for getting operand count
+ * @param FuncType
+ * @param NumberOfGetOperands
+ * @param NumberOfSetOperands
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFuncNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands)
+{
+    return FuncGetNumberOfOperands(FuncType, NumberOfGetOperands, NumberOfSetOperands);
 }

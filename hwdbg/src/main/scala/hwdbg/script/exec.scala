@@ -21,12 +21,22 @@ import chisel3.util._
 import hwdbg.configs._
 import hwdbg.stage._
 
+object ScriptExecutionEngineConfigStage {
+  object State extends ChiselEnum {
+    val sConfigStageSymbol, sConfigGetSymbol, sConfigSetSymbol = Value
+  }
+}
+
 class ScriptExecutionEngine(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
+
+  //
+  // Import state enum
+  //
+  import ScriptExecutionEngineConfigStage.State
+  import ScriptExecutionEngineConfigStage.State._
 
   val io = IO(new Bundle {
 
@@ -62,27 +72,84 @@ class ScriptExecutionEngine(
   //
   // Stage configuration registers
   //
-  val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+  val configState = RegInit(sConfigStageSymbol)
+  val configStageNumber = RegInit(1.U(log2Ceil(instanceInfo.maximumNumberOfStages).W)) // reset to one because the first stage is used for saving data
+
+  //
+  // Calculate the maximum of the two values since we only want to use one register for 
+  // both GET and SET
+  //
+  val maxOperators = math.max(instanceInfo.maximumNumberOfSupportedGetScriptOperators, instanceInfo.maximumNumberOfSupportedSetScriptOperators)
+
+  //
+  // Create a register with the width based on the maximum value
+  //
+  val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W)) 
 
   // -----------------------------------------------------------------------
   //
   // *** Configure stage buffers ***
   //
   when (io.configureStage === true.B) {
-    
-      //
-      // Configure the current stage
-      //
-      stageRegs(configStageNumber).stageSymbol := io.targetOperator
 
-      when (io.finishedScriptConfiguration === true.B) {
+    switch(configState) {
+
+      is(sConfigStageSymbol) {
+        
         //
-        // Not configuring anymore, reset the stage number
+        // Configure the stage symbol (The first symbol is the stage operator)
         //
-        configStageNumber := 0.U
-      }.otherwise {
-        configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
+        stageRegs(configStageNumber).stageSymbol := io.targetOperator
+        configState := sConfigGetSymbol
+
+        //
+        // If it is the very first configuration symbol, then we disable all stages
+        //
+        when (configStageNumber === 1.U) {
+          for (i <- 0 until instanceInfo.maximumNumberOfStages) {
+              stageRegs(i).stageEnable := false.B
+          }
+        }
       }
+      is(sConfigGetSymbol) {
+
+        //
+        // Config GET operator
+        //
+        stageRegs(configStageNumber).getOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+
+        when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedGetScriptOperators - 1).U) {
+
+          configGetSetOperatorNumber := 0.U // reset the counter
+          configState := sConfigSetSymbol // go to the next state
+        }
+      }
+      is(sConfigSetSymbol) {
+        //
+        // Config SET operator
+        //
+        stageRegs(configStageNumber).setOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
+        stageRegs(configStageNumber).stageEnable := true.B // this stage is enabled
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+
+        when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedSetScriptOperators - 1).U) {
+
+          configGetSetOperatorNumber := 0.U // reset the counter
+
+          when (io.finishedScriptConfiguration === true.B) {
+            //
+            // Not configuring anymore, reset the stage number
+            //
+            configStageNumber := 1.U // reset to one because the first stage is used for saving data
+            configState := sConfigStageSymbol
+          }.otherwise {
+            configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
+            configState := sConfigStageSymbol // the next state is again a stage symbol
+          }
+        }
+      }
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -116,8 +183,10 @@ class ScriptExecutionEngine(
 
       //
       // Check if this stage should be ignored (passed to the next stage) or be evaluated
+      // (i - 1) is because the 0th index registers are used for storing data but the 
+      // script engine assumes that the symbols start from 0, so -1 is used here 
       //
-      when(i.U === stageRegs(i).targetStage) {
+      when((i - 1).U === stageRegs(i).targetStage) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***
@@ -133,7 +202,7 @@ class ScriptExecutionEngine(
           debug,
           instanceInfo
         )(
-          io.en,
+          stageRegs(i).stageEnable,
           stageRegs(i)
         )
 
@@ -174,7 +243,13 @@ class ScriptExecutionEngine(
 
     val testttt = RegInit(0.U(1.W))
     for (j <- 0 until instanceInfo.maximumNumberOfStages) { 
-      testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+
+      if (j > instanceInfo.scriptVariableLength - 1) {
+        testttt := testttt + stageRegs(i).stageSymbol.Value(0) + stageRegs(i).stageSymbol.Type(0)
+      }
+      else {
+        testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+      }
     }
 
     io.outputPin(i) := testttt | outputPin(i)
@@ -186,9 +261,7 @@ object ScriptExecutionEngine {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       finishedScriptConfiguration: Bool,
@@ -200,9 +273,7 @@ object ScriptExecutionEngine {
     val scriptExecutionEngineModule = Module(
       new ScriptExecutionEngine(
         debug,
-        instanceInfo,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 
