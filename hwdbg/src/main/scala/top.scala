@@ -116,8 +116,8 @@ object Main extends App {
         MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION,
         ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH,
         ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES,
-        DebuggerConfigurations.BLOCK_RAM_ADDR_WIDTH,
-        DebuggerConfigurations.BLOCK_RAM_DATA_WIDTH,
+        MemoryCommunicationConfigurations.BLOCK_RAM_ADDR_WIDTH,
+        MemoryCommunicationConfigurations.BLOCK_RAM_DATA_WIDTH,
         DebuggerPorts.PORT_PINS_MAP
       ),
       firtoolOpts = Array(

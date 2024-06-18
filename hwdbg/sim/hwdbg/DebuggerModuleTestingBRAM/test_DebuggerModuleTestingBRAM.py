@@ -133,6 +133,7 @@ def print_bram_content(dut):
     sorted_list = sorted(mem_items, key=extract_number)
 
     with open("script_buffer_response.txt", "w") as file:
+    # with open("bram_instance_info.txt", "w") as file:
         file.write("Content of BRAM after emulation:\n")
         print("Content of BRAM after emulation:")
 

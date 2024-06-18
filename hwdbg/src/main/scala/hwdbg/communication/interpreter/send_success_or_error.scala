@@ -23,7 +23,7 @@ import hwdbg.configs._
 
 class InterpreterSendSuccessOrError(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   val io = IO(new Bundle {
@@ -32,14 +32,14 @@ class InterpreterSendSuccessOrError(
     // Chip signals
     //
     val en = Input(Bool()) // chip enable signal
-    val lastSuccessOrError = Input(UInt(bramDataWidth.W)) // input last error
+    val lastSuccessOrError = Input(UInt(instanceInfo.bramDataWidth.W)) // input last error
 
     //
     // Sending singals
     //
     val noNewDataSender = Output(Bool()) // should sender finish sending buffers or not?
     val dataValidOutput = Output(Bool()) // should sender send next buffer or not?
-    val sendingData = Output(UInt(bramDataWidth.W)) // data to be sent to the debugger
+    val sendingData = Output(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the debugger
 
   })
 
@@ -48,7 +48,7 @@ class InterpreterSendSuccessOrError(
   //
   val noNewDataSender = WireInit(false.B)
   val dataValidOutput = WireInit(false.B)
-  val sendingData = WireInit(0.U(bramDataWidth.W))
+  val sendingData = WireInit(0.U(instanceInfo.bramDataWidth.W))
 
   //
   // Apply the chip enable signal
@@ -83,7 +83,7 @@ object InterpreterSendSuccessOrError {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       lastSuccessOrError: UInt
@@ -92,13 +92,13 @@ object InterpreterSendSuccessOrError {
     val interpreterSendSuccessOrError = Module(
       new InterpreterSendSuccessOrError(
         debug,
-        bramDataWidth
+        instanceInfo
       )
     )
 
     val noNewDataSender = Wire(Bool())
     val dataValidOutput = Wire(Bool())
-    val sendingData = Wire(UInt(bramDataWidth.W))
+    val sendingData = Wire(UInt(instanceInfo.bramDataWidth.W))
 
     //
     // Configure the input signals

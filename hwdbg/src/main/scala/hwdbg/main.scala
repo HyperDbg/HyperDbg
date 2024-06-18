@@ -101,6 +101,8 @@ class DebuggerMain(
                               numberOfPins = numberOfPins,
                               numberOfPorts = portsConfiguration.size,
                               enabledCapabilities = scriptCapabilities,
+                              bramAddrWidth = bramAddrWidth,
+                              bramDataWidth = bramDataWidth,
                               portsConfiguration = portsConfiguration
     )
 
@@ -130,9 +132,7 @@ class DebuggerMain(
   ) =
     DebuggerPacketInterpreter(
       debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       requestedActionOfThePacketOutput,
@@ -148,9 +148,7 @@ class DebuggerMain(
   val (outputPin) =
     ScriptExecutionEngine(
       debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       finishedScriptConfiguration,
@@ -175,9 +173,7 @@ class DebuggerMain(
   ) =
     SendReceiveSynchronizer(
       debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       io.plInSignal,

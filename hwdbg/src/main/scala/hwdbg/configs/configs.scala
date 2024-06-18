@@ -87,16 +87,6 @@ object DebuggerConfigurations {
   //
   val NUMBER_OF_PINS: Int = 32
 
-  //
-  // Address width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_ADDR_WIDTH: Int = 13
-
-  //
-  // Data width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_DATA_WIDTH: Int = 32
-
 }
 
 /**
@@ -124,7 +114,7 @@ object ScriptEngineConfigurations {
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 32
+  val SCRIPT_VARIABLE_LENGTH: Int = 8
 
   //  
   // Define the capabilities you want to enable
@@ -158,6 +148,16 @@ object ScriptEngineConfigurations {
  *   The constants for memory communication
  */
 object MemoryCommunicationConfigurations {
+
+  //
+  // Address width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_ADDR_WIDTH: Int = 13
+
+  //
+  // Data width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_DATA_WIDTH: Int = 32
 
   //
   // Emulate block RAM by inferring a register to delay one clock cycle
@@ -196,6 +196,8 @@ case class HwdbgInstanceInformation(
   numberOfPins: Int,            // Number of pins
   numberOfPorts: Int,           // Number of ports
   scriptCapabilities: Long,            // Capabilities bitmask
+  bramAddrWidth: Int, // BRAM address width
+  bramDataWidth: Int, // BRAM data width
   portsConfiguration: Array[Int]   // Port arrangement
 )
 
@@ -261,6 +263,8 @@ object HwdbgInstanceInformation {
     numberOfPins: Int,
     numberOfPorts: Int,
     enabledCapabilities: Seq[Long],
+    bramAddrWidth: Int,
+    bramDataWidth: Int,
     portsConfiguration: Array[Int]
   ): HwdbgInstanceInformation = {
 
@@ -288,6 +292,8 @@ object HwdbgInstanceInformation {
       numberOfPins = numberOfPins,
       numberOfPorts = numberOfPorts,
       scriptCapabilities = capabilitiesMask,
+      bramAddrWidth = bramAddrWidth,
+      bramDataWidth = bramDataWidth,
       portsConfiguration = portsConfiguration
     )
   }

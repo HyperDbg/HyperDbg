@@ -29,9 +29,7 @@ object ScriptExecutionEngineConfigStage {
 
 class ScriptExecutionEngine(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -263,9 +261,7 @@ object ScriptExecutionEngine {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       finishedScriptConfiguration: Bool,
@@ -277,9 +273,7 @@ object ScriptExecutionEngine {
     val scriptExecutionEngineModule = Module(
       new ScriptExecutionEngine(
         debug,
-        instanceInfo,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 

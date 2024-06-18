@@ -31,8 +31,7 @@ object InterpreterScriptBufferHandlerEnums {
 
 class InterpreterScriptBufferHandler(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -54,7 +53,7 @@ class InterpreterScriptBufferHandler(
     val readNextData = Output(Bool()) // whether the next data should be read or not?
 
     val dataValidInput = Input(Bool()) // whether data on the receiving data line is valid or not?
-    val receivingData = Input(UInt(bramDataWidth.W)) // data to be received in interpreter
+    val receivingData = Input(UInt(instanceInfo.bramDataWidth.W)) // data to be received in interpreter
 
     //
     // Script stage configuration signals
@@ -72,7 +71,7 @@ class InterpreterScriptBufferHandler(
   //
   // Internal registers
   //
-  val regScriptNumberOfSymbols = Reg(UInt(bramDataWidth.W))
+  val regScriptNumberOfSymbols = Reg(UInt(instanceInfo.bramDataWidth.W))
 
   //
   // Output pins
@@ -246,8 +245,7 @@ object InterpreterScriptBufferHandler {
 
   def apply(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       dataValidInput: Bool,
@@ -257,8 +255,7 @@ object InterpreterScriptBufferHandler {
     val interpreterScriptBufferHandler = Module(
       new InterpreterScriptBufferHandler(
         debug,
-        instanceInfo,
-        bramDataWidth
+        instanceInfo
       )
     )
 

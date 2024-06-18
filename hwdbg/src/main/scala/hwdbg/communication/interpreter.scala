@@ -31,9 +31,7 @@ object DebuggerPacketInterpreterEnums {
 
 class DebuggerPacketInterpreter(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -59,7 +57,7 @@ class DebuggerPacketInterpreter(
     val readNextData = Output(Bool()) // whether the next data should be read or not?
 
     val dataValidInput = Input(Bool()) // whether data on the receiving data line is valid or not?
-    val receivingData = Input(UInt(bramDataWidth.W)) // data to be received in interpreter
+    val receivingData = Input(UInt(instanceInfo.bramDataWidth.W)) // data to be received in interpreter
 
     //
     // Sending singals
@@ -71,7 +69,7 @@ class DebuggerPacketInterpreter(
     val sendWaitForBuffer = Input(Bool()) // should the interpreter send next buffer or not?
 
     val requestedActionOfThePacketOutput = Output(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W)) // the requested action
-    val sendingData = Output(UInt(bramDataWidth.W)) // data to be sent to the debugger
+    val sendingData = Output(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the debugger
 
     //
     // Script stage configuration signals
@@ -89,7 +87,7 @@ class DebuggerPacketInterpreter(
   //
   // Last error register
   //
-  val lastSuccesOrErrorMessage = RegInit(0.U(bramDataWidth.W))
+  val lastSuccesOrErrorMessage = RegInit(0.U(instanceInfo.bramDataWidth.W))
 
   //
   // Last error register
@@ -105,7 +103,7 @@ class DebuggerPacketInterpreter(
   val regBeginSendingBuffer = RegInit(false.B)
   val noNewDataSender = WireInit(false.B)
   val dataValidOutput = WireInit(false.B)
-  val sendingData = WireInit(0.U(bramDataWidth.W))
+  val sendingData = WireInit(0.U(instanceInfo.bramDataWidth.W))
 
   val regRequestedActionOfThePacketOutput = RegInit(0.U(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
 
@@ -186,8 +184,7 @@ class DebuggerPacketInterpreter(
           ) =
               InterpreterScriptBufferHandler(
                 debug,
-                instanceInfo,
-                bramDataWidth
+                instanceInfo
               )(
                 enablePinOfScriptBufferHandler,
                 io.dataValidInput,
@@ -306,8 +303,7 @@ class DebuggerPacketInterpreter(
             ) =
               InterpreterInstanceInfo(
                 debug,
-                instanceInfo,
-                bramDataWidth
+                instanceInfo
               )(
                 io.sendWaitForBuffer // send waiting for buffer as an activation signal to the module
               )
@@ -345,7 +341,7 @@ class DebuggerPacketInterpreter(
             ) =
               InterpreterSendSuccessOrError(
                 debug,
-                bramDataWidth
+                instanceInfo
               )(
                 io.sendWaitForBuffer, // send waiting for buffer as an activation signal to the module
                 lastSuccesOrErrorMessage
@@ -426,9 +422,7 @@ object DebuggerPacketInterpreter {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      instanceInfo: HwdbgInstanceInformation,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       requestedActionOfThePacketInput: UInt,
@@ -441,9 +435,7 @@ object DebuggerPacketInterpreter {
     val debuggerPacketInterpreter = Module(
       new DebuggerPacketInterpreter(
         debug,
-        instanceInfo,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 
@@ -455,7 +447,7 @@ object DebuggerPacketInterpreter {
     val dataValidOutput = Wire(Bool())
 
     val requestedActionOfThePacketOutput = Wire(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
-    val sendingData = Wire(UInt(bramDataWidth.W))
+    val sendingData = Wire(UInt(instanceInfo.bramDataWidth.W))
 
     val finishedScriptConfiguration = Wire(Bool())
     val configureStage = Wire(Bool())
