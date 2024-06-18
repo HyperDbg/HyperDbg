@@ -67,6 +67,7 @@ object DebuggerPorts {
   //
   // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
   val PORT_PINS_MAP: Array[Int] = Array(12, 20)
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
 
 }
 

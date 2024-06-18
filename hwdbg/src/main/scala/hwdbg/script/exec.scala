@@ -245,7 +245,13 @@ class ScriptExecutionEngine(
 
     val testttt = RegInit(0.U(1.W))
     for (j <- 0 until instanceInfo.maximumNumberOfStages) { 
-      testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+
+      if (j > instanceInfo.scriptVariableLength - 1) {
+        testttt := testttt + stageRegs(i).stageSymbol.Value(0) + stageRegs(i).stageSymbol.Type(0)
+      }
+      else {
+        testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
+      }
     }
 
     io.outputPin(i) := testttt | outputPin(i)
