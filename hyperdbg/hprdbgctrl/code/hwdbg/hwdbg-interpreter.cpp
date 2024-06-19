@@ -228,14 +228,14 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
-            ShowMessages("  \t%d. found a non-semnatic rule (operand) | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
+            ShowMessages("  \t%d. found a non-semnatic rule (operand) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
             Operands++;
             continue;
         }
         else
         {
             Stages++;
-            ShowMessages("- %d. found a semnatic rule (operator) | value: 0x%x, type: 0x%x\n", i, SymbolArray[i].Value, SymbolArray[i].Type);
+            ShowMessages("- %d. found a semnatic rule (operator) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
 
             if (ScriptEngineFuncNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
             {
