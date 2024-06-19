@@ -104,8 +104,14 @@ class ScriptEngineSetValue(
         //
         // Registers are pins (set the value based on less significant bit)
         //
-        inputPin.bitSet(io.operator.Value(log2Ceil(instanceInfo.numberOfPins), 0), io.inputValue(0).asBool)
-        outputPin := inputPin
+        val tempShiftedBit = (1.U << io.operator.Value)
+
+        when (io.inputValue(0) === 1.U) {
+          outputPin := inputPin | tempShiftedBit;  // Set the N-th bit to 1
+        }.otherwise {
+          outputPin := inputPin & ~tempShiftedBit; // Clear the N-th bit to 0
+        }
+
       }
       is(symbolPseudoRegType) { 
 

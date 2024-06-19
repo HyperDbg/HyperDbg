@@ -227,28 +227,35 @@ def print_bram_content(dut):
 
 
 #
-# Define a function to extract content of symbol
+# Define a function to extract value of symbol
 #
-def get_symbol_type_and_value(dut, value, type):
+def get_symbol_value(dut, value):
     element_value = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, value)
-    element_type = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, type)
-
     hex_string_value = ""
-    hex_string_type = ""
     try:
         int_content_value = int(str(element_value.value), 2)
-        int_content_type = int(str(element_type.value), 2)
-
         hex_string_value = f'{int_content_value:x}'
-        hex_string_type = f'{int_content_type:x}'
     except:
         hex_string_value = str(element_value.value)
-        hex_string_type = str(element_type.value)
 
     final_string_value = f'{value}:   0x{hex_string_value}' + " (bin: " + str(element_value.value) + ")"
-    final_string_type = f'{type} :   0x{hex_string_type}' + " (bin: " + str(element_type.value) + ")"
+    return final_string_value
 
-    return final_string_value, final_string_type
+#
+# Define a function to extract type of symbol
+#
+def get_symbol_type(dut, type):
+    element_type = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, type)
+    hex_string_type = ""
+    try:
+        int_content_type = int(str(element_type.value), 2)
+        hex_string_type = f'{int_content_type:x}'
+    except:
+        hex_string_type = str(element_type.value)
+
+    final_string_type = f'{type} :   0x{hex_string_type}' + " (bin: " + str(element_type.value) + ")"
+    return final_string_type
+
 
 #
 # Define a function to extract content of stages
@@ -284,14 +291,26 @@ def extract_stage_details(dut):
 
     for index, element in enumerate(sorted_values):
 
-        final_string_type, final_string_value = get_symbol_type_and_value(dut, sorted_values[index], sorted_types[index])
+        try:
+            final_string_type = get_symbol_type(dut, sorted_types[index])
 
-        #
-        # Print the value and type
-        #
-        print(final_string_type)
-        print(final_string_value)
-        
+            #
+            # Print the type
+            #
+            print(final_string_type)
+        except:
+            print("This stage does not contain a 'type'")
+
+        try:
+            final_string_value = get_symbol_value(dut, sorted_values[index])
+
+            #
+            # Print the value
+            #
+            print(final_string_value)
+        except:
+            print("Unable to get stage 'value' configuration details")
+
         print("\n")
 
         #
@@ -305,8 +324,9 @@ def extract_stage_details(dut):
             print("\t Stage enabled bit: (unavailable)")
 
         try:
-            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_0_Value", "stageRegs_" + str(index) + "_getOperatorSymbol_0_Type")
-        
+            final_string_value = get_symbol_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_0_Value")
+            final_string_type = get_symbol_type(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_0_Type")
+
             print("\t Get (0) | " + final_string_type)
             print("\t Get (0) | " + final_string_value)
         except:
@@ -315,8 +335,9 @@ def extract_stage_details(dut):
         print("\n")
 
         try:
-            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_1_Value", "stageRegs_" + str(index) + "_getOperatorSymbol_1_Type")
-        
+            final_string_value = get_symbol_value(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_1_Value")
+            final_string_type = get_symbol_type(dut, "stageRegs_" + str(index) + "_getOperatorSymbol_1_Type")
+
             print("\t Get (1) | " + final_string_type)
             print("\t Get (1) | " + final_string_value)
         except:
@@ -325,15 +346,50 @@ def extract_stage_details(dut):
         print("\n")
 
         try:
-            final_string_type, final_string_value = get_symbol_type_and_value(dut, "stageRegs_" + str(index) + "_setOperatorSymbol_0_Value", "stageRegs_" + str(index) + "_setOperatorSymbol_0_Type")
-        
+            final_string_value = get_symbol_value(dut, "stageRegs_" + str(index) + "_setOperatorSymbol_0_Value")
+            final_string_type = get_symbol_type(dut, "stageRegs_" + str(index) + "_setOperatorSymbol_0_Type")
+
             print("\t Set (0) | " + final_string_type)
             print("\t Set (0) | " + final_string_value)
         except:
             print("\t stage at:" + str(index) + " does not contain a Set (0) buffer")
 
         print("\n\n")
- 
+
+def set_input_pins(dut):
+    dut.io_inputPin_0.value = 1
+    dut.io_inputPin_1.value = 1
+    dut.io_inputPin_2.value = 1
+    dut.io_inputPin_3.value = 1
+    dut.io_inputPin_4.value = 1
+    dut.io_inputPin_5.value = 1
+    dut.io_inputPin_6.value = 1
+    dut.io_inputPin_7.value = 1
+    dut.io_inputPin_8.value = 1
+    dut.io_inputPin_9.value = 1
+    dut.io_inputPin_10.value = 1
+    dut.io_inputPin_11.value = 1
+    dut.io_inputPin_12.value = 1
+    dut.io_inputPin_13.value = 1
+    dut.io_inputPin_14.value = 1
+    dut.io_inputPin_15.value = 1
+    dut.io_inputPin_16.value = 1
+    dut.io_inputPin_17.value = 1
+    dut.io_inputPin_18.value = 1
+    dut.io_inputPin_19.value = 1
+    dut.io_inputPin_20.value = 1
+    dut.io_inputPin_21.value = 1
+    dut.io_inputPin_22.value = 1
+    dut.io_inputPin_23.value = 1
+    dut.io_inputPin_24.value = 1
+    dut.io_inputPin_25.value = 1
+    dut.io_inputPin_26.value = 1
+    dut.io_inputPin_27.value = 1
+    dut.io_inputPin_28.value = 1
+    dut.io_inputPin_29.value = 1
+    dut.io_inputPin_30.value = 1
+    dut.io_inputPin_31.value = 1
+
 @cocotb.test()
 async def DebuggerModuleTestingBRAM_test(dut):
     """Test hwdbg module (with pre-defined BRAM)"""
@@ -400,6 +456,7 @@ async def DebuggerModuleTestingBRAM_test(dut):
         await Timer(10, units="ns")
     dut.reset.value = 0
 
+
     dut._log.info("Enabling an interrupting chip to receive commands from BRAM")
 
     #
@@ -410,38 +467,8 @@ async def DebuggerModuleTestingBRAM_test(dut):
     #
     # Set initial input value to prevent it from floating
     #
-    dut.io_inputPin_0.value = 1
-    dut.io_inputPin_1.value = 0
-    dut.io_inputPin_2.value = 1
-    dut.io_inputPin_3.value = 0
-    dut.io_inputPin_4.value = 1
-    dut.io_inputPin_5.value = 0
-    dut.io_inputPin_6.value = 1
-    dut.io_inputPin_7.value = 0
-    dut.io_inputPin_8.value = 1
-    dut.io_inputPin_9.value = 0
-    dut.io_inputPin_10.value = 1
-    dut.io_inputPin_11.value = 0
-    dut.io_inputPin_12.value = 1
-    dut.io_inputPin_13.value = 0
-    dut.io_inputPin_14.value = 1
-    dut.io_inputPin_15.value = 0
-    dut.io_inputPin_16.value = 0
-    dut.io_inputPin_17.value = 0
-    dut.io_inputPin_18.value = 0
-    dut.io_inputPin_19.value = 0
-    dut.io_inputPin_20.value = 0
-    dut.io_inputPin_21.value = 0
-    dut.io_inputPin_22.value = 0
-    dut.io_inputPin_23.value = 0
-    dut.io_inputPin_24.value = 0
-    dut.io_inputPin_25.value = 1
-    dut.io_inputPin_26.value = 1
-    dut.io_inputPin_27.value = 1
-    dut.io_inputPin_28.value = 1
-    dut.io_inputPin_29.value = 1
-    dut.io_inputPin_30.value = 1
-    dut.io_inputPin_31.value = 1
+    dut._log.info("Initializing input pins")
+    # set_input_pins(dut)
 
     #
     # Tell the hwdbg to receive BRAM results
@@ -507,5 +534,6 @@ async def DebuggerModuleTestingBRAM_test(dut):
     # Check the final input on the next clock and run the circuit for a couple
     # of more clock cycles
     #
-    for _ in range(10):
+    for _ in range(100):
+        set_input_pins(dut)
         await Timer(10, units="ns")

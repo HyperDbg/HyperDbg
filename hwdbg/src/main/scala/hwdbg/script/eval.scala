@@ -52,11 +52,11 @@ class ScriptEngineEval(
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
   })  
  
-
-  //-------------------------------------------------------------------------
+  //
   // Output pins
   //
   val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+  val ignoreStageChange = WireInit(false.B)
 
   //
   // Assign operator value (split the signal into only usable part)
@@ -87,7 +87,6 @@ class ScriptEngineEval(
   //
   val srcVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedGetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
   val desVal = WireInit(VecInit(Seq.fill(instanceInfo.maximumNumberOfSupportedSetScriptOperators)(0.U(instanceInfo.scriptVariableLength.W))))
-
   
   //
   // Apply the chip enable signal
@@ -210,6 +209,8 @@ class ScriptEngineEval(
           srcVal(0) := getValueModuleOutput(0)
 
           nextStage := srcVal(0)
+
+          ignoreStageChange := true.B
         }           
       }
       is(sFuncJz) {
@@ -218,7 +219,10 @@ class ScriptEngineEval(
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
           
-          when (srcVal(1) === 0.U) { nextStage := srcVal(0) }
+          when (srcVal(1) === 0.U) { 
+            nextStage := srcVal(0) 
+            ignoreStageChange := true.B
+          }
             
         }         
       }
@@ -228,7 +232,10 @@ class ScriptEngineEval(
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
           
-          when (srcVal(1) =/= 0.U) { nextStage := srcVal(0) }
+          when (srcVal(1) =/= 0.U) { 
+            nextStage := srcVal(0) 
+            ignoreStageChange := true.B
+          }
             
         }         
       }
@@ -264,10 +271,12 @@ class ScriptEngineEval(
   // ---------------------------------------------------------------------
 
   //
-  // Increment the stage
+  // Increment the stage if there is no jump
   //
-  // nextStage := io.currentStage + 1.U
-
+  when (ignoreStageChange === false.B) {
+    nextStage := io.stageConfig.targetStage + 1.U
+  }
+  
   //
   // Connect the output signals
   //

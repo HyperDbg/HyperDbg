@@ -73,7 +73,7 @@ class ScriptExecutionEngine(
   // Stage configuration registers
   //
   val configState = RegInit(sConfigStageSymbol)
-  val configStageNumber = RegInit(1.U(log2Ceil(instanceInfo.maximumNumberOfStages).W)) // reset to one because the first stage is used for saving data
+  val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
   //
   // Calculate the maximum of the two values since we only want to use one register for 
@@ -100,16 +100,20 @@ class ScriptExecutionEngine(
         // Configure the stage symbol (The first symbol is the stage operator)
         //
         stageRegs(configStageNumber).stageSymbol := io.targetOperator
-        configState := sConfigGetSymbol
 
         //
         // If it is the very first configuration symbol, then we disable all stages
         //
-        when (configStageNumber === 1.U) {
+        when (configStageNumber === 0.U) {
           for (i <- 0 until instanceInfo.maximumNumberOfStages) {
               stageRegs(i).stageEnable := false.B
           }
         }
+
+        //
+        // Going to the next state
+        //
+        configState := sConfigGetSymbol
       }
       is(sConfigGetSymbol) {
 
@@ -141,7 +145,7 @@ class ScriptExecutionEngine(
             //
             // Not configuring anymore, reset the stage number
             //
-            configStageNumber := 1.U // reset to one because the first stage is used for saving data
+            configStageNumber := 0.U // reset the stage number
             configState := sConfigStageSymbol
           }.otherwise {
             configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
@@ -164,12 +168,12 @@ class ScriptExecutionEngine(
       // At the first stage, the input registers should be passed to the
       // first registers set of the stage registers
       //
-      stageRegs(i).pinValues := io.inputPin
+      stageRegs(0).pinValues := io.inputPin
 
       //
       // Each pin start initially start from 0th target stage
       //
-      stageRegs(i).targetStage := 0.U
+      stageRegs(0).targetStage := 0.U
 
     } else if (i == (instanceInfo.maximumNumberOfStages - 1)) {
 
@@ -177,7 +181,7 @@ class ScriptExecutionEngine(
       // At the last stage, the state registers should be passed to the output
       // Note: At this stage script symbol is useless
       //
-      outputPin := stageRegs(i).pinValues
+      outputPin := stageRegs(i - 1).pinValues
 
     } else {
 
@@ -186,7 +190,7 @@ class ScriptExecutionEngine(
       // (i - 1) is because the 0th index registers are used for storing data but the 
       // script engine assumes that the symbols start from 0, so -1 is used here 
       //
-      when((i - 1).U === stageRegs(i).targetStage) {
+      when((i - 1).U === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***
@@ -202,20 +206,20 @@ class ScriptExecutionEngine(
           debug,
           instanceInfo
         )(
-          stageRegs(i).stageEnable,
-          stageRegs(i)
+          stageRegs(i - 1).stageEnable,
+          stageRegs(i - 1)
         )
 
         //
         // At the normal (middle) stage, the result of state registers should be passed to
         // the next level of stage registers
         //
-        stageRegs(i + 1).pinValues := outputPin
+        stageRegs(i).pinValues := outputPin
 
         //
         // Pass the target stage symbol number to the next stage
         //
-        stageRegs(i + 1).targetStage := nextStage
+        stageRegs(i).targetStage := nextStage
 
       }.otherwise {
 
@@ -226,8 +230,8 @@ class ScriptExecutionEngine(
         //
         // Just pass all the values to the next stage
         //
-        stageRegs(i + 1).pinValues := stageRegs(i).pinValues
-        stageRegs(i + 1).targetStage := stageRegs(i).targetStage
+        stageRegs(i).pinValues := stageRegs(i - 1).pinValues
+        stageRegs(i).targetStage := stageRegs(i - 1).targetStage
 
       }
     }
@@ -238,22 +242,7 @@ class ScriptExecutionEngine(
   //
   // Connect the output signals
   //
-  // io.outputPin := outputPin
-  for (i <- 0 until instanceInfo.numberOfPins) { // test should be remove (add to infer stage config regs)
-
-    val testttt = RegInit(0.U(1.W))
-    for (j <- 0 until instanceInfo.maximumNumberOfStages) { 
-
-      if (j > instanceInfo.scriptVariableLength - 1) {
-        testttt := testttt + stageRegs(i).stageSymbol.Value(0) + stageRegs(i).stageSymbol.Type(0)
-      }
-      else {
-        testttt := testttt + stageRegs(i).stageSymbol.Value(j) + stageRegs(i).stageSymbol.Type(j)
-      }
-    }
-
-    io.outputPin(i) := testttt | outputPin(i)
-  }
+  io.outputPin := outputPin
 
 }
 
