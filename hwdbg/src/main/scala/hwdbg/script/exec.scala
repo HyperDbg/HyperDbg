@@ -73,7 +73,7 @@ class ScriptExecutionEngine(
   // Stage configuration registers
   //
   val configState = RegInit(sConfigStageSymbol)
-  val configStageNumber = RegInit(1.U(log2Ceil(instanceInfo.maximumNumberOfStages).W)) // reset to one because the first stage is used for saving data
+  val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
   //
   // Calculate the maximum of the two values since we only want to use one register for 
@@ -100,16 +100,20 @@ class ScriptExecutionEngine(
         // Configure the stage symbol (The first symbol is the stage operator)
         //
         stageRegs(configStageNumber).stageSymbol := io.targetOperator
-        configState := sConfigGetSymbol
 
         //
         // If it is the very first configuration symbol, then we disable all stages
         //
-        when (configStageNumber === 1.U) {
+        when (configStageNumber === 0.U) {
           for (i <- 0 until instanceInfo.maximumNumberOfStages) {
               stageRegs(i).stageEnable := false.B
           }
         }
+
+        //
+        // Going to the next state
+        //
+        configState := sConfigGetSymbol
       }
       is(sConfigGetSymbol) {
 
@@ -141,7 +145,7 @@ class ScriptExecutionEngine(
             //
             // Not configuring anymore, reset the stage number
             //
-            configStageNumber := 1.U // reset to one because the first stage is used for saving data
+            configStageNumber := 0.U // reset the stage number
             configState := sConfigStageSymbol
           }.otherwise {
             configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
@@ -186,7 +190,7 @@ class ScriptExecutionEngine(
       // (i - 1) is because the 0th index registers are used for storing data but the 
       // script engine assumes that the symbols start from 0, so -1 is used here 
       //
-      when((i - 1).U === stageRegs(i - 1).targetStage && stageRegs(i).stageEnable === true.B) {
+      when((i - 1).U === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***
@@ -226,8 +230,8 @@ class ScriptExecutionEngine(
         //
         // Just pass all the values to the next stage
         //
-        stageRegs(i).pinValues := stageRegs(i).pinValues
-        stageRegs(i).targetStage := stageRegs(i).targetStage
+        stageRegs(i).pinValues := stageRegs(i - 1).pinValues
+        stageRegs(i).targetStage := stageRegs(i - 1).targetStage
 
       }
     }
