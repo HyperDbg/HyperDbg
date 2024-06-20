@@ -357,23 +357,23 @@ def extract_stage_details(dut):
         print("\n\n")
 
 def set_input_pins(dut):
-    dut.io_inputPin_0.value = 1
-    dut.io_inputPin_1.value = 1
-    dut.io_inputPin_2.value = 1
-    dut.io_inputPin_3.value = 1
-    dut.io_inputPin_4.value = 1
-    dut.io_inputPin_5.value = 1
-    dut.io_inputPin_6.value = 1
-    dut.io_inputPin_7.value = 1
-    dut.io_inputPin_8.value = 1
-    dut.io_inputPin_9.value = 1
-    dut.io_inputPin_10.value = 1
-    dut.io_inputPin_11.value = 1
-    dut.io_inputPin_12.value = 1
-    dut.io_inputPin_13.value = 1
-    dut.io_inputPin_14.value = 1
-    dut.io_inputPin_15.value = 1
-    dut.io_inputPin_16.value = 1
+    dut.io_inputPin_0.value = 0
+    dut.io_inputPin_1.value = 0
+    dut.io_inputPin_2.value = 0
+    dut.io_inputPin_3.value = 0
+    dut.io_inputPin_4.value = 0
+    dut.io_inputPin_5.value = 0
+    dut.io_inputPin_6.value = 0
+    dut.io_inputPin_7.value = 0
+    dut.io_inputPin_8.value = 0
+    dut.io_inputPin_9.value = 0
+    dut.io_inputPin_10.value = 0
+    dut.io_inputPin_11.value = 0
+    dut.io_inputPin_12.value = 0
+    dut.io_inputPin_13.value = 0
+    dut.io_inputPin_14.value = 0
+    dut.io_inputPin_15.value = 0
+    dut.io_inputPin_16.value = 0
     dut.io_inputPin_17.value = 1
     dut.io_inputPin_18.value = 1
     dut.io_inputPin_19.value = 1

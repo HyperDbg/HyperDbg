@@ -57,6 +57,17 @@ class DebuggerMain(
     "err, the script variable length should not be bigger than BRAM data width."
   )
 
+  //
+  // Ensure the maximum number of stages is not bigger than the maximum number 
+  // that can be stored within the script variable length. This is because
+  // if a JUMP for conditional statements wants to set the target location,
+  // it cannot store its destination in a script variable.
+  //
+  require(
+    maximumNumberOfStages < math.pow(2, scriptVariableLength),
+    "err, the maximum number of stages should be less than 2 to the power of the script variable length."
+  )
+
   val io = IO(new Bundle {
 
     //
