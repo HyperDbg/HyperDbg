@@ -85,6 +85,7 @@ class ScriptExecutionEngine(
   // Create a register with the width based on the maximum value
   //
   val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W)) 
+  val stageIndex = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W)) 
 
   // -----------------------------------------------------------------------
   //
@@ -100,6 +101,13 @@ class ScriptExecutionEngine(
         // Configure the stage symbol (The first symbol is the stage operator)
         //
         stageRegs(configStageNumber).stageSymbol := io.targetOperator
+
+        //
+        // Set the stage index
+        //
+        stageRegs(configStageNumber).stageIndex :=  stageIndex // store the stage index
+        stageRegs(configStageNumber).targetStage :=  0.U // reset the target stage
+        stageIndex := stageIndex + 1.U // increment stage index
 
         //
         // If it is the very first configuration symbol, then we disable all stages
@@ -121,21 +129,35 @@ class ScriptExecutionEngine(
         // Config GET operator
         //
         stageRegs(configStageNumber).getOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
-        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U
+
+        //
+        // Check whether this stage number should be counted in stage indexes or its empty
+        //
+        when (io.targetOperator.Type =/= 0.U) { 
+          stageIndex := stageIndex + 1.U
+        }
 
         when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedGetScriptOperators - 1).U) {
 
           configGetSetOperatorNumber := 0.U // reset the counter
           configState := sConfigSetSymbol // go to the next state
+        }.otherwise {
+          configState := sConfigGetSymbol // stay at the same state
         }
       }
       is(sConfigSetSymbol) {
+
         //
         // Config SET operator
         //
         stageRegs(configStageNumber).setOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
         stageRegs(configStageNumber).stageEnable := true.B // this stage is enabled
         configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+
+        when (io.targetOperator.Type =/= 0.U) { 
+          stageIndex := stageIndex + 1.U
+        }
 
         when(configGetSetOperatorNumber === (instanceInfo.maximumNumberOfSupportedSetScriptOperators - 1).U) {
 
@@ -146,11 +168,14 @@ class ScriptExecutionEngine(
             // Not configuring anymore, reset the stage number
             //
             configStageNumber := 0.U // reset the stage number
+            stageIndex := 0.U // reset the stage index
             configState := sConfigStageSymbol
           }.otherwise {
             configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
             configState := sConfigStageSymbol // the next state is again a stage symbol
           }
+        }.otherwise {
+          configState := sConfigSetSymbol // stay at the same state
         }
       }
     }
@@ -190,7 +215,7 @@ class ScriptExecutionEngine(
       // (i - 1) is because the 0th index registers are used for storing data but the 
       // script engine assumes that the symbols start from 0, so -1 is used here 
       //
-      when((i - 1).U === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
+      when(stageRegs(i - 1).stageIndex === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***
