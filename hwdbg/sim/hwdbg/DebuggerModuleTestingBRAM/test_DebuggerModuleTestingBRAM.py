@@ -256,6 +256,21 @@ def get_symbol_type(dut, type):
     final_string_type = f'{type} :   0x{hex_string_type}' + " (bin: " + str(element_type.value) + ")"
     return final_string_type
 
+#
+# Define a function to extract stage index
+#
+def get_stage_index(dut, stage_index):
+    stage_index_str = "stageRegs_" + str(stage_index) + "_stageIndex"
+    element_stage_index = getattr(dut.debuggerMainModule.outputPin_scriptExecutionEngineModule, stage_index_str)
+    hex_string_stage_index = ""
+    try:
+        int_content_stage_index = int(str(element_stage_index.value), 2)
+        hex_string_stage_index = f'{int_content_stage_index:x}'
+    except:
+        hex_string_stage_index = str(element_stage_index.value)
+
+    final_string_stage_index = f'{stage_index}:   0x{hex_string_stage_index}' + " (bin: " + str(element_stage_index.value) + ")"
+    return final_string_stage_index
 
 #
 # Define a function to extract content of stages
@@ -270,24 +285,28 @@ def extract_stage_details(dut):
     #
     pattern_value = re.compile(r'stageRegs_\d+_stageSymbol_Value')
     pattern_type = re.compile(r'stageRegs_\d+_stageSymbol_Type')
+    pattern_stage_index = re.compile(r'stageRegs_\d+_stageIndex')
 
     #
     # Filter the list using the patterns
     #
     filtered_strings_values = [s for s in all_elements if pattern_value.match(s)]
     filtered_strings_types = [s for s in all_elements if pattern_type.match(s)]
+    filtered_strings_stage_index = [s for s in all_elements if pattern_stage_index.match(s)]
 
     #
     # Sort the lists
     #
     sorted_values = sorted(filtered_strings_values, key=extract_number)
     sorted_types = sorted(filtered_strings_types, key=extract_number)
+    sorted_stage_index = sorted(filtered_strings_stage_index, key=extract_number)
 
     #
     # Print the filtered strings
     #
     # print(sorted_values)
     # print(sorted_types)
+    # print(sorted_stage_index)
 
     for index, element in enumerate(sorted_values):
 
@@ -311,7 +330,19 @@ def extract_stage_details(dut):
         except:
             print("Unable to get stage 'value' configuration details")
 
+        try:
+            final_string_stage_index = get_stage_index(dut, index)
+
+            #
+            # Print the stage index
+            #
+            print("index:    " + final_string_stage_index)
+
+        except:
+            print("index:    " + str(index) +": This stage does not contain a 'stage index'")
+
         print("\n")
+
 
         #
         # Check stage enable bit
@@ -358,21 +389,21 @@ def extract_stage_details(dut):
 
 def set_input_pins(dut):
     dut.io_inputPin_0.value = 1
-    dut.io_inputPin_1.value = 1
-    dut.io_inputPin_2.value = 1
-    dut.io_inputPin_3.value = 1
-    dut.io_inputPin_4.value = 1
-    dut.io_inputPin_5.value = 1
-    dut.io_inputPin_6.value = 1
-    dut.io_inputPin_7.value = 1
-    dut.io_inputPin_8.value = 1
-    dut.io_inputPin_9.value = 1
-    dut.io_inputPin_10.value = 1
-    dut.io_inputPin_11.value = 1
-    dut.io_inputPin_12.value = 1
-    dut.io_inputPin_13.value = 1
-    dut.io_inputPin_14.value = 1
-    dut.io_inputPin_15.value = 1
+    dut.io_inputPin_1.value = 0
+    dut.io_inputPin_2.value = 0
+    dut.io_inputPin_3.value = 0
+    dut.io_inputPin_4.value = 0
+    dut.io_inputPin_5.value = 0
+    dut.io_inputPin_6.value = 0
+    dut.io_inputPin_7.value = 0
+    dut.io_inputPin_8.value = 0
+    dut.io_inputPin_9.value = 0
+    dut.io_inputPin_10.value = 0
+    dut.io_inputPin_11.value = 0
+    dut.io_inputPin_12.value = 0
+    dut.io_inputPin_13.value = 0
+    dut.io_inputPin_14.value = 0
+    dut.io_inputPin_15.value = 0
     dut.io_inputPin_16.value = 1
     dut.io_inputPin_17.value = 1
     dut.io_inputPin_18.value = 1

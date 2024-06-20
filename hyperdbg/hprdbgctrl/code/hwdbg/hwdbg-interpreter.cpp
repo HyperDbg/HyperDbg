@@ -918,7 +918,7 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
     //
     if (FinalBufferSize > CommandMaxSize)
     {
-        ShowMessages("err, buffer is above the maximum buffer size that can be sent to hwdbg (%d > %d)",
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to hwdbg (%d > %d)\n",
                      FinalBufferSize,
                      CommandMaxSize);
 

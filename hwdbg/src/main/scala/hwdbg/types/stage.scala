@@ -40,5 +40,9 @@ class Stage(
     log2Ceil(instanceInfo.maximumNumberOfStages).W
   ) // Target stage that needs to be executed for the current pin values (should be passed to the next stage)
 
+  val stageIndex = UInt(
+    log2Ceil(instanceInfo.maximumNumberOfStages).W
+  ) // Target stage index of the current stage (configured with script configuration and remains constant during execution)
+
   val stageEnable = Bool() // Target stage is enabled (configured) or not
 }

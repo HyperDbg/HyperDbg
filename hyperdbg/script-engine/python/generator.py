@@ -96,7 +96,7 @@ object ScriptConstants {
  */
 object ScriptConstantTypes {
   object ScriptDataTypes extends ChiselEnum {
-    val symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
+    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
   }
 }
 
@@ -145,22 +145,23 @@ typedef struct ACTION_BUFFER {
   char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
 
-#define SYMBOL_GLOBAL_ID_TYPE 0
-#define SYMBOL_LOCAL_ID_TYPE 1
-#define SYMBOL_NUM_TYPE 2
-#define SYMBOL_REGISTER_TYPE 3
-#define SYMBOL_PSEUDO_REG_TYPE 4
-#define SYMBOL_SEMANTIC_RULE_TYPE 5
-#define SYMBOL_TEMP_TYPE 6
-#define SYMBOL_STRING_TYPE 7
-#define SYMBOL_VARIABLE_COUNT_TYPE 8
-#define SYMBOL_INVALID 9
-#define SYMBOL_WSTRING_TYPE 10
-#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 11
-#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 12
-#define SYMBOL_RETURN_ADDRESS_TYPE 13
-#define SYMBOL_STACK_TEMP_TYPE 14
-#define SYMBOL_FUNCTION_PARAMETER_TYPE 15
+#define SYMBOL_UNDEFINED 0
+#define SYMBOL_GLOBAL_ID_TYPE 1
+#define SYMBOL_LOCAL_ID_TYPE 2
+#define SYMBOL_NUM_TYPE 3
+#define SYMBOL_REGISTER_TYPE 4
+#define SYMBOL_PSEUDO_REG_TYPE 5
+#define SYMBOL_SEMANTIC_RULE_TYPE 6
+#define SYMBOL_TEMP_TYPE 7
+#define SYMBOL_STRING_TYPE 8
+#define SYMBOL_VARIABLE_COUNT_TYPE 9
+#define SYMBOL_INVALID 10
+#define SYMBOL_WSTRING_TYPE 11
+#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 12
+#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 13
+#define SYMBOL_RETURN_ADDRESS_TYPE 14
+#define SYMBOL_STACK_TEMP_TYPE 15
+#define SYMBOL_FUNCTION_PARAMETER_TYPE 16
 
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define INVALID 0x80000000

@@ -213,12 +213,16 @@ CommandHwClk(vector<string> SplitCommand, string Command)
 
                         //
                         // Calculate the number of flip-flops needed in the target device
-                        // + 1 is for the operator symbol itself
+                        // + operator symbol itself which only contains value (type is always equal to SYMBOL_SEMANTIC_RULE_TYPE)
+                        // so, it is not counted as a flip-flop
                         //
-                        NumberOfNeededFlipFlopsInTargetDevice = NumberOfStagesForScript *
-                                                                (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1) *
-                                                                g_HwdbgInstanceInfo.scriptVariableLength *
-                                                                sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64);
+                        NumberOfNeededFlipFlopsInTargetDevice = (NumberOfStagesForScript *
+                                                                 (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) *
+                                                                 g_HwdbgInstanceInfo.scriptVariableLength *
+                                                                 sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) +
+                                                                (NumberOfStagesForScript *
+                                                                 g_HwdbgInstanceInfo.scriptVariableLength *
+                                                                 (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2);
 
                         ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
@@ -250,7 +254,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         }
                         else
                         {
-                            ShowMessages("err, unable to write script buffer into file: %s\n", TestFilePath);
+                            ShowMessages("err, unable to write script buffer\n");
                         }
 
                         //
