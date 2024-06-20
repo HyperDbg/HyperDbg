@@ -250,7 +250,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         }
                         else
                         {
-                            ShowMessages("err, unable to write script buffer into file: %s\n", TestFilePath);
+                            ShowMessages("err, unable to write script buffer\n");
                         }
 
                         //
