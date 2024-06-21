@@ -118,6 +118,11 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
                 g_HwdbgPortConfiguration.push_back(InstanceInfoPorts[i]);
             }
 
+            //
+            // Infom the script engine about the instance info
+            //
+            ScriptEngineSetHwdbgInstanceInfo(&g_HwdbgInstanceInfo);
+
             break;
 
         default:

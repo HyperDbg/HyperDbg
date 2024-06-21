@@ -179,6 +179,9 @@ char
 IsLetter(char c);
 
 char
+IsUnderscore(char c);
+
+char
 IsBinary(char c);
 
 char

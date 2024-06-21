@@ -18,3 +18,15 @@
 extern char TempMap[MAX_TEMP_COUNT];
 extern char StackTempMap[MAX_TEMP_COUNT];
 #endif // !GLOBALS_H
+
+/**
+ * @brief Instance information of the current hwdbg debuggee
+ *
+ */
+HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+
+/**
+ * @brief Shows whether the instance info is valid (received) or not
+ *
+ */
+BOOLEAN g_HwdbgInstanceInfoIsValid;

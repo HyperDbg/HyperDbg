@@ -31,6 +31,9 @@ __declspec(dllimport) void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 __declspec(dllimport) BOOLEAN
 FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);
+__declspec(dllimport) BOOLEAN
+ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo);
+
 ;
 
 //

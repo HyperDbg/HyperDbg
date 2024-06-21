@@ -105,6 +105,9 @@ ScriptEngineParse(char * str);
 __declspec(dllexport) BOOLEAN
 FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);
 
+__declspec(dllexport) BOOLEAN
+ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo);
+
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,

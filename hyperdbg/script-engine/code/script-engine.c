@@ -16,6 +16,12 @@
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
 // #define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
+//
+// Global Variables
+//
+extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
+
 /**
  * @brief Converts name to address
  *
@@ -2760,6 +2766,9 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 unsigned long long int
 RegisterToInt(char * str)
 {
+    //
+    // Check for register names
+    //
     for (int i = 0; i < REGISTER_MAP_LIST_LENGTH; i++)
     {
         if (!strcmp(str, RegisterMapList[i].Name))
@@ -2767,6 +2776,85 @@ RegisterToInt(char * str)
             return RegisterMapList[i].Type;
         }
     }
+
+    //
+    // Check for hwdbg register names
+    // Check if the registers start with '@hw_portX' or '@hw_pinX'
+    //
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        const char * Ptr;
+        UINT32       Num = 0;
+
+        //
+        // Check for "hw_pin"
+        //
+        if (strncmp(str, "hw_pin", 6) == 0)
+        {
+            Ptr = str + 6;
+            if (*Ptr == '\0')
+            {
+                return INVALID; // No number present
+            }
+            while (*Ptr)
+            {
+                if (!isdigit((unsigned char)*Ptr))
+                {
+                    return INVALID; // Not a valid decimal number
+                }
+                Ptr++;
+            }
+            Num = atoi(str + 6);
+
+            //
+            // port numbers start after the latest pin number
+            //
+            if (Num >= g_HwdbgInstanceInfo.numberOfPins)
+            {
+                return INVALID; // Invalid "hw_pinX"
+            }
+            else
+            {
+                return Num; // Valid "hw_pinX"
+            }
+        }
+
+        //
+        // Check for "hw_port"
+        //
+        if (strncmp(str, "hw_port", 7) == 0)
+        {
+            Ptr = str + 7;
+            if (*Ptr == '\0')
+            {
+                return INVALID; // No number present
+            }
+            while (*Ptr)
+            {
+                if (!isdigit((unsigned char)*Ptr))
+                {
+                    return INVALID; // Not a valid decimal number
+                }
+
+                Ptr++;
+            }
+
+            Num = atoi(str + 7);
+
+            if (Num >= g_HwdbgInstanceInfo.numberOfPorts)
+            {
+                return INVALID; // Invalid "hw_portX"
+            }
+            else
+            {
+                return Num + g_HwdbgInstanceInfo.numberOfPins; // Valid "hw_portX"
+            }
+        }
+    }
+
+    //
+    // Not a valid register name
+    //
     return INVALID;
 }
 
@@ -3111,6 +3199,28 @@ LalrIsOperandType(PTOKEN Token)
         return TRUE;
     }
     return FALSE;
+}
+
+/**
+ * @brief Set hwdbg instance info for the script engine
+ *
+ * @param InstancInfo
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo)
+{
+    //
+    // Copy the instance info into the global variable
+    //
+    memcpy(&g_HwdbgInstanceInfo, InstancInfo, sizeof(HWDBG_INSTANCE_INFORMATION));
+
+    //
+    // Indicate that the instance info is valid
+    //
+    g_HwdbgInstanceInfoIsValid = TRUE;
+
+    return TRUE;
 }
 
 /**

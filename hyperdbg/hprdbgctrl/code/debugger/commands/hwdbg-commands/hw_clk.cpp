@@ -238,7 +238,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                             ShowMessages("%02X ", (UINT8)((CHAR *)NewScriptBuffer)[i]);
                         }
 
-                        ShowMessages("\nwriting script configuration packet into the file\n");
+                        ShowMessages("\n\nwriting script configuration packet into the file\n");
 
                         //
                         // *** Write script configuration packet into a file ***
