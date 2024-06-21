@@ -68,6 +68,17 @@ class DebuggerMain(
     "err, the maximum number of stages should be less than 2 to the power of the script variable length."
   )
 
+  //
+  // Ensure the number of pin + ports is not bigger than the maximum number 
+  // that can be stored within the script variable length. This is because
+  // for setting and getting pins/ports values, hwdbg uses an index which 
+  // should fit within a variable size.
+  //
+  require(
+    numberOfPins + portsConfiguration.size < math.pow(2, scriptVariableLength),
+    "err, the maximum number of pins + ports should be less than 2 to the power of the script variable length."
+  )
+
   val io = IO(new Bundle {
 
     //

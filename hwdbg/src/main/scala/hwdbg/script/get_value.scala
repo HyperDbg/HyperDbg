@@ -99,36 +99,52 @@ class ScriptEngineGetValue(
       is(symbolRegisterType) {
 
         //
-        // Registers are pins
+        // Registers are pins and ports
         //
-        outputValue := io.inputPin(io.operator.Value)
+        when(instanceInfo.numberOfPins.U > io.operator.Value) {
+
+          //
+          // *** Used for getting the pin value ***
+          //
+          outputValue := io.inputPin(io.operator.Value)
+        }.otherwise {
+
+          //
+          // *** Used for getting the port value ***
+          //
+        
+          //
+          // Create a vector of wires 
+          //
+          val ports = Wire(Vec(instanceInfo.numberOfPorts, UInt(instanceInfo.scriptVariableLength.W)))
+          var currentPortIndex: Int = 0
+          var currentPortNum: Int = 0
+
+          //
+          // Iterate based on port configuration
+          //
+          for (port <- instanceInfo.portsConfiguration) {
+
+            LogInfo(debug)(f"connect port(${currentPortIndex}) to inputPin(${currentPortNum} to ${currentPortNum + port}) for SET")
+            ports(currentPortIndex) := io.inputPin.asUInt(currentPortNum + port - 1, currentPortNum)
+
+            currentPortNum += port
+            currentPortIndex += 1
+          }
+
+          //
+          // Set the output
+          //
+          outputValue := ports(io.operator.Value - instanceInfo.numberOfPins.U)
+
+        }
       }
       is(symbolPseudoRegType) { 
-        
-        //
-        // Create a vector of wires 
-        //
-        val ports = Wire(Vec(instanceInfo.numberOfPorts, UInt(instanceInfo.scriptVariableLength.W)))
-        var currentPortIndex: Int = 0
-        var currentPortNum: Int = 0
 
         //
-        // Iterate based on port configuration
+        // To be implemented
         //
-        for (port <- instanceInfo.portsConfiguration) {
-
-          LogInfo(debug)(f"connect port(${currentPortIndex}) to inputPin(${currentPortNum} to ${currentPortNum + port}) for SET")
-          ports(currentPortIndex) := io.inputPin.asUInt(currentPortNum + port - 1, currentPortNum)
-
-          currentPortNum += port
-          currentPortIndex += 1
-        }
-
-        //
-        // Set the output
-        //
-        outputValue := ports(io.operator.Value)
-
+        outputValue := 0.U
       }
       is(symbolTempType) {
 
