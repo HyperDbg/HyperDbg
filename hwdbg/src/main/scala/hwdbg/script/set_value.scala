@@ -211,6 +211,11 @@ class ScriptEngineSetValue(
       }
       is(symbolPseudoRegType) {
 
+        //
+        // To be implemented
+        //
+        outputPin := 0.U
+        
       }
       is(symbolTempType) {
 
