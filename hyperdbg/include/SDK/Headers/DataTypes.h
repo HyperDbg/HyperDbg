@@ -235,13 +235,6 @@ typedef struct _DEBUGGEE_UD_PAUSED_PACKET
 
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
 
-/**
- * @brief check so the DEBUGGEE_UD_PAUSED_PACKET should be smaller than packet size
- *
- */
-static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
-              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_UD_PAUSED_PACKET");
-
 //////////////////////////////////////////////////
 //            Message Tracing Enums             //
 //////////////////////////////////////////////////

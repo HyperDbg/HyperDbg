@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{7EA9E1E8-428
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5}"
 	ProjectSection(SolutionItems) = preProject
+		include\SDK\Headers\Assertions.h = include\SDK\Headers\Assertions.h
 		include\SDK\Headers\BasicTypes.h = include\SDK\Headers\BasicTypes.h
 		include\SDK\Headers\Connection.h = include\SDK\Headers\Connection.h
 		include\SDK\Headers\Constants.h = include\SDK\Headers\Constants.h
