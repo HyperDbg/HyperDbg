@@ -93,6 +93,9 @@ CommandHwClk(vector<string> SplitCommand, string Command)
             ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
             ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
             ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
+            ShowMessages("Debuggee Number of Supported Local Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedLocalVariables);
+            ShowMessages("Debuggee Number of Supported Global Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedGlobalVariables);
+            ShowMessages("Debuggee Number of Supported Temporary Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables);
             ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators);
             ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
             ShowMessages("Debuggee Shared Memory Size: 0x%x\n", g_HwdbgInstanceInfo.sharedMemorySize);

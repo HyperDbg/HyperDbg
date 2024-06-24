@@ -101,103 +101,121 @@ class ScriptEngineSetValue(
       }
       is(symbolRegisterType) {
 
-        //
-        // Registers are pins (set the value based on less significant bit)
-        //
-        val tempShiftedBit = (1.U << io.operator.Value)
+        when(instanceInfo.numberOfPins.U > io.operator.Value) {
 
-        when (io.inputValue(0) === 1.U) {
-          outputPin := inputPin | tempShiftedBit;  // Set the N-th bit to 1
+          //
+          // *** Used for setting the pin value ***
+          //
+
+          //
+          // Registers are pins (set the value based on less significant bit)
+          //
+          val tempShiftedBit = (1.U << io.operator.Value)
+
+          when (io.inputValue(0) === 1.U) {
+            outputPin := inputPin | tempShiftedBit;  // Set the N-th bit to 1
+          }.otherwise {
+            outputPin := inputPin & ~tempShiftedBit; // Clear the N-th bit to 0
+          }
+
         }.otherwise {
-          outputPin := inputPin & ~tempShiftedBit; // Clear the N-th bit to 0
-        }
 
+          //
+          // *** Used for setting the port value ***
+          //
+
+          //
+          // Iterate based on port configuration
+          //
+          var currentPortNum: Int = 0
+          val numPorts = instanceInfo.portsConfiguration.length
+
+          for ((port, index) <- instanceInfo.portsConfiguration.zipWithIndex) {
+
+              LogInfo(debug)(f"========================= port assignment (${index} - port size: ${port}) =========================")
+
+              when(io.operator.Value === (index + instanceInfo.numberOfPins).U) {
+
+                  //
+                  // If the current port's bit width is bigger than the script variable length,
+                  // we need to append zero
+                  //
+                  val targetInputValue = WireInit(0.U(port.W))
+
+                  if (port > instanceInfo.scriptVariableLength) {
+
+                    //
+                    // Since the port size is bigger than the variable size,
+                    // we need to append zeros to the target value
+                    //
+                    LogInfo(debug)(f"Appending zeros (${port - instanceInfo.scriptVariableLength}) to input variable (targetInputValue) to support port num: ${index}")
+                    targetInputValue := Cat(io.inputValue, 0.U((port - instanceInfo.scriptVariableLength).W))
+                  }
+                  else {
+                    //
+                    // Since the variable size is bigger than the port size,
+                    // we need only a portion of the input value
+                    //
+                    targetInputValue := io.inputValue(port - 1, 0)
+                  }
+
+                  //
+                  // Determine the range of bits to be modified
+                  //
+                  val high = currentPortNum + port - 1
+                  val low = currentPortNum
+
+                  // Create the modified outputPin based on whether it's the first, last or a middle port
+                  val modifiedOutputPin = if (index == 0) {
+
+                      //
+                      // First port: keep higher bits unchanged, set lower bits to input value
+                      //
+                      LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0)")
+                      Cat(
+                          inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
+                          targetInputValue// New value for the specified range
+                      )
+                  } else if (index == numPorts - 1) {
+
+                      //
+                      // Last port: keep lower bits unchanged, set higher bits to input value
+                      //
+                      LogInfo(debug)(f"Set connecting index=${index} - targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                      Cat(
+                          targetInputValue,// New value for the specified range
+                          inputPin(low - 1, 0)        // Bits below the range to keep unchanged
+                      )
+                  } else {
+
+                      //
+                      // Middle port: keep both higher and lower bits unchanged
+                      //
+                      LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
+                      Cat(
+                          inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
+                          targetInputValue,// New value for the specified range
+                          inputPin(low - 1, 0)                               // Bits below the range to keep unchanged
+                      )
+                  }
+
+                  //
+                  // Assign the modified outputPin back to outputPin
+                  //
+                  outputPin := modifiedOutputPin
+              }
+
+              currentPortNum += port
+          }
+        }
       }
-      is(symbolPseudoRegType) { 
+      is(symbolPseudoRegType) {
 
         //
-        // Iterate based on port configuration
+        // To be implemented
         //
-        var currentPortNum: Int = 0
-        val numPorts = instanceInfo.portsConfiguration.length
-
-        for ((port, index) <- instanceInfo.portsConfiguration.zipWithIndex) {
-
-            LogInfo(debug)(f"========================= port assignment (${index} - port size: ${port}) =========================")
-
-            when(io.operator.Value === index.U) {
-
-                //
-                // If the current port's bit width is bigger than the script variable length,
-                // we need to append zero
-                //
-                val targetInputValue = WireInit(0.U(port.W))
-
-                if (port > instanceInfo.scriptVariableLength) {
-
-                  //
-                  // Since the port size is bigger than the variable size,
-                  // we need to append zeros to the target value
-                  //
-                  LogInfo(debug)(f"Appending zeros (${port - instanceInfo.scriptVariableLength}) to input variable (targetInputValue) to support port num: ${index}")
-                  targetInputValue := Cat(io.inputValue, 0.U((port - instanceInfo.scriptVariableLength).W))
-                }
-                else {
-                  //
-                  // Since the variable size is bigger than the port size,
-                  // we need only a portion of the input value
-                  //
-                  targetInputValue := io.inputValue(port - 1, 0)
-                }
-
-                //
-                // Determine the range of bits to be modified
-                //
-                val high = currentPortNum + port - 1
-                val low = currentPortNum
-
-                // Create the modified outputPin based on whether it's the first, last or a middle port
-                val modifiedOutputPin = if (index == 0) {
-
-                    //
-                    // First port: keep higher bits unchanged, set lower bits to input value
-                    //
-                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0)")
-                    Cat(
-                        inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
-                        targetInputValue// New value for the specified range
-                    )
-                } else if (index == numPorts - 1) {
-
-                    //
-                    // Last port: keep lower bits unchanged, set higher bits to input value
-                    //
-                    LogInfo(debug)(f"Set connecting index=${index} - targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
-                    Cat(
-                        targetInputValue,// New value for the specified range
-                        inputPin(low - 1, 0)        // Bits below the range to keep unchanged
-                    )
-                } else {
-
-                    //
-                    // Middle port: keep both higher and lower bits unchanged
-                    //
-                    LogInfo(debug)(f"Set connecting index=${index} - inputPin(${instanceInfo.numberOfPins - 1}, ${high + 1}) + targetInputValue(${port - 1}, 0) + inputPin(${low - 1}, 0)")
-                    Cat(
-                        inputPin(instanceInfo.numberOfPins - 1, high + 1), // Bits above the range to keep unchanged
-                        targetInputValue,// New value for the specified range
-                        inputPin(low - 1, 0)                               // Bits below the range to keep unchanged
-                    )
-                }
-
-                //
-                // Assign the modified outputPin back to outputPin
-                //
-                outputPin := modifiedOutputPin
-            }
-
-            currentPortNum += port
-        }
+        outputPin := 0.U
+        
       }
       is(symbolTempType) {
 

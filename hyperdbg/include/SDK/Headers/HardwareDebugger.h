@@ -86,6 +86,7 @@ typedef struct _HWDBG_PORT_INFORMATION_ITEMS
  * @brief The structure of script capabilities information in hwdbg
  *
  */
+#pragma pack(push, 4) // This is to make sure the structure is packed (without padding alignment)
 typedef struct _HWDBG_INSTANCE_INFORMATION
 {
     //
@@ -93,7 +94,10 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //
     UINT32 version;                                    // Target version of HyperDbg (same as hwdbg)
     UINT32 maximumNumberOfStages;                      // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
-    UINT32 scriptVariableLength;                       // maximum length of variables (and other script elements)
+    UINT32 scriptVariableLength;                       // Maximum length of variables (and other script elements)
+    UINT32 numberOfSupportedLocalVariables;            // Number of supported local variables
+    UINT32 numberOfSupportedGlobalVariables;           // Number of supported global variables
+    UINT32 numberOfSupportedTemporaryVariables;        // Number of supported temporary variables
     UINT32 maximumNumberOfSupportedGetScriptOperators; // Maximum supported GET operators in a single func
     UINT32 maximumNumberOfSupportedSetScriptOperators; // Maximum supported SET operators in a single func
     UINT32 sharedMemorySize;                           // Size of shared memory
@@ -151,6 +155,7 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //
 
 } HWDBG_INSTANCE_INFORMATION, *PHWDBG_INSTANCE_INFORMATION;
+#pragma pack(pop) // This is to make sure the structure is packed (without padding alignment)
 
 /**
  * @brief The structure of script buffer in hwdbg
