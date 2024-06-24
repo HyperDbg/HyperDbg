@@ -1,5 +1,5 @@
 /**
- * @file hprdbgctrl.cpp
+ * @file libhyperdbg.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main interface to connect applications to driver
  * @details
@@ -440,7 +440,7 @@ IrpBasedBufferThread(void * data)
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
+int
 HyperDbgInstallVmmDriver()
 {
     //
@@ -496,7 +496,7 @@ HyperDbgStopDriver(LPCTSTR DriverName)
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
+int
 HyperDbgStopVmmDriver()
 {
     return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
@@ -530,7 +530,7 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
+int
 HyperDbgUninstallVmmDriver()
 {
     return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
@@ -542,7 +542,7 @@ HyperDbgUninstallVmmDriver()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
+int
 HyperDbgLoadVmm()
 {
     char  CpuId[13] = {0};
@@ -648,7 +648,7 @@ HyperDbgLoadVmm()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
+int
 HyperDbgUnloadVmm()
 {
     BOOL Status;

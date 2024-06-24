@@ -501,7 +501,7 @@ ValidateIP(const string & ip)
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-HPRDBGCTRL_API bool
+bool
 HyperDbgVmxSupportDetection()
 {
     //

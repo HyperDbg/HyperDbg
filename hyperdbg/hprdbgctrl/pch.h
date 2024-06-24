@@ -108,7 +108,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 #define SCRIPT_ENGINE_USER_MODE
 #define HYPERDBG_USER_MODE
-#define HYPERDBG_HPRDBGCTRL
+#define HYPERDBG_LIBHYPERDBG
 
 //
 // Zydis Debug Disable Flag

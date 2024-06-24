@@ -245,7 +245,7 @@ const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
  *
  * @return char *
  */
-HPRDBGCTRL_API VOID
+VOID
 HyperDbgReadVendorString(char * Result)
 {
     std::string VendorString = InstructionSet::Vendor();

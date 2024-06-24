@@ -10,14 +10,14 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_HPRDBGCTRL
+#ifdef HYPERDBG_LIBHYPERDBG
 #    define IMPORT_EXPORT_CTRL __declspec(dllexport)
 #else
 #    define IMPORT_EXPORT_CTRL __declspec(dllimport)
 #endif
 
 //
-// Header file of HPRDBGCTRL
+// Header file of libhyperdbg
 // Imports
 //
 #ifdef __cplusplus

@@ -163,7 +163,7 @@
     <ClCompile Include="code\app\dllmain.cpp">
       <Filter>code\app</Filter>
     </ClCompile>
-    <ClCompile Include="code\app\hprdbgctrl.cpp">
+    <ClCompile Include="code\app\libhyperdbg.cpp">
       <Filter>code\app</Filter>
     </ClCompile>
     <ClCompile Include="code\common\common.cpp">

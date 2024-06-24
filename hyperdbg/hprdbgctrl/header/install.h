@@ -1,5 +1,5 @@
 /**
- * @file hprdbgctrl.h
+ * @file install.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main interface to connect applications to driver headers
  * @details
@@ -14,17 +14,17 @@
 //
 // The following ifdef block is the standard way of creating macros which make
 // exporting from a DLL simpler. All files within this DLL are compiled with the
-// HPRDBGCTRL_EXPORTS symbol defined on the command line. This symbol should not
+// LIBHYPERDBG_EXPORTS symbol defined on the command line. This symbol should not
 // be defined on any project that uses this DLL. This way any other project
-// whose source files include this file see HPRDBGCTRL_API functions as being
+// whose source files include this file see LIBHYPERDBG_API functions as being
 // imported from a DLL, whereas this DLL sees symbols defined with this macro as
 // being exported.
 //
 
-#ifdef HPRDBGCTRL_EXPORTS
-#    define HPRDBGCTRL_API __declspec(dllexport)
+#ifdef LIBHYPERDBG_EXPORTS
+#    define LIBHYPERDBG_API __declspec(dllexport)
 #else
-#    define HPRDBGCTRL_API __declspec(dllimport)
+#    define LIBHYPERDBG_API __declspec(dllimport)
 #endif
 
 //////////////////////////////////////////////////

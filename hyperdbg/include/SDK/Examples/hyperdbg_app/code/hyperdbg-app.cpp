@@ -382,7 +382,7 @@ HyperDbgUnloadReversingMachine()
     ShowMessages("start terminating...\n");
 
     //
-    // Call the unloader of the hprdbgrev module
+    // Call the unloader of the hyperdbg rev module
     //
     ReversingMachineStop();
 
@@ -438,7 +438,7 @@ HyperDbgLoadReversingMachine()
     }
 
     //
-    // Call hprdbgrev start function
+    // Call HyperDbg rev start function
     //
     ReversingMachineStart();
 
