@@ -199,7 +199,7 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
     ShowMessages("\tjump if zero: %s \n", InstanceInfo->scriptCapabilities.func_jz ? "supported" : "not supported");
     ShowMessages("\tjump if not zero: %s \n", InstanceInfo->scriptCapabilities.func_jnz ? "supported" : "not supported");
     ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
-    ShowMessages("\tprint: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
+    ShowMessages("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
     ShowMessages("\n");
 }
 
