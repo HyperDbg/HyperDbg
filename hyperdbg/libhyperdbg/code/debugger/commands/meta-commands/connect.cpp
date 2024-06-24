@@ -42,6 +42,60 @@ CommandConnectHelp()
 }
 
 /**
+ * @brief Connect to local debugger
+ *
+ * @return VOID
+ */
+VOID
+ConnectLocalDebugger()
+{
+    g_IsConnectedToHyperDbgLocally = TRUE;
+}
+
+/**
+ * @brief Connect to remote debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ConnectRemoteDebugger(const CHAR * Ip, const CHAR * Port)
+{
+    //
+    // Validate IP and Port
+
+    if (!ValidateIP(Ip))
+    {
+        return FALSE;
+    }
+
+    if (Port != NULL)
+    {
+        if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
+        {
+            return FALSE;
+        }
+
+        //
+        // connect to remote debugger
+        //
+        g_ServerIp   = Ip;
+        g_ServerPort = Port;
+        RemoteConnectionConnect(Ip, Port);
+    }
+    else
+    {
+        //
+        // connect to remote debugger (default port)
+        //
+        g_ServerIp   = Ip;
+        g_ServerPort = DEFAULT_PORT;
+        RemoteConnectionConnect(Ip, DEFAULT_PORT);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief .connect command handler
  *
  * @param SplitCommand
@@ -86,7 +140,7 @@ CommandConnect(vector<string> SplitCommand, string Command)
         // connect to local debugger
         //
         ShowMessages("local debugging (vmi-mode)\n");
-        g_IsConnectedToHyperDbgLocally = TRUE;
+        ConnectLocalDebugger();
         return;
     }
     else if (SplitCommand.size() == 3 || SplitCommand.size() == 2)
@@ -120,18 +174,14 @@ CommandConnect(vector<string> SplitCommand, string Command)
             //
             // connect to remote debugger
             //
-            g_ServerIp   = ip;
-            g_ServerPort = port;
-            RemoteConnectionConnect(ip.c_str(), port.c_str());
+            ConnectRemoteDebugger(ip.c_str(), port.c_str());
         }
         else
         {
             //
             // connect to remote debugger (default port)
             //
-            g_ServerIp   = ip;
-            g_ServerPort = DEFAULT_PORT;
-            RemoteConnectionConnect(ip.c_str(), DEFAULT_PORT);
+            ConnectRemoteDebugger(ip.c_str(), NULL);
         }
     }
     else

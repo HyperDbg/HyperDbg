@@ -18,3 +18,9 @@
 //
 // Some functions are exported to HyperDbgLibImports.h
 //
+
+VOID
+ConnectLocalDebugger();
+
+BOOLEAN
+ConnectRemoteDebugger(const CHAR * Ip, const CHAR * Port);

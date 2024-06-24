@@ -88,3 +88,15 @@ hyperdbg_u_check_multiline_command(CHAR * current_command, BOOLEAN reset)
 {
     return CheckMultilineCommand(current_command, reset);
 }
+
+VOID
+hyperdbg_u_connect_local_debugger()
+{
+    ConnectLocalDebugger();
+}
+
+BOOLEAN
+hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port)
+{
+    return ConnectRemoteDebugger(ip, port);
+}
