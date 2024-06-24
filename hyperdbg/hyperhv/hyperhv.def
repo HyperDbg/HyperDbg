@@ -1,4 +1,4 @@
-LIBRARY hprdbghv
+LIBRARY hyperhv
 
 EXPORTS
 
