@@ -17,9 +17,9 @@
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration>Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">Win32</Platform>
-    <RootNamespace>hprdbghv</RootNamespace>
+    <RootNamespace>hyperhv</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-    <ProjectName>hprdbghv</ProjectName>
+    <ProjectName>hyperhv</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'" Label="Configuration">
@@ -83,7 +83,7 @@
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
-      <ModuleDefinitionFile>hprdbghv.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
     <DriverSign>
       <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
@@ -99,7 +99,7 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
-      <ModuleDefinitionFile>hprdbghv.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>

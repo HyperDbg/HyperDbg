@@ -108,7 +108,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 #define SCRIPT_ENGINE_USER_MODE
 #define HYPERDBG_USER_MODE
-#define HYPERDBG_HPRDBGCTRL
+#define HYPERDBG_LIBHYPERDBG
 
 //
 // Zydis Debug Disable Flag
@@ -123,7 +123,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "Configuration.h"
 #include "Definition.h"
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/HyperDbgCtrlImports.h"
+#include "SDK/Imports/HyperDbgLibImports.h"
 
 //
 // Script-engine
@@ -135,7 +135,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // Imports/Exports
 //
 #include "SDK/Imports/HyperDbgScriptImports.h"
-#include "SDK/Imports/HyperDbgCtrlImports.h"
+#include "SDK/Imports/HyperDbgLibImports.h"
 
 //
 // General

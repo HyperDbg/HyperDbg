@@ -17,7 +17,7 @@
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration>Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
-    <RootNamespace>hprdbgkd</RootNamespace>
+    <RootNamespace>hyperkd</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -75,7 +75,7 @@
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hyperhv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -93,7 +93,7 @@
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hyperhv.lib;$(SolutionDir)build\bin\$(Configuration)\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
