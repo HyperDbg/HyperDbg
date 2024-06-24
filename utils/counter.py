@@ -8,7 +8,7 @@ def CountLines(start, lines=0, header=True, begin_start=None):
     for thing in os.listdir(start):
         thing = os.path.join(start, thing)
         if os.path.isfile(thing):
-            if ('\\dependencies\\zydis' not in thing and '\\dependencies\\phnt' not in thing and '\\dependencies\\ia32-doc' not in thing) and (thing.endswith('.c') or thing.endswith('.h') or thing.endswith('.cpp') or thing.endswith('.asm') or thing.endswith('.py') or thing.endswith('.cs') or thing.endswith('.scala') or thing.endswith('.ds')):
+            if ('\\dependencies\\zydis' not in thing and '\\dependencies\\ia32-doc' not in thing) and (thing.endswith('.c') or thing.endswith('.h') or thing.endswith('.cpp') or thing.endswith('.asm') or thing.endswith('.py') or thing.endswith('.cs') or thing.endswith('.scala') or thing.endswith('.ds')):
             
                 with open(thing, 'r', encoding="latin-1") as f:
                     newlines = f.readlines()

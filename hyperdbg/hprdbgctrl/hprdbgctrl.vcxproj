@@ -125,6 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\platform\user\header\Environment.h" />
+    <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\commands.h" />
     <ClInclude Include="header\common.h" />
     <ClInclude Include="header\communication.h" />

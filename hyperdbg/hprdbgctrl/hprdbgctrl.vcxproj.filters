@@ -152,6 +152,9 @@
     <ClInclude Include="header\hwdbg-interpreter.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\Windows.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

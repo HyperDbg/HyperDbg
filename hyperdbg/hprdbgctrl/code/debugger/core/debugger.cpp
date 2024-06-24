@@ -557,7 +557,7 @@ DebuggerGetNtoskrnlBase()
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
     //
-    Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
 
     Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
 
@@ -566,7 +566,7 @@ DebuggerGetNtoskrnlBase()
         return NULL64_ZERO;
     }
 
-    NtQuerySystemInformation(SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
+    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
     for (UINT32 i = 0; i < Modules->NumberOfModules; i++)
     {

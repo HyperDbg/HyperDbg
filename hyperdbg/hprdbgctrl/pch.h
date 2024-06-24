@@ -37,7 +37,9 @@ typedef RFLAGS * PRFLAGS;
 //
 // Native API header files for the Process Hacker project.
 //
-#define USE__NATIVE_PHNT_HEADERS
+// #define USE__NATIVE_PHNT_HEADERS
+#define USE_NATIVE_SDK_HEADERS
+#define _AMD64_
 
 #if defined(USE__NATIVE_PHNT_HEADERS)
 
@@ -47,7 +49,7 @@ typedef RFLAGS * PRFLAGS;
 typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #    define PHNT_MODE               PHNT_MODE_USER
-#    define PHNT_VERSION            PHNT_WIN11 // Windows 7
+#    define PHNT_VERSION            PHNT_WIN11 // Windows 11
 #    define PHNT_PATCH_FOR_HYPERDBG TRUE
 
 #    include <phnt/phnt_windows.h>
@@ -58,6 +60,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #    include <winternl.h>
 #    include <Windows.h>
 #    include <winioctl.h>
+#    include <platform/user/header/Windows.h>
 
 #endif
 

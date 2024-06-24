@@ -281,7 +281,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
     //
-    Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
 
     //
     // Allocate memory for the module list
@@ -299,7 +299,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
         return FALSE;
     }
 
-    Status = NtQuerySystemInformation(SystemModuleInformation,
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
                                       ModulesInfo,
                                       SysModuleInfoBufferSize,
                                       NULL);

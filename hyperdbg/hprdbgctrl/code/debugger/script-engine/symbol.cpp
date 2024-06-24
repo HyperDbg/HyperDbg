@@ -532,7 +532,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
     //
-    NtStatus = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+    NtStatus = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
 
     //
     // Allocate memory for the module list
@@ -551,7 +551,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     }
 
     if (!NT_SUCCESS(
-            NtStatus = NtQuerySystemInformation(SystemModuleInformation,
+            NtStatus = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
                                                 ModuleInfo,
                                                 SysModuleInfoBufferSize,
                                                 NULL)))
