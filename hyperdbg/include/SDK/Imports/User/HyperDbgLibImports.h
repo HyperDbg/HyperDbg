@@ -72,6 +72,16 @@ hyperdbg_u_continue_previous_command();
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_check_multiline_command(CHAR * current_command, BOOLEAN reset);
 
+//
+// Connect to local or remote debugger
+// Exoported functionality of the '.connect' command
+//
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_connect_local_debugger();
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port);
+
 #ifdef __cplusplus
 }
 #endif
