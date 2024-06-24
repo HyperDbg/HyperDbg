@@ -1,21 +1,21 @@
 Content of BRAM after emulation:
 
 PS to PL area:
-mem_0:   000000ab   | Checksum
+mem_0:   0000001e   | Checksum
 mem_1:   00000000   | Checksum
 mem_2:   52444247   | Indicator
 mem_3:   48595045   | Indicator
 mem_4:   00000004   | TypeOfThePacket
 mem_5:   00000002   | RequestedActionOfThePacket
-mem_6:   00000013   | Start of Optional Data
+mem_6:   0000000f   | Start of Optional Data
 mem_7:   00000006
 mem_8:   0000001e
 mem_9:   00000003
-mem_10:  00000055
+mem_10:  00000001
 mem_11:  00000000
 mem_12:  00000000
 mem_13:  00000004
-mem_14:  00000001
+mem_14:  00000000
 mem_15:  00000006
 mem_16:  0000001e
 mem_17:  00000003
@@ -23,15 +23,15 @@ mem_18:  00000000
 mem_19:  00000000
 mem_20:  00000000
 mem_21:  00000004
-mem_22:  00000002
+mem_22:  00000001
 mem_23:  00000006
 mem_24:  0000001e
 mem_25:  00000003
-mem_26:  00000000
+mem_26:  00000001
 mem_27:  00000000
 mem_28:  00000000
 mem_29:  00000004
-mem_30:  00000003
+mem_30:  00000002
 mem_31:  00000006
 mem_32:  0000001e
 mem_33:  00000003
@@ -39,15 +39,15 @@ mem_34:  00000000
 mem_35:  00000000
 mem_36:  00000000
 mem_37:  00000004
-mem_38:  00000005
-mem_39:  00000006
-mem_40:  0000001e
-mem_41:  00000003
+mem_38:  00000003
+mem_39:  00000000
+mem_40:  00000000
+mem_41:  00000000
 mem_42:  00000000
 mem_43:  00000000
 mem_44:  00000000
-mem_45:  00000004
-mem_46:  00000006
+mem_45:  00000000
+mem_46:  00000000
 mem_47:  00000000
 mem_48:  00000000
 mem_49:  00000000

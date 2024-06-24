@@ -110,11 +110,25 @@ object ScriptEngineConfigurations {
   //
   val MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int = 1 // for get value 
 
-
   //
   // Script variable length
   //
   val SCRIPT_VARIABLE_LENGTH: Int = 8
+  
+  //
+  // Number supported of local variables
+  //
+  val NUMBER_OF_SUPPORTED_LOCAL_VARIABLES: Int = 2
+
+  //
+  // Number supported of global variables
+  //
+  val NUMBER_OF_SUPPORTED_GLOBAL_VARIABLES: Int = 10
+
+  //
+  // Number supported of temporary variables
+  //
+  val NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES: Int = 2
 
   //  
   // Define the capabilities you want to enable
@@ -188,6 +202,9 @@ case class HwdbgInstanceInformation(
   version: Int,                 // Target version of HyperDbg (same as hwdbg)
   maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
   scriptVariableLength: Int, // Maximum length of variables (and other script elements)
+  numberOfSupportedLocalVariables: Int, // Number of supported local variables
+  numberOfSupportedGlobalVariables: Int, // Number of supported global variables
+  numberOfSupportedTemporaryVariables: Int, // Number of supported temporary variables
   maximumNumberOfSupportedGetScriptOperators: Int, // Maximum supported GET operators in a single func
   maximumNumberOfSupportedSetScriptOperators: Int, // Maximum supported SET operators in a single func
   sharedMemorySize: Int, // Size of shared memory
@@ -255,6 +272,9 @@ object HwdbgInstanceInformation {
     version: Int,
     maximumNumberOfStages: Int,
     scriptVariableLength: Int,
+    numberOfSupportedLocalVariables: Int,
+    numberOfSupportedGlobalVariables: Int,
+    numberOfSupportedTemporaryVariables: Int,
     maximumNumberOfSupportedGetScriptOperators: Int,
     maximumNumberOfSupportedSetScriptOperators: Int,
     sharedMemorySize: Int,
@@ -284,6 +304,9 @@ object HwdbgInstanceInformation {
       version = version,
       maximumNumberOfStages = maximumNumberOfStages,
       scriptVariableLength = scriptVariableLength,
+      numberOfSupportedLocalVariables = numberOfSupportedLocalVariables,
+      numberOfSupportedGlobalVariables = numberOfSupportedGlobalVariables,
+      numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
       maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
       maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
       sharedMemorySize = sharedMemorySize,
