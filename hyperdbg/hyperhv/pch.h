@@ -78,7 +78,7 @@
 #include "vmm/vmx/Vmx.h"
 #include "vmm/vmx/VmxRegions.h"
 #include "vmm/ept/Ept.h"
-#include "SDK/Imports/HyperDbgVmmImports.h"
+#include "SDK/Imports/Kernel/HyperDbgVmmImports.h"
 
 //
 // VMX and Capabilities
@@ -160,4 +160,4 @@
 // HyperLog Module
 //
 #include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
+#include "SDK/Imports/Kernel/HyperDbgHyperLogIntrinsics.h"

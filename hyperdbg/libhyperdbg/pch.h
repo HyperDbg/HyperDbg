@@ -133,8 +133,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // Imports/Exports
 //
-#include "SDK/Imports/HyperDbgScriptImports.h"
-#include "SDK/Imports/HyperDbgLibImports.h"
+#include "SDK/Imports/User/HyperDbgScriptImports.h"
+#include "SDK/Imports/User/HyperDbgLibImports.h"
 
 //
 // General

@@ -60,14 +60,14 @@
 // Import HyperLog Module
 //
 #include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLogImports.h"
-#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
+#include "SDK/Imports/Kernel/HyperDbgHyperLogImports.h"
+#include "SDK/Imports/Kernel/HyperDbgHyperLogIntrinsics.h"
 
 //
 // Import VMM Module
 //
 #include "SDK/Modules/VMM.h"
-#include "SDK/Imports/HyperDbgVmmImports.h"
+#include "SDK/Imports/Kernel/HyperDbgVmmImports.h"
 
 //
 // Local Debugger headers
