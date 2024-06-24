@@ -246,7 +246,7 @@ const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
  * @return char *
  */
 VOID
-HyperDbgReadVendorString(char * Result)
+CpuReadVendorString(CHAR * Result)
 {
     std::string VendorString = InstructionSet::Vendor();
     strcpy(Result, VendorString.c_str());

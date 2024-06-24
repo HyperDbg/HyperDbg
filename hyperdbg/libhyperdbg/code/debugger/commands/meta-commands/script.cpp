@@ -146,7 +146,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
             //
             // Check for multiline commands
             //
-            if (HyperDbgCheckMultilineCommand((char *)Line.c_str(), Reset))
+            if (CheckMultilineCommand((char *)Line.c_str(), Reset))
             {
                 //
                 // if the reset is true, we should make the saving buffer empty
@@ -222,10 +222,10 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
 /**
  * @brief Parsing the command line options for scripts
  *
- * @return int
+ * @return INT
  */
-int
-HyperDbgScriptReadFileAndExecuteCommandline(int argc, char * argv[])
+INT
+ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
 {
     vector<string> Args;
 

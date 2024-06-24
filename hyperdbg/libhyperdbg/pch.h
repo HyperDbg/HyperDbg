@@ -123,7 +123,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "Configuration.h"
 #include "Definition.h"
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/HyperDbgLibImports.h"
 
 //
 // Script-engine
@@ -140,6 +139,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // General
 //
+#include "header/libhyperdbg.h"
+#include "header/export.h"
 #include "header/inipp.h"
 #include "header/commands.h"
 #include "header/common.h"

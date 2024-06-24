@@ -43,11 +43,11 @@ extern string g_ServerIp;
  * @brief Interpret commands
  *
  * @param Command The text of command
- * @return int returns return zero if it was successful or non-zero if there was
+ * @return INT returns return zero if it was successful or non-zero if there was
  * error
  */
-int
-HyperDbgInterpreter(char * Command)
+INT
+HyperDbgInterpreter(CHAR * Command)
 {
     BOOLEAN               HelpCommand       = FALSE;
     UINT64                CommandAttributes = NULL;
@@ -370,11 +370,11 @@ HyperDbgShowSignature()
  *
  * @param CurrentCommand
  * @param Reset
- * @return bool return true if the command needs extra input, otherwise
- * return false
+ * @return BOOLEAN return TRUE if the command needs extra input, otherwise
+ * return FALSE
  */
-bool
-HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
+BOOLEAN
+CheckMultilineCommand(CHAR * CurrentCommand, BOOLEAN Reset)
 {
     UINT32      CurrentCommandLen = 0;
     std::string CurrentCommandStr(CurrentCommand);
@@ -451,14 +451,14 @@ HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
         // either the command is finished or it's a single
         // line command
         //
-        return false;
+        return FALSE;
     }
     else
     {
         //
         // There still other lines, this command is incomplete
         //
-        return true;
+        return TRUE;
     }
 }
 
@@ -467,11 +467,11 @@ HyperDbgCheckMultilineCommand(char * CurrentCommand, bool Reset)
  * need to be repeated when the user press enter, this function shows
  * whether we should continue the previous command or not
  *
- * @return true means the command should be continued, false means command
+ * @return TRUE means the command should be continued, FALSE means command
  * should be ignored
  */
-bool
-HyperDbgContinuePreviousCommand()
+BOOLEAN
+ContinuePreviousCommand()
 {
     BOOLEAN Result = g_ShouldPreviousCommandBeContinued;
 
@@ -482,11 +482,11 @@ HyperDbgContinuePreviousCommand()
 
     if (Result)
     {
-        return true;
+        return TRUE;
     }
     else
     {
-        return false;
+        return FALSE;
     }
 }
 

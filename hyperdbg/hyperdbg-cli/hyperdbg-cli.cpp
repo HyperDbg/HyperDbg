@@ -36,9 +36,9 @@ using namespace std;
 int
 main(int argc, char * argv[])
 {
-    bool   ExitFromDebugger = false;
-    string PreviousCommand;
-    bool   Reset = false;
+    BOOLEAN exit_from_debugger = FALSE;
+    string  previous_command;
+    BOOLEAN reset = FALSE;
 
     //
     // Set console output code page to UTF-8
@@ -59,7 +59,7 @@ main(int argc, char * argv[])
             //
             // Handle the script
             //
-            HyperDbgScriptReadFileAndExecuteCommandline(argc, argv);
+            hyperdbg_u_script_read_file_and_execute_commandline(argc, argv);
         }
         else
         {
@@ -68,22 +68,22 @@ main(int argc, char * argv[])
         }
     }
 
-    while (!ExitFromDebugger)
+    while (!exit_from_debugger)
     {
-        HyperDbgShowSignature();
+        hyperdbg_u_show_signature();
 
-        string CurrentCommand = "";
+        string current_command = "";
 
         //
         // Clear multiline
         //
-        Reset = true;
+        reset = TRUE;
 
     GetMultiLinecCommand:
 
-        string TempCommand = "";
+        string temp_command = "";
 
-        getline(cin, TempCommand);
+        getline(cin, temp_command);
 
         if (cin.fail() || cin.eof())
         {
@@ -100,17 +100,17 @@ main(int argc, char * argv[])
         //
         // Check for multi-line commands
         //
-        if (HyperDbgCheckMultilineCommand((char *)TempCommand.c_str(), Reset) == true)
+        if (hyperdbg_u_check_multiline_command((CHAR *)temp_command.c_str(), reset) == TRUE)
         {
             //
             // It's a multi-line command
             //
-            Reset = false;
+            reset = FALSE;
 
             //
             // Save the command with a space separator
             //
-            CurrentCommand += TempCommand + "\n";
+            current_command += temp_command + "\n";
 
             //
             // Show a small signature
@@ -127,32 +127,31 @@ main(int argc, char * argv[])
             //
             // Reset for future commands
             //
-            Reset = true;
+            reset = TRUE;
 
             //
             // Either the multi-line is finished or it's a
             // single line command
             //
-            CurrentCommand += TempCommand;
+            current_command += temp_command;
         }
 
-        if (!CurrentCommand.compare("") &&
-            HyperDbgContinuePreviousCommand())
+        if (!current_command.compare("") && hyperdbg_u_continue_previous_command())
         {
             //
             // Retry the previous command
             //
-            CurrentCommand = PreviousCommand;
+            current_command = previous_command;
         }
         else
         {
             //
             // Save previous command
             //
-            PreviousCommand = CurrentCommand;
+            previous_command = current_command;
         }
 
-        int CommandExecutionResult = HyperDbgInterpreter((char *)CurrentCommand.c_str());
+        INT CommandExecutionResult = hyperdbg_u_interpreter((CHAR *)current_command.c_str());
 
         //
         // if the debugger encounters an exit state then the return will be 1
@@ -162,7 +161,7 @@ main(int argc, char * argv[])
             //
             // Exit from the debugger
             //
-            ExitFromDebugger = true;
+            exit_from_debugger = true;
         }
         if (CommandExecutionResult != 2)
         {

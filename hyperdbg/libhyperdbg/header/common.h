@@ -201,3 +201,6 @@ Getx86VirtualAddressWidth();
 
 BOOLEAN
 CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
+
+BOOLEAN
+VmxSupportDetection();

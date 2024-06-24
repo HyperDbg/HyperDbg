@@ -81,6 +81,9 @@
     <Filter Include="code\hwdbg">
       <UniqueIdentifier>{a27149ec-f7ce-4356-998f-79bd2a7e7961}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\export">
+      <UniqueIdentifier>{cfacdcfe-8503-4a00-b7e2-75b0e906f75e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -154,6 +157,12 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\user\header\Windows.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\export.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\libhyperdbg.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -528,6 +537,9 @@
     </ClCompile>
     <ClCompile Include="code\hwdbg\hwdbg-interpreter.cpp">
       <Filter>code\hwdbg</Filter>
+    </ClCompile>
+    <ClCompile Include="code\export\export.cpp">
+      <Filter>code\export</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

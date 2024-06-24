@@ -1,0 +1,43 @@
+/**
+ * @file libhyperdbg.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief headers for libhyperdbg
+ * @details
+ * @version 1.0
+ * @date 2024-06-24
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
+#pragma once
+
+//////////////////////////////////////////////////
+//            	    Functions                   //
+//////////////////////////////////////////////////
+
+INT
+HyperDbgLoadVmm();
+
+INT
+HyperDbgUnloadVmm();
+
+INT
+HyperDbgInstallVmmDriver();
+
+INT
+HyperDbgUninstallVmmDriver();
+
+INT
+HyperDbgStopVmmDriver();
+
+INT
+HyperDbgInterpreter(CHAR * Command);
+
+INT
+ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[]);
+
+VOID
+HyperDbgShowSignature();
+
+VOID
+SetTextMessageCallback(Callback handler);

@@ -501,8 +501,8 @@ ValidateIP(const string & ip)
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-bool
-HyperDbgVmxSupportDetection()
+BOOLEAN
+VmxSupportDetection()
 {
     //
     // Call assembly function

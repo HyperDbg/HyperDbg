@@ -130,6 +130,7 @@
     <ClInclude Include="header\common.h" />
     <ClInclude Include="header\communication.h" />
     <ClInclude Include="header\debugger.h" />
+    <ClInclude Include="header\export.h" />
     <ClInclude Include="header\forwarding.h" />
     <ClInclude Include="header\globals.h" />
     <ClInclude Include="header\help.h" />
@@ -137,6 +138,7 @@
     <ClInclude Include="header\inipp.h" />
     <ClInclude Include="header\install.h" />
     <ClInclude Include="header\kd.h" />
+    <ClInclude Include="header\libhyperdbg.h" />
     <ClInclude Include="header\list.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\objects.h" />
@@ -189,6 +191,7 @@
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
+    <ClCompile Include="code\export\export.cpp" />
     <ClCompile Include="code\hwdbg\hwdbg-interpreter.cpp" />
     <ClCompile Include="code\objects\objects.cpp" />
     <ClCompile Include="code\rev\rev-ctrl.cpp" />

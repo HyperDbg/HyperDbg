@@ -37,6 +37,9 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 //                  Functions                   //
 //////////////////////////////////////////////////
 
+VOID
+CpuReadVendorString(CHAR * Result);
+
 int
 ReadCpuDetails();
 
@@ -124,6 +127,12 @@ InitializeCommandsDictionary();
 
 VOID
 InitializeDebugger();
+
+BOOLEAN
+CheckMultilineCommand(CHAR * CurrentCommand, BOOLEAN Reset);
+
+BOOLEAN
+ContinuePreviousCommand();
 
 VOID
 CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);

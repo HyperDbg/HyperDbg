@@ -38,7 +38,7 @@ extern LIST_ENTRY g_OutputSources;
  * @param handler Function that handles the messages
  */
 VOID
-HyperDbgSetTextMessageCallback(Callback handler)
+SetTextMessageCallback(Callback handler)
 {
     g_MessageHandler = handler;
 }
@@ -437,10 +437,10 @@ IrpBasedBufferThread(void * data)
 /**
  * @brief Install VMM driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgInstallVmmDriver()
 {
     //
@@ -493,10 +493,10 @@ HyperDbgStopDriver(LPCTSTR DriverName)
 /**
  * @brief Stop VMM driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgStopVmmDriver()
 {
     return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
@@ -527,10 +527,10 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
 /**
  * @brief Remove the VMM driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgUninstallVmmDriver()
 {
     return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
@@ -539,10 +539,10 @@ HyperDbgUninstallVmmDriver()
 /**
  * @brief Load the VMM driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgLoadVmm()
 {
     char  CpuId[13] = {0};
@@ -559,7 +559,7 @@ HyperDbgLoadVmm()
     //
     // Read the vendor string
     //
-    HyperDbgReadVendorString(CpuId);
+    CpuReadVendorString(CpuId);
 
     ShowMessages("current processor vendor is : %s\n", CpuId);
 
@@ -574,7 +574,7 @@ HyperDbgLoadVmm()
         return 1;
     }
 
-    if (HyperDbgVmxSupportDetection())
+    if (VmxSupportDetection())
     {
         ShowMessages("vmx operation is supported by your processor\n");
     }
@@ -645,10 +645,10 @@ HyperDbgLoadVmm()
 /**
  * @brief Unload VMM driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgUnloadVmm()
 {
     BOOL Status;

@@ -412,7 +412,7 @@ HyperDbgLoadReversingMachine()
     //
     // Read the vendor string
     //
-    HyperDbgReadVendorString(CpuId);
+    CpuReadVendorString(CpuId);
 
     ShowMessages("current processor vendor is : %s\n", CpuId);
 
@@ -427,7 +427,7 @@ HyperDbgLoadReversingMachine()
         return 1;
     }
 
-    if (HyperDbgVmxSupportDetection())
+    if (VmxSupportDetection())
     {
         ShowMessages("vmx operation is supported by your processor\n");
     }
