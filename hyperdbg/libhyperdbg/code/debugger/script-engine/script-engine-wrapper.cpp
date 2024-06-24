@@ -265,7 +265,7 @@ PVOID
 ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny)
 {
     PSYMBOL_BUFFER SymbolBuffer;
-    SymbolBuffer = ScriptEngineParse(Expr);
+    SymbolBuffer = (PSYMBOL_BUFFER)ScriptEngineParse(Expr);
 
     //
     // Check if there is an error or not
@@ -298,7 +298,7 @@ ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny)
 VOID
 PrintSymbolBufferWrapper(PVOID SymbolBuffer)
 {
-    PrintSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
+    PrintSymbolBuffer(SymbolBuffer);
 }
 
 /**
@@ -377,12 +377,12 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     // Run Parser
     //
-    PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
+    PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
 
     //
     // Print symbol buffer
     //
-    // PrintSymbolBuffer(CodeBuffer);
+    // PrintSymbolBuffer((PVOID)CodeBuffer);
 
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};

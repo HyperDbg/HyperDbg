@@ -82,24 +82,24 @@ void
 RemoveSymbol(PSYMBOL * Symbol);
 
 __declspec(dllexport) void
-PrintSymbol(PSYMBOL Symbol);
+PrintSymbol(PVOID Symbol);
 
 PSYMBOL_BUFFER
 NewSymbolBuffer(void);
 
 __declspec(dllexport) void
-RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+RemoveSymbolBuffer(PVOID SymbolBuffer);
 
 PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 
 __declspec(dllexport) void
-PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
+PrintSymbolBuffer(const PVOID SymbolBuffer);
 
 PSYMBOL
 ToSymbol(PTOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
-__declspec(dllexport) PSYMBOL_BUFFER
+__declspec(dllexport) PVOID
 ScriptEngineParse(char * str);
 
 __declspec(dllexport) BOOLEAN

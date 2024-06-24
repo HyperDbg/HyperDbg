@@ -21,20 +21,18 @@ extern "C" {
 //
 // Script engine
 //
-__declspec(dllimport) PSYMBOL_BUFFER
+__declspec(dllimport) PVOID
 ScriptEngineParse(char * str);
 __declspec(dllimport) void
-PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
+PrintSymbolBuffer(const PVOID SymbolBuffer);
 __declspec(dllimport) void
-PrintSymbol(PSYMBOL Symbol);
+PrintSymbol(PVOID Symbol);
 __declspec(dllimport) void
-RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+RemoveSymbolBuffer(PVOID SymbolBuffer);
 __declspec(dllimport) BOOLEAN
 FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);
 __declspec(dllimport) BOOLEAN
 ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo);
-
-;
 
 //
 // pdb parser

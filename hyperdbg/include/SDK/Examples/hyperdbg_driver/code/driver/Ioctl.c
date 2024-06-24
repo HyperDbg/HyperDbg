@@ -62,10 +62,21 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             switch (RegisterEventRequest->Type)
             {
             case IRP_BASED:
-                Status = LogRegisterIrpBasedNotification(DeviceObject, Irp);
+
+                LogRegisterIrpBasedNotification((PVOID)Irp, &Status);
+
                 break;
             case EVENT_BASED:
-                Status = LogRegisterEventBasedNotification(DeviceObject, Irp);
+
+                if (LogRegisterEventBasedNotification((PVOID)Irp))
+                {
+                    Status = STATUS_SUCCESS;
+                }
+                else
+                {
+                    Status = STATUS_UNSUCCESSFUL;
+                }
+
                 break;
             default:
                 LogError("Err, unknown notification type from user-mode");

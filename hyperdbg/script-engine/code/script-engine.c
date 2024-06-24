@@ -261,9 +261,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
  * @brief The entry point of script engine
  *
  * @param str
- * @return PSYMBOL_BUFFER
+ * @return PVOID
  */
-PSYMBOL_BUFFER
+PVOID
 ScriptEngineParse(char * str)
 {
     PTOKEN_LIST Stack = NewTokenList();
@@ -325,7 +325,7 @@ ScriptEngineParse(char * str)
         RemoveTokenList(Stack);
         RemoveTokenList(MatchedStack);
         RemoveToken(&CurrentIn);
-        return CodeBuffer;
+        return (PVOID)CodeBuffer;
     }
 
     do
@@ -483,7 +483,7 @@ ScriptEngineParse(char * str)
         RemoveTokenList(MatchedStack);
 
     if (UserDefinedFunctions)
-        RemoveSymbolBuffer(UserDefinedFunctions);
+        RemoveSymbolBuffer((PVOID)UserDefinedFunctions);
 
     if (CurrentIn)
         RemoveToken(&CurrentIn);
@@ -497,7 +497,7 @@ ScriptEngineParse(char * str)
         FunctionParameterIdTable = NewTokenList();
     }
 
-    return CodeBuffer;
+    return (PVOID)CodeBuffer;
 }
 
 /**
@@ -542,7 +542,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
     printf("\n");
 
     printf("Code Buffer:\n");
-    PrintSymbolBuffer(CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
     printf(".\n.\n.\n\n");
 #endif
 
@@ -1005,7 +1005,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                     OperandCount++;
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
-                        RemoveSymbolBuffer(TempStack);
+                        RemoveSymbolBuffer((PVOID)TempStack);
                         break;
                     }
                 }
@@ -1032,7 +1032,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             RemoveSymbol(&OperandCountSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
-                RemoveSymbolBuffer(TempStack);
+                RemoveSymbolBuffer((PVOID)TempStack);
                 break;
             }
 
@@ -1047,7 +1047,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
             PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                                          (unsigned long long)(FirstArgPointer * sizeof(SYMBOL)));
-            RemoveSymbolBuffer(TempStack);
+            RemoveSymbolBuffer((PVOID)TempStack);
 
             UINT32 i   = 0;
             char * Str = Format;
@@ -2051,7 +2051,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
     printf("\n");
 
     printf("Code Buffer:\n");
-    PrintSymbolBuffer(CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
     printf("------------------------------------------\n\n");
 #endif
 
@@ -2468,18 +2468,19 @@ RemoveSymbol(PSYMBOL * Symbol)
 /**
  * @brief Prints symbol
  *
- * @param Symbol
+ * @param PVOID
  */
 void
-PrintSymbol(PSYMBOL Symbol)
+PrintSymbol(PVOID Symbol)
 {
-    if (Symbol->Type == SYMBOL_STRING_TYPE)
+    PSYMBOL Sym = (PSYMBOL)Symbol;
+    if (Sym->Type == SYMBOL_STRING_TYPE)
     {
-        printf("Type:%llx, Value:0x%p\n", Symbol->Type, &Symbol->Value);
+        printf("Type:%llx, Value:0x%p\n", Sym->Type, &Sym->Value);
     }
     else
     {
-        printf("Type:%llx, Value:0x%llx\n", Symbol->Type, Symbol->Value);
+        printf("Type:%llx, Value:0x%llx\n", Sym->Type, Sym->Value);
     }
 }
 
@@ -2604,11 +2605,13 @@ NewSymbolBuffer(void)
  * @param SymbolBuffer
  */
 void
-RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
+RemoveSymbolBuffer(PVOID SymbolBuffer)
 {
-    free(SymbolBuffer->Message);
-    free(SymbolBuffer->Head);
-    free(SymbolBuffer);
+    PSYMBOL_BUFFER SymBuf = (PSYMBOL_BUFFER)SymbolBuffer;
+
+    free(SymBuf->Message);
+    free(SymBuf->Head);
+    free(SymBuf);
 }
 
 /**
@@ -2736,15 +2739,17 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
  * @param SymbolBuffer
  */
 void
-PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
+PrintSymbolBuffer(const PVOID SymbolBuffer)
 {
+    PSYMBOL_BUFFER SymBuff = (PSYMBOL_BUFFER)SymbolBuffer;
+
     PSYMBOL Symbol;
-    for (unsigned int i = 0; i < SymbolBuffer->Pointer;)
+    for (unsigned int i = 0; i < SymBuff->Pointer;)
     {
-        Symbol = SymbolBuffer->Head + i;
+        Symbol = SymBuff->Head + i;
 
         printf("%8x:", i);
-        PrintSymbol(Symbol);
+        PrintSymbol((PVOID)Symbol);
         if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
         {
             int temp = GetSymbolHeapSize(Symbol);

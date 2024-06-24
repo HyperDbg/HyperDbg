@@ -57,8 +57,8 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority);
 IMPORT_EXPORT_HYPERLOG BOOLEAN
 LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
-IMPORT_EXPORT_HYPERLOG NTSTATUS
-LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+IMPORT_EXPORT_HYPERLOG BOOLEAN
+LogRegisterEventBasedNotification(PVOID TargetIrp);
 
-IMPORT_EXPORT_HYPERLOG NTSTATUS
-LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+IMPORT_EXPORT_HYPERLOG BOOLEAN
+LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status);
