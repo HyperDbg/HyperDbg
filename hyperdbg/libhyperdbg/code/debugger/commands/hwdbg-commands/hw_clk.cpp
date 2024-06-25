@@ -93,8 +93,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
             ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
             ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
             ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
-            ShowMessages("Debuggee Number of Supported Local Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedLocalVariables);
-            ShowMessages("Debuggee Number of Supported Global Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedGlobalVariables);
+            ShowMessages("Debuggee Number of Supported Local (and global) Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables);
             ShowMessages("Debuggee Number of Supported Temporary Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables);
             ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators);
             ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
@@ -219,13 +218,11 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         // + operator symbol itself which only contains value (type is always equal to SYMBOL_SEMANTIC_RULE_TYPE)
                         // so, it is not counted as a flip-flop
                         //
-                        NumberOfNeededFlipFlopsInTargetDevice = (NumberOfStagesForScript *
-                                                                 (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) *
-                                                                 g_HwdbgInstanceInfo.scriptVariableLength *
-                                                                 sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) +
-                                                                (NumberOfStagesForScript *
-                                                                 g_HwdbgInstanceInfo.scriptVariableLength *
-                                                                 (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2);
+                        NumberOfNeededFlipFlopsInTargetDevice = (NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) * g_HwdbgInstanceInfo.scriptVariableLength * sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) + // size of operator (GET and SET)
+                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2) +                                                                                                                               // size of main operator
+                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                    // size of local (and global) variables
+                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                         // size of temporary variables
+                                                                (NumberOfStagesForScript * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages));                                                                                                                                                                         // size of stage index register
 
                         ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
