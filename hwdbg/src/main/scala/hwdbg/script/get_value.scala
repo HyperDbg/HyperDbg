@@ -46,6 +46,12 @@ class ScriptEngineGetValue(
     val operator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
+    // Input variables
+    //
+    val localGlobalVariables = Input(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
+    val tempVariables = Input(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // Temporary variables
+
+    //
     // Input signals
     //
     val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // input pins
@@ -78,16 +84,17 @@ class ScriptEngineGetValue(
       is(symbolGlobalIdType) {
 
         //
-        // To be implemented (Global Variables)
+        // Set output to local (and global) variables
         //
-        outputValue := 0.U
+        outputValue := io.localGlobalVariables(io.operator.Value)
       }
       is(symbolLocalIdType) {
 
         //
-        // To be implemented (Local Variables)
+        // Set output to local (and global) variables
         //
-        outputValue := 0.U
+        outputValue := io.localGlobalVariables(io.operator.Value)
+
       }
       is(symbolNumType) {
 
@@ -149,9 +156,9 @@ class ScriptEngineGetValue(
       is(symbolTempType) {
 
         //
-        // To be implemented
+        // Set output to temporary variables
         //
-        outputValue := 0.U
+        outputValue := io.tempVariables(io.operator.Value)
       }
       is(symbolStackTempType) {
 
@@ -185,6 +192,8 @@ object ScriptEngineGetValue {
   )(
       en: Bool,
       operator: HwdbgShortSymbol,
+      localGlobalVariables: Vec[UInt],
+      tempVariables: Vec[UInt],
       inputPin: Vec[UInt]
   ): (UInt) = {
 
@@ -202,6 +211,8 @@ object ScriptEngineGetValue {
     //
     scriptEngineGetValueModule.io.en := en
     scriptEngineGetValueModule.io.operator := operator
+    scriptEngineGetValueModule.io.localGlobalVariables := localGlobalVariables
+    scriptEngineGetValueModule.io.tempVariables := tempVariables
     scriptEngineGetValueModule.io.inputPin := inputPin
 
     //

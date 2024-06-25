@@ -226,7 +226,9 @@ class ScriptExecutionEngine(
         //
         val (
           nextStage,
-          outputPin
+          outputPin,
+          resultingLocalGlobalVariables,
+          resultingTempVariables
         ) = ScriptEngineEval(
           debug,
           instanceInfo
@@ -246,6 +248,12 @@ class ScriptExecutionEngine(
         //
         stageRegs(i).targetStage := nextStage
 
+        //
+        // Pass the local (and global) and temporary variables to the next stage
+        //
+        stageRegs(i).localGlobalVariables := resultingLocalGlobalVariables
+        stageRegs(i).tempVariables := resultingTempVariables
+
       }.otherwise {
 
         //
@@ -257,7 +265,8 @@ class ScriptExecutionEngine(
         //
         stageRegs(i).pinValues := stageRegs(i - 1).pinValues
         stageRegs(i).targetStage := stageRegs(i - 1).targetStage
-
+        stageRegs(i).localGlobalVariables := stageRegs(i - 1).localGlobalVariables
+        stageRegs(i).tempVariables := stageRegs(i - 1).tempVariables
       }
     }
   }

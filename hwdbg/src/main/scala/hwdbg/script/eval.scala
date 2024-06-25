@@ -50,7 +50,9 @@ class ScriptEngineEval(
     // Output signals
     //
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
-  })  
+    val resultingLocalGlobalVariables = Output(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // output of local (and global) variables
+    val resultingTempVariables = Output(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // output of temporary variables
+  })
  
   //
   // Output pins
@@ -78,6 +80,8 @@ class ScriptEngineEval(
     )(
         io.en,
         io.stageConfig.getOperatorSymbol(i),
+        io.stageConfig.localGlobalVariables,
+        io.stageConfig.tempVariables,
         io.stageConfig.pinValues
     )
   }
@@ -281,18 +285,33 @@ class ScriptEngineEval(
   // Set value module
   //
   val setValueModuleInput = Wire(Vec(instanceInfo.maximumNumberOfSupportedSetScriptOperators, Vec(instanceInfo.numberOfPins, UInt(1.W))))
+  val outputLocalGlobalVariables = Wire(Vec(instanceInfo.maximumNumberOfSupportedSetScriptOperators, Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))))
+  val outputTempVariables = Wire(Vec(instanceInfo.maximumNumberOfSupportedSetScriptOperators, Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))))
 
   for (i <- 0 until instanceInfo.maximumNumberOfSupportedSetScriptOperators) {
 
-    setValueModuleInput(i) := ScriptEngineSetValue(
+    val (
+      outputPin,
+      resultingLocalGlobalVariables,
+      resultingTempVariables
+    ) = ScriptEngineSetValue(
           debug,
           instanceInfo
       )(
           io.en,
           io.stageConfig.setOperatorSymbol(i),
+          io.stageConfig.localGlobalVariables,
+          io.stageConfig.tempVariables,
           desVal(i),
           io.stageConfig.pinValues
       )
+
+    //
+    // Connect SET output pins
+    //
+    setValueModuleInput(i) := outputPin
+    outputLocalGlobalVariables(i) := resultingLocalGlobalVariables
+    outputTempVariables(i) := resultingTempVariables
   }
 
   // ---------------------------------------------------------------------
@@ -301,6 +320,9 @@ class ScriptEngineEval(
   // Connect the output signals
   //
   io.outputPin := setValueModuleInput(0)
+  io.resultingLocalGlobalVariables := outputLocalGlobalVariables(0)
+  io.resultingTempVariables := outputTempVariables(0)
+
   when (ignoreStageChange === false.B) {
     io.nextStage := io.stageConfig.targetStage + stageAddition
   }.otherwise {
@@ -317,7 +339,9 @@ object ScriptEngineEval {
   )(
       en: Bool,
       stageConfig: Stage
-  ): (UInt, Vec[UInt]) = {
+  ): (UInt, Vec[UInt], Vec[UInt], Vec[UInt]) = {
+
+
 
     val scriptEngineEvalModule = Module(
       new ScriptEngineEval(
@@ -327,6 +351,8 @@ object ScriptEngineEval {
     )
 
     val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
+    val resultingLocalGlobalVariables = Wire(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W)))
+    val resultingTempVariables = Wire(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W)))
     val nextStage = Wire(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
     //
@@ -340,10 +366,17 @@ object ScriptEngineEval {
     //
     nextStage := scriptEngineEvalModule.io.nextStage
     outputPin := scriptEngineEvalModule.io.outputPin
+    resultingLocalGlobalVariables := scriptEngineEvalModule.io.resultingLocalGlobalVariables
+    resultingTempVariables := scriptEngineEvalModule.io.resultingTempVariables
 
     //
     // Return the output result
     //
-    (nextStage, outputPin)
+    (
+      nextStage,
+      outputPin,
+      resultingLocalGlobalVariables,
+      resultingTempVariables
+    )
   }
 }
