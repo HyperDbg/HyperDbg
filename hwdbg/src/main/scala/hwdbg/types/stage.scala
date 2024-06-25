@@ -25,8 +25,14 @@ class Stage(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     instanceInfo: HwdbgInstanceInformation
 ) extends Bundle {
-  val pinValues = Vec(instanceInfo.numberOfPins, UInt(1.W)) // The value of each pin in each stage (should be passed to the next stage)
-  val stageSymbol = new HwdbgShortSymbol(instanceInfo.scriptVariableLength) // Interpreted script symbol for the target stage (should NOT be passed to the next stage)
+
+  val pinValues = Vec(
+    instanceInfo.numberOfPins, UInt(1.W)
+    ) // The value of each pin in each stage (should be passed to the next stage)
+
+  val stageSymbol = new HwdbgShortSymbol(
+    instanceInfo.scriptVariableLength
+    ) // Interpreted script symbol for the target stage (should NOT be passed to the next stage)
 
   val getOperatorSymbol = Vec(
     instanceInfo.maximumNumberOfSupportedGetScriptOperators, new HwdbgShortSymbol(instanceInfo.scriptVariableLength)
@@ -39,6 +45,14 @@ class Stage(
   val targetStage = UInt(
     log2Ceil(instanceInfo.maximumNumberOfStages).W
   ) // Target stage that needs to be executed for the current pin values (should be passed to the next stage)
+
+  val tempVariables = Vec(
+    instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W)
+    ) // Temporary variables
+
+  val localGlobalVariables = Vec(
+    instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W)
+    ) // Local (and Global) variables
 
   val stageIndex = UInt(
     log2Ceil(instanceInfo.maximumNumberOfStages).W
