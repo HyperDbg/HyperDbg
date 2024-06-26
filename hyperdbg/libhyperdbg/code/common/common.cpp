@@ -1205,3 +1205,24 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
     //
     return TRUE;
 }
+
+/**
+ * @brief Function to compute log2Ceil
+ * @param n
+ *
+ * @return UINT32
+ */
+UINT32
+Log2Ceil(UINT32 n)
+{
+    if (n == 0)
+        return 0; // log2Ceil(0) is undefined, returning 0 for safety.
+
+    n--; // Decrease by 1 to check if it is a power of 2
+    UINT32 log2Floor = 0;
+    while (n >>= 1)
+    {
+        log2Floor++;
+    }
+    return log2Floor + 1;
+}

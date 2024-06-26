@@ -127,6 +127,9 @@ Split(const string & s, const char & c);
 BOOLEAN
 IsNumber(const string & str);
 
+UINT32
+Log2Ceil(UINT32 n);
+
 vector<string>
 SplitIp(const string & str, char delim);
 

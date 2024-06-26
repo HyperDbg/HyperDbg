@@ -25,7 +25,7 @@ import hwdbg.utils._
 object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
     val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
-    sSendNumberOfSupportedLocalVariables, sSendNumberOfSupportedGlobalVariables, sSendNumberOfSupportedTemporaryVariables,
+    sSendNumberOfSupportedLocalAndGlobalVariables, sSendNumberOfSupportedTemporaryVariables,
     sSendMaximumNumberOfSupportedGetScriptOperators, sSendMaximumNumberOfSupportedSetScriptOperators,
     sSendSharedMemorySize, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
     sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1, sSendScriptCapabilities2, 
@@ -149,30 +149,15 @@ class InterpreterInstanceInfo(
         //
         dataValidOutput := true.B
 
-        state := sSendNumberOfSupportedLocalVariables
+        state := sSendNumberOfSupportedLocalAndGlobalVariables
 
       }
-      is(sSendNumberOfSupportedLocalVariables) {
+      is(sSendNumberOfSupportedLocalAndGlobalVariables) {
 
         //
         // Set the number of supported local variables for this instance of the debugger
         //
-        sendingData := instanceInfo.numberOfSupportedLocalVariables.U
-
-        //
-        // The output is valid
-        //
-        dataValidOutput := true.B
-
-        state := sSendNumberOfSupportedGlobalVariables
-
-      }
-      is(sSendNumberOfSupportedGlobalVariables) {
-
-        //
-        // Set the number of supported global variables for this instance of the debugger
-        //
-        sendingData := instanceInfo.numberOfSupportedGlobalVariables.U
+        sendingData := instanceInfo.numberOfSupportedLocalAndGlobalVariables.U
 
         //
         // The output is valid

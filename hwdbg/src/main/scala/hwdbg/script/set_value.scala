@@ -46,6 +46,12 @@ class ScriptEngineSetValue(
     val operator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
 
     //
+    // Input variables
+    //
+    val inputLocalGlobalVariables = Input(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
+    val inputTempVariables = Input(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // Temporary variables
+
+    //
     // Input value
     //
     val inputValue = Input(UInt(instanceInfo.scriptVariableLength.W)) // input value
@@ -56,17 +62,28 @@ class ScriptEngineSetValue(
     val inputPin = Input(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
     val outputPin = Output(Vec(instanceInfo.numberOfPins, UInt(1.W))) // output pins
 
+    //
+    // Output variables
+    //
+    val outputLocalGlobalVariables = Output(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
+    val outputTempVariables = Output(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // Temporary variables
+
   })
 
   //
   // Temp input
   //
+  val inputLocalGlobalVariables = io.inputLocalGlobalVariables
+  val inputTempVariables = io.inputTempVariables
   val inputPin = io.inputPin.asUInt
 
   //
   // Output pins
   //
   val outputPin = WireInit(0.U(instanceInfo.numberOfPins.W))
+  val outputLocalGlobalVariables = WireInit(VecInit(Seq.fill(instanceInfo.numberOfSupportedLocalAndGlobalVariables)(0.U(instanceInfo.scriptVariableLength.W)))) // Local (and Global) variables
+  val outputTempVariables = WireInit(VecInit(Seq.fill(instanceInfo.numberOfSupportedTemporaryVariables)(0.U(instanceInfo.scriptVariableLength.W)))) // Temporary variables
+
 
   //
   // Assign operator type (split the signal into only usable part)
@@ -85,19 +102,45 @@ class ScriptEngineSetValue(
 
     switch(mainOperatorType) {
 
+      is(symbolUndefined) {
+
+        //
+        // In case of undefined SET value, just pass every input to the next step
+        //
+        outputPin := inputPin
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+        
+      }
       is(symbolGlobalIdType) {
 
         //
-        // To be implemented (Global Variables)
+        // Set the local (and global) variables
         //
-        outputPin := 0.U
+        outputPin := inputPin
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
+        //
+        // Set the target variable
+        //
+        outputLocalGlobalVariables(io.operator.Value) := io.inputValue
+
       }
       is(symbolLocalIdType) {
 
         //
-        // To be implemented (Local Variables)
+        // Set the target local/global variable
         //
-        outputPin := 0.U
+        outputPin := inputPin
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
+        //
+        // Set the target local/global variable
+        //
+        outputLocalGlobalVariables(io.operator.Value) := io.inputValue
+
       }
       is(symbolRegisterType) {
 
@@ -208,6 +251,10 @@ class ScriptEngineSetValue(
               currentPortNum += port
           }
         }
+
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
       }
       is(symbolPseudoRegType) {
 
@@ -215,14 +262,24 @@ class ScriptEngineSetValue(
         // To be implemented
         //
         outputPin := 0.U
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
         
       }
       is(symbolTempType) {
 
         //
-        // To be implemented
+        // Set the temporary variables
         //
-        outputPin := 0.U
+        outputPin := inputPin
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
+        //
+        // Set the target temporary variable
+        //
+        outputTempVariables(io.operator.Value) := io.inputValue
+
       }
       is(symbolStackTempType) {
 
@@ -230,6 +287,9 @@ class ScriptEngineSetValue(
         // To be implemented
         //
         outputPin := 0.U
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
       }
       is(symbolFunctionParameterIdType) {
 
@@ -237,6 +297,9 @@ class ScriptEngineSetValue(
         // To be implemented
         //
         outputPin := 0.U
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+
       }
     }
   }
@@ -244,6 +307,9 @@ class ScriptEngineSetValue(
   //
   // Connect the output signals
   //
+  io.outputLocalGlobalVariables := outputLocalGlobalVariables
+  io.outputTempVariables := outputTempVariables
+
   for (i <- 0 until instanceInfo.numberOfPins) {
     io.outputPin(i) := outputPin(i)
   }
@@ -258,9 +324,11 @@ object ScriptEngineSetValue {
   )(
       en: Bool,
       operator: HwdbgShortSymbol,
+      inputLocalGlobalVariables: Vec[UInt],
+      inputTempVariables: Vec[UInt],
       inputValue: UInt,
       inputPin: Vec[UInt],
-  ): (Vec[UInt]) = {
+  ): (Vec[UInt], Vec[UInt], Vec[UInt]) = {
 
     val scriptEngineSetValueModule = Module(
       new ScriptEngineSetValue(
@@ -270,12 +338,16 @@ object ScriptEngineSetValue {
     )
 
     val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
+    val outputLocalGlobalVariables = Wire(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W)))
+    val outputTempVariables = Wire(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W)))
 
     //
     // Configure the input signals
     //
     scriptEngineSetValueModule.io.en := en
     scriptEngineSetValueModule.io.operator := operator
+    scriptEngineSetValueModule.io.inputLocalGlobalVariables := inputLocalGlobalVariables
+    scriptEngineSetValueModule.io.inputTempVariables := inputTempVariables
     scriptEngineSetValueModule.io.inputValue := inputValue
     scriptEngineSetValueModule.io.inputPin := inputPin
 
@@ -283,10 +355,16 @@ object ScriptEngineSetValue {
     // Configure the output signal
     //
     outputPin := scriptEngineSetValueModule.io.outputPin
+    outputLocalGlobalVariables := scriptEngineSetValueModule.io.outputLocalGlobalVariables
+    outputTempVariables := scriptEngineSetValueModule.io.outputTempVariables
 
     //
     // Return the output result
     //
-    (outputPin)
+    (
+      outputPin,
+      outputLocalGlobalVariables,
+      outputTempVariables
+    )
   }
 }

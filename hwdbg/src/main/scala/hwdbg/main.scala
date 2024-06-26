@@ -35,8 +35,7 @@ class DebuggerMain(
     debuggerAreaOffset: Int,
     debuggeeAreaOffset: Int,
     scriptVariableLength: Int,
-    numberOfSupportedLocalVariables: Int,
-    numberOfSupportedGlobalVariables: Int,
+    numberOfSupportedLocalAndGlobalVariables: Int,
     numberOfSupportedTemporaryVariables: Int,
     scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
@@ -82,6 +81,15 @@ class DebuggerMain(
     "err, the maximum number of pins + ports should be less than 2 to the power of the script variable length."
   )
 
+  //
+  // Ensure the number of set operators are equal to 1 since otherwise two variables (local, global and
+  // temp) might be written simultaneously.
+  //
+  require(
+    maximumNumberOfSupportedSetScriptOperators == 1,
+    "err, the supported number of SET operators can be only 1."
+  )
+
   val io = IO(new Bundle {
 
     //
@@ -118,8 +126,7 @@ class DebuggerMain(
                               version = Version.getEncodedVersion,
                               maximumNumberOfStages = maximumNumberOfStages,
                               scriptVariableLength = scriptVariableLength,
-                              numberOfSupportedLocalVariables = numberOfSupportedLocalVariables,
-                              numberOfSupportedGlobalVariables = numberOfSupportedGlobalVariables,
+                              numberOfSupportedLocalAndGlobalVariables = numberOfSupportedLocalAndGlobalVariables,
                               numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
                               maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
                               maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
@@ -249,8 +256,7 @@ object DebuggerMain {
       debuggerAreaOffset: Int,
       debuggeeAreaOffset: Int,
       scriptVariableLength: Int,
-      numberOfSupportedLocalVariables: Int,
-      numberOfSupportedGlobalVariables: Int,
+      numberOfSupportedLocalAndGlobalVariables: Int,
       numberOfSupportedTemporaryVariables: Int,
       scriptCapabilities: Seq[Long],
       bramAddrWidth: Int,
@@ -274,8 +280,7 @@ object DebuggerMain {
         debuggerAreaOffset,
         debuggeeAreaOffset,
         scriptVariableLength,
-        numberOfSupportedLocalVariables,
-        numberOfSupportedGlobalVariables,
+        numberOfSupportedLocalAndGlobalVariables,
         numberOfSupportedTemporaryVariables,
         scriptCapabilities,
         bramAddrWidth,
