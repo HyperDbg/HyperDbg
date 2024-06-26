@@ -197,7 +197,7 @@ case class HwdbgInstanceInformation(
   version: Int,                 // Target version of HyperDbg (same as hwdbg)
   maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
   scriptVariableLength: Int, // Maximum length of variables (and other script elements)
-  numberOfSupportedLocalAndGlobalVariables: Int, // Number of supported local variables
+  numberOfSupportedLocalAndGlobalVariables: Int, // Number of supported local (and global) variables
   numberOfSupportedTemporaryVariables: Int, // Number of supported temporary variables
   maximumNumberOfSupportedGetScriptOperators: Int, // Maximum supported GET operators in a single func
   maximumNumberOfSupportedSetScriptOperators: Int, // Maximum supported SET operators in a single func

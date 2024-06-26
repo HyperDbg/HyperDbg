@@ -58,8 +58,6 @@ class ScriptEngineEval(
   // Output pins
   //
   val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
-  val stageAddition = WireInit(1.U(log2Ceil(instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1).W))
-  val ignoreStageChange = WireInit(false.B)
 
   //
   // Assign operator value (split the signal into only usable part)
@@ -108,7 +106,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) | srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }        
       }
       is(sFuncXor) {
@@ -119,7 +117,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) ^ srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncAsl) {
@@ -130,7 +128,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) << srcVal(1)(log2Ceil(instanceInfo.scriptVariableLength), 0)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }   
       }
       is(sFuncAdd) {
@@ -141,7 +139,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) + srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncSub) {
@@ -152,7 +150,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) - srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncMul) {
@@ -163,7 +161,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) * srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncDiv) {
@@ -174,7 +172,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) / srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncGt) {
@@ -185,7 +183,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) > srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
       is(sFuncEgt) {
@@ -196,7 +194,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) >= srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }        
       }
       is(sFuncElt) {
@@ -207,7 +205,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) <= srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }         
       }
       is(sFuncEqual) {
@@ -218,8 +216,8 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) === srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
-        }        
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }
       }
       is(sFuncNeq) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_neq) == true) {
@@ -229,17 +227,14 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0) =/= srcVal(1)
 
-          stageAddition := 4.U // one main operator + two GET operators + one SET operator
-        }         
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }
       }
       is(sFuncJmp) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jmp) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
-
           nextStage := srcVal(0)
-
-          ignoreStageChange := true.B
         }           
       }
       is(sFuncJz) {
@@ -249,8 +244,9 @@ class ScriptEngineEval(
           srcVal(1) := getValueModuleOutput(1)
           
           when (srcVal(1) === 0.U) { 
-            nextStage := srcVal(0) 
-            ignoreStageChange := true.B
+              nextStage := srcVal(0)
+          }.otherwise {
+            nextStage := io.stageConfig.stageIndex + 3.U // one main operator + two GET operators
           }
             
         }         
@@ -262,8 +258,9 @@ class ScriptEngineEval(
           srcVal(1) := getValueModuleOutput(1)
           
           when (srcVal(1) =/= 0.U) { 
-            nextStage := srcVal(0) 
-            ignoreStageChange := true.B
+              nextStage := srcVal(0)
+          }.otherwise {
+            nextStage := io.stageConfig.stageIndex + 3.U // one main operator + two GET operators
           }
             
         }         
@@ -275,7 +272,7 @@ class ScriptEngineEval(
 
           desVal(0) := srcVal(0)
 
-          stageAddition := 3.U // one main operator + one GET operators + one SET operator
+          nextStage := io.stageConfig.stageIndex + 3.U // one main operator + one GET operators + one SET operator
         }         
       }
     }
@@ -322,13 +319,7 @@ class ScriptEngineEval(
   io.outputPin := setValueModuleInput(0)
   io.resultingLocalGlobalVariables := outputLocalGlobalVariables(0)
   io.resultingTempVariables := outputTempVariables(0)
-
-  when (ignoreStageChange === false.B) {
-    io.nextStage := io.stageConfig.targetStage + stageAddition
-  }.otherwise {
-    io.nextStage := nextStage
-  }
-
+  io.nextStage := nextStage
 }
 
 object ScriptEngineEval {

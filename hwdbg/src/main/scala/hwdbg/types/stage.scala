@@ -43,7 +43,7 @@ class Stage(
     ) // SET symbol operand (should NOT be passed to the next stage)
   
   val targetStage = UInt(
-    log2Ceil(instanceInfo.maximumNumberOfStages).W
+    log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W
   ) // Target stage that needs to be executed for the current pin values (should be passed to the next stage)
 
   val tempVariables = Vec(
@@ -55,7 +55,7 @@ class Stage(
     ) // Local (and Global) variables
 
   val stageIndex = UInt(
-    log2Ceil(instanceInfo.maximumNumberOfStages).W
+    log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W
   ) // Target stage index of the current stage (configured with script configuration and remains constant during execution)
 
   val stageEnable = Bool() // Target stage is enabled (configured) or not

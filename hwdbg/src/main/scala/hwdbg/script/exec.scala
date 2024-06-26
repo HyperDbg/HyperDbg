@@ -85,7 +85,7 @@ class ScriptExecutionEngine(
   // Create a register with the width based on the maximum value
   //
   val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W)) 
-  val stageIndex = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W)) 
+  val stageIndex = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W)) 
 
   // -----------------------------------------------------------------------
   //
@@ -267,6 +267,7 @@ class ScriptExecutionEngine(
         stageRegs(i).targetStage := stageRegs(i - 1).targetStage
         stageRegs(i).localGlobalVariables := stageRegs(i - 1).localGlobalVariables
         stageRegs(i).tempVariables := stageRegs(i - 1).tempVariables
+
       }
     }
   }

@@ -102,6 +102,16 @@ class ScriptEngineSetValue(
 
     switch(mainOperatorType) {
 
+      is(symbolUndefined) {
+
+        //
+        // In case of undefined SET value, just pass every input to the next step
+        //
+        outputPin := inputPin
+        outputLocalGlobalVariables := inputLocalGlobalVariables
+        outputTempVariables := inputTempVariables
+        
+      }
       is(symbolGlobalIdType) {
 
         //
