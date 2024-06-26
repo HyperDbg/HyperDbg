@@ -44,7 +44,7 @@ class ScriptEngineEval(
     // Stage configuration signals
     //
     val stageConfig = Input(new Stage(debug, instanceInfo))
-    val nextStage = Output(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+    val nextStage = Output(UInt(log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W))
 
     //
     // Output signals
@@ -57,7 +57,7 @@ class ScriptEngineEval(
   //
   // Output pins
   //
-  val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+  val nextStage = WireInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W))
 
   //
   // Assign operator value (split the signal into only usable part)
@@ -344,7 +344,7 @@ object ScriptEngineEval {
     val outputPin = Wire(Vec(instanceInfo.numberOfPins, UInt(1.W)))
     val resultingLocalGlobalVariables = Wire(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W)))
     val resultingTempVariables = Wire(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W)))
-    val nextStage = Wire(UInt(log2Ceil(instanceInfo.maximumNumberOfStages).W))
+    val nextStage = Wire(UInt(log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W))
 
     //
     // Configure the input signals
