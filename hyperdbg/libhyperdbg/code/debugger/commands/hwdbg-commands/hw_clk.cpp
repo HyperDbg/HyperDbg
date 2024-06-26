@@ -149,7 +149,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
         //
         // Print the actual script
         //
-        ShowMessages("\nHyperDbg (general) script buffer (size=%d, flip-flops=%d):\n\n",
+        ShowMessages("\nHyperDbg (general) script buffer (size=%d, flip-flops (just script)=%d):\n\n",
                      ActionScript->ScriptBufferSize,
                      ActionScript->ScriptBufferSize * 8 // Converted to bits
         );
@@ -219,12 +219,14 @@ CommandHwClk(vector<string> SplitCommand, string Command)
                         // so, it is not counted as a flip-flop
                         //
                         NumberOfNeededFlipFlopsInTargetDevice = (NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) * g_HwdbgInstanceInfo.scriptVariableLength * sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) + // size of operator (GET and SET)
-                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2) +                                                                                                                               // size of main operator
+                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2) +                                                                                                                               // size of main operator (/ 2 is becasue Type is not inffered)
                                                                 (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                    // size of local (and global) variables
                                                                 (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                         // size of temporary variables
-                                                                (NumberOfStagesForScript * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages));                                                                                                                                                                         // size of stage index register
+                                                                (NumberOfStagesForScript * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)) * 2) +                            // size of stage index register + targetStage (* 2)
+                                                                (NumberOfStagesForScript) +                                                                                                                                                                                                                              // stage enable flip-flop
+                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfPins);                                                                                                                                                                                            // input => output flip-flop
 
-                        ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), flip-flops=%d, number of bytes per chunk: %d):\n\n",
+                        ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), total used flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,
                                      NumberOfStagesForScript,
                                      NumberOfOperandsImplemented,
