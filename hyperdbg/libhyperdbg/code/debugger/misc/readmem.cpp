@@ -20,6 +20,30 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 /**
  * @brief Read memory and disassembler
  *
+ * @param TargetAddress location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param ReadingType read from kernel or vmx-root
+ * @param Pid The target process id
+ * @param Size size of memory to read
+ * @param TargetBufferToStore The buffer to store the read memory
+ *
+ * @return VOID
+ */
+VOID
+HyperDbgReadMemory(UINT64                     TargetAddress,
+                   DEBUGGER_READ_MEMORY_TYPE  MemoryType,
+                   DEBUGGER_READ_READING_TYPE ReadingType,
+                   UINT32                     Pid,
+                   UINT32                     Size,
+                   BOOLEAN                    CheckForDisassembly,
+                   BYTE *                     TargetBufferToStore,
+                   UINT32 *                   ReturnLength)
+{
+}
+
+/**
+ * @brief Read memory and disassembler
+ *
  * @param Style style of show memory (as byte, dwrod, qword)
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
