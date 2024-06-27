@@ -36,7 +36,7 @@ object InitRegMemFromFileTools {
 
       val tokens: Array[String] = line.split("(//)").map(_.trim)
 
-      if (tokens.nonEmpty && tokens.head != "") {
+      if (tokens.nonEmpty && tokens.head != "" && tokens.head.split(";")(0).trim != "") {
 
         val i = Integer.parseInt(tokens.head.split(";")(0).trim, 16)
 

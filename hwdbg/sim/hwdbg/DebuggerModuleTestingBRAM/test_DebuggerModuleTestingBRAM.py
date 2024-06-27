@@ -521,7 +521,7 @@ async def DebuggerModuleTestingBRAM_test(dut):
 
     while str(dut.io_psOutInterrupt) != "1":
         
-        # print("State of interrupt: '" + str(dut.io_psOutInterrupt)+ "'")
+        # print("State of interrupt: '" + str(dut.io_psOutInterrupt) + "'")
 
         if clock_counter % 10 == 0:
             print("Number of clock cycles spent in debuggee (PL): " + str(clock_counter))
