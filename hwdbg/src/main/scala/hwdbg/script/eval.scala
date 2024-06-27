@@ -120,6 +120,28 @@ class ScriptEngineEval(
           nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
+      is(sFuncAnd) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_and) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) & srcVal(1)
+
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }
+      }
+      is(sFuncAsr) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_asr) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) >> srcVal(1)(log2Ceil(instanceInfo.scriptVariableLength), 0)
+
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }   
+      }
       is(sFuncAsl) {
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_asl) == true) {
 
@@ -175,8 +197,20 @@ class ScriptEngineEval(
           nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
+      is(sFuncMod) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_mod) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) % srcVal(1)
+
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }
+      }
       is(sFuncGt) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_gt) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_gt) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -186,8 +220,21 @@ class ScriptEngineEval(
           nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
         }
       }
+      is(sFuncLt) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_lt) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+
+          srcVal(0) := getValueModuleOutput(0)
+          srcVal(1) := getValueModuleOutput(1)
+
+          desVal(0) := srcVal(0) < srcVal(1)
+
+          nextStage := io.stageConfig.stageIndex + 4.U // one main operator + two GET operators + one SET operator
+        }
+      }
       is(sFuncEgt) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -198,7 +245,8 @@ class ScriptEngineEval(
         }        
       }
       is(sFuncElt) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_egt) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -209,7 +257,8 @@ class ScriptEngineEval(
         }         
       }
       is(sFuncEqual) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_equal) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_equal) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -220,7 +269,8 @@ class ScriptEngineEval(
         }
       }
       is(sFuncNeq) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_neq) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_neq) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -231,14 +281,16 @@ class ScriptEngineEval(
         }
       }
       is(sFuncJmp) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jmp) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jmp) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           nextStage := srcVal(0)
         }           
       }
       is(sFuncJz) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jz) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jz) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -248,11 +300,11 @@ class ScriptEngineEval(
           }.otherwise {
             nextStage := io.stageConfig.stageIndex + 3.U // one main operator + two GET operators
           }
-            
         }         
       }
       is(sFuncJnz) {
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jnz) == true) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_jnz) == true &&
+            HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
 
           srcVal(0) := getValueModuleOutput(0)
           srcVal(1) := getValueModuleOutput(1)
@@ -273,6 +325,14 @@ class ScriptEngineEval(
           desVal(0) := srcVal(0)
 
           nextStage := io.stageConfig.stageIndex + 3.U // one main operator + one GET operators + one SET operator
+        }         
+      }
+      is(sFuncPrintf) {
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.func_printf) == true) {
+
+          //
+          // To be implemented
+          //
         }         
       }
     }

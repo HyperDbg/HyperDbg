@@ -251,8 +251,13 @@ class ScriptExecutionEngine(
         //
         // Pass the local (and global) and temporary variables to the next stage
         //
-        stageRegs(i).localGlobalVariables := resultingLocalGlobalVariables
-        stageRegs(i).tempVariables := resultingTempVariables
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_local_global_var) == true) {
+          stageRegs(i).localGlobalVariables := resultingLocalGlobalVariables
+        }
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+          stageRegs(i).tempVariables := resultingTempVariables
+        }
 
       }.otherwise {
 
@@ -265,8 +270,14 @@ class ScriptExecutionEngine(
         //
         stageRegs(i).pinValues := stageRegs(i - 1).pinValues
         stageRegs(i).targetStage := stageRegs(i - 1).targetStage
-        stageRegs(i).localGlobalVariables := stageRegs(i - 1).localGlobalVariables
-        stageRegs(i).tempVariables := stageRegs(i - 1).tempVariables
+        
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_local_global_var) == true) {
+          stageRegs(i).localGlobalVariables := stageRegs(i - 1).localGlobalVariables
+        }
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+          stageRegs(i).tempVariables := stageRegs(i - 1).tempVariables
+        }
 
       }
     }
