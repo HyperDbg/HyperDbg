@@ -179,6 +179,16 @@ VOID
 HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
 {
     ShowMessages("\nThis debuggee supports the following operatiors:\n");
+    ShowMessages("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
+                 InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
+                 InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
+    ShowMessages("\tregisters (pin/ports) assignment: %s \n",
+                 InstanceInfo->scriptCapabilities.assign_registers ? "supported" : "not supported");
+    ShowMessages("\tpseudo-registers assignment: %s \n",
+                 InstanceInfo->scriptCapabilities.assign_pseudo_registers ? "supported" : "not supported");
+    ShowMessages("\tconditional statements and comparison operators: %s \n",
+                 InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators ? "supported" : "not supported");
+
     ShowMessages("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
     ShowMessages("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
     ShowMessages("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
@@ -189,15 +199,25 @@ HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo
     ShowMessages("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
     ShowMessages("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
     ShowMessages("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
-    ShowMessages("\tgreater than: %s \n", InstanceInfo->scriptCapabilities.func_gt ? "supported" : "not supported");
-    ShowMessages("\tless than: %s \n", InstanceInfo->scriptCapabilities.func_lt ? "supported" : "not supported");
-    ShowMessages("\tgreater than or equal to: %s \n", InstanceInfo->scriptCapabilities.func_egt ? "supported" : "not supported");
-    ShowMessages("\tless than or equal to: %s \n", InstanceInfo->scriptCapabilities.func_elt ? "supported" : "not supported");
-    ShowMessages("\tequal: %s \n", InstanceInfo->scriptCapabilities.func_equal ? "supported" : "not supported");
-    ShowMessages("\tnot equal: %s \n", InstanceInfo->scriptCapabilities.func_neq ? "supported" : "not supported");
-    ShowMessages("\tjump: %s \n", InstanceInfo->scriptCapabilities.func_jmp ? "supported" : "not supported");
-    ShowMessages("\tjump if zero: %s \n", InstanceInfo->scriptCapabilities.func_jz ? "supported" : "not supported");
-    ShowMessages("\tjump if not zero: %s \n", InstanceInfo->scriptCapabilities.func_jnz ? "supported" : "not supported");
+
+    ShowMessages("\tgreater than: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_gt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tless than: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_lt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tgreater than or equal to: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_egt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tless than or equal to: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_elt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tequal: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_equal && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tnot equal: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_neq && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jmp && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump if zero: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump if not zero: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jnz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
     ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
     ShowMessages("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
     ShowMessages("\n");
@@ -233,12 +253,88 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
     {
         if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
         {
-            ShowMessages("  \t%d. found a non-semnatic rule (operand) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+            //
+            // *** For operands ***
+            //
             Operands++;
-            continue;
+            ShowMessages("  \t%d. found a non-semnatic rule (operand) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+
+            //
+            // Validate the operand
+            //
+            switch (SymbolArray[i].Type)
+            {
+            case SYMBOL_GLOBAL_ID_TYPE:
+            case SYMBOL_LOCAL_ID_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_local_global_var)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, global/local variable assignment is not supported\n");
+                }
+
+                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedLocalAndGlobalVariables)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, global/local variable index is out of range of supported by this instance of hwdbg\n");
+                }
+
+                break;
+
+            case SYMBOL_UNDEFINED:
+            case SYMBOL_NUM_TYPE:
+
+                //
+                // No need to check
+                //
+                break;
+
+            case SYMBOL_REGISTER_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_registers)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, register assignment is not supported\n");
+                }
+                break;
+
+            case SYMBOL_PSEUDO_REG_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_pseudo_registers)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, pseudo register index is not supported\n");
+                }
+                break;
+
+            case SYMBOL_TEMP_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, temporary variables (for conditional statement) is not supported\n");
+                }
+
+                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedTemporaryVariables)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, temp variable index (number of operands for conditional statements) is out of range of supported by this instance of hwdbg\n");
+                }
+
+                break;
+
+            default:
+
+                NotSupported = TRUE;
+                ShowMessages("err, unknown operand type: %d (0x%x)\n", SymbolArray[i].Type, SymbolArray[i].Type);
+                break;
+            }
         }
         else
         {
+            //
+            // *** For operators ***
+            //
             Stages++;
             ShowMessages("- %d. found a semnatic rule (operator) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
 
@@ -250,186 +346,199 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
 
                 return FALSE;
             }
-        }
 
-        switch (SymbolArray[i].Value)
-        {
-        case FUNC_OR:
-            if (!InstanceInfo->scriptCapabilities.func_or)
+            //
+            // Validate the operator
+            //
+            switch (SymbolArray[i].Value)
             {
+            case FUNC_OR:
+                if (!InstanceInfo->scriptCapabilities.func_or)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, OR is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_XOR:
+                if (!InstanceInfo->scriptCapabilities.func_xor)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, XOR is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_AND:
+                if (!InstanceInfo->scriptCapabilities.func_and)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, AND is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ASR:
+                if (!InstanceInfo->scriptCapabilities.func_asr)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, arithmetic shift right is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ASL:
+                if (!InstanceInfo->scriptCapabilities.func_asl)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, arithmetic shift left is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ADD:
+                if (!InstanceInfo->scriptCapabilities.func_add)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, addition is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_SUB:
+                if (!InstanceInfo->scriptCapabilities.func_sub)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, subtraction is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MUL:
+                if (!InstanceInfo->scriptCapabilities.func_mul)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, multiplication is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_DIV:
+                if (!InstanceInfo->scriptCapabilities.func_div)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, division is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MOD:
+                if (!InstanceInfo->scriptCapabilities.func_mod)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, modulus is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_GT:
+
+                if (!InstanceInfo->scriptCapabilities.func_gt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, greater than is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_LT:
+                if (!InstanceInfo->scriptCapabilities.func_lt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, less than is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_EGT:
+                if (!InstanceInfo->scriptCapabilities.func_egt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, greater than or equal to is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ELT:
+                if (!InstanceInfo->scriptCapabilities.func_elt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, less than or equal to is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_EQUAL:
+                if (!InstanceInfo->scriptCapabilities.func_equal ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, equal is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_NEQ:
+                if (!InstanceInfo->scriptCapabilities.func_neq ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, not equal is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JMP:
+                if (!InstanceInfo->scriptCapabilities.func_jmp ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, jump is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JZ:
+                if (!InstanceInfo->scriptCapabilities.func_jz ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, jump if zero is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JNZ:
+                if (!InstanceInfo->scriptCapabilities.func_jnz ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, jump if not zero is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MOV:
+                if (!InstanceInfo->scriptCapabilities.func_mov)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, move is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_PRINTF:
+                if (!InstanceInfo->scriptCapabilities.func_printf)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, printf is not supported by the debuggee\n");
+                }
+                break;
+
+            default:
+
                 NotSupported = TRUE;
-                ShowMessages("err, OR is not supported by the debuggee\n");
+                ShowMessages("err, undefined operator for hwdbg: %d (0x%x)\n",
+                             SymbolArray[i].Type,
+                             SymbolArray[i].Type);
+
+                break;
             }
-            break;
-
-        case FUNC_XOR:
-            if (!InstanceInfo->scriptCapabilities.func_xor)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, XOR is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_AND:
-            if (!InstanceInfo->scriptCapabilities.func_and)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, AND is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_ASR:
-            if (!InstanceInfo->scriptCapabilities.func_asr)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, arithmetic shift right is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_ASL:
-            if (!InstanceInfo->scriptCapabilities.func_asl)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, arithmetic shift left is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_ADD:
-            if (!InstanceInfo->scriptCapabilities.func_add)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, addition is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_SUB:
-            if (!InstanceInfo->scriptCapabilities.func_sub)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, subtraction is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_MUL:
-            if (!InstanceInfo->scriptCapabilities.func_mul)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, multiplication is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_DIV:
-            if (!InstanceInfo->scriptCapabilities.func_div)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, division is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_MOD:
-            if (!InstanceInfo->scriptCapabilities.func_mod)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, modulus is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_GT:
-            if (!InstanceInfo->scriptCapabilities.func_gt)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, greater than is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_LT:
-            if (!InstanceInfo->scriptCapabilities.func_lt)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, less than is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_EGT:
-            if (!InstanceInfo->scriptCapabilities.func_egt)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, greater than or equal to is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_ELT:
-            if (!InstanceInfo->scriptCapabilities.func_elt)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, less than or equal to is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_EQUAL:
-            if (!InstanceInfo->scriptCapabilities.func_equal)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, equal is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_NEQ:
-            if (!InstanceInfo->scriptCapabilities.func_neq)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, not equal is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_JMP:
-            if (!InstanceInfo->scriptCapabilities.func_jmp)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, jump is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_JZ:
-            if (!InstanceInfo->scriptCapabilities.func_jz)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, jump if zero is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_JNZ:
-            if (!InstanceInfo->scriptCapabilities.func_jnz)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, jump if not zero is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_MOV:
-            if (!InstanceInfo->scriptCapabilities.func_mov)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, move is not supported by the debuggee\n");
-            }
-            break;
-
-        case FUNC_PRINTF:
-            if (!InstanceInfo->scriptCapabilities.func_printf)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, printf is not supported by the debuggee\n");
-            }
-            break;
-
-        default:
-
-            NotSupported = TRUE;
-            ShowMessages("err, undefined operator for hwdbg: %d (0x%x)\n",
-                         SymbolArray[i].Type,
-                         SymbolArray[i].Type);
-
-            break;
         }
     }
 
