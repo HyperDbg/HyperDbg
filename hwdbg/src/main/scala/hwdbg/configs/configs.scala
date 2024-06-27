@@ -135,11 +135,11 @@ object ScriptEngineConfigurations {
       //
       HwdbgScriptCapabilities.assign_local_global_var,
       HwdbgScriptCapabilities.assign_registers,
-      HwdbgScriptCapabilities.assign_pseudo_registers,
-      // HwdbgScriptCapabilities.conditional_statements_and_comparison_operators,
+      // HwdbgScriptCapabilities.assign_pseudo_registers,
+      HwdbgScriptCapabilities.conditional_statements_and_comparison_operators,
 
       //
-      // Operators
+      // Operators 
       //
       HwdbgScriptCapabilities.func_or,
       HwdbgScriptCapabilities.func_xor,
@@ -148,8 +148,8 @@ object ScriptEngineConfigurations {
       HwdbgScriptCapabilities.func_add,
       HwdbgScriptCapabilities.func_sub,
       HwdbgScriptCapabilities.func_mul,
-      HwdbgScriptCapabilities.func_div,
-      HwdbgScriptCapabilities.func_mod,
+      // HwdbgScriptCapabilities.func_div,
+      // HwdbgScriptCapabilities.func_mod,
       HwdbgScriptCapabilities.func_gt,
       HwdbgScriptCapabilities.func_lt,
       HwdbgScriptCapabilities.func_egt,
