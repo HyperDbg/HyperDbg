@@ -100,3 +100,21 @@ hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port)
 {
     return ConnectRemoteDebugger(ip, port);
 }
+
+VOID
+hyperdbg_u_continue_debuggee()
+{
+    CommandGRequest();
+}
+
+VOID
+hyperdbg_u_pause_debuggee()
+{
+    CommandPauseRequest();
+}
+
+VOID
+hyperdbg_u_set_breakpoint(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
+{
+    CommandBpRequest(Address, Pid, Tid, CoreNumer);
+}

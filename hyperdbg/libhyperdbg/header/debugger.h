@@ -235,6 +235,9 @@ VOID
 CommandGRequest();
 
 VOID
+CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
+
+VOID
 CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
                                        UINT32          BuffLength,
                                        BOOLEAN         Isx86_64,

@@ -44,6 +44,35 @@ CommandBpHelp()
 }
 
 /**
+ * @brief request breakpoint
+ *
+ * @param Address Address
+ * @param Pid Process Id
+ * @param Tid Thread Id
+ * @param CoreNumer Core Number
+ *
+ * @return VOID
+ */
+VOID
+CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
+{
+    DEBUGGEE_BP_PACKET BpPacket = {0};
+
+    //
+    // Set the details for the remote packet
+    //
+    BpPacket.Address = Address;
+    BpPacket.Core    = CoreNumer;
+    BpPacket.Pid     = Pid;
+    BpPacket.Tid     = Tid;
+
+    //
+    // Send the bp packet
+    //
+    KdSendBpPacketToDebuggee(&BpPacket);
+}
+
+/**
  * @brief bp command handler
  *
  * @param SplitCommand
@@ -69,8 +98,6 @@ CommandBp(vector<string> SplitCommand, string Command)
     vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
     BOOLEAN        IsFirstCommand              = TRUE;
-
-    DEBUGGEE_BP_PACKET BpPacket = {0};
 
     if (SplitCommand.size() >= 9)
     {
@@ -203,15 +230,7 @@ CommandBp(vector<string> SplitCommand, string Command)
     }
 
     //
-    // Set the details for the remote packet
+    // Request breakpoint the bp packet
     //
-    BpPacket.Address = Address;
-    BpPacket.Core    = CoreNumer;
-    BpPacket.Pid     = Pid;
-    BpPacket.Tid     = Tid;
-
-    //
-    // Send the bp packet
-    //
-    KdSendBpPacketToDebuggee(&BpPacket);
+    CommandBpRequest(Address, Pid, Tid, CoreNumer);
 }

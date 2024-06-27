@@ -74,13 +74,34 @@ hyperdbg_u_check_multiline_command(CHAR * current_command, BOOLEAN reset);
 
 //
 // Connect to local or remote debugger
-// Exoported functionality of the '.connect' command
+// Exported functionality of the '.connect' command
 //
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_connect_local_debugger();
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port);
+
+//
+// Continue debuggee
+// Exported functionality of the 'g' command
+//
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_continue_debuggee();
+
+//
+// Pause debuggee
+// Exported functionality of the 'pause' command or CTRL+C
+//
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_pause_debuggee();
+
+//
+// Set breakpoint
+// Exported functionality of the 'bp' command
+//
+VOID
+hyperdbg_u_set_breakpoint(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 #ifdef __cplusplus
 }
