@@ -423,6 +423,12 @@ LIST_ENTRY g_OutputSources = {0};
 TCHAR g_DriverLocation[MAX_PATH] = {0};
 
 /**
+ * @brief Holds the name of the driver to install it
+ *
+ */
+TCHAR g_DriverName[MAX_PATH] = {0};
+
+/**
  * @brief Whether the user wants to use a custom driver location or not
  *
  */

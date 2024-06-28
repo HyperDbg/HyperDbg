@@ -21,6 +21,7 @@ extern HANDLE     g_IsDriverLoadedSuccessfully;
 extern BOOLEAN    g_IsVmxOffProcessStart;
 extern Callback   g_MessageHandler;
 extern TCHAR      g_DriverLocation[MAX_PATH];
+extern TCHAR      g_DriverName[MAX_PATH];
 extern BOOLEAN    g_UseCustomDriverLocation;
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN    g_LogOpened;
@@ -459,16 +460,21 @@ HyperDbgInstallVmmDriver()
         {
             return 1;
         }
+
+        //
+        // Use default driver name
+        //
+        strcpy_s(g_DriverName, KERNEL_DEBUGGER_DRIVER_NAME);
     }
 
-    if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
         ShowMessages("unable to install VMM driver\n");
 
         //
         // Error - remove driver
         //
-        ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
         return 1;
     }
@@ -507,7 +513,7 @@ HyperDbgStopDriver(LPCTSTR DriverName)
 INT
 HyperDbgStopVmmDriver()
 {
-    return HyperDbgStopDriver(KERNEL_DEBUGGER_DRIVER_NAME);
+    return HyperDbgStopDriver(g_DriverName);
 }
 
 /**
@@ -541,7 +547,7 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
 INT
 HyperDbgUninstallVmmDriver()
 {
-    return HyperDbgUninstallDriver(KERNEL_DEBUGGER_DRIVER_NAME);
+    return HyperDbgUninstallDriver(g_DriverName);
 }
 
 /**

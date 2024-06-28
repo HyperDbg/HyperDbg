@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern TCHAR   g_DriverLocation[MAX_PATH];
+extern TCHAR   g_DriverName[MAX_PATH];
 extern BOOLEAN g_UseCustomDriverLocation;
 
 BOOLEAN
@@ -126,18 +127,29 @@ hyperdbg_u_set_breakpoint(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNum
 }
 
 BOOLEAN
-hyperdbg_u_set_custom_driver_path(CHAR * DriverPath)
+hyperdbg_u_set_custom_driver_path(CHAR * DriverFilePath, CHAR * DriverName)
 {
-    if (strlen(DriverPath) > MAX_PATH)
+    if (strlen(DriverFilePath) > MAX_PATH)
     {
         ShowMessages("The driver path is too long, the maximum length is %d\n", MAX_PATH);
+        return FALSE;
+    }
+
+    if (strlen(DriverName) > MAX_PATH)
+    {
+        ShowMessages("The driver name is too long, the maximum length is %d\n", MAX_PATH);
         return FALSE;
     }
 
     //
     // Copy the driver path
     //
-    strcpy_s(g_DriverLocation, MAX_PATH, DriverPath);
+    strcpy_s(g_DriverLocation, MAX_PATH, DriverFilePath);
+
+    //
+    // Copy the driver name
+    //
+    strcpy_s(g_DriverName, MAX_PATH, DriverName);
 
     //
     // Set the flag to use the custom driver path
