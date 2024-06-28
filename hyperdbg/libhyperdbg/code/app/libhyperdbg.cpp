@@ -21,6 +21,7 @@ extern HANDLE     g_IsDriverLoadedSuccessfully;
 extern BOOLEAN    g_IsVmxOffProcessStart;
 extern Callback   g_MessageHandler;
 extern TCHAR      g_DriverLocation[MAX_PATH];
+extern BOOLEAN    g_UseCustomDriverLocation;
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN    g_LogOpened;
 extern BOOLEAN    g_BreakPrintingOutput;
@@ -448,9 +449,16 @@ HyperDbgInstallVmmDriver()
     // First setup full path to driver name
     //
 
-    if (!SetupPathForFileName(KERNEL_DEBUGGER_DRIVER_NAME_AND_EXTENSION, g_DriverLocation, sizeof(g_DriverLocation), TRUE))
+    //
+    // If the user has not specified a custom driver location, then we
+    // need to find the driver in the same directory as the executable
+    //
+    if (!g_UseCustomDriverLocation)
     {
-        return 1;
+        if (!SetupPathForFileName(KERNEL_DEBUGGER_DRIVER_NAME_AND_EXTENSION, g_DriverLocation, sizeof(g_DriverLocation), TRUE))
+        {
+            return 1;
+        }
     }
 
     if (!ManageDriver(KERNEL_DEBUGGER_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))

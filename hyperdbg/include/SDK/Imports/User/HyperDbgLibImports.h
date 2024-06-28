@@ -72,6 +72,12 @@ hyperdbg_u_continue_previous_command();
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_check_multiline_command(CHAR * current_command, BOOLEAN reset);
 
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_set_custom_driver_path(CHAR * DriverPath);
+
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_use_default_driver_path();
+
 //
 // Connect to local or remote debugger
 // Exported functionality of the '.connect' command

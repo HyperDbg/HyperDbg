@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern TCHAR   g_DriverLocation[MAX_PATH];
+extern BOOLEAN g_UseCustomDriverLocation;
+
 BOOLEAN
 hyperdbg_u_detect_vmx_support()
 {
@@ -117,4 +123,35 @@ VOID
 hyperdbg_u_set_breakpoint(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
 {
     CommandBpRequest(Address, Pid, Tid, CoreNumer);
+}
+
+BOOLEAN
+hyperdbg_u_set_custom_driver_path(CHAR * DriverPath)
+{
+    if (strlen(DriverPath) > MAX_PATH)
+    {
+        ShowMessages("The driver path is too long, the maximum length is %d\n", MAX_PATH);
+        return FALSE;
+    }
+
+    //
+    // Copy the driver path
+    //
+    strcpy_s(g_DriverLocation, MAX_PATH, DriverPath);
+
+    //
+    // Set the flag to use the custom driver path
+    //
+    g_UseCustomDriverLocation = TRUE;
+
+    return TRUE;
+}
+
+VOID
+hyperdbg_u_use_default_driver_path()
+{
+    //
+    // Set the flag to use the default driver path
+    //
+    g_UseCustomDriverLocation = FALSE;
 }
