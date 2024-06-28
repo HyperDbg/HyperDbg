@@ -24,12 +24,10 @@ import hwdbg.utils._
 
 object InterpreterInstanceInfoEnums {
   object State extends ChiselEnum {
-    val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, 
-    sSendNumberOfSupportedLocalAndGlobalVariables, sSendNumberOfSupportedTemporaryVariables,
-    sSendMaximumNumberOfSupportedGetScriptOperators, sSendMaximumNumberOfSupportedSetScriptOperators,
-    sSendSharedMemorySize, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, 
-    sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1, sSendScriptCapabilities2, 
-    sSendBramAddrWidth, sSendBramDataWidth, sSendPortsConfiguration, sDone = Value
+    val sIdle, sSendVersion, sSendMaximumNumberOfStages, sSendScriptVariableLength, sSendNumberOfSupportedLocalAndGlobalVariables,
+        sSendNumberOfSupportedTemporaryVariables, sSendMaximumNumberOfSupportedGetScriptOperators, sSendMaximumNumberOfSupportedSetScriptOperators,
+        sSendSharedMemorySize, sSendDebuggerAreaOffset, sSendDebuggeeAreaOffset, sSendNumberOfPins, sSendNumberOfPorts, sSendScriptCapabilities1,
+        sSendScriptCapabilities2, sSendBramAddrWidth, sSendBramDataWidth, sSendPortsConfiguration, sDone = Value
   }
 }
 
@@ -185,7 +183,7 @@ class InterpreterInstanceInfo(
       is(sSendMaximumNumberOfSupportedGetScriptOperators) {
 
         //
-        // Set the maximum number of supported GET operators by this instance of the 
+        // Set the maximum number of supported GET operators by this instance of the
         // debugger in the script engine
         //
         sendingData := instanceInfo.maximumNumberOfSupportedGetScriptOperators.U
@@ -201,7 +199,7 @@ class InterpreterInstanceInfo(
       is(sSendMaximumNumberOfSupportedSetScriptOperators) {
 
         //
-        // Set the maximum number of supported SET operators by this instance of the 
+        // Set the maximum number of supported SET operators by this instance of the
         // debugger in the script engine
         //
         sendingData := instanceInfo.maximumNumberOfSupportedSetScriptOperators.U
@@ -294,11 +292,12 @@ class InterpreterInstanceInfo(
       is(sSendScriptCapabilities1) {
 
         //
-        // Set the first bits (most significant) of the supported operators capabilities of this instance 
+        // Set the first bits (most significant) of the supported operators capabilities of this instance
         // of the debugger
         //
-        sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, instanceInfo.bramDataWidth, instanceInfo.bramDataWidth + instanceInfo.bramDataWidth - 1).U
-
+        sendingData := BitwiseFunction
+          .getBitsInRange(instanceInfo.scriptCapabilities, instanceInfo.bramDataWidth, instanceInfo.bramDataWidth + instanceInfo.bramDataWidth - 1)
+          .U
 
         //
         // The output is valid
@@ -311,7 +310,7 @@ class InterpreterInstanceInfo(
       is(sSendScriptCapabilities2) {
 
         //
-        // Set the second bits (least significant) of the supported operators capabilities of this instance 
+        // Set the second bits (least significant) of the supported operators capabilities of this instance
         // of the debugger
         //
         sendingData := BitwiseFunction.getBitsInRange(instanceInfo.scriptCapabilities, 0, instanceInfo.bramDataWidth - 1).U

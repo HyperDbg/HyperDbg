@@ -48,7 +48,8 @@ class ScriptEngineGetValue(
     //
     // Input variables
     //
-    val localGlobalVariables = Input(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
+    val localGlobalVariables =
+      Input(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
     val tempVariables = Input(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // Temporary variables
 
     //
@@ -124,9 +125,9 @@ class ScriptEngineGetValue(
             //
             // *** Used for getting the port value ***
             //
-          
+
             //
-            // Create a vector of wires 
+            // Create a vector of wires
             //
             val ports = Wire(Vec(instanceInfo.numberOfPorts, UInt(instanceInfo.scriptVariableLength.W)))
             var currentPortIndex: Int = 0
@@ -151,7 +152,7 @@ class ScriptEngineGetValue(
           }
         }
       }
-      is(symbolPseudoRegType) { 
+      is(symbolPseudoRegType) {
 
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_pseudo_registers) == true) {
           //
@@ -162,7 +163,12 @@ class ScriptEngineGetValue(
       }
       is(symbolTempType) {
 
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+        if (
+          HwdbgScriptCapabilities.isCapabilitySupported(
+            instanceInfo.scriptCapabilities,
+            HwdbgScriptCapabilities.conditional_statements_and_comparison_operators
+          ) == true
+        ) {
           //
           // Set output to temporary variables
           //

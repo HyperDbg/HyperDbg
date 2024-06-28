@@ -76,7 +76,7 @@ class ScriptExecutionEngine(
   val configStageNumber = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages).W))
 
   //
-  // Calculate the maximum of the two values since we only want to use one register for 
+  // Calculate the maximum of the two values since we only want to use one register for
   // both GET and SET
   //
   val maxOperators = math.max(instanceInfo.maximumNumberOfSupportedGetScriptOperators, instanceInfo.maximumNumberOfSupportedSetScriptOperators)
@@ -84,19 +84,25 @@ class ScriptExecutionEngine(
   //
   // Create a register with the width based on the maximum value
   //
-  val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W)) 
-  val stageIndex = RegInit(0.U(log2Ceil(instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)).W)) 
+  val configGetSetOperatorNumber = RegInit(0.U(log2Ceil(maxOperators).W))
+  val stageIndex = RegInit(
+    0.U(
+      log2Ceil(
+        instanceInfo.maximumNumberOfStages * (instanceInfo.maximumNumberOfSupportedGetScriptOperators + instanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)
+      ).W
+    )
+  )
 
   // -----------------------------------------------------------------------
   //
   // *** Configure stage buffers ***
   //
-  when (io.configureStage === true.B) {
+  when(io.configureStage === true.B) {
 
     switch(configState) {
 
       is(sConfigStageSymbol) {
-        
+
         //
         // Configure the stage symbol (The first symbol is the stage operator)
         //
@@ -105,16 +111,16 @@ class ScriptExecutionEngine(
         //
         // Set the stage index
         //
-        stageRegs(configStageNumber).stageIndex :=  stageIndex // store the stage index
-        stageRegs(configStageNumber).targetStage :=  0.U // reset the target stage
+        stageRegs(configStageNumber).stageIndex := stageIndex // store the stage index
+        stageRegs(configStageNumber).targetStage := 0.U // reset the target stage
         stageIndex := stageIndex + 1.U // increment stage index
 
         //
         // If it is the very first configuration symbol, then we disable all stages
         //
-        when (configStageNumber === 0.U) {
+        when(configStageNumber === 0.U) {
           for (i <- 0 until instanceInfo.maximumNumberOfStages) {
-              stageRegs(i).stageEnable := false.B
+            stageRegs(i).stageEnable := false.B
           }
         }
 
@@ -134,7 +140,7 @@ class ScriptExecutionEngine(
         //
         // Check whether this stage number should be counted in stage indexes or its empty
         //
-        when (io.targetOperator.Type =/= 0.U) { 
+        when(io.targetOperator.Type =/= 0.U) {
           stageIndex := stageIndex + 1.U
         }
 
@@ -153,9 +159,9 @@ class ScriptExecutionEngine(
         //
         stageRegs(configStageNumber).setOperatorSymbol(configGetSetOperatorNumber) := io.targetOperator
         stageRegs(configStageNumber).stageEnable := true.B // this stage is enabled
-        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U 
+        configGetSetOperatorNumber := configGetSetOperatorNumber + 1.U
 
-        when (io.targetOperator.Type =/= 0.U) { 
+        when(io.targetOperator.Type =/= 0.U) {
           stageIndex := stageIndex + 1.U
         }
 
@@ -163,7 +169,7 @@ class ScriptExecutionEngine(
 
           configGetSetOperatorNumber := 0.U // reset the counter
 
-          when (io.finishedScriptConfiguration === true.B) {
+          when(io.finishedScriptConfiguration === true.B) {
             //
             // Not configuring anymore, reset the stage number
             //
@@ -212,15 +218,15 @@ class ScriptExecutionEngine(
 
       //
       // Check if this stage should be ignored (passed to the next stage) or be evaluated
-      // (i - 1) is because the 0th index registers are used for storing data but the 
-      // script engine assumes that the symbols start from 0, so -1 is used here 
+      // (i - 1) is because the 0th index registers are used for storing data but the
+      // script engine assumes that the symbols start from 0, so -1 is used here
       //
       when(stageRegs(i - 1).stageIndex === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***
         //
-        
+
         //
         // Instantiate an eval engine for this stage
         //
@@ -255,7 +261,12 @@ class ScriptExecutionEngine(
           stageRegs(i).localGlobalVariables := resultingLocalGlobalVariables
         }
 
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+        if (
+          HwdbgScriptCapabilities.isCapabilitySupported(
+            instanceInfo.scriptCapabilities,
+            HwdbgScriptCapabilities.conditional_statements_and_comparison_operators
+          ) == true
+        ) {
           stageRegs(i).tempVariables := resultingTempVariables
         }
 
@@ -270,12 +281,17 @@ class ScriptExecutionEngine(
         //
         stageRegs(i).pinValues := stageRegs(i - 1).pinValues
         stageRegs(i).targetStage := stageRegs(i - 1).targetStage
-        
+
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_local_global_var) == true) {
           stageRegs(i).localGlobalVariables := stageRegs(i - 1).localGlobalVariables
         }
 
-        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.conditional_statements_and_comparison_operators) == true) {
+        if (
+          HwdbgScriptCapabilities.isCapabilitySupported(
+            instanceInfo.scriptCapabilities,
+            HwdbgScriptCapabilities.conditional_statements_and_comparison_operators
+          ) == true
+        ) {
           stageRegs(i).tempVariables := stageRegs(i - 1).tempVariables
         }
 

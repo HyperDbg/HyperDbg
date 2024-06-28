@@ -172,11 +172,10 @@ object HwdbgResponseEnums extends Enumeration {
  * @brief
  *   Different responses of hwdbg (SHARED WITH HYPERDBG) (HWDBG_ERROR_ENUMS)
  * @warning
- *   
  */
 object HwdbgSuccessOrErrorEnums extends Enumeration {
 
-  val hwdbgOperationWasSuccessful = Value(0x7FFFFFFF)
+  val hwdbgOperationWasSuccessful = Value(0x7fffffff)
   val hwdbgErrorInvalidPacket = Value(1)
 
 }

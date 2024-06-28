@@ -60,7 +60,7 @@ class DebuggerMain(
   )
 
   //
-  // Ensure the maximum number of stages is not bigger than the maximum number 
+  // Ensure the maximum number of stages is not bigger than the maximum number
   // that can be stored within the script variable length. This is because
   // if a JUMP for conditional statements wants to set the target location,
   // it cannot store its destination in a script variable.
@@ -71,9 +71,9 @@ class DebuggerMain(
   )
 
   //
-  // Ensure the number of pin + ports is not bigger than the maximum number 
+  // Ensure the number of pin + ports is not bigger than the maximum number
   // that can be stored within the script variable length. This is because
-  // for setting and getting pins/ports values, hwdbg uses an index which 
+  // for setting and getting pins/ports values, hwdbg uses an index which
   // should fit within a variable size.
   //
   require(
@@ -123,23 +123,23 @@ class DebuggerMain(
   // *** Create an instance of the debugger ***
   //
   val instanceInfo = HwdbgInstanceInformation.createInstanceInformation(
-                              version = Version.getEncodedVersion,
-                              maximumNumberOfStages = maximumNumberOfStages,
-                              scriptVariableLength = scriptVariableLength,
-                              numberOfSupportedLocalAndGlobalVariables = numberOfSupportedLocalAndGlobalVariables,
-                              numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
-                              maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
-                              maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
-                              sharedMemorySize = sharedMemorySize,
-                              debuggerAreaOffset = debuggerAreaOffset,
-                              debuggeeAreaOffset = debuggeeAreaOffset,
-                              numberOfPins = numberOfPins,
-                              numberOfPorts = portsConfiguration.size,
-                              enabledCapabilities = scriptCapabilities,
-                              bramAddrWidth = bramAddrWidth,
-                              bramDataWidth = bramDataWidth,
-                              portsConfiguration = portsConfiguration
-    )
+    version = Version.getEncodedVersion,
+    maximumNumberOfStages = maximumNumberOfStages,
+    scriptVariableLength = scriptVariableLength,
+    numberOfSupportedLocalAndGlobalVariables = numberOfSupportedLocalAndGlobalVariables,
+    numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
+    maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
+    maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
+    sharedMemorySize = sharedMemorySize,
+    debuggerAreaOffset = debuggerAreaOffset,
+    debuggeeAreaOffset = debuggeeAreaOffset,
+    numberOfPins = numberOfPins,
+    numberOfPorts = portsConfiguration.size,
+    enabledCapabilities = scriptCapabilities,
+    bramAddrWidth = bramAddrWidth,
+    bramDataWidth = bramDataWidth,
+    portsConfiguration = portsConfiguration
+  )
 
   //
   // Wire signals for the synchronizer

@@ -90,7 +90,7 @@ class InterpreterScriptBufferHandler(
 
     switch(state) {
 
-      is(sIdle) { 
+      is(sIdle) {
 
         //
         // Read next data for the size of the buffer
@@ -102,31 +102,31 @@ class InterpreterScriptBufferHandler(
         //
         state := sReadSizeOfBuffer
       }
-      is(sReadSizeOfBuffer) { 
+      is(sReadSizeOfBuffer) {
 
         when(io.dataValidInput) {
 
-            //
-            // Data is valid and number of symbols is now available
-            //
-            regScriptNumberOfSymbols := io.receivingData
+          //
+          // Data is valid and number of symbols is now available
+          //
+          regScriptNumberOfSymbols := io.receivingData
 
-            //
-            // Request next data
-            //
-            readNextData := true.B
+          //
+          // Request next data
+          //
+          readNextData := true.B
 
-            //
-            // Move to the configuration state
-            //
-            state := sReadTypeOfOperator
+          //
+          // Move to the configuration state
+          //
+          state := sReadTypeOfOperator
 
-        }.otherwise{
+        }.otherwise {
 
-            //
-            // Stay at the same state since the data is not yet received
-            //
-            state := sReadSizeOfBuffer
+          //
+          // Stay at the same state since the data is not yet received
+          //
+          state := sReadSizeOfBuffer
         }
       }
       is(sReadTypeOfOperator) {
@@ -138,59 +138,59 @@ class InterpreterScriptBufferHandler(
 
         when(io.dataValidInput) {
 
-            //
-            // Request next data
-            //
-            readNextData := true.B
+          //
+          // Request next data
+          //
+          readNextData := true.B
 
-            //
-            // Read the operator's "Type" data
-            //
-            regTargetOperator.Type := io.receivingData
+          //
+          // Read the operator's "Type" data
+          //
+          regTargetOperator.Type := io.receivingData
 
-            //
-            // Next, we need to read "Value"
-            //
-            state := sReadValueOfOperator
+          //
+          // Next, we need to read "Value"
+          //
+          state := sReadValueOfOperator
 
-        } .otherwise {
+        }.otherwise {
 
-            //
-            // Stay at the same state since the data is not received yet
-            //
-            state := sReadTypeOfOperator
+          //
+          // Stay at the same state since the data is not received yet
+          //
+          state := sReadTypeOfOperator
         }
-       }
+      }
       is(sReadValueOfOperator) {
 
         when(io.dataValidInput) {
 
-            //
-            // Configure the stages
-            //
-            configureStage := true.B
+          //
+          // Configure the stages
+          //
+          configureStage := true.B
+
+          //
+          // Read the operator's "Value" data
+          //
+          regTargetOperator.Value := io.receivingData
+
+          //
+          // Decrement the remaining symbols
+          //
+          regScriptNumberOfSymbols := regScriptNumberOfSymbols - 1.U
+
+          //
+          // Check if reading is scripts are finished or not
+          //
+          when(regScriptNumberOfSymbols === 0.U) {
 
             //
-            // Read the operator's "Value" data
+            // Configurartion was done
             //
-            regTargetOperator.Value := io.receivingData
+            state := sDone
 
-            //
-            // Decrement the remaining symbols
-            //
-            regScriptNumberOfSymbols := regScriptNumberOfSymbols - 1.U
-
-            //
-            // Check if reading is scripts are finished or not
-            //
-            when (regScriptNumberOfSymbols === 0.U) {
-                
-                //
-                // Configurartion was done
-                //
-                state := sDone
-
-            }.otherwise {
+          }.otherwise {
 
             //
             // Request next data
@@ -201,13 +201,13 @@ class InterpreterScriptBufferHandler(
             // Again, read the next type
             //
             state := sReadTypeOfOperator
-            }
-        } .otherwise {
+          }
+        }.otherwise {
 
-            //
-            // Stay at the same state since the data is not received yet
-            //
-            state := sReadValueOfOperator
+          //
+          // Stay at the same state since the data is not received yet
+          //
+          state := sReadValueOfOperator
         }
       }
       is(sDone) {
@@ -227,8 +227,8 @@ class InterpreterScriptBufferHandler(
         //
         state := sIdle
       }
-     }
     }
+  }
 
   //
   // Connect output pins
@@ -244,8 +244,8 @@ class InterpreterScriptBufferHandler(
 object InterpreterScriptBufferHandler {
 
   def apply(
-    debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    instanceInfo: HwdbgInstanceInformation
+      debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       dataValidInput: Bool,

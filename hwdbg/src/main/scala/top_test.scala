@@ -101,7 +101,7 @@ class DebuggerModuleTestingBRAM(
       maximumNumberOfStages,
       maximumNumberOfSupportedGetScriptOperators,
       maximumNumberOfSupportedSetScriptOperators,
-      sharedMemorySize,   
+      sharedMemorySize,
       debuggerAreaOffset,
       debuggeeAreaOffset,
       scriptVariableLength,

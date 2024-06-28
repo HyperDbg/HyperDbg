@@ -182,14 +182,14 @@ class DebuggerPacketInterpreter(
             moduleConfigureStage,
             moduleTargetOperator
           ) =
-              InterpreterScriptBufferHandler(
-                debug,
-                instanceInfo
-              )(
-                enablePinOfScriptBufferHandler,
-                io.dataValidInput,
-                io.receivingData
-              )
+            InterpreterScriptBufferHandler(
+              debug,
+              instanceInfo
+            )(
+              enablePinOfScriptBufferHandler,
+              io.dataValidInput,
+              io.receivingData
+            )
 
           //
           // Connect the script stage configuration signals
@@ -199,7 +199,7 @@ class DebuggerPacketInterpreter(
           finishedScriptConfiguration := moduleFinishedScriptConfiguration
           targetOperator := moduleTargetOperator
 
-          when (moduleFinishedScriptConfiguration === true.B) {
+          when(moduleFinishedScriptConfiguration === true.B) {
 
             //
             // *** Script stage buffer configuration finished! ***
@@ -210,14 +210,13 @@ class DebuggerPacketInterpreter(
             //
             enablePinOfScriptBufferHandler := false.B
 
-
             //
             // Set the response packet type
             //
             regRequestedActionOfThePacketOutput := HwdbgResponseEnums.hwdbgResponseSuccessOrErrorMessage.id.U
 
             //
-            // Set the success message 
+            // Set the success message
             //
             lastSuccesOrErrorMessage := HwdbgSuccessOrErrorEnums.hwdbgOperationWasSuccessful.id.U
 
@@ -227,7 +226,7 @@ class DebuggerPacketInterpreter(
             state := sSendResponse
 
           }.otherwise {
-            
+
             //
             // *** Script stage buffer configuration NOT finished, read the buffer ***
             //
