@@ -1,0 +1,9 @@
+set(SourceFiles
+    "hyperdbg-cli.cpp"
+    "../include/platform/user/header/Environment.h"
+)
+include_directories(
+    "../include"
+    "../dependencies"
+)
+add_executable(hyperdbg-cli ${SourceFiles})

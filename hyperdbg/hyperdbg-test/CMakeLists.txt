@@ -1,0 +1,17 @@
+set(SourceFiles
+    "code/tests/hyperdbg-test.cpp"
+    "code/tests/namedpipe.cpp"
+    "code/tests/tools.cpp"
+    "pch.cpp"
+    "../include/platform/user/header/Environment.h"
+    "header/namedpipe.h"
+    "header/routines.h"
+    "pch.h"
+    "code/assembly/asm-test.asm"
+)
+include_directories(
+    "../include"
+    "../dependencies"
+    "."
+)
+add_executable(hyperdbg-test ${SourceFiles})
