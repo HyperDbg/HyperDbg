@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.1.0] - 2024-XX-XX
+## [0.9.1.0] - 2024-06-30
 New release of the HyperDbg Debugger.
 
 ### Added
-- Conditional statement evaluation in hwdbg hardware debugger generator
+- Regular port/pin value read and modification in hwdbg
+- Conditional statement evaluation in hwdbg
 - Added automatic script buffer packet generator for hwdbg
 - Added support for @hw_pinX and @hw_portX registers
 - Added hwdbg instance information interpreter
