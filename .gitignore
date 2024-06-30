@@ -390,3 +390,6 @@ MigrationBackup/
 compile_commands.json
 StructLayoutSettings.json
 *.metaproj
+
+#ignore clion config files
+.idea
