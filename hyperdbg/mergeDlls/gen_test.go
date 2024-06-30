@@ -1,7 +1,7 @@
 package main
 
 /*
-1. copy D:\fork\HyperDbg\hyperdbg\FindWdk.cmake into C:\Windows
+1. copy ../FindWdk.cmake into C:\Windows
 2. build all projects ok
 3. rewrite all projects build config into one here
 4. get only one dll file with one .h file
