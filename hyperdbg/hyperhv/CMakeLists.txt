@@ -11,6 +11,9 @@ include_directories(
         "../dependencies/zydis/dependencies/zycore/include"
 )
 
+# hyperhv need zydis kernel library ?
+#wdk_add_library()
+
 wdk_add_driver(hyperhv
         ${C_SOURCES}
         ${ASM_SOURCES}
