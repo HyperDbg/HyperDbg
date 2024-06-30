@@ -14,8 +14,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/FindWDK/cmake")
 find_package(WDK REQUIRED)
 
-#add_subdirectory("./user_helloworld")
-#add_subdirectory("./kernel_helloworld")
+add_subdirectory("cmakeDemoTest/user_helloworld")
+add_subdirectory("cmakeDemoTest/kernel_helloworld")
+#add_subdirectory("hyperhv")
 
 
 #add_definitions(ZYAN_NO_LIBC)
@@ -24,4 +25,3 @@ find_package(WDK REQUIRED)
 #add_subdirectory("/libhyperdbg")
 
 
-add_subdirectory("hyperhv")
