@@ -393,3 +393,4 @@ StructLayoutSettings.json
 
 #ignore clion config files
 .idea
+/hyperdbg/cmake-build-debug/

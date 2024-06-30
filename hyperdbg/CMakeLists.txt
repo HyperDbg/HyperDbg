@@ -19,9 +19,9 @@ find_package(WDK REQUIRED)
 
 
 #add_definitions(ZYAN_NO_LIBC)
-add_subdirectory("./hyperdbg/dependencies/zydis")
+#add_subdirectory("dependencies/zydis")
 
-add_subdirectory("./hyperdbg/libhyperdbg")
+#add_subdirectory("/libhyperdbg")
 
 
-#add_subdirectory("./hyperdbg/hyperhv")
+add_subdirectory("hyperhv")
