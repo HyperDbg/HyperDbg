@@ -1,0 +1,30 @@
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      generator: "Visual Studio 15 2017"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      generator: "Visual Studio 15 2017 Win64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      generator: "Visual Studio 14 2015"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      generator: "Visual Studio 14 2015 Win64"
+
+matrix:
+  fast_finish: true
+
+shallow_clone: true
+
+skip_commits:
+  files:
+    - .github/
+    - .editorconfig
+    - .gitignore
+    - LICENSE
+    - README.md
+
+before_build:
+  - cmake -Hsamples -Bbuild -G"%generator%"
+
+build_script:
+  - cmake --build build --config Debug -- /m /v:m
+  - cmake --build build --config Release -- /m /v:m

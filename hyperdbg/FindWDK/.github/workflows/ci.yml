@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+
+jobs:
+  build:
+    name: ${{ matrix.cxx }}, ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include: [
+          # You can access the following values via ${{ matrix.??? }}
+          #
+          #   cxx          : C++ compiler executable
+          #   os           : GitHub Actions YAML workflow label.  See https://github.com/actions/virtual-environments#available-environments
+
+          { os: windows-2019, cxx: 'vs2019' },
+          { os: windows-2022, cxx: 'vs2022' }
+        ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: build
+      run: |
+        cmake -Bbuild samples
+        cmake --build build --parallel --config Release
+        cmake --build build --parallel --config Debug
