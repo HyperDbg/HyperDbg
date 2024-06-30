@@ -14,6 +14,9 @@ enable_language(ASM_MASM)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 list(APPEND CMAKE_MODULE_PATH "$ENV{path}")
 find_package(WDK REQUIRED)
+
+# todo test all
+
 #add_subdirectory("hyperdbg-cli")
 add_subdirectory("hyperhv")
 #add_subdirectory("libhyperdbg")
