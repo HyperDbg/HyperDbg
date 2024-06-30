@@ -146,9 +146,8 @@ class HwdbgPortInformationItems() extends Bundle {
  */
 object HwdbgActionEnums extends Enumeration {
 
-  val hwdbgActionSendVersion = Value(1)
-  val hwdbgActionSendPinInformation = Value(2)
-  val hwdbgActionConfigureScriptBuffer = Value(3)
+  val hwdbgActionSendInstanceInfo = Value(1)
+  val hwdbgActionConfigureScriptBuffer = Value(2)
 
 }
 
@@ -162,10 +161,8 @@ object HwdbgActionEnums extends Enumeration {
  */
 object HwdbgResponseEnums extends Enumeration {
 
-  val hwdbgResponseInvalidPacketOrError = Value(1)
-  val hwdbgResponseVersion = Value(2)
-  val hwdbgResponsePinInformation = Value(3)
-  val hwdbgResponseScriptBufferConfigurationResult = Value(4)
+  val hwdbgResponseSuccessOrErrorMessage = Value(1)
+  val hwdbgResponseInstanceInfo = Value(2)
 
 }
 
@@ -175,10 +172,10 @@ object HwdbgResponseEnums extends Enumeration {
  * @brief
  *   Different responses of hwdbg (SHARED WITH HYPERDBG) (HWDBG_ERROR_ENUMS)
  * @warning
- *   Used in HyperDbg
  */
-object HwdbgErrorEnums extends Enumeration {
+object HwdbgSuccessOrErrorEnums extends Enumeration {
 
+  val hwdbgOperationWasSuccessful = Value(0x7fffffff)
   val hwdbgErrorInvalidPacket = Value(1)
 
 }

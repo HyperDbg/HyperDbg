@@ -29,8 +29,14 @@ class DebuggerMain(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
     numberOfPins: Int,
     maximumNumberOfStages: Int,
-    maximumNumberOfSupportedScriptOperators: Int,
+    maximumNumberOfSupportedGetScriptOperators: Int,
+    maximumNumberOfSupportedSetScriptOperators: Int,
+    sharedMemorySize: Int,
+    debuggerAreaOffset: Int,
+    debuggeeAreaOffset: Int,
     scriptVariableLength: Int,
+    numberOfSupportedLocalAndGlobalVariables: Int,
+    numberOfSupportedTemporaryVariables: Int,
     scriptCapabilities: Seq[Long],
     bramAddrWidth: Int,
     bramDataWidth: Int,
@@ -43,6 +49,45 @@ class DebuggerMain(
   require(
     portsConfiguration.sum == numberOfPins,
     "err, the sum of the portsConfiguration (PORT_PINS_MAP) values must equal the numberOfPins (NUMBER_OF_PINS)."
+  )
+
+  //
+  // Ensure script variable length is not bigger than BRAM data width
+  //
+  require(
+    bramDataWidth >= scriptVariableLength,
+    "err, the script variable length should not be bigger than BRAM data width."
+  )
+
+  //
+  // Ensure the maximum number of stages is not bigger than the maximum number
+  // that can be stored within the script variable length. This is because
+  // if a JUMP for conditional statements wants to set the target location,
+  // it cannot store its destination in a script variable.
+  //
+  require(
+    maximumNumberOfStages < math.pow(2, scriptVariableLength),
+    "err, the maximum number of stages should be less than 2 to the power of the script variable length."
+  )
+
+  //
+  // Ensure the number of pin + ports is not bigger than the maximum number
+  // that can be stored within the script variable length. This is because
+  // for setting and getting pins/ports values, hwdbg uses an index which
+  // should fit within a variable size.
+  //
+  require(
+    numberOfPins + portsConfiguration.size < math.pow(2, scriptVariableLength),
+    "err, the maximum number of pins + ports should be less than 2 to the power of the script variable length."
+  )
+
+  //
+  // Ensure the number of set operators are equal to 1 since otherwise two variables (local, global and
+  // temp) might be written simultaneously.
+  //
+  require(
+    maximumNumberOfSupportedSetScriptOperators == 1,
+    "err, the supported number of SET operators can be only 1."
   )
 
   val io = IO(new Bundle {
@@ -78,15 +123,23 @@ class DebuggerMain(
   // *** Create an instance of the debugger ***
   //
   val instanceInfo = HwdbgInstanceInformation.createInstanceInformation(
-                              version = Version.getEncodedVersion,
-                              maximumNumberOfStages = maximumNumberOfStages,
-                              scriptVariableLength = scriptVariableLength,
-                              maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
-                              numberOfPins = numberOfPins,
-                              numberOfPorts = portsConfiguration.size,
-                              enabledCapabilities = scriptCapabilities,
-                              portsConfiguration = portsConfiguration
-    )
+    version = Version.getEncodedVersion,
+    maximumNumberOfStages = maximumNumberOfStages,
+    scriptVariableLength = scriptVariableLength,
+    numberOfSupportedLocalAndGlobalVariables = numberOfSupportedLocalAndGlobalVariables,
+    numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
+    maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
+    maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
+    sharedMemorySize = sharedMemorySize,
+    debuggerAreaOffset = debuggerAreaOffset,
+    debuggeeAreaOffset = debuggeeAreaOffset,
+    numberOfPins = numberOfPins,
+    numberOfPorts = portsConfiguration.size,
+    enabledCapabilities = scriptCapabilities,
+    bramAddrWidth = bramAddrWidth,
+    bramDataWidth = bramDataWidth,
+    portsConfiguration = portsConfiguration
+  )
 
   //
   // Wire signals for the synchronizer
@@ -98,20 +151,6 @@ class DebuggerMain(
   val sendWaitForBuffer = Wire(Bool())
 
   // -----------------------------------------------------------------------
-  // Create instance from script execution engine
-  //
-  val (outputPin) =
-    ScriptExecutionEngine(
-      debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
-    )(
-      io.en,
-      io.inputPin
-    )
-
-  // -----------------------------------------------------------------------
   // Create instance from interpreter
   //
   val (
@@ -121,13 +160,14 @@ class DebuggerMain(
     noNewDataSender,
     dataValidInterpreterOutput,
     requestedActionOfThePacketInterpreterOutput,
-    sendingData
+    sendingData,
+    finishedScriptConfiguration,
+    configureStage,
+    targetOperator
   ) =
     DebuggerPacketInterpreter(
       debug,
-      instanceInfo,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       requestedActionOfThePacketOutput,
@@ -135,6 +175,21 @@ class DebuggerMain(
       dataValidOutput,
       receivingData,
       sendWaitForBuffer
+    )
+
+  // -----------------------------------------------------------------------
+  // Create instance from script execution engine
+  //
+  val (outputPin) =
+    ScriptExecutionEngine(
+      debug,
+      instanceInfo
+    )(
+      io.en,
+      finishedScriptConfiguration,
+      configureStage,
+      targetOperator,
+      io.inputPin
     )
 
   // -----------------------------------------------------------------------
@@ -153,8 +208,7 @@ class DebuggerMain(
   ) =
     SendReceiveSynchronizer(
       debug,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       io.plInSignal,
@@ -196,8 +250,14 @@ object DebuggerMain {
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
       numberOfPins: Int,
       maximumNumberOfStages: Int,
-      maximumNumberOfSupportedScriptOperators: Int,
+      maximumNumberOfSupportedGetScriptOperators: Int,
+      maximumNumberOfSupportedSetScriptOperators: Int,
+      sharedMemorySize: Int,
+      debuggerAreaOffset: Int,
+      debuggeeAreaOffset: Int,
       scriptVariableLength: Int,
+      numberOfSupportedLocalAndGlobalVariables: Int,
+      numberOfSupportedTemporaryVariables: Int,
       scriptCapabilities: Seq[Long],
       bramAddrWidth: Int,
       bramDataWidth: Int,
@@ -214,8 +274,14 @@ object DebuggerMain {
         debug,
         numberOfPins,
         maximumNumberOfStages,
-        maximumNumberOfSupportedScriptOperators,
+        maximumNumberOfSupportedGetScriptOperators,
+        maximumNumberOfSupportedSetScriptOperators,
+        sharedMemorySize,
+        debuggerAreaOffset,
+        debuggeeAreaOffset,
         scriptVariableLength,
+        numberOfSupportedLocalAndGlobalVariables,
+        numberOfSupportedTemporaryVariables,
         scriptCapabilities,
         bramAddrWidth,
         bramDataWidth,

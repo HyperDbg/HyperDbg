@@ -429,18 +429,17 @@ class LL1Parser:
         self.CommonHeaderFileScala.write("object ScriptEvalFunc {\n  object ScriptOperators extends ChiselEnum {\n    val ")
         
         Counter = 0
-        FirstItem = True
         CheckForDuplicateList = []
+        
+        self.CommonHeaderFile.write("#define " + "FUNC_UNDEFINED " + str(Counter) + "\n")
+        self.CommonHeaderFileScala.write("sFunc" + "Undefined")
+        Counter += 1
         
         for X in self.OperatorsOneOperand:
         
             if X not in CheckForDuplicateList:
                 self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
-                if FirstItem == True:
-                    self.CommonHeaderFileScala.write("sFunc" + X.capitalize())
-                    FirstItem = False
-                else:
-                    self.CommonHeaderFileScala.write(", sFunc" + X.capitalize())
+                self.CommonHeaderFileScala.write(", sFunc" + X.capitalize())
                     
                 CheckForDuplicateList.append(X)
                 Counter += 1

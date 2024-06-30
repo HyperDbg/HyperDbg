@@ -62,13 +62,22 @@ import chisel3.util._
 
 /**
  * @brief
- *   The structure of SYMBOL used in script engine of HyperDbg
+ *   The structure of HWDBG_SHORT_SYMBOL used in script engine of HyperDbg
  */
-class Symbol extends Bundle {
-  val Type = UInt(64.W) // long long unsigned is 64 bits
-  val Len = UInt(64.W)
-  val VariableType = UInt(64.W)
-  val Value = UInt(64.W)
+class HwdbgShortSymbol(
+    scriptVariableLength: Int
+) extends Bundle {
+  
+  //
+  // Ensure that the script variable length is at least 8 bits or 1 byte
+  //
+  require(
+    scriptVariableLength >= 8,
+    f"err, the minimum script variable length is 8 bits (1 byte)." 
+  )
+
+  val Type = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
+  val Value = UInt(scriptVariableLength.W) // long long unsigned is 64 bits but it can be dynamic
 }
 
 /**
@@ -87,7 +96,7 @@ object ScriptConstants {
  */
 object ScriptConstantTypes {
   object ScriptDataTypes extends ChiselEnum {
-    val symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
+    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
   }
 }
 
@@ -99,18 +108,30 @@ object ScriptConstantTypes {
          """#pragma once
 #ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
-typedef struct SYMBOL {
-	long long unsigned Type;
+
+typedef struct SYMBOL
+{
+    long long unsigned Type;
     long long unsigned Len;
     long long unsigned VariableType;
-	long long unsigned Value;
-} SYMBOL, * PSYMBOL;
+    long long unsigned Value;
+    
+} SYMBOL, *PSYMBOL;
+
+typedef struct HWDBG_SHORT_SYMBOL
+{
+    long long unsigned Type;
+    long long unsigned Value;
+    
+} HWDBG_SHORT_SYMBOL, *PHWDBG_SHORT_SYMBOL;
+
 typedef struct SYMBOL_BUFFER {
-	PSYMBOL Head;
-	unsigned int Pointer;
-	unsigned int Size;
-	char* Message;
+    PSYMBOL Head;
+    unsigned int Pointer;
+    unsigned int Size;
+    char* Message;
 } SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+
 typedef struct SYMBOL_MAP
 {
     char* Name;
@@ -124,23 +145,23 @@ typedef struct ACTION_BUFFER {
   char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
 
-
-#define SYMBOL_GLOBAL_ID_TYPE 0
-#define SYMBOL_LOCAL_ID_TYPE 1
-#define SYMBOL_NUM_TYPE 2
-#define SYMBOL_REGISTER_TYPE 3
-#define SYMBOL_PSEUDO_REG_TYPE 4
-#define SYMBOL_SEMANTIC_RULE_TYPE 5
-#define SYMBOL_TEMP_TYPE 6
-#define SYMBOL_STRING_TYPE 7
-#define SYMBOL_VARIABLE_COUNT_TYPE 8
-#define SYMBOL_INVALID 9
-#define SYMBOL_WSTRING_TYPE 10
-#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 11
-#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 12
-#define SYMBOL_RETURN_ADDRESS_TYPE 13
-#define SYMBOL_STACK_TEMP_TYPE 14
-#define SYMBOL_FUNCTION_PARAMETER_TYPE 15
+#define SYMBOL_UNDEFINED 0
+#define SYMBOL_GLOBAL_ID_TYPE 1
+#define SYMBOL_LOCAL_ID_TYPE 2
+#define SYMBOL_NUM_TYPE 3
+#define SYMBOL_REGISTER_TYPE 4
+#define SYMBOL_PSEUDO_REG_TYPE 5
+#define SYMBOL_SEMANTIC_RULE_TYPE 6
+#define SYMBOL_TEMP_TYPE 7
+#define SYMBOL_STRING_TYPE 8
+#define SYMBOL_VARIABLE_COUNT_TYPE 9
+#define SYMBOL_INVALID 10
+#define SYMBOL_WSTRING_TYPE 11
+#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 12
+#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 13
+#define SYMBOL_RETURN_ADDRESS_TYPE 14
+#define SYMBOL_STACK_TEMP_TYPE 15
+#define SYMBOL_FUNCTION_PARAMETER_TYPE 16
 
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define INVALID 0x80000000

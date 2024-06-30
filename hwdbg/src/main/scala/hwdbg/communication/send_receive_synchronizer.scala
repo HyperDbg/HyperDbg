@@ -30,8 +30,7 @@ object SendReceiveSynchronizerEnums {
 
 class SendReceiveSynchronizer(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -56,10 +55,10 @@ class SendReceiveSynchronizer(
     //
     // BRAM (Block RAM) ports
     //
-    val rdWrAddr = Output(UInt(bramAddrWidth.W)) // read/write address
-    val rdData = Input(UInt(bramDataWidth.W)) // read data
+    val rdWrAddr = Output(UInt(instanceInfo.bramAddrWidth.W)) // read/write address
+    val rdData = Input(UInt(instanceInfo.bramDataWidth.W)) // read data
     val wrEna = Output(Bool()) // enable writing
-    val wrData = Output(UInt(bramDataWidth.W)) // write data
+    val wrData = Output(UInt(instanceInfo.bramDataWidth.W)) // write data
 
     //
     // Receiver ports
@@ -71,7 +70,7 @@ class SendReceiveSynchronizer(
     val readNextData = Input(Bool()) // whether the next data should be read or not?
 
     val dataValidOutput = Output(Bool()) // whether data on the receiving data line is valid or not?
-    val receivingData = Output(UInt(bramDataWidth.W)) // data to be sent to the reader
+    val receivingData = Output(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the reader
 
     //
     // Sender ports
@@ -83,7 +82,7 @@ class SendReceiveSynchronizer(
     val sendWaitForBuffer = Output(Bool()) // should the external module send next buffer or not?
 
     val requestedActionOfThePacketInput = Input(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W)) // the requested action
-    val sendingData = Input(UInt(bramDataWidth.W)) // data to be sent to the debugger
+    val sendingData = Input(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the debugger
 
   })
 
@@ -101,10 +100,10 @@ class SendReceiveSynchronizer(
   //
   // Shared BRAM pins
   //
-  val sharedRdWrAddr = WireInit(0.U(bramAddrWidth.W)) // read/write address
-  val sharedRdData = WireInit(0.U(bramDataWidth.W)) // read data
+  val sharedRdWrAddr = WireInit(0.U(instanceInfo.bramAddrWidth.W)) // read/write address
+  val sharedRdData = WireInit(0.U(instanceInfo.bramDataWidth.W)) // read data
   val sharedWrEna = WireInit(false.B) // enable writing
-  val sharedWrData = WireInit(0.U(bramDataWidth.W)) // write data
+  val sharedWrData = WireInit(0.U(instanceInfo.bramDataWidth.W)) // write data
 
   //
   // Instantiate the packet receiver module
@@ -119,8 +118,7 @@ class SendReceiveSynchronizer(
   ) =
     DebuggerPacketReceiver(
       debug,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       regPlInSignal,
@@ -142,8 +140,7 @@ class SendReceiveSynchronizer(
   ) =
     DebuggerPacketSender(
       debug,
-      bramAddrWidth,
-      bramDataWidth
+      instanceInfo
     )(
       io.en,
       regBeginSendingBuffer,
@@ -305,8 +302,7 @@ object SendReceiveSynchronizer {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       plInSignal: Bool,
@@ -323,21 +319,20 @@ object SendReceiveSynchronizer {
     val sendReceiveSynchronizerModule = Module(
       new SendReceiveSynchronizer(
         debug,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 
     val psOutInterrupt = Wire(Bool())
 
-    val rdWrAddr = Wire(UInt(bramAddrWidth.W))
+    val rdWrAddr = Wire(UInt(instanceInfo.bramAddrWidth.W))
     val wrEna = Wire(Bool())
-    val wrData = Wire(UInt(bramDataWidth.W))
+    val wrData = Wire(UInt(instanceInfo.bramDataWidth.W))
 
     val requestedActionOfThePacketOutput = Wire(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
     val requestedActionOfThePacketOutputValid = Wire(Bool())
     val dataValidOutput = Wire(Bool())
-    val receivingData = Wire(UInt(bramDataWidth.W))
+    val receivingData = Wire(UInt(instanceInfo.bramDataWidth.W))
 
     val sendWaitForBuffer = Wire(Bool())
 

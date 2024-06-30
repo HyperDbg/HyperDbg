@@ -391,3 +391,45 @@ ScriptEnginePseudoRegGetEventStage(PACTION_BUFFER ActionBuffer)
     return ActionBuffer->CallingStage;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of time pseudo-register
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEnginePseudoRegGetTime()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Get the current core's time
+    //
+    return ScriptEngineGetTargetCoreTime();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of date pseudo-register
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEnginePseudoRegGetDate()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Get the current core's date
+    //
+    return ScriptEngineGetTargetCoreDate();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}

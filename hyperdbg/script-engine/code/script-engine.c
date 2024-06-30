@@ -16,6 +16,12 @@
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
 // #define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
+//
+// Global Variables
+//
+extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
+extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
+
 /**
  * @brief Converts name to address
  *
@@ -255,9 +261,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
  * @brief The entry point of script engine
  *
  * @param str
- * @return PSYMBOL_BUFFER
+ * @return PVOID
  */
-PSYMBOL_BUFFER
+PVOID
 ScriptEngineParse(char * str)
 {
     PTOKEN_LIST Stack = NewTokenList();
@@ -319,7 +325,7 @@ ScriptEngineParse(char * str)
         RemoveTokenList(Stack);
         RemoveTokenList(MatchedStack);
         RemoveToken(&CurrentIn);
-        return CodeBuffer;
+        return (PVOID)CodeBuffer;
     }
 
     do
@@ -477,7 +483,7 @@ ScriptEngineParse(char * str)
         RemoveTokenList(MatchedStack);
 
     if (UserDefinedFunctions)
-        RemoveSymbolBuffer(UserDefinedFunctions);
+        RemoveSymbolBuffer((PVOID)UserDefinedFunctions);
 
     if (CurrentIn)
         RemoveToken(&CurrentIn);
@@ -491,7 +497,7 @@ ScriptEngineParse(char * str)
         FunctionParameterIdTable = NewTokenList();
     }
 
-    return CodeBuffer;
+    return (PVOID)CodeBuffer;
 }
 
 /**
@@ -536,7 +542,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
     printf("\n");
 
     printf("Code Buffer:\n");
-    PrintSymbolBuffer(CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
     printf(".\n.\n.\n\n");
 #endif
 
@@ -999,7 +1005,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                     OperandCount++;
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
-                        RemoveSymbolBuffer(TempStack);
+                        RemoveSymbolBuffer((PVOID)TempStack);
                         break;
                     }
                 }
@@ -1026,7 +1032,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             RemoveSymbol(&OperandCountSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
-                RemoveSymbolBuffer(TempStack);
+                RemoveSymbolBuffer((PVOID)TempStack);
                 break;
             }
 
@@ -1041,7 +1047,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
             PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                                          (unsigned long long)(FirstArgPointer * sizeof(SYMBOL)));
-            RemoveSymbolBuffer(TempStack);
+            RemoveSymbolBuffer((PVOID)TempStack);
 
             UINT32 i   = 0;
             char * Str = Format;
@@ -1927,8 +1933,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            PTOKEN  Op2       = Pop(MatchedStack);
-            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
 
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
@@ -1939,13 +1945,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
 
-            FreeTemp(Op2);
-
             //
             // Free the operand if it is a temp value
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
+            FreeTemp(Op2);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -1997,6 +2002,39 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             FreeTemp(Op0);
             FreeTemp(Op1);
         }
+
+        else if (IsType15Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            Op2       = Pop(MatchedStack);
+            Op2Symbol = ToSymbol(Op2, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op2Symbol);
+
+            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+            FreeTemp(Op2);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
         else
         {
             *Error = SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE;
@@ -2013,7 +2051,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
     printf("\n");
 
     printf("Code Buffer:\n");
-    PrintSymbolBuffer(CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
     printf("------------------------------------------\n\n");
 #endif
 
@@ -2430,18 +2468,19 @@ RemoveSymbol(PSYMBOL * Symbol)
 /**
  * @brief Prints symbol
  *
- * @param Symbol
+ * @param PVOID
  */
 void
-PrintSymbol(PSYMBOL Symbol)
+PrintSymbol(PVOID Symbol)
 {
-    if (Symbol->Type == SYMBOL_STRING_TYPE)
+    PSYMBOL Sym = (PSYMBOL)Symbol;
+    if (Sym->Type == SYMBOL_STRING_TYPE)
     {
-        printf("Type:%llx, Value:0x%p\n", Symbol->Type, &Symbol->Value);
+        printf("Type:%llx, Value:0x%p\n", Sym->Type, &Sym->Value);
     }
     else
     {
-        printf("Type:%llx, Value:0x%llx\n", Symbol->Type, Symbol->Value);
+        printf("Type:%llx, Value:0x%llx\n", Sym->Type, Sym->Value);
     }
 }
 
@@ -2566,11 +2605,13 @@ NewSymbolBuffer(void)
  * @param SymbolBuffer
  */
 void
-RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
+RemoveSymbolBuffer(PVOID SymbolBuffer)
 {
-    free(SymbolBuffer->Message);
-    free(SymbolBuffer->Head);
-    free(SymbolBuffer);
+    PSYMBOL_BUFFER SymBuf = (PSYMBOL_BUFFER)SymbolBuffer;
+
+    free(SymBuf->Message);
+    free(SymBuf->Head);
+    free(SymBuf);
 }
 
 /**
@@ -2698,15 +2739,17 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
  * @param SymbolBuffer
  */
 void
-PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
+PrintSymbolBuffer(const PVOID SymbolBuffer)
 {
+    PSYMBOL_BUFFER SymBuff = (PSYMBOL_BUFFER)SymbolBuffer;
+
     PSYMBOL Symbol;
-    for (unsigned int i = 0; i < SymbolBuffer->Pointer;)
+    for (unsigned int i = 0; i < SymBuff->Pointer;)
     {
-        Symbol = SymbolBuffer->Head + i;
+        Symbol = SymBuff->Head + i;
 
         printf("%8x:", i);
-        PrintSymbol(Symbol);
+        PrintSymbol((PVOID)Symbol);
         if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
         {
             int temp = GetSymbolHeapSize(Symbol);
@@ -2728,6 +2771,9 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 unsigned long long int
 RegisterToInt(char * str)
 {
+    //
+    // Check for register names
+    //
     for (int i = 0; i < REGISTER_MAP_LIST_LENGTH; i++)
     {
         if (!strcmp(str, RegisterMapList[i].Name))
@@ -2735,6 +2781,85 @@ RegisterToInt(char * str)
             return RegisterMapList[i].Type;
         }
     }
+
+    //
+    // Check for hwdbg register names
+    // Check if the registers start with '@hw_portX' or '@hw_pinX'
+    //
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        const char * Ptr;
+        UINT32       Num = 0;
+
+        //
+        // Check for "hw_pin"
+        //
+        if (strncmp(str, "hw_pin", 6) == 0)
+        {
+            Ptr = str + 6;
+            if (*Ptr == '\0')
+            {
+                return INVALID; // No number present
+            }
+            while (*Ptr)
+            {
+                if (!isdigit((unsigned char)*Ptr))
+                {
+                    return INVALID; // Not a valid decimal number
+                }
+                Ptr++;
+            }
+            Num = atoi(str + 6);
+
+            //
+            // port numbers start after the latest pin number
+            //
+            if (Num >= g_HwdbgInstanceInfo.numberOfPins)
+            {
+                return INVALID; // Invalid "hw_pinX"
+            }
+            else
+            {
+                return Num; // Valid "hw_pinX"
+            }
+        }
+
+        //
+        // Check for "hw_port"
+        //
+        if (strncmp(str, "hw_port", 7) == 0)
+        {
+            Ptr = str + 7;
+            if (*Ptr == '\0')
+            {
+                return INVALID; // No number present
+            }
+            while (*Ptr)
+            {
+                if (!isdigit((unsigned char)*Ptr))
+                {
+                    return INVALID; // Not a valid decimal number
+                }
+
+                Ptr++;
+            }
+
+            Num = atoi(str + 7);
+
+            if (Num >= g_HwdbgInstanceInfo.numberOfPorts)
+            {
+                return INVALID; // Invalid "hw_portX"
+            }
+            else
+            {
+                return Num + g_HwdbgInstanceInfo.numberOfPins; // Valid "hw_portX"
+            }
+        }
+    }
+
+    //
+    // Not a valid register name
+    //
     return INVALID;
 }
 
@@ -3081,13 +3206,218 @@ LalrIsOperandType(PTOKEN Token)
     return FALSE;
 }
 
-PSYMBOL_BUFFER
-GetStackBuffer()
+/**
+ * @brief Set hwdbg instance info for the script engine
+ *
+ * @param InstancInfo
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo)
 {
-    PSYMBOL_BUFFER StackBuffer = NewSymbolBuffer();
-    for (int i = 0; i < 128; i++)
+    //
+    // Copy the instance info into the global variable
+    //
+    memcpy(&g_HwdbgInstanceInfo, InstancInfo, sizeof(HWDBG_INSTANCE_INFORMATION));
+
+    //
+    // Indicate that the instance info is valid
+    //
+    g_HwdbgInstanceInfoIsValid = TRUE;
+
+    return TRUE;
+}
+
+/**
+ * @brief Script Engine get number of operands
+ *
+ * @param FuncType
+ * @param NumberOfGetOperands
+ * @param NumberOfSetOperands
+ * @param BOOLEAN Whether the function is defined or not
+ */
+BOOLEAN
+FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands)
+{
+    BOOLEAN Result = FALSE;
+
+    switch (FuncType)
     {
-        PushSymbol(StackBuffer, NewSymbol());
+    case FUNC_INC:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_DEC:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_OR:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_XOR:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_AND:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ASL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ADD:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_SUB:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MUL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_DIV:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MOD:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_GT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_LT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_EGT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_ELT:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_EQUAL:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_NEQ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JMP:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JZ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_JNZ:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_MOV:
+
+        *NumberOfGetOperands = 1;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    default:
+        //
+        // Not defined
+        //
+        Result = FALSE;
+        break;
     }
-    return StackBuffer;
+
+    return Result;
 }

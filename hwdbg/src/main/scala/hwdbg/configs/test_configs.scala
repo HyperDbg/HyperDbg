@@ -24,7 +24,13 @@ import chisel3.util._
  */
 object TestingConfigurations {
 
-  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/send_version.hex.txt"
-  val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/port_information.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/instance_info.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_buffer.hex.txt"
+  val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_conditional_statements_pins.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_simple_pin_assignments.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_simple_port_assignments.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_conditional_statements_ports.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_conditional_statements_ports_with_port_assignments.hex.txt"
+  // val BRAM_INITIALIZATION_FILE_PATH: String = "./src/test/bram/script_conditional_statement_global_var.txt"
 
 }

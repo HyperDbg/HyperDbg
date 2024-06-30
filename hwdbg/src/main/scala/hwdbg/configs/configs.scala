@@ -63,9 +63,11 @@ object DebuggerPorts {
   // of pins to ports (used for inputs/outputs)
   //    For example,
   //                port 0 (in) -> contains 12 pins
-  //                port 1 (in) -> contains 9 pins
+  //                port 1 (in) -> contains 20 pins
   //
-  val PORT_PINS_MAP: Array[Int] = Array(12, 9, 11)
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
+  val PORT_PINS_MAP: Array[Int] = Array(12, 20)
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
 
 }
 
@@ -85,16 +87,6 @@ object DebuggerConfigurations {
   //
   val NUMBER_OF_PINS: Int = 32
 
-  //
-  // Address width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_ADDR_WIDTH: Int = 13
-
-  //
-  // Data width of the Block RAM (BRAM)
-  //
-  val BLOCK_RAM_DATA_WIDTH: Int = 32
-
 }
 
 /**
@@ -106,45 +98,69 @@ object ScriptEngineConfigurations {
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_STAGES: Int = 10
+  val MAXIMUM_NUMBER_OF_STAGES: Int = 32
 
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_SUPPORTED_OPERATORS: Int = 3 // 2 for get value and 1 for set value
+  val MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS: Int = 2 // for get values
+
+  //
+  // Maximum number of stages
+  //
+  val MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int = 1 // for get value
 
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 64
+  val SCRIPT_VARIABLE_LENGTH: Int = 8
 
-  //  
+  //
+  // Number supported of local and global variables
+  //
+  val NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES: Int = 2
+
+  //
+  // Number supported of temporary variables
+  //
+  val NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES: Int = 2
+
+  //
   // Define the capabilities you want to enable
   //
-    val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
-      HwdbgScriptCapabilities.inc,
-      HwdbgScriptCapabilities.dec,
-      HwdbgScriptCapabilities.or,
-      HwdbgScriptCapabilities.xor,
-      HwdbgScriptCapabilities.and,
-      HwdbgScriptCapabilities.asl,
-      HwdbgScriptCapabilities.add,
-      HwdbgScriptCapabilities.sub,
-      HwdbgScriptCapabilities.mul,
-      HwdbgScriptCapabilities.div,
-      HwdbgScriptCapabilities.mod,
-      HwdbgScriptCapabilities.gt,
-      HwdbgScriptCapabilities.lt,
-      HwdbgScriptCapabilities.egt,
-      HwdbgScriptCapabilities.elt,
-      HwdbgScriptCapabilities.equal,
-      HwdbgScriptCapabilities.neq,
-      HwdbgScriptCapabilities.jmp,
-      HwdbgScriptCapabilities.jz,
-      HwdbgScriptCapabilities.jnz,
-      HwdbgScriptCapabilities.mov,
-      HwdbgScriptCapabilities.printf
-    )
+  val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
+    //
+    // Statements and expressions
+    //
+    HwdbgScriptCapabilities.assign_local_global_var,
+    HwdbgScriptCapabilities.assign_registers,
+    // HwdbgScriptCapabilities.assign_pseudo_registers,
+    HwdbgScriptCapabilities.conditional_statements_and_comparison_operators,
+
+    //
+    // Operators
+    //
+    HwdbgScriptCapabilities.func_or,
+    HwdbgScriptCapabilities.func_xor,
+    HwdbgScriptCapabilities.func_and,
+    HwdbgScriptCapabilities.func_asl,
+    HwdbgScriptCapabilities.func_add,
+    HwdbgScriptCapabilities.func_sub,
+    HwdbgScriptCapabilities.func_mul,
+    // HwdbgScriptCapabilities.func_div,
+    // HwdbgScriptCapabilities.func_mod,
+    HwdbgScriptCapabilities.func_gt,
+    HwdbgScriptCapabilities.func_lt,
+    HwdbgScriptCapabilities.func_egt,
+    HwdbgScriptCapabilities.func_elt,
+    HwdbgScriptCapabilities.func_equal,
+    HwdbgScriptCapabilities.func_neq,
+    HwdbgScriptCapabilities.func_jmp,
+    HwdbgScriptCapabilities.func_jz,
+    HwdbgScriptCapabilities.func_jnz,
+    HwdbgScriptCapabilities.func_mov
+    // HwdbgScriptCapabilities.func_printf,
+  )
 }
 
 /**
@@ -152,6 +168,16 @@ object ScriptEngineConfigurations {
  *   The constants for memory communication
  */
 object MemoryCommunicationConfigurations {
+
+  //
+  // Address width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_ADDR_WIDTH: Int = 13
+
+  //
+  // Data width of the Block RAM (BRAM)
+  //
+  val BLOCK_RAM_DATA_WIDTH: Int = 32
 
   //
   // Emulate block RAM by inferring a register to delay one clock cycle
@@ -175,52 +201,92 @@ object MemoryCommunicationConfigurations {
 }
 
 /**
- * @brief The structure of script capabilities information in hwdbg
- * @details Same as _HWDBG_INSTANCE_INFORMATION in HyperDbg
+ * @brief
+ *   The structure of script capabilities information in hwdbg
+ * @details
+ *   Same as _HWDBG_INSTANCE_INFORMATION in HyperDbg
  */
 case class HwdbgInstanceInformation(
-  version: Int,                 // Target version of HyperDbg (same as hwdbg)
-  maximumNumberOfStages: Int,   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
-  scriptVariableLength: Int, // Maximum length of variables (and other script elements)
-  maximumNumberOfSupportedScriptOperators: Int, // Maximum supported operators in a single func
-  numberOfPins: Int,            // Number of pins
-  numberOfPorts: Int,           // Number of ports
-  scriptCapabilities: Long,            // Capabilities bitmask
-  portsConfiguration: Array[Int]   // Port arrangement
+    version: Int, // Target version of HyperDbg (same as hwdbg)
+    maximumNumberOfStages: Int, // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+    scriptVariableLength: Int, // Maximum length of variables (and other script elements)
+    numberOfSupportedLocalAndGlobalVariables: Int, // Number of supported local (and global) variables
+    numberOfSupportedTemporaryVariables: Int, // Number of supported temporary variables
+    maximumNumberOfSupportedGetScriptOperators: Int, // Maximum supported GET operators in a single func
+    maximumNumberOfSupportedSetScriptOperators: Int, // Maximum supported SET operators in a single func
+    sharedMemorySize: Int, // Size of shared memory
+    debuggerAreaOffset: Int, // The memory offset of debugger
+    debuggeeAreaOffset: Int, // The memory offset of debuggee
+    numberOfPins: Int, // Number of pins
+    numberOfPorts: Int, // Number of ports
+    scriptCapabilities: Long, // Capabilities bitmask
+    bramAddrWidth: Int, // BRAM address width
+    bramDataWidth: Int, // BRAM data width
+    portsConfiguration: Array[Int] // Port arrangement
 )
 
 object HwdbgScriptCapabilities {
-  val inc: Long = 1L << 0
-  val dec: Long = 1L << 1
-  val or: Long = 1L << 2
-  val xor: Long = 1L << 3
-  val and: Long = 1L << 4
-  val asr: Long = 1L << 5
-  val asl: Long = 1L << 6
-  val add: Long = 1L << 7
-  val sub: Long = 1L << 8
-  val mul: Long = 1L << 9
-  val div: Long = 1L << 10
-  val mod: Long = 1L << 11
-  val gt: Long = 1L << 12
-  val lt: Long = 1L << 13
-  val egt: Long = 1L << 14
-  val elt: Long = 1L << 15
-  val equal: Long = 1L << 16
-  val neq: Long = 1L << 17
-  val jmp: Long = 1L << 18
-  val jz: Long = 1L << 19
-  val jnz: Long = 1L << 20
-  val mov: Long = 1L << 21
-  val printf: Long = 1L << 22
+
+  //
+  // Statements and expressions
+  //
+  val assign_local_global_var: Long = 1L << 0
+  val assign_registers: Long = 1L << 1
+  val assign_pseudo_registers: Long = 1L << 2
+  val conditional_statements_and_comparison_operators: Long = 1L << 3
+
+  //
+  // Operators
+  //
+  val func_or: Long = 1L << 4
+  val func_xor: Long = 1L << 5
+  val func_and: Long = 1L << 6
+  val func_asr: Long = 1L << 7
+  val func_asl: Long = 1L << 8
+  val func_add: Long = 1L << 9
+  val func_sub: Long = 1L << 10
+  val func_mul: Long = 1L << 11
+  val func_div: Long = 1L << 12
+  val func_mod: Long = 1L << 13
+  val func_gt: Long = 1L << 14
+  val func_lt: Long = 1L << 15
+  val func_egt: Long = 1L << 16
+  val func_elt: Long = 1L << 17
+  val func_equal: Long = 1L << 18
+  val func_neq: Long = 1L << 19
+  val func_jmp: Long = 1L << 20
+  val func_jz: Long = 1L << 21
+  val func_jnz: Long = 1L << 22
+  val func_mov: Long = 1L << 23
+  val func_printf: Long = 1L << 24
 
   def allCapabilities: Seq[Long] = Seq(
-    inc, dec, or, xor, and, asr, asl, add, sub, mul, div, mod, gt, lt,
-    egt, elt, equal, neq, jmp, jz, jnz, mov, printf
+    assign_local_global_var,
+    assign_registers,
+    assign_pseudo_registers,
+    conditional_statements_and_comparison_operators,
+    func_or,
+    func_xor,
+    func_and,
+    func_asr,
+    func_asl,
+    func_add,
+    func_sub,
+    func_mul,
+    func_div,
+    func_mod,
+    func_gt,
+    func_lt,
+    func_egt,
+    func_elt,
+    func_equal,
+    func_neq,
+    func_jmp,
+    func_jz,
+    func_jnz,
+    func_mov,
+    func_printf
   )
-}
-
-object HwdbgInstanceInformation {
 
   //
   // Utility method to create a bitmask from a sequence of capabilities
@@ -230,39 +296,67 @@ object HwdbgInstanceInformation {
   }
 
   //
+  // Function to check if a capability is supported
+  //
+  def isCapabilitySupported(supportedCapabilities: Long, capability: Long): Boolean = {
+    (supportedCapabilities & capability) != 0
+  }
+
+}
+
+object HwdbgInstanceInformation {
+
+  //
   // Function to create an instance of HwdbgInstanceInformation
   //
   def createInstanceInformation(
-    version: Int,
-    maximumNumberOfStages: Int,
-    scriptVariableLength: Int,
-    maximumNumberOfSupportedScriptOperators: Int,
-    numberOfPins: Int,
-    numberOfPorts: Int,
-    enabledCapabilities: Seq[Long],
-    portsConfiguration: Array[Int]
+      version: Int,
+      maximumNumberOfStages: Int,
+      scriptVariableLength: Int,
+      numberOfSupportedLocalAndGlobalVariables: Int,
+      numberOfSupportedTemporaryVariables: Int,
+      maximumNumberOfSupportedGetScriptOperators: Int,
+      maximumNumberOfSupportedSetScriptOperators: Int,
+      sharedMemorySize: Int,
+      debuggerAreaOffset: Int,
+      debuggeeAreaOffset: Int,
+      numberOfPins: Int,
+      numberOfPorts: Int,
+      enabledCapabilities: Seq[Long],
+      bramAddrWidth: Int,
+      bramDataWidth: Int,
+      portsConfiguration: Array[Int]
   ): HwdbgInstanceInformation = {
 
-    val capabilitiesMask = createCapabilitiesMask(enabledCapabilities)
+    val capabilitiesMask = HwdbgScriptCapabilities.createCapabilitiesMask(enabledCapabilities)
 
     //
     // Printing the versioning info
     //
     LogInfo(true)("=======================================================================")
-    LogInfo(true)(s"Generating code for hwdbg v${Version.extractMajor(version)}.${Version.extractMinor(version)}.${Version.extractPatch(version)} ($version)")
+    LogInfo(true)(
+      s"Generating code for hwdbg v${Version.extractMajor(version)}.${Version.extractMinor(version)}.${Version.extractPatch(version)} ($version)"
+    )
     LogInfo(true)("Please visit https://hwdbg.hyperdbg.org/docs for more information...")
     LogInfo(true)("hwdbg is released under the GNU Public License v3 (GPLv3).")
     LogInfo(true)("=======================================================================")
-
 
     HwdbgInstanceInformation(
       version = version,
       maximumNumberOfStages = maximumNumberOfStages,
       scriptVariableLength = scriptVariableLength,
-      maximumNumberOfSupportedScriptOperators = maximumNumberOfSupportedScriptOperators,
+      numberOfSupportedLocalAndGlobalVariables = numberOfSupportedLocalAndGlobalVariables,
+      numberOfSupportedTemporaryVariables = numberOfSupportedTemporaryVariables,
+      maximumNumberOfSupportedGetScriptOperators = maximumNumberOfSupportedGetScriptOperators,
+      maximumNumberOfSupportedSetScriptOperators = maximumNumberOfSupportedSetScriptOperators,
+      sharedMemorySize = sharedMemorySize,
+      debuggerAreaOffset = debuggerAreaOffset,
+      debuggeeAreaOffset = debuggeeAreaOffset,
       numberOfPins = numberOfPins,
       numberOfPorts = numberOfPorts,
       scriptCapabilities = capabilitiesMask,
+      bramAddrWidth = bramAddrWidth,
+      bramDataWidth = bramDataWidth,
       portsConfiguration = portsConfiguration
     )
   }

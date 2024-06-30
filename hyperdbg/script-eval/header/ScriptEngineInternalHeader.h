@@ -65,6 +65,12 @@ ScriptEnginePseudoRegGetEventId(PACTION_BUFFER ActionBuffer);
 UINT64
 ScriptEnginePseudoRegGetEventStage(PACTION_BUFFER ActionBuffer);
 
+UINT64
+ScriptEnginePseudoRegGetTime();
+
+UINT64
+ScriptEnginePseudoRegGetDate();
+
 //////////////////////////////////////////////////
 //			         Keywords                   //
 //////////////////////////////////////////////////

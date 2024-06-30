@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1.0] - 2024-06-30
+New release of the HyperDbg Debugger.
+
+### Added
+- Regular port/pin value read and modification in hwdbg
+- Conditional statement evaluation in hwdbg
+- Added automatic script buffer packet generator for hwdbg
+- Added support for @hw_pinX and @hw_portX registers
+- Added hwdbg instance information interpreter
+- Added stack buffer in vmx-root ([link](https://github.com/HyperDbg/HyperDbg/commit/5df4d2a5268a6b190dc126bf6cfe0527703296eb))
+- Exporting functions to support loading drivers with different names
+- Exporting function to connect and load HyperDbg drivers
+- Exporting function to connect and load HyperDbg drivers
+- **$date** and **$time** pseudo-registers are added ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))([link](https://github.com/HyperDbg/HyperDbg/issues/397))
+
+### Changed
+- Fix using constant WSTRINGs in the **wcsncmp** function ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/strings/wcsncmp))
+- Fix `phnt` build error with 24H2 SDK
+- `hprdbgctrl.dll` changed to `libhyperdbg.dll`
+- `hprdbgkd.sys` changed to `hyperkd.sys`
+- `hprdbghv.dll` changed to `hyperhv.dll`
+- Dividing user/kernel exported headers in the SDK
+
 ## [0.9.0.0] - 2024-06-09
 New release of the HyperDbg Debugger.
 

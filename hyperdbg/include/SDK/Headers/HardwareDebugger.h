@@ -13,6 +13,22 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//                 Definitions                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Initial debuggee to debugger offset
+ *
+ */
+#define DEFAULT_INITIAL_DEBUGGEE_TO_DEBUGGER_OFFSET 0x200
+
+/**
+ * @brief Initial debugger to debuggee offset
+ *
+ */
+#define DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET 0x0
+
+//////////////////////////////////////////////////
 //                   Enums                      //
 //////////////////////////////////////////////////
 
@@ -23,9 +39,8 @@
  */
 typedef enum _HWDBG_ACTION_ENUMS
 {
-    hwdbgActionSendVersion           = 1,
-    hwdbgActionSendPinInformation    = 2,
-    hwdbgActionConfigureScriptBuffer = 3,
+    hwdbgActionSendInstanceInfo      = 1,
+    hwdbgActionConfigureScriptBuffer = 2,
 
 } HWDBG_ACTION_ENUMS;
 
@@ -36,23 +51,22 @@ typedef enum _HWDBG_ACTION_ENUMS
  */
 typedef enum _HWDBG_RESPONSE_ENUMS
 {
-    hwdbgResponseInvalidPacketOrError            = 1,
-    hwdbgResponseVersion                         = 2,
-    hwdbgResponsePinInformation                  = 3,
-    hwdbgResponseScriptBufferConfigurationResult = 4,
+    hwdbgResponseSuccessOrErrorMessage = 1,
+    hwdbgResponseInstanceInfo          = 2,
 
 } HWDBG_RESPONSE_ENUMS;
 
 /**
- * @brief Different error codes in hwdbg
+ * @brief Different success or error codes in hwdbg
  * @warning This file should be changed along with hwdbg files
  *
  */
-typedef enum _HWDBG_ERROR_ENUMS
+typedef enum _HWDBG_SUCCESS_OR_ERROR_ENUMS
 {
-    hwdbgErrorInvalidPacket = 1,
+    hwdbgOperationWasSuccessful = 0x7FFFFFFF,
+    hwdbgErrorInvalidPacket     = 1,
 
-} HWDBG_ERROR_ENUMS;
+} HWDBG_SUCCESS_OR_ERROR_ENUMS;
 
 //////////////////////////////////////////////////
 //                   Structures                 //
@@ -72,42 +86,71 @@ typedef struct _HWDBG_PORT_INFORMATION_ITEMS
  * @brief The structure of script capabilities information in hwdbg
  *
  */
+#pragma pack(push, 4) // This is to make sure the structure is packed (without padding alignment)
 typedef struct _HWDBG_INSTANCE_INFORMATION
 {
-    UINT32 Version;                                 // Target version of HyperDbg (same as hwdbg)
-    UINT32 MaximumNumberOfStages;                   // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
-    UINT32 scriptVariableLength;                    // maximum length of variables (and other script elements)
-    UINT32 maximumNumberOfSupportedScriptOperators; // maximum supported operators in a single func
-    UINT32 numberOfPins;                            // Number of pins
-    UINT32 numberOfPorts;                           // Number of ports
+    //
+    // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE
+    //
+    UINT32 version;                                    // Target version of HyperDbg (same as hwdbg)
+    UINT32 maximumNumberOfStages;                      // Number of stages that this instance of hwdbg supports (NumberOfSupportedStages == 0 means script engine is disabled)
+    UINT32 scriptVariableLength;                       // Maximum length of variables (and other script elements)
+    UINT32 numberOfSupportedLocalAndGlobalVariables;   // Number of supported local (and global) variables
+    UINT32 numberOfSupportedTemporaryVariables;        // Number of supported temporary variables
+    UINT32 maximumNumberOfSupportedGetScriptOperators; // Maximum supported GET operators in a single func
+    UINT32 maximumNumberOfSupportedSetScriptOperators; // Maximum supported SET operators in a single func
+    UINT32 sharedMemorySize;                           // Size of shared memory
+    UINT32 debuggerAreaOffset;                         // The memory offset of debugger
+    UINT32 debuggeeAreaOffset;                         // The memory offset of debuggee
+    UINT32 numberOfPins;                               // Number of pins
+    UINT32 numberOfPorts;                              // Number of ports
+
+    //
+    // ANY ADDITION TO THIS STRUCTURE SHOULD BE SYNCHRONIZED WITH SCALA AND INSTANCE INFO SENDER MODULE
+    //
 
     struct _HWDBG_SCRIPT_CAPABILITIES
     {
-        UINT64 inc : 1;
-        UINT64 dec : 1;
-        UINT64 or : 1;
-        UINT64 xor : 1;
-        UINT64 and : 1;
-        UINT64 asr : 1;
-        UINT64 asl : 1;
-        UINT64 add : 1;
-        UINT64 sub : 1;
-        UINT64 mul : 1;
-        UINT64 div : 1;
-        UINT64 mod : 1;
-        UINT64 gt : 1;
-        UINT64 lt : 1;
-        UINT64 egt : 1;
-        UINT64 elt : 1;
-        UINT64 equal : 1;
-        UINT64 neq : 1;
-        UINT64 jmp : 1;
-        UINT64 jz : 1;
-        UINT64 jnz : 1;
-        UINT64 mov : 1;
-        UINT64 printf : 1;
+        //
+        // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
+        // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file
+        //
+        UINT64 assign_local_global_var : 1;
+        UINT64 assign_registers : 1;
+        UINT64 assign_pseudo_registers : 1;
+        UINT64 conditional_statements_and_comparison_operators : 1;
+
+        UINT64 func_or : 1;
+        UINT64 func_xor : 1;
+        UINT64 func_and : 1;
+        UINT64 func_asr : 1;
+        UINT64 func_asl : 1;
+        UINT64 func_add : 1;
+        UINT64 func_sub : 1;
+        UINT64 func_mul : 1;
+        UINT64 func_div : 1;
+        UINT64 func_mod : 1;
+        UINT64 func_gt : 1;
+        UINT64 func_lt : 1;
+        UINT64 func_egt : 1;
+        UINT64 func_elt : 1;
+        UINT64 func_equal : 1;
+        UINT64 func_neq : 1;
+        UINT64 func_jmp : 1;
+        UINT64 func_jz : 1;
+        UINT64 func_jnz : 1;
+        UINT64 func_mov : 1;
+        UINT64 func_printf : 1;
+
+        //
+        // ANY ADDITION TO THIS MASK SHOULD BE ADDED TO HwdbgInterpreterShowScriptCapabilities
+        // and HwdbgInterpreterCheckScriptBufferWithScriptCapabilities as well Scala file
+        //
 
     } scriptCapabilities;
+
+    UINT32 bramAddrWidth; // BRAM address width
+    UINT32 bramDataWidth; // BRAM data width
 
     //
     // Here the details of port arrangements are located (HWDBG_PORT_INFORMATION_ITEMS)
@@ -115,4 +158,21 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
     //   HWDBG_PORT_INFORMATION_ITEMS portsConfiguration[numberOfPorts]   ; Port arrangement
     //
 
-} HWDBG_SCRIPT_CAPABILITIES_INFORMATION, *PHWDBG_SCRIPT_CAPABILITIES_INFORMATION;
+} HWDBG_INSTANCE_INFORMATION, *PHWDBG_INSTANCE_INFORMATION;
+#pragma pack(pop) // This is to make sure the structure is packed (without padding alignment)
+
+/**
+ * @brief The structure of script buffer in hwdbg
+ *
+ */
+typedef struct _HWDBG_SCRIPT_BUFFER
+{
+    UINT32 scriptNumberOfSymbols; // Number of symbols in the script
+
+    //
+    // Here the script buffer is located
+    //
+    // UINT8 scriptBuffer[scriptNumberOfSymbols]; // The script buffer
+    //
+
+} HWDBG_SCRIPT_BUFFER, *PHWDBG_SCRIPT_BUFFER;

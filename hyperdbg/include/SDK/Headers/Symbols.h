@@ -77,13 +77,6 @@ typedef struct _DEBUGGER_UPDATE_SYMBOL_TABLE
 
 } DEBUGGER_UPDATE_SYMBOL_TABLE, *PDEBUGGER_UPDATE_SYMBOL_TABLE;
 
-/**
- * @brief check so the DEBUGGER_UPDATE_SYMBOL_TABLE should be smaller than packet size
- *
- */
-static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize,
-              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGER_UPDATE_SYMBOL_TABLE (MODULE_SYMBOL_DETAIL)");
-
 /*
 ==============================================================================================
  */

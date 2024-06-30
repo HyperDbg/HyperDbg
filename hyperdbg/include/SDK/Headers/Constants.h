@@ -18,7 +18,7 @@
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 9
-#define VERSION_PATCH 0
+#define VERSION_PATCH 1
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -624,6 +624,8 @@ const unsigned char BuildSignature[] = {
 #endif // !HIBYTE
 
 #define MAX_TEMP_COUNT 128
+
+#define MAX_STACK_BUFFER_COUNT 128
 
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.

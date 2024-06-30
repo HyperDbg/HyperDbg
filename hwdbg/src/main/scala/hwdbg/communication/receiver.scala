@@ -33,8 +33,7 @@ object DebuggerPacketReceiverEnums {
 
 class DebuggerPacketReceiver(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -60,8 +59,8 @@ class DebuggerPacketReceiver(
     //
     // BRAM (Block RAM) ports
     //
-    val rdWrAddr = Output(UInt(bramAddrWidth.W)) // read/write address
-    val rdData = Input(UInt(bramDataWidth.W)) // read data
+    val rdWrAddr = Output(UInt(instanceInfo.bramAddrWidth.W)) // read/write address
+    val rdData = Input(UInt(instanceInfo.bramDataWidth.W)) // read data
 
     //
     // Receiving signals
@@ -74,7 +73,7 @@ class DebuggerPacketReceiver(
     val readNextData = Input(Bool()) // whether the next data should be read or not?
 
     val dataValidOutput = Output(Bool()) // whether data on the receiving data line is valid or not?
-    val receivingData = Output(UInt(bramDataWidth.W)) // data to be sent to the reader
+    val receivingData = Output(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the reader
 
     val finishedReceivingBuffer = Output(Bool()) // Receiving is done or not?
 
@@ -88,13 +87,13 @@ class DebuggerPacketReceiver(
   //
   // Output pins
   //
-  val rdWrAddr = WireInit(0.U(bramAddrWidth.W))
-  val regRdWrAddr = RegInit(0.U(bramAddrWidth.W))
+  val rdWrAddr = WireInit(0.U(instanceInfo.bramAddrWidth.W))
+  val regRdWrAddr = RegInit(0.U(instanceInfo.bramAddrWidth.W))
   val finishedReceivingBuffer = WireInit(false.B)
   val regRequestedActionOfThePacketOutput = RegInit(0.U(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
   val regRequestedActionOfThePacketOutputValid = RegInit(false.B)
   val regDataValidOutput = RegInit(false.B)
-  val regReceivingData = RegInit(0.U(bramDataWidth.W))
+  val regReceivingData = RegInit(0.U(instanceInfo.bramDataWidth.W))
 
   //
   // Rising-edge detector for start receiving signal
@@ -151,7 +150,7 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read Checksum from BRAM (Not Used)
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.checksum).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.checksum).U
 
         //
         // Goes to the next section
@@ -164,7 +163,7 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read Indicator from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.indicator).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.indicator).U
 
         //
         // Goes to the next section
@@ -177,15 +176,20 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read TypeOfThePacket from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.typeOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.typeOfThePacket).U
 
         //
         // Check whether the indicator is valid or not
         //
         LogInfo(debug)(
-          f"Comparing first 0x${BitwiseFunction.printBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1))}%x number of the indicator (little-endian)"
+          f"Comparing first 0x${BitwiseFunction.getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + instanceInfo.bramDataWidth - 1))}%x number of the indicator (little-endian)"
         )
-        when(io.rdData === BitwiseFunction.printBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + bramDataWidth - 1)).U) {
+
+        when(
+          io.rdData === BitwiseFunction
+            .getBitsInRange(HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET, 32, (32 + instanceInfo.bramDataWidth - 1))
+            .U
+        ) {
 
           //
           // Indicator of packet is valid
@@ -208,12 +212,12 @@ class DebuggerPacketReceiver(
         //
         // Adjust address to read RequestedActionOfThePacket from BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.requestedActionOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.requestedActionOfThePacket).U
 
         //
         // Save the address into a register
         //
-        regRdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION + receivedPacketBuffer.Offset.requestedActionOfThePacket + (bramDataWidth >> 3)).U
+        regRdWrAddr := (instanceInfo.debuggerAreaOffset + receivedPacketBuffer.Offset.requestedActionOfThePacket + (instanceInfo.bramDataWidth >> 3)).U
 
         //
         // Check whether the type of the packet is valid or not
@@ -285,7 +289,7 @@ class DebuggerPacketReceiver(
           // Adjust address to read next data to BRAM
           //
           rdWrAddr := regRdWrAddr
-          regRdWrAddr := regRdWrAddr + (bramDataWidth >> 3).U
+          regRdWrAddr := regRdWrAddr + (instanceInfo.bramDataWidth >> 3).U
 
           //
           // Read the next offset of the buffer
@@ -379,8 +383,7 @@ object DebuggerPacketReceiver {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       plInSignal: Bool,
@@ -392,16 +395,15 @@ object DebuggerPacketReceiver {
     val debuggerPacketReceiver = Module(
       new DebuggerPacketReceiver(
         debug,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 
-    val rdWrAddr = Wire(UInt(bramAddrWidth.W))
+    val rdWrAddr = Wire(UInt(instanceInfo.bramAddrWidth.W))
     val requestedActionOfThePacketOutput = Wire(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W))
     val requestedActionOfThePacketOutputValid = Wire(Bool())
     val dataValidOutput = Wire(Bool())
-    val receivingData = Wire(UInt(bramDataWidth.W))
+    val receivingData = Wire(UInt(instanceInfo.bramDataWidth.W))
     val finishedReceivingBuffer = Wire(Bool())
 
     //

@@ -1061,6 +1061,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         KeQuerySystemTime(&SystemTime);
         ExSystemTimeToLocalTime(&SystemTime, &LocalTime);
         RtlTimeToTimeFields(&LocalTime, &TimeFields);
+
         //
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchPrintfA(TimeBuffer, RTL_NUMBER_OF(TimeBuffer),
@@ -1454,18 +1455,18 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
 /**
  * @brief Register a new IRP Pending thread which listens for new buffers
  *
- * @param DeviceObject
- * @param Irp
- * @return NTSTATUS
+ * @param TargetIrp
+ * @param Status
+ *
+ * @return BOOLEAN
  */
-NTSTATUS
-LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+BOOLEAN
+LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
 {
-    UNREFERENCED_PARAMETER(DeviceObject);
-
     PNOTIFY_RECORD          NotifyRecord;
     PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    PIRP                    Irp = (PIRP)TargetIrp;
 
     //
     // check if current core has another thread with pending IRP,
@@ -1486,7 +1487,8 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         if (NULL == NotifyRecord)
         {
-            return STATUS_INSUFFICIENT_RESOURCES;
+            *Status = (LONG)STATUS_INSUFFICIENT_RESOURCES;
+            return FALSE;
         }
 
         NotifyRecord->Type               = IRP_BASED;
@@ -1560,30 +1562,31 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // We will return pending as we have marked the IRP pending
         //
-        return STATUS_PENDING;
+
+        *Status = (LONG)STATUS_PENDING;
+        return TRUE;
     }
     else
     {
-        return STATUS_SUCCESS;
+        *Status = (LONG)STATUS_SUCCESS;
+        return TRUE;
     }
 }
 
 /**
  * @brief Create an event-based usermode notifying mechanism
  *
- * @param DeviceObject
- * @param Irp
- * @return NTSTATUS
+ * @param TargetIrp
+ * @return BOOLEAN
  */
-NTSTATUS
-LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+BOOLEAN
+LogRegisterEventBasedNotification(PVOID TargetIrp)
 {
-    UNREFERENCED_PARAMETER(DeviceObject);
-
     PNOTIFY_RECORD          NotifyRecord;
     NTSTATUS                Status;
     PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    PIRP                    Irp = (PIRP)TargetIrp;
 
     IrpStack      = IoGetCurrentIrpStackLocation(Irp);
     RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
@@ -1595,7 +1598,8 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (NULL == NotifyRecord)
     {
-        return STATUS_INSUFFICIENT_RESOURCES;
+        DbgPrint("Err, unable to allocate memory for notify record\n");
+        return FALSE;
     }
 
     NotifyRecord->Type = EVENT_BASED;
@@ -1618,9 +1622,9 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (!NT_SUCCESS(Status))
     {
-        DbgPrint("Err, unable to reference user mode event object, status = 0x%x", Status);
+        DbgPrint("Err, unable to reference user mode event object, status = 0x%x\n", Status);
         PlatformMemFreePool(NotifyRecord);
-        return Status;
+        return FALSE;
     }
 
     //
@@ -1628,5 +1632,5 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }

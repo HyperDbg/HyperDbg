@@ -519,7 +519,7 @@ Top(PTOKEN_LIST TokenList)
  * @brief Checks whether input char belongs to hexadecimal digit-set or not
  *
  * @param char
- * @return bool
+ * @return char
  */
 char
 IsHex(char c)
@@ -534,7 +534,7 @@ IsHex(char c)
  * @brief Checks whether input char belongs to decimal digit-set or not
  *
  * @param char
- * @return bool
+ * @return char
  */
 char
 IsDecimal(char c)
@@ -549,12 +549,29 @@ IsDecimal(char c)
  * @brief Checks whether input char belongs to alphabet set or not
  *
  * @param char
- * @return bool
+ * @return char
  */
 char
 IsLetter(char c)
 {
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+        return 1;
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief Checks whether input char is underscore (_) or not
+ *
+ * @param char
+ * @return char
+ */
+char
+IsUnderscore(char c)
+{
+    if (c >= '_')
         return 1;
     else
     {
@@ -583,7 +600,7 @@ IsBinary(char c)
  * @brief Checks whether input char belongs to octal digit-set or not
  *
  * @param char
- * @return bool
+ * @return char
  */
 char
 IsOctal(char c)
@@ -991,6 +1008,26 @@ IsType14Func(PTOKEN Operator)
     for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ThreeOpFunc2[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Checks whether this Token type is ThreeOpFunc4
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType15Func(PTOKEN Operator)
+{
+    unsigned int n = THREEOPFUNC4_LENGTH;
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ThreeOpFunc4[i]))
         {
             return 1;
         }

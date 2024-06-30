@@ -1,0 +1,6 @@
+LIBRARY hyperhv
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE

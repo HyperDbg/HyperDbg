@@ -31,8 +31,7 @@ object DebuggerPacketSenderEnums {
 
 class DebuggerPacketSender(
     debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-    bramAddrWidth: Int,
-    bramDataWidth: Int
+    instanceInfo: HwdbgInstanceInformation
 ) extends Module {
 
   //
@@ -58,9 +57,9 @@ class DebuggerPacketSender(
     //
     // BRAM (Block RAM) ports
     //
-    val rdWrAddr = Output(UInt(bramAddrWidth.W)) // read/write address
+    val rdWrAddr = Output(UInt(instanceInfo.bramAddrWidth.W)) // read/write address
     val wrEna = Output(Bool()) // enable writing
-    val wrData = Output(UInt(bramDataWidth.W)) // write data
+    val wrData = Output(UInt(instanceInfo.bramDataWidth.W)) // write data
 
     //
     // Sending signals
@@ -73,7 +72,7 @@ class DebuggerPacketSender(
     val finishedSendingBuffer = Output(Bool()) // indicate that the sender finished sending buffers and ready to send next packet
 
     val requestedActionOfThePacketInput = Input(UInt(new DebuggerRemotePacket().RequestedActionOfThePacket.getWidth.W)) // the requested action
-    val sendingData = Input(UInt(bramDataWidth.W)) // data to be sent to the debugger
+    val sendingData = Input(UInt(instanceInfo.bramDataWidth.W)) // data to be sent to the debugger
 
   })
 
@@ -87,16 +86,16 @@ class DebuggerPacketSender(
   //
   val psOutInterrupt = WireInit(false.B)
   val wrEna = WireInit(false.B)
-  val wrData = WireInit(0.U(bramDataWidth.W))
+  val wrData = WireInit(0.U(instanceInfo.bramDataWidth.W))
   val sendWaitForBuffer = WireInit(false.B)
   val finishedSendingBuffer = WireInit(false.B)
-  val rdWrAddr = WireInit(0.U(bramAddrWidth.W))
+  val rdWrAddr = WireInit(0.U(instanceInfo.bramAddrWidth.W))
 
   //
   // Temporary address and data holder (register)
   //
-  val regRdWrAddr = RegInit(0.U(bramAddrWidth.W))
-  val regDataToSend = RegInit(0.U(bramDataWidth.W))
+  val regRdWrAddr = RegInit(0.U(instanceInfo.bramAddrWidth.W))
+  val regDataToSend = RegInit(0.U(instanceInfo.bramDataWidth.W))
 
   //
   // Rising-edge detector for start sending signal
@@ -164,7 +163,7 @@ class DebuggerPacketSender(
         //
         // Adjust address to write Checksum to BRAM (Not Used)
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.checksum).U
+        rdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.checksum).U
 
         //
         // Adjust data to write Checksum
@@ -183,7 +182,7 @@ class DebuggerPacketSender(
       }
       is(sWriteIndicator) {
 
-        if (bramDataWidth >= lengthOfIndicator) {
+        if (instanceInfo.bramDataWidth >= lengthOfIndicator) {
 
           //
           // Enable writing to the BRAM
@@ -193,7 +192,7 @@ class DebuggerPacketSender(
           //
           // Adjust address to write Indicator to BRAM
           //
-          rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.indicator).U
+          rdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.indicator).U
 
           //
           // Adjust data to write Indicator
@@ -216,7 +215,7 @@ class DebuggerPacketSender(
           // Adjust address to write Indicator to BRAM (Address granularity is in the byte format so,
           // it'll be divided by 8 or shift to right by 3)
           //
-          rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.indicator).U + (regTransferredIndicatorLength >> 3)
+          rdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.indicator).U + (regTransferredIndicatorLength >> 3)
 
           //
           // Adjust data to write Indicator
@@ -226,7 +225,7 @@ class DebuggerPacketSender(
           //
           // Add to the length transfered
           //
-          regTransferredIndicatorLength := regTransferredIndicatorLength + bramDataWidth.U
+          regTransferredIndicatorLength := regTransferredIndicatorLength + instanceInfo.bramDataWidth.U
 
           when(regTransferredIndicatorLength >= lengthOfIndicator.U) {
 
@@ -259,7 +258,7 @@ class DebuggerPacketSender(
         //
         // Adjust address to write type of packet to BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.typeOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.typeOfThePacket).U
 
         //
         // Adjust data to write type of packet
@@ -283,7 +282,7 @@ class DebuggerPacketSender(
         //
         // Adjust address to write requested action of packet to BRAM
         //
-        rdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.requestedActionOfThePacket).U
+        rdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.requestedActionOfThePacket).U
 
         //
         // Adjust data to write requested action of packet
@@ -317,7 +316,7 @@ class DebuggerPacketSender(
           // It's not yet started, so we adjust the address to the start
           // of the buffer after the last field of the header
           //
-          regRdWrAddr := (MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION + sendingPacketBuffer.Offset.startOfDataBuffer).U
+          regRdWrAddr := (instanceInfo.debuggeeAreaOffset + sendingPacketBuffer.Offset.startOfDataBuffer).U
 
           //
           // Indicate that sending data already started
@@ -374,7 +373,7 @@ class DebuggerPacketSender(
         // it'll be divided by 8 or shift to right by 3)
         //
         rdWrAddr := regRdWrAddr
-        regRdWrAddr := regRdWrAddr + (bramDataWidth >> 3).U
+        regRdWrAddr := regRdWrAddr + (instanceInfo.bramDataWidth >> 3).U
 
         //
         // Adjust data to write as the sending data
@@ -439,8 +438,7 @@ object DebuggerPacketSender {
 
   def apply(
       debug: Boolean = DebuggerConfigurations.ENABLE_DEBUG,
-      bramAddrWidth: Int,
-      bramDataWidth: Int
+      instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
       beginSendingBuffer: Bool,
@@ -453,15 +451,14 @@ object DebuggerPacketSender {
     val debuggerPacketSender = Module(
       new DebuggerPacketSender(
         debug,
-        bramAddrWidth,
-        bramDataWidth
+        instanceInfo
       )
     )
 
     val psOutInterrupt = Wire(Bool())
-    val rdWrAddr = Wire(UInt(bramAddrWidth.W))
+    val rdWrAddr = Wire(UInt(instanceInfo.bramAddrWidth.W))
     val wrEna = Wire(Bool())
-    val wrData = Wire(UInt(bramDataWidth.W))
+    val wrData = Wire(UInt(instanceInfo.bramDataWidth.W))
     val sendWaitForBuffer = Wire(Bool())
     val finishedSendingBuffer = Wire(Bool())
 

@@ -43,7 +43,14 @@ class ScriptEngineGetValue(
     //
     // Evaluation operator symbol
     //
-    val operator = Input(new Symbol)
+    val operator = Input(new HwdbgShortSymbol(instanceInfo.scriptVariableLength))
+
+    //
+    // Input variables
+    //
+    val localGlobalVariables =
+      Input(Vec(instanceInfo.numberOfSupportedLocalAndGlobalVariables, UInt(instanceInfo.scriptVariableLength.W))) // Local (and Global) variables
+    val tempVariables = Input(Vec(instanceInfo.numberOfSupportedTemporaryVariables, UInt(instanceInfo.scriptVariableLength.W))) // Temporary variables
 
     //
     // Input signals
@@ -75,44 +82,98 @@ class ScriptEngineGetValue(
 
     switch(mainOperatorType) {
 
-      is(symbolGlobalIdType) { 
-        //
-        // To be implemented
-        //
+      is(symbolGlobalIdType) {
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_local_global_var) == true) {
+          //
+          // Set output to local (and global) variables
+          //
+          outputValue := io.localGlobalVariables(io.operator.Value)
+        }
       }
       is(symbolLocalIdType) {
-        //
-        // To be implemented
-        //
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_local_global_var) == true) {
+          //
+          // Set output to local (and global) variables
+          //
+          outputValue := io.localGlobalVariables(io.operator.Value)
+        }
       }
       is(symbolNumType) {
-        
+
+        //
+        // Constant value
+        //
         outputValue := io.operator.Value
       }
       is(symbolRegisterType) {
-        //
-        // To be implemented
-        //
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_registers) == true) {
+
+          //
+          // Registers are pins and ports
+          //
+          when(instanceInfo.numberOfPins.U > io.operator.Value) {
+
+            //
+            // *** Used for getting the pin value ***
+            //
+            outputValue := io.inputPin(io.operator.Value)
+          }.otherwise {
+
+            //
+            // *** Used for getting the port value ***
+            //
+
+            //
+            // Create a vector of wires
+            //
+            val ports = Wire(Vec(instanceInfo.numberOfPorts, UInt(instanceInfo.scriptVariableLength.W)))
+            var currentPortIndex: Int = 0
+            var currentPortNum: Int = 0
+
+            //
+            // Iterate based on port configuration
+            //
+            for (port <- instanceInfo.portsConfiguration) {
+
+              LogInfo(debug)(f"connect port(${currentPortIndex}) to inputPin(${currentPortNum} to ${currentPortNum + port}) for SET")
+              ports(currentPortIndex) := io.inputPin.asUInt(currentPortNum + port - 1, currentPortNum)
+
+              currentPortNum += port
+              currentPortIndex += 1
+            }
+
+            //
+            // Set the output
+            //
+            outputValue := ports(io.operator.Value - instanceInfo.numberOfPins.U)
+          }
+        }
       }
-      is(symbolPseudoRegType) { 
-        //
-        // To be implemented
-        //
+      is(symbolPseudoRegType) {
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.assign_pseudo_registers) == true) {
+          //
+          // To be implemented
+          //
+          outputValue := 0.U
+        }
       }
       is(symbolTempType) {
-        //
-        // To be implemented
-        //
-      }
-      is(symbolStackTempType) {
-        //
-        // To be implemented
-        //
-      }
-      is(symbolFunctionParameterIdType) {
-        //
-        // To be implemented
-        //
+
+        if (
+          HwdbgScriptCapabilities.isCapabilitySupported(
+            instanceInfo.scriptCapabilities,
+            HwdbgScriptCapabilities.conditional_statements_and_comparison_operators
+          ) == true
+        ) {
+          //
+          // Set output to temporary variables
+          //
+          outputValue := io.tempVariables(io.operator.Value)
+        }
       }
     }
   }
@@ -131,7 +192,9 @@ object ScriptEngineGetValue {
       instanceInfo: HwdbgInstanceInformation
   )(
       en: Bool,
-      operator: Symbol,
+      operator: HwdbgShortSymbol,
+      localGlobalVariables: Vec[UInt],
+      tempVariables: Vec[UInt],
       inputPin: Vec[UInt]
   ): (UInt) = {
 
@@ -149,6 +212,8 @@ object ScriptEngineGetValue {
     //
     scriptEngineGetValueModule.io.en := en
     scriptEngineGetValueModule.io.operator := operator
+    scriptEngineGetValueModule.io.localGlobalVariables := localGlobalVariables
+    scriptEngineGetValueModule.io.tempVariables := tempVariables
     scriptEngineGetValueModule.io.inputPin := inputPin
 
     //

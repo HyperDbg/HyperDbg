@@ -11,7 +11,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cl
 		{C3DC85E1-0559-4B58-9792-DE421472DFE9} = {C3DC85E1-0559-4B58-9792-DE421472DFE9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbghv", "hprdbghv\hprdbghv.vcxproj", "{BB17323A-2460-4AE1-8AFE-B367400B934F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperhv", "hyperhv\hyperhv.vcxproj", "{BB17323A-2460-4AE1-8AFE-B367400B934F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2D988267-CC53-41E3-936A-48CEF9049DF5} = {2D988267-CC53-41E3-936A-48CEF9049DF5}
 	EndProjectSection
@@ -24,7 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgctrl", "hprdbgctrl\hprdbgctrl.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhyperdbg", "libhyperdbg\libhyperdbg.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA} = {AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}
 		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{7EA9E1E8-428
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5}"
 	ProjectSection(SolutionItems) = preProject
+		include\SDK\Headers\Assertions.h = include\SDK\Headers\Assertions.h
 		include\SDK\Headers\BasicTypes.h = include\SDK\Headers\BasicTypes.h
 		include\SDK\Headers\Connection.h = include\SDK\Headers\Connection.h
 		include\SDK\Headers\Constants.h = include\SDK\Headers\Constants.h
@@ -84,22 +85,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{952986BC-7
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Imports", "Imports", "{B3D9DA75-8FBD-4A2C-826A-B50406396EC4}"
-	ProjectSection(SolutionItems) = preProject
-		include\SDK\Imports\HyperDbgCtrlImports.h = include\SDK\Imports\HyperDbgCtrlImports.h
-		include\SDK\Imports\HyperDbgHyperLogImports.h = include\SDK\Imports\HyperDbgHyperLogImports.h
-		include\SDK\Imports\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\HyperDbgHyperLogIntrinsics.h
-		include\SDK\Imports\HyperDbgRevImports.h = include\SDK\Imports\HyperDbgRevImports.h
-		include\SDK\Imports\HyperDbgScriptImports.h = include\SDK\Imports\HyperDbgScriptImports.h
-		include\SDK\Imports\HyperDbgSymImports.h = include\SDK\Imports\HyperDbgSymImports.h
-		include\SDK\Imports\HyperDbgVmmImports.h = include\SDK\Imports\HyperDbgVmmImports.h
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}"
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\Examples\example.py = include\SDK\Examples\example.py
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgkd", "hprdbgkd\hprdbgkd.vcxproj", "{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperkd", "hyperkd\hyperkd.vcxproj", "{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D} = {AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}
 		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
@@ -152,7 +144,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{D82074
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{9749520E-64FF-4633-855B-54BC541CDBB6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "include\SDK\Examples\hyperdbg_app\hprdbgrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "include\SDK\Examples\hyperdbg_app\hyperrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
 		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
@@ -185,6 +177,20 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{DBE32379-8D5A-4454-A1B6-ACC407881898}"
 	ProjectSection(SolutionItems) = preProject
 		include\platform\user\header\Environment.h = include\platform\user\header\Environment.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User", "User", "{3C04357D-93B5-4472-94BB-8D22A1EB16DB}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Imports\User\HyperDbgLibImports.h = include\SDK\Imports\User\HyperDbgLibImports.h
+		include\SDK\Imports\User\HyperDbgScriptImports.h = include\SDK\Imports\User\HyperDbgScriptImports.h
+		include\SDK\Imports\User\HyperDbgSymImports.h = include\SDK\Imports\User\HyperDbgSymImports.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kernel", "Kernel", "{947577A8-A9A5-4F90-8883-5FB722FE58E2}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h = include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h
+		include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h
+		include\SDK\Imports\Kernel\HyperDbgVmmImports.h = include\SDK\Imports\Kernel\HyperDbgVmmImports.h
 	EndProjectSection
 EndProject
 Global
@@ -365,6 +371,8 @@ Global
 		{AA41FFF1-A730-433E-8D26-13DA5B653825} = {D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7}
 		{4BF590C3-1032-4DD2-BF87-BB9E5781977C} = {015523BA-4326-4A84-9CB5-E1E9B6182209}
 		{DBE32379-8D5A-4454-A1B6-ACC407881898} = {015523BA-4326-4A84-9CB5-E1E9B6182209}
+		{3C04357D-93B5-4472-94BB-8D22A1EB16DB} = {B3D9DA75-8FBD-4A2C-826A-B50406396EC4}
+		{947577A8-A9A5-4F90-8883-5FB722FE58E2} = {B3D9DA75-8FBD-4A2C-826A-B50406396EC4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

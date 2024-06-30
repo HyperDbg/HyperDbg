@@ -9,3 +9,9 @@
 #include "SDK/Headers/Events.h"
 #include "SDK/Headers/RequestStructures.h"
 #include "SDK/Headers/Symbols.h"
+#include "SDK/Headers/HardwareDebugger.h"
+
+//
+// Asserts
+//
+#include "SDK/Headers/Assertions.h"

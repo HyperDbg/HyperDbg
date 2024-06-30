@@ -10,7 +10,7 @@
 #define OPERATORS_ONE_OPERAND_LIST_LENGTH 4
 #define OPERATORS_TWO_OPERAND_LIST_LENGTH 16
 #define REGISTER_MAP_LIST_LENGTH 120
-#define PSEUDO_REGISTER_MAP_LIST_LENGTH 14
+#define PSEUDO_REGISTER_MAP_LIST_LENGTH 16
 #define SEMANTIC_RULES_MAP_LIST_LENGTH 141
 #define THREEOPFUNC1_LENGTH 1
 #define THREEOPFUNC2_LENGTH 2
@@ -20,7 +20,8 @@
 #define ONEOPFUNC2_LENGTH 9
 #define ONEOPFUNC3_LENGTH 1
 #define TWOOPFUNC3_LENGTH 1
-#define THREEOPFUNC3_LENGTH 3
+#define THREEOPFUNC3_LENGTH 2
+#define THREEOPFUNC4_LENGTH 1
 #define ONEOPFUNC4_LENGTH 1
 #define TWOOPFUNC4_LENGTH 1
 #define ZEROOPFUNC1_LENGTH 7
@@ -44,6 +45,7 @@ extern const char* OneOpFunc2[];
 extern const char* OneOpFunc3[];
 extern const char* TwoOpFunc3[];
 extern const char* ThreeOpFunc3[];
+extern const char* ThreeOpFunc4[];
 extern const char* OneOpFunc4[];
 extern const char* TwoOpFunc4[];
 extern const char* ZeroOpFunc1[];

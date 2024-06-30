@@ -179,6 +179,9 @@ char
 IsLetter(char c);
 
 char
+IsUnderscore(char c);
+
+char
 IsBinary(char c);
 
 char
@@ -247,6 +250,9 @@ IsType13Func(PTOKEN Operator);
 
 char
 IsType14Func(PTOKEN Operator);
+
+char
+IsType15Func(PTOKEN Operator);
 
 char
 IsTwoOperandOperator(PTOKEN Operator);

@@ -23,7 +23,7 @@
 .TwoOpFunc4->wcscmp
 
 # ThreeOpFunc4 the first two inputs are numbers or wstrings and the third input is a number and returns a number.
-.ThreeOpFunc4-> wcsncmp
+.ThreeOpFunc4->wcsncmp
 
 .OperatorsOneOperand->inc dec reference dereference
 

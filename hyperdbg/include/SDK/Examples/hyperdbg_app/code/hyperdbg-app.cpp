@@ -382,7 +382,7 @@ HyperDbgUnloadReversingMachine()
     ShowMessages("start terminating...\n");
 
     //
-    // Call the unloader of the hprdbgrev module
+    // Call the unloader of the hyperdbg rev module
     //
     ReversingMachineStop();
 
@@ -412,7 +412,7 @@ HyperDbgLoadReversingMachine()
     //
     // Read the vendor string
     //
-    HyperDbgReadVendorString(CpuId);
+    CpuReadVendorString(CpuId);
 
     ShowMessages("current processor vendor is : %s\n", CpuId);
 
@@ -427,7 +427,7 @@ HyperDbgLoadReversingMachine()
         return 1;
     }
 
-    if (HyperDbgVmxSupportDetection())
+    if (VmxSupportDetection())
     {
         ShowMessages("vmx operation is supported by your processor\n");
     }
@@ -438,7 +438,7 @@ HyperDbgLoadReversingMachine()
     }
 
     //
-    // Call hprdbgrev start function
+    // Call HyperDbg rev start function
     //
     ReversingMachineStart();
 
