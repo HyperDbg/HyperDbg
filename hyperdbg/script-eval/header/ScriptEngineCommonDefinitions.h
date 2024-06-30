@@ -328,5 +328,7 @@ static const char *const RegistersNames[] = {
 #define PSEUDO_REGISTER_EVENT_TAG 11
 #define PSEUDO_REGISTER_EVENT_ID 12
 #define PSEUDO_REGISTER_EVENT_STAGE 13
+#define PSEUDO_REGISTER_DATE 14
+#define PSEUDO_REGISTER_TIME 15
 
 #endif

@@ -1061,6 +1061,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         KeQuerySystemTime(&SystemTime);
         ExSystemTimeToLocalTime(&SystemTime, &LocalTime);
         RtlTimeToTimeFields(&LocalTime, &TimeFields);
+
         //
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchPrintfA(TimeBuffer, RTL_NUMBER_OF(TimeBuffer),

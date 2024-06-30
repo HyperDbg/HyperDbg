@@ -144,6 +144,18 @@ typedef struct _DEBUGGEE_HALTED_CORE_TASK
 } DEBUGGEE_HALTED_CORE_TASK, *PDEBUGGEE_HALTED_CORE_TASK;
 
 /**
+ * @brief Timer for the core
+ *
+ */
+typedef struct _DATE_TIME_HOLDER
+{
+    TIME_FIELDS TimeFields;
+    CHAR        TimeBuffer[14];
+    CHAR        DateBuffer[12];
+
+} DATE_TIME_HOLDER, *PDATE_TIME_HOLDER;
+
+/**
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.
@@ -158,6 +170,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                    ShortCircuitingEvent;
     BOOLEAN                                    IgnoreDisasmInNextPacket;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
+    DATE_TIME_HOLDER                           DateTimeHolder;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
