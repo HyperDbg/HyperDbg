@@ -11,11 +11,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /WX")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/FindWDK/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(WDK REQUIRED)
 
-#add_subdirectory("cmakeDemoTest/user_helloworld")
-#add_subdirectory("cmakeDemoTest/kernel_helloworld")
 #add_subdirectory("mergeDlls")
 add_subdirectory("hyperhv")
 

@@ -12,7 +12,7 @@ include_directories(
 )
 
 
-add_subdirectory("../dependencies/zydis")
+#add_subdirectory("../dependencies/zydis")
 
 wdk_add_driver(hyperhv
         ${C_SOURCES}
