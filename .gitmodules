@@ -7,3 +7,6 @@
 [submodule "hyperdbg/dependencies/zydis"]
 	path = hyperdbg/dependencies/zydis
 	url = https://github.com/HyperDbg/zydis.git
+[submodule "hyperdbg/dependencies/pdbex"]
+	path = hyperdbg/dependencies/pdbex
+	url = https://github.com/HyperDbg/pdbex
