@@ -394,3 +394,4 @@ StructLayoutSettings.json
 #ignore clion config files
 .idea
 cmake-build-debug
+/hyperdbg/hyperhv/zydis/
