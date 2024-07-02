@@ -502,7 +502,7 @@ SetupPathForFileName(const CHAR *                                  FileName,
 
         if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
         {
-            ShowMessages("err, target file is not loaded\n");
+            ShowMessages("IM HERRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEEE err, target file is not loaded\n");
 
             //
             // Indicate failure
