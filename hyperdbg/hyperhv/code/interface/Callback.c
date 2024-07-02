@@ -24,37 +24,37 @@
  *
  * @return BOOLEAN
  */
-BOOLEAN
-LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                        BOOLEAN      IsImmediateMessage,
-                                        BOOLEAN      ShowCurrentSystemTime,
-                                        BOOLEAN      Priority,
-                                        const char * Fmt,
-                                        ...)
-{
-    BOOLEAN Result;
-    va_list ArgList;
-
-    if (g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    va_start(ArgList, Fmt);
-
-    Result = g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper(OperationCode,
-                                                                        IsImmediateMessage,
-                                                                        ShowCurrentSystemTime,
-                                                                        Priority,
-                                                                        Fmt,
-                                                                        ArgList);
-    va_end(ArgList);
-
-    return Result;
-}
+// BOOLEAN
+// LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
+//                                         BOOLEAN      IsImmediateMessage,
+//                                         BOOLEAN      ShowCurrentSystemTime,
+//                                         BOOLEAN      Priority,
+//                                         const char * Fmt,
+//                                         ...)
+// {
+//     BOOLEAN Result;
+//     va_list ArgList;
+//
+//     if (g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper == NULL)
+//     {
+//         //
+//         // Ignore sending message to queue
+//         //
+//         return FALSE;
+//     }
+//
+//     va_start(ArgList, Fmt);
+//
+//     Result = g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper(OperationCode,
+//                                                                         IsImmediateMessage,
+//                                                                         ShowCurrentSystemTime,
+//                                                                         Priority,
+//                                                                         Fmt,
+//                                                                         ArgList);
+//     va_end(ArgList);
+//
+//     return Result;
+// }
 
 /**
  * @brief routines callback for sending message to queue
@@ -67,27 +67,27 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
  *
  * @return BOOLEAN
  */
-BOOLEAN
-LogCallbackSendMessageToQueue(UINT32  OperationCode,
-                              BOOLEAN IsImmediateMessage,
-                              CHAR *  LogMessage,
-                              UINT32  BufferLen,
-                              BOOLEAN Priority)
-{
-    if (g_Callbacks.LogCallbackSendMessageToQueue == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackSendMessageToQueue(OperationCode,
-                                                     IsImmediateMessage,
-                                                     LogMessage,
-                                                     BufferLen,
-                                                     Priority);
-}
+// BOOLEAN
+// LogCallbackSendMessageToQueue(UINT32  OperationCode,
+//                               BOOLEAN IsImmediateMessage,
+//                               CHAR *  LogMessage,
+//                               UINT32  BufferLen,
+//                               BOOLEAN Priority)
+// {
+//     if (g_Callbacks.LogCallbackSendMessageToQueue == NULL)
+//     {
+//         //
+//         // Ignore sending message to queue
+//         //
+//         return FALSE;
+//     }
+//
+//     return g_Callbacks.LogCallbackSendMessageToQueue(OperationCode,
+//                                                      IsImmediateMessage,
+//                                                      LogMessage,
+//                                                      BufferLen,
+//                                                      Priority);
+// }
 
 /**
  * @brief routines callback for checking if buffer is full
@@ -96,19 +96,19 @@ LogCallbackSendMessageToQueue(UINT32  OperationCode,
  *
  * @return BOOLEAN
  */
-BOOLEAN
-LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
-{
-    if (g_Callbacks.LogCallbackCheckIfBufferIsFull == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackCheckIfBufferIsFull(Priority);
-}
+// BOOLEAN
+// LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
+//{
+//     if (g_Callbacks.LogCallbackCheckIfBufferIsFull == NULL)
+//     {
+//         //
+//         // Ignore sending message to queue
+//         //
+//         return FALSE;
+//     }
+//
+//     return g_Callbacks.LogCallbackCheckIfBufferIsFull(Priority);
+// }
 
 /**
  * @brief routines callback for sending buffer
@@ -119,26 +119,26 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
  *
  * @return BOOLEAN
  */
-BOOLEAN
-LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
-                      _In_reads_bytes_(BufferLength) PVOID Buffer,
-                      _In_ UINT32                          BufferLength,
-                      _In_ BOOLEAN                         Priority)
-
-{
-    if (g_Callbacks.LogCallbackSendBuffer == NULL)
-    {
-        //
-        // Ignore sending buffer
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackSendBuffer(OperationCode,
-                                             Buffer,
-                                             BufferLength,
-                                             Priority);
-}
+// BOOLEAN
+// LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
+//                       _In_reads_bytes_(BufferLength) PVOID Buffer,
+//                       _In_ UINT32                          BufferLength,
+//                       _In_ BOOLEAN                         Priority)
+//
+// {
+//     if (g_Callbacks.LogCallbackSendBuffer == NULL)
+//     {
+//         //
+//         // Ignore sending buffer
+//         //
+//         return FALSE;
+//     }
+//
+//     return g_Callbacks.LogCallbackSendBuffer(OperationCode,
+//                                              Buffer,
+//                                              BufferLength,
+//                                              Priority);
+// }
 
 /**
  * @brief routines callback to trigger events

@@ -83,12 +83,9 @@
 xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
 mkdir "$(OutDir)SDK\Libraries"
 copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
-copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
 copy "$(OutDir)libhyperdbg.dll" "$(OutDir)SDK\Libraries\libhyperdbg.dll"
 copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
-copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
-copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
-copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
+copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -121,12 +118,10 @@ copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
 xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
 mkdir "$(OutDir)SDK\Libraries"
 copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
-copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
 copy "$(OutDir)libhyperdbg.dll" "$(OutDir)SDK\Libraries\libhyperdbg.dll"
 copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
 copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
-copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
-copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

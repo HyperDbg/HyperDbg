@@ -44,19 +44,19 @@ CommonAffinityBroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc 
  * @param Eprocess Process eprocess
  * @return PCHAR Returns a pointer to the process name
  */
-PCHAR
-CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
-{
-    PCHAR Result = 0;
-
-    //
-    // We can't use PsLookupProcessByProcessId as in pageable and not
-    // work on vmx-root
-    //
-    Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
-
-    return Result;
-}
+// PCHAR
+// CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
+// {
+//     PCHAR Result = 0;
+//
+//     //
+//     // We can't use PsLookupProcessByProcessId as in pageable and not
+//     // work on vmx-root
+//     //
+//     Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
+//
+//     return Result;
+// }
 
 /**
  * @brief Detects whether the string starts with another string

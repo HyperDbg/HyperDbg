@@ -31,89 +31,89 @@ volatile LONG OneCoreLock;
  * @param DeferredContext an optional parameter to Routine
  * @return NTSTATUS
  */
-NTSTATUS
-DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
-{
-    PRKDPC Dpc;
-    ULONG  ProcessorsCount;
-
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Check if the core number is not invalid
-    //
-    if (CoreNumber >= ProcessorsCount)
-    {
-        return STATUS_INVALID_PARAMETER;
-    }
-
-    //
-    // Allocate Memory for DPC
-    //
-    Dpc = PlatformMemAllocateNonPagedPool(sizeof(KDPC));
-
-    if (!Dpc)
-    {
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    //
-    // Creating a DPC that will run on the target process
-    //
-    KeInitializeDpc(Dpc,                         // Dpc
-                    (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
-                    DeferredContext              // DeferredContext
-    );
-
-    //
-    // Set the target core
-    //
-    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
-
-    //
-    // it's sure will be executed, but we want to free the above
-    // pool, so we have to wait on a spinlock that will be release
-    // by the DPC routine, actually Affinity Thread but that
-    // won't support more than 64 logical cores, I create a discussion
-    // here, and explained the problem, but no one answers
-    // link: https://community.osr.com/discussion/292064/putting-a-barrier-for-dpc-before-continuing-the-rest-of-code
-    // we also can't use the spinlock routine of Windows as this function
-    // raises the IRQL to DPC and we want to execute at DPC, means that
-    // If we're currently on the right core, we never find a chance to
-    // release the spinlock so a deadlock happens, all in all it's complicated :)
-    //
-
-    //
-    // Set the lock to be freed by the other DPC routine
-    //
-    if (!SpinlockTryLock(&OneCoreLock))
-    {
-        //
-        // We can't get the lock, probably sth goes wrong !
-        //
-        PlatformMemFreePool(Dpc);
-        return STATUS_UNSUCCESSFUL;
-    }
-
-    //
-    // Fire the DPC
-    //
-    KeInsertQueueDpc(Dpc, NULL, NULL);
-
-    //
-    // spin on lock to be release, immediately after we get the lock, we'll
-    // release it for because there is no need to it anymore and DPC is finished
-    //
-    SpinlockLock(&OneCoreLock);
-    SpinlockUnlock(&OneCoreLock);
-
-    //
-    // Now it's safe to deallocate the bugger
-    //
-    PlatformMemFreePool(Dpc);
-
-    return STATUS_SUCCESS;
-}
+// NTSTATUS
+// DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
+// {
+//     PRKDPC Dpc;
+//     ULONG  ProcessorsCount;
+//
+//     ProcessorsCount = KeQueryActiveProcessorCount(0);
+//
+//     //
+//     // Check if the core number is not invalid
+//     //
+//     if (CoreNumber >= ProcessorsCount)
+//     {
+//         return STATUS_INVALID_PARAMETER;
+//     }
+//
+//     //
+//     // Allocate Memory for DPC
+//     //
+//     Dpc = PlatformMemAllocateNonPagedPool(sizeof(KDPC));
+//
+//     if (!Dpc)
+//     {
+//         return STATUS_INSUFFICIENT_RESOURCES;
+//     }
+//
+//     //
+//     // Creating a DPC that will run on the target process
+//     //
+//     KeInitializeDpc(Dpc,                         // Dpc
+//                     (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
+//                     DeferredContext              // DeferredContext
+//     );
+//
+//     //
+//     // Set the target core
+//     //
+//     KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
+//
+//     //
+//     // it's sure will be executed, but we want to free the above
+//     // pool, so we have to wait on a spinlock that will be release
+//     // by the DPC routine, actually Affinity Thread but that
+//     // won't support more than 64 logical cores, I create a discussion
+//     // here, and explained the problem, but no one answers
+//     // link: https://community.osr.com/discussion/292064/putting-a-barrier-for-dpc-before-continuing-the-rest-of-code
+//     // we also can't use the spinlock routine of Windows as this function
+//     // raises the IRQL to DPC and we want to execute at DPC, means that
+//     // If we're currently on the right core, we never find a chance to
+//     // release the spinlock so a deadlock happens, all in all it's complicated :)
+//     //
+//
+//     //
+//     // Set the lock to be freed by the other DPC routine
+//     //
+//     if (!SpinlockTryLock(&OneCoreLock))
+//     {
+//         //
+//         // We can't get the lock, probably sth goes wrong !
+//         //
+//         PlatformMemFreePool(Dpc);
+//         return STATUS_UNSUCCESSFUL;
+//     }
+//
+//     //
+//     // Fire the DPC
+//     //
+//     KeInsertQueueDpc(Dpc, NULL, NULL);
+//
+//     //
+//     // spin on lock to be release, immediately after we get the lock, we'll
+//     // release it for because there is no need to it anymore and DPC is finished
+//     //
+//     SpinlockLock(&OneCoreLock);
+//     SpinlockUnlock(&OneCoreLock);
+//
+//     //
+//     // Now it's safe to deallocate the bugger
+//     //
+//     PlatformMemFreePool(Dpc);
+//
+//     return STATUS_SUCCESS;
+// }
 
 /**
  * @brief Broadcast VmxPerformVirtualizationOnSpecificCore
