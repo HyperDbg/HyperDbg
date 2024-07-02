@@ -467,6 +467,9 @@ HyperDbgInstallVmmDriver()
         strcpy_s(g_DriverName, KERNEL_DEBUGGER_DRIVER_NAME);
     }
 
+    ShowMessages("driver location : %s\n", g_DriverLocation);
+    ShowMessages("driver name : %s\n", g_DriverName);
+
     if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
         ShowMessages("unable to install VMM driver\n");
