@@ -454,10 +454,15 @@ HyperDbgInstallVmmDriver()
     // If the user has not specified a custom driver location, then we
     // need to find the driver in the same directory as the executable
     //
+
     if (!g_UseCustomDriverLocation)
     {
+        ShowMessages("Sinaaaaaaaaaaaaaaaaaaaa 2: Trying to use defaaaault path \n");
+
         if (!SetupPathForFileName(KERNEL_DEBUGGER_DRIVER_NAME_AND_EXTENSION, g_DriverLocation, sizeof(g_DriverLocation), TRUE))
         {
+            ShowMessages("Sinaaaaaaaaaaaaaaaaaaaa 3: Failed to use default path \n");
+
             return 1;
         }
 

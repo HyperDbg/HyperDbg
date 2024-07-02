@@ -477,6 +477,7 @@ SetupPathForFileName(const CHAR *                                  FileName,
         //
         *Pos = '\0';
     }
+    ShowMessages("Sinaaaaaaaaaaaa 4: here\n");
 
     //
     // Setup path name to driver file
@@ -492,13 +493,15 @@ SetupPathForFileName(const CHAR *                                  FileName,
         return FALSE;
     }
 
+    ShowMessages("Sinaaaaaaaaaaaa 3: info, checking for file %s\n", FileLocation);
+
     if (CheckFileExists)
     {
         //
         // ensure file is in the specified directory
         //
 
-        ShowMessages("Sinaaaaaaaaaaaa : info, checking for file %s\n", FileLocation);
+        ShowMessages("Sinaaaaaaaaaaaa 1 : info, checking for file %s\n", FileLocation);
 
         if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
         {
@@ -522,5 +525,7 @@ SetupPathForFileName(const CHAR *                                  FileName,
     //
     // Indicate success
     //
+    ShowMessages("Sinaaaaaaaaaaaa 5: was successful\n");
+
     return TRUE;
 }
