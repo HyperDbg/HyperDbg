@@ -497,6 +497,9 @@ SetupPathForFileName(const CHAR *                                  FileName,
         //
         // ensure file is in the specified directory
         //
+
+        ShowMessages("Sinaaaaaaaaaaaa : info, checking for file %s\n", FileLocation);
+
         if ((FileHandle = CreateFile(FileLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
         {
             ShowMessages("err, target file is not loaded\n");
