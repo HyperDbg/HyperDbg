@@ -445,6 +445,8 @@ IrpBasedBufferThread(void * data)
 INT
 HyperDbgInstallVmmDriver()
 {
+    ShowMessages("Sinaaaaaaaaaaaaaaaaaaaaaaa again 1 \n");
+
     //
     // The driver is not started yet so let us the install driver
     // First setup full path to driver name
@@ -570,6 +572,7 @@ HyperDbgLoadVmm()
     char  CpuId[13] = {0};
     DWORD ErrorNum;
     DWORD ThreadId;
+    ShowMessages("Sinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn checkkkk");
 
     if (g_DeviceHandle)
     {

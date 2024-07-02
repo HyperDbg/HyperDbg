@@ -21,6 +21,8 @@ extern BOOLEAN g_UseCustomDriverLocation;
 BOOLEAN
 hyperdbg_u_detect_vmx_support()
 {
+    ShowMessages("Sinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn checkkkk 2");
+
     return VmxSupportDetection();
 }
 
@@ -33,6 +35,8 @@ hyperdbg_u_read_vendor_string(CHAR * vendor_string)
 INT
 hyperdbg_u_load_vmm()
 {
+    ShowMessages("Sinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn checkkkk 3");
+
     return HyperDbgLoadVmm();
 }
 
@@ -45,6 +49,8 @@ hyperdbg_u_unload_vmm()
 INT
 hyperdbg_u_install_vmm_driver()
 {
+    ShowMessages("Sinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn checkkkk 1");
+
     return HyperDbgInstallVmmDriver();
 }
 
