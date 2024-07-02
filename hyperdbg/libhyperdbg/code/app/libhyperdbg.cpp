@@ -583,7 +583,7 @@ HyperDbgLoadVmm()
     //
     CpuReadVendorString(CpuId);
 
-    ShowMessages("current processor vendor is : %s\n", CpuId);
+    ShowMessages("Sinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn aaaaaaaaaaaaaaaaaaaaaaaaaa current processor vendor is : %s\n", CpuId);
 
     if (strcmp(CpuId, "GenuineIntel") == 0)
     {
