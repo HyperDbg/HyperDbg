@@ -551,15 +551,14 @@ HyperDbgUninstallVmmDriver()
 }
 
 /**
- * @brief Load the VMM driver
+ * @brief Create handle from VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgLoadVmm()
+HyperDbgCreateHandleFromVmmModule()
 {
-    char  CpuId[13] = {0};
     DWORD ErrorNum;
     DWORD ThreadId;
 
@@ -567,34 +566,6 @@ HyperDbgLoadVmm()
     {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
-        return 1;
-    }
-
-    //
-    // Read the vendor string
-    //
-    CpuReadVendorString(CpuId);
-
-    ShowMessages("current processor vendor is : %s\n", CpuId);
-
-    if (strcmp(CpuId, "GenuineIntel") == 0)
-    {
-        ShowMessages("virtualization technology is vt-x\n");
-    }
-    else
-    {
-        ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environment !\n");
-        return 1;
-    }
-
-    if (VmxSupportDetection())
-    {
-        ShowMessages("vmx operation is supported by your processor\n");
-    }
-    else
-    {
-        ShowMessages("vmx operation is not supported by your processor\n");
         return 1;
     }
 
@@ -758,6 +729,103 @@ HyperDbgUnloadVmm()
     SymbolDeleteSymTable();
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief load vmm module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ */
+INT
+HyperDbgLoadVmmModule()
+{
+    BOOL   Status;
+    HANDLE hToken;
+    char   CpuId[13] = {0};
+
+    //
+    // Enable Debug privilege
+    //
+    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
+    if (!Status)
+    {
+        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
+        return 1;
+    }
+
+    Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
+    if (!Status)
+    {
+        CloseHandle(hToken);
+        return 1;
+    }
+
+    //
+    // Read the vendor string
+    //
+    CpuReadVendorString(CpuId);
+
+    ShowMessages("current processor vendor is : %s\n", CpuId);
+
+    if (strcmp(CpuId, "GenuineIntel") == 0)
+    {
+        ShowMessages("virtualization technology is vt-x\n");
+    }
+    else
+    {
+        ShowMessages("this program is not designed to run in a non-VT-x "
+                     "environment !\n");
+        return 1;
+    }
+
+    if (VmxSupportDetection())
+    {
+        ShowMessages("vmx operation is supported by your processor\n");
+    }
+    else
+    {
+        ShowMessages("vmx operation is not supported by your processor\n");
+        return 1;
+    }
+
+    //
+    // Create event to show if the hypervisor is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if (HyperDbgCreateHandleFromVmmModule() == 1)
+    {
+        //
+        // No need to handle anymore
+        //
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // Vmm module (Hypervisor) is loaded
+    //
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
+
+    //
+    // If we reach here so the module are loaded
+    //
+    g_IsDebuggerModulesLoaded = TRUE;
+
+    ShowMessages("vmm module is running...\n");
 
     return 0;
 }

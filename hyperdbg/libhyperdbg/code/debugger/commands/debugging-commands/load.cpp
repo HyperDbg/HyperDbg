@@ -36,82 +36,6 @@ CommandLoadHelp()
 }
 
 /**
- * @brief load vmm module
- *
- * @return BOOLEAN
- */
-BOOLEAN
-CommandLoadVmmModule()
-{
-    BOOL   Status;
-    HANDLE hToken;
-
-    //
-    // Enable Debug privilege
-    //
-    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    if (!Status)
-    {
-        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
-        return FALSE;
-    }
-
-    Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    if (!Status)
-    {
-        CloseHandle(hToken);
-        return FALSE;
-    }
-
-    //
-    // Install vmm driver
-    //
-    if (HyperDbgInstallVmmDriver() == 1)
-    {
-        return FALSE;
-    }
-
-    //
-    // Create event to show if the hypervisor is loaded or not
-    //
-    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-    if (HyperDbgLoadVmm() == 1)
-    {
-        //
-        // No need to handle anymore
-        //
-        CloseHandle(g_IsDriverLoadedSuccessfully);
-        return FALSE;
-    }
-
-    //
-    // Vmm module (Hypervisor) is loaded
-    //
-
-    //
-    // We wait for the first message from the kernel debugger to continue
-    //
-    WaitForSingleObject(
-        g_IsDriverLoadedSuccessfully,
-        INFINITE);
-
-    //
-    // No need to handle anymore
-    //
-    CloseHandle(g_IsDriverLoadedSuccessfully);
-
-    //
-    // If we reach here so the module are loaded
-    //
-    g_IsDebuggerModulesLoaded = TRUE;
-
-    ShowMessages("vmm module is running...\n");
-
-    return TRUE;
-}
-
-/**
  * @brief load command handler
  *
  * @param SplitCommand
@@ -155,7 +79,7 @@ CommandLoad(vector<string> SplitCommand, string Command)
         //
         ShowMessages("loading the vmm driver\n");
 
-        if (!CommandLoadVmmModule())
+        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             ShowMessages("failed to install or load the driver\n");
             return;

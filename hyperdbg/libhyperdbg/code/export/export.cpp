@@ -33,7 +33,7 @@ hyperdbg_u_read_vendor_string(CHAR * vendor_string)
 INT
 hyperdbg_u_load_vmm()
 {
-    return HyperDbgLoadVmm();
+    return HyperDbgLoadVmmModule();
 }
 
 INT

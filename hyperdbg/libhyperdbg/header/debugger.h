@@ -222,9 +222,6 @@ GetCommandAttributes(const string & FirstCommand);
 VOID
 DetachFromProcess();
 
-BOOLEAN
-CommandLoadVmmModule();
-
 VOID
 ShowAllRegisters();
 
