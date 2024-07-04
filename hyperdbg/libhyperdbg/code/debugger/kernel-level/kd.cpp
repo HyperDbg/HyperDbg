@@ -2378,7 +2378,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // Load the VMM
         //
-        if (!CommandLoadVmmModule())
+        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             CloseHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
