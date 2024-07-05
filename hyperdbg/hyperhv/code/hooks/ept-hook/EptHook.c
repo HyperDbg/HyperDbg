@@ -2196,6 +2196,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
  *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
+ * @param HookingTag Hooking tag (optional)
  * @param ProcessId The process id of target process
  * (in unhooking for some hooks only physical address is availables)
  * @param ApplyDirectlyFromVmxRoot should it be directly applied from VMX-root mode or not
@@ -2207,11 +2208,12 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
 BOOLEAN
 EptHookPerformUnHookSingleAddress(UINT64                              VirtualAddress,
                                   UINT64                              PhysAddress,
+                                  UINT64                              HookingTag,
                                   UINT32                              ProcessId,
                                   BOOLEAN                             ApplyDirectlyFromVmxRoot,
                                   EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
 {
-    SIZE_T PhysicalAddress;
+    SIZE_T PhysicalAddress = NULL64_ZERO;
 
     //
     // Once applied directly from VMX-root mode, the process id should be the same process Id
@@ -2225,7 +2227,11 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
     //
     // Check if the physical address is available or not
     //
-    if (PhysAddress == NULL64_ZERO)
+    if (PhysAddress != NULL64_ZERO)
+    {
+        PhysicalAddress = (SIZE_T)PAGE_ALIGN(PhysAddress);
+    }
+    else if (HookingTag == NULL64_ZERO)
     {
         if (ApplyDirectlyFromVmxRoot)
         {
@@ -2236,10 +2242,6 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
             PhysicalAddress = (SIZE_T)(PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId((PVOID)VirtualAddress,
                                                                                              ProcessId)));
         }
-    }
-    else
-    {
-        PhysicalAddress = (SIZE_T)PAGE_ALIGN(PhysAddress);
     }
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, CurrEntity)
@@ -2268,7 +2270,7 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
             //
             // It's either a hidden detours or a monitor (read/write/execute) entry
             //
-            if (CurrEntity->PhysicalBaseAddress == PhysicalAddress)
+            if ((HookingTag != NULL64_ZERO && CurrEntity->HookingTag == HookingTag) || CurrEntity->PhysicalBaseAddress == PhysicalAddress)
             {
                 return EptHookUnHookSingleAddressDetoursAndMonitor(CurrEntity,
                                                                    ApplyDirectlyFromVmxRoot,
@@ -2278,9 +2280,79 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
     }
 
     //
-    // Nothing found, probably the list is not found
+    // Nothing found, probably the hooking detail is not found
     //
     return FALSE;
+}
+
+/**
+ * @brief Remove all hooks from the hooked pages by the given hooking tag
+ * @details Should be called from Vmx Non-root
+ *
+ * @param HookingTag The hooking tag to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookAllByHookingTag(UINT64 HookingTag)
+{
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails; // not used
+    BOOLEAN                           AtLeastOneUnhooked = FALSE;
+    BOOLEAN                           UnhookingResult    = FALSE;
+
+    //
+    // Should be called from vmx non-root
+    //
+    if (VmxGetCurrentExecutionMode() == TRUE)
+    {
+        return FALSE;
+    }
+
+KeepUnhooking:
+    UnhookingResult = EptHookPerformUnHookSingleAddress(NULL_ZERO,
+                                                        NULL_ZERO,
+                                                        HookingTag,
+                                                        NULL_ZERO,
+                                                        FALSE,
+                                                        &TargetUnhookingDetails);
+
+    if (UnhookingResult)
+    {
+        AtLeastOneUnhooked = TRUE;
+
+        //
+        // Keep unhooking until there is no more hooking details
+        //
+        goto KeepUnhooking;
+    }
+
+    return AtLeastOneUnhooked;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages by the given hooking tag
+ * @details Should be called from Vmx root-mode
+ *
+ * @param HookingTag The hooking tag to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleHookByHookingTagFromVmxRoot(UINT64                              HookingTag,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+{
+    //
+    // Should be called from VMX root-mode
+    //
+    if (VmxGetCurrentExecutionMode() == FALSE)
+    {
+        return FALSE;
+    }
+
+    return EptHookPerformUnHookSingleAddress(NULL64_ZERO,
+                                             NULL64_ZERO,
+                                             HookingTag,
+                                             NULL_ZERO,
+                                             TRUE,
+                                             TargetUnhookingDetails);
 }
 
 /**
@@ -2311,6 +2383,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress,
 
     return EptHookPerformUnHookSingleAddress(VirtualAddress,
                                              PhysAddress,
+                                             NULL_ZERO,
                                              ProcessId,
                                              FALSE,
                                              &TargetUnhookingDetails);
@@ -2342,6 +2415,7 @@ EptHookUnHookSingleAddressFromVmxRoot(UINT64                              Virtua
 
     return EptHookPerformUnHookSingleAddress(VirtualAddress,
                                              PhysAddress,
+                                             NULL64_ZERO,
                                              NULL_ZERO,
                                              TRUE,
                                              TargetUnhookingDetails);

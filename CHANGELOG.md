@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2.0] - 2024-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- Fix exporting VMM module load and install in the SDK
+
+### Changed
+- Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))
+
 ## [0.9.1.0] - 2024-06-30
 New release of the HyperDbg Debugger.
 
