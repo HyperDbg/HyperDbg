@@ -146,6 +146,34 @@ ConfigureDisableEferSyscallEventsOnAllProcessors()
 }
 
 /**
+ * @brief Remove all hooks from the hooked pages list using Hooking Tag
+ * @details Should be called from vmx non-root
+ *
+ * @param HookingTag The hooking tag to remove all hooks
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+ConfigureEptHookUnHookAllByHookingTag(UINT64 HookingTag)
+{
+    return EptHookUnHookAllByHookingTag(HookingTag);
+}
+
+/**
+ * @brief Remove single hook from the hooked pages by the given hooking tag
+ * @details Should be called from Vmx root-mode
+ *
+ * @param HookingTag The hooking tag to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+ConfigureEptHookUnHookSingleHookByHookingTagFromVmxRoot(UINT64                              HookingTag,
+                                                        EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails)
+{
+    return EptHookUnHookSingleHookByHookingTagFromVmxRoot(HookingTag, TargetUnhookingDetails);
+}
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx non-root
  *

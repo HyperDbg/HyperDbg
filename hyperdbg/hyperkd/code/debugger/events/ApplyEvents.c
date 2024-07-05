@@ -35,12 +35,6 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     UINT64                                       TempStartAddress;
     UINT64                                       TempEndAddress;
     UINT64                                       TempNextPageAddr;
-    UINT64                                       RemainingSizeRestore;
-    UINT64                                       PagesBytesRestore;
-    UINT64                                       ConstEndAddressRestore;
-    UINT64                                       TempNextPageAddrRestore;
-    UINT64                                       TempStartAddressRestore;
-    UINT64                                       TempEndAddressRestore;
     EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MONITOR HookingAddresses = {0};
 
     if (InputFromVmxRoot)
@@ -207,102 +201,24 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
             //
             // Now we should restore the previously applied events (if any)
             //
-
-            TempStartAddressRestore = Event->InitOptions.OptionalParam1;
-            TempEndAddressRestore   = Event->InitOptions.OptionalParam2;
-            ConstEndAddressRestore  = TempEndAddressRestore;
-
-            PagesBytesRestore = (UINT64)PAGE_ALIGN(TempStartAddressRestore);
-            PagesBytesRestore = TempEndAddressRestore - PagesBytesRestore;
-            PagesBytesRestore = PagesBytesRestore / PAGE_SIZE;
-
-            RemainingSizeRestore = TempEndAddressRestore - TempStartAddressRestore;
-
-            // LogInfo("Discard changes from, Start address: %llx, end address: %llx\n\n\n",
-            //         TempStartAddressRestore,
-            //         TempEndAddressRestore,
-            //         RemainingSizeRestore);
-
-            for (size_t j = 0; j <= PagesBytesRestore; j++)
+            if (InputFromVmxRoot)
             {
                 //
-                // Check if the previous hook is applied
+                // EPT hooking tag is same as event tag, so we can use it to unhook
                 //
-                if (j == i)
-                {
-                    //
-                    // It means this index is not applied successfully,
-                    // so we're not needed to remove as it's not successfully applied
-                    //
-                    break;
-                }
-
-                if (RemainingSizeRestore >= PAGE_SIZE)
-                {
-                    TempEndAddressRestore = (TempStartAddressRestore + ((UINT64)PAGE_ALIGN(TempStartAddressRestore + PAGE_SIZE) - TempStartAddressRestore)) - 1;
-                    RemainingSizeRestore  = ConstEndAddressRestore - TempEndAddressRestore - 1;
-                }
-                else
-                {
-                    TempNextPageAddrRestore = (UINT64)PAGE_ALIGN(TempStartAddressRestore + RemainingSizeRestore);
-
-                    //
-                    // Check if by adding the remaining size, we'll go to the next
-                    // page boundary or not
-                    //
-                    if (TempNextPageAddrRestore > ((UINT64)PAGE_ALIGN(TempStartAddressRestore)))
-                    {
-                        //
-                        // It goes to the next page boundary
-                        //
-                        TempEndAddressRestore = TempNextPageAddrRestore - 1;
-                        RemainingSizeRestore  = RemainingSizeRestore - (TempEndAddressRestore - TempStartAddressRestore) - 1;
-                    }
-                    else
-                    {
-                        TempEndAddressRestore = TempStartAddressRestore + RemainingSizeRestore;
-                        RemainingSizeRestore  = 0;
-                    }
-                }
-
+                TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(Event->Tag);
+            }
+            else
+            {
                 //
-                // Remove the hook
+                // EPT hooking tag is same as event tag, so we can use it to unhook
                 //
-                if (InputFromVmxRoot)
-                {
-                    if (HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
-                    {
-                        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)NULL,
-                                                                                           TempStartAddressRestore);
-                    }
-                    else
-                    {
-                        TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(TempStartAddressRestore,
-                                                                                           (UINT64)NULL);
-                    }
-                }
-                else
-                {
-                    if (HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
-                    {
-                        ConfigureEptHookUnHookSingleAddress((UINT64)NULL,
-                                                            TempStartAddressRestore,
-                                                            NULL_ZERO);
-                    }
-                    else
-                    {
-                        ConfigureEptHookUnHookSingleAddress(TempStartAddressRestore,
-                                                            (UINT64)NULL,
-                                                            Event->ProcessId);
-                    }
-                }
-
-                //
-                // Swap the temporary start address and temporary end address
-                //
-                TempStartAddressRestore = TempEndAddressRestore + 1;
+                ConfigureEptHookUnHookAllByHookingTag(Event->Tag);
             }
 
+            //
+            // Break from the loop
+            //
             break;
         }
         else

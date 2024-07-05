@@ -75,6 +75,9 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
                                                                    UINT64 PhysAddress);
 
 BOOLEAN
+TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(UINT64 HookingTag);
+
+BOOLEAN
 TerminateQueryDebuggerResource(UINT32                               CoreId,
                                PROTECTED_HV_RESOURCES_TYPE          ResourceType,
                                PVOID                                Context,
