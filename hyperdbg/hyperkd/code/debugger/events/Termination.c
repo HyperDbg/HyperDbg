@@ -112,7 +112,7 @@ TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN In
         //
         // EPT hooking tag is same as event tag, so we can use it to unhook
         //
-        TerminateEptHookUnHookSingleHookByHookingTagFromVmxRootAndApplyInvalidation(Event->Tag);
+        TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(Event->Tag);
     }
     else
     {
@@ -1637,7 +1637,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
 }
 
 /**
- * @brief Remove single hook from the hooked pages list and invalidate TLB using hooking tag
+ * @brief Remove all hooks from the hooked pages list and invalidate TLB using hooking tag
  * @details Should be called from vmx root-mode
  *
  * @param HookingTag The hooking tag to unhook
@@ -1645,7 +1645,7 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-TerminateEptHookUnHookSingleHookByHookingTagFromVmxRootAndApplyInvalidation(UINT64 HookingTag)
+TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(UINT64 HookingTag)
 {
     BOOLEAN                           Result                  = FALSE;
     BOOLEAN                           IsAtLeastOneHookRemoved = FALSE;
