@@ -158,6 +158,7 @@
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\spinlock.cpp" />
+    <ClCompile Include="code\debugger\commands\debugging-commands\core.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\gu.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp" />
@@ -233,7 +234,6 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\unload.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\wrmsr.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\x.cpp" />
-    <ClCompile Include="code\debugger\commands\debugging-commands\~.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\cpuid.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\dr.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\epthook.cpp" />
