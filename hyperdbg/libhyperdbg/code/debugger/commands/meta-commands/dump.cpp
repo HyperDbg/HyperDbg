@@ -266,7 +266,7 @@ CommandDump(vector<string> SplitCommand, string Command)
         {
             // ShowMessages("address: 0x%llx | actual length: 0x%llx\n", Address, ActualLength);
 
-            HyperDbgReadMemoryAndDisassemble(
+            HyperDbgShowMemoryOrDisassemble(
                 DEBUGGER_SHOW_COMMAND_DUMP,
                 Address,
                 MemoryType,

@@ -228,7 +228,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
 
     if (!FirstCommand.compare("db"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DB,
                                          TargetAddress,
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -238,7 +238,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("dc"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DC,
                                          TargetAddress,
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -248,7 +248,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("dd"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DD,
                                          TargetAddress,
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -258,7 +258,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("dq"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
                                          TargetAddress,
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -268,7 +268,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!db"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DB,
                                          TargetAddress,
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -278,7 +278,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!dc"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DC,
                                          TargetAddress,
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -288,7 +288,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!dd"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DD,
                                          TargetAddress,
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -298,7 +298,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!dq"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
                                          TargetAddress,
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
@@ -312,7 +312,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     //
     else if (!FirstCommand.compare("u") || !FirstCommand.compare("u64"))
     {
-        HyperDbgReadMemoryAndDisassemble(
+        HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
             TargetAddress,
             DEBUGGER_READ_VIRTUAL_ADDRESS,
@@ -323,7 +323,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!u") || !FirstCommand.compare("!u64"))
     {
-        HyperDbgReadMemoryAndDisassemble(
+        HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
             TargetAddress,
             DEBUGGER_READ_PHYSICAL_ADDRESS,
@@ -334,7 +334,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("u2") || !FirstCommand.compare("u32"))
     {
-        HyperDbgReadMemoryAndDisassemble(
+        HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
             TargetAddress,
             DEBUGGER_READ_VIRTUAL_ADDRESS,
@@ -345,7 +345,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
     }
     else if (!FirstCommand.compare("!u2") || !FirstCommand.compare("!u32"))
     {
-        HyperDbgReadMemoryAndDisassemble(
+        HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
             TargetAddress,
             DEBUGGER_READ_PHYSICAL_ADDRESS,

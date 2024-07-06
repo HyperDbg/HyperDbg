@@ -177,7 +177,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
 }
 
 /**
- * @brief Read memory and disassembler
+ * @brief Show memory or disassembler
  *
  * @param Style style of show memory (as byte, dwrod, qword)
  * @param Address location of where to read the memory
@@ -190,13 +190,13 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
  * @return VOID
  */
 VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
-                                 UINT64                       Address,
-                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
-                                 DEBUGGER_READ_READING_TYPE   ReadingType,
-                                 UINT32                       Pid,
-                                 UINT32                       Size,
-                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails)
+HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
+                                UINT64                       Address,
+                                DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                DEBUGGER_READ_READING_TYPE   ReadingType,
+                                UINT32                       Pid,
+                                UINT32                       Size,
+                                PDEBUGGER_DT_COMMAND_OPTIONS DtDetails)
 {
     UINT32                            ReturnedLength;
     UCHAR *                           Buffer;
@@ -350,13 +350,20 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         // Show diassembles
         //
-        HyperDbgDisassembler64(
-            Buffer,
-            Address,
-            ReturnedLength,
-            0,
-            FALSE,
-            NULL);
+        if (ReturnedLength != 0)
+        {
+            HyperDbgDisassembler64(
+                Buffer,
+                Address,
+                ReturnedLength,
+                0,
+                FALSE,
+                NULL);
+        }
+        else
+        {
+            ShowMessages("err, invalid address\n");
+        }
 
         break;
 
@@ -374,13 +381,20 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         // Show diassembles
         //
-        HyperDbgDisassembler32(
-            Buffer,
-            Address,
-            ReturnedLength,
-            0,
-            FALSE,
-            NULL);
+        if (ReturnedLength != 0)
+        {
+            HyperDbgDisassembler32(
+                Buffer,
+                Address,
+                ReturnedLength,
+                0,
+                FALSE,
+                NULL);
+        }
+        else
+        {
+            ShowMessages("err, invalid address\n");
+        }
 
         break;
     }
@@ -389,7 +403,6 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     // free the buffer
     //
     std::free(Buffer);
-    ShowMessages("\n");
 }
 
 /**

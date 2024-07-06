@@ -221,6 +221,8 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
 
 /**
  * @brief Parsing the command line options for scripts
+ * @param argc
+ * @param argv
  *
  * @return INT
  */
