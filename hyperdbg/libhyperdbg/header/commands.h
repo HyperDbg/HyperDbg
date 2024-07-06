@@ -114,13 +114,24 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
     BOOLEAN         Isx86_64);
 
 VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
+HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
                                  UINT64                       Address,
                                  DEBUGGER_READ_MEMORY_TYPE    MemoryType,
                                  DEBUGGER_READ_READING_TYPE   ReadingType,
                                  UINT32                       Pid,
                                  UINT32                       Size,
                                  PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
+
+BOOLEAN
+HyperDbgReadMemory(UINT64                              TargetAddress,
+                   DEBUGGER_READ_MEMORY_TYPE           MemoryType,
+                   DEBUGGER_READ_READING_TYPE          ReadingType,
+                   UINT32                              Pid,
+                   UINT32                              Size,
+                   BOOLEAN                             GetAddressMode,
+                   DEBUGGER_READ_MEMORY_ADDRESS_MODE * AddressMode,
+                   BYTE *                              TargetBufferToStore,
+                   UINT32 *                            ReturnLength);
 
 VOID
 InitializeCommandsDictionary();

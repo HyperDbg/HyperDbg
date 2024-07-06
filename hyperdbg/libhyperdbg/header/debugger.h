@@ -109,6 +109,9 @@ typedef struct _DEBUGGER_SYNCRONIZATION_EVENTS_STATE
 {
     HANDLE  EventHandle;
     BOOLEAN IsOnWaitingState;
+    PVOID   RequestData;
+    UINT32  RequestSize;
+
 } DEBUGGER_SYNCRONIZATION_EVENTS_STATE, *PDEBUGGER_SYNCRONIZATION_EVENTS_STATE;
 
 //////////////////////////////////////////////////

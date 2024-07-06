@@ -396,7 +396,7 @@ CommandDtShowDataBasedOnSymbolTypes(
         //
         // Read the memory
         //
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DT,
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DT,
                                          Address,
                                          IsPhysicalAddress ? DEBUGGER_READ_PHYSICAL_ADDRESS : DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,

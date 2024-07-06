@@ -71,8 +71,9 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
     PGUEST_REGS                                 Regs;
     PGUEST_EXTRA_REGISTERS                      ExtraRegs;
-    unsigned char *                             MemoryBuffer;
     BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
+    PVOID                                       CallerAddress                 = NULL;
+    UINT32                                      CallerSize                    = NULL_ZERO;
 
 StartAgain:
 
@@ -862,136 +863,20 @@ StartAgain:
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 
             break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
 
             ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading memory like mem=0000000000018b01
-                //
-                MemoryBuffer = (unsigned char *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_READ_MEMORY));
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, &CallerAddress, &CallerSize);
 
-                switch (ReadMemoryPacket->Style)
-                {
-                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
-
-                    //
-                    // Check if assembly mismatch occurred with the target address
-                    //
-                    if (ReadMemoryPacket->Is32BitAddress == TRUE &&
-                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
-                    {
-                        ShowMessages("the target address seems to be located in a 32-bit program, if so, "
-                                     "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
-                    }
-
-                    //
-                    // Show diassembles
-                    //
-                    HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
-
-                    //
-                    // Check if assembly mismatch occurred with the target address
-                    //
-                    if (ReadMemoryPacket->Is32BitAddress == FALSE &&
-                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
-                    {
-                        ShowMessages("the target address seems to be located in a 64-bit program, if so, "
-                                     "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
-                    }
-
-                    //
-                    // Show diassembles
-                    //
-                    HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DB:
-
-                    ShowMemoryCommandDB(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DC:
-
-                    ShowMemoryCommandDC(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DD:
-
-                    ShowMemoryCommandDD(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DQ:
-
-                    ShowMemoryCommandDQ(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DUMP:
-
-                    CommandDumpSaveIntoFile(MemoryBuffer, ReadMemoryPacket->Size);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DT:
-
-                    //
-                    // Show the 'dt' command view
-                    //
-                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(ReadMemoryPacket->DtDetails->TypeName,
-                                                                  ReadMemoryPacket->Address,
-                                                                  FALSE,
-                                                                  MemoryBuffer,
-                                                                  ReadMemoryPacket->DtDetails->AdditionalParameters);
-
-                    break;
-                }
-            }
-            else
-            {
-                ShowErrorMessage(ReadMemoryPacket->KernelStatus);
-
-                if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DUMP &&
-                    ReadMemoryPacket->KernelStatus == DEBUGGER_ERROR_INVALID_ADDRESS)
-                {
-                    ShowMessages("HyperDbg attempted to access an invalid target address: 0x%llx\n"
-                                 "if you are confident that the address is valid, it may be paged out "
-                                 "or not yet available in the current CR3 page table\n"
-                                 "you can use the '.pagein' command to load this page table into memory and "
-                                 "trigger a page fault (#PF), please refer to the documentation for further details\n\n",
-                                 ReadMemoryPacket->Address);
-                }
-            }
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, ReadMemoryPacket, CallerSize);
 
             //
             // Signal the event relating to receiving result of reading registers

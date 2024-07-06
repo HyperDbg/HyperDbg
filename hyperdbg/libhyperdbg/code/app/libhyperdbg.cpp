@@ -38,6 +38,7 @@ extern LIST_ENTRY g_OutputSources;
  * needs to be shown
  *
  * @param handler Function that handles the messages
+ * @return VOID
  */
 VOID
 SetTextMessageCallback(Callback handler)
@@ -49,6 +50,8 @@ SetTextMessageCallback(Callback handler)
  * @brief Show messages
  *
  * @param Fmt format string message
+ * @param ... arguments
+ * @return VOID
  */
 VOID
 ShowMessages(const char * Fmt, ...)
@@ -109,8 +112,9 @@ ShowMessages(const char * Fmt, ...)
  * @brief Read kernel buffers using IRP Pending
  *
  * @param Device Driver handle
+ * @return VOID
  */
-void
+VOID
 ReadIrpBasedBuffer()
 {
     BOOL                   Status;
