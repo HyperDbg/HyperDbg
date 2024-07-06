@@ -21,7 +21,6 @@
         DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
             &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
                                                                            \
-        SyncronizationObject->RequestData      = NULL;                     \
         SyncronizationObject->IsOnWaitingState = TRUE;                     \
         WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
                                                                            \
@@ -38,15 +37,17 @@
                                                                            \
     } while (FALSE);
 
-#define DbgWaitGetRequestData(KernelSyncObjectId, ReqData, ReqSize)        \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        *ReqData = SyncronizationObject->RequestData;                      \
-        *ReqSize = SyncronizationObject->RequestSize;                      \
-                                                                           \
+#define DbgWaitGetRequestData(KernelSyncObjectId, ReqData, ReqSize)            \
+    do                                                                         \
+    {                                                                          \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =          \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId];     \
+                                                                               \
+        *ReqData                          = SyncronizationObject->RequestData; \
+        *ReqSize                          = SyncronizationObject->RequestSize; \
+        SyncronizationObject->RequestData = NULL;                              \
+        SyncronizationObject->RequestSize = NULL_ZERO;                         \
+                                                                               \
     } while (FALSE);
 
 #define DbgReceivedKernelResponse(KernelSyncObjectId)                      \

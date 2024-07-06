@@ -72,6 +72,14 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     SizeOfTargetBuffer                    = sizeof(DEBUGGER_READ_MEMORY) + (Size * sizeof(CHAR));
     DEBUGGER_READ_MEMORY * MemReadRequest = (DEBUGGER_READ_MEMORY *)malloc(SizeOfTargetBuffer);
 
+    //
+    // Check if the buffer is allocated successfully
+    //
+    if (MemReadRequest == NULL)
+    {
+        return FALSE;
+    }
+
     ZeroMemory(MemReadRequest, SizeOfTargetBuffer);
 
     //
@@ -87,7 +95,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
         //
         // It's on Debugger mode
         //
-        if (!KdSendReadMemoryPacketToDebuggee(&ReadMem, SizeOfTargetBuffer))
+        if (!KdSendReadMemoryPacketToDebuggee(MemReadRequest, SizeOfTargetBuffer))
         {
             std::free(MemReadRequest);
             return FALSE;
@@ -122,8 +130,8 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     //
     if (MemReadRequest->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
-        std::free(MemReadRequest);
         ShowErrorMessage(MemReadRequest->KernelStatus);
+        std::free(MemReadRequest);
         return FALSE;
     }
     else
