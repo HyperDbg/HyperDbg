@@ -59,7 +59,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
             //
             // Check if the address is on a 32-bit mode process or not (just in case of disassembling)
             //
-            if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->IsForDisasm)
+            if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->GetAddressMode)
             {
                 //
                 // Check if the address is in the canonical range for kernel space
@@ -69,7 +69,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
                     //
                     // The address is in the range of canonical kernel space, so it's 64-bit process
                     //
-                    ReadMemRequest->Is32BitAddress = FALSE;
+                    ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
                 }
                 else
                 {
@@ -80,7 +80,14 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
                     //
                     if (UserAccessIsWow64Process((HANDLE)ReadMemRequest->Pid, &Is32BitProcess))
                     {
-                        ReadMemRequest->Is32BitAddress = Is32BitProcess;
+                        if (Is32BitProcess)
+                        {
+                            ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_32_BIT;
+                        }
+                        else
+                        {
+                            ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
+                        }
                     }
                     else
                     {
@@ -88,7 +95,7 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
                         // We couldn't determine the type of process, let's assume that it's a
                         // 64-bit process by default
                         //
-                        ReadMemRequest->Is32BitAddress = FALSE;
+                        ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
                     }
                 }
             }
@@ -219,7 +226,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
     //
     // Check if the address is on a 32-bit mode process or not (just in case of disassembling)
     //
-    if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->IsForDisasm)
+    if (ReadMemRequest->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS && ReadMemRequest->GetAddressMode)
     {
         //
         // Check if the address is in the canonical range for kernel space
@@ -229,7 +236,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
             //
             // The address is in the range of canonical kernel space, so it's 64-bit process
             //
-            ReadMemRequest->Is32BitAddress = FALSE;
+            ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
         }
         else
         {
@@ -240,7 +247,14 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
             //
             if (UserAccessIsWow64ProcessByEprocess(PsGetCurrentProcess(), &Is32BitProcess))
             {
-                ReadMemRequest->Is32BitAddress = Is32BitProcess;
+                if (Is32BitProcess)
+                {
+                    ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_32_BIT;
+                }
+                else
+                {
+                    ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
+                }
             }
             else
             {
@@ -248,7 +262,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
                 // We couldn't determine the type of process, let's assume that it's a
                 // 64-bit process by default
                 //
-                ReadMemRequest->Is32BitAddress = FALSE;
+                ReadMemRequest->AddressMode = DEBUGGER_READ_ADDRESS_MODE_64_BIT;
             }
         }
     }

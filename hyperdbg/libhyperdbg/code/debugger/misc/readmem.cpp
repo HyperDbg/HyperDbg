@@ -25,20 +25,147 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  * @param ReadingType read from kernel or vmx-root
  * @param Pid The target process id
  * @param Size size of memory to read
+ * @param GetAddressMode check for address mode
+ * @param AddressMode Address mode (32 or 64)
  * @param TargetBufferToStore The buffer to store the read memory
+ * @param ReturnLength The length of the read memory
  *
- * @return VOID
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
  */
-VOID
-HyperDbgReadMemory(UINT64                     TargetAddress,
-                   DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                   DEBUGGER_READ_READING_TYPE ReadingType,
-                   UINT32                     Pid,
-                   UINT32                     Size,
-                   BOOLEAN                    CheckForDisassembly,
-                   BYTE *                     TargetBufferToStore,
-                   UINT32 *                   ReturnLength)
+BOOLEAN
+HyperDbgReadMemory(UINT64                              TargetAddress,
+                   DEBUGGER_READ_MEMORY_TYPE           MemoryType,
+                   DEBUGGER_READ_READING_TYPE          ReadingType,
+                   UINT32                              Pid,
+                   UINT32                              Size,
+                   BOOLEAN                             GetAddressMode,
+                   DEBUGGER_READ_MEMORY_ADDRESS_MODE * AddressMode,
+                   BYTE *                              TargetBufferToStore,
+                   UINT32 *                            ReturnLength)
 {
+    BOOL                 Status;
+    ULONG                ReturnedLength;
+    DEBUGGER_READ_MEMORY ReadMem = {0};
+    UINT32               SizeOfTargetBuffer;
+
+    //
+    // Check if driver is loaded if it's in VMI mode
+    //
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    }
+
+    //
+    // Fill the read memory structure
+    //
+    ReadMem.Address        = TargetAddress;
+    ReadMem.Pid            = Pid;
+    ReadMem.Size           = Size;
+    ReadMem.MemoryType     = MemoryType;
+    ReadMem.ReadingType    = ReadingType;
+    ReadMem.GetAddressMode = GetAddressMode;
+
+    //
+    // allocate buffer for transferring messages
+    //
+    SizeOfTargetBuffer                    = sizeof(DEBUGGER_READ_MEMORY) + (Size * sizeof(CHAR));
+    DEBUGGER_READ_MEMORY * MemReadRequest = (DEBUGGER_READ_MEMORY *)malloc(SizeOfTargetBuffer);
+
+    ZeroMemory(MemReadRequest, SizeOfTargetBuffer);
+
+    //
+    // Copy the buffer to send
+    //
+    memcpy(MemReadRequest, &ReadMem, sizeof(DEBUGGER_READ_MEMORY));
+
+    //
+    // Check if this is used for Debugger Mode or VMI mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // It's on Debugger mode
+        //
+        if (!KdSendReadMemoryPacketToDebuggee(&ReadMem, SizeOfTargetBuffer))
+        {
+            std::free(MemReadRequest);
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // It's on VMI mode
+        //
+
+        Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
+                                 IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
+                                 MemReadRequest,              // Input Buffer to driver.
+                                 SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
+                                 MemReadRequest,              // Output Buffer from driver.
+                                 SizeOfTargetBuffer,          // Length of output buffer in bytes.
+                                 &ReturnedLength,             // Bytes placed in buffer.
+                                 NULL                         // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            std::free(MemReadRequest);
+            return FALSE;
+        }
+    }
+
+    //
+    // Check if reading memory was successful or not
+    //
+    if (MemReadRequest->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        std::free(MemReadRequest);
+        ShowErrorMessage(MemReadRequest->KernelStatus);
+        return FALSE;
+    }
+    else
+    {
+        if (g_IsSerialConnectedToRemoteDebuggee)
+        {
+            //
+            // Change the ReturnedLength as it contains the headers
+            //
+            *ReturnLength = MemReadRequest->ReturnLength;
+        }
+        else
+        {
+            //
+            // Change the ReturnedLength as it contains the headers
+            //
+            ReturnedLength -= SIZEOF_DEBUGGER_READ_MEMORY;
+            *ReturnLength = ReturnedLength;
+        }
+
+        //
+        // Set address mode (if requested)
+        //
+        if (GetAddressMode)
+        {
+            *AddressMode = MemReadRequest->AddressMode;
+        }
+
+        //
+        // Copy the buffer
+        //
+        memcpy(TargetBufferToStore,
+               ((unsigned char *)MemReadRequest) + sizeof(DEBUGGER_READ_MEMORY),
+               *ReturnLength);
+
+        //
+        // free the buffer
+        //
+        std::free(MemReadRequest);
+
+        return TRUE;
+    }
 }
 
 /**
@@ -63,18 +190,11 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
                                  UINT32                       Size,
                                  PDEBUGGER_DT_COMMAND_OPTIONS DtDetails)
 {
-    BOOL                 Status;
-    ULONG                ReturnedLength;
-    DEBUGGER_READ_MEMORY ReadMem = {0};
-    UINT32               SizeOfTargetBuffer;
-
-    ReadMem.Address     = Address;
-    ReadMem.Pid         = Pid;
-    ReadMem.Size        = Size;
-    ReadMem.MemoryType  = MemoryType;
-    ReadMem.ReadingType = ReadingType;
-    ReadMem.Style       = Style;
-    ReadMem.DtDetails   = DtDetails;
+    UINT32                            ReturnedLength;
+    UCHAR *                           Buffer;
+    DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;
+    BOOLEAN                           CheckForAddressMode = FALSE;
+    BOOLEAN                           Status              = FALSE;
 
     //
     // Check if this is used for disassembler or not
@@ -82,67 +202,54 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64 ||
         Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
     {
-        ReadMem.IsForDisasm = TRUE;
+        CheckForAddressMode = TRUE;
     }
     else
     {
-        ReadMem.IsForDisasm = FALSE;
+        CheckForAddressMode = FALSE;
     }
 
     //
-    // send the request
+    // Allocate buffer for output
     //
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        KdSendReadMemoryPacketToDebuggee(&ReadMem);
-        return;
-    }
+    Buffer = (UCHAR *)malloc(Size);
 
     //
-    // It's on VMI mode
+    // Perform reading memory
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
-
-    //
-    // allocate buffer for transferring messages
-    //
-    SizeOfTargetBuffer           = (Size * sizeof(CHAR)) + sizeof(DEBUGGER_READ_MEMORY);
-    unsigned char * OutputBuffer = (unsigned char *)malloc(SizeOfTargetBuffer);
-
-    ZeroMemory(OutputBuffer, SizeOfTargetBuffer);
-
-    Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
-                             IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
-                             &ReadMem,                    // Input Buffer to driver.
-                             SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
-                             OutputBuffer,                // Output Buffer from driver.
-                             SizeOfTargetBuffer,          // Length of output buffer in bytes.
-                             &ReturnedLength,             // Bytes placed in buffer.
-                             NULL                         // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        std::free(OutputBuffer);
-        return;
-    }
+    Status = HyperDbgReadMemory(Address,
+                                MemoryType,
+                                ReadingType,
+                                Pid,
+                                Size,
+                                CheckForAddressMode,
+                                &AddressMode,
+                                (BYTE *)Buffer,
+                                &ReturnedLength);
 
     //
     // Check if reading memory was successful or not
     //
-    if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    if (!Status)
     {
-        std::free(OutputBuffer);
-        ShowErrorMessage(((PDEBUGGER_READ_MEMORY)OutputBuffer)->KernelStatus);
+        //
+        // Check for extra message for the dump command
+        //
+        if (Style == DEBUGGER_SHOW_COMMAND_DUMP)
+        {
+            ShowMessages("HyperDbg attempted to access an invalid target address: 0x%llx\n"
+                         "if you are confident that the address is valid, it may be paged out "
+                         "or not yet available in the current CR3 page table\n"
+                         "you can use the '.pagein' command to load this page table into memory and "
+                         "trigger a page fault (#PF), please refer to the documentation for further details\n\n",
+                         Address);
+        }
+
+        //
+        // free the buffer
+        //
+        std::free(Buffer);
         return;
-    }
-    else
-    {
-        //
-        // Change the ReturnedLength as it contains the headers
-        //
-        ReturnedLength -= SIZEOF_DEBUGGER_READ_MEMORY;
     }
 
     switch (Style)
@@ -157,7 +264,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
             ScriptEngineShowDataBasedOnSymbolTypesWrapper(DtDetails->TypeName,
                                                           Address,
                                                           FALSE,
-                                                          ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+                                                          Buffer,
                                                           DtDetails->AdditionalParameters);
         }
         else if (ReturnedLength == 0)
@@ -174,7 +281,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DB:
 
         ShowMemoryCommandDB(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Size,
             Address,
             MemoryType,
@@ -185,7 +292,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DC:
 
         ShowMemoryCommandDC(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Size,
             Address,
             MemoryType,
@@ -196,7 +303,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DD:
 
         ShowMemoryCommandDD(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Size,
             Address,
             MemoryType,
@@ -207,7 +314,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DQ:
 
         ShowMemoryCommandDQ(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Size,
             Address,
             MemoryType,
@@ -217,7 +324,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
 
     case DEBUGGER_SHOW_COMMAND_DUMP:
 
-        CommandDumpSaveIntoFile(((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY), Size);
+        CommandDumpSaveIntoFile(Buffer, Size);
 
         break;
 
@@ -226,8 +333,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         // Check if assembly mismatch occurred with the target address
         //
-        if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == TRUE &&
-            MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+        if (AddressMode == DEBUGGER_READ_ADDRESS_MODE_32_BIT && MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
         {
             ShowMessages("the target address seems to be located in a 32-bit program, if so, "
                          "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
@@ -237,7 +343,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         // Show diassembles
         //
         HyperDbgDisassembler64(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Address,
             ReturnedLength,
             0,
@@ -251,8 +357,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         // Check if assembly mismatch occurred with the target address
         //
-        if (((PDEBUGGER_READ_MEMORY)OutputBuffer)->Is32BitAddress == FALSE &&
-            MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+        if (AddressMode == DEBUGGER_READ_ADDRESS_MODE_64_BIT && MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
         {
             ShowMessages("the target address seems to be located in a 64-bit program, if so, "
                          "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
@@ -262,7 +367,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         // Show diassembles
         //
         HyperDbgDisassembler32(
-            ((unsigned char *)OutputBuffer) + sizeof(DEBUGGER_READ_MEMORY),
+            Buffer,
             Address,
             ReturnedLength,
             0,
@@ -275,8 +380,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     //
     // free the buffer
     //
-    std::free(OutputBuffer);
-
+    std::free(Buffer);
     ShowMessages("\n");
 }
 

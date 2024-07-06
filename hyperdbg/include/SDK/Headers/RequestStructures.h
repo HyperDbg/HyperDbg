@@ -231,6 +231,17 @@ typedef enum _DEBUGGER_READ_MEMORY_TYPE
 } DEBUGGER_READ_MEMORY_TYPE;
 
 /**
+ * @brief different address mode
+ *
+ */
+typedef enum _DEBUGGER_READ_MEMORY_ADDRESS_MODE
+{
+    DEBUGGER_READ_ADDRESS_MODE_32_BIT,
+    DEBUGGER_READ_ADDRESS_MODE_64_BIT
+
+} DEBUGGER_READ_MEMORY_ADDRESS_MODE;
+
+/**
  * @brief the way that debugger should show
  * the details of memory or disassemble them
  *
@@ -253,17 +264,15 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
  */
 typedef struct _DEBUGGER_READ_MEMORY
 {
-    UINT32                       Pid; // Read from cr3 of what process
-    UINT64                       Address;
-    UINT32                       Size;
-    BOOLEAN                      IsForDisasm;    // Debugger sets whether the read memory is for diassembler or not
-    BOOLEAN                      Is32BitAddress; // Debuggee sets the status of address
-    DEBUGGER_READ_MEMORY_TYPE    MemoryType;
-    DEBUGGER_READ_READING_TYPE   ReadingType;
-    PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;
-    DEBUGGER_SHOW_MEMORY_STYLE   Style;        // not used in local debugging
-    UINT32                       ReturnLength; // not used in local debugging
-    UINT32                       KernelStatus; // not used in local debugging
+    UINT32                            Pid; // Read from cr3 of what process
+    UINT64                            Address;
+    UINT32                            Size;
+    BOOLEAN                           GetAddressMode; // Debugger sets whether the read memory is for diassembler or not
+    DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;    // Debuggee sets the mode of address
+    DEBUGGER_READ_MEMORY_TYPE         MemoryType;
+    DEBUGGER_READ_READING_TYPE        ReadingType;
+    UINT32                            ReturnLength; // not used in local debugging
+    UINT32                            KernelStatus; // not used in local debugging
 
     //
     // Here is the target buffer (actual memory)
