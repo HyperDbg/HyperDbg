@@ -205,7 +205,7 @@ SetValue(PGUEST_REGS                    GuestRegs,
         VariablesList->TempList[Symbol->Value] = Value;
         return;
     case SYMBOL_REGISTER_TYPE:
-        SetRegValue(GuestRegs, Symbol, Value);
+        SetRegValueUsingSymbol(GuestRegs, Symbol, Value);
         return;
     case SYMBOL_STACK_TEMP_TYPE:
     {

@@ -2298,6 +2298,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SINGLE_CALLSTACK_FRAME                    CallstackFrameBuffer;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION                WriteRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET         ChangeProcessPacket;
@@ -2616,6 +2617,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS:
 
                 ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Read registers
                 //
@@ -2643,6 +2645,32 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
                                            (CHAR *)ReadRegisterPacket,
                                            SizeToSend);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_WRITE_REGISTER:
+
+                WriteRegisterPacket = (DEBUGGEE_REGISTER_WRITE_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Write register
+                //
+                if (SetRegValue(DbgState->Regs, WriteRegisterPacket->RegisterID, WriteRegisterPacket->Value))
+                {
+                    WriteRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+                }
+                else
+                {
+                    WriteRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                }
+
+                //
+                // Send the result of writing register back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_WRITE_REGISTER,
+                                           (CHAR *)WriteRegisterPacket,
+                                           sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
 
                 break;
 

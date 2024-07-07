@@ -275,6 +275,40 @@ HyperDbgReadTargetRegister(UINT32 RegisterId, UINT64 * TargetRegister)
 }
 
 /**
+ * @brief Write target register
+ * @param RegisterId The register ID
+ * @param Value The value of the target register
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgWriteTargetRegister(UINT32 RegisterId, UINT64 Value)
+{
+    DEBUGGEE_REGISTER_WRITE_DESCRIPTION RegState = {0};
+
+    //
+    // Set the register ID
+    //
+    RegState.RegisterID = RegisterId;
+    RegState.Value      = Value;
+
+    if (!KdSendWriteRegisterPacketToDebuggee(&RegState))
+    {
+        return FALSE;
+    }
+
+    if (RegState.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(RegState.KernelStatus);
+        return FALSE;
+    }
+}
+
+/**
  * @brief handler of r show all registers
  *
  * @return BOOLEAN
@@ -389,7 +423,7 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
     REGS_ENUM                RegKind;
     std::vector<std::string> Tmp;
 
-    std::string SetRegValue = "SetRegValue";
+    std::string SetRegValue;
 
     if (SplitCommand[0] != "r")
     {
@@ -494,8 +528,8 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
                 //
                 // send the request
                 //
-
                 SetRegValue = "@" + tmp + '=' + Tmp[1] + "; ";
+
                 if (g_IsSerialConnectedToRemoteDebuggee)
                 {
                     //

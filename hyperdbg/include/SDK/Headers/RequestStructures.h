@@ -1163,3 +1163,18 @@ typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
 
 /* ==============================================================================================
  */
+
+/**
+ * @brief Register Descriptor Structure to write on registers.
+ *
+ */
+typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
+{
+    UINT32 RegisterID; // the number is from REGS_ENUM
+    UINT64 Value;
+    UINT32 KernelStatus;
+
+} DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
+
+/* ==============================================================================================
+ */

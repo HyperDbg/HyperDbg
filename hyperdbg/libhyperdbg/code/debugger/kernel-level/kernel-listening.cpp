@@ -61,6 +61,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
@@ -800,6 +801,27 @@ StartAgain:
             // Signal the event relating to receiving result of reading registers
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_WRITE_REGISTER:
+
+            WriteRegisterPacket = (DEBUGGEE_REGISTER_WRITE_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, WriteRegisterPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of writing register
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 
             break;
 

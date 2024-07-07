@@ -16,14 +16,11 @@
 //			        Registers                   //
 //////////////////////////////////////////////////
 
-VOID
-SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value);
-
-UINT64
-GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
+BOOLEAN
+SetRegValueUsingSymbol(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value);
 
 //////////////////////////////////////////////////
-//			    Pseudo-registers               //
+//			    Pseudo-registers                //
 //////////////////////////////////////////////////
 
 UINT64
