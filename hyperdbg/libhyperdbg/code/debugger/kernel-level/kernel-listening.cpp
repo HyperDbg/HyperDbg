@@ -69,8 +69,6 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_PAGE_IN_REQUEST                   PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
-    PGUEST_REGS                                 Regs;
-    PGUEST_EXTRA_REGISTERS                      ExtraRegs;
     BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
     PVOID                                       CallerAddress                 = NULL;
     UINT32                                      CallerSize                    = NULL_ZERO;
@@ -788,74 +786,15 @@ StartAgain:
 
             ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadRegisterPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading registers like rax=0000000000018b01
-                //
-                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
-                {
-                    Regs      = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
-                    ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, &CallerAddress, &CallerSize);
 
-                    RFLAGS Rflags = {0};
-                    Rflags.AsUInt = ExtraRegs->RFLAGS;
-
-                    ShowMessages(
-                        "RAX=%016llx RBX=%016llx RCX=%016llx\n"
-                        "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
-                        "RIP=%016llx RSP=%016llx RBP=%016llx\n"
-                        "R8 =%016llx R9 =%016llx R10=%016llx\n"
-                        "R11=%016llx R12=%016llx R13=%016llx\n"
-                        "R14=%016llx R15=%016llx IOPL=%02x\n"
-                        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
-                        "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
-                        "RFLAGS=%016llx\n",
-                        Regs->rax,
-                        Regs->rbx,
-                        Regs->rcx,
-                        Regs->rdx,
-                        Regs->rsi,
-                        Regs->rdi,
-                        ExtraRegs->RIP,
-                        Regs->rsp,
-                        Regs->rbp,
-                        Regs->r8,
-                        Regs->r9,
-                        Regs->r10,
-                        Regs->r11,
-                        Regs->r12,
-                        Regs->r13,
-                        Regs->r14,
-                        Regs->r15,
-                        Rflags.IoPrivilegeLevel,
-                        Rflags.OverflowFlag ? "OF 1" : "OF 0",
-                        Rflags.DirectionFlag ? "DF 1" : "DF 0",
-                        Rflags.InterruptEnableFlag ? "IF 1" : "IF 0",
-                        Rflags.SignFlag ? "SF  1" : "SF  0",
-                        Rflags.ZeroFlag ? "ZF 1" : "ZF 0",
-                        Rflags.ParityFlag ? "PF 1" : "PF 0",
-                        Rflags.CarryFlag ? "CF 1" : "CF 0",
-                        Rflags.AuxiliaryCarryFlag ? "AXF 1" : "AXF 0",
-                        ExtraRegs->CS,
-                        ExtraRegs->SS,
-                        ExtraRegs->DS,
-                        ExtraRegs->ES,
-                        ExtraRegs->FS,
-                        ExtraRegs->GS,
-                        ExtraRegs->RFLAGS);
-                }
-                else
-                {
-                    ShowMessages("%s=%016llx\n",
-                                 RegistersNames[ReadRegisterPacket->RegisterID],
-                                 ReadRegisterPacket->Value);
-                }
-            }
-            else
-            {
-                ShowErrorMessage(ReadRegisterPacket->KernelStatus);
-            }
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, ReadRegisterPacket, CallerSize);
 
             //
             // Signal the event relating to receiving result of reading registers

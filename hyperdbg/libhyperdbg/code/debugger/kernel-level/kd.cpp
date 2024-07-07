@@ -521,16 +521,22 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
+KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize)
 {
     //
-    // Send r command as read register packet
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
+
+    //
+    // Send the 'r' command as read register packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
             (CHAR *)RegDes,
-            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) // only the header is enough, no need to send the entire buffer
+            ))
     {
         return FALSE;
     }

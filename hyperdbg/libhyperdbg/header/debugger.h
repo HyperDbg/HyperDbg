@@ -225,8 +225,8 @@ GetCommandAttributes(const string & FirstCommand);
 VOID
 DetachFromProcess();
 
-VOID
-ShowAllRegisters();
+BOOLEAN
+HyperDbgRegisterShowAll();
 
 VOID
 CommandPauseRequest();

@@ -164,18 +164,211 @@ CommandRHelp()
 }
 
 /**
- * @brief handler of r show all registers command
+ * @brief Read all registers
+ * @param GuestRegisters The guest registers
+ * @param ExtraRegisters The extra registers
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * ExtraRegisters)
+{
+    PGUEST_REGS                          Regs;
+    PGUEST_EXTRA_REGISTERS               ExtraRegs;
+    DEBUGGEE_REGISTER_READ_DESCRIPTION * RegState       = NULL;
+    UINT32                               SizeOfRegState = 0;
+
+    //
+    // Calculate the size of the register state
+    //
+    SizeOfRegState = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS) + sizeof(GUEST_EXTRA_REGISTERS);
+
+    //
+    // Allocate memory for the register state
+    //
+    RegState = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)malloc(SizeOfRegState);
+
+    //
+    // Check if the memory allocation was successful
+    //
+    if (RegState == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the register ID to show all registers
+    //
+    RegState->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
+
+    if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
+    {
+        free(RegState);
+        return FALSE;
+    }
+
+    if (RegState->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        //
+        // Copy the registers and extra registers to the output
+        //
+        Regs      = (GUEST_REGS *)(((CHAR *)RegState) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
+        ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)RegState) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
+
+        if (GuestRegisters != NULL)
+        {
+            memcpy(GuestRegisters, Regs, sizeof(GUEST_REGS));
+        }
+
+        if (ExtraRegisters != NULL)
+        {
+            memcpy(ExtraRegisters, ExtraRegs, sizeof(GUEST_EXTRA_REGISTERS));
+        }
+    }
+    else
+    {
+        ShowErrorMessage(RegState->KernelStatus);
+        free(RegState);
+        return FALSE;
+    }
+
+    free(RegState);
+    return TRUE;
+}
+
+/**
+ * @brief Read target register
+ * @param RegisterId The register ID
+ * @param TargetRegister The value of the target register
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgReadTargetRegister(UINT32 RegisterId, UINT64 * TargetRegister)
+{
+    DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
+
+    //
+    // Set the register ID
+    //
+    RegState.RegisterID = RegisterId;
+
+    if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+    {
+        return FALSE;
+    }
+
+    if (RegState.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        if (TargetRegister != NULL)
+        {
+            *TargetRegister = RegState.Value;
+        }
+    }
+    else
+    {
+        ShowErrorMessage(RegState.KernelStatus);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief handler of r show all registers
  *
  * @return BOOLEAN
  */
-
-VOID
-ShowAllRegisters()
+BOOLEAN
+HyperDbgRegisterShowAll()
 {
-    DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
-    RegState.RegisterID                         = DEBUGGEE_SHOW_ALL_REGISTERS;
-    KdSendReadRegisterPacketToDebuggee(&RegState);
+    GUEST_REGS            Regs      = {0};
+    GUEST_EXTRA_REGISTERS ExtraRegs = {0};
+    RFLAGS                Rflags    = {0};
+
+    if (!HyperDbgReadAllRegisters(&Regs, &ExtraRegs))
+    {
+        return FALSE;
+    }
+
+    //
+    // Show the result of reading registers like rax=0000000000018b01
+    //
+    Rflags.AsUInt = ExtraRegs.RFLAGS;
+
+    ShowMessages(
+        "RAX=%016llx RBX=%016llx RCX=%016llx\n"
+        "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
+        "RIP=%016llx RSP=%016llx RBP=%016llx\n"
+        "R8 =%016llx R9 =%016llx R10=%016llx\n"
+        "R11=%016llx R12=%016llx R13=%016llx\n"
+        "R14=%016llx R15=%016llx IOPL=%02x\n"
+        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
+        "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
+        "RFLAGS=%016llx\n",
+        Regs.rax,
+        Regs.rbx,
+        Regs.rcx,
+        Regs.rdx,
+        Regs.rsi,
+        Regs.rdi,
+        ExtraRegs.RIP,
+        Regs.rsp,
+        Regs.rbp,
+        Regs.r8,
+        Regs.r9,
+        Regs.r10,
+        Regs.r11,
+        Regs.r12,
+        Regs.r13,
+        Regs.r14,
+        Regs.r15,
+        Rflags.IoPrivilegeLevel,
+        Rflags.OverflowFlag ? "OF 1" : "OF 0",
+        Rflags.DirectionFlag ? "DF 1" : "DF 0",
+        Rflags.InterruptEnableFlag ? "IF 1" : "IF 0",
+        Rflags.SignFlag ? "SF  1" : "SF  0",
+        Rflags.ZeroFlag ? "ZF 1" : "ZF 0",
+        Rflags.ParityFlag ? "PF 1" : "PF 0",
+        Rflags.CarryFlag ? "CF 1" : "CF 0",
+        Rflags.AuxiliaryCarryFlag ? "AXF 1" : "AXF 0",
+        ExtraRegs.CS,
+        ExtraRegs.SS,
+        ExtraRegs.DS,
+        ExtraRegs.ES,
+        ExtraRegs.FS,
+        ExtraRegs.GS,
+        ExtraRegs.RFLAGS);
+
+    return TRUE;
 }
+
+/**
+ * @brief handler of r show the target register
+ * @param RegisterId The register ID
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgRegisterShowTargetRegister(UINT32 RegisterId)
+{
+    UINT64 TargetRegister = 0;
+
+    //
+    // Read target register
+    //
+    if (!HyperDbgReadTargetRegister(RegisterId, &TargetRegister))
+    {
+        return FALSE;
+    }
+
+    ShowMessages("%s=%016llx\n",
+                 RegistersNames[RegisterId],
+                 TargetRegister);
+
+    return TRUE;
+}
+
 /**
  * @brief handler of r command
  *
@@ -210,7 +403,7 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
         //
         if (g_IsSerialConnectedToRemoteDebuggee)
         {
-            ShowAllRegisters();
+            HyperDbgRegisterShowAll();
         }
         else
         {
@@ -246,17 +439,15 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
             //
             RegKind = (REGS_ENUM)-1;
         }
+
         if (RegKind != -1)
         {
-            DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
-            RegState.RegisterID                         = RegKind;
-
             //
             // send the request
             //
             if (g_IsSerialConnectedToRemoteDebuggee)
             {
-                KdSendReadRegisterPacketToDebuggee(&RegState);
+                HyperDbgRegisterShowTargetRegister((UINT32)RegKind);
             }
             else
             {
