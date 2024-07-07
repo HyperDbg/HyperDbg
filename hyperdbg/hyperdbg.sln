@@ -63,6 +63,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D
 		include\SDK\Headers\HardwareDebugger.h = include\SDK\Headers\HardwareDebugger.h
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
+		include\SDK\Headers\ScriptEngineCommonDefinitions.h = include\SDK\Headers\ScriptEngineCommonDefinitions.h
 		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h
 	EndProjectSection
 EndProject
@@ -70,7 +71,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "script-eval", "script-eval"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{4C47AB91-DF41-4741-80AF-FD87C32A961E}"
 	ProjectSection(SolutionItems) = preProject
-		script-eval\header\ScriptEngineCommonDefinitions.h = script-eval\header\ScriptEngineCommonDefinitions.h
 		script-eval\header\ScriptEngineHeader.h = script-eval\header\ScriptEngineHeader.h
 		script-eval\header\ScriptEngineInternalHeader.h = script-eval\header\ScriptEngineInternalHeader.h
 	EndProjectSection
