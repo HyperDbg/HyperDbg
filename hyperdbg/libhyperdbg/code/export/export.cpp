@@ -341,3 +341,65 @@ hyperdbg_u_show_memory_or_disassemble(DEBUGGER_SHOW_MEMORY_STYLE   style,
 {
     HyperDbgShowMemoryOrDisassemble(style, address, memory_type, reading_type, pid, size, dt_details);
 }
+
+/**
+ * @brief Read all registers
+ * @param guest_registers The buffer to store the registers
+ * @param extra_registers The buffer to store the extra registers
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_read_all_registers(GUEST_REGS * guest_registers, GUEST_EXTRA_REGISTERS * extra_registers)
+{
+    return HyperDbgReadAllRegisters(guest_registers, extra_registers);
+}
+
+/**
+ * @brief Read target register
+ * @param register_id The target register
+ * @param target_register The buffer to store the register
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_read_target_register(REGS_ENUM register_id, UINT64 * target_register)
+{
+    return HyperDbgReadTargetRegister(register_id, target_register);
+}
+
+/**
+ * @brief Write target register
+ * @param register_id The target register
+ * @param value The value to write
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_write_target_register(REGS_ENUM register_id, UINT64 value)
+{
+    return HyperDbgWriteTargetRegister(register_id, value);
+}
+
+/**
+ * @brief Show all registers
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_show_all_registers()
+{
+    return HyperDbgRegisterShowAll();
+}
+
+/**
+ * @brief Show target register
+ * @param register_id The target register
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_show_target_register(REGS_ENUM register_id)
+{
+    return HyperDbgRegisterShowTargetRegister(register_id);
+}

@@ -226,9 +226,6 @@ GetCommandAttributes(const string & FirstCommand);
 VOID
 DetachFromProcess();
 
-BOOLEAN
-HyperDbgRegisterShowAll();
-
 VOID
 CommandPauseRequest();
 
@@ -250,3 +247,22 @@ CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbol
 
 VOID
 CommandTrackHandleReceivedRetInstructions(UINT64 CurrentRip);
+
+//////////////////////////////////////////////////
+//				    Registers                   //
+//////////////////////////////////////////////////
+
+BOOLEAN
+HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * ExtraRegisters);
+
+BOOLEAN
+HyperDbgReadTargetRegister(REGS_ENUM RegisterId, UINT64 * TargetRegister);
+
+BOOLEAN
+HyperDbgWriteTargetRegister(REGS_ENUM RegisterId, UINT64 Value);
+
+BOOLEAN
+HyperDbgRegisterShowAll();
+
+BOOLEAN
+HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId);
