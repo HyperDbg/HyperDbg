@@ -152,7 +152,11 @@ KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT6
 BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
-BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
+BOOLEAN
+KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize);
+
+BOOLEAN
+KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes);
 
 BOOLEAN
 KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSize);

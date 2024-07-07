@@ -21,7 +21,7 @@ class Generator():
     def __init__(self): 
         self.SourceFile = open("..\\code\\parse-table.c", "w")
         self.HeaderFile = open("..\\header\\parse-table.h", "w")   
-        self.CommonHeaderFile = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.h", "w")
+        self.CommonHeaderFile = open("..\\..\\include\\SDK\\Headers\\ScriptEngineCommonDefinitions.h", "w")
         self.CommonHeaderFileScala = open("..\\..\\..\\hwdbg\\src\\main\\scala\\hwdbg\\script\\script_definitions.scala", "w")
         self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile, self.CommonHeaderFileScala)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)

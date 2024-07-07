@@ -1155,11 +1155,26 @@ typedef struct _DEBUGGEE_RESULT_OF_SEARCH_PACKET
  */
 typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
 {
-    UINT32 RegisterID; // the number is from REGS_ENUM
+    UINT32 RegisterId;
     UINT64 Value;
     UINT32 KernelStatus;
 
 } DEBUGGEE_REGISTER_READ_DESCRIPTION, *PDEBUGGEE_REGISTER_READ_DESCRIPTION;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Register Descriptor Structure to write on registers.
+ *
+ */
+typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
+{
+    UINT32 RegisterId;
+    UINT64 Value;
+    UINT32 KernelStatus;
+
+} DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
 
 /* ==============================================================================================
  */

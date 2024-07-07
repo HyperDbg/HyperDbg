@@ -954,14 +954,17 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
  * @brief Set the register value
  *
  * @param GuestRegs
- * @param Symbol
+ * @param RegisterId
  * @param Value
- * @return VOID
+ *
+ * @return BOOLEAN
  */
-VOID
-SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
+BOOLEAN
+SetRegValue(PGUEST_REGS GuestRegs, UINT32 RegisterId, UINT64 Value)
 {
-    switch (Symbol->Value)
+    BOOLEAN Result = TRUE;
+
+    switch (RegisterId)
     {
     case REGISTER_RAX:
         GuestRegs->rax = Value;
@@ -1970,5 +1973,24 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
+    default:
+        Result = FALSE;
+        break;
     }
+
+    return Result;
+}
+
+/**
+ * @brief Set the register value
+ *
+ * @param GuestRegs
+ * @param Symbol
+ * @param Value
+ * @return BOOLEAN
+ */
+BOOLEAN
+SetRegValueUsingSymbol(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
+{
+    return SetRegValue(GuestRegs, (UINT32)Symbol->Value, Value);
 }

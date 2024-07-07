@@ -102,6 +102,24 @@ hyperdbg_u_show_memory_or_disassemble(DEBUGGER_SHOW_MEMORY_STYLE   style,
                                       PDEBUGGER_DT_COMMAND_OPTIONS dt_details);
 
 //
+// Reading/Writing registers
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_read_all_registers(GUEST_REGS * guest_registers, GUEST_EXTRA_REGISTERS * extra_registers);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_read_target_register(REGS_ENUM register_id, UINT64 * target_register);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_write_target_register(REGS_ENUM register_id, UINT64 value);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_show_all_registers();
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_show_target_register(REGS_ENUM register_id);
+
+//
 // Connect to local or remote debugger
 // Exported functionality of the '.connect' command
 //

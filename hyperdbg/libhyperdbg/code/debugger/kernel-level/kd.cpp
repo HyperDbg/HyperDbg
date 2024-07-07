@@ -516,21 +516,29 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
 }
 
 /**
- * @brief Send a Read register packet to the debuggee
+ * @brief Send a read register packet to the debuggee
+ * @param RegDes
+ * @param RegBuffSize
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
+KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize)
 {
     //
-    // Send r command as read register packet
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
+
+    //
+    // Send the 'r' command as read register packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
             (CHAR *)RegDes,
-            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) // only the header is enough, no need to send the entire buffer
+            ))
     {
         return FALSE;
     }
@@ -539,6 +547,40 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
     // Wait until the result of read registers received
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send a write register packet to the debuggee
+ * @param RegDes
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, RegDes, sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
+
+    //
+    // Send write register packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_WRITE_REGISTER,
+            (CHAR *)RegDes,
+            sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of write register received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 
     return TRUE;
 }

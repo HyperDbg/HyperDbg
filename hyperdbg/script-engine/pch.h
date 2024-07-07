@@ -35,7 +35,7 @@
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
-#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
+#include "..\include\SDK\Headers\ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"
 #include "type.h"

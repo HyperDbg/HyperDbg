@@ -127,7 +127,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // Script-engine
 //
-#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
 #include "..\script-eval\header\ScriptEngineHeader.h"
 
 //

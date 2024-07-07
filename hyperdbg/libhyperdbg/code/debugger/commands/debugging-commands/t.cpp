@@ -137,7 +137,8 @@ CommandT(vector<string> SplitCommand, string Command)
                 //
                 // Show registers
                 //
-                ShowAllRegisters();
+                HyperDbgRegisterShowAll();
+
                 if (i != StepCount - 1)
                 {
                     ShowMessages("\n");
