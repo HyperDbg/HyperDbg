@@ -640,7 +640,7 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
 {
     GUEST_EXTRA_REGISTERS ERegs = {0};
 
-    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
         //
         // Add General purpose registers
@@ -670,7 +670,7 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
     }
     else
     {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(DbgState->Regs, ReadRegisterRequest->RegisterID);
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(DbgState->Regs, ReadRegisterRequest->RegisterId);
     }
 
     return TRUE;
@@ -689,7 +689,7 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 {
     GUEST_EXTRA_REGISTERS ERegs = {0};
 
-    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
         //
         // Add General purpose registers
@@ -719,7 +719,7 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
     }
     else
     {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterID);
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterId);
     }
 
     return TRUE;
@@ -2630,7 +2630,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     ReadRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
                 }
 
-                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+                if (ReadRegisterPacket->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
                 {
                     SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS) + sizeof(GUEST_EXTRA_REGISTERS);
                 }
@@ -2655,7 +2655,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Write register
                 //
-                if (SetRegValue(DbgState->Regs, WriteRegisterPacket->RegisterID, WriteRegisterPacket->Value))
+                if (SetRegValue(DbgState->Regs, WriteRegisterPacket->RegisterId, WriteRegisterPacket->Value))
                 {
                     WriteRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }

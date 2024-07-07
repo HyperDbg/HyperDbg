@@ -199,7 +199,7 @@ HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * Ex
     //
     // Set the register ID to show all registers
     //
-    RegState->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
+    RegState->RegisterId = DEBUGGEE_SHOW_ALL_REGISTERS;
 
     if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
     {
@@ -244,14 +244,14 @@ HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * Ex
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-HyperDbgReadTargetRegister(UINT32 RegisterId, UINT64 * TargetRegister)
+HyperDbgReadTargetRegister(REGS_ENUM RegisterId, UINT64 * TargetRegister)
 {
     DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
 
     //
     // Set the register ID
     //
-    RegState.RegisterID = RegisterId;
+    RegState.RegisterId = (UINT32)RegisterId;
 
     if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
     {
@@ -282,14 +282,14 @@ HyperDbgReadTargetRegister(UINT32 RegisterId, UINT64 * TargetRegister)
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-HyperDbgWriteTargetRegister(UINT32 RegisterId, UINT64 Value)
+HyperDbgWriteTargetRegister(REGS_ENUM RegisterId, UINT64 Value)
 {
     DEBUGGEE_REGISTER_WRITE_DESCRIPTION RegState = {0};
 
     //
     // Set the register ID
     //
-    RegState.RegisterID = RegisterId;
+    RegState.RegisterId = (UINT32)RegisterId;
     RegState.Value      = Value;
 
     if (!KdSendWriteRegisterPacketToDebuggee(&RegState))
@@ -384,7 +384,7 @@ HyperDbgRegisterShowAll()
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-HyperDbgRegisterShowTargetRegister(UINT32 RegisterId)
+HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId)
 {
     UINT64 TargetRegister = 0;
 
@@ -481,7 +481,7 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
             //
             if (g_IsSerialConnectedToRemoteDebuggee)
             {
-                HyperDbgRegisterShowTargetRegister((UINT32)RegKind);
+                HyperDbgRegisterShowTargetRegister(RegKind);
             }
             else
             {
