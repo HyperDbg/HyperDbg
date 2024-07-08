@@ -37,6 +37,7 @@ CommandSymHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
+    ShowMessages("\t\te.g : .sym reload pid 3a24\n");
     ShowMessages("\t\te.g : .sym load\n");
     ShowMessages("\t\te.g : .sym download\n");
     ShowMessages("\t\te.g : .sym add base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");

@@ -1113,12 +1113,13 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                       BOOLEAN *                             PostEventRequired,
                       GUEST_REGS *                          Regs)
 {
+    PROCESSOR_DEBUGGING_STATE *      DbgState = NULL;
     DebuggerCheckForCondition *      ConditionFunc;
     DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail = {0};
     PEPT_HOOKS_CONTEXT               EptContext;
-    PLIST_ENTRY                      TempList  = 0;
-    PLIST_ENTRY                      TempList2 = 0;
-    PROCESSOR_DEBUGGING_STATE *      DbgState  = NULL;
+    PLIST_ENTRY                      TempList        = 0;
+    PLIST_ENTRY                      TempList2       = 0;
+    const PVOID                      OriginalContext = Context;
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -1224,14 +1225,17 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // we get the events for all hidden hooks in a page granularity
             //
 
-            EptContext = (PEPT_HOOKS_CONTEXT)Context;
+            //
+            // Here the OriginalContext is used because the context
+            // might be changed but the OriginalContext is constant
+            //
+            EptContext = (PEPT_HOOKS_CONTEXT)OriginalContext;
 
             //
-            // Context should be checked with hooking tag
+            // EPT context should be checked with hooking tag
             // The hooking tag is same as the event tag if both
             // of them match together
             //
-
             if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
@@ -1274,6 +1278,12 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         case HIDDEN_HOOK_EXEC_DETOURS:
 
             //
+            // Here the OriginalContext is used because the context
+            // might be changed but the OriginalContext is constant
+            //
+            EptContext = (PEPT_HOOKS_CONTEXT)OriginalContext;
+
+            //
             // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS
             // then it means that it's detours hidden hook exec so we have
             // to make sure to perform its actions, only if the hook is triggered
@@ -1284,7 +1294,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
+            if (EptContext->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -1300,7 +1310,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // Convert it to virtual address
                 //
-                Context = (PVOID)(((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress);
+                Context = (PVOID)(EptContext->VirtualAddress);
             }
 
             break;
@@ -1789,7 +1799,6 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
  * @param DbgState The state of the debugger on the current core
  * @param Tag Tag of event
  * @param Action Action object
- * @param Context Optional parameter
  * @param EventTriggerDetail Event trigger detail
  *
  * @return VOID
