@@ -68,11 +68,11 @@ WriteMemoryContent(UINT64                         AddressToEdit,
                    UINT32                         CountOf64Chunks,
                    UINT64 *                       BufferToEdit)
 {
-    BOOL                 Status;
-    BOOLEAN              StatusReturn = FALSE;
-    UINT64 *             FinalBuffer;
-    DEBUGGER_EDIT_MEMORY EditMemoryRequest = {0};
-    UINT32               FinalSize         = 0;
+    BOOL                   Status;
+    BOOLEAN                StatusReturn = FALSE;
+    DEBUGGER_EDIT_MEMORY * FinalBuffer;
+    DEBUGGER_EDIT_MEMORY   EditMemoryRequest = {0};
+    UINT32                 FinalSize         = 0;
 
     //
     // Check if driver is loaded if it's in VMI mode
@@ -104,7 +104,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     // Allocate structure + buffer
     //
-    FinalBuffer = (UINT64 *)malloc(FinalSize);
+    FinalBuffer = (DEBUGGER_EDIT_MEMORY *)malloc(FinalSize);
 
     if (!FinalBuffer)
     {
@@ -120,7 +120,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     // Copy the structure on top of the allocated buffer
     //
-    memcpy(FinalBuffer, &EditMemoryRequest, SIZEOF_DEBUGGER_EDIT_MEMORY);
+    memcpy((PVOID)FinalBuffer, &EditMemoryRequest, SIZEOF_DEBUGGER_EDIT_MEMORY);
 
     //
     // Copy the values to the buffer
@@ -132,7 +132,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        if (!KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY *)FinalBuffer, FinalSize))
+        if (!KdSendEditMemoryPacketToDebuggee(FinalBuffer, FinalSize))
         {
             free(FinalBuffer);
             return FALSE;
@@ -145,7 +145,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
             IOCTL_DEBUGGER_EDIT_MEMORY,  // IO Control Code (IOCTL)
             FinalBuffer,                 // Input Buffer to driver.
             FinalSize,                   // Input buffer length
-            &EditMemoryRequest,          // Output Buffer from driver.
+            FinalBuffer,                 // Output Buffer from driver.
             SIZEOF_DEBUGGER_EDIT_MEMORY, // Length of output buffer in bytes.
             NULL,                        // Bytes placed in buffer.
             NULL                         // synchronous call
@@ -162,7 +162,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     // Check the result
     //
-    if (EditMemoryRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    if (FinalBuffer->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
         // Was successful, nothing to do
@@ -172,7 +172,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     }
     else
     {
-        ShowErrorMessage(EditMemoryRequest.Result);
+        ShowErrorMessage(FinalBuffer->Result);
         free(FinalBuffer);
         return FALSE;
     }
@@ -482,6 +482,9 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
         return;
     }
 
+    //
+    // Only valid for VMI Mode
+    //
     if (ProcId == 0)
     {
         ProcId = GetCurrentProcessId();
