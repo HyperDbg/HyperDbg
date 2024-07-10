@@ -586,7 +586,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         if (!CheckAccessValidityAndSafety(EditMemRequest->Address,
                                           EditMemRequest->ByteSize * EditMemRequest->CountOf64Chunks))
         {
-            EditMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+            EditMemRequest->Result = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
 
@@ -633,7 +633,6 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     // Set the resutls
     //
     EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
     return TRUE;
 }
 

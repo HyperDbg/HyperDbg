@@ -11,6 +11,7 @@ New release of the HyperDbg Debugger.
 - Fix exporting VMM module load and install in the SDK
 - Providing a unified SDK API for reading memory in the VMI Mode and the Debugger Mode
 - Export SDK APIs for reading/writing into registers in the Debugger Mode
+- Export SDK API for writing memory in the VMI Mode and the Debugger Mode
 
 ### Changed
 - Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))

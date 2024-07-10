@@ -248,6 +248,13 @@ CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbol
 VOID
 CommandTrackHandleReceivedRetInstructions(UINT64 CurrentRip);
 
+BOOLEAN
+HyperDbgWriteMemory(PVOID                     DestinationAddress,
+                    DEBUGGER_EDIT_MEMORY_TYPE MemoryType,
+                    UINT32                    ProcessId,
+                    PVOID                     SourceAddress,
+                    UINT32                    NumberOfBytes);
+
 //////////////////////////////////////////////////
 //				    Registers                   //
 //////////////////////////////////////////////////

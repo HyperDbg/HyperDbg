@@ -2707,17 +2707,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY:
 
                 EditMemoryPacket = (PDEBUGGER_EDIT_MEMORY)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Edit memory
                 //
-                if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
-                {
-                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-                }
-                else
-                {
-                    EditMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-                }
+                DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket);
 
                 //
                 // Send the result of reading memory back to the debuggee

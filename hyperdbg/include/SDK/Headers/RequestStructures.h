@@ -480,14 +480,13 @@ typedef enum _DEBUGGER_EDIT_MEMORY_BYTE_SIZE
  */
 typedef struct _DEBUGGER_EDIT_MEMORY
 {
-    UINT32                         Result;     // Result from kernel
+    UINT32                         Result;
     UINT64                         Address;    // Target address to modify
     UINT32                         ProcessId;  // specifies the process id
     DEBUGGER_EDIT_MEMORY_TYPE      MemoryType; // Type of memory
     DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;   // Modification size
     UINT32                         CountOf64Chunks;
     UINT32                         FinalStructureSize;
-    UINT32                         KernelStatus; // not used in local debugging
 
 } DEBUGGER_EDIT_MEMORY, *PDEBUGGER_EDIT_MEMORY;
 

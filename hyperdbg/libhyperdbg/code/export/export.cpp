@@ -403,3 +403,23 @@ hyperdbg_u_show_target_register(REGS_ENUM register_id)
 {
     return HyperDbgRegisterShowTargetRegister(register_id);
 }
+
+/**
+ * @brief Write memory
+ * @param destination_address The destination address
+ * @param memory_type The type of memory (physical or virtual)
+ * @param process_id The target process id (if it's virtual memory)
+ * @param source_address The source address
+ * @param number_of_bytes The number of bytes to write
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_write_memory(PVOID                     destination_address,
+                        DEBUGGER_EDIT_MEMORY_TYPE memory_type,
+                        UINT32                    process_id,
+                        PVOID                     source_address,
+                        UINT32                    number_of_bytes)
+{
+    return HyperDbgWriteMemory(destination_address, memory_type, process_id, source_address, number_of_bytes);
+}
