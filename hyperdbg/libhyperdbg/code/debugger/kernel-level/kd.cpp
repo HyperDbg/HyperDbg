@@ -632,6 +632,11 @@ BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
 {
     //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, EditMem, sizeof(DEBUGGER_EDIT_MEMORY));
+
+    //
     // Send d command as read memory packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(

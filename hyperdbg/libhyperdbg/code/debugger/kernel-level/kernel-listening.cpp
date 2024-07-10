@@ -840,7 +840,7 @@ StartAgain:
             memcpy(CallerAddress, ReadMemoryPacket, CallerSize);
 
             //
-            // Signal the event relating to receiving result of reading registers
+            // Signal the event relating to receiving result of reading memory
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
@@ -850,19 +850,18 @@ StartAgain:
 
             EditMemoryPacket = (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (EditMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading memory like mem=0000000000018b01
-                //
-            }
-            else
-            {
-                ShowErrorMessage(EditMemoryPacket->KernelStatus);
-            }
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, &CallerAddress, &CallerSize);
 
             //
-            // Signal the event relating to receiving result of reading registers
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, EditMemoryPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of editing memory
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 
