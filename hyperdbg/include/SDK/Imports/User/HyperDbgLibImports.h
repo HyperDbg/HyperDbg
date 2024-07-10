@@ -102,6 +102,16 @@ hyperdbg_u_show_memory_or_disassemble(DEBUGGER_SHOW_MEMORY_STYLE   style,
                                       PDEBUGGER_DT_COMMAND_OPTIONS dt_details);
 
 //
+// Writing memory
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_write_memory(PVOID                     destination_address,
+                        DEBUGGER_EDIT_MEMORY_TYPE memory_type,
+                        UINT32                    process_id,
+                        PVOID                     source_address,
+                        UINT32                    number_of_bytes);
+
+//
 // Reading/Writing registers
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN

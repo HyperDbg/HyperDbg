@@ -190,7 +190,11 @@ WriteMemoryContent(UINT64                         AddressToEdit,
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgWriteMemory(PVOID DestinationAddress, DEBUGGER_EDIT_MEMORY_TYPE MemoryType, UINT32 ProcessId, PVOID SourceAddress, UINT32 NumberOfBytes)
+HyperDbgWriteMemory(PVOID                     DestinationAddress,
+                    DEBUGGER_EDIT_MEMORY_TYPE MemoryType,
+                    UINT32                    ProcessId,
+                    PVOID                     SourceAddress,
+                    UINT32                    NumberOfBytes)
 {
     UINT32                         RequiredBytes = 0;
     DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;
