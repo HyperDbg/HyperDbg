@@ -1237,6 +1237,22 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
     }
 
     //
+    // Set the debuggee is running after this command
+    //
+    if (StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER ||
+        StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU ||
+        StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN)
+    {
+        //
+        // The debuggee is also running after this type of command
+        // This is because this way the debuggee is running after the step-over or step-in
+        // so, if the program either terminates or couldn't run the next instruction, the
+        // user could pause the debuggee again
+        //
+        g_IsDebuggeeRunning = TRUE;
+    }
+
+    //
     // Send step packet to the serial
     //
     if (!KdCommandPacketAndBufferToDebuggee(
