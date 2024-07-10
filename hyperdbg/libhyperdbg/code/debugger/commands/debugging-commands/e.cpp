@@ -179,6 +179,78 @@ WriteMemoryContent(UINT64                         AddressToEdit,
 }
 
 /**
+ * @brief API function for writing the memory content
+ *
+ * @param AddressToEdit
+ * @param MemoryType
+ * @param ProcessId
+ * @param SourceAddress
+ * @param NumberOfBytes
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgWriteMemory(PVOID DestinationAddress, DEBUGGER_EDIT_MEMORY_TYPE MemoryType, UINT32 ProcessId, PVOID SourceAddress, UINT32 NumberOfBytes)
+{
+    UINT32                         RequiredBytes = 0;
+    DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;
+    UINT64 *                       TargetBuffer;
+    UINT32                         FinalSize    = 0;
+    BOOLEAN                        Result       = FALSE;
+    BYTE *                         BufferToEdit = (BYTE *)SourceAddress;
+
+    //
+    // Set the byte size to byte granularity
+    //
+    ByteSize = EDIT_BYTE;
+
+    //
+    // Calculate the count of 64 chunks
+    //
+    RequiredBytes = NumberOfBytes * sizeof(UINT64);
+
+    //
+    // Allocate structure + buffer
+    //
+    TargetBuffer = (UINT64 *)malloc(RequiredBytes);
+
+    if (!TargetBuffer)
+    {
+        return FALSE;
+    }
+
+    //
+    // Zero the buffer
+    //
+    ZeroMemory(TargetBuffer, FinalSize);
+
+    //
+    // Copy requested memory in 64bit chunks
+    //
+    for (size_t i = 0; i < NumberOfBytes; i++)
+    {
+        TargetBuffer[i] = BufferToEdit[i];
+    }
+
+    //
+    // Perform the write operation
+    //
+    Result = WriteMemoryContent((UINT64)DestinationAddress,
+                                MemoryType,
+                                ByteSize,
+                                ProcessId,
+                                NumberOfBytes,
+                                TargetBuffer);
+
+    //
+    // Free the malloc buffer
+    //
+    free(TargetBuffer);
+
+    return Result;
+}
+
+/**
  * @brief !e* and e* commands handler
  *
  * @param SplitCommand
