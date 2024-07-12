@@ -79,6 +79,18 @@ IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_use_default_driver_path();
 
 //
+// Connect to the debugger in the Debugger Mode
+//
+BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate);
+
+BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe);
+
+BOOLEAN
+hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD baudrate);
+
+//
 // Miscalenous functions
 //
 IMPORT_EXPORT_LIBHYPERDBG UINT64
