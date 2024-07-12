@@ -79,6 +79,12 @@ IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_use_default_driver_path();
 
 //
+// Miscalenous functions
+//
+IMPORT_EXPORT_LIBHYPERDBG UINT64
+hyperdbg_u_get_kernel_base();
+
+//
 // Reading memory
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN

@@ -134,6 +134,9 @@ IsTagExist(UINT64 Tag);
 UINT64
 DebuggerGetNtoskrnlBase();
 
+UINT64
+DebuggerGetKernelBase();
+
 BOOLEAN
 DebuggerPauseDebuggee();
 

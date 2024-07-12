@@ -554,6 +554,11 @@ UINT64 g_RdtscMedian = 0;
  */
 BOOLEAN g_IsInstrumentingInstructions = FALSE;
 
+/**
+ * @brief Shows the kernel base address
+ */
+UINT64 g_KernelBaseAddress;
+
 //////////////////////////////////////////////////
 //			     	 Settings			        //
 //////////////////////////////////////////////////

@@ -423,3 +423,14 @@ hyperdbg_u_write_memory(PVOID                     destination_address,
 {
     return HyperDbgWriteMemory(destination_address, memory_type, process_id, source_address, number_of_bytes);
 }
+
+/**
+ * @brief Get the kernel base
+ *
+ * @return UINT64 The kernel base
+ */
+UINT64
+hyperdbg_u_get_kernel_base()
+{
+    return DebuggerGetKernelBase();
+}

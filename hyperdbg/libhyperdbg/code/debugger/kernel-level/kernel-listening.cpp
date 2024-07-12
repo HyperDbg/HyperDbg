@@ -32,6 +32,7 @@ extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64                           g_ResultOfEvaluatedExpression;
 extern UINT32                           g_ErrorStateOfResultOfEvaluatedExpression;
+extern UINT64                           g_KernelBaseAddress;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -173,6 +174,11 @@ StartAgain:
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
             InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Set the kernel base address
+            //
+            g_KernelBaseAddress = InitPacket->KernelBaseAddress;
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 

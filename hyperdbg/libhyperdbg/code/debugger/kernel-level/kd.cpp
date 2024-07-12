@@ -2481,7 +2481,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // Get base address of ntoskrnl
         //
-        DebuggeeRequest->NtoskrnlBaseAddress = DebuggerGetNtoskrnlBase();
+        DebuggeeRequest->KernelBaseAddress = DebuggerGetNtoskrnlBase();
 
         //
         // Set the debuggee name, version, and build number
