@@ -303,7 +303,7 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
  * @return BOOLEAN
  */
 BOOLEAN
-UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
+UdCreateSuspendedProcess(const WCHAR * FileName, const WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
@@ -315,7 +315,7 @@ UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_I
     // Create process suspended
     //
     CreateProcessResult = CreateProcessW(FileName,
-                                         CommandLine,
+                                         (WCHAR *)CommandLine,
                                          NULL,
                                          NULL,
                                          FALSE,
@@ -348,7 +348,7 @@ UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_I
 BOOLEAN
 UdAttachToProcess(UINT32        TargetPid,
                   const WCHAR * TargetFileAddress,
-                  WCHAR *       CommandLine,
+                  const WCHAR * CommandLine,
                   BOOLEAN       RunCallbackAtTheFirstInstruction)
 {
     BOOLEAN                                  Status;
@@ -379,7 +379,7 @@ UdAttachToProcess(UINT32        TargetPid,
     }
 
     //
-    // Set the state of the debugger for getting the
+    // Set the state of the debugger for getting the callback at the first instruction
     //
     AttachRequest.CheckCallbackAtFirstInstruction = RunCallbackAtTheFirstInstruction;
 

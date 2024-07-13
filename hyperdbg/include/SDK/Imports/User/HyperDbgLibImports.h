@@ -79,6 +79,16 @@ IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_use_default_driver_path();
 
 //
+// Connect to local or remote debugger
+// Exported functionality of the '.connect' command
+//
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_connect_local_debugger();
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port);
+
+//
 // Connect to the debugger in the Debugger Mode
 //
 BOOLEAN
@@ -148,16 +158,6 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_show_target_register(REGS_ENUM register_id);
 
 //
-// Connect to local or remote debugger
-// Exported functionality of the '.connect' command
-//
-IMPORT_EXPORT_LIBHYPERDBG VOID
-hyperdbg_u_connect_local_debugger();
-
-IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
-hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port);
-
-//
 // Continue debuggee
 // Exported functionality of the 'g' command
 //
@@ -177,6 +177,16 @@ hyperdbg_u_pause_debuggee();
 //
 VOID
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer);
+
+//
+// Start a process
+// Exported functionality of the '.start' command
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_start_process(const WCHAR * path);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments);
 
 #ifdef __cplusplus
 }

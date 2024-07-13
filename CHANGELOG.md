@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.2.0] - 2024-XX-XX
+## [0.10.0.0] - 2024-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -14,6 +14,7 @@ New release of the HyperDbg Debugger.
 - Export SDK API for writing memory in the VMI Mode and the Debugger Mode
 - Export SDK API for getting kernel base address
 - Export SDK API for connecting to the debugger and from debuggee in the Debugger Mode
+- Export SDK API for starting a new process
 
 ### Changed
 - Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))

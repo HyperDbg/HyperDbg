@@ -478,3 +478,36 @@ hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD
 {
     return HyperDbgDebugCurrentDeviceUsingComPort(port_name, baudrate);
 }
+
+/**
+ * @brief Start a new process
+ *
+ * @param path The path of the process
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_start_process(const WCHAR * path)
+{
+    return UdAttachToProcess(NULL,
+                             path,
+                             NULL,
+                             FALSE);
+}
+
+/**
+ * @brief Start a new process
+ *
+ * @param path The path of the process
+ * @param arguments The arguments of the process
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments)
+{
+    return UdAttachToProcess(NULL,
+                             path,
+                             arguments,
+                             FALSE);
+}
