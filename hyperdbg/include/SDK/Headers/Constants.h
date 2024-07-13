@@ -76,66 +76,6 @@
 #define BUILD_SEC_CH0 (__TIME__[6])
 #define BUILD_SEC_CH1 (__TIME__[7])
 
-#if VERSION_MAJOR > 100
-
-#    define VERSION_MAJOR_INIT                    \
-        ((VERSION_MAJOR / 100) + '0'),            \
-            (((VERSION_MAJOR % 100) / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
-
-#elif VERSION_MAJOR > 10
-
-#    define VERSION_MAJOR_INIT        \
-        ((VERSION_MAJOR / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
-
-#else
-
-#    define VERSION_MAJOR_INIT \
-        (VERSION_MAJOR + '0')
-
-#endif
-
-#if VERSION_MINOR > 100
-
-#    define VERSION_MINOR_INIT                    \
-        ((VERSION_MINOR / 100) + '0'),            \
-            (((VERSION_MINOR % 100) / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
-
-#elif VERSION_MINOR > 10
-
-#    define VERSION_MINOR_INIT        \
-        ((VERSION_MINOR / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
-
-#else
-
-#    define VERSION_MINOR_INIT \
-        (VERSION_MINOR + '0')
-
-#endif
-
-#if VERSION_PATCH > 100
-
-#    define VERSION_PATCH_INIT                    \
-        ((VERSION_PATCH / 100) + '0'),            \
-            (((VERSION_PATCH % 100) / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
-
-#elif VERSION_PATCH > 10
-
-#    define VERSION_PATCH_INIT        \
-        ((VERSION_PATCH / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
-
-#else
-
-#    define VERSION_PATCH_INIT \
-        (VERSION_PATCH + '0')
-
-#endif
-
 #ifndef HYPERDBG_KERNEL_MODE
 
 const unsigned char BuildDateTime[] = {
@@ -161,14 +101,14 @@ const unsigned char BuildDateTime[] = {
 
     '\0'};
 
-const unsigned char CompleteVersion[] = {
-    'v',
-    VERSION_MAJOR_INIT,
-    '.',
-    VERSION_MINOR_INIT,
-    '.',
-    VERSION_PATCH_INIT,
-    '\0'};
+// Macro to convert a number to a string
+#    define STRINGIFY(x) #x
+#    define TOSTRING(x)  STRINGIFY(x)
+
+// Complete version as a string
+#    define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
+
+const unsigned char CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
 
 const unsigned char BuildVersion[] = {
     BUILD_YEAR_CH0,
@@ -188,11 +128,11 @@ const unsigned char BuildVersion[] = {
     '\0'};
 
 const unsigned char BuildSignature[] = {
-    VERSION_MAJOR_INIT,
+    TOSTRING(VERSION_MAJOR)[0],
     '.',
-    VERSION_MINOR_INIT,
+    TOSTRING(VERSION_MINOR)[0],
     '.',
-    VERSION_PATCH_INIT,
+    TOSTRING(VERSION_PATCH)[0],
     '-',
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,

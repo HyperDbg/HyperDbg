@@ -19,7 +19,8 @@ New release of the HyperDbg Debugger.
 ### Changed
 - Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))
 - Fix triggering multiple '!monitor' hooks with different contexts (#415) ([link](https://github.com/HyperDbg/HyperDbg/issues/415))
-- Fix step-over hangs, if process terminates/excepts within call instruction (#406) ([link](https://github.com/HyperDbg/HyperDbg/issues/406))
+- Fix step-over hangs if process terminates/excepts within call instruction (#406) ([link](https://github.com/HyperDbg/HyperDbg/issues/406))
+- Fix crash on editing invalid physical addresses (#424) ([link](https://github.com/HyperDbg/HyperDbg/issues/424))
 
 ## [0.9.1.0] - 2024-06-30
 New release of the HyperDbg Debugger.
