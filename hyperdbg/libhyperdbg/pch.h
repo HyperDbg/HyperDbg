@@ -159,7 +159,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/ud.h"
 #include "header/objects.h"
 #include "header/rev-ctrl.h"
-
+#include <regex>
 //
 // hwdbg
 //
