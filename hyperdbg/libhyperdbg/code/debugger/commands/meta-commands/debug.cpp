@@ -51,6 +51,39 @@ CommandDebugHelp()
 }
 
 /**
+ * @brief Check if COM port is valid or not
+ *
+ * @param ComPort
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandDebugCheckComPort(const CHAR * ComPort, UINT32 * Port)
+{
+    if (_stricmp(ComPort, "com1") == 0)
+    {
+        *Port = COM1_PORT;
+        return TRUE;
+    }
+    else if (_stricmp(ComPort, "com2") == 0)
+    {
+        *Port = COM2_PORT;
+        return TRUE;
+    }
+    else if (_stricmp(ComPort, "com3") == 0)
+    {
+        *Port = COM3_PORT;
+        return TRUE;
+    }
+    else if (_stricmp(ComPort, "com4") == 0)
+    {
+        *Port = COM4_PORT;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief Check if baud rate is valid or not
  *
  * @param Baudrate
@@ -72,36 +105,98 @@ CommandDebugCheckBaudrate(DWORD Baudrate)
 }
 
 /**
- * @brief Check if COM port is valid or not
+ * @brief Connect to a remote serial device (Debugger)
  *
- * @param ComPort
+ * @param PortName
+ * @param Baudrate
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-CommandDebugCheckComPort(const string & ComPort, UINT32 * Port)
+HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
 {
-    if (!ComPort.compare("com1"))
+    UINT32 Port;
+
+    //
+    // Check if baudrate is valid or not
+    //
+    if (!CommandDebugCheckBaudrate(Baudrate))
     {
-        *Port = COM1_PORT;
-        return TRUE;
-    }
-    else if (!ComPort.compare("com2"))
-    {
-        *Port = COM2_PORT;
-        return TRUE;
-    }
-    else if (!ComPort.compare("com3"))
-    {
-        *Port = COM3_PORT;
-        return TRUE;
-    }
-    else if (!ComPort.compare("com4"))
-    {
-        *Port = COM4_PORT;
-        return TRUE;
+        //
+        // Baud-rate is invalid
+        //
+        return FALSE;
     }
 
-    return FALSE;
+    //
+    // check if com port address is valid or not
+    //
+    if (!CommandDebugCheckComPort(PortName, &Port))
+    {
+        //
+        // com port is invalid
+        //
+        return FALSE;
+    }
+
+    //
+    // Everything is okay, connect to the remote machine to send (debugger)
+    //
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE);
+}
+
+/**
+ * @brief Connect to a remote named pipe (Debugger)
+ *
+ * @param NamedPipe
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe)
+{
+    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE);
+}
+
+/**
+ * @brief Connect to a remote serial device (Debuggee)
+ *
+ * @param PortName
+ * @param Baudrate
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
+{
+    UINT32 Port;
+
+    //
+    // Check if baudrate is valid or not
+    //
+    if (!CommandDebugCheckBaudrate(Baudrate))
+    {
+        //
+        // Baud-rate is invalid
+        //
+        return FALSE;
+    }
+
+    //
+    // check if com port address is valid or not
+    //
+    if (!CommandDebugCheckComPort(PortName, &Port))
+    {
+        //
+        // com port is invalid
+        //
+        return FALSE;
+    }
+
+    //
+    // Everything is okay, connect to the remote machine to send (debuggee)
+    //
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, TRUE, FALSE);
 }
 
 /**
@@ -193,7 +288,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplitCommand.at(4), &Port))
+            if (!CommandDebugCheckComPort(SplitCommand.at(4).c_str(), &Port))
             {
                 //
                 // com port is invalid
@@ -206,7 +301,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Everything is okay, connect to the remote machine to send (debugger)
             //
-            KdPrepareAndConnectDebugPort(SplitCommand.at(4).c_str(), Baudrate, Port, FALSE, FALSE);
+            HyperDbgDebugRemoteDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate);
         }
         else if (!SplitCommand.at(2).compare("namedpipe"))
         {
@@ -221,7 +316,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Connect to a namedpipe (it's probably a Virtual Machine debugging)
             //
-            KdPrepareAndConnectDebugPort(Token.c_str(), NULL, NULL, FALSE, TRUE);
+            HyperDbgDebugRemoteDeviceUsingNamedPipe(Token.c_str());
         }
         else
         {
@@ -280,7 +375,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplitCommand.at(4), &Port))
+            if (!CommandDebugCheckComPort(SplitCommand.at(4).c_str(), &Port))
             {
                 //
                 // com port is invalid
@@ -293,7 +388,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Everything is okay, prepare to send (debuggee)
             //
-            KdPrepareAndConnectDebugPort(SplitCommand.at(4).c_str(), Baudrate, Port, TRUE, FALSE);
+            HyperDbgDebugCurrentDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate);
         }
         else
         {
