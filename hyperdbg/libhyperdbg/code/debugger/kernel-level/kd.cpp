@@ -41,6 +41,7 @@ extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
 extern BOOLEAN g_IgnorePauseRequests;
 extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
+extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -3308,6 +3309,11 @@ KdUninitializeConnection()
     // And debuggee is not running
     //
     g_IsDebuggeeRunning = FALSE;
+
+    //
+    // Not repeating the last command
+    //
+    g_ShouldPreviousCommandBeContinued = FALSE;
 
     //
     // Clear the handler
