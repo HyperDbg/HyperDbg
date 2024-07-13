@@ -509,6 +509,15 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
+        // Check whether the physical addres
+        //
+        if (!CheckAddressPhysical(EditMemRequest->Address))
+        {
+            EditMemRequest->Result = DEBUGGER_ERROR_INVALID_ADDRESS;
+            return STATUS_UNSUCCESSFUL;
+        }
+
+        //
         // Edit the physical memory
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
@@ -609,6 +618,15 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
+        //
+        // Check whether the physical addres
+        //
+        if (!CheckAddressPhysical(EditMemRequest->Address))
+        {
+            EditMemRequest->Result = DEBUGGER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+
         //
         // Edit the physical memory
         //

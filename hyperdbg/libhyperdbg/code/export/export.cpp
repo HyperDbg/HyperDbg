@@ -423,3 +423,91 @@ hyperdbg_u_write_memory(PVOID                     destination_address,
 {
     return HyperDbgWriteMemory(destination_address, memory_type, process_id, source_address, number_of_bytes);
 }
+
+/**
+ * @brief Get the kernel base
+ *
+ * @return UINT64 The kernel base
+ */
+UINT64
+hyperdbg_u_get_kernel_base()
+{
+    return DebuggerGetKernelBase();
+}
+
+/**
+ * @brief Connect to the remote debugger using COM port
+ *
+ * @param port_name The port name
+ * @param baudrate The baudrate
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate)
+{
+    return HyperDbgDebugRemoteDeviceUsingComPort(port_name, baudrate);
+}
+
+/**
+ * @brief Connect to the remote debugger using named pipe
+ *
+ * @param named_pipe The named pipe
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe)
+{
+    return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe);
+}
+
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+/**
+ * @brief Connect to the current debugger using COM port
+ *
+ * @param port_name The port name
+ * @param baudrate The baudrate
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD baudrate)
+{
+    return HyperDbgDebugCurrentDeviceUsingComPort(port_name, baudrate);
+}
+
+/**
+ * @brief Start a new process
+ *
+ * @param path The path of the process
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_start_process(const WCHAR * path)
+{
+    return UdAttachToProcess(NULL,
+                             path,
+                             NULL,
+                             FALSE);
+}
+
+/**
+ * @brief Start a new process
+ *
+ * @param path The path of the process
+ * @param arguments The arguments of the process
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments)
+{
+    return UdAttachToProcess(NULL,
+                             path,
+                             arguments,
+                             FALSE);
+}

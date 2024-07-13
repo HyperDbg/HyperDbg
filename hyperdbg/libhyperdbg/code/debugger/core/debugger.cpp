@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern UINT64                   g_EventTag;
+extern UINT64                   g_KernelBaseAddress;
 extern LIST_ENTRY               g_EventTrace;
 extern BOOLEAN                  g_EventTraceInitialized;
 extern BOOLEAN                  g_BreakPrintingOutput;
@@ -581,6 +582,29 @@ DebuggerGetNtoskrnlBase()
     free(Modules);
 
     return NtoskrnlBase;
+}
+
+/**
+ * @brief Get the base address of the kernel module
+ *
+ * @return UINT64
+ */
+UINT64
+DebuggerGetKernelBase()
+{
+    UINT64 KernelBase = NULL;
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        KernelBase = g_KernelBaseAddress;
+    }
+    else
+    {
+        KernelBase          = DebuggerGetNtoskrnlBase();
+        g_KernelBaseAddress = KernelBase;
+    }
+
+    return KernelBase;
 }
 
 /**

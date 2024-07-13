@@ -459,8 +459,8 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR
  */
 typedef enum _DEBUGGER_EDIT_MEMORY_TYPE
 {
-    EDIT_PHYSICAL_MEMORY,
-    EDIT_VIRTUAL_MEMORY
+    EDIT_VIRTUAL_MEMORY,
+    EDIT_PHYSICAL_MEMORY
 } DEBUGGER_EDIT_MEMORY_TYPE;
 
 /**
@@ -582,7 +582,7 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE
 {
     UINT32 PortAddress;
     UINT32 Baudrate;
-    UINT64 NtoskrnlBaseAddress;
+    UINT64 KernelBaseAddress;
     UINT32 Result; // Result from the kernel
     CHAR   OsName[MAXIMUM_CHARACTER_FOR_OS_NAME];
 

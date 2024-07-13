@@ -69,7 +69,6 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/debugger/transparency.html) about our efforts on vm-exit transparency, and [this article](https://research.hyperdbg.org/debugger/chasing-bugs.html) about chasing bugs within hypervisors. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
 
 ## Unique Features
-### First Release (v0.1.0.0)
 * Advanced Hypervisor-based Kernel Mode Debugger [<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/debug" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/local-debugging" target="_blank">link</a>]
 * Classic EPT Hook (Hidden Breakpoint) [<a href="https://docs.hyperdbg.org/commands/extension-commands/epthook" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/design/features/vmm-module/design-of-epthook" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging/examples/events/hooking-any-function" target="_blank">link</a>]
 * Inline EPT Hook (Inline Hook) [<a href="https://docs.hyperdbg.org/commands/extension-commands/epthook2" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/design/features/vmm-module/design-of-epthook2" target="_blank">link</a>]
@@ -100,32 +99,16 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Event Forwarding (#DFIR) [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/debugging-commands/output" target="_blank">link</a>]
 * Transparent Breakpoint Handler [<a href="https://docs.hyperdbg.org/commands/debugging-commands/bp" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging/examples/basics/setting-breakpoints-and-stepping-instructions" target="_blank">link</a>]
 * Various Custom Scripts [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
-
-### Second Release (v0.2.0.0)
 * HyperDbg Software Development Kit (SDK) [<a href="https://docs.hyperdbg.org/using-hyperdbg/sdk" target="_blank">link</a>]
-
-### Third Release (v0.3.0.0)
 * Event Short-circuiting [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-short-circuiting" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_sc" target="_blank">link</a>]
 * Tracking records of function calls and return addresses [<a href="https://docs.hyperdbg.org/commands/extension-commands/track" target="_blank">link</a>]
 * Kernel-level Length Disassembler Engine (LDE) [<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/diassembler/disassemble_len32" target="_blank">link</a>]
-
-### Fourth Release (v0.4.0.0)
 * Memory Execution Monitor & Execution Blocking [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
 * Custom Page-fault Injection [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pagein" target="_blank">link</a>]
-
-### Fifth Release (v0.5.0.0)
 * Different Event Calling Stages [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-calling-stage" target="_blank">link</a>]
-
-### Sixth Release (v0.6.0.0)
 * Injecting Custom Interrupts/Exceptions/Faults [<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_inject_error_code" target="_blank">link</a>]
-
-### Seventh Release (v0.7.0.0)
 * Instant events in the Debugger Mode [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events" target="_blank">link</a>]
-
-### Eighth Release (v0.8.0.0)
 * Detect kernel-to-user and user-to-kernel transitions [<a href="https://docs.hyperdbg.org/commands/extension-commands/mode" target="_blank">link</a>]
-
-### Ninth Release (v0.9.0.0)
 * Physical memory monitoring hooks [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
 
 ## How does it work?

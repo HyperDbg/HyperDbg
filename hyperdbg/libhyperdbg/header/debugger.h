@@ -134,6 +134,9 @@ IsTagExist(UINT64 Tag);
 UINT64
 DebuggerGetNtoskrnlBase();
 
+UINT64
+DebuggerGetKernelBase();
+
 BOOLEAN
 DebuggerPauseDebuggee();
 
@@ -273,3 +276,12 @@ HyperDbgRegisterShowAll();
 
 BOOLEAN
 HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId);
+
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe);
+
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
