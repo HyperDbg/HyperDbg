@@ -370,10 +370,6 @@ MigrationBackup/
 /hyperdbg/libraries/zydis/user/*.lib
 /hyperdbg/libraries/zydis/kernel/*.lib
 
-# Ignore keystone libraries
-!/hyperdbg/libraries/keystone/release/keystone.lib
-!/hyperdbg/libraries/keystone/debug/keystone.lib
-
 # Exceptions
 !/hyperdbg/libraries/*
 !/hyperdbg/libraries/pdbex/*
@@ -381,13 +377,18 @@ MigrationBackup/
 !/hyperdbg/libraries/DIA/x84/*
 !/hyperdbg/libraries/DIA/x64/*
 
-# KdSerial Libraries
+# kdserial libraries
 !/hyperdbg/libraries/kdserial/*
 !/hyperdbg/libraries/kdserial/x86/*
 !/hyperdbg/libraries/kdserial/x64/*
 !/hyperdbg/libraries/kdserial/arm/*
 !/hyperdbg/libraries/kdserial/arm64/*
 
+# Ignore keystone libraries
+!/hyperdbg/libraries/keystone/release/
+!/hyperdbg/libraries/keystone/debug/
+!/hyperdbg/libraries/keystone/release/*
+!/hyperdbg/libraries/keystone/debug/*
 
 # Code review tools
 
