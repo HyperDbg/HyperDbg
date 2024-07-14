@@ -1,18 +1,15 @@
-// my code
-
 /**
  * @file e.cpp
  * @author Abbas Masoumi
- * @brief e* command
+ * @brief a command
  * @details
- * @version 0.1
- * @date 2020-07-27
+ * @version 0.10
+ * @date 2024-07-14
  *
  * @copyright This project is released under the GNU Public License v3.
  *
  */
 #include "pch.h"
-#include "keystone\keystone.h"
 
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
@@ -46,15 +43,15 @@ CommandAssembleHelp()
     ShowMessages("a !a : assembles snippet at specific address. symbols are supported.\n");
     ShowMessages("\nIf you want to assemble to physical (address) memory then add '!' "
                  "at the start of the command\n");
-    
+
     ShowMessages("syntax : \ta [Address (hex)] {AsmCmd1; AsmCmd2} [pid ProcessId (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : a fffff8077356f010 {nop; nop; nop} \n");
     ShowMessages("\t\te.g : a nt!ExAllocatePoolWithTag+10+@rcx {jmp nt!ExAllocatePoolWithTag+10} \n");
     ShowMessages("\t\te.g : a nt!ExAllocatePoolWithTag {add DWORD PTR [nt!ExAllocatePoolWithTag+10+@rax], 99} \n");
+    ShowMessages("\t\te.g : !a abc01d {add DWORD PTR [nt!ExAllocatePoolWithTag+10+@rax], 99} \n");
 }
-
 
 /**
  * @brief tries to solve the symbol issue with Keystone, which apparently originates from LLVM-MC.
@@ -62,10 +59,10 @@ CommandAssembleHelp()
  * @return VOID
  */
 void
-parseAssemblyLine(AssembleData &assembleData)
+parseAssemblyLine(AssembleData & assembleData)
 {
     std::string RawAsm = assembleData.AsmRaw;
-    std::regex instructionRegex(R"(\s*(\w+)\s+(.+))");
+    std::regex  instructionRegex(R"(\s*(\w+)\s+(.+))");
     std::smatch match;
 
     // split assembly line by ';'
@@ -152,7 +149,6 @@ parseAssemblyLine(AssembleData &assembleData)
                     oss << std::hex << std::showbase << expr_addr;
                     operand.replace(leftBracketPos + 1, rightBracketPos - leftBracketPos - 1, oss.str());
                 }
-                
             }
 
             assembleData.instructions.push_back(instr);
@@ -160,14 +156,14 @@ parseAssemblyLine(AssembleData &assembleData)
         else
         {
             // most probably a unary instruction
-            //std::cerr << "Error: Failed to parse instruction: " << instructionLine << std::endl;
+            // std::cerr << "Error: Failed to parse instruction: " << instructionLine << std::endl;
             Instruction instr;
             instr.mnemonic = instructionLine;
             assembleData.instructions.push_back(instr);
         }
     }
 
-    // serialize the fixed asm 
+    // serialize the fixed asm
     std::ostringstream oss;
     for (const auto & instr : assembleData.instructions)
     {
@@ -189,7 +185,6 @@ parseAssemblyLine(AssembleData &assembleData)
 
     assembleData.AsmFixed = oss.str();
 }
-
 
 std::vector<std::string>
 ParseUserCmd(const std::string & command)
@@ -229,7 +224,6 @@ ParseUserCmd(const std::string & command)
     }
     return result;
 }
-
 
 static bool
 sym_resolver(const char * symbol, uint64_t * value)
@@ -306,7 +300,6 @@ Assemble(ks_arch arch, int mode, uint64_t start_addr, int syntax, AssembleData &
     return -1;
 }
 
-
 /**
  * @brief a and !a commands handler
  *
@@ -317,13 +310,12 @@ Assemble(ks_arch arch, int mode, uint64_t start_addr, int syntax, AssembleData &
 VOID
 CommandAssemble(vector<string> SplitCommand, string Command)
 {
-    UINT64               Address {};
-    vector<UINT64>       ValuesToEdit {};
-    DEBUGGER_EDIT_MEMORY EditMemoryRequest {};
-    UINT64               Value {};
-    UINT32               ProcId {};
+    UINT64                    Address {};
+    vector<UINT64>            ValuesToEdit {};
+    DEBUGGER_EDIT_MEMORY      EditMemoryRequest {};
+    UINT64                    Value {};
+    UINT32                    ProcId {};
     DEBUGGER_EDIT_MEMORY_TYPE MemoryType;
-
 
     if (g_ActiveProcessDebuggingState.IsActive)
     {
@@ -334,7 +326,7 @@ CommandAssemble(vector<string> SplitCommand, string Command)
 
     if (CmdVec.size() < 3)
     {
-        ShowMessages("incorrect use of the 'a*'\n\n");
+        ShowMessages("incorrect use of the 'a'\n\n");
         CommandAssembleHelp();
         return;
     }
@@ -348,11 +340,11 @@ CommandAssemble(vector<string> SplitCommand, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of the 'a*'\n\n");
+        ShowMessages("incorrect use of the 'a'\n\n");
         CommandAssembleHelp();
         return;
     }
-    
+
     // check if there is any "pid"
     auto it = std::find_if(CmdVec.begin(), CmdVec.end(), [](const std::string & s) { return s.find("pid") != std::string::npos; });
     if (it != CmdVec.end())
@@ -404,17 +396,16 @@ CommandAssemble(vector<string> SplitCommand, string Command)
     }
 
     if (HyperDbgWriteMemory(
-        (PVOID)Address, 
-        MemoryType,
-        ProcId,
-        (PVOID)AssembleData.EncodedBytes,
-        (UINT32)AssembleData.BytesCount))
+            (PVOID)Address,
+            MemoryType,
+            ProcId,
+            (PVOID)AssembleData.EncodedBytes,
+            (UINT32)AssembleData.BytesCount))
     {
-        ShowMessages("successfully assembled at 0x%016llx address.\n", static_cast<uint64_t> (Address));
+        ShowMessages("successfully assembled at 0x%016llx address.\n", static_cast<uint64_t>(Address));
     }
     else
     {
         ShowMessages("failed to write generated assembly to memory.");
     }
-
 }

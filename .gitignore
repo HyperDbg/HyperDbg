@@ -370,6 +370,10 @@ MigrationBackup/
 /hyperdbg/libraries/zydis/user/*.lib
 /hyperdbg/libraries/zydis/kernel/*.lib
 
+# Ignore keystone libraries
+!/hyperdbg/libraries/keystone/release/keystone.lib
+!/hyperdbg/libraries/keystone/debug/keystone.lib
+
 # Exceptions
 !/hyperdbg/libraries/*
 !/hyperdbg/libraries/pdbex/*

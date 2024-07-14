@@ -15,6 +15,7 @@ New release of the HyperDbg Debugger.
 - Export SDK API for getting kernel base address
 - Export SDK API for connecting to the debugger and from debuggee in the Debugger Mode
 - Export SDK API for starting a new process
+- Added the assembler commad 'a' ([link](https://docs.hyperdbg.org/commands/debugging-commands/a))
 
 ### Changed
 - Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))

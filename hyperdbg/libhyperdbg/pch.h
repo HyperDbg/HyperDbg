@@ -118,6 +118,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #endif // !NDEBUG
 
 //
+// Keystone
+//
+#include "keystone\keystone.h"
+
+//
 // HyperDbg defined headers
 //
 #include "Configuration.h"

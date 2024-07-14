@@ -13,27 +13,26 @@ extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
 
-#ifdef _MSC_VER     // MSVC compiler
-#pragma warning(disable:4201)
-#pragma warning(disable:4100)
-#ifndef KEYSTONE_STATIC
-#define KEYSTONE_EXPORT __declspec(dllexport)
+#ifdef _MSC_VER // MSVC compiler
+#    pragma warning(disable : 4201)
+#    pragma warning(disable : 4100)
+#    ifndef KEYSTONE_STATIC
+#        define KEYSTONE_EXPORT __declspec(dllexport)
+#    else
+#        define KEYSTONE_EXPORT
+#    endif
 #else
-#define KEYSTONE_EXPORT
+#    ifdef __GNUC__
+#        include <stdbool.h>
+#        ifndef KEYSTONE_STATIC
+#            define KEYSTONE_EXPORT __attribute__((visibility("default")))
+#        else
+#            define KEYSTONE_EXPORT
+#        endif
+#    else
+#        define KEYSTONE_EXPORT
+#    endif
 #endif
-#else
-#ifdef __GNUC__
-#include <stdbool.h>
-#ifndef KEYSTONE_STATIC
-#define KEYSTONE_EXPORT __attribute__((visibility("default")))
-#else
-#define KEYSTONE_EXPORT
-#endif
-#else
-#define KEYSTONE_EXPORT
-#endif
-#endif
-
 
 struct ks_struct;
 typedef struct ks_struct ks_engine;
@@ -54,49 +53,51 @@ typedef struct ks_struct ks_engine;
 #define KS_MAKE_VERSION(major, minor) ((major << 8) + minor)
 
 // Architecture type
-typedef enum ks_arch {
-    KS_ARCH_ARM = 1,    // ARM architecture (including Thumb, Thumb-2)
-    KS_ARCH_ARM64,      // ARM-64, also called AArch64
-    KS_ARCH_MIPS,       // Mips architecture
-    KS_ARCH_X86,        // X86 architecture (including x86 & x86-64)
-    KS_ARCH_PPC,        // PowerPC architecture (currently unsupported)
-    KS_ARCH_SPARC,      // Sparc architecture
-    KS_ARCH_SYSTEMZ,    // SystemZ architecture (S390X)
-    KS_ARCH_HEXAGON,    // Hexagon architecture
-    KS_ARCH_EVM,        // Ethereum Virtual Machine architecture
-    KS_ARCH_RISCV,      // RISC-V architecture
+typedef enum ks_arch
+{
+    KS_ARCH_ARM = 1, // ARM architecture (including Thumb, Thumb-2)
+    KS_ARCH_ARM64,   // ARM-64, also called AArch64
+    KS_ARCH_MIPS,    // Mips architecture
+    KS_ARCH_X86,     // X86 architecture (including x86 & x86-64)
+    KS_ARCH_PPC,     // PowerPC architecture (currently unsupported)
+    KS_ARCH_SPARC,   // Sparc architecture
+    KS_ARCH_SYSTEMZ, // SystemZ architecture (S390X)
+    KS_ARCH_HEXAGON, // Hexagon architecture
+    KS_ARCH_EVM,     // Ethereum Virtual Machine architecture
+    KS_ARCH_RISCV,   // RISC-V architecture
     KS_ARCH_MAX,
 } ks_arch;
 
 // Mode type
-typedef enum ks_mode {
-    KS_MODE_LITTLE_ENDIAN = 0,    // little-endian mode (default mode)
-    KS_MODE_BIG_ENDIAN = 1 << 30, // big-endian mode
+typedef enum ks_mode
+{
+    KS_MODE_LITTLE_ENDIAN = 0,       // little-endian mode (default mode)
+    KS_MODE_BIG_ENDIAN    = 1 << 30, // big-endian mode
     // arm / arm64
-    KS_MODE_ARM = 1 << 0,              // ARM mode
-    KS_MODE_THUMB = 1 << 4,       // THUMB mode (including Thumb-2)
-    KS_MODE_V8 = 1 << 6,          // ARMv8 A32 encodings for ARM
+    KS_MODE_ARM   = 1 << 0, // ARM mode
+    KS_MODE_THUMB = 1 << 4, // THUMB mode (including Thumb-2)
+    KS_MODE_V8    = 1 << 6, // ARMv8 A32 encodings for ARM
     // mips
-    KS_MODE_MICRO = 1 << 4,       // MicroMips mode
-    KS_MODE_MIPS3 = 1 << 5,       // Mips III ISA
-    KS_MODE_MIPS32R6 = 1 << 6,    // Mips32r6 ISA
-    KS_MODE_MIPS32 = 1 << 2,      // Mips32 ISA
-    KS_MODE_MIPS64 = 1 << 3,      // Mips64 ISA
+    KS_MODE_MICRO    = 1 << 4, // MicroMips mode
+    KS_MODE_MIPS3    = 1 << 5, // Mips III ISA
+    KS_MODE_MIPS32R6 = 1 << 6, // Mips32r6 ISA
+    KS_MODE_MIPS32   = 1 << 2, // Mips32 ISA
+    KS_MODE_MIPS64   = 1 << 3, // Mips64 ISA
     // x86 / x64
-    KS_MODE_16 = 1 << 1,          // 16-bit mode
-    KS_MODE_32 = 1 << 2,          // 32-bit mode
-    KS_MODE_64 = 1 << 3,          // 64-bit mode
-    // ppc 
-    KS_MODE_PPC32 = 1 << 2,       // 32-bit mode
-    KS_MODE_PPC64 = 1 << 3,       // 64-bit mode
-    KS_MODE_QPX = 1 << 4,         // Quad Processing eXtensions mode
-        //riscv
-    KS_MODE_RISCV32 = 1 << 2,     // 32-bit mode
-    KS_MODE_RISCV64 = 1 << 3,     // 64-bit mode
+    KS_MODE_16 = 1 << 1, // 16-bit mode
+    KS_MODE_32 = 1 << 2, // 32-bit mode
+    KS_MODE_64 = 1 << 3, // 64-bit mode
+    // ppc
+    KS_MODE_PPC32 = 1 << 2, // 32-bit mode
+    KS_MODE_PPC64 = 1 << 3, // 64-bit mode
+    KS_MODE_QPX   = 1 << 4, // Quad Processing eXtensions mode
+                          // riscv
+    KS_MODE_RISCV32 = 1 << 2, // 32-bit mode
+    KS_MODE_RISCV64 = 1 << 3, // 64-bit mode
     // sparc
-    KS_MODE_SPARC32 = 1 << 2,     // 32-bit mode
-    KS_MODE_SPARC64 = 1 << 3,     // 64-bit mode
-    KS_MODE_V9 = 1 << 4,          // SparcV9 mode
+    KS_MODE_SPARC32 = 1 << 2, // 32-bit mode
+    KS_MODE_SPARC64 = 1 << 3, // 64-bit mode
+    KS_MODE_V9      = 1 << 4, // SparcV9 mode
 } ks_mode;
 
 // All generic errors related to input assembly >= KS_ERR_ASM
@@ -106,52 +107,53 @@ typedef enum ks_mode {
 #define KS_ERR_ASM_ARCH 512
 
 // All type of errors encountered by Keystone API.
-typedef enum ks_err {
-    KS_ERR_OK = 0,   // No error: everything was fine
-    KS_ERR_NOMEM,      // Out-Of-Memory error: ks_open(), ks_emulate()
-    KS_ERR_ARCH,     // Unsupported architecture: ks_open()
-    KS_ERR_HANDLE,   // Invalid handle
-    KS_ERR_MODE,     // Invalid/unsupported mode: ks_open()
-    KS_ERR_VERSION,  // Unsupported version (bindings)
-    KS_ERR_OPT_INVALID,  // Unsupported option
+typedef enum ks_err
+{
+    KS_ERR_OK = 0,      // No error: everything was fine
+    KS_ERR_NOMEM,       // Out-Of-Memory error: ks_open(), ks_emulate()
+    KS_ERR_ARCH,        // Unsupported architecture: ks_open()
+    KS_ERR_HANDLE,      // Invalid handle
+    KS_ERR_MODE,        // Invalid/unsupported mode: ks_open()
+    KS_ERR_VERSION,     // Unsupported version (bindings)
+    KS_ERR_OPT_INVALID, // Unsupported option
 
     // generic input assembly errors - parser specific
-    KS_ERR_ASM_EXPR_TOKEN = KS_ERR_ASM,    // unknown token in expression
+    KS_ERR_ASM_EXPR_TOKEN = KS_ERR_ASM, // unknown token in expression
     KS_ERR_ASM_DIRECTIVE_VALUE_RANGE,   // literal value out of range for directive
-    KS_ERR_ASM_DIRECTIVE_ID,    // expected identifier in directive
-    KS_ERR_ASM_DIRECTIVE_TOKEN, // unexpected token in directive
-    KS_ERR_ASM_DIRECTIVE_STR,   // expected string in directive
-    KS_ERR_ASM_DIRECTIVE_COMMA, // expected comma in directive
-    KS_ERR_ASM_DIRECTIVE_RELOC_NAME, // expected relocation name in directive
-    KS_ERR_ASM_DIRECTIVE_RELOC_TOKEN, // unexpected token in .reloc directive
-    KS_ERR_ASM_DIRECTIVE_FPOINT,    // invalid floating point in directive
-    KS_ERR_ASM_DIRECTIVE_UNKNOWN,    // unknown directive
-    KS_ERR_ASM_DIRECTIVE_EQU,   // invalid equal directive
-    KS_ERR_ASM_DIRECTIVE_INVALID,   // (generic) invalid directive
-    KS_ERR_ASM_VARIANT_INVALID, // invalid variant
-    KS_ERR_ASM_EXPR_BRACKET,    // brackets expression not supported on this target
-    KS_ERR_ASM_SYMBOL_MODIFIER, // unexpected symbol modifier following '@'
-    KS_ERR_ASM_SYMBOL_REDEFINED, // invalid symbol redefinition
-    KS_ERR_ASM_SYMBOL_MISSING,  // cannot find a symbol
-    KS_ERR_ASM_RPAREN,          // expected ')' in parentheses expression
-    KS_ERR_ASM_STAT_TOKEN,      // unexpected token at start of statement
-    KS_ERR_ASM_UNSUPPORTED,     // unsupported token yet
-    KS_ERR_ASM_MACRO_TOKEN,     // unexpected token in macro instantiation
-    KS_ERR_ASM_MACRO_PAREN,     // unbalanced parentheses in macro argument
-    KS_ERR_ASM_MACRO_EQU,       // expected '=' after formal parameter identifier
-    KS_ERR_ASM_MACRO_ARGS,      // too many positional arguments
-    KS_ERR_ASM_MACRO_LEVELS_EXCEED, // macros cannot be nested more than 20 levels deep
-    KS_ERR_ASM_MACRO_STR,    // invalid macro string
-    KS_ERR_ASM_MACRO_INVALID,    // invalid macro (generic error)
-    KS_ERR_ASM_ESC_BACKSLASH,   // unexpected backslash at end of escaped string
-    KS_ERR_ASM_ESC_OCTAL,       // invalid octal escape sequence  (out of range)
-    KS_ERR_ASM_ESC_SEQUENCE,         // invalid escape sequence (unrecognized character)
-    KS_ERR_ASM_ESC_STR,         // broken escape string
-    KS_ERR_ASM_TOKEN_INVALID,   // invalid token
-    KS_ERR_ASM_INSN_UNSUPPORTED,   // this instruction is unsupported in this mode
-    KS_ERR_ASM_FIXUP_INVALID,   // invalid fixup
-    KS_ERR_ASM_LABEL_INVALID,   // invalid label
-    KS_ERR_ASM_FRAGMENT_INVALID,   // invalid fragment
+    KS_ERR_ASM_DIRECTIVE_ID,            // expected identifier in directive
+    KS_ERR_ASM_DIRECTIVE_TOKEN,         // unexpected token in directive
+    KS_ERR_ASM_DIRECTIVE_STR,           // expected string in directive
+    KS_ERR_ASM_DIRECTIVE_COMMA,         // expected comma in directive
+    KS_ERR_ASM_DIRECTIVE_RELOC_NAME,    // expected relocation name in directive
+    KS_ERR_ASM_DIRECTIVE_RELOC_TOKEN,   // unexpected token in .reloc directive
+    KS_ERR_ASM_DIRECTIVE_FPOINT,        // invalid floating point in directive
+    KS_ERR_ASM_DIRECTIVE_UNKNOWN,       // unknown directive
+    KS_ERR_ASM_DIRECTIVE_EQU,           // invalid equal directive
+    KS_ERR_ASM_DIRECTIVE_INVALID,       // (generic) invalid directive
+    KS_ERR_ASM_VARIANT_INVALID,         // invalid variant
+    KS_ERR_ASM_EXPR_BRACKET,            // brackets expression not supported on this target
+    KS_ERR_ASM_SYMBOL_MODIFIER,         // unexpected symbol modifier following '@'
+    KS_ERR_ASM_SYMBOL_REDEFINED,        // invalid symbol redefinition
+    KS_ERR_ASM_SYMBOL_MISSING,          // cannot find a symbol
+    KS_ERR_ASM_RPAREN,                  // expected ')' in parentheses expression
+    KS_ERR_ASM_STAT_TOKEN,              // unexpected token at start of statement
+    KS_ERR_ASM_UNSUPPORTED,             // unsupported token yet
+    KS_ERR_ASM_MACRO_TOKEN,             // unexpected token in macro instantiation
+    KS_ERR_ASM_MACRO_PAREN,             // unbalanced parentheses in macro argument
+    KS_ERR_ASM_MACRO_EQU,               // expected '=' after formal parameter identifier
+    KS_ERR_ASM_MACRO_ARGS,              // too many positional arguments
+    KS_ERR_ASM_MACRO_LEVELS_EXCEED,     // macros cannot be nested more than 20 levels deep
+    KS_ERR_ASM_MACRO_STR,               // invalid macro string
+    KS_ERR_ASM_MACRO_INVALID,           // invalid macro (generic error)
+    KS_ERR_ASM_ESC_BACKSLASH,           // unexpected backslash at end of escaped string
+    KS_ERR_ASM_ESC_OCTAL,               // invalid octal escape sequence  (out of range)
+    KS_ERR_ASM_ESC_SEQUENCE,            // invalid escape sequence (unrecognized character)
+    KS_ERR_ASM_ESC_STR,                 // broken escape string
+    KS_ERR_ASM_TOKEN_INVALID,           // invalid token
+    KS_ERR_ASM_INSN_UNSUPPORTED,        // this instruction is unsupported in this mode
+    KS_ERR_ASM_FIXUP_INVALID,           // invalid fixup
+    KS_ERR_ASM_LABEL_INVALID,           // invalid label
+    KS_ERR_ASM_FRAGMENT_INVALID,        // invalid fragment
 
     // generic input assembly errors - architecture specific
     KS_ERR_ASM_INVALIDOPERAND = KS_ERR_ASM_ARCH,
@@ -167,25 +169,25 @@ typedef enum ks_err {
 
 // To register the resolver, pass its function address to ks_option(), using
 // option KS_OPT_SYM_RESOLVER. For example, see samples/sample.c.
-typedef bool (*ks_sym_resolver)(const char *symbol, uint64_t *value);
+typedef bool (*ks_sym_resolver)(const char * symbol, uint64_t * value);
 
 // Runtime option for the Keystone engine
-typedef enum ks_opt_type {
-	KS_OPT_SYNTAX = 1,    // Choose syntax for input assembly
-	KS_OPT_SYM_RESOLVER,  // Set symbol resolver callback
+typedef enum ks_opt_type
+{
+    KS_OPT_SYNTAX = 1,   // Choose syntax for input assembly
+    KS_OPT_SYM_RESOLVER, // Set symbol resolver callback
 } ks_opt_type;
 
-
 // Runtime option value (associated with ks_opt_type above)
-typedef enum ks_opt_value {
-	KS_OPT_SYNTAX_INTEL =   1 << 0, // X86 Intel syntax - default on X86 (KS_OPT_SYNTAX).
-	KS_OPT_SYNTAX_ATT   =   1 << 1, // X86 ATT asm syntax (KS_OPT_SYNTAX).
-	KS_OPT_SYNTAX_NASM  =   1 << 2, // X86 Nasm syntax (KS_OPT_SYNTAX).
-	KS_OPT_SYNTAX_MASM  =   1 << 3, // X86 Masm syntax (KS_OPT_SYNTAX) - unsupported yet.
-	KS_OPT_SYNTAX_GAS   =   1 << 4, // X86 GNU GAS syntax (KS_OPT_SYNTAX).
-	KS_OPT_SYNTAX_RADIX16 = 1 << 5, // All immediates are in hex format (i.e 12 is 0x12)
+typedef enum ks_opt_value
+{
+    KS_OPT_SYNTAX_INTEL   = 1 << 0, // X86 Intel syntax - default on X86 (KS_OPT_SYNTAX).
+    KS_OPT_SYNTAX_ATT     = 1 << 1, // X86 ATT asm syntax (KS_OPT_SYNTAX).
+    KS_OPT_SYNTAX_NASM    = 1 << 2, // X86 Nasm syntax (KS_OPT_SYNTAX).
+    KS_OPT_SYNTAX_MASM    = 1 << 3, // X86 Masm syntax (KS_OPT_SYNTAX) - unsupported yet.
+    KS_OPT_SYNTAX_GAS     = 1 << 4, // X86 GNU GAS syntax (KS_OPT_SYNTAX).
+    KS_OPT_SYNTAX_RADIX16 = 1 << 5, // All immediates are in hex format (i.e 12 is 0x12)
 } ks_opt_value;
-
 
 #include "arm64.h"
 #include "arm.h"
@@ -216,8 +218,8 @@ typedef enum ks_opt_value {
  set both @major & @minor arguments to NULL.
 */
 KEYSTONE_EXPORT
-unsigned int ks_version(unsigned int *major, unsigned int *minor);
-
+unsigned int
+ks_version(unsigned int * major, unsigned int * minor);
 
 /*
  Determine if the given architecture is supported by this library.
@@ -227,8 +229,8 @@ unsigned int ks_version(unsigned int *major, unsigned int *minor);
  @return True if this library supports the given arch.
 */
 KEYSTONE_EXPORT
-bool ks_arch_supported(ks_arch arch);
-
+bool
+ks_arch_supported(ks_arch arch);
 
 /*
  Create new instance of Keystone engine.
@@ -241,8 +243,8 @@ bool ks_arch_supported(ks_arch arch);
    for detailed error).
 */
 KEYSTONE_EXPORT
-ks_err ks_open(ks_arch arch, int mode, ks_engine **ks);
-
+ks_err
+ks_open(ks_arch arch, int mode, ks_engine ** ks);
 
 /*
  Close KS instance: MUST do to release the handle when it is not used anymore.
@@ -257,8 +259,8 @@ ks_err ks_open(ks_arch arch, int mode, ks_engine **ks);
    for detailed error).
 */
 KEYSTONE_EXPORT
-ks_err ks_close(ks_engine *ks);
-
+ks_err
+ks_close(ks_engine * ks);
 
 /*
  Report the last error number when some API function fail.
@@ -269,8 +271,8 @@ ks_err ks_close(ks_engine *ks);
  @return: error code of ks_err enum type (KS_ERR_*, see above)
 */
 KEYSTONE_EXPORT
-ks_err ks_errno(ks_engine *ks);
-
+ks_err
+ks_errno(ks_engine * ks);
 
 /*
  Return a string describing given error code.
@@ -281,8 +283,8 @@ ks_err ks_errno(ks_engine *ks);
    passed in the argument @code
  */
 KEYSTONE_EXPORT
-const char *ks_strerror(ks_err code);
-
+const char *
+ks_strerror(ks_err code);
 
 /*
  Set option for Keystone engine at runtime
@@ -295,8 +297,8 @@ const char *ks_strerror(ks_err code);
  Refer to ks_err enum for detailed error.
 */
 KEYSTONE_EXPORT
-ks_err ks_option(ks_engine *ks, ks_opt_type type, size_t value);
-
+ks_err
+ks_option(ks_engine * ks, ks_opt_type type, size_t value);
 
 /*
  Assemble a string given its the buffer, size, start address and number
@@ -313,8 +315,8 @@ ks_err ks_option(ks_engine *ks, ks_opt_type type, size_t value);
  @str: NULL-terminated assembly string. Use ; or \n to separate statements.
  @address: address of the first assembly instruction, or 0 to ignore.
  @encoding: array of bytes containing encoding of input assembly string.
-	   NOTE: *encoding will be allocated by this function, and should be freed
-	   with ks_free() function.
+       NOTE: *encoding will be allocated by this function, and should be freed
+       with ks_free() function.
  @encoding_size: size of *encoding
  @stat_count: number of statements successfully processed
 
@@ -323,12 +325,13 @@ ks_err ks_option(ks_engine *ks, ks_opt_type type, size_t value);
  On failure, call ks_errno() for error code.
 */
 KEYSTONE_EXPORT
-int ks_asm(ks_engine *ks,
-        const char *string,
-        uint64_t address,
-        unsigned char **encoding, size_t *encoding_size,
-        size_t *stat_count);
-
+int
+ks_asm(ks_engine *      ks,
+       const char *     string,
+       uint64_t         address,
+       unsigned char ** encoding,
+       size_t *         encoding_size,
+       size_t *         stat_count);
 
 /*
  Free memory allocated by ks_asm()
@@ -336,8 +339,8 @@ int ks_asm(ks_engine *ks,
  @p: memory allocated in @encoding argument of ks_asm()
 */
 KEYSTONE_EXPORT
-void ks_free(unsigned char *p);
-
+void
+ks_free(unsigned char * p);
 
 #ifdef __cplusplus
 }
