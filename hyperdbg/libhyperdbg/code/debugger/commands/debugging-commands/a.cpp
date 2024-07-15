@@ -1,10 +1,10 @@
 
 /**
- * @file e.cpp
+ * @file a.cpp
  * @author Abbas Masoumi Gorji
- * @brief e* command
+ * @brief a command
  * @details
- * @version 0.1
+ * @version 0.10
  * @date 2024-07-15
  *
  * @copyright This project is released under the GNU Public License v3.
