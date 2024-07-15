@@ -20,8 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 	ProjectSection(SolutionItems) = preProject
 		include\Configuration.h = include\Configuration.h
 		include\Definition.h = include\Definition.h
-		include\ZycoreExportConfig.h = include\ZycoreExportConfig.h
-		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhyperdbg", "libhyperdbg\libhyperdbg.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
@@ -142,19 +140,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{D82074
 		include\components\optimizations\header\OptimizationsExamples.h = include\components\optimizations\header\OptimizationsExamples.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{9749520E-64FF-4633-855B-54BC541CDBB6}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "include\SDK\Examples\hyperdbg_app\hyperrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
-	ProjectSection(ProjectDependencies) = postProject
-		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
-		{C2D44C60-3F23-4972-8F60-21083B9FB112} = {C2D44C60-3F23-4972-8F60-21083B9FB112}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_driver", "include\SDK\Examples\hyperdbg_driver\hyperdbg_driver.vcxproj", "{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "platform", "platform", "{9A711E36-8A78-4CE6-A34D-F681AF89A919}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{015523BA-4326-4A84-9CB5-E1E9B6182209}"
@@ -191,6 +176,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kernel", "Kernel", "{947577
 		include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h = include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h
 		include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h
 		include\SDK\Imports\Kernel\HyperDbgVmmImports.h = include\SDK\Imports\Kernel\HyperDbgVmmImports.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "zydis", "zydis", "{08BF9299-FCE9-439C-A66C-1C8AFEC93866}"
+	ProjectSection(SolutionItems) = preProject
+		include\zydis\ZycoreExportConfig.h = include\zydis\ZycoreExportConfig.h
+		include\zydis\ZydisExportConfig.h = include\zydis\ZydisExportConfig.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keystone", "keystone", "{7271D70C-319A-455C-AD4A-BE0BC46FEE15}"
+	ProjectSection(SolutionItems) = preProject
+		include\keystone\arm.h = include\keystone\arm.h
+		include\keystone\arm64.h = include\keystone\arm64.h
+		include\keystone\evm.h = include\keystone\evm.h
+		include\keystone\hexagon.h = include\keystone\hexagon.h
+		include\keystone\keystone.h = include\keystone\keystone.h
+		include\keystone\mips.h = include\keystone\mips.h
+		include\keystone\ppc.h = include\keystone\ppc.h
+		include\keystone\riscv.h = include\keystone\riscv.h
+		include\keystone\sparc.h = include\keystone\sparc.h
+		include\keystone\systemz.h = include\keystone\systemz.h
+		include\keystone\x86.h = include\keystone\x86.h
 	EndProjectSection
 EndProject
 Global
@@ -321,26 +327,6 @@ Global
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x64.Build.0 = release|x64
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x86.ActiveCfg = release|x64
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x86.Build.0 = release|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|ARM64.ActiveCfg = debug|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|ARM64.Build.0 = debug|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x64.ActiveCfg = debug|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x86.ActiveCfg = debug|Win32
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x86.Build.0 = debug|Win32
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|ARM64.ActiveCfg = release|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|ARM64.Build.0 = release|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x64.ActiveCfg = release|x64
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x86.ActiveCfg = release|Win32
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x86.Build.0 = release|Win32
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|ARM64.ActiveCfg = debug|ARM64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|ARM64.Build.0 = debug|ARM64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x64.ActiveCfg = debug|x64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x86.ActiveCfg = debug|x64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x86.Build.0 = debug|x64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|ARM64.ActiveCfg = release|ARM64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|ARM64.Build.0 = release|ARM64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.ActiveCfg = release|x64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x86.ActiveCfg = release|x64
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x86.Build.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -361,9 +347,6 @@ Global
 		{165C089B-6860-4AEA-9F88-67559156C2E7} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
 		{FCB5111C-C7D9-4E65-8EF7-E9BB80E54B7D} = {165C089B-6860-4AEA-9F88-67559156C2E7}
 		{D8207406-263E-4831-A8E9-20C4ECE5CA15} = {165C089B-6860-4AEA-9F88-67559156C2E7}
-		{9749520E-64FF-4633-855B-54BC541CDBB6} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
-		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {9749520E-64FF-4633-855B-54BC541CDBB6}
-		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5} = {9749520E-64FF-4633-855B-54BC541CDBB6}
 		{9A711E36-8A78-4CE6-A34D-F681AF89A919} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 		{015523BA-4326-4A84-9CB5-E1E9B6182209} = {9A711E36-8A78-4CE6-A34D-F681AF89A919}
 		{D0E5A2D1-787E-4129-A75B-34DD4D5FDFC7} = {9A711E36-8A78-4CE6-A34D-F681AF89A919}
@@ -373,6 +356,8 @@ Global
 		{DBE32379-8D5A-4454-A1B6-ACC407881898} = {015523BA-4326-4A84-9CB5-E1E9B6182209}
 		{3C04357D-93B5-4472-94BB-8D22A1EB16DB} = {B3D9DA75-8FBD-4A2C-826A-B50406396EC4}
 		{947577A8-A9A5-4F90-8883-5FB722FE58E2} = {B3D9DA75-8FBD-4A2C-826A-B50406396EC4}
+		{08BF9299-FCE9-439C-A66C-1C8AFEC93866} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{7271D70C-319A-455C-AD4A-BE0BC46FEE15} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

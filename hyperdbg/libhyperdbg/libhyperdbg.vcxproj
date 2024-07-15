@@ -77,7 +77,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)\keystone.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
@@ -111,7 +111,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)\keystone.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
