@@ -1,4 +1,3 @@
-
 /**
  * @file a.cpp
  * @author Abbas Masoumi Gorji
@@ -11,7 +10,6 @@
  *
  */
 #include "pch.h"
-#include "keystone\keystone.h"
 
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
@@ -34,79 +32,96 @@ public:
      *
      * @return VOID
      */
-    void
-    parseAssemblyData()
+    VOID
+    ParseAssemblyData()
     {
         std::string RawAsm = AsmRaw;
 
+        //
         // remove all "\n" instances
+        //
         RawAsm.erase(std::remove(RawAsm.begin(), RawAsm.end(), '\n'), RawAsm.end());
 
+        //
         // remove multiple spaces
-        std::regex multipleSpaces(" +");
-        RawAsm = std::regex_replace(RawAsm, multipleSpaces, " ");
+        //
+        std::regex MultipleSpaces(" +");
+        RawAsm = std::regex_replace(RawAsm, MultipleSpaces, " ");
 
+        //
         // split assembly line by ';'
-        std::vector<std::string> assemblyInstructions;
-        size_t                   pos       = 0;
-        std::string              delimiter = ";";
-        while ((pos = RawAsm.find(delimiter)) != std::string::npos)
+        //
+        std::vector<std::string> AssemblyInstructions;
+        size_t                   Pos       = 0;
+        std::string              Delimiter = ";";
+        while ((Pos = RawAsm.find(Delimiter)) != std::string::npos)
         {
-            std::string token = RawAsm.substr(0, pos);
-            if (!token.empty())
+            std::string Token = RawAsm.substr(0, Pos);
+            if (!Token.empty())
             {
-                assemblyInstructions.push_back(token);
+                AssemblyInstructions.push_back(Token);
             }
-            RawAsm.erase(0, pos + delimiter.length());
+            RawAsm.erase(0, Pos + Delimiter.length());
         }
         if (!RawAsm.empty())
         {
-            assemblyInstructions.push_back(RawAsm);
+            AssemblyInstructions.push_back(RawAsm);
         }
 
+        //
         // process each assembly instruction
-        for (auto & instructionLine : assemblyInstructions)
+        //
+        for (auto & InstructionLine : AssemblyInstructions)
         {
-            std::string expr {};
-            UINT64      expr_addr {};
-            size_t      start {};
+            std::string Expr {};
+            UINT64      ExprAddr {};
+            size_t      Start {};
 
-            while ((start = instructionLine.find('<', start)) != std::string::npos)
+            while ((Start = InstructionLine.find('<', Start)) != std::string::npos)
             {
-                size_t end = instructionLine.find('>', start);
-                if (end != std::string::npos)
+                size_t End = InstructionLine.find('>', Start);
+                if (End != std::string::npos)
                 {
-                    std::string expr = instructionLine.substr(start + 1, end - start - 1);
-                    if (!SymbolConvertNameOrExprToAddress(expr, &expr_addr) && expr_addr == 0)
+                    std::string Expr = InstructionLine.substr(Start + 1, End - Start - 1);
+                    if (!SymbolConvertNameOrExprToAddress(Expr, &ExprAddr) && ExprAddr == 0)
                     {
-                        ShowMessages("err, failed to resolve the symbol [ %s ].\n", expr.c_str());
-                        start += expr.size() + 2;
+                        ShowMessages("err, failed to resolve the symbol [ %s ].\n", Expr.c_str());
+                        Start += Expr.size() + 2;
                         continue;
                     }
 
-                    std::ostringstream oss;
-                    oss << std::hex << std::showbase << expr_addr;
-                    instructionLine.replace(start, end - start + 1, oss.str());
+                    std::ostringstream Oss;
+                    Oss << std::hex << std::showbase << ExprAddr;
+                    InstructionLine.replace(Start, End - Start + 1, Oss.str());
                 }
                 else
                 {
+                    //
                     // No matching '>' found, break the loop
+                    //
                     break;
                 }
-                start += expr.size() + 2;
+                Start += Expr.size() + 2;
             }
         }
 
+        //
         // Append ";" between two std::strings
-        auto apndSemCln = [](std::string a, std::string b) {
+        //
+        auto ApndSemCln = [](std::string a, std::string b) {
             return std::move(a) + ';' + std::move(b);
         };
+
+        //
         // Concatenate each assembly line
-        AsmFixed = std::accumulate(std::next(assemblyInstructions.begin()), assemblyInstructions.end(), assemblyInstructions.at(0), apndSemCln);
+        //
+        AsmFixed = std::accumulate(std::next(AssemblyInstructions.begin()), AssemblyInstructions.end(), AssemblyInstructions.at(0), ApndSemCln);
 
         if (!AsmFixed.empty() && AsmFixed.back() == ';')
         {
+            //
             // remove the last ";" for it will be counted as a statement by Keystone and a wrong number would be printed
+            //
             AsmFixed.pop_back();
         }
 
@@ -120,21 +135,21 @@ public:
 class _CMD
 {
 public:
-    std::string Command_str;
-    std::string Address_str;
+    std::string CommandStr;
+    std::string AddressStr;
     std::string AsmSnippet;
-    std::string Start_Address_str;
-    std::string ProcId_str;
+    std::string StartAddressStr;
+    std::string ProcIdStr;
 
     _CMD() = default;
 
     bool isEmpty() const
     {
-        return Command_str.empty() &&
-               Address_str.empty() &&
+        return CommandStr.empty() &&
+               AddressStr.empty() &&
                AsmSnippet.empty() &&
-               Start_Address_str.empty() &&
-               ProcId_str.empty();
+               StartAddressStr.empty() &&
+               ProcIdStr.empty();
     }
 };
 
@@ -172,55 +187,67 @@ ParseUserCmd(const std::string & command)
     _CMD                     CMD {};
     _CMD                     CmdEmpty {};
 
-    auto Cmd_it  = command.begin();
-    auto Cmd_end = command.end();
+    auto CmdIt  = command.begin();
+    auto CmdEnd = command.end();
 
-    while (Cmd_it != Cmd_end)
+    while (CmdIt != CmdEnd)
     {
+        //
         // skip leading whitespace
-        Cmd_it = std::find_if_not(Cmd_it, Cmd_end, ::isspace);
-        if (Cmd_it == Cmd_end)
+        //
+        CmdIt = std::find_if_not(CmdIt, CmdEnd, ::isspace);
+        if (CmdIt == CmdEnd)
             break;
-        if (*Cmd_it == '{')
+        if (*CmdIt == '{')
         {
+            //
             // find matching closing brace
-            auto closeIt = std::find(Cmd_it + 1, Cmd_end, '}');
-            if (closeIt != Cmd_end)
+            //
+            auto CloseIt = std::find(CmdIt + 1, CmdEnd, '}');
+            if (CloseIt != CmdEnd)
             {
                 if (CmdVec.size() < 2)
                 {
+                    //
                     // if yes, asm snippet was provided right after "a" command (2nd index)
                     // i.e. no address were provided to assembling to
+                    //
                     CmdVec.emplace_back(""); // emtpty addres string
                 }
-                std::string RawAsm(Cmd_it + 1, closeIt); // remove "{}"
+                std::string RawAsm(CmdIt + 1, CloseIt); // remove "{}"
                 CmdVec.emplace_back(RawAsm);
-                Cmd_it = closeIt + 1;
+                CmdIt = CloseIt + 1;
             }
             else
             {
+                //
                 // no matching brace
+                //
                 ShowMessages("err, assembly snippet is not closed.");
             }
         }
         else
         {
+            //
             // normal text, find next space
-            auto spaceIt = std::find_if(Cmd_it, Cmd_end, ::isspace);
-            CmdVec.emplace_back(Cmd_it, spaceIt);
-            Cmd_it = spaceIt;
+            //
+            auto SpaceIt = std::find_if(CmdIt, CmdEnd, ::isspace);
+            CmdVec.emplace_back(CmdIt, SpaceIt);
+            CmdIt = SpaceIt;
         }
     }
 
-    // check if there is any "pid"
-    auto Pid_it = std::find_if(CmdVec.begin(), CmdVec.end(), [](const std::string & s) { return s.find("pid") != std::string::npos; });
-    if (Pid_it != CmdVec.end())
+    //
+    // Check if there is any "pid"
+    //
+    auto PidIt = std::find_if(CmdVec.begin(), CmdVec.end(), [](const std::string & s) { return s.find("pid") != std::string::npos; });
+    if (PidIt != CmdVec.end())
     {
-        bool isLast       = (Pid_it == std::prev(CmdVec.end()));
-        bool isSecondLast = (Pid_it == std::prev(CmdVec.end(), 2));
-        if (!isLast && !isSecondLast)
+        bool IsLast       = (PidIt == std::prev(CmdVec.end()));
+        bool IsSecondLast = (PidIt == std::prev(CmdVec.end(), 2));
+        if (!IsLast && !IsSecondLast)
         {
-            ShowMessages("pid must be the last argument.");
+            ShowMessages("pid must be the last argument");
             return CmdEmpty;
         }
         if (g_IsSerialConnectedToRemoteDebuggee)
@@ -229,107 +256,113 @@ ParseUserCmd(const std::string & command)
             return CmdEmpty;
         }
 
-        if (std::next(Pid_it) != CmdVec.end()) // is there anything after "pid"?
+        if (std::next(PidIt) != CmdVec.end()) // is there anything after "pid"?
         {
-            CMD.ProcId_str = std::string(*(++Pid_it));
+            CMD.ProcIdStr = std::string(*(++PidIt));
         }
         else
         {
-            ShowMessages("no hex number was provided as process id.\n\n");
+            ShowMessages("no hex number was provided as process id\n\n");
             return CmdEmpty;
         }
     }
     else
     {
+        //
         // user didn't provide pid at all. ignoring.
+        //
     }
 
-    // fill the CMD object. will be optimized later.
+    //
+    // fill the CMD object. will be optimized later
+    //
     if (CmdVec.size() > 0)
-        CMD.Command_str = CmdVec.at(0);
+        CMD.CommandStr = CmdVec.at(0);
     if (CmdVec.size() > 1)
-        CMD.Address_str = CmdVec.at(1);
+        CMD.AddressStr = CmdVec.at(1);
     if (CmdVec.size() > 2)
         CMD.AsmSnippet = CmdVec.at(2);
     if (CmdVec.size() > 3)
-        CMD.Start_Address_str = CmdVec.at(3);
+        CMD.StartAddressStr = CmdVec.at(3);
     // if (CmdVec.size() > 4) CMD.ProcId_str        = CmdVec.at(5);  4 is the "pid" string
 
     return CMD;
 }
 
 static bool
-sym_resolver(const char * symbol, uint64_t * value)
+SymResolver(const char * Symbol, UINT64 * Value)
 {
-    std::string sym(symbol);
+    std::string Sym(Symbol);
 
-    if (!SymbolConvertNameOrExprToAddress(sym, value))
+    if (!SymbolConvertNameOrExprToAddress(Sym, Value))
     {
         ShowMessages("err, couldn't resolve Address at '%s'\n\n",
-                     symbol);
+                     Symbol);
         CommandAssembleHelp();
         return false;
     }
     return true;
 }
 
-static int
-Assemble(ks_arch arch, int mode, uint64_t start_addr, int syntax, AssembleData & asmbDat)
+INT
+Assemble(ks_arch Arch, INT Mode, UINT64 StartAddr, INT Syntax, AssembleData & AsmbDat)
 {
-    ks_engine * ks;
+    ks_engine * Ks;
 
-    asmbDat.ks_err = ks_open(arch, mode, &ks);
-    if (asmbDat.ks_err != KS_ERR_OK)
+    AsmbDat.ks_err = ks_open(Arch, Mode, &Ks);
+    if (AsmbDat.ks_err != KS_ERR_OK)
     {
-        ShowMessages("err, failed on ks_open().");
+        ShowMessages("err, failed on ks_open()");
         return -1;
     }
 
-    if (syntax)
+    if (Syntax)
     {
-        asmbDat.ks_err = ks_option(ks, KS_OPT_SYNTAX, syntax);
-        if (asmbDat.ks_err != KS_ERR_OK)
+        AsmbDat.ks_err = ks_option(Ks, KS_OPT_SYNTAX, Syntax);
+        if (AsmbDat.ks_err != KS_ERR_OK)
         {
-            ShowMessages("err, failed on ks_option() with error code = %u\n", asmbDat.ks_err);
+            ShowMessages("err, failed on ks_option() with error code = %u\n", AsmbDat.ks_err);
         }
     }
 
+    //
     // Setting symbol resolver callback
-    asmbDat.ks_err = ks_option(ks, KS_OPT_SYM_RESOLVER, (size_t)sym_resolver);
-    if (asmbDat.ks_err != KS_ERR_OK)
+    //
+    AsmbDat.ks_err = ks_option(Ks, KS_OPT_SYM_RESOLVER, (size_t)SymResolver);
+    if (AsmbDat.ks_err != KS_ERR_OK)
     {
-        ShowMessages("err, failed on ks_option() with error code = %u\n", asmbDat.ks_err);
+        ShowMessages("err, failed on ks_option() with error code = %u\n", AsmbDat.ks_err);
     }
 
-    if (ks_asm(ks, asmbDat.AsmFixed.c_str(), start_addr, &asmbDat.EncodedBytes, &asmbDat.BytesCount, &asmbDat.StatementCount))
+    if (ks_asm(Ks, AsmbDat.AsmFixed.c_str(), StartAddr, &AsmbDat.EncodedBytes, &AsmbDat.BytesCount, &AsmbDat.StatementCount))
     {
-        asmbDat.ks_err = ks_errno(ks);
-        ShowMessages("err, failed on ks_asm() with count = %lu, error code = %u\n", (int)asmbDat.StatementCount, asmbDat.ks_err);
+        AsmbDat.ks_err = ks_errno(Ks);
+        ShowMessages("err, failed on ks_asm() with count = %lu, error code = %u\n", (int)AsmbDat.StatementCount, AsmbDat.ks_err);
     }
     else
     {
-        if (asmbDat.BytesCount == 0)
+        if (AsmbDat.BytesCount == 0)
         {
-            ShowMessages("err, the assemble operation returned no bytes, most likely due to incorrect formatting of assembly snippet.\n");
+            ShowMessages("err, the assemble operation returned no bytes, most likely due to incorrect formatting of assembly snippet\n");
         }
         else
         {
-            ShowMessages("generated assembly: %lu bytes, %lu statements ==>> ", (int)asmbDat.BytesCount, (int)asmbDat.StatementCount);
+            ShowMessages("generated assembly: %lu bytes, %lu statements ==>> ", (int)AsmbDat.BytesCount, (int)AsmbDat.StatementCount);
 
             size_t i;
-            ShowMessages("%s = ", asmbDat.AsmFixed.c_str());
-            for (i = 0; i < asmbDat.BytesCount; i++)
+            ShowMessages("%s = ", AsmbDat.AsmFixed.c_str());
+            for (i = 0; i < AsmbDat.BytesCount; i++)
             {
-                ShowMessages("%02x ", asmbDat.EncodedBytes[i]);
-                asmbDat.EncBytesIntVec.push_back(static_cast<UINT64>(asmbDat.EncodedBytes[i]));
+                ShowMessages("%02x ", AsmbDat.EncodedBytes[i]);
+                AsmbDat.EncBytesIntVec.push_back(static_cast<UINT64>(AsmbDat.EncodedBytes[i]));
             }
             ShowMessages("\n");
 
-            ks_close(ks);
+            ks_close(Ks);
             return 0;
         }
     }
-    ks_close(ks);
+    ks_close(Ks);
     return -1;
 }
 
@@ -346,20 +379,22 @@ CommandAssemble(vector<string> SplitCommand, string Command)
     DEBUGGER_EDIT_MEMORY_TYPE MemoryType {};
     _CMD                      CMD {};
     UINT64                    Address {};
-    UINT64                    Start_Address {};
+    UINT64                    StartAddress {};
     UINT32                    ProcId = 0;
 
     CMD = ParseUserCmd(Command);
 
     if (CMD.isEmpty())
     {
-        // error messeges are already printed
+        //
+        // Error messeges are already printed
+        //
         return;
     }
 
-    if (!CMD.ProcId_str.empty())
+    if (!CMD.ProcIdStr.empty())
     {
-        if (!ConvertStringToUInt32(CMD.ProcId_str, &ProcId))
+        if (!ConvertStringToUInt32(CMD.ProcIdStr, &ProcId))
         {
             ShowMessages("please specify a correct hex process id\n\n");
             CommandAssembleHelp();
@@ -378,51 +413,53 @@ CommandAssemble(vector<string> SplitCommand, string Command)
         CommandAssembleHelp();
         return;
     }
-    else if (CMD.Command_str == "a")
+    else if (CMD.CommandStr == "a")
     {
         MemoryType = EDIT_VIRTUAL_MEMORY;
     }
-    else if (CMD.Command_str == "!a")
+    else if (CMD.CommandStr == "!a")
     {
         MemoryType = EDIT_PHYSICAL_MEMORY;
     }
     else
     {
-        ShowMessages("unknown assemble command.\n\n");
+        ShowMessages("unknown assemble command\n\n");
         CommandAssembleHelp();
         return;
     }
 
-    // fetching start_address i.e. address to assemble to
-    if (!CMD.Address_str.empty()) // was any address provided to assemble to?
+    //
+    // Fetching start_address i.e. address to assemble to
+    //
+    if (!CMD.AddressStr.empty()) // was any address provided to assemble to?
     {
-        if (!SymbolConvertNameOrExprToAddress(CMD.Address_str, &Address))
+        if (!SymbolConvertNameOrExprToAddress(CMD.AddressStr, &Address))
         {
             ShowMessages("err, couldn't resolve Address at '%s'\n\n",
-                         CMD.Address_str.c_str());
+                         CMD.AddressStr.c_str());
             CommandAssembleHelp();
             return;
         }
     }
-    else if (!CMD.Start_Address_str.empty()) // was a custom start_address provided?
+    else if (!CMD.StartAddressStr.empty()) // was a custom start_address provided?
     {
-        if (!SymbolConvertNameOrExprToAddress(CMD.Start_Address_str, &Start_Address))
+        if (!SymbolConvertNameOrExprToAddress(CMD.StartAddressStr, &StartAddress))
         {
             ShowMessages("err, couldn't resolve Address at '%s'\n\n",
-                         CMD.Start_Address_str.c_str());
+                         CMD.StartAddressStr.c_str());
             CommandAssembleHelp();
             return;
         }
-        Address = Start_Address;
+        Address = StartAddress;
     }
     else
     {
-        ShowMessages("warn, no start_address provided to calculate relative asm commands.\n\n");
+        ShowMessages("warning, no start address provided to calculate relative asm commands\n\n");
     }
 
     AssembleData AssembleData;
     AssembleData.AsmRaw = CMD.AsmSnippet; // third element
-    AssembleData.parseAssemblyData();
+    AssembleData.ParseAssemblyData();
 
     if (Assemble(KS_ARCH_X86, KS_MODE_64, Address, KS_OPT_SYNTAX_INTEL, AssembleData))
     {
@@ -445,11 +482,11 @@ CommandAssemble(vector<string> SplitCommand, string Command)
                 (PVOID)AssembleData.EncodedBytes,
                 (UINT32)AssembleData.BytesCount))
         {
-            ShowMessages("successfully assembled at 0x%016llx address.\n", static_cast<uint64_t>(Address));
+            ShowMessages("successfully assembled at 0x%016llx address\n", static_cast<UINT64>(Address));
         }
         else
         {
-            ShowMessages("failed to write generated assembly to memory.");
+            ShowMessages("failed to write generated assembly to memory\n");
         }
     }
 }
