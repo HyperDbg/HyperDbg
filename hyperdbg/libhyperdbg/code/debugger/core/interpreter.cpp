@@ -877,6 +877,12 @@ InitializeCommandsDictionary()
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 
-    g_CommandsList["a"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!a"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["a"]         = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["asm"]       = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assemble"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assembly"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!a"]        = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!asm"]      = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!assemble"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!assembly"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
 }

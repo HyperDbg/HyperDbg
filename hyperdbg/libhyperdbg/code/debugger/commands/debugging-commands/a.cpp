@@ -165,7 +165,8 @@ CommandAssembleHelp()
     ShowMessages("\nIf you want to assemble to physical (address) memory then add '!' "
                  "at the start of the command\n");
 
-    ShowMessages("syntax : \ta [Address (hex)] {AsmCmd1; AsmCmd2} [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \ta [Address (hex)] [asm {AsmCmd1; AsmCmd2}] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!a [Address (hex)] [asm {AsmCmd1; AsmCmd2}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : a fffff8077356f010 {nop; nop; nop} \n");
@@ -176,8 +177,8 @@ CommandAssembleHelp()
 
     ShowMessages("\n");
     ShowMessages("\tto merely view the byte code of an assembly snippet:\n");
-    ShowMessages("\t\ta {jmp <nt!ExAllocatePoolWithTag+10>} [start_address]\n");
-    ShowMessages("\t\t\"start_address\" is useful when dealing with relative instructions like \" jmp \" ");
+    ShowMessages("\t\ta {jmp <nt!ExAllocatePoolWithTag+10>} [StartAddress]\n");
+    ShowMessages("\t\t\"StartAddress\" is useful when dealing with relative instructions like \" jmp \" ");
 }
 
 _CMD
