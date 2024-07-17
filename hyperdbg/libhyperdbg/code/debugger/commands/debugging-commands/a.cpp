@@ -10,127 +10,8 @@
  *
  */
 #include "pch.h"
-
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
-
-struct AssembleData
-{
-public:
-    std::string     AsmRaw {};
-    std::string     AsmFixed {};
-    size_t          StatementCount {};
-    size_t          BytesCount {};
-    unsigned char * EncodedBytes {};
-    vector<UINT64>  EncBytesIntVec {};
-    ks_err          ks_err {};
-
-    AssembleData() = default;
-
-    /**
-     * @brief tries to solve the symbol issue with Keystone, which apparently originates from LLVM-MC.
-     *
-     * @return VOID
-     */
-    VOID
-    ParseAssemblyData()
-    {
-        std::string RawAsm = AsmRaw;
-
-        //
-        // remove all "\n" instances
-        //
-        RawAsm.erase(std::remove(RawAsm.begin(), RawAsm.end(), '\n'), RawAsm.end());
-
-        //
-        // remove multiple spaces
-        //
-        std::regex MultipleSpaces(" +");
-        RawAsm = std::regex_replace(RawAsm, MultipleSpaces, " ");
-
-        //
-        // split assembly line by ';'
-        //
-        std::vector<std::string> AssemblyInstructions;
-        size_t                   Pos       = 0;
-        std::string              Delimiter = ";";
-        while ((Pos = RawAsm.find(Delimiter)) != std::string::npos)
-        {
-            std::string Token = RawAsm.substr(0, Pos);
-            if (!Token.empty())
-            {
-                AssemblyInstructions.push_back(Token);
-            }
-            RawAsm.erase(0, Pos + Delimiter.length());
-        }
-        if (!RawAsm.empty())
-        {
-            AssemblyInstructions.push_back(RawAsm);
-        }
-
-        //
-        // process each assembly instruction
-        //
-        for (auto & InstructionLine : AssemblyInstructions)
-        {
-            std::string Expr {};
-            UINT64      ExprAddr {};
-            size_t      Start {};
-
-            while ((Start = InstructionLine.find('<', Start)) != std::string::npos)
-            {
-                size_t End = InstructionLine.find('>', Start);
-                if (End != std::string::npos)
-                {
-                    std::string Expr = InstructionLine.substr(Start + 1, End - Start - 1);
-                    if (!SymbolConvertNameOrExprToAddress(Expr, &ExprAddr) && ExprAddr == 0)
-                    {
-                        ShowMessages("err, failed to resolve the symbol [ %s ].\n", Expr.c_str());
-                        Start += Expr.size() + 2;
-                        continue;
-                    }
-
-                    std::ostringstream Oss;
-                    Oss << std::hex << std::showbase << ExprAddr;
-                    InstructionLine.replace(Start, End - Start + 1, Oss.str());
-                }
-                else
-                {
-                    //
-                    // No matching '>' found, break the loop
-                    //
-                    break;
-                }
-                Start += Expr.size() + 2;
-            }
-        }
-
-        //
-        // Append ";" between two std::strings
-        //
-        auto ApndSemCln = [](std::string a, std::string b) {
-            return std::move(a) + ';' + std::move(b);
-        };
-
-        //
-        // Concatenate each assembly line
-        //
-        AsmFixed = std::accumulate(std::next(AssemblyInstructions.begin()), AssemblyInstructions.end(), AssemblyInstructions.at(0), ApndSemCln);
-
-        if (!AsmFixed.empty() && AsmFixed.back() == ';')
-        {
-            //
-            // remove the last ";" for it will be counted as a statement by Keystone and a wrong number would be printed
-            //
-            AsmFixed.pop_back();
-        }
-
-        while (!AsmFixed.empty() && AsmFixed.back() == ';')
-        {
-            AsmFixed.pop_back();
-        }
-    }
-};
 
 class _CMD
 {
@@ -290,82 +171,6 @@ ParseUserCmd(const std::string & command)
     return CMD;
 }
 
-static bool
-SymResolver(const char * Symbol, UINT64 * Value)
-{
-    std::string Sym(Symbol);
-
-    if (!SymbolConvertNameOrExprToAddress(Sym, Value))
-    {
-        ShowMessages("err, couldn't resolve Address at '%s'\n\n",
-                     Symbol);
-        CommandAssembleHelp();
-        return false;
-    }
-    return true;
-}
-
-INT
-Assemble(ks_arch Arch, INT Mode, UINT64 StartAddr, INT Syntax, AssembleData & AsmbDat)
-{
-    ks_engine * Ks;
-
-    AsmbDat.ks_err = ks_open(Arch, Mode, &Ks);
-    if (AsmbDat.ks_err != KS_ERR_OK)
-    {
-        ShowMessages("err, failed on ks_open()");
-        return -1;
-    }
-
-    if (Syntax)
-    {
-        AsmbDat.ks_err = ks_option(Ks, KS_OPT_SYNTAX, Syntax);
-        if (AsmbDat.ks_err != KS_ERR_OK)
-        {
-            ShowMessages("err, failed on ks_option() with error code = %u\n", AsmbDat.ks_err);
-        }
-    }
-
-    //
-    // Setting symbol resolver callback
-    //
-    AsmbDat.ks_err = ks_option(Ks, KS_OPT_SYM_RESOLVER, (size_t)SymResolver);
-    if (AsmbDat.ks_err != KS_ERR_OK)
-    {
-        ShowMessages("err, failed on ks_option() with error code = %u\n", AsmbDat.ks_err);
-    }
-
-    if (ks_asm(Ks, AsmbDat.AsmFixed.c_str(), StartAddr, &AsmbDat.EncodedBytes, &AsmbDat.BytesCount, &AsmbDat.StatementCount))
-    {
-        AsmbDat.ks_err = ks_errno(Ks);
-        ShowMessages("err, failed on ks_asm() with count = %lu, error code = %u\n", (int)AsmbDat.StatementCount, AsmbDat.ks_err);
-    }
-    else
-    {
-        if (AsmbDat.BytesCount == 0)
-        {
-            ShowMessages("err, the assemble operation returned no bytes, most likely due to incorrect formatting of assembly snippet\n");
-        }
-        else
-        {
-            ShowMessages("generated assembly: %lu bytes, %lu statements ==>> ", (int)AsmbDat.BytesCount, (int)AsmbDat.StatementCount);
-
-            size_t i;
-            ShowMessages("%s = ", AsmbDat.AsmFixed.c_str());
-            for (i = 0; i < AsmbDat.BytesCount; i++)
-            {
-                ShowMessages("%02x ", AsmbDat.EncodedBytes[i]);
-                AsmbDat.EncBytesIntVec.push_back(static_cast<UINT64>(AsmbDat.EncodedBytes[i]));
-            }
-            ShowMessages("\n");
-
-            ks_close(Ks);
-            return 0;
-        }
-    }
-    ks_close(Ks);
-    return -1;
-}
 
 /**
  * @brief a and !a commands handler
@@ -462,9 +267,9 @@ CommandAssemble(vector<string> SplitCommand, string Command)
     AssembleData.AsmRaw = CMD.AsmSnippet; // third element
     AssembleData.ParseAssemblyData();
 
-    if (Assemble(KS_ARCH_X86, KS_MODE_64, Address, KS_OPT_SYNTAX_INTEL, AssembleData))
+    if (AssembleData.Assemble(Address))
     {
-        ShowMessages("err, code: '%u'\n\n", AssembleData.ks_err);
+        ShowMessages("err, code: '%u'\n\n", AssembleData.KsErr);
         CommandAssembleHelp();
         return;
     }
