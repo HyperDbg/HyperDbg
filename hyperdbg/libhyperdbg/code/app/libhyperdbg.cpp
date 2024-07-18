@@ -60,6 +60,14 @@ SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
     g_MessageHandler             = Handler;
     g_MessageHandlerSharedBuffer = malloc(COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
 
+    if (!g_MessageHandlerSharedBuffer)
+    {
+        g_MessageHandler = NULL;
+        return NULL;
+    }
+
+    RtlZeroMemory(g_MessageHandlerSharedBuffer, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
+
     return g_MessageHandlerSharedBuffer;
 }
 
