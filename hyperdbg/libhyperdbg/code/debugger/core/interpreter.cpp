@@ -319,8 +319,8 @@ HyperDbgInterpreter(CHAR * Command)
     //
     string CommandString(Command);
 
+    // for test
     CommandParser parser;
-
     auto tokens1 = parser.parse(CommandString);
 
     //
