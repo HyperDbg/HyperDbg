@@ -47,6 +47,18 @@ SetTextMessageCallback(Callback handler)
 }
 
 /**
+ * @brief Unset the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @return VOID
+ */
+VOID
+UnsetTextMessageCallback()
+{
+    g_MessageHandler = NULL;
+}
+
+/**
  * @brief Show messages
  *
  * @param Fmt format string message

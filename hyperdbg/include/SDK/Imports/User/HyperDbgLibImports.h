@@ -63,6 +63,9 @@ hyperdbg_u_show_signature();
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_set_text_message_callback(Callback handler);
 
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_unset_text_message_callback();
+
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_script_read_file_and_execute_commandline(INT argc, CHAR * argv[]);
 

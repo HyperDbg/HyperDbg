@@ -133,6 +133,18 @@ hyperdbg_u_set_text_message_callback(Callback handler)
 }
 
 /**
+ * @brief Unset the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @return VOID
+ */
+VOID
+hyperdbg_u_unset_text_message_callback()
+{
+    UnsetTextMessageCallback();
+}
+
+/**
  * @brief Parsing the command line options for scripts
  * @param argc
  * @param argv

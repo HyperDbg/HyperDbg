@@ -44,3 +44,6 @@ HyperDbgShowSignature();
 
 VOID
 SetTextMessageCallback(Callback handler);
+
+VOID
+UnsetTextMessageCallback();
