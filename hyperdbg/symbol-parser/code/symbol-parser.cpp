@@ -19,24 +19,24 @@ std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
 BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
 BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
-Callback                                   g_MessageHandler             = NULL;
+PVOID                                      g_MessageHandler             = NULL;
 SymbolMapCallback                          g_SymbolMapForDisassembler   = NULL;
 
 /**
  * @brief Set the function callback that will be called if any message
  * needs to be shown
  *
- * @param handler Function that handles the messages
+ * @param Handler Function that handles the messages
  */
 void
-SymSetTextMessageCallback(PVOID handler)
+SymSetTextMessageCallback(PVOID Handler)
 {
-    g_MessageHandler = (Callback)handler;
+    g_MessageHandler = Handler;
 
     //
     // Set the pdbex's message handler
     //
-    pdbex_set_logging_method_export(handler);
+    pdbex_set_logging_method_export(Handler);
 }
 
 /**
@@ -68,7 +68,7 @@ ShowMessages(const char * Fmt, ...)
             //
             // There is another handler
             //
-            g_MessageHandler(TempMessage);
+            ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
         }
     }
 }

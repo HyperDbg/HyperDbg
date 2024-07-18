@@ -120,16 +120,31 @@ hyperdbg_u_show_signature()
 
 /**
  * @brief Set the function callback that will be called if any message
- * needs to be shown
+ * needs to be shown (by passing message as a parameter)
  *
  * @param handler Function that handles the messages
  *
  * @return VOID
  */
 VOID
-hyperdbg_u_set_text_message_callback(Callback handler)
+hyperdbg_u_set_text_message_callback(PVOID handler)
 {
     SetTextMessageCallback(handler);
+}
+
+/**
+ * @brief Set the function callback that will be called if any message
+ * needs to be shown (using shared buffer method)
+ *
+ * @param handler Function that handles the messages
+ * @param shared_buffer The shared buffer (to be filled with message)
+ *
+ * @return VOID
+ */
+VOID
+hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler, PVOID shared_buffer)
+{
+    SetTextMessageCallbackUsingSharedBuffer(handler, shared_buffer);
 }
 
 /**

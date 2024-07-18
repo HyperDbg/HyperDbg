@@ -447,7 +447,13 @@ TCHAR g_TestLocation[MAX_PATH] = {0};
  * messages
  *
  */
-Callback g_MessageHandler = 0;
+PVOID g_MessageHandler = 0;
+
+/**
+ * @brief The shared buffer for the handler of ShowMessages function
+ *
+ */
+PVOID g_MessageHandlerSharedBuffer = 0;
 
 /**
  * @brief Shows whether the vmxoff process start or not

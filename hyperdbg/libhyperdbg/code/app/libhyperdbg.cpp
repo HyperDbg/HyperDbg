@@ -19,7 +19,8 @@ using namespace std;
 extern HANDLE     g_DeviceHandle;
 extern HANDLE     g_IsDriverLoadedSuccessfully;
 extern BOOLEAN    g_IsVmxOffProcessStart;
-extern Callback   g_MessageHandler;
+extern PVOID      g_MessageHandler;
+extern PVOID      g_MessageHandlerSharedBuffer;
 extern TCHAR      g_DriverLocation[MAX_PATH];
 extern TCHAR      g_DriverName[MAX_PATH];
 extern BOOLEAN    g_UseCustomDriverLocation;
@@ -37,13 +38,27 @@ extern LIST_ENTRY g_OutputSources;
  * @brief Set the function callback that will be called if any message
  * needs to be shown
  *
- * @param handler Function that handles the messages
+ * @param Handler Function that handles the messages
  * @return VOID
  */
 VOID
-SetTextMessageCallback(Callback handler)
+SetTextMessageCallback(PVOID Handler)
 {
-    g_MessageHandler = handler;
+    g_MessageHandler = Handler;
+}
+
+/**
+ * @brief Set the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @param Handler Function that handles the messages
+ * @return VOID
+ */
+VOID
+SetTextMessageCallbackUsingSharedBuffer(PVOID Handler, PVOID SharedBuffer)
+{
+    g_MessageHandler             = Handler;
+    g_MessageHandlerSharedBuffer = SharedBuffer;
 }
 
 /**
@@ -55,7 +70,8 @@ SetTextMessageCallback(Callback handler)
 VOID
 UnsetTextMessageCallback()
 {
-    g_MessageHandler = NULL;
+    g_MessageHandler             = NULL;
+    g_MessageHandlerSharedBuffer = NULL;
 }
 
 /**
@@ -115,7 +131,15 @@ ShowMessages(const char * Fmt, ...)
             //
             // There is another handler
             //
-            g_MessageHandler(TempMessage);
+            if (g_MessageHandlerSharedBuffer == NULL)
+            {
+                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+            }
+            else
+            {
+                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
+                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
+            }
         }
     }
 }
