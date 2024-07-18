@@ -1509,11 +1509,17 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             continue;
         }
 
+        if (!Section.compare("asm"))
+        {
+            IndexesToRemove.push_back(Index);
+
+            IsAsm = TRUE;
+            continue;
+        }
+
         if (IsConditionBuffer)
         {
-            // if (!Section.compare("condition"))
-            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "condition");
-            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
+            if (!Section.compare("condition"))
             {
                 //
                 // Save to remove this string from the command
@@ -1521,13 +1527,6 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-
-                if ((it + 1) != (*SplitCommand).end() && *(it + 1) == "asm" || *(it + 1) == "asm{")
-                {
-                    IsAsm = TRUE;
-                    IndexesToRemove.push_back(++Index);
-                }
-
                 continue;
             }
         }
@@ -1536,8 +1535,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             //
             // It's code
             //
-            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "code");
-            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
+            if (!Section.compare("code"))
             {
                 //
                 // Save to remove this string from the command
@@ -1545,13 +1543,6 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-
-                if ((it + 1) != (*SplitCommand).end() && (*(it + 1) == "asm" || *(it + 1) == "asm{"))
-                {
-                    IsAsm = TRUE;
-                    IndexesToRemove.push_back(++Index);
-                }
-
                 continue;
             }
         }
@@ -1780,24 +1771,24 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             }
             AppendedFinalBuffer.append(Temp);
         }
-
-        //
-        // Convert it to vectored bytes
-        //
-        ParsedBytes = HexToBytes(AppendedFinalBuffer);
-
-        //
-        // Convert to a contigues buffer
-        //
-        FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
-        std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
-
-        //
-        // Set the buffer and length
-        //
-        *BufferAddress = (UINT64)FinalBuffer;
-        *BufferLength  = (UINT32)ParsedBytes.size();
     }
+
+    //
+    // Convert it to vectored bytes
+    //
+    ParsedBytes = HexToBytes(AppendedFinalBuffer);
+
+    //
+    // Convert to a contigues buffer
+    //
+    FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+    std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+
+    //
+    // Set the buffer and length
+    //
+    *BufferAddress = (UINT64)FinalBuffer;
+    *BufferLength  = (UINT32)ParsedBytes.size();
 
     //
     // Removing the code or condition indexes from the command
