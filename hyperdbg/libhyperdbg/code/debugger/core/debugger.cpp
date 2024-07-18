@@ -1249,6 +1249,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength)
 {
+    BOOLEAN        IsAsm         = FALSE;
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
     BOOLEAN        IsEnded       = FALSE;
@@ -1363,7 +1364,9 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
 
         if (IsConditionBuffer)
         {
-            if (!Section.compare("condition"))
+            //if (!Section.compare("condition"))
+            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "condition");
+            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
             {
                 //
                 // Save to remove this string from the command
@@ -1371,6 +1374,13 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
+
+                if ((it + 1) != (*SplitCommand).end() && *(it + 1) == "asm" || *(it + 1) == "asm{")
+                {
+                    IsAsm = TRUE;
+                    IndexesToRemove.push_back(++Index);
+                }
+
                 continue;
             }
         }
@@ -1379,7 +1389,8 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             //
             // It's code
             //
-            if (!Section.compare("code"))
+            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "code");
+            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
             {
                 //
                 // Save to remove this string from the command
@@ -1387,6 +1398,13 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
+
+                if ((it + 1) != (*SplitCommand).end() && (*(it + 1) == "asm" || *(it + 1) == "asm{"))
+                {
+                    IsAsm = TRUE;
+                    IndexesToRemove.push_back(++Index);
+                }
+
                 continue;
             }
         }
@@ -1520,71 +1538,119 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     }
 
     //
-    // Append a 'ret' at the end of the buffer
+    // Check if asm code was provided instead of hex
     //
-    SaveBuffer.push_back("c3");
-
-    //
-    // If we reach here then there is sth in condition buffer
-    //
-    for (auto Section : SaveBuffer)
+    if (IsAsm)
     {
         //
-        // Check if the section is started with '0x'
+        // Append " " between two std::strings
         //
-        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+        auto apndSemCln = [](std::string a, std::string b) {
+            return std::move(a) + ' ' + std::move(b);
+        };
+
+        //
+        // Concatenate each assembly line
+        //
+        std::string asmCode = std::accumulate(std::next(SaveBuffer.begin()), SaveBuffer.end(), SaveBuffer[0], apndSemCln);
+
+        AssembleData AssembleData;
+        AssembleData.AsmRaw = asmCode; // by now, it should only have one element
+        AssembleData.ParseAssemblyData();
+        //
+        // Append a 'ret' at the end of asm code
+        //
+        AssembleData.AsmFixed += ";ret";
+
+        if (AssembleData.Assemble(0)) // we just want the hex bytes, so NULL instead of Start_Address
         {
-            Temp = Section.erase(0, 2);
-        }
-        else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
-        {
-            Temp = Section.erase(0, 1);
+            ShowMessages("err, assemble error code: '%u'\n\n", AssembleData.KsErr);
+            return FALSE;
         }
         else
         {
-            Temp = std::move(Section);
-        }
-
-        //
-        // replace \x s
-        //
-        ReplaceAll(Temp, "\\x", "");
-
-        //
-        // check if the buffer is aligned to 2
-        //
-        if (Temp.size() % 2 != 0)
-        {
             //
-            // Add a zero to the start of the buffer
+            // * FinalBuffer *
             //
-            Temp.insert(0, 1, '0');
-        }
+            FinalBuffer = (unsigned char *)malloc(strlen((char *)AssembleData.EncodedBytes) + 1);
+            strcpy((char *)FinalBuffer, (char *)AssembleData.EncodedBytes);
 
-        if (!IsHexNotation(Temp))
-        {
-            ShowMessages("please enter condition code in a hex notation\n");
-            return FALSE;
+            //
+            // Set the buffer and length
+            //
+            *BufferAddress = (UINT64)FinalBuffer;
+            *BufferLength  = (UINT32)strlen((char *)AssembleData.EncodedBytes);
         }
-        AppendedFinalBuffer.append(Temp);
     }
+    else
+    {
+        //
+        // Append a 'ret' at the end of the buffer
+        //
+        SaveBuffer.push_back("c3");
 
-    //
-    // Convert it to vectored bytes
-    //
-    ParsedBytes = HexToBytes(AppendedFinalBuffer);
+        //
+        // If we reach here then there is sth in condition buffer
+        //
+        for (auto Section : SaveBuffer)
+        {
+            //
+            // Check if the section is started with '0x'
+            //
+            if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+            {
+                Temp = Section.erase(0, 2);
+            }
+            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
+            {
+                Temp = Section.erase(0, 1);
+            }
+            else
+            {
+                Temp = std::move(Section);
+            }
 
-    //
-    // Convert to a contigues buffer
-    //
-    FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
-    std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+            //
+            // replace \x s
+            //
+            ReplaceAll(Temp, "\\x", "");
 
-    //
-    // Set the buffer and length
-    //
-    *BufferAddress = (UINT64)FinalBuffer;
-    *BufferLength  = (UINT32)ParsedBytes.size();
+            //
+            // check if the buffer is aligned to 2
+            //
+            if (Temp.size() % 2 != 0)
+            {
+                //
+                // Add a zero to the start of the buffer
+                //
+                Temp.insert(0, 1, '0');
+            }
+
+            if (!IsHexNotation(Temp))
+            {
+                ShowMessages("please enter condition code in a hex notation\n");
+                return FALSE;
+            }
+            AppendedFinalBuffer.append(Temp);
+        }
+
+        //
+        // Convert it to vectored bytes
+        //
+        ParsedBytes = HexToBytes(AppendedFinalBuffer);
+
+        //
+        // Convert to a contigues buffer
+        //
+        FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+        std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+
+        //
+        // Set the buffer and length
+        //
+        *BufferAddress = (UINT64)FinalBuffer;
+        *BufferLength  = (UINT32)ParsedBytes.size();
+    }
 
     //
     // Removing the code or condition indexes from the command
