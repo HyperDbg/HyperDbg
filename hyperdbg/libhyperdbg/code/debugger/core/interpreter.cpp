@@ -45,28 +45,77 @@ class CommandParser
 public:
     enum class TokenType
     {
-        Number,
+        NumHex,
+        NumDec,
         String,
         BracketString
     };
 
     using Token = std::pair<TokenType, std::string>;
 
-    static bool isHexNumber(const std::string & str)
+    BOOL GetHexNum(std::string & str)
     {
         if (str.empty() || (str.size() == 1 && str[0] == '0'))
-            return false;
+            return FALSE;
 
-        try
+        std::string Prefix("0x");
+        if (!str.compare(0, Prefix.size(), Prefix))
         {
-            size_t pos;
-            auto   ul = std::stoul(str, &pos, 16);
-            return pos == str.length();
+            std::string num(str.substr(Prefix.size()));
+
+            try
+            {
+                size_t pos;
+                auto   ul = std::stoul(num, &pos, 16);
+                str       = num; // modify
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
         }
-        catch (...)
+        else
         {
-            return false;
+            try
+            {
+                size_t pos;
+                auto   ul = std::stoul(str, &pos, 16);
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
         }
+        
+    }
+
+    //
+    // modifies str to acual number in string
+    //
+    BOOL IsDecNum(std::string & str)
+    {
+        if (str.empty() || (str.size() == 1 && str[0] == '0'))
+            return FALSE;
+
+        std::string Prefix("0n");
+        std::string num(str.substr(Prefix.size()));
+        if (!str.compare(0, Prefix.size(), Prefix))
+        {
+            try
+            {
+                size_t pos;
+                auto ul = std::stoul(num, &pos, 10);
+                str       = num; // modify
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
+        }
+        return FALSE;
     }
 
     std::vector<Token> parse(const std::string & input)
@@ -89,7 +138,7 @@ public:
                 {
                     size_t j = i;
                     c        = input[++j];
-                    if (c == '/') //  the // is now read
+                    if (c == '/') // start to look fo comments
                     {
                         size_t EndPose = input.find('\n', i);
                         if (EndPose != std::string::npos)
@@ -116,7 +165,7 @@ public:
                         if (EndPose != std::string::npos)
                         {
                             // here we could get the comment but for now we just skip
-                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two
+                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two byte long
                             i = (i + (EndPose - i)) + 1;                           // one for /
                             if (input[i + 1] == ' ' || input[i + 1] == '\n')       // handling " " and "\n"
                             {
@@ -206,9 +255,15 @@ public:
 private:
     void addToken(std::vector<Token> & tokens, const std::string & str)
     {
-        if (std::all_of(str.begin(), str.end(), ::isdigit) || isHexNumber(str))
+        auto tmp = str;
+        if (IsDecNum(tmp)) // tmp will be modified to actual number
         {
-            tokens.emplace_back(TokenType::Number, str);
+            tokens.emplace_back(TokenType::NumDec, tmp);
+        }
+        else if (std::all_of(str.begin(), str.end(), ::isdigit) 
+            || GetHexNum(tmp)) // tmp will be modified to actual number
+        {
+            tokens.emplace_back(TokenType::NumHex, tmp);
         }
         else
         {
