@@ -1,14 +1,16 @@
 /**
-* 
-* @author Abbas Masoumi Gorji
-* @date 2024-7-16
-* 
-**/
+ * @file assembler.h
+ * @author Abbas Masoumi Gorji
+ * @brief Headers for turning assembly codes into bytes
+ * @details
+ * @version 0.10
+ * @date 2024-07-16
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 
 #pragma once
-
-#include "pch.h"
-
 
 class AssembleData
 {

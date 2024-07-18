@@ -52,13 +52,15 @@ SetTextMessageCallback(PVOID Handler)
  * needs to be shown
  *
  * @param Handler Function that handles the messages
- * @return VOID
+ * @return PVOID
  */
-VOID
-SetTextMessageCallbackUsingSharedBuffer(PVOID Handler, PVOID SharedBuffer)
+PVOID
+SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
 {
     g_MessageHandler             = Handler;
-    g_MessageHandlerSharedBuffer = SharedBuffer;
+    g_MessageHandlerSharedBuffer = malloc(COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
+
+    return g_MessageHandlerSharedBuffer;
 }
 
 /**
@@ -70,7 +72,8 @@ SetTextMessageCallbackUsingSharedBuffer(PVOID Handler, PVOID SharedBuffer)
 VOID
 UnsetTextMessageCallback()
 {
-    g_MessageHandler             = NULL;
+    g_MessageHandler = NULL;
+    free(g_MessageHandlerSharedBuffer);
     g_MessageHandlerSharedBuffer = NULL;
 }
 

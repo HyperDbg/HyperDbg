@@ -1,15 +1,14 @@
 /**
  * @file assembler.cpp
  * @author Abbas Masoumi Gorji
- * @brief turns asm code into byte
+ * @brief Turns assembly codes into bytes
  * @details
- * @version 0.1
- * @date 2024-7-16
+ * @version 0.10
+ * @date 2024-07-16
  *
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #include "pch.h"
 
 /**
@@ -162,7 +161,7 @@ AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
             //
             // inserting zero termination for compatibility with C functions
             //
-            EncodedBytes[BytesCount] = '\0'; 
+            EncodedBytes[BytesCount] = '\0';
 
             ShowMessages("generated assembly: %lu bytes, %lu statements ==>> ", (int)BytesCount, (int)StatementCount);
 

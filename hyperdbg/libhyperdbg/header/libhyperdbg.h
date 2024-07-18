@@ -45,8 +45,8 @@ HyperDbgShowSignature();
 VOID
 SetTextMessageCallback(PVOID Handler);
 
-VOID
-SetTextMessageCallbackUsingSharedBuffer(PVOID Handler, PVOID SharedBuffer);
+PVOID
+SetTextMessageCallbackUsingSharedBuffer(PVOID Handler);
 
 VOID
 UnsetTextMessageCallback();

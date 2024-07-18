@@ -63,8 +63,8 @@ hyperdbg_u_show_signature();
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_set_text_message_callback(PVOID handler);
 
-IMPORT_EXPORT_LIBHYPERDBG VOID
-hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler, PVOID shared_buffer);
+IMPORT_EXPORT_LIBHYPERDBG PVOID
+hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler);
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_unset_text_message_callback();

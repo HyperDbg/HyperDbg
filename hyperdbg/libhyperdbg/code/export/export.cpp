@@ -137,14 +137,13 @@ hyperdbg_u_set_text_message_callback(PVOID handler)
  * needs to be shown (using shared buffer method)
  *
  * @param handler Function that handles the messages
- * @param shared_buffer The shared buffer (to be filled with message)
  *
- * @return VOID
+ * @return PVOID
  */
-VOID
-hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler, PVOID shared_buffer)
+PVOID
+hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler)
 {
-    SetTextMessageCallbackUsingSharedBuffer(handler, shared_buffer);
+    return SetTextMessageCallbackUsingSharedBuffer(handler);
 }
 
 /**
