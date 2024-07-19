@@ -39,6 +39,239 @@ extern ULONG  g_CurrentRemoteCore;
 extern string g_ServerPort;
 extern string g_ServerIp;
 
+
+class CommandParser
+{
+public:
+    enum class TokenType
+    {
+        NumHex,
+        NumDec,
+        String,
+        BracketString
+    };
+
+    using Token = std::pair<TokenType, std::string>;
+
+    BOOL GetHexNum(std::string & str)
+    {
+        if (str.empty() || (str.size() == 1 && str[0] == '0'))
+            return FALSE;
+
+        std::string Prefix("0x");
+        if (!str.compare(0, Prefix.size(), Prefix))
+        {
+            std::string num(str.substr(Prefix.size()));
+
+            try
+            {
+                size_t pos;
+                auto   ul = std::stoul(num, &pos, 16);
+                str       = num; // modify
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
+            try
+            {
+                size_t pos;
+                auto   ul = std::stoul(str, &pos, 16);
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
+        }
+        
+    }
+
+    //
+    // modifies str to acual number in string
+    //
+    BOOL IsDecNum(std::string & str)
+    {
+        if (str.empty() || (str.size() == 1 && str[0] == '0'))
+            return FALSE;
+
+        std::string Prefix("0n");
+        std::string num(str.substr(Prefix.size()));
+        if (!str.compare(0, Prefix.size(), Prefix))
+        {
+            try
+            {
+                size_t pos;
+                auto ul = std::stoul(num, &pos, 10);
+                str       = num; // modify
+                return TRUE;
+            }
+            catch (...)
+            {
+                return FALSE;
+            }
+        }
+        return FALSE;
+    }
+
+    std::vector<Token> parse(const std::string & input)
+    {
+        std::vector<Token> tokens;
+        std::string        current;
+        bool               InQuotes  = FALSE;
+        bool               InBracket = FALSE;
+
+        for (size_t i = 0; i < input.length(); ++i)
+        {
+            char c = input[i];
+
+            if (c == '/') // start comment parse
+            {
+                //
+                // if we're in a script braket, skip; it'll be handled later
+                //
+                if (!(tokens.back().second == "script"))
+                {
+                    size_t j = i;
+                    c        = input[++j];
+                    if (c == '/') // start to look fo comments
+                    {
+                        size_t EndPose = input.find('\n', i);
+                        if (EndPose != std::string::npos)
+                        {
+                            //
+                            // here we could get the comment but for now we just skip
+                            //
+                            std::string comment(input.substr(i, EndPose - i));
+                            i = i + (EndPose - i);
+                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                            {
+                                i++;
+                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                                {
+                                    i++;
+                                }
+                            }
+                            continue;
+                        }
+                    }
+                    else if (c == '*')
+                    {
+                        size_t EndPose = input.find("*/", i);
+                        if (EndPose != std::string::npos)
+                        {
+                            // here we could get the comment but for now we just skip
+                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two byte long
+                            i = (i + (EndPose - i)) + 1;                           // one for /
+                            if (input[i + 1] == ' ' || input[i + 1] == '\n')       // handling " " and "\n"
+                            {
+                                i++;
+                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                                {
+                                    i++;
+                                }
+                            }
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            if (InQuotes)
+            {
+                if (c == '"' && input[i - 1] != '\\' && !InBracket)
+                {
+                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                    {
+                        i++;
+                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                        {
+                            i++;
+                        }
+                    }
+
+                    InQuotes = FALSE;
+                    tokens.emplace_back(TokenType::String, current);
+                    current.clear();
+                    continue;
+                }
+            }
+
+            if (InBracket)
+            {
+                if (c == '}')
+                {
+                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                    {
+                        i++;
+                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                        {
+                            i++;
+                        }
+                    }
+
+                    InBracket = FALSE;
+
+                    tokens.emplace_back(TokenType::BracketString, current);
+                    current.clear();
+                    continue;
+                }
+            }
+
+            if (c == ' ' && !InQuotes && !InBracket)
+            {
+                if (!current.empty() && current != " ")
+                {
+                    addToken(tokens, current);
+                    current.clear();
+                    continue;
+                }
+            }
+            else if (c == '"' && input[i - 1] != '\\' && !InBracket)
+            {
+                InQuotes = TRUE;
+                continue; // dont inclue '"' in string
+            }
+            else if (c == '{' && !InQuotes && !InBracket)
+            {
+                InBracket = TRUE;
+                continue; // dont inclue '{' in string
+            }
+            current += c;
+        }
+
+        if (!current.empty() && current != " ")
+        {
+            addToken(tokens, current);
+        }
+
+        return tokens;
+    }
+
+private:
+    void addToken(std::vector<Token> & tokens, const std::string & str)
+    {
+        auto tmp = str;
+        if (IsDecNum(tmp)) // tmp will be modified to actual number
+        {
+            tokens.emplace_back(TokenType::NumDec, tmp);
+        }
+        else if (std::all_of(str.begin(), str.end(), ::isdigit) 
+            || GetHexNum(tmp)) // tmp will be modified to actual number
+        {
+            tokens.emplace_back(TokenType::NumHex, tmp);
+        }
+        else
+        {
+            tokens.emplace_back(TokenType::String, str);
+        }
+    }
+};
+
 /**
  * @brief Interpret commands
  *
@@ -85,6 +318,10 @@ HyperDbgInterpreter(CHAR * Command)
     // Convert to string
     //
     string CommandString(Command);
+
+    // for test
+    CommandParser parser;
+    auto tokens1 = parser.parse(CommandString);
 
     //
     // Convert to lower case
