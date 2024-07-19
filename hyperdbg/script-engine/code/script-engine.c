@@ -1518,7 +1518,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 JumpAddress = DecimalToInt(JumpAddressToken->Value);
 
 #ifdef _SCRIPT_ENGINE_LL1_DBG_EN
-                printf("Jz Jump Address = %d\n", JumpAddress);
+                printf("Jz Jump Address = %lld\n", JumpAddress);
 #endif
                 JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
                 JumpAddressSymbol->Value = CurrentPointer;
@@ -2474,13 +2474,30 @@ void
 PrintSymbol(PVOID Symbol)
 {
     PSYMBOL Sym = (PSYMBOL)Symbol;
-    if (Sym->Type == SYMBOL_STRING_TYPE)
+
+    if (Sym->Type & 0xffffffff00000000)
     {
-        printf("Type:%llx, Value:0x%p\n", Sym->Type, &Sym->Value);
+        printf("Type = @VARGSTART\n");
+        return;
+    }
+
+    printf("Type = %s, ", SymbolTypeNames[Sym->Type]);
+
+    if (Sym->Type == SYMBOL_SEMANTIC_RULE_TYPE)
+    {
+        printf("Value = %s\n", FunctionNames[Sym->Value]);
+    }
+    else if (Sym->Type == SYMBOL_STRING_TYPE)
+    {
+        printf("Value = %s\n", (char *)&Sym->Value);
+    }
+    else if (Sym->Type == SYMBOL_WSTRING_TYPE)
+    {
+        printf("Value = %ls\n", (wchar_t *)&Sym->Value);
     }
     else
     {
-        printf("Type:%llx, Value:0x%llx\n", Sym->Type, Sym->Value);
+        printf("Value = %lld\n", Sym->Value);
     }
 }
 
@@ -2742,13 +2759,12 @@ void
 PrintSymbolBuffer(const PVOID SymbolBuffer)
 {
     PSYMBOL_BUFFER SymBuff = (PSYMBOL_BUFFER)SymbolBuffer;
-
-    PSYMBOL Symbol;
+    PSYMBOL        Symbol;
+    printf("CodeBuffer:\n");
     for (unsigned int i = 0; i < SymBuff->Pointer;)
     {
         Symbol = SymBuff->Head + i;
-
-        printf("%8x:", i);
+        printf("Address = %d, ", i);
         PrintSymbol((PVOID)Symbol);
         if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
         {

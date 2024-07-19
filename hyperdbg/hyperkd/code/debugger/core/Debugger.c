@@ -1723,9 +1723,13 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                 &StackTempBaseIndx,
                                 &ErrorSymbol) == TRUE)
         {
-            CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
-            ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
-            LogInfo("Invalid returning address for operator: %s", NameOfOperator);
+            LogInfo("err ScriptEngineExecute, function = % s\n ",
+                    FunctionNames[ErrorSymbol.Value]);
+            break;
+        }
+        else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+        {
+            LogInfo("err stack buffer overflow\n");
             break;
         }
     }

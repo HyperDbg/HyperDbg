@@ -148,18 +148,14 @@ GetValue(PGUEST_REGS                   GuestRegs,
 
     case SYMBOL_STACK_TEMP_TYPE:
     {
-        PSYMBOL StackSymbol = NULL;
-
-        StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
-                                (unsigned long long)((*StackTempBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
+        PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
+                                        (unsigned long long)((*StackTempBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
         return StackSymbol->Value;
     }
     case SYMBOL_FUNCTION_PARAMETER_ID_TYPE:
     {
-        PSYMBOL StackSymbol = NULL;
-
-        StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
-                                (unsigned long long)((*StackBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
+        PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
+                                        (unsigned long long)((*StackBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
         return StackSymbol->Value;
     }
     }
@@ -1748,9 +1744,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
     case FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE:
     case FUNC_END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE:
     {
-        //
-        //
-        //
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -1772,8 +1765,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         Src1->VariableType = Src0->VariableType;
 
         *StackTempBaseIndx = *StackIndx;
-        *StackBaseIndx     = 0;
-
         *StackBaseIndx = StackIndxTemp;
 
         // jump to function
@@ -1788,7 +1779,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         SrcVal0    = GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE, StackBuffer, StackIndx, StackBaseIndx, StackTempBaseIndx);
-        *StackIndx = (UINT32)(*StackIndx + SrcVal0);
+        *StackIndx = *StackIndx + (INT32)SrcVal0;
 
         break;
 
@@ -1801,7 +1792,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
     case FUNC_END_OF_USER_DEFINED_FUNCTION:
     case FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE:
-        // check
     case FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE:
     {
         if (Operator->Value == FUNC_RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE)
@@ -1832,7 +1822,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         *StackIndx = *StackBaseIndx;
 
-        // update  StackBaseIndx and StackTempBaseIndx
+        // update StackBaseIndx and StackTempBaseIndx
 
         if (*StackIndx == 0)
         {

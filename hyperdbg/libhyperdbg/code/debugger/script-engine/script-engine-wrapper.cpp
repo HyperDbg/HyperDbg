@@ -12,6 +12,8 @@
  */
 #include "pch.h"
 
+// #define _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+
 //
 // Global Variables
 //
@@ -379,10 +381,12 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
 
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
     //
     // Print symbol buffer
     //
-    // PrintSymbolBuffer((PVOID)CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
+#endif
 
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
@@ -422,7 +426,11 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
     if (CodeBuffer->Message == NULL)
     {
-        for (UINT64 i = 0; i < CodeBuffer->Pointer;)
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+        printf("\nScriptEngineExecute:\n");
+#endif
+        UINT64 i = 0;
+        for (; i < CodeBuffer->Pointer;)
         {
             //
             // Fill the action buffer but as we're in user-mode here
@@ -440,6 +448,45 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
             VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
 
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+            printf("Address = %lld, StackIndx = %d, StackBaseIndx = %d, StackTempBaseIndx = %d\n", i, StackIndx, StackBaseIndx, StackTempBaseIndx);
+            PSYMBOL Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                                         (unsigned long long)(i * sizeof(SYMBOL)));
+            printf("Function = %s\n", FunctionNames[Operator->Value]);
+            printf("Stack Buffer:\n");
+            for (int j = 0; j < StackIndx; j++)
+            {
+                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
+                                                (unsigned long long)(j * sizeof(SYMBOL)));
+
+                printf("StackIndx = %d, Value = %lld", j, StackSymbol->Value);
+
+                if (StackSymbol->Type == SYMBOL_FUNCTION_PARAMETER_TYPE)
+                {
+                    printf(", Type = SYMBOL_FUNCTION_PARAMETER_TYPE");
+                }
+                else if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
+                {
+                    printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
+                }
+                else
+                {
+                    printf(", Type = SYMBOL_STACK_TEMP_TYPE");
+                }
+
+                if (j == StackBaseIndx)
+                {
+                    printf("   <===== StackBaseIndx");
+                }
+                else if (j == StackTempBaseIndx)
+                {
+                    printf("   <===== StackTempBaseIndx");
+                }
+                printf("\n");
+            }
+            printf("\n");
+#endif
+
             //
             // If has error, show error message and abort
             //
@@ -454,16 +501,23 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                                     &StackTempBaseIndx,
                                     &ErrorSymbol) == TRUE)
             {
-                CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
-
-                ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
-                ShowMessages("invalid returning address for operator: %s",
-                             NameOfOperator);
+                ShowMessages("err ScriptEngineExecute, function = %s\n",
+                             FunctionNames[ErrorSymbol.Value]);
+                g_CurrentExprEvalResultHasError = TRUE;
+                g_CurrentExprEvalResult         = NULL;
+                break;
+            }
+            else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+            {
+                ShowMessages("err stack buffer overflow\n");
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
                 break;
             }
         }
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+        printf("Address = %lld, StackIndx = %d, StackBaseIndx = %d, StackTempBaseIndx = %d\n", i, StackIndx, StackBaseIndx, StackTempBaseIndx);
+#endif
     }
     else
     {

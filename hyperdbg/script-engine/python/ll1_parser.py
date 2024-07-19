@@ -496,6 +496,31 @@ class LL1Parser:
 
         self.SourceFile.write("};\n")
 
+        CheckForDuplicateList = []
+        self.CommonHeaderFile.write("\nstatic const char *const FunctionNames[] = {")
+        self.CommonHeaderFile.write("\n\"FUNC_UNDEFINED\""+ ",\n")
+        for X in self.OperatorsOneOperand:
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("\"" + "FUNC_" + X.upper() + "\"" + ",\n")
+                CheckForDuplicateList.append(X)
+
+        for X in self.OperatorsTwoOperand:
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("\"" + "FUNC_" + X.upper() + "\"" + ",\n")
+                CheckForDuplicateList.append(X)
+    
+        for X in self.SemantiRulesList:
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("\"" + "FUNC_" + X.upper() + "\"" + ",\n")
+                CheckForDuplicateList.append(X)
+        
+        for X in self.keywordList:
+            if X not in CheckForDuplicateList:
+                self.CommonHeaderFile.write("\"" + "FUNC_" + X.upper() + "\"" + ",\n")
+                CheckForDuplicateList.append(X)
+
+        self.CommonHeaderFile.write("};\n")
+
 
     def WriteRegisterMaps(self):
         self.CommonHeaderFile.write("\ntypedef enum REGS_ENUM {\n")
