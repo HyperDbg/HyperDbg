@@ -39,7 +39,6 @@ extern ULONG  g_CurrentRemoteCore;
 extern string g_ServerPort;
 extern string g_ServerIp;
 
-
 class CommandParser
 {
 public:
@@ -88,7 +87,6 @@ public:
                 return FALSE;
             }
         }
-        
     }
 
     //
@@ -106,7 +104,7 @@ public:
             try
             {
                 size_t pos;
-                auto ul = std::stoul(num, &pos, 10);
+                auto   ul = std::stoul(num, &pos, 10);
                 str       = num; // modify
                 return TRUE;
             }
@@ -260,8 +258,7 @@ private:
         {
             tokens.emplace_back(TokenType::NumDec, tmp);
         }
-        else if (std::all_of(str.begin(), str.end(), ::isdigit) 
-            || GetHexNum(tmp)) // tmp will be modified to actual number
+        else if (std::all_of(str.begin(), str.end(), ::isdigit) || GetHexNum(tmp)) // tmp will be modified to actual number
         {
             tokens.emplace_back(TokenType::NumHex, tmp);
         }
@@ -320,8 +317,8 @@ HyperDbgInterpreter(CHAR * Command)
     string CommandString(Command);
 
     // for test
-    CommandParser parser;
-    auto tokens1 = parser.parse(CommandString);
+    // CommandParser parser;
+    // auto          tokens1 = parser.parse(CommandString);
 
     //
     // Convert to lower case
