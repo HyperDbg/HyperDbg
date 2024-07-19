@@ -1559,7 +1559,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         //
         // Append a 'ret' at the end of asm code
         //
-        AssembleData.AsmFixed += ";ret";
+        AssembleData.AsmFixed += "; ret";
 
         if (AssembleData.Assemble(0)) // we just want the hex bytes, so NULL instead of Start_Address
         {
@@ -1650,8 +1650,6 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         *BufferAddress = (UINT64)FinalBuffer;
         *BufferLength  = (UINT32)ParsedBytes.size();
     }
-
-    
 
     //
     // Removing the code or condition indexes from the command
