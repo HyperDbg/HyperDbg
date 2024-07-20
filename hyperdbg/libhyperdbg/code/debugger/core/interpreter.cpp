@@ -94,7 +94,7 @@ public:
     //
     BOOL IsDecNum(std::string & str)
     {
-        if (str.empty() || (str.size() == 1 && str[0] == '0'))
+        if (str.empty() || (str.size() == 1 && str[0] == '0') || str.size() < 3)
             return FALSE;
 
         std::string Prefix("0n");

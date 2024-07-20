@@ -158,11 +158,6 @@ AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
         }
         else
         {
-            //
-            // inserting zero termination for compatibility with C functions
-            //
-            EncodedBytes[BytesCount] = '\0';
-
             ShowMessages("generated assembly: %lu (decimal) bytes, %lu (decimal) statements ==>> ", (int)BytesCount, (int)StatementCount);
 
             size_t i;
