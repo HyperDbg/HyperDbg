@@ -1260,6 +1260,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     vector<CHAR>   ParsedBytes;
     vector<int>    IndexesToRemove;
     UCHAR *        FinalBuffer;
+    UINT32         AssembledByteCount;
     int            NewIndexToRemove = 0;
     int            Index            = 0;
 
@@ -1569,16 +1570,27 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         else
         {
             //
+            // Get the
+            //
+            AssembledByteCount = (UINT32)AssembleData.BytesCount;
+
+            //
             // * FinalBuffer *
             //
-            FinalBuffer = (unsigned char *)malloc(strlen((char *)AssembleData.EncodedBytes) + 1);
-            strcpy((char *)FinalBuffer, (char *)AssembleData.EncodedBytes);
+            FinalBuffer = (unsigned char *)malloc(AssembledByteCount);
+
+            if (FinalBuffer == NULL)
+            {
+                return FALSE;
+            }
+
+            memcpy(FinalBuffer, AssembleData.EncodedBytes, AssembledByteCount);
 
             //
             // Set the buffer and length
             //
             *BufferAddress = (UINT64)FinalBuffer;
-            *BufferLength  = (UINT32)strlen((char *)AssembleData.EncodedBytes);
+            *BufferLength  = AssembledByteCount;
         }
     }
     else
@@ -1642,6 +1654,12 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         // Convert to a contigues buffer
         //
         FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+
+        if (FinalBuffer == NULL)
+        {
+            return FALSE;
+        }
+
         std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
 
         //
