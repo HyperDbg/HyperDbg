@@ -31,6 +31,8 @@ CommandMsrreadHelp()
     ShowMessages("\t\te.g : !msrread 0xc0000082\n");
     ShowMessages("\t\te.g : !msread pid 400\n");
     ShowMessages("\t\te.g : !msrread core 2 pid 400\n");
+    ShowMessages("\t\te.g : !msrread script { printf(\"msr read with the 'ecx' register equal to: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !msrread asm code { nop; nop; nop }\n");
 }
 
 /**

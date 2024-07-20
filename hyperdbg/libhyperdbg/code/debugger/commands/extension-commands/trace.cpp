@@ -29,6 +29,7 @@ CommandTraceHelp()
     ShowMessages("\t\te.g : !trace step-out\n");
     ShowMessages("\t\te.g : !trace step-in pid 1c0\n");
     ShowMessages("\t\te.g : !trace instrument-step core 2 pid 400\n");
+    ShowMessages("\t\te.g : !trace instrument-step asm code { nop; nop; nop }\n");
 
     ShowMessages("\n");
     ShowMessages("valid trace types: \n");

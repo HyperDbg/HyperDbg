@@ -46,6 +46,8 @@ CommandMonitorHelp()
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 l 500 core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor wx fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000 script { printf(\"read/write occurred at the virtual address: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000 asm code { nop; nop; nop }\n");
 }
 
 /**

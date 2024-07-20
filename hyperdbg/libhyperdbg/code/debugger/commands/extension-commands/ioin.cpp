@@ -32,6 +32,8 @@ CommandIoinHelp()
     ShowMessages("\t\te.g : !ioin 0x64\n");
     ShowMessages("\t\te.g : !ioin pid 400\n");
     ShowMessages("\t\te.g : !ioin core 2 pid 400\n");
+    ShowMessages("\t\te.g : !ioin script { printf(\"IN instruction is executed at port: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !ioin asm code { nop; nop; nop }\n");
 }
 
 /**

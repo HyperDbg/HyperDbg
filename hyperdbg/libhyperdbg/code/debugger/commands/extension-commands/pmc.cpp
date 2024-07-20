@@ -30,6 +30,8 @@ CommandPmcHelp()
     ShowMessages("\t\te.g : !pmc\n");
     ShowMessages("\t\te.g : !pmc pid 400\n");
     ShowMessages("\t\te.g : !pmc core 2 pid 400\n");
+    ShowMessages("\t\te.g : !pmc script { printf(\"RDPMC instruction called at: %%llx\\n\", @rip); }\n");
+    ShowMessages("\t\te.g : !pmc asm code { nop; nop; nop }\n");
 }
 
 /**

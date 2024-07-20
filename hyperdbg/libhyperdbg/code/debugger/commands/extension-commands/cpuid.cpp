@@ -32,6 +32,8 @@ CommandCpuidHelp()
     ShowMessages("\t\te.g : !cpuid 1\n");
     ShowMessages("\t\te.g : !cpuid pid 400\n");
     ShowMessages("\t\te.g : !cpuid core 2 pid 400\n");
+    ShowMessages("\t\te.g : !cpuid script { printf(\"CPUID instruction is executed with the 'eax' register equal to: %%llx\\n\", @eax); }\n");
+    ShowMessages("\t\te.g : !cpuid asm code { nop; nop; nop }\n");
 }
 
 /**

@@ -32,6 +32,8 @@ CommandEptHookHelp()
     ShowMessages("\t\te.g : !epthook fffff801deadb000\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 pid 400\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !epthook fffff801deadb000 script { printf(\"hook triggered at: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !epthook fffff801deadb000 asm code { nop; nop; nop }\n");
 }
 
 /**

@@ -33,6 +33,8 @@ CommandInterruptHelp()
     ShowMessages("\t\te.g : !interrupt 0x2f\n");
     ShowMessages("\t\te.g : !interrupt 0x2f pid 400\n");
     ShowMessages("\t\te.g : !interrupt 0x2f core 2 pid 400\n");
+    ShowMessages("\t\te.g : !interrupt 0xd1 script { printf(\"clock interrupt received at the core: %%x\\n\", $core); }\n");
+    ShowMessages("\t\te.g : !interrupt 0x2f asm code { nop; nop; nop }\n");
 }
 
 /**

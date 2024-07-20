@@ -30,6 +30,8 @@ CommandDrHelp()
     ShowMessages("\t\te.g : !dr\n");
     ShowMessages("\t\te.g : !dr pid 400\n");
     ShowMessages("\t\te.g : !dr core 2 pid 400\n");
+    ShowMessages("\t\te.g : !dr script { printf(\"debug register modified!\\n\"); }\n");
+    ShowMessages("\t\te.g : !dr asm code { nop; nop; nop }\n");
 }
 
 /**

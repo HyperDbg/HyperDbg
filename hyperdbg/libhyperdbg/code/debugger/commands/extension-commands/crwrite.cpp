@@ -31,6 +31,8 @@ CommandCrwriteHelp()
     ShowMessages("\t\te.g : !crwrite 0 0x10000\n");
     ShowMessages("\t\te.g : !crwrite 4 pid 400\n");
     ShowMessages("\t\te.g : !crwrite 4 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !crwrite 4 script { printf(\"4th control register is modified at: %%llx\\n\", @rip); }\n");
+    ShowMessages("\t\te.g : !crwrite 4 asm code { nop; nop; nop }\n");
 }
 
 /**

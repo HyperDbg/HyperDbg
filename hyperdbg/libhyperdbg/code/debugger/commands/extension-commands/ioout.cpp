@@ -32,6 +32,8 @@ CommandIooutHelp()
     ShowMessages("\t\te.g : !ioout 0x64\n");
     ShowMessages("\t\te.g : !ioout pid 400\n");
     ShowMessages("\t\te.g : !ioout core 2 pid 400\n");
+    ShowMessages("\t\te.g : !ioout script { printf(\"OUT instruction is executed at port: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !ioout asm code { nop; nop; nop }\n");
 }
 
 /**

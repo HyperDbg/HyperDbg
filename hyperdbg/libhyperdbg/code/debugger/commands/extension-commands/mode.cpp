@@ -30,6 +30,8 @@ CommandModeHelp()
     ShowMessages("\t\te.g : !mode k pid 1c0\n");
     ShowMessages("\t\te.g : !mode ku pid 1c0\n");
     ShowMessages("\t\te.g : !mode ku core 2 pid 400\n");
+    ShowMessages("\t\te.g : !mode u pid 1c0 script { printf(\"kernel -> user transition occurred!\\n\"); }\n");
+    ShowMessages("\t\te.g : !mode ku pid 1c0 asm code { nop; nop; nop }\n");
 
     ShowMessages("\n");
     ShowMessages("note: this event applies to the target process; thus, you need to specify the process id\n");

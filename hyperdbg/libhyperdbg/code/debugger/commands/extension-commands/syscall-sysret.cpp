@@ -41,6 +41,8 @@ CommandSyscallHelp()
     ShowMessages("\t\te.g : !syscall 0x55 pid 400\n");
     ShowMessages("\t\te.g : !syscall 0x55 core 2 pid 400\n");
     ShowMessages("\t\te.g : !syscall2 0x55 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !syscall script { printf(\"system-call num: %%llx, at process id: %%x\\n\", @rax, $pid); }\n");
+    ShowMessages("\t\te.g : !syscall asm code { nop; nop; nop }\n");
 }
 
 /**
@@ -67,6 +69,8 @@ CommandSysretHelp()
     ShowMessages("\t\te.g : !sysret2 pid 400\n");
     ShowMessages("\t\te.g : !sysret core 2 pid 400\n");
     ShowMessages("\t\te.g : !sysret2 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !sysret script { printf(\"SYSRET instruction is executed at process id: %%x\\n\", $pid); }\n");
+    ShowMessages("\t\te.g : !sysret asm code { nop; nop; nop }\n");
 }
 
 /**

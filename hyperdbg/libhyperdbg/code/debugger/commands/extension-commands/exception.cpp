@@ -28,13 +28,15 @@ CommandExceptionHelp()
         "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
         "[asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
-    ShowMessages("\nnote: monitoring page-faults (entry 0xe) is implemented differently.\n");
+    ShowMessages("\nnote: monitoring page-faults (entry 0xe) is implemented differently (for more information, check the documentation).\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !exception\n");
     ShowMessages("\t\te.g : !exception 0xe\n");
     ShowMessages("\t\te.g : !exception pid 400\n");
     ShowMessages("\t\te.g : !exception core 2 pid 400\n");
+    ShowMessages("\t\te.g : !exception 0xe stage post script { printf(\"page-fault occurred at: %%llx\\n\", @cr2); }\n");
+    ShowMessages("\t\te.g : !exception asm code { nop; nop; nop }\n");
 }
 
 /**

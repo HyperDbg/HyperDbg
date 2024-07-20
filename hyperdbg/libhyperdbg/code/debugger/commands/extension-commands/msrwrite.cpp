@@ -31,6 +31,8 @@ CommandMsrwriteHelp()
     ShowMessages("\t\te.g : !msrwrite 0xc0000082\n");
     ShowMessages("\t\te.g : !msrwrite pid 400\n");
     ShowMessages("\t\te.g : !msrwrite core 2 pid 400\n");
+    ShowMessages("\t\te.g : !msrwrite script { printf(\"msr write with the 'ecx' register equal to: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !msrwrite asm code { nop; nop; nop }\n");
 }
 
 /**

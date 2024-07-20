@@ -30,6 +30,8 @@ CommandTscHelp()
     ShowMessages("\t\te.g : !tsc\n");
     ShowMessages("\t\te.g : !tsc pid 400\n");
     ShowMessages("\t\te.g : !tsc core 2 pid 400\n");
+    ShowMessages("\t\te.g : !tsc script { printf(\"RDTSC/P instruction called at: %%llx\\n\", @rip); }\n");
+    ShowMessages("\t\te.g : !tsc asm code { nop; nop; nop }\n");
 }
 
 /**
