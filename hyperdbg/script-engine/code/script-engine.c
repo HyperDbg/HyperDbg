@@ -271,8 +271,7 @@ ScriptEngineParse(char * str)
     PTOKEN_LIST    MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
-    // will modify here later
-    PSYMBOL_BUFFER UserDefinedFunctions = NewSymbolBuffer();
+    PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead = NULL;
 
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
     char *                   ErrorMessage = NULL;
@@ -347,7 +346,7 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, UserDefinedFunctions, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, &UserDefinedFunctionHead, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -432,7 +431,7 @@ ScriptEngineParse(char * str)
                 {
                     WaitForWaitStatementBooleanExpression = TRUE;
                 }
-                CodeGen(MatchedStack, UserDefinedFunctions, CodeBuffer, TopToken, &Error);
+                CodeGen(MatchedStack, &UserDefinedFunctionHead, CodeBuffer, TopToken, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -482,8 +481,23 @@ ScriptEngineParse(char * str)
     if (MatchedStack)
         RemoveTokenList(MatchedStack);
 
-    if (UserDefinedFunctions)
-        RemoveSymbolBuffer((PVOID)UserDefinedFunctions);
+    if (UserDefinedFunctionHead)
+    {
+        PUSER_DEFINED_FUNCTION_NODE Node = UserDefinedFunctionHead;
+        while (Node)
+        {
+            if (Node->Name)
+                free(Node->Name);
+
+            if (Node->ParameterBuffer)
+                RemoveSymbolBuffer((PVOID)Node->ParameterBuffer);
+
+            PUSER_DEFINED_FUNCTION_NODE Temp = Node;
+            Node                             = Node->NextNode;
+            free(Temp);
+        }
+        UserDefinedFunctionHead = NULL;
+    }
 
     if (CurrentIn)
         RemoveToken(&CurrentIn);
@@ -509,7 +523,7 @@ ScriptEngineParse(char * str)
  * @param Error
  */
 void
-CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
+CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     PTOKEN Op0  = NULL;
     PTOKEN Op1  = NULL;
@@ -526,8 +540,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
     //
     // It is in user-defined function if CurrentFunctionSymbol is not null
     //
-    static PSYMBOL CurrentFunctionSymbol = NULL;
-    OperatorSymbol                       = ToSymbol(Operator, Error);
+    static PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction = NULL;
+    OperatorSymbol                                                = ToSymbol(Operator, Error);
 
 #ifdef _SCRIPT_ENGINE_CODEGEN_DBG_EN
     //
@@ -565,7 +579,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 break;
             }
 
-            UINT64 CurrentPointer = CodeBuffer->Pointer;
             //
             // Add jmp instruction to Code Buffer
             //
@@ -585,17 +598,91 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             RemoveSymbol(&JumpAddressSymbol);
 
-            PushSymbol(UserDefinedFunctions, NewFunctionSymbol(Op0->Value, VariableType));
-            CurrentFunctionSymbol = NewFunctionSymbol(Op0->Value, VariableType);
-            PushSymbol(CodeBuffer, CurrentFunctionSymbol);
+            if (!*UserDefinedFunctionHead)
+            {
+                *UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
+                RtlZeroMemory(*UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
+                CurrentUserDefinedFunction = *UserDefinedFunctionHead;
+            }
+            else
+            {
+                PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
+                while (Node->NextNode)
+                {
+                    Node = Node->NextNode;
+                }
+                Node->NextNode = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
+                RtlZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
+                CurrentUserDefinedFunction = Node->NextNode;
+            }
 
-            PushSymbol(CodeBuffer, OperatorSymbol);
+            CurrentUserDefinedFunction->Name         = _strdup(Op0->Value);
+            UINT64 CurrentPointer                    = CodeBuffer->Pointer;
+            CurrentUserDefinedFunction->Address      = CurrentPointer;
+            CurrentUserDefinedFunction->VariableType = (long long unsigned)VariableType;
 
-            PSYMBOL StackTempNumberSymbol = NewSymbol();
-            StackTempNumberSymbol->Type   = SYMBOL_NUM_TYPE;
-            StackTempNumberSymbol->Value  = 0xffffffffffffffff;
-            PushSymbol(CodeBuffer, StackTempNumberSymbol);
-            RemoveSymbol(&StackTempNumberSymbol);
+            //
+            // push stack base index
+            //
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_PUSH;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_BASE_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            //
+            // move stack index to stack base index
+            //
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_MOV;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_BASE_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            //
+            // add stack index
+            //
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_ADD;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_NUM_TYPE;
+            TempSymbol->Value = 0xffffffffffffffff;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
         }
         else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER"))
         {
@@ -613,97 +700,173 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op0Symbol->Value = NewFunctionParameterIdentifier(Op0);
             SetType(&Op0Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
 
-            PushSymbol(UserDefinedFunctions, Op0Symbol);
+            if (!CurrentUserDefinedFunction->ParameterBuffer)
+            {
+                CurrentUserDefinedFunction->ParameterBuffer = NewSymbolBuffer();
+            }
+            PushSymbol(CurrentUserDefinedFunction->ParameterBuffer, Op0Symbol);
+            CurrentUserDefinedFunction->ParameterNumber++;
         }
         else if (!strcmp(Operator->Value, "@END_OF_USER_DEFINED_FUNCTION"))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
             UINT64  CurrentPointer = CodeBuffer->Pointer;
             PSYMBOL Symbol         = NULL;
 
-            BOOL         Found = FALSE;
-            unsigned int i     = 0;
-            // for loop not able to begin from CodeBuffer->Pointer to 0 because of string and wstring's size
-            for (; i < CodeBuffer->Pointer;)
-            {
-                Symbol = CodeBuffer->Head + i;
-
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)CurrentFunctionSymbol->Value, (const char *)Symbol->Value))
-                {
-                    Found = TRUE;
-                    break;
-                }
-                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
-                {
-                    int temp = GetSymbolHeapSize(Symbol);
-                    i += temp;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            if (!Found)
+            if (!CurrentUserDefinedFunction)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-
-            //
-            // skip executing user-defined function first time
-            //
-            Symbol        = CodeBuffer->Head + i - 1;
-            Symbol->Value = CurrentPointer;
-
             long long unsigned StackTempNumber = 0;
-            for (int j = i; j < CurrentPointer; j++)
+            for (UINT64 i = CurrentUserDefinedFunction->Address; i < CurrentPointer; i++)
             {
-                Symbol = CodeBuffer->Head + j;
+                Symbol = CodeBuffer->Head + i;
                 if (Symbol->Type == SYMBOL_STACK_TEMP_TYPE && (Symbol->Value + 1) > StackTempNumber)
                 {
                     StackTempNumber = Symbol->Value + 1;
                 }
             }
 
-            Symbol        = CodeBuffer->Head + i + 2;
-            Symbol->Value = StackTempNumber;
+            Symbol                                      = CodeBuffer->Head + CurrentUserDefinedFunction->Address + 6;
+            CurrentUserDefinedFunction->StackTempNumber = Symbol->Value = StackTempNumber;
 
-            CurrentFunctionSymbol = NULL;
+            //
+            // modify jump address
+            //
+            for (UINT64 i = CurrentUserDefinedFunction->Address; i < CurrentPointer; i++)
+            {
+                Symbol = CodeBuffer->Head + i;
+                if (Symbol->Type == SYMBOL_SEMANTIC_RULE_TYPE && Symbol->Value == FUNC_JMP && (CodeBuffer->Head + i + 1)->Value == 0xfffffffffffffff0)
+                {
+                    (CodeBuffer->Head + i + 1)->Value = CurrentPointer;
+                    i++;
+                }
+            }
+
+            //
+            // move stack base index to stack index
+            //
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_MOV;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_BASE_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            //
+            // pop stack base index
+            //
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_POP;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_STACK_BASE_INDEX_TYPE;
+            TempSymbol->Value = 0;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_RET;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            Symbol        = CodeBuffer->Head + CurrentUserDefinedFunction->Address - 1;
+            Symbol->Value = CodeBuffer->Pointer;
+
+            CleanStackTempList();
+
+            CurrentUserDefinedFunction = NULL;
         }
         else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE"))
         {
-            if (!CurrentFunctionSymbol)
+            if (!CurrentUserDefinedFunction)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentFunctionSymbol->VariableType != (unsigned long long)VARIABLE_TYPE_VOID)
+            if (CurrentUserDefinedFunction->VariableType != (unsigned long long)VARIABLE_TYPE_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE;
                 break;
             }
-            PushSymbol(CodeBuffer, OperatorSymbol);
+
+            //
+            // Jump to ret code
+            //
+            PSYMBOL Symbol = NewSymbol();
+            Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value  = FUNC_JMP;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = 0xfffffffffffffff0;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
         }
         else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITH_VALUE"))
         {
-            if (!CurrentFunctionSymbol)
+            if (!CurrentUserDefinedFunction)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentFunctionSymbol->VariableType == (unsigned long long)VARIABLE_TYPE_VOID)
+            if (CurrentUserDefinedFunction->VariableType == (unsigned long long)VARIABLE_TYPE_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                 break;
             }
 
-            PushSymbol(CodeBuffer, OperatorSymbol);
+            //
+            // Store return value
+            //
+            PSYMBOL Symbol = NewSymbol();
+            Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value  = FUNC_MOV;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
             PushSymbol(CodeBuffer, Op0Symbol);
             FreeTemp(Op0);
+
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_RETURN_VALUE_TYPE;
+            Symbol->Value = 0;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+
+            //
+            // Jump to ret code
+            //
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_JMP;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = 0xfffffffffffffff0;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
@@ -713,32 +876,18 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
 
         else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION"))
         {
-            PSYMBOL      Symbol        = NULL;
-            unsigned int i             = 0;
-            PTOKEN       FunctionToken = Top(MatchedStack);
-            BOOL         Found         = FALSE;
+            PTOKEN FunctionToken = Top(MatchedStack);
+            BOOL   Found         = FALSE;
 
-            //
-            // find function's address
-            //
-            for (; i < CodeBuffer->Pointer;)
+            PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
+            while (Node)
             {
-                Symbol = CodeBuffer->Head + i;
-
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
+                if (!strcmp((const char *)FunctionToken->Value, Node->Name))
                 {
                     Found = TRUE;
                     break;
                 }
-                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
-                {
-                    int temp = GetSymbolHeapSize(Symbol);
-                    i += temp;
-                }
-                else
-                {
-                    i++;
-                }
+                Node = Node->NextNode;
             }
 
             if (!Found)
@@ -748,12 +897,17 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             }
 
             FunctionToken->Type = FUNCTION_TYPE;
-            PushSymbol(CodeBuffer, OperatorSymbol);
         }
         else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION_PARAMETER"))
         {
             // will rewrite here to input variable's type
-            PushSymbol(CodeBuffer, OperatorSymbol);
+            PSYMBOL TempSymbol = NULL;
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_PUSH;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
 
             Op0Symbol = ToSymbol(Top(MatchedStack), Error);
             PushSymbol(CodeBuffer, Op0Symbol);
@@ -764,13 +918,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
         }
         else if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE") || !strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
         {
-            PSYMBOL      Symbol                    = NULL;
-            unsigned int i                         = 0;
-            int          TargetFunctionVariableNum = 0;
-            int          VariableNum               = 0;
-            PTOKEN       FunctionToken             = NULL;
-            BOOL         Found                     = FALSE;
-            PTOKEN       ReturnValueToken          = NULL;
+            PSYMBOL Symbol                    = NULL;
+            int     TargetFunctionVariableNum = 0;
+            int     VariableNum               = 0;
+            PTOKEN  FunctionToken             = NULL;
+            BOOL    Found                     = FALSE;
+            PTOKEN  ReturnValueToken          = NULL;
 
             while (MatchedStack->Pointer > 0)
             {
@@ -787,27 +940,15 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 }
             }
 
-            //
-            // find function's address
-            //
-            for (; i < CodeBuffer->Pointer;)
+            PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
+            while (Node)
             {
-                Symbol = CodeBuffer->Head + i;
-
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
+                if (!strcmp((const char *)FunctionToken->Value, Node->Name))
                 {
                     Found = TRUE;
                     break;
                 }
-                else if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
-                {
-                    int temp = GetSymbolHeapSize(Symbol);
-                    i += temp;
-                }
-                else
-                {
-                    i++;
-                }
+                Node = Node->NextNode;
             }
 
             if (!Found)
@@ -816,54 +957,46 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 break;
             }
 
-            // will rewrite here
-            for (unsigned int j = 0; j < UserDefinedFunctions->Pointer; j++)
-            {
-                Symbol = UserDefinedFunctions->Head + j;
-                if (Symbol->Type == SYMBOL_USER_DEFINED_FUNCTION_TYPE && !strcmp((const char *)FunctionToken->Value, (const char *)Symbol->Value))
-                {
-                    j++;
-                    Symbol = UserDefinedFunctions->Head + j;
-                    while (Symbol->Type != SYMBOL_USER_DEFINED_FUNCTION_TYPE && j < UserDefinedFunctions->Pointer)
-                    {
-                        TargetFunctionVariableNum++;
-                        j++;
-                        Symbol = UserDefinedFunctions->Head + j;
-                    }
-                    goto ExitLoop;
-                }
-            }
-
-        ExitLoop:
-
-            if (VariableNum != TargetFunctionVariableNum)
+            if (VariableNum != Node->ParameterNumber)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
 
-            //
-            // Add call user-defined function instruction
-            //
-            PushSymbol(CodeBuffer, OperatorSymbol);
+            PSYMBOL TempSymbol = NULL;
+            TempSymbol         = NewSymbol();
+            TempSymbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value  = FUNC_CALL;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
 
-            //
-            // Add function's address
-            //
-            PSYMBOL JumpAddressSymbol = NewSymbol();
-            JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
-            JumpAddressSymbol->Value  = i;
-            PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(&JumpAddressSymbol);
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_NUM_TYPE;
+            TempSymbol->Value = Node->Address;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
 
-            //
-            // Add return address
-            //
-            JumpAddressSymbol        = NewSymbol();
-            JumpAddressSymbol->Type  = SYMBOL_RETURN_ADDRESS_TYPE;
-            JumpAddressSymbol->Value = CodeBuffer->Pointer + 1;
-            PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(&JumpAddressSymbol);
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            TempSymbol->Value = FUNC_SUB;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol        = NewSymbol();
+            TempSymbol->Type  = SYMBOL_NUM_TYPE;
+            TempSymbol->Value = Node->ParameterNumber;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol       = NewSymbol();
+            TempSymbol->Type = SYMBOL_STACK_INDEX_TYPE;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
+
+            TempSymbol       = NewSymbol();
+            TempSymbol->Type = SYMBOL_STACK_INDEX_TYPE;
+            PushSymbol(CodeBuffer, TempSymbol);
+            RemoveSymbol(&TempSymbol);
 
             if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
             {
@@ -876,12 +1009,18 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 //
                 // Add return variable symbol
                 //
-                Temp = NewTemp(Error, CurrentFunctionSymbol);
+                Temp = NewTemp(Error, CurrentUserDefinedFunction);
                 Push(MatchedStack, Temp);
 
                 PSYMBOL Symbol = NewSymbol();
                 Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
-                Symbol->Value  = FUNC_MOV_RETURN_VALUE;
+                Symbol->Value  = FUNC_MOV;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_RETURN_VALUE_TYPE;
+                Symbol->Value = 0;
                 PushSymbol(CodeBuffer, Symbol);
                 RemoveSymbol(&Symbol);
 
@@ -969,7 +1108,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1129,7 +1268,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1177,7 +1316,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1229,7 +1368,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1884,7 +2023,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1913,7 +2052,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1940,7 +2079,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1962,7 +2101,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1991,7 +2130,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2019,7 +2158,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER UserDefinedFunctions, PSYMBOL_B
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentFunctionSymbol);
+            Temp = NewTemp(Error, CurrentUserDefinedFunction);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2142,14 +2281,14 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
  */
 void
 ScriptEngineBooleanExpresssionParse(
-    UINT64                    BooleanExpressionSize,
-    PTOKEN                    FirstToken,
-    PTOKEN_LIST               MatchedStack,
-    PSYMBOL_BUFFER            UserDefinedFunctions,
-    PSYMBOL_BUFFER            CodeBuffer,
-    char *                    str,
-    char *                    c,
-    PSCRIPT_ENGINE_ERROR_TYPE Error)
+    UINT64                        BooleanExpressionSize,
+    PTOKEN                        FirstToken,
+    PTOKEN_LIST                   MatchedStack,
+    PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
+    PSYMBOL_BUFFER                CodeBuffer,
+    char *                        str,
+    char *                        c,
+    PSCRIPT_ENGINE_ERROR_TYPE     Error)
 {
     PTOKEN_LIST Stack = NewTokenList();
 
@@ -2277,7 +2416,7 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    CodeGen(MatchedStack, UserDefinedFunctions, CodeBuffer, SemanticRule, Error);
+                    CodeGen(MatchedStack, UserDefinedFunctionHead, CodeBuffer, SemanticRule, Error);
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
                         break;
@@ -2391,45 +2530,6 @@ NewWstringSymbol(PTOKEN Token)
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
     Symbol->Len          = Token->Len;
     Symbol->VariableType = 0;
-    return Symbol;
-}
-
-/**
- * @brief
- *
- * @return PSYMBOL
- */
-PSYMBOL
-NewFunctionSymbol(char * FunctionName, VARIABLE_TYPE * VariableType)
-{
-    int     Length = (int)strlen(FunctionName);
-    PSYMBOL Symbol = NewSymbol();
-    Symbol         = (PSYMBOL)malloc(sizeof(SYMBOL));
-
-    if (Symbol == NULL)
-    {
-        //
-        // There was an error allocating buffer
-        //
-        free(Symbol);
-        return NULL;
-    }
-
-    Symbol->Value = (unsigned long long)calloc(Length + 1, sizeof(char));
-
-    if (Symbol->Value == 0ull)
-    {
-        //
-        // There was an error allocating buffer
-        //
-        free(Symbol);
-        return NULL;
-    }
-
-    memcpy((void *)Symbol->Value, FunctionName, Length);
-    Symbol->Len          = Length;
-    Symbol->Type         = SYMBOL_USER_DEFINED_FUNCTION_TYPE;
-    Symbol->VariableType = (long long unsigned)VariableType;
     return Symbol;
 }
 

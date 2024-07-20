@@ -420,9 +420,12 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     }
     RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-    int StackIndx         = 0;
-    int StackBaseIndx     = 0;
-    int StackTempBaseIndx = 0;
+    UINT64 StackIndx     = 0;
+    UINT64 StackBaseIndx = 0;
+    UINT64 EXECUTENUMBER = 0;
+    UINT64 ReturnValue   = 0;
+    RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
+    RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
 
     if (CodeBuffer->Message == NULL)
     {
@@ -449,38 +452,26 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
 
 #ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
-            printf("Address = %lld, StackIndx = %d, StackBaseIndx = %d, StackTempBaseIndx = %d\n", i, StackIndx, StackBaseIndx, StackTempBaseIndx);
+            printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
             PSYMBOL Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                                          (unsigned long long)(i * sizeof(SYMBOL)));
             printf("Function = %s\n", FunctionNames[Operator->Value]);
             printf("Stack Buffer:\n");
-            for (int j = 0; j < StackIndx; j++)
+            for (UINT64 j = 0; j < StackIndx; j++)
             {
                 PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
                                                 (unsigned long long)(j * sizeof(SYMBOL)));
 
-                printf("StackIndx = %d, Value = %lld", j, StackSymbol->Value);
+                printf("StackIndx = %lld, Value = %lld", j, StackSymbol->Value);
 
-                if (StackSymbol->Type == SYMBOL_FUNCTION_PARAMETER_TYPE)
-                {
-                    printf(", Type = SYMBOL_FUNCTION_PARAMETER_TYPE");
-                }
-                else if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
+                if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
                 {
                     printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
-                }
-                else
-                {
-                    printf(", Type = SYMBOL_STACK_TEMP_TYPE");
                 }
 
                 if (j == StackBaseIndx)
                 {
                     printf("   <===== StackBaseIndx");
-                }
-                else if (j == StackTempBaseIndx)
-                {
-                    printf("   <===== StackTempBaseIndx");
                 }
                 printf("\n");
             }
@@ -498,10 +489,10 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                                     StackBuffer,
                                     &StackIndx,
                                     &StackBaseIndx,
-                                    &StackTempBaseIndx,
-                                    &ErrorSymbol) == TRUE)
+                                    &ErrorSymbol,
+                                    &ReturnValue) == TRUE)
             {
-                ShowMessages("err ScriptEngineExecute, function = %s\n",
+                ShowMessages("err, ScriptEngineExecute, function = %s\n",
                              FunctionNames[ErrorSymbol.Value]);
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
@@ -509,14 +500,23 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             }
             else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
             {
-                ShowMessages("err stack buffer overflow\n");
+                ShowMessages("err, stack buffer overflow\n");
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
                 break;
             }
+            else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
+            {
+                ShowMessages("err, exceeding the max execution count\n");
+                g_CurrentExprEvalResultHasError = TRUE;
+                g_CurrentExprEvalResult         = NULL;
+                break;
+            }
+
+            EXECUTENUMBER++;
         }
 #ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
-        printf("Address = %lld, StackIndx = %d, StackBaseIndx = %d, StackTempBaseIndx = %d\n", i, StackIndx, StackBaseIndx, StackTempBaseIndx);
+        printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
 #endif
     }
     else

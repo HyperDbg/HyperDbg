@@ -111,7 +111,7 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PSYMBOL);
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PUSER_DEFINED_FUNCTION_NODE);
 
 PTOKEN
 NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE);
@@ -121,6 +121,9 @@ FreeTemp(PTOKEN Temp);
 
 void
 CleanTempList(void);
+
+void
+CleanStackTempList(void);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //

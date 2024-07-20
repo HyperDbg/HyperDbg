@@ -1685,8 +1685,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     // Fill the variables list for this run
     //
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = DbgState->ScriptEngineCoreSpecificLocalVariable;
-    VariablesList.TempList            = DbgState->ScriptEngineCoreSpecificTempVariable;
+    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
+    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
+    VariablesList.LocalVariablesList = DbgState->ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.TempList           = DbgState->ScriptEngineCoreSpecificTempVariable;
 
     PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)DbgState->ScriptEngineCoreSpecificStackBuffer;
     if (!StackBuffer || !StackBuffer->Head)
@@ -1702,9 +1704,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     StackBuffer->Message = NULL;
     RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-    int StackIndx         = 0;
-    int StackBaseIndx     = 0;
-    int StackTempBaseIndx = 0;
+    UINT64 StackIndx     = 0;
+    UINT64 StackBaseIndx = 0;
+    UINT64 EXECUTENUMBER = 0;
+    UINT64 ReturnValue   = 0;
 
     for (UINT64 i = 0; i < CodeBuffer.Pointer;)
     {
@@ -1720,18 +1723,25 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                 StackBuffer,
                                 &StackIndx,
                                 &StackBaseIndx,
-                                &StackTempBaseIndx,
-                                &ErrorSymbol) == TRUE)
+                                &ErrorSymbol,
+                                &ReturnValue) == TRUE)
         {
-            LogInfo("err ScriptEngineExecute, function = % s\n ",
+            LogInfo("err, ScriptEngineExecute, function = % s\n ",
                     FunctionNames[ErrorSymbol.Value]);
             break;
         }
         else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
         {
-            LogInfo("err stack buffer overflow\n");
+            LogInfo("err, stack buffer overflow\n");
             break;
         }
+        else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
+        {
+            LogInfo("err, exceeding the max execution count\n");
+            break;
+        }
+
+        EXECUTENUMBER++;
     }
 
     return TRUE;
