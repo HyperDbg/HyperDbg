@@ -201,9 +201,9 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            PSYMBOL                        FirstArg,
                            BOOLEAN *                      HasError,
                            SYMBOL_BUFFER *                StackBuffer,
-                           int *                          StackIndx,
-                           int *                          StackBaseIndx,
-                           int *                          StackTempBaseIndx);
+                           UINT64 *                       StackIndx,
+                           UINT64 *                       StackBaseIndx,
+                           UINT64 *                       ReturnValue);
 
 VOID
 ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError);

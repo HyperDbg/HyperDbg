@@ -12,6 +12,8 @@
  */
 #include "pch.h"
 
+// #define _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+
 //
 // Global Variables
 //
@@ -379,10 +381,12 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
 
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
     //
     // Print symbol buffer
     //
-    // PrintSymbolBuffer((PVOID)CodeBuffer);
+    PrintSymbolBuffer((PVOID)CodeBuffer);
+#endif
 
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
@@ -416,13 +420,20 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     }
     RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-    int StackIndx         = 0;
-    int StackBaseIndx     = 0;
-    int StackTempBaseIndx = 0;
+    UINT64 StackIndx     = 0;
+    UINT64 StackBaseIndx = 0;
+    UINT64 EXECUTENUMBER = 0;
+    UINT64 ReturnValue   = 0;
+    RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
+    RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
 
     if (CodeBuffer->Message == NULL)
     {
-        for (UINT64 i = 0; i < CodeBuffer->Pointer;)
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+        printf("\nScriptEngineExecute:\n");
+#endif
+        UINT64 i = 0;
+        for (; i < CodeBuffer->Pointer;)
         {
             //
             // Fill the action buffer but as we're in user-mode here
@@ -440,6 +451,33 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
             VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
 
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+            printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
+            PSYMBOL Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                                         (unsigned long long)(i * sizeof(SYMBOL)));
+            printf("Function = %s\n", FunctionNames[Operator->Value]);
+            printf("Stack Buffer:\n");
+            for (UINT64 j = 0; j < StackIndx; j++)
+            {
+                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
+                                                (unsigned long long)(j * sizeof(SYMBOL)));
+
+                printf("StackIndx = %lld, Value = %lld", j, StackSymbol->Value);
+
+                if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
+                {
+                    printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
+                }
+
+                if (j == StackBaseIndx)
+                {
+                    printf("   <===== StackBaseIndx");
+                }
+                printf("\n");
+            }
+            printf("\n");
+#endif
+
             //
             // If has error, show error message and abort
             //
@@ -451,19 +489,35 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                                     StackBuffer,
                                     &StackIndx,
                                     &StackBaseIndx,
-                                    &StackTempBaseIndx,
-                                    &ErrorSymbol) == TRUE)
+                                    &ErrorSymbol,
+                                    &ReturnValue) == TRUE)
             {
-                CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
-
-                ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
-                ShowMessages("invalid returning address for operator: %s",
-                             NameOfOperator);
+                ShowMessages("err, ScriptEngineExecute, function = %s\n",
+                             FunctionNames[ErrorSymbol.Value]);
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
                 break;
             }
+            else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+            {
+                ShowMessages("err, stack buffer overflow\n");
+                g_CurrentExprEvalResultHasError = TRUE;
+                g_CurrentExprEvalResult         = NULL;
+                break;
+            }
+            else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
+            {
+                ShowMessages("err, exceeding the max execution count\n");
+                g_CurrentExprEvalResultHasError = TRUE;
+                g_CurrentExprEvalResult         = NULL;
+                break;
+            }
+
+            EXECUTENUMBER++;
         }
+#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+        printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
+#endif
     }
     else
     {
