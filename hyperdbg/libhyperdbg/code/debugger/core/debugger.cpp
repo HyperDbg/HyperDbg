@@ -1362,11 +1362,24 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             continue;
         }
 
+        if (!Section.compare("asm"))
+        {
+            if (IsTextVisited)
+            {
+                ShowMessages("wrong use of \"asm\"\n"); // asm must not be after condition or code
+            }
+            else
+            {
+                IndexesToRemove.push_back(Index);
+
+                IsAsm = TRUE;
+                continue;
+            }
+        }
+
         if (IsConditionBuffer)
         {
-            //if (!Section.compare("condition"))
-            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "condition");
-            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
+            if (!Section.compare("condition"))
             {
                 //
                 // Save to remove this string from the command
@@ -1374,13 +1387,6 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-
-                if ((it + 1) != (*SplitCommand).end() && *(it + 1) == "asm" || *(it + 1) == "asm{")
-                {
-                    IsAsm = TRUE;
-                    IndexesToRemove.push_back(++Index);
-                }
-
                 continue;
             }
         }
@@ -1389,8 +1395,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
             //
             // It's code
             //
-            auto it = std::find((*SplitCommand).begin(), (*SplitCommand).end(), "code");
-            if (it != (*SplitCommand).end() && it != (*SplitCommand).begin() && !IsTextVisited)
+            if (!Section.compare("code"))
             {
                 //
                 // Save to remove this string from the command
@@ -1398,13 +1403,6 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                 IndexesToRemove.push_back(Index);
 
                 IsTextVisited = TRUE;
-
-                if ((it + 1) != (*SplitCommand).end() && (*(it + 1) == "asm" || *(it + 1) == "asm{"))
-                {
-                    IsAsm = TRUE;
-                    IndexesToRemove.push_back(++Index);
-                }
-
                 continue;
             }
         }
@@ -1545,22 +1543,23 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         //
         // Append " " between two std::strings
         //
-        auto apndSemCln = [](std::string a, std::string b) {
+        auto ApndSemCln = [](std::string a, std::string b) {
             return std::move(a) + ' ' + std::move(b);
         };
 
         //
         // Concatenate each assembly line
         //
-        std::string asmCode = std::accumulate(std::next(SaveBuffer.begin()), SaveBuffer.end(), SaveBuffer[0], apndSemCln);
+        std::string AsmCode = std::accumulate(std::next(SaveBuffer.begin()), SaveBuffer.end(), SaveBuffer[0], ApndSemCln);
 
         AssembleData AssembleData;
-        AssembleData.AsmRaw = asmCode; // by now, it should only have one element
+        AssembleData.AsmRaw = AsmCode; // by now, it should only have one element
         AssembleData.ParseAssemblyData();
+
         //
         // Append a 'ret' at the end of asm code
         //
-        AssembleData.AsmFixed += ";ret";
+        AssembleData.AsmFixed += "; ret";
 
         if (AssembleData.Assemble(0)) // we just want the hex bytes, so NULL instead of Start_Address
         {

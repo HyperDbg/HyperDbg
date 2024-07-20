@@ -26,7 +26,7 @@ CommandExceptionHelp()
         "syntax : \t!exception [IdtIndex (hex)] [pid ProcessId (hex)] "
         "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
         "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
-        "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
+        "[asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\nnote: monitoring page-faults (entry 0xe) is implemented differently.\n");
 
