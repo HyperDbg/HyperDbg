@@ -142,15 +142,16 @@ ShowMessages(const char * Fmt, ...)
             //
             // There is another handler
             //
-            if (g_MessageHandlerSharedBuffer == NULL)
-            {
-                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
-            }
-            else
-            {
-                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
-                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
-            }
+            ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+//            if (g_MessageHandlerSharedBuffer == NULL)
+//            {
+//                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+//            }
+//            else
+//            {
+//                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
+//                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
+//            }
         }
     }
 }
