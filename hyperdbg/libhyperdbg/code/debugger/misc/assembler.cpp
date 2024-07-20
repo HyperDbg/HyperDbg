@@ -163,7 +163,7 @@ AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
             //
             EncodedBytes[BytesCount] = '\0';
 
-            ShowMessages("generated assembly: %lu bytes, %lu statements ==>> ", (int)BytesCount, (int)StatementCount);
+            ShowMessages("generated assembly: %lu (decimal) bytes, %lu (decimal) statements ==>> ", (int)BytesCount, (int)StatementCount);
 
             size_t i;
             ShowMessages("%s = ", AsmFixed.c_str());

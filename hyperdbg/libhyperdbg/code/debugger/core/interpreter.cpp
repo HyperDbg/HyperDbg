@@ -966,6 +966,7 @@ InitializeCommandsDictionary()
     g_CommandsList["!ioin"] = {&CommandIoin, &CommandIoinHelp, DEBUGGER_COMMAND_IOIN_ATTRIBUTES};
 
     g_CommandsList["!ioout"] = {&CommandIoout, &CommandIooutHelp, DEBUGGER_COMMAND_IOOUT_ATTRIBUTES};
+    g_CommandsList["!iout"]  = {&CommandIoout, &CommandIooutHelp, DEBUGGER_COMMAND_IOOUT_ATTRIBUTES};
 
     g_CommandsList["!exception"] = {&CommandException, &CommandExceptionHelp, DEBUGGER_COMMAND_EXCEPTION_ATTRIBUTES};
 

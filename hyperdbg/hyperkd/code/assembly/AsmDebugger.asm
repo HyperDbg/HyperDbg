@@ -57,7 +57,7 @@ SaveTheRegisters:
     push R15        	
 
     ; The function will be called as DebuggerCheckForCondition(PGUEST_REGS Regs, PVOID Context);
-    call R8 ; Because R8 contains the 4th argument and a pointer to the function of target condition code
+    call R8 ; Because R8 contains the 3th argument and a pointer to the function of target condition code
 
 RestoreTheRegisters:
     pop R15 
