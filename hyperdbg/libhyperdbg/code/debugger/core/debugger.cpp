@@ -3269,10 +3269,12 @@ InterpretGeneralEventAndActionsFields(
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
         ShowMessages(
-            "err, it's not possible to break to the debugger in VMI Mode. "
-            "You should operate in Debugger Mode to break and get the "
-            "full control of the system. Still, you can use 'script' and run "
-            "'custom code' in your local debugging (VMI Mode)\n");
+            "err, the script or assembly code is either not found or invalid. "
+            "As a result, the default action is to break. "
+            "However, breaking to the debugger is not possible in the VMI Mode. "
+            "To achieve full control of the system, you can switch to the Debugger Mode. "
+            "In the VMI Mode, you can still use scripts and run custom code for local debugging."
+            "For more information, please check: https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes\n");
 
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
 

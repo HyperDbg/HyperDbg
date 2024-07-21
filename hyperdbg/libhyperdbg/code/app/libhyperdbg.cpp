@@ -102,8 +102,11 @@ ShowMessages(const char * Fmt, ...)
     if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
     {
         va_start(Args, Fmt);
+
         vprintf(Fmt, Args);
+
         va_end(Args);
+
         if (!g_LogOpened)
         {
             return;
@@ -111,10 +114,12 @@ ShowMessages(const char * Fmt, ...)
     }
 
     va_start(ArgList, Fmt);
-    int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
+
+    int SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
+
     va_end(ArgList);
 
-    if (sprintfresult != -1)
+    if (SprintfResult != -1)
     {
         if (g_IsConnectedToRemoteDebugger)
         {
@@ -123,11 +128,11 @@ ShowMessages(const char * Fmt, ...)
             // not including the terminating null character, or a negative value
             // if an output error occurs.
             //
-            RemoteConnectionSendResultsToHost(TempMessage, sprintfresult);
+            RemoteConnectionSendResultsToHost(TempMessage, SprintfResult);
         }
         else if (g_IsSerialConnectedToRemoteDebugger)
         {
-            KdSendUsermodePrints(TempMessage, sprintfresult);
+            KdSendUsermodePrints(TempMessage, SprintfResult);
         }
 
         if (g_LogOpened)
