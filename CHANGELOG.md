@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- Support using assembly conditions and codes in all events ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-a-condition))([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-an-action)) thanks to [@Abbas-MG](https://github.com/Abbas-MG)
-- Added the assembler command 'a' for virtual memory ([link](https://docs.hyperdbg.org/commands/debugging-commands/a)) thanks to [@Abbas-MG](https://github.com/Abbas-MG)
-- Added the assembler command '!a' for physical memory ([link](https://docs.hyperdbg.org/commands/extension-commands/a)) thanks to [@Abbas-MG](https://github.com/Abbas-MG)
+- Support using assembly conditions and codes in all events ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-a-condition))([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-an-action))
+- Added the assembler command 'a' for virtual memory ([link](https://docs.hyperdbg.org/commands/debugging-commands/a))
+- Added the assembler command '!a' for physical memory ([link](https://docs.hyperdbg.org/commands/extension-commands/a))
 - Providing a unified SDK API for reading memory in the VMI Mode and the Debugger Mode
 - Export SDK APIs for reading/writing into registers in the Debugger Mode
 - Export SDK API for writing memory in the VMI Mode and the Debugger Mode
@@ -20,6 +20,7 @@ New release of the HyperDbg Debugger.
 - Add and export SDK API for unsetting message callback
 - Event commands are coming with more examples regarding scripts and assembly codes
 - Add message callback using shared memory
+- Add maximum execution limitation to the script IRs (#435) ([link](https://github.com/HyperDbg/HyperDbg/pull/435))
 
 ### Changed
 - Fix clearing '!monitor' hooks on a different process or if the process is closed (#409) ([link](https://github.com/HyperDbg/HyperDbg/issues/409))
@@ -28,6 +29,7 @@ New release of the HyperDbg Debugger.
 - Fix step-over hangs if the process terminates/excepts within call instruction (#406) ([link](https://github.com/HyperDbg/HyperDbg/issues/406))
 - Fix crash on editing invalid physical addresses (#424) ([link](https://github.com/HyperDbg/HyperDbg/issues/424))
 - Fix exporting VMM module load and install it in the SDK
+- Fix function interpretation issues and update the parser and the code execution (#435) ([link](https://github.com/HyperDbg/HyperDbg/pull/435))
 
 ## [0.9.1.0] - 2024-06-30
 New release of the HyperDbg Debugger.

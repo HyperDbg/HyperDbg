@@ -191,7 +191,7 @@ const unsigned char BuildSignature[] = {
  * @details the maximum packet size for sending over serial
  *
  */
-#define MaxSerialPacketSize 10 * NORMAL_PAGE_SIZE
+#define MaxSerialPacketSize 20 * NORMAL_PAGE_SIZE
 
 /**
  * @brief Final storage size of message tracing
@@ -567,7 +567,7 @@ const unsigned char BuildSignature[] = {
 
 #define MAX_STACK_BUFFER_COUNT 256
 
-#define MAX_EXECUTION_COUNT 2000
+#define MAX_EXECUTION_COUNT 1000000
 
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.

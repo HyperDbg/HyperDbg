@@ -1,6 +1,6 @@
 /**
  * @file assembler.cpp
- * @author Abbas Masoumi Gorji
+ * @author Abbas Masoumi Gorji (AbbasMG@hyperdbg.org)
  * @brief Turns assembly codes into bytes
  * @details
  * @version 0.10

@@ -1,6 +1,6 @@
 /**
  * @file assembler.h
- * @author Abbas Masoumi Gorji
+ * @author Abbas Masoumi Gorji (AbbasMG@hyperdbg.org)
  * @brief Headers for turning assembly codes into bytes
  * @details
  * @version 0.10

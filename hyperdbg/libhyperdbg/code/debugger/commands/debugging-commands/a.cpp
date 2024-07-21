@@ -1,6 +1,6 @@
 /**
  * @file a.cpp
- * @author Abbas Masoumi Gorji
+ * @author Abbas Masoumi Gorji (AbbasMG@hyperdbg.org)
  * @brief a command
  * @details
  * @version 0.10
@@ -170,7 +170,6 @@ ParseUserCmd(const std::string & command)
 
     return CMD;
 }
-
 
 /**
  * @brief a and !a commands handler
