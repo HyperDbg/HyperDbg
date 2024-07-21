@@ -85,9 +85,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Imports", "Imports", "{B3D9DA75-8FBD-4A2C-826A-B50406396EC4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}"
-	ProjectSection(SolutionItems) = preProject
-		include\SDK\Examples\example.py = include\SDK\Examples\example.py
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperkd", "hyperkd\hyperkd.vcxproj", "{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -197,6 +194,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keystone", "keystone", "{72
 		include\keystone\sparc.h = include\keystone\sparc.h
 		include\keystone\systemz.h = include\keystone\systemz.h
 		include\keystone\x86.h = include\keystone\x86.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "include\SDK\Examples\hyperdbg_app\hyperrev.vcxproj", "{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_driver", "include\SDK\Examples\hyperdbg_driver\hyperdbg_driver.vcxproj", "{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
 	EndProjectSection
 EndProject
 Global
@@ -327,6 +334,30 @@ Global
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x64.Build.0 = release|x64
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x86.ActiveCfg = release|x64
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}.release|x86.Build.0 = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|ARM64.ActiveCfg = debug|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|ARM64.Build.0 = debug|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x64.ActiveCfg = debug|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x86.ActiveCfg = debug|Win32
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x86.Build.0 = debug|Win32
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|ARM64.ActiveCfg = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|ARM64.Build.0 = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x64.ActiveCfg = release|x64
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x86.ActiveCfg = release|Win32
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x86.Build.0 = release|Win32
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|ARM64.ActiveCfg = debug|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|ARM64.Build.0 = debug|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|ARM64.Deploy.0 = debug|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x64.ActiveCfg = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x86.ActiveCfg = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x86.Build.0 = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.debug|x86.Deploy.0 = debug|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|ARM64.ActiveCfg = release|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|ARM64.Build.0 = release|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|ARM64.Deploy.0 = release|ARM64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.ActiveCfg = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x86.ActiveCfg = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x86.Build.0 = release|x64
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x86.Deploy.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -358,6 +389,8 @@ Global
 		{947577A8-A9A5-4F90-8883-5FB722FE58E2} = {B3D9DA75-8FBD-4A2C-826A-B50406396EC4}
 		{08BF9299-FCE9-439C-A66C-1C8AFEC93866} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 		{7271D70C-319A-455C-AD4A-BE0BC46FEE15} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}
+		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5} = {38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}
