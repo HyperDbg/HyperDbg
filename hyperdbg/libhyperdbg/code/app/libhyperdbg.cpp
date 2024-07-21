@@ -45,6 +45,7 @@ VOID
 SetTextMessageCallback(PVOID Handler)
 {
     g_MessageHandler = Handler;
+    printf("call SetTextMessageCallback\n");
 }
 
 /**
@@ -62,7 +63,7 @@ SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
 
     if (!g_MessageHandlerSharedBuffer)
     {
-        g_MessageHandler = NULL;
+//        g_MessageHandler = NULL;
         return NULL;
     }
 
@@ -106,7 +107,7 @@ ShowMessages(const char * Fmt, ...)
         va_end(Args);
         if (!g_LogOpened)
         {
-            return;
+           return;
         }
     }
 
@@ -114,8 +115,16 @@ ShowMessages(const char * Fmt, ...)
     int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
     va_end(ArgList);
 
+    printf("sprintfresult %d\n",sprintfresult);
+    if (g_MessageHandler==NULL){
+        printf("g_MessageHandler==NULL\n");
+        return;
+    }
+
     if (sprintfresult != -1)
     {
+        ((SendMessageWithParamCallback)g_MessageHandler)("TempMessage callBack into go");//test
+
         if (g_IsConnectedToRemoteDebugger)
         {
             //
@@ -137,21 +146,22 @@ ShowMessages(const char * Fmt, ...)
             //
             LogopenSaveToFile(TempMessage);
         }
-        if (g_MessageHandler != NULL)
+         if (g_MessageHandler != NULL)
         {
             //
             // There is another handler
             //
-            if (g_MessageHandlerSharedBuffer == NULL)
-            {
-                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
-            }
-            else
-            {
-                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
-                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
-            }
-        }
+//            ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+//            if (g_MessageHandlerSharedBuffer == NULL)
+//            {
+//                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+//            }
+//            else
+//            {
+//                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
+//                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
+//            }
+         }
     }
 }
 
