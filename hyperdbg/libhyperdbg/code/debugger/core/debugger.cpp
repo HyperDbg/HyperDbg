@@ -1570,7 +1570,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         else
         {
             //
-            // Get the
+            // Get the BytesCount; for readability.
             //
             AssembledByteCount = (UINT32)AssembleData.BytesCount;
 
