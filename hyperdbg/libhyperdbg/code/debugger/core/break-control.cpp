@@ -1,5 +1,5 @@
 /**
- * @file breakcontrol.cpp
+ * @file break-control.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief break control is the handler for CTRL+C and CTRL+BREAK Signals
  * @details

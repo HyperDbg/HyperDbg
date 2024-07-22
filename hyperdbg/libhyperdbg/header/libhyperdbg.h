@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 INT
-HyperDbgLoadVmm();
+HyperDbgCreateHandleFromVmmModule();
 
 INT
 HyperDbgUnloadVmm();
@@ -26,6 +26,9 @@ HyperDbgInstallVmmDriver();
 
 INT
 HyperDbgUninstallVmmDriver();
+
+INT
+HyperDbgLoadVmmModule();
 
 INT
 HyperDbgStopVmmDriver();
@@ -40,4 +43,10 @@ VOID
 HyperDbgShowSignature();
 
 VOID
-SetTextMessageCallback(Callback handler);
+SetTextMessageCallback(PVOID Handler);
+
+PVOID
+SetTextMessageCallbackUsingSharedBuffer(PVOID Handler);
+
+VOID
+UnsetTextMessageCallback();

@@ -231,6 +231,17 @@ typedef enum _DEBUGGER_READ_MEMORY_TYPE
 } DEBUGGER_READ_MEMORY_TYPE;
 
 /**
+ * @brief different address mode
+ *
+ */
+typedef enum _DEBUGGER_READ_MEMORY_ADDRESS_MODE
+{
+    DEBUGGER_READ_ADDRESS_MODE_32_BIT,
+    DEBUGGER_READ_ADDRESS_MODE_64_BIT
+
+} DEBUGGER_READ_MEMORY_ADDRESS_MODE;
+
+/**
  * @brief the way that debugger should show
  * the details of memory or disassemble them
  *
@@ -253,17 +264,15 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
  */
 typedef struct _DEBUGGER_READ_MEMORY
 {
-    UINT32                       Pid; // Read from cr3 of what process
-    UINT64                       Address;
-    UINT32                       Size;
-    BOOLEAN                      IsForDisasm;    // Debugger sets whether the read memory is for diassembler or not
-    BOOLEAN                      Is32BitAddress; // Debuggee sets the status of address
-    DEBUGGER_READ_MEMORY_TYPE    MemoryType;
-    DEBUGGER_READ_READING_TYPE   ReadingType;
-    PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;
-    DEBUGGER_SHOW_MEMORY_STYLE   Style;        // not used in local debugging
-    UINT32                       ReturnLength; // not used in local debugging
-    UINT32                       KernelStatus; // not used in local debugging
+    UINT32                            Pid; // Read from cr3 of what process
+    UINT64                            Address;
+    UINT32                            Size;
+    BOOLEAN                           GetAddressMode; // Debugger sets whether the read memory is for diassembler or not
+    DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;    // Debuggee sets the mode of address
+    DEBUGGER_READ_MEMORY_TYPE         MemoryType;
+    DEBUGGER_READ_READING_TYPE        ReadingType;
+    UINT32                            ReturnLength; // not used in local debugging
+    UINT32                            KernelStatus; // not used in local debugging
 
     //
     // Here is the target buffer (actual memory)
@@ -450,8 +459,8 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR
  */
 typedef enum _DEBUGGER_EDIT_MEMORY_TYPE
 {
-    EDIT_PHYSICAL_MEMORY,
-    EDIT_VIRTUAL_MEMORY
+    EDIT_VIRTUAL_MEMORY,
+    EDIT_PHYSICAL_MEMORY
 } DEBUGGER_EDIT_MEMORY_TYPE;
 
 /**
@@ -471,14 +480,13 @@ typedef enum _DEBUGGER_EDIT_MEMORY_BYTE_SIZE
  */
 typedef struct _DEBUGGER_EDIT_MEMORY
 {
-    UINT32                         Result;     // Result from kernel
+    UINT32                         Result;
     UINT64                         Address;    // Target address to modify
     UINT32                         ProcessId;  // specifies the process id
     DEBUGGER_EDIT_MEMORY_TYPE      MemoryType; // Type of memory
     DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;   // Modification size
     UINT32                         CountOf64Chunks;
     UINT32                         FinalStructureSize;
-    UINT32                         KernelStatus; // not used in local debugging
 
 } DEBUGGER_EDIT_MEMORY, *PDEBUGGER_EDIT_MEMORY;
 
@@ -574,7 +582,7 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE
 {
     UINT32 PortAddress;
     UINT32 Baudrate;
-    UINT64 NtoskrnlBaseAddress;
+    UINT64 KernelBaseAddress;
     UINT32 Result; // Result from the kernel
     CHAR   OsName[MAXIMUM_CHARACTER_FOR_OS_NAME];
 
@@ -1146,11 +1154,26 @@ typedef struct _DEBUGGEE_RESULT_OF_SEARCH_PACKET
  */
 typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
 {
-    UINT32 RegisterID; // the number is from REGS_ENUM
+    UINT32 RegisterId;
     UINT64 Value;
     UINT32 KernelStatus;
 
 } DEBUGGEE_REGISTER_READ_DESCRIPTION, *PDEBUGGEE_REGISTER_READ_DESCRIPTION;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Register Descriptor Structure to write on registers.
+ *
+ */
+typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
+{
+    UINT32 RegisterId;
+    UINT64 Value;
+    UINT32 KernelStatus;
+
+} DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
 
 /* ==============================================================================================
  */

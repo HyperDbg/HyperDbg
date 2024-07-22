@@ -19,7 +19,8 @@ using namespace std;
 extern HANDLE     g_DeviceHandle;
 extern HANDLE     g_IsDriverLoadedSuccessfully;
 extern BOOLEAN    g_IsVmxOffProcessStart;
-extern Callback   g_MessageHandler;
+extern PVOID      g_MessageHandler;
+extern PVOID      g_MessageHandlerSharedBuffer;
 extern TCHAR      g_DriverLocation[MAX_PATH];
 extern TCHAR      g_DriverName[MAX_PATH];
 extern BOOLEAN    g_UseCustomDriverLocation;
@@ -37,18 +38,59 @@ extern LIST_ENTRY g_OutputSources;
  * @brief Set the function callback that will be called if any message
  * needs to be shown
  *
- * @param handler Function that handles the messages
+ * @param Handler Function that handles the messages
+ * @return VOID
  */
 VOID
-SetTextMessageCallback(Callback handler)
+SetTextMessageCallback(PVOID Handler)
 {
-    g_MessageHandler = handler;
+    g_MessageHandler = Handler;
+}
+
+/**
+ * @brief Set the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @param Handler Function that handles the messages
+ * @return PVOID
+ */
+PVOID
+SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
+{
+    g_MessageHandler             = Handler;
+    g_MessageHandlerSharedBuffer = malloc(COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
+
+    if (!g_MessageHandlerSharedBuffer)
+    {
+        g_MessageHandler = NULL;
+        return NULL;
+    }
+
+    RtlZeroMemory(g_MessageHandlerSharedBuffer, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
+
+    return g_MessageHandlerSharedBuffer;
+}
+
+/**
+ * @brief Unset the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @return VOID
+ */
+VOID
+UnsetTextMessageCallback()
+{
+    g_MessageHandler = NULL;
+    free(g_MessageHandlerSharedBuffer);
+    g_MessageHandlerSharedBuffer = NULL;
 }
 
 /**
  * @brief Show messages
  *
  * @param Fmt format string message
+ * @param ... arguments
+ * @return VOID
  */
 VOID
 ShowMessages(const char * Fmt, ...)
@@ -60,8 +102,11 @@ ShowMessages(const char * Fmt, ...)
     if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
     {
         va_start(Args, Fmt);
+
         vprintf(Fmt, Args);
+
         va_end(Args);
+
         if (!g_LogOpened)
         {
             return;
@@ -69,10 +114,12 @@ ShowMessages(const char * Fmt, ...)
     }
 
     va_start(ArgList, Fmt);
-    int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
+
+    int SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
+
     va_end(ArgList);
 
-    if (sprintfresult != -1)
+    if (SprintfResult != -1)
     {
         if (g_IsConnectedToRemoteDebugger)
         {
@@ -81,11 +128,11 @@ ShowMessages(const char * Fmt, ...)
             // not including the terminating null character, or a negative value
             // if an output error occurs.
             //
-            RemoteConnectionSendResultsToHost(TempMessage, sprintfresult);
+            RemoteConnectionSendResultsToHost(TempMessage, SprintfResult);
         }
         else if (g_IsSerialConnectedToRemoteDebugger)
         {
-            KdSendUsermodePrints(TempMessage, sprintfresult);
+            KdSendUsermodePrints(TempMessage, SprintfResult);
         }
 
         if (g_LogOpened)
@@ -100,7 +147,15 @@ ShowMessages(const char * Fmt, ...)
             //
             // There is another handler
             //
-            g_MessageHandler(TempMessage);
+            if (g_MessageHandlerSharedBuffer == NULL)
+            {
+                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+            }
+            else
+            {
+                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
+                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
+            }
         }
     }
 }
@@ -109,8 +164,9 @@ ShowMessages(const char * Fmt, ...)
  * @brief Read kernel buffers using IRP Pending
  *
  * @param Device Driver handle
+ * @return VOID
  */
-void
+VOID
 ReadIrpBasedBuffer()
 {
     BOOL                   Status;
@@ -551,15 +607,14 @@ HyperDbgUninstallVmmDriver()
 }
 
 /**
- * @brief Load the VMM driver
+ * @brief Create handle from VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgLoadVmm()
+HyperDbgCreateHandleFromVmmModule()
 {
-    char  CpuId[13] = {0};
     DWORD ErrorNum;
     DWORD ThreadId;
 
@@ -567,34 +622,6 @@ HyperDbgLoadVmm()
     {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "unload it using 'unload'\n");
-        return 1;
-    }
-
-    //
-    // Read the vendor string
-    //
-    CpuReadVendorString(CpuId);
-
-    ShowMessages("current processor vendor is : %s\n", CpuId);
-
-    if (strcmp(CpuId, "GenuineIntel") == 0)
-    {
-        ShowMessages("virtualization technology is vt-x\n");
-    }
-    else
-    {
-        ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environment !\n");
-        return 1;
-    }
-
-    if (VmxSupportDetection())
-    {
-        ShowMessages("vmx operation is supported by your processor\n");
-    }
-    else
-    {
-        ShowMessages("vmx operation is not supported by your processor\n");
         return 1;
     }
 
@@ -758,6 +785,103 @@ HyperDbgUnloadVmm()
     SymbolDeleteSymTable();
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief load vmm module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ */
+INT
+HyperDbgLoadVmmModule()
+{
+    BOOL   Status;
+    HANDLE hToken;
+    char   CpuId[13] = {0};
+
+    //
+    // Enable Debug privilege
+    //
+    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
+    if (!Status)
+    {
+        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
+        return 1;
+    }
+
+    Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
+    if (!Status)
+    {
+        CloseHandle(hToken);
+        return 1;
+    }
+
+    //
+    // Read the vendor string
+    //
+    CpuReadVendorString(CpuId);
+
+    ShowMessages("current processor vendor is : %s\n", CpuId);
+
+    if (strcmp(CpuId, "GenuineIntel") == 0)
+    {
+        ShowMessages("virtualization technology is vt-x\n");
+    }
+    else
+    {
+        ShowMessages("this program is not designed to run in a non-VT-x "
+                     "environment !\n");
+        return 1;
+    }
+
+    if (VmxSupportDetection())
+    {
+        ShowMessages("vmx operation is supported by your processor\n");
+    }
+    else
+    {
+        ShowMessages("vmx operation is not supported by your processor\n");
+        return 1;
+    }
+
+    //
+    // Create event to show if the hypervisor is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if (HyperDbgCreateHandleFromVmmModule() == 1)
+    {
+        //
+        // No need to handle anymore
+        //
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // Vmm module (Hypervisor) is loaded
+    //
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
+
+    //
+    // If we reach here so the module are loaded
+    //
+    g_IsDebuggerModulesLoaded = TRUE;
+
+    ShowMessages("vmm module is running...\n");
 
     return 0;
 }

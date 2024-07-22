@@ -21,7 +21,7 @@ class Generator():
     def __init__(self): 
         self.SourceFile = open("..\\code\\parse-table.c", "w")
         self.HeaderFile = open("..\\header\\parse-table.h", "w")   
-        self.CommonHeaderFile = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.h", "w")
+        self.CommonHeaderFile = open("..\\..\\include\\SDK\\Headers\\ScriptEngineCommonDefinitions.h", "w")
         self.CommonHeaderFileScala = open("..\\..\\..\\hwdbg\\src\\main\\scala\\hwdbg\\script\\script_definitions.scala", "w")
         self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile, self.CommonHeaderFileScala)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)
@@ -137,6 +137,7 @@ typedef struct SYMBOL_MAP
     char* Name;
     long long unsigned Type;
 } SYMBOL_MAP, * PSYMBOL_MAP;
+
 typedef struct ACTION_BUFFER {
   long long unsigned Tag;
   long long unsigned CurrentAction;
@@ -144,6 +145,17 @@ typedef struct ACTION_BUFFER {
   long long unsigned Context;
   char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
+
+typedef struct USER_DEFINED_FUNCTION_NODE
+{
+    char * Name;
+    long long unsigned Address;
+    long long unsigned VariableType;
+    PSYMBOL_BUFFER	ParameterBuffer;
+    long long unsigned ParameterNumber;
+    long long unsigned StackTempNumber;
+    struct USER_DEFINED_FUNCTION_NODE * NextNode;
+} USER_DEFINED_FUNCTION_NODE, *PUSER_DEFINED_FUNCTION_NODE;
 
 #define SYMBOL_UNDEFINED 0
 #define SYMBOL_GLOBAL_ID_TYPE 1
@@ -157,11 +169,35 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_VARIABLE_COUNT_TYPE 9
 #define SYMBOL_INVALID 10
 #define SYMBOL_WSTRING_TYPE 11
-#define SYMBOL_USER_DEFINED_FUNCTION_TYPE 12
-#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 13
-#define SYMBOL_RETURN_ADDRESS_TYPE 14
-#define SYMBOL_STACK_TEMP_TYPE 15
-#define SYMBOL_FUNCTION_PARAMETER_TYPE 16
+#define SYMBOL_FUNCTION_PARAMETER_ID_TYPE 12
+#define SYMBOL_RETURN_ADDRESS_TYPE 13
+#define SYMBOL_STACK_TEMP_TYPE 14
+#define SYMBOL_FUNCTION_PARAMETER_TYPE 15
+#define SYMBOL_STACK_INDEX_TYPE 16
+#define SYMBOL_STACK_BASE_INDEX_TYPE 17
+#define SYMBOL_RETURN_VALUE_TYPE 18
+
+static const char *const SymbolTypeNames[] = {
+"SYMBOL_UNDEFINED",
+"SYMBOL_GLOBAL_ID_TYPE",
+"SYMBOL_LOCAL_ID_TYPE",
+"SYMBOL_NUM_TYPE",
+"SYMBOL_REGISTER_TYPE",
+"SYMBOL_PSEUDO_REG_TYPE",
+"SYMBOL_SEMANTIC_RULE_TYPE",
+"SYMBOL_TEMP_TYPE",
+"SYMBOL_STRING_TYPE",
+"SYMBOL_VARIABLE_COUNT_TYPE",
+"SYMBOL_INVALID",
+"SYMBOL_WSTRING_TYPE",
+"SYMBOL_FUNCTION_PARAMETER_ID_TYPE",
+"SYMBOL_RETURN_ADDRESS_TYPE",
+"SYMBOL_STACK_TEMP_TYPE",
+"SYMBOL_FUNCTION_PARAMETER_TYPE",
+"SYMBOL_STACK_INDEX_TYPE",
+"SYMBOL_STACK_BASE_INDEX_TYPE",
+"SYMBOL_RETURN_VALUE_TYPE"
+};
 
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define INVALID 0x80000000

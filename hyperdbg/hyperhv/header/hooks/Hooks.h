@@ -335,6 +335,16 @@ VOID
 EptHookUnHookAll();
 
 /**
+ * @brief Remove all hooks from the hooked pages by the given hooking tag
+ * @details Should be called from Vmx Non-root
+ *
+ * @param HookingTag The hooking tag to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookAllByHookingTag(UINT64 HookingTag);
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * From VMX non-root mode
  *
@@ -347,6 +357,17 @@ BOOLEAN
 EptHookUnHookSingleAddress(UINT64 VirtualAddress,
                            UINT64 PhysAddress,
                            UINT32 ProcessId);
+
+/**
+ * @brief Remove single hook from the hooked pages by the given hooking tag
+ * @details Should be called from Vmx root-mode
+ *
+ * @param HookingTag The hooking tag to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleHookByHookingTagFromVmxRoot(UINT64                              HookingTag,
+                                               EPT_SINGLE_HOOK_UNHOOKING_DETAILS * TargetUnhookingDetails);
 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB

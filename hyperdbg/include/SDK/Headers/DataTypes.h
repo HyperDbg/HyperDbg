@@ -116,10 +116,17 @@ typedef enum _DEBUGGER_THREAD_PROCESS_TRACING
 
 /**
  * @brief Callback type that can be used to be used
- * as a custom ShowMessages function
+ * as a custom ShowMessages function (by passing message as a parameter)
  *
  */
-typedef int (*Callback)(const char * Text);
+typedef int (*SendMessageWithParamCallback)(const char * Text);
+
+/**
+ * @brief Callback type that can be used to be used
+ * as a custom ShowMessages function (using shared buffer)
+ *
+ */
+typedef int (*SendMessageWWithSharedBufferCallback)();
 
 //////////////////////////////////////////////////
 //                Communications                //

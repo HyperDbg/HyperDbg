@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern UINT64                   g_EventTag;
+extern UINT64                   g_KernelBaseAddress;
 extern LIST_ENTRY               g_EventTrace;
 extern BOOLEAN                  g_EventTraceInitialized;
 extern BOOLEAN                  g_BreakPrintingOutput;
@@ -581,6 +582,29 @@ DebuggerGetNtoskrnlBase()
     free(Modules);
 
     return NtoskrnlBase;
+}
+
+/**
+ * @brief Get the base address of the kernel module
+ *
+ * @return UINT64
+ */
+UINT64
+DebuggerGetKernelBase()
+{
+    UINT64 KernelBase = NULL;
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        KernelBase = g_KernelBaseAddress;
+    }
+    else
+    {
+        KernelBase          = DebuggerGetNtoskrnlBase();
+        g_KernelBaseAddress = KernelBase;
+    }
+
+    return KernelBase;
 }
 
 /**
@@ -1225,6 +1249,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength)
 {
+    BOOLEAN        IsAsm         = FALSE;
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
     BOOLEAN        IsEnded       = FALSE;
@@ -1235,6 +1260,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     vector<CHAR>   ParsedBytes;
     vector<int>    IndexesToRemove;
     UCHAR *        FinalBuffer;
+    UINT32         AssembledByteCount;
     int            NewIndexToRemove = 0;
     int            Index            = 0;
 
@@ -1335,6 +1361,21 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
 
             IsInState = TRUE;
             continue;
+        }
+
+        if (!Section.compare("asm"))
+        {
+            if (IsTextVisited)
+            {
+                ShowMessages("wrong use of \"asm\"\n"); // asm must not be after condition or code
+            }
+            else
+            {
+                IndexesToRemove.push_back(Index);
+
+                IsAsm = TRUE;
+                continue;
+            }
         }
 
         if (IsConditionBuffer)
@@ -1496,71 +1537,137 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     }
 
     //
-    // Append a 'ret' at the end of the buffer
+    // Check if asm code was provided instead of hex
     //
-    SaveBuffer.push_back("c3");
-
-    //
-    // If we reach here then there is sth in condition buffer
-    //
-    for (auto Section : SaveBuffer)
+    if (IsAsm)
     {
         //
-        // Check if the section is started with '0x'
+        // Append " " between two std::strings
         //
-        if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+        auto ApndSemCln = [](std::string a, std::string b) {
+            return std::move(a) + ' ' + std::move(b);
+        };
+
+        //
+        // Concatenate each assembly line
+        //
+        std::string AsmCode = std::accumulate(std::next(SaveBuffer.begin()), SaveBuffer.end(), SaveBuffer[0], ApndSemCln);
+
+        AssembleData AssembleData;
+        AssembleData.AsmRaw = AsmCode; // by now, it should only have one element
+        AssembleData.ParseAssemblyData();
+
+        //
+        // Append a 'ret' at the end of asm code
+        //
+        AssembleData.AsmFixed += "; ret";
+
+        if (AssembleData.Assemble(0)) // we just want the hex bytes, so NULL instead of Start_Address
         {
-            Temp = Section.erase(0, 2);
-        }
-        else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
-        {
-            Temp = Section.erase(0, 1);
+            ShowMessages("err, assemble error code: '%u'\n\n", AssembleData.KsErr);
+            return FALSE;
         }
         else
         {
-            Temp = std::move(Section);
+            //
+            // Get the BytesCount; for readability.
+            //
+            AssembledByteCount = (UINT32)AssembleData.BytesCount;
+
+            //
+            // * FinalBuffer *
+            //
+            FinalBuffer = (unsigned char *)malloc(AssembledByteCount);
+
+            if (FinalBuffer == NULL)
+            {
+                return FALSE;
+            }
+
+            memcpy(FinalBuffer, AssembleData.EncodedBytes, AssembledByteCount);
+
+            //
+            // Set the buffer and length
+            //
+            *BufferAddress = (UINT64)FinalBuffer;
+            *BufferLength  = AssembledByteCount;
+        }
+    }
+    else
+    {
+        //
+        // Append a 'ret' at the end of the buffer
+        //
+        SaveBuffer.push_back("c3");
+
+        //
+        // If we reach here then there is sth in condition buffer
+        //
+        for (auto Section : SaveBuffer)
+        {
+            //
+            // Check if the section is started with '0x'
+            //
+            if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+            {
+                Temp = Section.erase(0, 2);
+            }
+            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
+            {
+                Temp = Section.erase(0, 1);
+            }
+            else
+            {
+                Temp = std::move(Section);
+            }
+
+            //
+            // replace \x s
+            //
+            ReplaceAll(Temp, "\\x", "");
+
+            //
+            // check if the buffer is aligned to 2
+            //
+            if (Temp.size() % 2 != 0)
+            {
+                //
+                // Add a zero to the start of the buffer
+                //
+                Temp.insert(0, 1, '0');
+            }
+
+            if (!IsHexNotation(Temp))
+            {
+                ShowMessages("please enter condition code in a hex notation\n");
+                return FALSE;
+            }
+            AppendedFinalBuffer.append(Temp);
         }
 
         //
-        // replace \x s
+        // Convert it to vectored bytes
         //
-        ReplaceAll(Temp, "\\x", "");
+        ParsedBytes = HexToBytes(AppendedFinalBuffer);
 
         //
-        // check if the buffer is aligned to 2
+        // Convert to a contigues buffer
         //
-        if (Temp.size() % 2 != 0)
-        {
-            //
-            // Add a zero to the start of the buffer
-            //
-            Temp.insert(0, 1, '0');
-        }
+        FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
 
-        if (!IsHexNotation(Temp))
+        if (FinalBuffer == NULL)
         {
-            ShowMessages("please enter condition code in a hex notation\n");
             return FALSE;
         }
-        AppendedFinalBuffer.append(Temp);
+
+        std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+
+        //
+        // Set the buffer and length
+        //
+        *BufferAddress = (UINT64)FinalBuffer;
+        *BufferLength  = (UINT32)ParsedBytes.size();
     }
-
-    //
-    // Convert it to vectored bytes
-    //
-    ParsedBytes = HexToBytes(AppendedFinalBuffer);
-
-    //
-    // Convert to a contigues buffer
-    //
-    FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
-    std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
-
-    //
-    // Set the buffer and length
-    //
-    *BufferAddress = (UINT64)FinalBuffer;
-    *BufferLength  = (UINT32)ParsedBytes.size();
 
     //
     // Removing the code or condition indexes from the command
@@ -3162,10 +3269,12 @@ InterpretGeneralEventAndActionsFields(
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
         ShowMessages(
-            "err, it's not possible to break to the debugger in VMI Mode. "
-            "You should operate in Debugger Mode to break and get the "
-            "full control of the system. Still, you can use 'script' and run "
-            "'custom code' in your local debugging (VMI Mode)\n");
+            "err, the script or assembly code is either not found or invalid. "
+            "As a result, the default action is to break. "
+            "However, breaking to the debugger is not possible in the VMI Mode. "
+            "To achieve full control of the system, you can switch to the Debugger Mode. "
+            "In the VMI Mode, you can still use scripts and run custom code for local debugging."
+            "For more information, please check: https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes\n");
 
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
 

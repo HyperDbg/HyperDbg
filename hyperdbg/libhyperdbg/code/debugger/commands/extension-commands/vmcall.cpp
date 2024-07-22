@@ -23,13 +23,15 @@ CommandVmcallHelp()
 
     ShowMessages("syntax : \t!vmcall [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }] "
+                 "[script { Script (string) }] [asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] "
                  "[output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !vmcall\n");
     ShowMessages("\t\te.g : !vmcall pid 400\n");
     ShowMessages("\t\te.g : !vmcall core 2 pid 400\n");
+    ShowMessages("\t\te.g : !vmcall script { printf(\"VMCALL executed with context: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !vmcall asm code { nop; nop; nop }\n");
 }
 
 /**

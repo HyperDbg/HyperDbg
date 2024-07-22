@@ -24,7 +24,7 @@ CommandInterruptHelp()
     ShowMessages("syntax : \t[IdtIndex (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
                  "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
-                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\nnote : The index should be greater than 0x20 (32) and less "
                  "than 0xFF (255) - starting from zero.\n");
@@ -33,6 +33,8 @@ CommandInterruptHelp()
     ShowMessages("\t\te.g : !interrupt 0x2f\n");
     ShowMessages("\t\te.g : !interrupt 0x2f pid 400\n");
     ShowMessages("\t\te.g : !interrupt 0x2f core 2 pid 400\n");
+    ShowMessages("\t\te.g : !interrupt 0xd1 script { printf(\"clock interrupt received at the core: %%x\\n\", $core); }\n");
+    ShowMessages("\t\te.g : !interrupt 0x2f asm code { nop; nop; nop }\n");
 }
 
 /**

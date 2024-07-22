@@ -571,6 +571,19 @@ CommandEventsHandleModifiedEvent(
             else
             {
                 //
+                // If HyperDbg is operating at the Debugger Mode, we'll indicate that
+                // the event will be cleared after continuing the debuggee
+                //
+                if (g_IsSerialConnectedToRemoteDebuggee)
+                {
+                    ShowMessages("%s successfully cleared, but please note in the Debugger Mode (current mode), HyperDbg "
+                                 "cannot clear events instantly. Instead, it first disables the events, and when "
+                                 "you continue the debuggee (e.g., by pressing the 'g' command), the event will be cleared. "
+                                 "Reapplying the same event without first continuing the debuggee may result in undefined behavior\n",
+                                 Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG ? "events are" : "the event is");
+                }
+
+                //
                 // The action was applied successfully
                 //
                 if (g_BreakPrintingOutput)

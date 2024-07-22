@@ -164,6 +164,9 @@
     <ClInclude Include="header\libhyperdbg.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\assembler.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -180,9 +183,6 @@
     </ClCompile>
     <ClCompile Include="code\common\list.cpp">
       <Filter>code\common</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\commands\debugging-commands\~.cpp">
-      <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\debugging-commands\bc.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
@@ -540,6 +540,15 @@
     </ClCompile>
     <ClCompile Include="code\export\export.cpp">
       <Filter>code\export</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\core.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\a.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\misc\assembler.cpp">
+      <Filter>code\debugger\misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

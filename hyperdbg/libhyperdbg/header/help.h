@@ -282,6 +282,9 @@ CommandDumpHelp();
 VOID
 CommandGuHelp();
 
+VOID
+CommandAssembleHelp();
+
 //
 // hwdbg commands
 //

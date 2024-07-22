@@ -1113,12 +1113,13 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                       BOOLEAN *                             PostEventRequired,
                       GUEST_REGS *                          Regs)
 {
+    PROCESSOR_DEBUGGING_STATE *      DbgState = NULL;
     DebuggerCheckForCondition *      ConditionFunc;
     DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail = {0};
     PEPT_HOOKS_CONTEXT               EptContext;
-    PLIST_ENTRY                      TempList  = 0;
-    PLIST_ENTRY                      TempList2 = 0;
-    PROCESSOR_DEBUGGING_STATE *      DbgState  = NULL;
+    PLIST_ENTRY                      TempList        = 0;
+    PLIST_ENTRY                      TempList2       = 0;
+    const PVOID                      OriginalContext = Context;
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -1224,14 +1225,17 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // we get the events for all hidden hooks in a page granularity
             //
 
-            EptContext = (PEPT_HOOKS_CONTEXT)Context;
+            //
+            // Here the OriginalContext is used because the context
+            // might be changed but the OriginalContext is constant
+            //
+            EptContext = (PEPT_HOOKS_CONTEXT)OriginalContext;
 
             //
-            // Context should be checked with hooking tag
+            // EPT context should be checked with hooking tag
             // The hooking tag is same as the event tag if both
             // of them match together
             //
-
             if (EptContext->HookingTag != CurrentEvent->Tag)
             {
                 //
@@ -1274,6 +1278,12 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         case HIDDEN_HOOK_EXEC_DETOURS:
 
             //
+            // Here the OriginalContext is used because the context
+            // might be changed but the OriginalContext is constant
+            //
+            EptContext = (PEPT_HOOKS_CONTEXT)OriginalContext;
+
+            //
             // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS
             // then it means that it's detours hidden hook exec so we have
             // to make sure to perform its actions, only if the hook is triggered
@@ -1284,7 +1294,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (((PEPT_HOOKS_CONTEXT)Context)->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
+            if (EptContext->PhysicalAddress != CurrentEvent->Options.OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -1300,7 +1310,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
                 //
                 // Convert it to virtual address
                 //
-                Context = (PVOID)(((PEPT_HOOKS_CONTEXT)Context)->VirtualAddress);
+                Context = (PVOID)(EptContext->VirtualAddress);
             }
 
             break;
@@ -1675,8 +1685,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     // Fill the variables list for this run
     //
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = DbgState->ScriptEngineCoreSpecificLocalVariable;
-    VariablesList.TempList            = DbgState->ScriptEngineCoreSpecificTempVariable;
+    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
+    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
+    VariablesList.LocalVariablesList = DbgState->ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.TempList           = DbgState->ScriptEngineCoreSpecificTempVariable;
 
     PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)DbgState->ScriptEngineCoreSpecificStackBuffer;
     if (!StackBuffer || !StackBuffer->Head)
@@ -1692,9 +1704,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     StackBuffer->Message = NULL;
     RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-    int StackIndx         = 0;
-    int StackBaseIndx     = 0;
-    int StackTempBaseIndx = 0;
+    UINT64 StackIndx     = 0;
+    UINT64 StackBaseIndx = 0;
+    UINT64 EXECUTENUMBER = 0;
+    UINT64 ReturnValue   = 0;
 
     for (UINT64 i = 0; i < CodeBuffer.Pointer;)
     {
@@ -1710,14 +1723,25 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                 StackBuffer,
                                 &StackIndx,
                                 &StackBaseIndx,
-                                &StackTempBaseIndx,
-                                &ErrorSymbol) == TRUE)
+                                &ErrorSymbol,
+                                &ReturnValue) == TRUE)
         {
-            CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
-            ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
-            LogInfo("Invalid returning address for operator: %s", NameOfOperator);
+            LogInfo("err, ScriptEngineExecute, function = % s\n ",
+                    FunctionNames[ErrorSymbol.Value]);
             break;
         }
+        else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+        {
+            LogInfo("err, stack buffer overflow\n");
+            break;
+        }
+        else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
+        {
+            LogInfo("err, exceeding the max execution count\n");
+            break;
+        }
+
+        EXECUTENUMBER++;
     }
 
     return TRUE;
@@ -1789,7 +1813,6 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
  * @param DbgState The state of the debugger on the current core
  * @param Tag Tag of event
  * @param Action Action object
- * @param Context Optional parameter
  * @param EventTriggerDetail Event trigger detail
  *
  * @return VOID

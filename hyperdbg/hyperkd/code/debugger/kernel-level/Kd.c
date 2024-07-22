@@ -640,7 +640,7 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
 {
     GUEST_EXTRA_REGISTERS ERegs = {0};
 
-    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
         //
         // Add General purpose registers
@@ -670,7 +670,7 @@ KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DE
     }
     else
     {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(DbgState->Regs, ReadRegisterRequest->RegisterID);
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(DbgState->Regs, ReadRegisterRequest->RegisterId);
     }
 
     return TRUE;
@@ -689,7 +689,7 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 {
     GUEST_EXTRA_REGISTERS ERegs = {0};
 
-    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
         //
         // Add General purpose registers
@@ -719,7 +719,7 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
     }
     else
     {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterID);
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterId);
     }
 
     return TRUE;
@@ -2298,6 +2298,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SINGLE_CALLSTACK_FRAME                    CallstackFrameBuffer;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION                WriteRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET         ChangeProcessPacket;
@@ -2616,6 +2617,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS:
 
                 ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Read registers
                 //
@@ -2628,7 +2630,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     ReadRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
                 }
 
-                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+                if (ReadRegisterPacket->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
                 {
                     SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS) + sizeof(GUEST_EXTRA_REGISTERS);
                 }
@@ -2643,6 +2645,32 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
                                            (CHAR *)ReadRegisterPacket,
                                            SizeToSend);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_WRITE_REGISTER:
+
+                WriteRegisterPacket = (DEBUGGEE_REGISTER_WRITE_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Write register
+                //
+                if (SetRegValue(DbgState->Regs, WriteRegisterPacket->RegisterId, WriteRegisterPacket->Value))
+                {
+                    WriteRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+                }
+                else
+                {
+                    WriteRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                }
+
+                //
+                // Send the result of writing register back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_WRITE_REGISTER,
+                                           (CHAR *)WriteRegisterPacket,
+                                           sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
 
                 break;
 
@@ -2679,17 +2707,11 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY:
 
                 EditMemoryPacket = (PDEBUGGER_EDIT_MEMORY)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Edit memory
                 //
-                if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
-                {
-                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-                }
-                else
-                {
-                    EditMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-                }
+                DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket);
 
                 //
                 // Send the result of reading memory back to the debuggee

@@ -24,14 +24,16 @@ CommandIoinHelp()
 
     ShowMessages("syntax : \t!ioin [Port (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
-                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
+                 "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !ioin\n");
     ShowMessages("\t\te.g : !ioin 0x64\n");
     ShowMessages("\t\te.g : !ioin pid 400\n");
     ShowMessages("\t\te.g : !ioin core 2 pid 400\n");
+    ShowMessages("\t\te.g : !ioin script { printf(\"IN instruction is executed at port: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !ioin asm code { nop; nop; nop }\n");
 }
 
 /**

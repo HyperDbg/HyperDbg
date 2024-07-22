@@ -36,6 +36,5 @@
 //
 // HyperDbg SDK headers
 //
-#include "Definition.h"
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/HyperDbgCtrlImports.h"
+#include "SDK/Imports/User/HyperDbgLibImports.h"

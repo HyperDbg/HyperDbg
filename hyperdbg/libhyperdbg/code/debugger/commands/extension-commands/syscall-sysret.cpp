@@ -26,12 +26,12 @@ CommandSyscallHelp()
 
     ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
-                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
+                 "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
     ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
-                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
+                 "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !syscall\n");
@@ -41,6 +41,8 @@ CommandSyscallHelp()
     ShowMessages("\t\te.g : !syscall 0x55 pid 400\n");
     ShowMessages("\t\te.g : !syscall 0x55 core 2 pid 400\n");
     ShowMessages("\t\te.g : !syscall2 0x55 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !syscall script { printf(\"system-call num: %%llx, at process id: %%x\\n\", @rax, $pid); }\n");
+    ShowMessages("\t\te.g : !syscall asm code { nop; nop; nop }\n");
 }
 
 /**
@@ -58,7 +60,7 @@ CommandSysretHelp()
 
     ShowMessages("syntax : \t!sysret [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+                 "[script { Script (string) }] [asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !sysret\n");
@@ -67,6 +69,8 @@ CommandSysretHelp()
     ShowMessages("\t\te.g : !sysret2 pid 400\n");
     ShowMessages("\t\te.g : !sysret core 2 pid 400\n");
     ShowMessages("\t\te.g : !sysret2 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !sysret script { printf(\"SYSRET instruction is executed at process id: %%x\\n\", $pid); }\n");
+    ShowMessages("\t\te.g : !sysret asm code { nop; nop; nop }\n");
 }
 
 /**

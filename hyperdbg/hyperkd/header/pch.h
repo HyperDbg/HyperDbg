@@ -151,7 +151,6 @@
 //
 // Script engine headers
 //
-#include "../script-eval/header/ScriptEngineCommonDefinitions.h"
 #include "../script-eval/header/ScriptEngineHeader.h"
 
 //

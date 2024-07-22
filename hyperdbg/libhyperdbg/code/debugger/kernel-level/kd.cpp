@@ -41,6 +41,7 @@ extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
 extern BOOLEAN g_IgnorePauseRequests;
 extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
+extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -516,21 +517,29 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
 }
 
 /**
- * @brief Send a Read register packet to the debuggee
+ * @brief Send a read register packet to the debuggee
+ * @param RegDes
+ * @param RegBuffSize
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
+KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize)
 {
     //
-    // Send r command as read register packet
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
+
+    //
+    // Send the 'r' command as read register packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
             (CHAR *)RegDes,
-            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+            sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) // only the header is enough, no need to send the entire buffer
+            ))
     {
         return FALSE;
     }
@@ -544,28 +553,53 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
 }
 
 /**
- * @brief Send a Read memory packet to the debuggee
- * @param ReadMem
+ * @brief Send a write register packet to the debuggee
+ * @param RegDes
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
+KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes)
 {
-    PDEBUGGER_READ_MEMORY ActualBufferToSend = NULL;
-    UINT                  Size               = 0;
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, RegDes, sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
 
-    Size               = ReadMem->Size * sizeof(CHAR) + sizeof(DEBUGGER_READ_MEMORY);
-    ActualBufferToSend = (PDEBUGGER_READ_MEMORY)malloc(Size);
-
-    if (ActualBufferToSend == NULL)
+    //
+    // Send write register packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_WRITE_REGISTER,
+            (CHAR *)RegDes,
+            sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION)))
     {
         return FALSE;
     }
 
-    RtlZeroMemory(ActualBufferToSend, Size);
+    //
+    // Wait until the result of write register received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 
-    memcpy(ActualBufferToSend, ReadMem, sizeof(DEBUGGER_READ_MEMORY));
+    return TRUE;
+}
+
+/**
+ * @brief Send a Read memory packet to the debuggee
+ * @param ReadMem
+ * @param Size
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSize)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, ReadMem, RequestSize);
 
     //
     // Send u-d command as read memory packet
@@ -573,10 +607,10 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY,
-            (CHAR *)ActualBufferToSend,
-            Size))
+            (CHAR *)ReadMem,
+            sizeof(DEBUGGER_READ_MEMORY) // only the header is enough, no need to send the entire buffer
+            ))
     {
-        free(ActualBufferToSend);
         return FALSE;
     }
 
@@ -585,7 +619,6 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
-    free(ActualBufferToSend);
     return TRUE;
 }
 
@@ -599,6 +632,11 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
 BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
 {
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, EditMem, sizeof(DEBUGGER_EDIT_MEMORY));
+
     //
     // Send d command as read memory packet
     //
@@ -1202,6 +1240,22 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
             StepPacket.IsCurrentInstructionACall = TRUE;
             StepPacket.CallLength                = CallInstructionSize;
         }
+    }
+
+    //
+    // Set the debuggee is running after this command
+    //
+    if (StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER ||
+        StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU ||
+        StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN)
+    {
+        //
+        // The debuggee is also running after this type of command
+        // This is because this way the debuggee is running after the step-over or step-in
+        // so, if the program either terminates or couldn't run the next instruction, the
+        // user could pause the debuggee again
+        //
+        g_IsDebuggeeRunning = TRUE;
     }
 
     //
@@ -2378,7 +2432,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // Load the VMM
         //
-        if (!CommandLoadVmmModule())
+        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             CloseHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
@@ -2428,7 +2482,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // Get base address of ntoskrnl
         //
-        DebuggeeRequest->NtoskrnlBaseAddress = DebuggerGetNtoskrnlBase();
+        DebuggeeRequest->KernelBaseAddress = DebuggerGetNtoskrnlBase();
 
         //
         // Set the debuggee name, version, and build number
@@ -3255,6 +3309,11 @@ KdUninitializeConnection()
     // And debuggee is not running
     //
     g_IsDebuggeeRunning = FALSE;
+
+    //
+    // Not repeating the last command
+    //
+    g_ShouldPreviousCommandBeContinued = FALSE;
 
     //
     // Clear the handler

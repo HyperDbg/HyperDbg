@@ -55,6 +55,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT                          0x17
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE        0x18
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE                       0x19
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER                      0x1a
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -109,6 +110,9 @@ typedef struct _DEBUGGER_SYNCRONIZATION_EVENTS_STATE
 {
     HANDLE  EventHandle;
     BOOLEAN IsOnWaitingState;
+    PVOID   RequestData;
+    UINT32  RequestSize;
+
 } DEBUGGER_SYNCRONIZATION_EVENTS_STATE, *PDEBUGGER_SYNCRONIZATION_EVENTS_STATE;
 
 //////////////////////////////////////////////////
@@ -129,6 +133,9 @@ IsTagExist(UINT64 Tag);
 
 UINT64
 DebuggerGetNtoskrnlBase();
+
+UINT64
+DebuggerGetKernelBase();
 
 BOOLEAN
 DebuggerPauseDebuggee();
@@ -222,12 +229,6 @@ GetCommandAttributes(const string & FirstCommand);
 VOID
 DetachFromProcess();
 
-BOOLEAN
-CommandLoadVmmModule();
-
-VOID
-ShowAllRegisters();
-
 VOID
 CommandPauseRequest();
 
@@ -249,3 +250,38 @@ CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbol
 
 VOID
 CommandTrackHandleReceivedRetInstructions(UINT64 CurrentRip);
+
+BOOLEAN
+HyperDbgWriteMemory(PVOID                     DestinationAddress,
+                    DEBUGGER_EDIT_MEMORY_TYPE MemoryType,
+                    UINT32                    ProcessId,
+                    PVOID                     SourceAddress,
+                    UINT32                    NumberOfBytes);
+
+//////////////////////////////////////////////////
+//				    Registers                   //
+//////////////////////////////////////////////////
+
+BOOLEAN
+HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * ExtraRegisters);
+
+BOOLEAN
+HyperDbgReadTargetRegister(REGS_ENUM RegisterId, UINT64 * TargetRegister);
+
+BOOLEAN
+HyperDbgWriteTargetRegister(REGS_ENUM RegisterId, UINT64 Value);
+
+BOOLEAN
+HyperDbgRegisterShowAll();
+
+BOOLEAN
+HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId);
+
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe);
+
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);

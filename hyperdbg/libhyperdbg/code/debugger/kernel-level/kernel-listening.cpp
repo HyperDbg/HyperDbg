@@ -32,6 +32,7 @@ extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64                           g_ResultOfEvaluatedExpression;
 extern UINT32                           g_ErrorStateOfResultOfEvaluatedExpression;
+extern UINT64                           g_KernelBaseAddress;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -61,6 +62,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
@@ -69,10 +71,9 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_PAGE_IN_REQUEST                   PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
-    PGUEST_REGS                                 Regs;
-    PGUEST_EXTRA_REGISTERS                      ExtraRegs;
-    unsigned char *                             MemoryBuffer;
     BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
+    PVOID                                       CallerAddress                 = NULL;
+    UINT32                                      CallerSize                    = NULL_ZERO;
 
 StartAgain:
 
@@ -173,6 +174,11 @@ StartAgain:
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
             InitPacket = (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Set the kernel base address
+            //
+            g_KernelBaseAddress = InitPacket->KernelBaseAddress;
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
@@ -787,74 +793,15 @@ StartAgain:
 
             ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadRegisterPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading registers like rax=0000000000018b01
-                //
-                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
-                {
-                    Regs      = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
-                    ExtraRegs = (GUEST_EXTRA_REGISTERS *)(((CHAR *)ReadRegisterPacket) + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS));
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, &CallerAddress, &CallerSize);
 
-                    RFLAGS Rflags = {0};
-                    Rflags.AsUInt = ExtraRegs->RFLAGS;
-
-                    ShowMessages(
-                        "RAX=%016llx RBX=%016llx RCX=%016llx\n"
-                        "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
-                        "RIP=%016llx RSP=%016llx RBP=%016llx\n"
-                        "R8 =%016llx R9 =%016llx R10=%016llx\n"
-                        "R11=%016llx R12=%016llx R13=%016llx\n"
-                        "R14=%016llx R15=%016llx IOPL=%02x\n"
-                        "%s  %s  %s  %s\n%s  %s  %s  %s\n"
-                        "CS %04x SS %04x DS %04x ES %04x FS %04x GS %04x\n"
-                        "RFLAGS=%016llx\n",
-                        Regs->rax,
-                        Regs->rbx,
-                        Regs->rcx,
-                        Regs->rdx,
-                        Regs->rsi,
-                        Regs->rdi,
-                        ExtraRegs->RIP,
-                        Regs->rsp,
-                        Regs->rbp,
-                        Regs->r8,
-                        Regs->r9,
-                        Regs->r10,
-                        Regs->r11,
-                        Regs->r12,
-                        Regs->r13,
-                        Regs->r14,
-                        Regs->r15,
-                        Rflags.IoPrivilegeLevel,
-                        Rflags.OverflowFlag ? "OF 1" : "OF 0",
-                        Rflags.DirectionFlag ? "DF 1" : "DF 0",
-                        Rflags.InterruptEnableFlag ? "IF 1" : "IF 0",
-                        Rflags.SignFlag ? "SF  1" : "SF  0",
-                        Rflags.ZeroFlag ? "ZF 1" : "ZF 0",
-                        Rflags.ParityFlag ? "PF 1" : "PF 0",
-                        Rflags.CarryFlag ? "CF 1" : "CF 0",
-                        Rflags.AuxiliaryCarryFlag ? "AXF 1" : "AXF 0",
-                        ExtraRegs->CS,
-                        ExtraRegs->SS,
-                        ExtraRegs->DS,
-                        ExtraRegs->ES,
-                        ExtraRegs->FS,
-                        ExtraRegs->GS,
-                        ExtraRegs->RFLAGS);
-                }
-                else
-                {
-                    ShowMessages("%s=%016llx\n",
-                                 RegistersNames[ReadRegisterPacket->RegisterID],
-                                 ReadRegisterPacket->Value);
-                }
-            }
-            else
-            {
-                ShowErrorMessage(ReadRegisterPacket->KernelStatus);
-            }
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, ReadRegisterPacket, CallerSize);
 
             //
             // Signal the event relating to receiving result of reading registers
@@ -862,139 +809,44 @@ StartAgain:
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 
             break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_WRITE_REGISTER:
+
+            WriteRegisterPacket = (DEBUGGEE_REGISTER_WRITE_DESCRIPTION *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, WriteRegisterPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of writing register
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
 
             ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ReadMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading memory like mem=0000000000018b01
-                //
-                MemoryBuffer = (unsigned char *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET) + sizeof(DEBUGGER_READ_MEMORY));
-
-                switch (ReadMemoryPacket->Style)
-                {
-                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
-
-                    //
-                    // Check if assembly mismatch occurred with the target address
-                    //
-                    if (ReadMemoryPacket->Is32BitAddress == TRUE &&
-                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
-                    {
-                        ShowMessages("the target address seems to be located in a 32-bit program, if so, "
-                                     "please consider using the 'u32' instead to utilize the 32-bit disassembler\n");
-                    }
-
-                    //
-                    // Show diassembles
-                    //
-                    HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
-
-                    //
-                    // Check if assembly mismatch occurred with the target address
-                    //
-                    if (ReadMemoryPacket->Is32BitAddress == FALSE &&
-                        ReadMemoryPacket->MemoryType == DEBUGGER_READ_VIRTUAL_ADDRESS)
-                    {
-                        ShowMessages("the target address seems to be located in a 64-bit program, if so, "
-                                     "please consider using the 'u' instead to utilize the 64-bit disassembler\n");
-                    }
-
-                    //
-                    // Show diassembles
-                    //
-                    HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DB:
-
-                    ShowMemoryCommandDB(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DC:
-
-                    ShowMemoryCommandDC(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DD:
-
-                    ShowMemoryCommandDD(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DQ:
-
-                    ShowMemoryCommandDQ(
-                        MemoryBuffer,
-                        ReadMemoryPacket->Size,
-                        ReadMemoryPacket->Address,
-                        ReadMemoryPacket->MemoryType,
-                        ReadMemoryPacket->ReturnLength);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DUMP:
-
-                    CommandDumpSaveIntoFile(MemoryBuffer, ReadMemoryPacket->Size);
-
-                    break;
-
-                case DEBUGGER_SHOW_COMMAND_DT:
-
-                    //
-                    // Show the 'dt' command view
-                    //
-                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(ReadMemoryPacket->DtDetails->TypeName,
-                                                                  ReadMemoryPacket->Address,
-                                                                  FALSE,
-                                                                  MemoryBuffer,
-                                                                  ReadMemoryPacket->DtDetails->AdditionalParameters);
-
-                    break;
-                }
-            }
-            else
-            {
-                ShowErrorMessage(ReadMemoryPacket->KernelStatus);
-
-                if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DUMP &&
-                    ReadMemoryPacket->KernelStatus == DEBUGGER_ERROR_INVALID_ADDRESS)
-                {
-                    ShowMessages("HyperDbg attempted to access an invalid target address: 0x%llx\n"
-                                 "if you are confident that the address is valid, it may be paged out "
-                                 "or not yet available in the current CR3 page table\n"
-                                 "you can use the '.pagein' command to load this page table into memory and "
-                                 "trigger a page fault (#PF), please refer to the documentation for further details\n\n",
-                                 ReadMemoryPacket->Address);
-                }
-            }
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, &CallerAddress, &CallerSize);
 
             //
-            // Signal the event relating to receiving result of reading registers
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, ReadMemoryPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of reading memory
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
@@ -1004,19 +856,18 @@ StartAgain:
 
             EditMemoryPacket = (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (EditMemoryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // Show the result of reading memory like mem=0000000000018b01
-                //
-            }
-            else
-            {
-                ShowErrorMessage(EditMemoryPacket->KernelStatus);
-            }
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, &CallerAddress, &CallerSize);
 
             //
-            // Signal the event relating to receiving result of reading registers
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, EditMemoryPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of editing memory
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 

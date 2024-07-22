@@ -24,13 +24,15 @@ CommandMsrreadHelp()
     ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] "
                  "[stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
-                 "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !msrread\n");
     ShowMessages("\t\te.g : !msrread 0xc0000082\n");
     ShowMessages("\t\te.g : !msread pid 400\n");
     ShowMessages("\t\te.g : !msrread core 2 pid 400\n");
+    ShowMessages("\t\te.g : !msrread script { printf(\"msr read with the 'ecx' register equal to: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !msrread asm code { nop; nop; nop }\n");
 }
 
 /**

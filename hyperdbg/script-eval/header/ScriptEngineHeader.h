@@ -11,6 +11,20 @@
  */
 #pragma once
 
+//////////////////////////////////////////////////
+//			        Registers                   //
+//////////////////////////////////////////////////
+
+BOOLEAN
+SetRegValue(PGUEST_REGS GuestRegs, UINT32 RegisterId, UINT64 Value);
+
+UINT64
+GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
+
+//////////////////////////////////////////////////
+//			        Functions                   //
+//////////////////////////////////////////////////
+
 BOOL
 ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     ACTION_BUFFER *                ActionDetail,
@@ -18,10 +32,10 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     SYMBOL_BUFFER *                CodeBuffer,
                     UINT64 *                       Indx,
                     SYMBOL_BUFFER *                StackBuffer,
-                    int *                          StackIndx,
-                    int *                          StackBaseIndx,
-                    int *                          StackTempBaseIndx,
-                    SYMBOL *                       ErrorOperator);
+                    UINT64 *                       StackIndx,
+                    UINT64 *                       StackBaseIndx,
+                    SYMBOL *                       ErrorOperator,
+                    UINT64 *                       ReturnValue);
 
 UINT64
 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);

@@ -102,7 +102,7 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid);
 BOOLEAN
 UdAttachToProcess(UINT32        TargetPid,
                   const WCHAR * TargetFileAddress,
-                  WCHAR *       CommandLine,
+                  const WCHAR * CommandLine,
                   BOOLEAN       RunCallbackAtTheFirstInstruction);
 
 BOOLEAN

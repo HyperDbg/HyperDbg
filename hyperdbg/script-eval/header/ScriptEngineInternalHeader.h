@@ -16,14 +16,11 @@
 //			        Registers                   //
 //////////////////////////////////////////////////
 
-VOID
-SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value);
-
-UINT64
-GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
+BOOLEAN
+SetRegValueUsingSymbol(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value);
 
 //////////////////////////////////////////////////
-//			    Pseudo-registers               //
+//			    Pseudo-registers                //
 //////////////////////////////////////////////////
 
 UINT64
@@ -204,9 +201,9 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
                            PSYMBOL                        FirstArg,
                            BOOLEAN *                      HasError,
                            SYMBOL_BUFFER *                StackBuffer,
-                           int *                          StackIndx,
-                           int *                          StackBaseIndx,
-                           int *                          StackTempBaseIndx);
+                           UINT64 *                       StackIndx,
+                           UINT64 *                       StackBaseIndx,
+                           UINT64 *                       ReturnValue);
 
 VOID
 ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError);

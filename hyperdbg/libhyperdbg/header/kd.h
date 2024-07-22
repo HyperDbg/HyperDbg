@@ -23,6 +23,31 @@
                                                                            \
         SyncronizationObject->IsOnWaitingState = TRUE;                     \
         WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+                                                                           \
+    } while (FALSE);
+
+#define DbgWaitSetRequestData(KernelSyncObjectId, ReqData, ReqSize)        \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->RequestData = (PVOID)ReqData;                \
+        SyncronizationObject->RequestSize = (UINT32)ReqSize;               \
+                                                                           \
+    } while (FALSE);
+
+#define DbgWaitGetRequestData(KernelSyncObjectId, ReqData, ReqSize)            \
+    do                                                                         \
+    {                                                                          \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =          \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId];     \
+                                                                               \
+        *ReqData                          = SyncronizationObject->RequestData; \
+        *ReqSize                          = SyncronizationObject->RequestSize; \
+        SyncronizationObject->RequestData = NULL;                              \
+        SyncronizationObject->RequestSize = NULL_ZERO;                         \
+                                                                               \
     } while (FALSE);
 
 #define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
@@ -127,10 +152,14 @@ KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT6
 BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
-BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
+BOOLEAN
+KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize);
 
 BOOLEAN
-KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem);
+KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes);
+
+BOOLEAN
+KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSize);
 
 BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size);

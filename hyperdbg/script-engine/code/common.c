@@ -618,7 +618,7 @@ IsOctal(char c)
  * @return PTOKEN
  */
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error, PSYMBOL CurrentFunctionSymbol)
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error, PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol)
 {
     if (CurrentFunctionSymbol)
     {
@@ -711,6 +711,19 @@ CleanTempList(void)
     for (int i = 0; i < MAX_TEMP_COUNT; i++)
     {
         TempMap[i]      = 0;
+        StackTempMap[i] = 0;
+    }
+}
+
+/**
+ * @brief Resets the stack temporary variables map
+ *
+ */
+void
+CleanStackTempList(void)
+{
+    for (int i = 0; i < MAX_TEMP_COUNT; i++)
+    {
         StackTempMap[i] = 0;
     }
 }

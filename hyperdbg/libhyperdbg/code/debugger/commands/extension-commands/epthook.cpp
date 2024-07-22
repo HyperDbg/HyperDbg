@@ -24,7 +24,7 @@ CommandEptHookHelp()
     ShowMessages(
         "syntax : \t!epthook [Address (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
         "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
-        "[condition { Condition (hex) }] [code { Code (hex) }] [output {OutputName (string)}]\n");
+        "[asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag\n");
@@ -32,6 +32,8 @@ CommandEptHookHelp()
     ShowMessages("\t\te.g : !epthook fffff801deadb000\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 pid 400\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !epthook fffff801deadb000 script { printf(\"hook triggered at: %%llx\\n\", $context); }\n");
+    ShowMessages("\t\te.g : !epthook fffff801deadb000 asm code { nop; nop; nop }\n");
 }
 
 /**

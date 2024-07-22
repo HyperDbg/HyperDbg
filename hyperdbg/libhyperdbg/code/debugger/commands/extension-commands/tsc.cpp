@@ -23,13 +23,15 @@ CommandTscHelp()
 
     ShowMessages("syntax : \t!tsc [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
                  "[sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }] "
+                 "[script { Script (string) }] [asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] "
                  "[output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !tsc\n");
     ShowMessages("\t\te.g : !tsc pid 400\n");
     ShowMessages("\t\te.g : !tsc core 2 pid 400\n");
+    ShowMessages("\t\te.g : !tsc script { printf(\"RDTSC/P instruction called at: %%llx\\n\", @rip); }\n");
+    ShowMessages("\t\te.g : !tsc asm code { nop; nop; nop }\n");
 }
 
 /**

@@ -15,3 +15,8 @@
 // Asserts
 //
 #include "SDK/Headers/Assertions.h"
+
+//
+// Script Engine
+//
+#include "SDK/Headers/ScriptEngineCommonDefinitions.h"

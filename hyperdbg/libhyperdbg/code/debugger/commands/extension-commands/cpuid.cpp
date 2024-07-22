@@ -24,14 +24,16 @@ CommandCpuidHelp()
 
     ShowMessages("syntax : \t!cpuid [Eax (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
-                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [condition { Condition (hex) }] "
-                 "[code { Code (hex) }] [output {OutputName (string)}]\n");
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
+                 "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !cpuid\n");
     ShowMessages("\t\te.g : !cpuid 1\n");
     ShowMessages("\t\te.g : !cpuid pid 400\n");
     ShowMessages("\t\te.g : !cpuid core 2 pid 400\n");
+    ShowMessages("\t\te.g : !cpuid script { printf(\"CPUID instruction is executed with the 'eax' register equal to: %%llx\\n\", @eax); }\n");
+    ShowMessages("\t\te.g : !cpuid asm code { nop; nop; nop }\n");
 }
 
 /**

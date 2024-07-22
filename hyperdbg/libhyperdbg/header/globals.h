@@ -447,7 +447,13 @@ TCHAR g_TestLocation[MAX_PATH] = {0};
  * messages
  *
  */
-Callback g_MessageHandler = 0;
+PVOID g_MessageHandler = 0;
+
+/**
+ * @brief The shared buffer for the handler of ShowMessages function
+ *
+ */
+PVOID g_MessageHandlerSharedBuffer = 0;
 
 /**
  * @brief Shows whether the vmxoff process start or not
@@ -553,6 +559,11 @@ UINT64 g_RdtscMedian = 0;
  * @brief Shows whether the user is running 't', 'p', or 'i' command
  */
 BOOLEAN g_IsInstrumentingInstructions = FALSE;
+
+/**
+ * @brief Shows the kernel base address
+ */
+UINT64 g_KernelBaseAddress;
 
 //////////////////////////////////////////////////
 //			     	 Settings			        //

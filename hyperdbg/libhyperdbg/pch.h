@@ -118,6 +118,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #endif // !NDEBUG
 
 //
+// Keystone
+//
+#include "keystone\keystone.h"
+
+//
 // HyperDbg defined headers
 //
 #include "Configuration.h"
@@ -127,7 +132,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // Script-engine
 //
-#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
 #include "..\script-eval\header\ScriptEngineHeader.h"
 
 //
@@ -160,7 +164,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/ud.h"
 #include "header/objects.h"
 #include "header/rev-ctrl.h"
-
+#include "header/assembler.h"
+#include <regex>
 //
 // hwdbg
 //

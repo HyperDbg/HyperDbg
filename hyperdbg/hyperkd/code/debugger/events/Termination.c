@@ -107,99 +107,19 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateHiddenHookReadAndWriteAndExecuteEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    UINT64                    RemainingSize;
-    UINT64                    PagesBytes;
-    UINT64                    ConstEndAddress;
-    UINT64                    TempNextPageAddr;
-    UINT64                    TempStartAddress = Event->Options.OptionalParam3;
-    UINT64                    TempEndAddress   = Event->Options.OptionalParam4;
-    DEBUGGER_HOOK_MEMORY_TYPE MemoryType       = (DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam5;
-    ConstEndAddress                            = TempEndAddress;
-
-    //
-    // Because there are different EPT hooks, like READ, WRITE, EXECUTE,
-    // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whether the list of
-    // all of them is empty or not and instead, we remove just a single
-    // hook, this way is better as hidden hooks and ept modifications are
-    // not dependent to a single bit and if we remove or add any other hook
-    // then it won't cause any problem for other hooks
-    //
-
-    PagesBytes = (UINT64)PAGE_ALIGN(TempStartAddress);
-    PagesBytes = TempEndAddress - PagesBytes;
-    PagesBytes = PagesBytes / PAGE_SIZE;
-
-    RemainingSize = TempEndAddress - TempStartAddress;
-
-    // LogInfo("Monitor termination, Start address: %llx, end address: %llx\n\n\n",
-    //         TempStartAddress,
-    //         TempEndAddress,
-    //         RemainingSize);
-
-    for (size_t i = 0; i <= PagesBytes; i++)
+    if (InputFromVmxRoot)
     {
-        if (RemainingSize >= PAGE_SIZE)
-        {
-            TempEndAddress = (TempStartAddress + ((UINT64)PAGE_ALIGN(TempStartAddress + PAGE_SIZE) - TempStartAddress)) - 1;
-            RemainingSize  = ConstEndAddress - TempEndAddress - 1;
-        }
-        else
-        {
-            TempNextPageAddr = (UINT64)PAGE_ALIGN(TempStartAddress + RemainingSize);
-
-            //
-            // Check if by adding the remaining size, we'll go to the next
-            // page boundary or not
-            //
-            if (TempNextPageAddr > ((UINT64)PAGE_ALIGN(TempStartAddress)))
-            {
-                //
-                // It goes to the next page boundary
-                //
-                TempEndAddress = TempNextPageAddr - 1;
-                RemainingSize  = RemainingSize - (TempEndAddress - TempStartAddress) - 1;
-            }
-            else
-            {
-                TempEndAddress = TempStartAddress + RemainingSize;
-                RemainingSize  = 0;
-            }
-        }
-
-        if (InputFromVmxRoot)
-        {
-            if (MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
-            {
-                TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)NULL,
-                                                                                   (UINT64)TempStartAddress);
-            }
-            else
-            {
-                TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation((UINT64)TempStartAddress,
-                                                                                   (UINT64)NULL);
-            }
-        }
-        else
-        {
-            if (MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
-            {
-                ConfigureEptHookUnHookSingleAddress((UINT64)NULL,
-                                                    (UINT64)TempStartAddress,
-                                                    NULL_ZERO);
-            }
-            else
-            {
-                ConfigureEptHookUnHookSingleAddress((UINT64)TempStartAddress,
-                                                    (UINT64)NULL,
-                                                    Event->ProcessId);
-            }
-        }
-
         //
-        // Swap the temporary start address and temporary end address
+        // EPT hooking tag is same as event tag, so we can use it to unhook
         //
-        TempStartAddress = TempEndAddress + 1;
+        TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(Event->Tag);
+    }
+    else
+    {
+        //
+        // EPT hooking tag is same as event tag, so we can use it to unhook
+        //
+        ConfigureEptHookUnHookAllByHookingTag(Event->Tag);
     }
 }
 
@@ -1714,6 +1634,69 @@ TerminateEptHookUnHookSingleAddressFromVmxRootAndApplyInvalidation(UINT64 Virtua
     // The result of removing EPT hook was not okay
     //
     return FALSE;
+}
+
+/**
+ * @brief Remove all hooks from the hooked pages list and invalidate TLB using hooking tag
+ * @details Should be called from vmx root-mode
+ *
+ * @param HookingTag The hooking tag to unhook
+ *
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+TerminateEptHookUnHookAllHooksByHookingTagFromVmxRootAndApplyInvalidation(UINT64 HookingTag)
+{
+    BOOLEAN                           Result                  = FALSE;
+    BOOLEAN                           IsAtLeastOneHookRemoved = FALSE;
+    EPT_SINGLE_HOOK_UNHOOKING_DETAILS TargetUnhookingDetails  = {0};
+
+UnhookNextPossibleTag:
+    //
+    // Perform unhooking directly from VMX-root mode using hooking tag
+    //
+    Result = ConfigureEptHookUnHookSingleHookByHookingTagFromVmxRoot(HookingTag,
+                                                                     &TargetUnhookingDetails);
+
+    if (Result == TRUE)
+    {
+        //
+        // At least one hook was removed
+        //
+        IsAtLeastOneHookRemoved = TRUE;
+
+        //
+        // It's the responsibility of the caller to restore EPT entries and
+        // invalidate EPT caches
+        //
+        if (TargetUnhookingDetails.CallerNeedsToRestoreEntryAndInvalidateEpt)
+        {
+            HaltedBroadcastUnhookSinglePageAllCores(&TargetUnhookingDetails);
+        }
+
+        //
+        // It's the responsibility of the caller to clear #BPs directly from
+        // VMX-root mode if applied from VMX-root mode
+        //
+        if (TargetUnhookingDetails.RemoveBreakpointInterception)
+        {
+            //
+            // The hook was the last hook and we can broadcast to
+            // not intercept #BPs anymore
+            //
+            HaltedBroadcastUnSetExceptionBitmapAllCores(EXCEPTION_VECTOR_BREAKPOINT);
+        }
+
+        //
+        // Keep unhooking until there is no hook with the same hooking tag
+        //
+        goto UnhookNextPossibleTag;
+    }
+
+    //
+    // The result of removing EPT hook
+    //
+    return IsAtLeastOneHookRemoved;
 }
 
 /**
