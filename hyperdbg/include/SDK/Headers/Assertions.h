@@ -4,7 +4,7 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief HyperDbg's assertions
  * @details This file contains asserts and static asserts
- * @version 1.0
+ * @version 0.10
  * @date 2024-06-21
  *
  * @copyright This project is released under the GNU Public License v3.
