@@ -70,4 +70,7 @@ IsId(char * str);
 
 char
 IsRegister(char * str);
+
+char
+IsVariableType(char * str);
 #endif // !SCANNER_H

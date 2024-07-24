@@ -201,11 +201,8 @@ PrintToken(PTOKEN Token)
     case UNKNOWN:
         printf(" UNKNOWN>\n");
         break;
-    case INPUT_VARIABLE_TYPE:
-        printf(" INPUT_VARIABLE_TYPE>\n");
-        break;
-    case HANDLED_VARIABLE_TYPE:
-        printf(" HANDLED_VARIABLE_TYPE>\n");
+    case SCRIPT_VARIABLE_TYPE:
+        printf(" SCRIPT_VARIABLE_TYPE>\n");
         break;
     case FUNCTION_TYPE:
         printf(" FUNCTION_TYPE>\n");
@@ -624,7 +621,7 @@ NewTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PSCRIPT_ENGINE_ERROR_
     {
         if (CurrentFunctionSymbol->TempMap[i] == 0)
         {
-            TempID     = i;
+            TempID                            = i;
             CurrentFunctionSymbol->TempMap[i] = 1;
             break;
         }
@@ -661,7 +658,6 @@ FreeTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PTOKEN Temp)
         CurrentFunctionSymbol->TempMap[id] = 0;
     }
 }
-
 
 /**
  * @brief Checks whether this Token type is OneOpFunc1
@@ -984,28 +980,6 @@ IsType15Func(PTOKEN Operator)
 }
 
 /**
- * @brief Checks whether this Token type is VariableType
- *
- * @param Operator
- * @return char
- */
-
-char
-IsVariableType(PTOKEN Operator)
-{
-    unsigned int n = VARIABLETYPE_LENGTH;
-    for (unsigned int i = 0; i < n; i++)
-    {
-        if (!strcmp(Operator->Value, VARIABLETYPE[i]))
-        {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *
@@ -1101,6 +1075,13 @@ GetTerminalId(PTOKEN Token)
         else if (Token->Type == PSEUDO_REGISTER)
         {
             if (!strcmp("_pseudo_register", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == SCRIPT_VARIABLE_TYPE)
+        {
+            if (!strcmp("_script_variable_type", TerminalMap[i]))
             {
                 return i;
             }

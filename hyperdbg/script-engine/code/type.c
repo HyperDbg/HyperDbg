@@ -49,48 +49,48 @@ HandleType(PTOKEN_LIST PtokenStack)
     while (PtokenStack->Pointer > 0)
     {
         TopToken = Pop(PtokenStack);
-        if (TopToken->Type != INPUT_VARIABLE_TYPE)
+        if (TopToken->Type != SCRIPT_VARIABLE_TYPE)
         {
             Push(PtokenStack, TopToken);
             break;
         }
-        if (!strcmp(TopToken->Value, "@VOID"))
+        if (!strcmp(TopToken->Value, "void"))
         {
             Counter += ENUM_VOID;
         }
-        else if (!strcmp(TopToken->Value, "@BOOL"))
+        else if (!strcmp(TopToken->Value, "bool"))
         {
             Counter += ENUM_BOOL;
         }
-        else if (!strcmp(TopToken->Value, "@CHAR"))
+        else if (!strcmp(TopToken->Value, "char"))
         {
             Counter += ENUM_CHAR;
         }
-        else if (!strcmp(TopToken->Value, "@SHORT"))
+        else if (!strcmp(TopToken->Value, "short"))
         {
             Counter += ENUM_SHORT;
         }
-        else if (!strcmp(TopToken->Value, "@INT"))
+        else if (!strcmp(TopToken->Value, "int"))
         {
             Counter += ENUM_INT;
         }
-        else if (!strcmp(TopToken->Value, "@LONG"))
+        else if (!strcmp(TopToken->Value, "long"))
         {
             Counter += ENUM_LONG;
         }
-        else if (!strcmp(TopToken->Value, "@FLOAT"))
+        else if (!strcmp(TopToken->Value, "float"))
         {
             Counter += ENUM_FLOAT;
         }
-        else if (!strcmp(TopToken->Value, "@DOUBLE"))
+        else if (!strcmp(TopToken->Value, "double"))
         {
             Counter += ENUM_DOUBLE;
         }
-        else if (!strcmp(TopToken->Value, "@SIGNED"))
+        else if (!strcmp(TopToken->Value, "signed"))
         {
             Counter |= ENUM_SIGNED;
         }
-        else if (!strcmp(TopToken->Value, "@UNSIGNED"))
+        else if (!strcmp(TopToken->Value, "unsigned"))
         {
             Counter |= ENUM_UNSIGNED;
         }

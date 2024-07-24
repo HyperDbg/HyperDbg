@@ -1,17 +1,18 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 206
-#define TERMINAL_COUNT 103
+#define RULES_COUNT 197
+#define TERMINAL_COUNT 94
 #define NONETERMINAL_COUNT 49
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
-#define KEYWORD_LIST_LENGTH 93
+#define KEYWORD_LIST_LENGTH 83
 #define OPERATORS_ONE_OPERAND_LIST_LENGTH 4
 #define OPERATORS_TWO_OPERAND_LIST_LENGTH 16
 #define REGISTER_MAP_LIST_LENGTH 120
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 16
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 129
+#define SCRIPT_VARIABLE_TYPE_LIST_LENGTH 10
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 119
 #define THREEOPFUNC1_LENGTH 1
 #define THREEOPFUNC2_LENGTH 2
 #define TWOOPFUNC1_LENGTH 5
@@ -26,7 +27,6 @@
 #define TWOOPFUNC4_LENGTH 1
 #define ZEROOPFUNC1_LENGTH 7
 #define VARARGFUNC1_LENGTH 1
-#define VARIABLETYPE_LENGTH 10
 extern const struct _TOKEN Lhs[RULES_COUNT];
 extern const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int RhsSize[RULES_COUNT];
@@ -50,10 +50,10 @@ extern const char* OneOpFunc4[];
 extern const char* TwoOpFunc4[];
 extern const char* ZeroOpFunc1[];
 extern const char* VarArgFunc1[];
-extern const char* VARIABLETYPE[];
 extern const SYMBOL_MAP SemanticRulesMapList[];
 extern const SYMBOL_MAP RegisterMapList[];
 extern const SYMBOL_MAP PseudoRegisterMapList[];
+extern const char* ScriptVariableTypeList[];
 
 
 #define LALR_RULES_COUNT 87

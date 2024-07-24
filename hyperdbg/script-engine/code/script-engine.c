@@ -628,13 +628,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
 
     while (TRUE)
     {
-        if (IsVariableType(Operator))
-        {
-            PTOKEN PToken = CopyToken(Operator);
-            PToken->Type  = INPUT_VARIABLE_TYPE;
-            Push(MatchedStack, PToken);
-        }
-        else if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
+
+        if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
         {
             Op0          = Pop(MatchedStack);
             VariableType = HandleType(MatchedStack);
@@ -1161,7 +1156,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
 
             if (MatchedStack->Pointer > 0)
             {
-                if (Top(MatchedStack)->Type == INPUT_VARIABLE_TYPE)
+                if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
                 {
                     VariableType = HandleType(MatchedStack);
 

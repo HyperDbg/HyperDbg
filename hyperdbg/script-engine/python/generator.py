@@ -146,20 +146,6 @@ typedef struct ACTION_BUFFER {
   char CallingStage;
 } ACTION_BUFFER, *PACTION_BUFFER;
 
-typedef struct USER_DEFINED_FUNCTION_NODE
-{
-    char * Name;
-    long long unsigned Address;
-    long long unsigned VariableType;
-    long long unsigned ParameterNumber;
-    long long unsigned MaxTempNumber;
-    long long unsigned LocalVariableNumber;
-    long long unsigned IdTable;
-    long long unsigned FunctionParameterIdTable;
-    char *TempMap;
-    struct USER_DEFINED_FUNCTION_NODE * NextNode;
-} USER_DEFINED_FUNCTION_NODE, *PUSER_DEFINED_FUNCTION_NODE;
-
 #define SYMBOL_UNDEFINED 0
 #define SYMBOL_GLOBAL_ID_TYPE 1
 #define SYMBOL_LOCAL_ID_TYPE 2
