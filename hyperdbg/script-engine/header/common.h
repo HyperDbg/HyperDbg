@@ -61,7 +61,6 @@ typedef enum TOKEN_TYPE
     HANDLED_VARIABLE_TYPE,
     FUNCTION_TYPE,
     FUNCTION_PARAMETER_ID,
-    STACK_TEMP,
     UNKNOWN
 } TOKEN_TYPE;
 
@@ -111,19 +110,10 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PUSER_DEFINED_FUNCTION_NODE);
-
-PTOKEN
-NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+NewTemp(PUSER_DEFINED_FUNCTION_NODE, PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
-FreeTemp(PTOKEN Temp);
-
-void
-CleanTempList(void);
-
-void
-CleanStackTempList(void);
+    FreeTemp(PUSER_DEFINED_FUNCTION_NODE);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //

@@ -213,8 +213,6 @@ PrintToken(PTOKEN Token)
     case FUNCTION_PARAMETER_ID:
         printf(" FUNCTION_PARAMETER_ID>\n");
         break;
-    case STACK_TEMP:
-        printf(" STACK_TEMP>\n");
     default:
         printf(" ERROR>\n");
         break;
@@ -618,55 +616,16 @@ IsOctal(char c)
  * @return PTOKEN
  */
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error, PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol)
-{
-    if (CurrentFunctionSymbol)
-    {
-        return NewStackTemp(Error);
-    }
-    else
-    {
-        static unsigned int TempID = 0;
-        int                 i;
-        for (i = 0; i < MAX_TEMP_COUNT; i++)
-        {
-            if (TempMap[i] == 0)
-            {
-                TempID     = i;
-                TempMap[i] = 1;
-                break;
-            }
-        }
-        if (i == MAX_TEMP_COUNT)
-        {
-            *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
-        }
-        PTOKEN Temp = NewUnknownToken();
-        char   TempValue[8];
-        sprintf(TempValue, "%d", TempID);
-        strcpy(Temp->Value, TempValue);
-        Temp->Type = TEMP;
-        return Temp;
-    }
-}
-
-/**
- * @brief Allocates a new temporary variable in stack and returns it
- *
- * @param Error
- * @return PTOKEN
- */
-PTOKEN
-NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
+NewTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
     int                 i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
-        if (StackTempMap[i] == 0)
+        if (CurrentFunctionSymbol->TempMap[i] == 0)
         {
-            TempID          = i;
-            StackTempMap[i] = 1;
+            TempID     = i;
+            CurrentFunctionSymbol->TempMap[i] = 1;
             break;
         }
     }
@@ -678,7 +637,13 @@ NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     char   TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
-    Temp->Type = STACK_TEMP;
+    Temp->Type = TEMP;
+
+    if (CurrentFunctionSymbol->MaxTempNumber < (i + 1))
+    {
+        CurrentFunctionSymbol->MaxTempNumber = i + 1;
+    }
+
     return Temp;
 }
 
@@ -688,45 +653,15 @@ NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
  * @param Temp
  */
 void
-FreeTemp(PTOKEN Temp)
+FreeTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PTOKEN Temp)
 {
     int id = (int)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
     {
-        TempMap[id] = 0;
-    }
-    else if (Temp->Type == STACK_TEMP)
-    {
-        StackTempMap[id] = 0;
+        CurrentFunctionSymbol->TempMap[id] = 0;
     }
 }
 
-/**
- * @brief Resets the temporary variables map
- *
- */
-void
-CleanTempList(void)
-{
-    for (int i = 0; i < MAX_TEMP_COUNT; i++)
-    {
-        TempMap[i]      = 0;
-        StackTempMap[i] = 0;
-    }
-}
-
-/**
- * @brief Resets the stack temporary variables map
- *
- */
-void
-CleanStackTempList(void)
-{
-    for (int i = 0; i < MAX_TEMP_COUNT; i++)
-    {
-        StackTempMap[i] = 0;
-    }
-}
 
 /**
  * @brief Checks whether this Token type is OneOpFunc1

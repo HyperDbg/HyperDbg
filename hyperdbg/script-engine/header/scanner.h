@@ -20,7 +20,12 @@
 PTOKEN_LIST IdTable;
 
 /**
- * @brief
+ * @brief lookup table for storing global Ids
+ */
+PTOKEN_LIST GlobalIdTable;
+
+/**
+ * @brief lookup table for storing function parameter Ids
  */
 PTOKEN_LIST FunctionParameterIdTable;
 
