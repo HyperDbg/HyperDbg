@@ -278,10 +278,10 @@ BOOLEAN
 HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId);
 
 BOOLEAN
-HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOOLEAN PauseAfterConnection);
 
 BOOLEAN
-HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe);
+HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection);
 
 BOOLEAN
 HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);

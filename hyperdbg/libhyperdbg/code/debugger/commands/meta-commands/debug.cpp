@@ -109,11 +109,12 @@ CommandDebugCheckBaudrate(DWORD Baudrate)
  *
  * @param PortName
  * @param Baudrate
+ * @param PauseAfterConnection
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
+HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOOLEAN PauseAfterConnection)
 {
     UINT32 Port;
 
@@ -142,20 +143,21 @@ HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
     //
     // Everything is okay, connect to the remote machine to send (debugger)
     //
-    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE);
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE, PauseAfterConnection);
 }
 
 /**
  * @brief Connect to a remote named pipe (Debugger)
  *
  * @param NamedPipe
+ * @param PauseAfterConnection
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe)
+HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection)
 {
-    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE);
+    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE, PauseAfterConnection);
 }
 
 /**
@@ -195,8 +197,10 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
 
     //
     // Everything is okay, connect to the remote machine to send (debuggee)
+    // Note: Pause after connect is set to FALSE, because it doesn't make sense for the
+    // deubuggee to pause after connecting to the debugger
     //
-    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, TRUE, FALSE);
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, TRUE, FALSE, FALSE);
 }
 
 /**
@@ -301,7 +305,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Everything is okay, connect to the remote machine to send (debugger)
             //
-            HyperDbgDebugRemoteDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate);
+            HyperDbgDebugRemoteDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate, FALSE);
         }
         else if (!SplitCommand.at(2).compare("namedpipe"))
         {
@@ -316,7 +320,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Connect to a namedpipe (it's probably a Virtual Machine debugging)
             //
-            HyperDbgDebugRemoteDeviceUsingNamedPipe(Token.c_str());
+            HyperDbgDebugRemoteDeviceUsingNamedPipe(Token.c_str(), FALSE);
         }
         else
         {

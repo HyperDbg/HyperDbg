@@ -97,13 +97,13 @@ hyperdbg_u_connect_remote_debugger(const CHAR * ip, const CHAR * port);
 //
 // Connect to the debugger in the Debugger Mode
 //
-BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate);
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate, BOOLEAN pause_after_connection);
 
-BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe);
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection);
 
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD baudrate);
 
 //

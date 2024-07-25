@@ -95,10 +95,17 @@ hyperdbg_load()
     //
     // Test interpreter
     //
-    // hyperdbg_u_interpreter((CHAR *)".debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe");
-    hyperdbg_u_connect_remote_debugger_using_named_pipe("\\\\.\\pipe\\HyperDbgPipe");
+    hyperdbg_u_connect_remote_debugger_using_named_pipe("\\\\.\\pipe\\HyperDbgPipe", TRUE);
     Sleep(10000);
+    hyperdbg_u_interpreter((CHAR *)"r");
     hyperdbg_u_interpreter((CHAR *)".start path c:\\Windows\\system32\\calc.exe");
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
+    hyperdbg_u_continue_debuggee();
 
     return 0;
 }

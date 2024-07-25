@@ -466,26 +466,28 @@ hyperdbg_u_get_kernel_base()
  *
  * @param port_name The port name
  * @param baudrate The baudrate
+ * @param pause_after_connection Pause after connection
  *
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate)
+hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate, BOOLEAN pause_after_connection)
 {
-    return HyperDbgDebugRemoteDeviceUsingComPort(port_name, baudrate);
+    return HyperDbgDebugRemoteDeviceUsingComPort(port_name, baudrate, pause_after_connection);
 }
 
 /**
  * @brief Connect to the remote debugger using named pipe
  *
  * @param named_pipe The named pipe
+ * @param pause_after_connection Pause after connection
  *
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe)
+hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection)
 {
-    return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe);
+    return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe, pause_after_connection);
 }
 
 BOOLEAN
