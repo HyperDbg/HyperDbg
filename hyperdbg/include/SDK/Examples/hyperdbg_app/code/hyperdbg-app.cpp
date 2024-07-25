@@ -23,9 +23,7 @@ PVOID g_SharedMessageBuffer = NULL;
 int
 hyperdbg_show_messages(const char * Text)
 {
-    printf("Test in the handler | ");
-    printf("%s\n", Text);
-
+    printf("%s", Text);
     return 0;
 }
 
@@ -38,9 +36,7 @@ hyperdbg_show_messages(const char * Text)
 int
 hyperdbg_show_messages_shared_buffer()
 {
-    printf("Test in the handler (shared buffer) | ");
-    printf("%s\n", (char *)g_SharedMessageBuffer);
-
+    printf("%s", (char *)g_SharedMessageBuffer);
     return 0;
 }
 
@@ -89,17 +85,20 @@ hyperdbg_load()
     //
     // Set callback function for showing messages
     //
-    // hyperdbg_u_set_text_message_callback(hyperdbg_show_messages);
+    hyperdbg_u_set_text_message_callback(hyperdbg_show_messages);
 
     //
     // Test intepreter with shared buffer
     //
-    g_SharedMessageBuffer = hyperdbg_u_set_text_message_callback_using_shared_buffer(hyperdbg_show_messages_shared_buffer);
+    // g_SharedMessageBuffer = hyperdbg_u_set_text_message_callback_using_shared_buffer(hyperdbg_show_messages_shared_buffer);
 
     //
     // Test interpreter
     //
-    hyperdbg_u_interpreter((CHAR *)"help !monitor");
+    // hyperdbg_u_interpreter((CHAR *)".debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe");
+    hyperdbg_u_connect_remote_debugger_using_named_pipe("\\\\.\\pipe\\HyperDbgPipe");
+    Sleep(10000);
+    hyperdbg_u_interpreter((CHAR *)".start path c:\\Windows\\system32\\calc.exe");
 
     return 0;
 }
