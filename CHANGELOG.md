@@ -9,6 +9,7 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - Support using assembly conditions and codes in all events ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-a-condition))([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-an-action))
+- Added support for forwarding events to binary (DLL) modules ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))([link](https://docs.hyperdbg.org/commands/debugging-commands/output))([link](https://github.com/HyperDbg/event-forwarding-examples))
 - Added the assembler command 'a' for virtual memory ([link](https://docs.hyperdbg.org/commands/debugging-commands/a))
 - Added the assembler command '!a' for physical memory ([link](https://docs.hyperdbg.org/commands/extension-commands/a))
 - Providing a unified SDK API for reading memory in the VMI Mode and the Debugger Mode

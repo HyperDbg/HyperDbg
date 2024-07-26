@@ -28,7 +28,7 @@ CommandOutputHelp()
     ShowMessages("output : creates an output instance that can be used in event "
                  "forwarding.\n\n");
 
-    ShowMessages("syntax : \toutput [create Name (string)] [file|namedpipe|tcp Address (string)]\n");
+    ShowMessages("syntax : \toutput [create Name (string)] [file|namedpipe|tcp|module Address (string)]\n");
     ShowMessages("syntax : \toutput [open|close Name (string)]\n");
 
     ShowMessages("\n");
