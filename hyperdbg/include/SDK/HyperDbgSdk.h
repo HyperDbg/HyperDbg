@@ -1,22 +1,22 @@
 #pragma once
 
-#include "SDK/Headers/Constants.h"
-#include "SDK/Headers/BasicTypes.h"
-#include "SDK/Headers/ErrorCodes.h"
-#include "SDK/Headers/Connection.h"
-#include "SDK/Headers/DataTypes.h"
-#include "SDK/Headers/Ioctls.h"
-#include "SDK/Headers/Events.h"
-#include "SDK/Headers/RequestStructures.h"
-#include "SDK/Headers/Symbols.h"
-#include "SDK/Headers/HardwareDebugger.h"
+#include "SDK/headers1/Constants.h"
+#include "SDK/headers1/BasicTypes.h"
+#include "SDK/headers1/ErrorCodes.h"
+#include "SDK/headers1/Connection.h"
+#include "SDK/headers1/DataTypes.h"
+#include "SDK/headers1/Ioctls.h"
+#include "SDK/headers1/Events.h"
+#include "SDK/headers1/RequestStructures.h"
+#include "SDK/headers1/Symbols.h"
+#include "SDK/headers1/HardwareDebugger.h"
 
 //
 // Asserts
 //
-#include "SDK/Headers/Assertions.h"
+#include "SDK/headers1/Assertions.h"
 
 //
 // Script Engine
 //
-#include "SDK/Headers/ScriptEngineCommonDefinitions.h"
+#include "SDK/headers1/ScriptEngineCommonDefinitions.h"

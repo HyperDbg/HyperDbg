@@ -65,7 +65,7 @@
 //
 // VMM Callbacks
 //
-#include "SDK/Modules/VMM.h"
+#include "SDK/modules1/VMM.h"
 
 //
 // The core's state
@@ -78,7 +78,7 @@
 #include "vmm/vmx/Vmx.h"
 #include "vmm/vmx/VmxRegions.h"
 #include "vmm/ept/Ept.h"
-#include "SDK/Imports/kernel1/HyperDbgVmmImports.h"
+#include "SDK/imports1/kernel/HyperDbgVmmImports.h"
 
 //
 // VMX and Capabilities
@@ -159,5 +159,5 @@
 //
 // HyperLog Module
 //
-#include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/kernel1/HyperDbgHyperLogIntrinsics.h"
+#include "SDK/modules1/HyperLog.h"
+#include "SDK/imports1/kernel/HyperDbgHyperLogIntrinsics.h"
