@@ -40,8 +40,8 @@
 
 #include "UnloadDll.h"
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/modules1/HyperLog.h"
-#include "SDK/imports1/kernel/HyperDbgHyperLogImports.h"
+#include "SDK/modules/HyperLog.h"
+#include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
 #include "components/spinlock/header/Spinlock.h"
 #include "Logging.h"
 

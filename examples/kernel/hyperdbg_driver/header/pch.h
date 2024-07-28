@@ -45,15 +45,15 @@
 //
 // Import HyperLog Module
 //
-#include "SDK/modules1/HyperLog.h"
-#include "SDK/imports1/kernel/HyperDbgHyperLogImports.h"
-#include "SDK/imports1/kernel/HyperDbgHyperLogIntrinsics.h"
+#include "SDK/modules/HyperLog.h"
+#include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
+#include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
 
 //
 // Import VMM Module
 //
-#include "SDK/modules1/VMM.h"
-#include "SDK/imports1/kernel/HyperDbgVmmImports.h"
+#include "SDK/modules/VMM.h"
+#include "SDK/imports/kernel/HyperDbgVmmImports.h"
 
 //
 // Local Driver headers

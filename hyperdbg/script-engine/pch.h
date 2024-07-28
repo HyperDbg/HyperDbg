@@ -30,12 +30,12 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "SDK/imports1/user/HyperDbgSymImports.h"
-#include "SDK/headers1/HardwareDebugger.h"
+#include "SDK/imports/user/HyperDbgSymImports.h"
+#include "SDK/headers/HardwareDebugger.h"
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
-#include "..\include\SDK\headers1\ScriptEngineCommonDefinitions.h"
+#include "..\include\SDK\headers\ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"
 #include "type.h"
