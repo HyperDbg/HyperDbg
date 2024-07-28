@@ -539,3 +539,34 @@ hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments)
                              arguments,
                              FALSE);
 }
+
+/**
+ * @brief Assembler function to get the length of the assembly code
+ *
+ * @param assembly_code The assembly code
+ * @param start_address The start address of the assembly code
+ * @param length The length of the assembly code
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_assemble_get_length(const CHAR * assembly_code, UINT64 start_address, UINT32 * length)
+{
+    return HyperDbgAssembleGetLength(assembly_code, start_address, length);
+}
+
+/**
+ * @brief Assembler function
+ *
+ * @param assembly_code The assembly code
+ * @param start_address The start address of the assembly code
+ * @param buffer_to_store_assembled_data The buffer to store the assembled data
+ * @param buffer_size The size of the buffer
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size)
+{
+    return HyperDbgAssemble(assembly_code, start_address, buffer_to_store_assembled_data, buffer_size);
+}

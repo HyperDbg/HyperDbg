@@ -194,6 +194,16 @@ hyperdbg_u_start_process(const WCHAR * path);
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments);
 
+//
+// Assembler
+// Exported functionality of the 'a' command
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_assemble_get_length(const CHAR * assembly_code, UINT64 start_address, UINT32 * length);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size);
+
 #ifdef __cplusplus
 }
 #endif

@@ -182,3 +182,83 @@ create_AssembleData()
 {
     return new AssembleData;
 }
+
+/**
+ * @brief Assembler function
+ *
+ * @param AssemblyCode The assembly code
+ * @param StartAddress The start address of the assembly code
+ * @param Length The length of the assembly code in bytes (to be returned)
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgAssembleGetLength(const CHAR * AssemblyCode, UINT64 StartAddress, UINT32 * Length)
+{
+    AssembleData AssembleData;
+
+    //
+    // Convert assembly code to string
+    //
+    std::string AsmCode = AssemblyCode;
+
+    AssembleData.AsmRaw = AsmCode;
+    AssembleData.ParseAssemblyData();
+
+    if (AssembleData.Assemble(StartAddress))
+    {
+        return FALSE;
+    }
+    else
+    {
+        //
+        // Get the BytesCount
+        //
+        *Length = (UINT32)AssembleData.BytesCount;
+
+        return TRUE;
+    }
+}
+
+/**
+ * @brief Assembler function
+ *
+ * @param AssemblyCode The assembly code
+ * @param StartAddress The start address of the assembly code
+ * @param BufferToStoreAssembledData The buffer to store the assembled data
+ * @param BufferSize The size of the buffer
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+HyperDbgAssemble(const CHAR * AssemblyCode, UINT64 StartAddress, PVOID BufferToStoreAssembledData, UINT32 BufferSize)
+{
+    AssembleData AssembleData;
+
+    //
+    // Convert assembly code to string
+    //
+    std::string AsmCode = AssemblyCode;
+
+    AssembleData.AsmRaw = AsmCode;
+    AssembleData.ParseAssemblyData();
+
+    if (AssembleData.Assemble(StartAddress))
+    {
+        return FALSE;
+    }
+    else
+    {
+        if (AssembleData.BytesCount > BufferSize)
+        {
+            return FALSE;
+        }
+
+        //
+        // Copy the assembled data to the buffer
+        //
+        memcpy(BufferToStoreAssembledData, AssembleData.EncodedBytes, AssembleData.BytesCount);
+
+        return TRUE;
+    }
+}

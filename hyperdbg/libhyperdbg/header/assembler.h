@@ -31,3 +31,9 @@ public:
     INT
     Assemble(UINT64 StartAddr, ks_arch Arch = KS_ARCH_X86, INT Mode = KS_MODE_64, INT Syntax = KS_OPT_SYNTAX_INTEL);
 };
+
+BOOLEAN
+HyperDbgAssembleGetLength(const CHAR * AssemblyCode, UINT64 StartAddress, UINT32 * Length);
+
+BOOLEAN
+HyperDbgAssemble(const CHAR * AssemblyCode, UINT64 StartAddress, PVOID BufferToStoreAssembledData, UINT32 BufferSize);
