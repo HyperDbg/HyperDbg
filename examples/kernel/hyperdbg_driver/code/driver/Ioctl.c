@@ -26,6 +26,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PREGISTER_NOTIFY_BUFFER RegisterEventRequest;
     NTSTATUS                Status;
 
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     //
     // Here's the best place to see if there is any allocation pending
     // to be allcated as we're in PASSIVE_LEVEL

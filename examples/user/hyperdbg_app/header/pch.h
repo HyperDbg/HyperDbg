@@ -13,11 +13,6 @@
 #pragma once
 
 //
-// Environment headers
-//
-#include "platform/user/header/Environment.h"
-
-//
 // Windows SDK headers
 //
 #define WIN32_LEAN_AND_MEAN
@@ -37,4 +32,4 @@
 // HyperDbg SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/User/HyperDbgLibImports.h"
+#include "SDK/Imports/user1/HyperDbgLibImports.h"

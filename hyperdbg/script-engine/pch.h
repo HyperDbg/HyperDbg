@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "SDK/Imports/User/HyperDbgSymImports.h"
+#include "SDK/Imports/user1/HyperDbgSymImports.h"
 #include "SDK/Headers/HardwareDebugger.h"
 #include "common.h"
 #include "scanner.h"

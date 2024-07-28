@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/User/HyperDbgLibImports.h"
+#include "SDK/Imports/user1/HyperDbgLibImports.h"
 
 using namespace std;
 

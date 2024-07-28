@@ -81,6 +81,7 @@
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
 xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+xcopy /E /I /Y "$(SolutionDir)..\examples" "$(OutDir)SDK\Examples"
 mkdir "$(OutDir)SDK\Libraries"
 copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
 copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
@@ -119,6 +120,7 @@ copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
     <PostBuildEvent>
       <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
 xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+xcopy /E /I /Y "$(SolutionDir)..\examples" "$(OutDir)SDK\Examples"
 mkdir "$(OutDir)SDK\Libraries"
 copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
 copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"

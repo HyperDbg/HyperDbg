@@ -17,19 +17,10 @@
 #define HYPERDBG_RM
 
 //
-// Environment headers
-//
-#include "platform/kernel/header/Environment.h"
-
-#ifdef ENV_WINDOWS
-
-//
 // General WDK headers
 //
-#    include <ntifs.h>
-#    include <Windef.h>
-
-#endif // ENV_WINDOWS
+#include <ntifs.h>
+#include <Windef.h>
 
 //
 // Definition of Intel primitives (External header)
@@ -55,14 +46,14 @@
 // Import HyperLog Module
 //
 #include "SDK/Modules/HyperLog.h"
-#include "SDK/Imports/HyperDbgHyperLogImports.h"
-#include "SDK/Imports/HyperDbgHyperLogIntrinsics.h"
+#include "SDK/Imports/kernel1/HyperDbgHyperLogImports.h"
+#include "SDK/Imports/kernel1/HyperDbgHyperLogIntrinsics.h"
 
 //
 // Import VMM Module
 //
 #include "SDK/Modules/VMM.h"
-#include "SDK/Imports/HyperDbgVmmImports.h"
+#include "SDK/Imports/kernel1/HyperDbgVmmImports.h"
 
 //
 // Local Driver headers

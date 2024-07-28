@@ -9,14 +9,6 @@
       <Configuration>release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="debug|ARM64">
-      <Configuration>debug</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="release|ARM64">
-      <Configuration>release</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}</ProjectGuid>
@@ -47,22 +39,6 @@
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
     <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM64'" Label="Configuration">
-    <TargetVersion>Windows10</TargetVersion>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
-    <DriverType>KMDF</DriverType>
-    <DriverTargetPlatform>Universal</DriverTargetPlatform>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM64'" Label="Configuration">
-    <TargetVersion>Windows10</TargetVersion>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
-    <DriverType>KMDF</DriverType>
-    <DriverTargetPlatform>Universal</DriverTargetPlatform>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -81,18 +57,12 @@
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM64'">
-    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM64'">
-    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -101,7 +71,7 @@
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hyperhv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
@@ -110,7 +80,7 @@
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -119,19 +89,9 @@
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hprdbghv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\hyperlog.lib;$(SolutionDir)build\bin\$(Configuration)\hyperhv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
     </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM64'">
-    <DriverSign>
-      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
-    </DriverSign>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM64'">
-    <DriverSign>
-      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
-    </DriverSign>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
