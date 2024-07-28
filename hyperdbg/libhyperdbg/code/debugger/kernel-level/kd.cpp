@@ -1813,11 +1813,12 @@ KdCommandPacketAndBufferToDebuggee(
 
 /**
  * @brief check if the debuggee needs to be paused
+ * @param SignalRunningFlag
  *
  * @return VOID
  */
 VOID
-KdBreakControlCheckAndPauseDebugger()
+KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
 {
     //
     // Check if debuggee is running, otherwise the user
@@ -1836,7 +1837,10 @@ KdBreakControlCheckAndPauseDebugger()
         //
         // Signal the event
         //
-        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+        if (SignalRunningFlag)
+        {
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+        }
     }
 }
 
@@ -2074,9 +2078,9 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
         if (PauseAfterConnection)
         {
             //
-            // Pause the target debuggee
+            // Pause the target debuggee after connection
             //
-            KdBreakControlCheckAndPauseDebugger();
+            KdBreakControlCheckAndPauseDebugger(FALSE);
         }
         else
         {

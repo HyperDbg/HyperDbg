@@ -76,7 +76,7 @@ BreakController(DWORD CtrlType)
             }
             else
             {
-                KdBreakControlCheckAndPauseDebugger();
+                KdBreakControlCheckAndPauseDebugger(TRUE);
             }
         }
         else if (!g_IsDebuggerModulesLoaded && !g_IsConnectedToRemoteDebuggee)

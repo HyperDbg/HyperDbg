@@ -268,7 +268,7 @@ VOID
 KdTheRemoteSystemIsRunning();
 
 VOID
-KdBreakControlCheckAndPauseDebugger();
+KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag);
 
 VOID
 KdBreakControlCheckAndContinueDebugger();
