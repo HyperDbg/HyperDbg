@@ -40,9 +40,11 @@ extern string g_ServerPort;
 extern string g_ServerIp;
 
 class CommandParser
+
 {
 public:
     enum class TokenType
+
     {
         NumHex,
         NumDec,
@@ -50,14 +52,20 @@ public:
         BracketString
     };
 
-    using Token = std::pair<TokenType, std::string>;
+    using CommandToken = std::tuple<TokenType, std::string, std::string>;
 
+    /**
+     * @brief Get hex number
+     * @param str
+     * @return BOOL
+     */
     BOOL GetHexNum(std::string & str)
     {
         if (str.empty() || (str.size() == 1 && str[0] == '0'))
             return FALSE;
 
         std::string Prefix("0x");
+
         if (!str.compare(0, Prefix.size(), Prefix))
         {
             std::string num(str.substr(Prefix.size()));
@@ -89,9 +97,13 @@ public:
         }
     }
 
-    //
-    // modifies str to acual number in string
-    //
+    /**
+     * @brief Is Decimal Number
+     * @brief modifies str to actual number in string
+     * @param str
+     *
+     * @return BOOL
+     */
     BOOL IsDecNum(std::string & str)
     {
         if (str.empty() || (str.size() == 1 && str[0] == '0') || str.size() < 3)
@@ -99,6 +111,7 @@ public:
 
         std::string Prefix("0n");
         std::string num(str.substr(Prefix.size()));
+
         if (!str.compare(0, Prefix.size(), Prefix))
         {
             try
@@ -106,6 +119,7 @@ public:
                 size_t pos;
                 auto   ul = std::stoul(num, &pos, 10);
                 str       = num; // modify
+
                 return TRUE;
             }
             catch (...)
@@ -113,29 +127,36 @@ public:
                 return FALSE;
             }
         }
+
         return FALSE;
     }
 
-    std::vector<Token> Parse(const std::string & input)
+    /**
+     * @brief Parse the input string (commands)
+     * @param input
+     *
+     * @return std::vector<CommandToken>
+     */
+    std::vector<CommandToken> Parse(const std::string & input)
     {
-        std::vector<Token> tokens;
-        std::string        current;
-        bool               InQuotes  = FALSE;
-        bool               InBracket = FALSE;
+        std::vector<CommandToken> tokens;
+        std::string               current;
+        bool                      InQuotes  = FALSE;
+        bool                      InBracket = FALSE;
 
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
-
             if (c == '/') // start comment parse
             {
                 //
                 // if we're in a script braket, skip; it'll be handled later
                 //
-                if (!(tokens.back().second == "script"))
+                if (!tokens.empty() && std::get<1>(tokens.back()) == "script")
                 {
                     size_t j = i;
                     c        = input[++j];
+
                     if (c == '/') // start to look fo comments
                     {
                         size_t EndPose = input.find('\n', i);
@@ -145,7 +166,9 @@ public:
                             // here we could get the comment but for now we just skip
                             //
                             std::string comment(input.substr(i, EndPose - i));
+
                             i = i + (EndPose - i);
+
                             if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
                                 i++;
@@ -154,18 +177,24 @@ public:
                                     i++;
                                 }
                             }
+
                             continue;
                         }
                     }
                     else if (c == '*')
                     {
                         size_t EndPose = input.find("*/", i);
+
                         if (EndPose != std::string::npos)
                         {
+                            //
                             // here we could get the comment but for now we just skip
+                            //
                             std::string comment(input.substr(i, EndPose - i + 2)); // */ is two byte long
-                            i = (i + (EndPose - i)) + 1;                           // one for /
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n')       // handling " " and "\n"
+
+                            i = (i + (EndPose - i)) + 1; // one for /
+
+                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
                                 i++;
                                 if (input[i + 1] == ' ' || input[i + 1] == '\n')
@@ -186,6 +215,7 @@ public:
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                     {
                         i++;
+
                         if (input[i + 1] == ' ' || input[i + 1] == '\n')
                         {
                             i++;
@@ -193,8 +223,9 @@ public:
                     }
 
                     InQuotes = FALSE;
-                    tokens.emplace_back(TokenType::String, current);
+                    tokens.emplace_back(TokenType::String, current, toLower(current));
                     current.clear();
+
                     continue;
                 }
             }
@@ -207,15 +238,16 @@ public:
                     {
                         i++;
                         if (input[i + 1] == ' ' || input[i + 1] == '\n')
+
                         {
                             i++;
                         }
                     }
 
                     InBracket = FALSE;
-
-                    tokens.emplace_back(TokenType::BracketString, current);
+                    tokens.emplace_back(TokenType::BracketString, current, toLower(current));
                     current.clear();
+
                     continue;
                 }
             }
@@ -226,19 +258,24 @@ public:
                 {
                     AddToken(tokens, current);
                     current.clear();
+
                     continue;
                 }
             }
+
             else if (c == '"' && input[i - 1] != '\\' && !InBracket)
             {
                 InQuotes = TRUE;
-                continue; // dont inclue '"' in string
+
+                continue; // don't include '"' in string
             }
             else if (c == '{' && !InQuotes && !InBracket)
             {
                 InBracket = TRUE;
-                continue; // dont inclue '{' in string
+
+                continue; // don't include '{' in string
             }
+
             current += c;
         }
 
@@ -250,52 +287,89 @@ public:
         return tokens;
     }
 
-    //
-    // Function to convert TokenType to a string
-    //
+    /**
+     * @brief Function to convert TokenType to a string
+     * @param Type
+     *
+     * @return std::string
+     */
     std::string TokenTypeToString(TokenType Type)
     {
         switch (Type)
         {
         case TokenType::NumHex:
             return "NumHex";
+
         case TokenType::NumDec:
             return "NumDec";
+
         case TokenType::String:
             return "String";
+
         case TokenType::BracketString:
             return "BracketString";
+
         default:
             return "Unknown";
         }
     }
 
-    //
-    // Function to print the elements of a vector of Tokens
-    //
-    VOID PrintTokens(const std::vector<Token> & Tokens)
+    /**
+     * @brief Function to print the elements of a vector of Tokens
+     * @param Tokens
+     *
+     * @return VOID
+     */
+    VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
         for (const auto & Token : Tokens)
         {
-            ShowMessages("TokenType: %s , Value: %s\n", TokenTypeToString(Token.first).c_str(), Token.second.c_str());
+            ShowMessages("TokenType: %s , Value 1: %s, Value 2 (lower): %s\n",
+                         TokenTypeToString(std::get<0>(Token)).c_str(),
+                         std::get<1>(Token).c_str(),
+                         std::get<2>(Token).c_str());
         }
     }
 
 private:
-    void AddToken(std::vector<Token> & tokens, const std::string & str)
+    /**
+     * @brief Convert a string to lowercase
+     * @param str
+     *
+     * @return std::string
+     */
+    std::string toLower(const std::string & str) const
+    {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+
+        return result;
+    }
+
+    /**
+     * @brief Add Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    void AddToken(std::vector<CommandToken> & tokens, const std::string & str)
     {
         auto tmp = str;
+
         if (IsDecNum(tmp)) // tmp will be modified to actual number
         {
-            tokens.emplace_back(TokenType::NumDec, tmp);
+            tokens.emplace_back(TokenType::NumDec, tmp, toLower(tmp));
         }
+
         else if (std::all_of(str.begin(), str.end(), ::isdigit) || GetHexNum(tmp)) // tmp will be modified to actual number
         {
-            tokens.emplace_back(TokenType::NumHex, tmp);
+            tokens.emplace_back(TokenType::NumHex, tmp, toLower(tmp));
         }
+
         else
         {
-            tokens.emplace_back(TokenType::String, str);
+            tokens.emplace_back(TokenType::String, str, toLower(str));
         }
     }
 };
