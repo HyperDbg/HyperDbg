@@ -337,29 +337,6 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 }
 
 /**
- * @brief check and convert command token to a 64 bit unsigned integer
- *
- * @param TargetToken the target command token
- * @param Result result will be save to the pointer
- *
- * @return BOOLEAN shows whether the conversion was successful or not
- */
-BOOLEAN
-ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result)
-{
-    //
-    // Extract the token type and value from the tuple
-    //
-    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
-    std::string             TargetTokenValue = std::get<1>(TargetToken);
-
-    //
-    // Convert the token value to 64 bit unsigned integer
-    //
-    return ConvertStringToUInt64(TargetTokenValue, Result);
-}
-
-/**
  * @brief check and convert string to a 32 bit unsigned it and also
  *  check for special notations like 0x etc.
  * @param TextToConvert the target string
@@ -456,6 +433,93 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
             return TRUE;
         }
     }
+}
+
+/**
+ * @brief check and convert command token to a 64 bit unsigned integer
+ *
+ * @param TargetToken the target command token
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
+    std::string             TargetTokenValue = std::get<1>(TargetToken);
+
+    //
+    // Convert the token value to 64 bit unsigned integer
+    //
+    return ConvertStringToUInt64(TargetTokenValue, Result);
+}
+
+/**
+ * @brief Get case sensitive string from command token
+ *
+ * @param TargetToken the target command token
+ * @return string the string value of the token
+ */
+std::string
+GetCaseSensitiveStringFromCommandToken(CommandToken TargetToken)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
+    std::string             TargetTokenValue = std::get<1>(TargetToken); // the first index is case sensitive
+
+    return TargetTokenValue;
+}
+
+/**
+ * @brief Compare lower case strings
+ *
+ * @param TargetToken the target command token
+ * @param StringToCompare the string to compare
+ *
+ * @return BOOLEAN shows whether text is equal or not
+ */
+BOOLEAN
+CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
+    std::string             TargetTokenValue = std::get<2>(TargetToken); // the second index is lower case
+
+    //
+    // Convert the token value to 64 bit unsigned integer
+    //
+    return _stricmp(TargetTokenValue.c_str(), StringToCompare) == 0;
+}
+
+/**
+ * @brief check and convert command token to a 32 bit unsigned integer
+ *
+ * @param TargetToken the target command token
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
+    std::string             TargetTokenValue = std::get<1>(TargetToken);
+
+    //
+    // Convert the token value to 32 bit unsigned integer
+    //
+    return ConvertStringToUInt32(TargetTokenValue, Result);
 }
 
 /**

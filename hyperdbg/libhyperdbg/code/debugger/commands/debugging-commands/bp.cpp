@@ -75,12 +75,12 @@ CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
 /**
  * @brief bp command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandBp(vector<string> SplitCommand, string Command)
+CommandBp(vector<CommandToken> CommandTokens)
 {
     BOOL IsNextCoreId = FALSE;
     BOOL IsNextPid    = FALSE;
@@ -91,25 +91,21 @@ CommandBp(vector<string> SplitCommand, string Command)
     BOOLEAN SetTid     = FALSE;
     BOOLEAN SetAddress = FALSE;
 
-    UINT32         Tid       = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
-    UINT32         Pid       = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
-    UINT32         CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
-    UINT64         Address   = NULL;
-    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32         IndexInCommandCaseSensitive = 0;
-    BOOLEAN        IsFirstCommand              = TRUE;
+    UINT32  Tid            = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
+    UINT32  Pid            = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
+    UINT32  CoreNumer      = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
+    UINT64  Address        = NULL;
+    BOOLEAN IsFirstCommand = TRUE;
 
-    if (SplitCommand.size() >= 9)
+    if (CommandTokens.size() >= 9)
     {
         ShowMessages("incorrect use of the 'bp'\n\n");
         CommandBpHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         //
         // Ignore the first argument as it's the command string itself (bp)
         //
@@ -121,7 +117,7 @@ CommandBp(vector<string> SplitCommand, string Command)
 
         if (IsNextCoreId)
         {
-            if (!ConvertStringToUInt32(Section, &CoreNumer))
+            if (!ConvertTokenToUInt32(Section, &CoreNumer))
             {
                 ShowMessages("please specify a correct hex value for core id\n\n");
                 CommandBpHelp();
@@ -132,7 +128,7 @@ CommandBp(vector<string> SplitCommand, string Command)
         }
         if (IsNextPid)
         {
-            if (!ConvertStringToUInt32(Section, &Pid))
+            if (!ConvertTokenToUInt32(Section, &Pid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandBpHelp();
@@ -144,7 +140,7 @@ CommandBp(vector<string> SplitCommand, string Command)
 
         if (IsNextTid)
         {
-            if (!ConvertStringToUInt32(Section, &Tid))
+            if (!ConvertTokenToUInt32(Section, &Tid))
             {
                 ShowMessages("please specify a correct hex value for thread id\n\n");
                 CommandBpHelp();
@@ -154,17 +150,17 @@ CommandBp(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("pid"))
+        if (CompareLowerCaseStrings(Section, "pid"))
         {
             IsNextPid = TRUE;
             continue;
         }
-        if (!Section.compare("tid"))
+        if (CompareLowerCaseStrings(Section, "tid"))
         {
             IsNextTid = TRUE;
             continue;
         }
-        if (!Section.compare("core"))
+        if (CompareLowerCaseStrings(Section, "core"))
         {
             IsNextCoreId = TRUE;
             continue;
@@ -172,13 +168,13 @@ CommandBp(vector<string> SplitCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &Address))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandBpHelp();
                 return;
             }

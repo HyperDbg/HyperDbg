@@ -27,19 +27,20 @@ CommandCpuHelp()
 /**
  * @brief cpu command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandCpu(vector<string> SplitCommand, string Command)
+CommandCpu(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
         ShowMessages("incorrect use of the 'cpu'\n\n");
         CommandCpuHelp();
         return;
     }
+
     ReadCpuDetails();
 }
 

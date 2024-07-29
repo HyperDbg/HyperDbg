@@ -481,7 +481,7 @@ VOID
 CommandScript(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCpu(vector<string> SplitCommand, string Command);
+CommandCpu(vector<CommandToken> CommandTokens);
 
 VOID
 CommandExit(vector<string> SplitCommand, string Command);
@@ -646,7 +646,7 @@ VOID
 CommandP(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCore(vector<string> SplitCommand, string Command);
+CommandCore(vector<CommandToken> CommandTokens);
 
 VOID
 CommandProcess(vector<string> SplitCommand, string Command);
@@ -661,10 +661,10 @@ VOID
 CommandR(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBp(vector<string> SplitCommand, string Command);
+CommandBp(vector<CommandToken> CommandTokens);
 
 VOID
-CommandBl(vector<string> SplitCommand, string Command);
+CommandBl(vector<CommandToken> CommandTokens);
 
 VOID
 CommandBe(vector<CommandToken> CommandTokens);

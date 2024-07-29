@@ -1033,8 +1033,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pte"] = {NULL, &CommandPte, &CommandPteHelp, DEBUGGER_COMMAND_PTE_ATTRIBUTES};
 
-    g_CommandsList["~"]    = {NULL, &CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
-    g_CommandsList["core"] = {NULL, &CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
+    g_CommandsList["~"]    = {&CommandCore, NULL, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
+    g_CommandsList["core"] = {&CommandCore, NULL, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
 
     g_CommandsList["!monitor"] = {NULL, &CommandMonitor, &CommandMonitorHelp, DEBUGGER_COMMAND_MONITOR_ATTRIBUTES};
 
@@ -1043,9 +1043,9 @@ InitializeCommandsDictionary()
     g_CommandsList["!epthook"] = {NULL, &CommandEptHook, &CommandEptHookHelp, DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
     g_CommandsList["bh"]       = {NULL, &CommandEptHook, &CommandEptHookHelp, DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
 
-    g_CommandsList["bp"] = {NULL, &CommandBp, &CommandBpHelp, DEBUGGER_COMMAND_BP_ATTRIBUTES};
+    g_CommandsList["bp"] = {&CommandBp, NULL, &CommandBpHelp, DEBUGGER_COMMAND_BP_ATTRIBUTES};
 
-    g_CommandsList["bl"] = {NULL, &CommandBl, &CommandBlHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
+    g_CommandsList["bl"] = {&CommandBl, NULL, &CommandBlHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
     g_CommandsList["be"] = {&CommandBe, NULL, &CommandBeHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
