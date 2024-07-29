@@ -115,12 +115,12 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
 
 VOID
 HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
-                                 UINT64                       Address,
-                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
-                                 DEBUGGER_READ_READING_TYPE   ReadingType,
-                                 UINT32                       Pid,
-                                 UINT32                       Size,
-                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
+                                UINT64                       Address,
+                                DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                DEBUGGER_READ_READING_TYPE   ReadingType,
+                                UINT32                       Pid,
+                                UINT32                       Size,
+                                PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
 
 BOOLEAN
 HyperDbgReadMemory(UINT64                              TargetAddress,
@@ -153,10 +153,29 @@ CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
 //////////////////////////////////////////////////
 
 /**
+ * @brief Command's parsing type (enum)
+ *
+ */
+typedef enum
+{
+    NumHex,
+    NumDec,
+    String,
+    BracketString
+} CommandParsingTokenType;
+
+/**
+ * @brief Command's parsing type
+ *
+ */
+typedef std::tuple<CommandParsingTokenType, std::string, std::string> CommandToken;
+
+/**
  * @brief Command's function type
  *
  */
 typedef VOID (*CommandFuncType)(vector<string> SplitCommand, string Command);
+typedef VOID (*CommandFuncTypeNewParser)(vector<CommandToken> CommandTokens);
 
 /**
  * @brief Command's help function type
@@ -170,9 +189,10 @@ typedef VOID (*CommandHelpFuncType)();
  */
 typedef struct _COMMAND_DETAIL
 {
-    CommandFuncType     CommandFunction;
-    CommandHelpFuncType CommandHelpFunction;
-    UINT64              CommandAttrib;
+    CommandFuncTypeNewParser CommandFunctionNewParser;
+    CommandFuncType          CommandFunction;
+    CommandHelpFuncType      CommandHelpFunction;
+    UINT64                   CommandAttrib;
 
 } COMMAND_DETAIL, *PCOMMAND_DETAIL;
 
