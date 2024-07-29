@@ -64,23 +64,21 @@ CommandReadMemoryAndDisassemblerHelp()
 /**
  * @brief u* d* !u* !d* commands handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
+CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens)
 {
-    UINT32         Pid             = 0;
-    UINT32         Length          = 0;
-    UINT64         TargetAddress   = 0;
-    BOOLEAN        IsNextProcessId = FALSE;
-    BOOLEAN        IsFirstCommand  = TRUE;
-    BOOLEAN        IsNextLength    = FALSE;
-    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32         IndexInCommandCaseSensitive = 0;
+    UINT32  Pid             = 0;
+    UINT32  Length          = 0;
+    UINT64  TargetAddress   = 0;
+    BOOLEAN IsNextProcessId = FALSE;
+    BOOLEAN IsFirstCommand  = TRUE;
+    BOOLEAN IsNextLength    = FALSE;
 
-    string FirstCommand = SplitCommand.front();
+    string FirstCommand = GetCaseSensitiveStringFromCommandToken(CommandTokens.front());
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -91,7 +89,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Means that user entered one command without any parameter
@@ -101,10 +99,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         if (IsFirstCommand)
         {
             IsFirstCommand = FALSE;
@@ -113,7 +109,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
 
         if (IsNextProcessId == TRUE)
         {
-            if (!ConvertStringToUInt32(Section, &Pid))
+            if (!ConvertTokenToUInt32(Section, &Pid))
             {
                 ShowMessages("err, you should enter a valid process id\n\n");
                 return;
@@ -124,7 +120,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
 
         if (IsNextLength == TRUE)
         {
-            if (!ConvertStringToUInt32(Section, &Length))
+            if (!ConvertTokenToUInt32(Section, &Length))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -133,13 +129,13 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("l"))
+        if (CompareLowerCaseStrings(Section, "l"))
         {
             IsNextLength = TRUE;
             continue;
         }
 
-        if (!Section.compare("pid"))
+        if (CompareLowerCaseStrings(Section, "pid"))
         {
             IsNextProcessId = TRUE;
             continue;
@@ -150,14 +146,13 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
         //
         if (TargetAddress == 0)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                                  &TargetAddress))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &TargetAddress))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 return;
             }
         }
@@ -167,7 +162,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
             // User inserts two address
             //
             ShowMessages("err, incorrect use of the '%s' command\n\n",
-                         FirstCommand.c_str());
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandReadMemoryAndDisassemblerHelp();
 
             return;
@@ -189,10 +184,10 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
         //
         // Default length (user doesn't specified)
         //
-        if (!FirstCommand.compare("u") ||
-            !FirstCommand.compare("!u") ||
-            !FirstCommand.compare("u64") ||
-            !FirstCommand.compare("!u64"))
+        if (CompareLowerCaseStrings(CommandTokens.at(0), "u") ||
+            CompareLowerCaseStrings(CommandTokens.at(0), "!u") ||
+            CompareLowerCaseStrings(CommandTokens.at(0), "u64") ||
+            CompareLowerCaseStrings(CommandTokens.at(0), "!u64"))
         {
             Length = 0x40;
         }
@@ -204,7 +199,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
 
     if (IsNextLength || IsNextProcessId)
     {
-        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }
@@ -226,91 +222,91 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
         Pid = GetCurrentProcessId();
     }
 
-    if (!FirstCommand.compare("db"))
+    if (CompareLowerCaseStrings(CommandTokens.at(0), "db"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DB,
-                                         TargetAddress,
-                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("dc"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dc"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DC,
-                                         TargetAddress,
-                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("dd"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dd"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DD,
-                                         TargetAddress,
-                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("dq"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dq"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
-                                         TargetAddress,
-                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("!db"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!db"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DB,
-                                         TargetAddress,
-                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("!dc"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dc"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DC,
-                                         TargetAddress,
-                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("!dd"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dd"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DD,
-                                         TargetAddress,
-                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
-    else if (!FirstCommand.compare("!dq"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dq"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
-                                         TargetAddress,
-                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                         READ_FROM_KERNEL,
-                                         Pid,
-                                         Length,
-                                         NULL);
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
     }
 
     //
     // Disassembler (!u or u or u2 !u2)
     //
-    else if (!FirstCommand.compare("u") || !FirstCommand.compare("u64"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "u") || CompareLowerCaseStrings(CommandTokens.at(0), "u64"))
     {
         HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
@@ -321,7 +317,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("!u") || !FirstCommand.compare("!u64"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!u") || CompareLowerCaseStrings(CommandTokens.at(0), "!u64"))
     {
         HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
@@ -332,7 +328,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("u2") || !FirstCommand.compare("u32"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "u2") || CompareLowerCaseStrings(CommandTokens.at(0), "u32"))
     {
         HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
@@ -343,7 +339,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplitCommand, string Command)
             Length,
             NULL);
     }
-    else if (!FirstCommand.compare("!u2") || !FirstCommand.compare("!u32"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!u2") || CompareLowerCaseStrings(CommandTokens.at(0), "!u32"))
     {
         HyperDbgShowMemoryOrDisassemble(
             DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,

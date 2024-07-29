@@ -465,8 +465,7 @@ VOID
 CommandClearScreen(vector<string> SplitCommand, string Command);
 
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplitCommand,
-                                 string         Command);
+CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens);
 
 VOID
 CommandConnect(vector<string> SplitCommand, string Command);
@@ -484,7 +483,7 @@ VOID
 CommandCpu(vector<CommandToken> CommandTokens);
 
 VOID
-CommandExit(vector<string> SplitCommand, string Command);
+CommandExit(vector<CommandToken> CommandTokens);
 
 VOID
 CommandDisconnect(vector<string> SplitCommand, string Command);
@@ -574,7 +573,7 @@ VOID
 CommandPa2va(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEvents(vector<string> SplitCommand, string Command);
+CommandEvents(vector<CommandToken> CommandTokens);
 
 VOID
 CommandG(vector<CommandToken> CommandTokens);
@@ -586,7 +585,7 @@ VOID
 CommandSleep(vector<string> SplitCommand, string Command);
 
 VOID
-CommandEditMemory(vector<string> SplitCommand, string Command);
+CommandEditMemory(vector<CommandToken> CommandTokens);
 
 VOID
 CommandSearchMemory(vector<string> SplitCommand, string Command);

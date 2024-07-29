@@ -257,29 +257,27 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
 /**
  * @brief !e* and e* commands handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandEditMemory(vector<string> SplitCommand, string Command)
+CommandEditMemory(vector<CommandToken> CommandTokens)
 {
     UINT64                         Address;
     UINT64 *                       FinalBuffer;
     vector<UINT64>                 ValuesToEdit;
     DEBUGGER_EDIT_MEMORY_TYPE      MemoryType;
     DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize;
-    BOOL                           SetAddress    = FALSE;
-    BOOL                           SetValue      = FALSE;
-    BOOL                           SetProcId     = FALSE;
-    BOOL                           NextIsProcId  = FALSE;
-    UINT64                         Value         = 0;
-    UINT32                         ProcId        = 0;
-    UINT32                         CountOfValues = 0;
-    UINT32                         FinalSize     = 0;
-    vector<string>                 SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32                         IndexInCommandCaseSensitive = 0;
-    BOOLEAN                        IsFirstCommand              = TRUE;
+    BOOL                           SetAddress     = FALSE;
+    BOOL                           SetValue       = FALSE;
+    BOOL                           SetProcId      = FALSE;
+    BOOL                           NextIsProcId   = FALSE;
+    UINT64                         Value          = 0;
+    UINT32                         ProcId         = 0;
+    UINT32                         CountOfValues  = 0;
+    UINT32                         FinalSize      = 0;
+    BOOLEAN                        IsFirstCommand = TRUE;
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -290,45 +288,43 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
         ProcId = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplitCommand.size() <= 2)
+    if (CommandTokens.size() <= 2)
     {
         ShowMessages("incorrect use of the 'e*'\n\n");
         CommandEditMemoryHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         if (IsFirstCommand)
         {
-            if (!Section.compare("!eb"))
+            if (CompareLowerCaseStrings(Section, "!eb"))
             {
                 MemoryType = EDIT_PHYSICAL_MEMORY;
                 ByteSize   = EDIT_BYTE;
             }
-            else if (!Section.compare("!ed"))
+            else if (CompareLowerCaseStrings(Section, "!ed"))
             {
                 MemoryType = EDIT_PHYSICAL_MEMORY;
                 ByteSize   = EDIT_DWORD;
             }
-            else if (!Section.compare("!eq"))
+            else if (CompareLowerCaseStrings(Section, "!eq"))
             {
                 MemoryType = EDIT_PHYSICAL_MEMORY;
                 ByteSize   = EDIT_QWORD;
             }
-            else if (!Section.compare("eb"))
+            else if (CompareLowerCaseStrings(Section, "eb"))
             {
                 MemoryType = EDIT_VIRTUAL_MEMORY;
                 ByteSize   = EDIT_BYTE;
             }
-            else if (!Section.compare("ed"))
+            else if (CompareLowerCaseStrings(Section, "ed"))
             {
                 MemoryType = EDIT_VIRTUAL_MEMORY;
                 ByteSize   = EDIT_DWORD;
             }
-            else if (!Section.compare("eq"))
+            else if (CompareLowerCaseStrings(Section, "eq"))
             {
                 MemoryType = EDIT_VIRTUAL_MEMORY;
                 ByteSize   = EDIT_QWORD;
@@ -355,7 +351,7 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
             //
             NextIsProcId = FALSE;
 
-            if (!ConvertStringToUInt32(Section, &ProcId))
+            if (!ConvertTokenToUInt32(Section, &ProcId))
             {
                 ShowMessages("please specify a correct hex process id\n\n");
                 CommandEditMemoryHelp();
@@ -373,7 +369,7 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
         //
         // Check if it's a process id or not
         //
-        if (!SetProcId && !Section.compare("pid"))
+        if (!SetProcId && CompareLowerCaseStrings(Section, "pid"))
         {
             NextIsProcId = TRUE;
             continue;
@@ -381,11 +377,10 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                                  &Address))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &Address))
             {
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandEditMemoryHelp();
                 return;
             }
@@ -404,32 +399,35 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
             //
             // Remove the hex notations
             //
-            if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
-                Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+            std::string TargetVal = GetCaseSensitiveStringFromCommandToken(Section);
+
+            if (TargetVal.rfind("0x", 0) == 0 || TargetVal.rfind("0X", 0) == 0 ||
+                TargetVal.rfind("\\x", 0) == 0 || TargetVal.rfind("\\X", 0) == 0)
             {
-                Section = Section.erase(0, 2);
+                TargetVal = TargetVal.erase(0, 2);
             }
-            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
+            else if (TargetVal.rfind('x', 0) == 0 || TargetVal.rfind('X', 0) == 0)
             {
-                Section = Section.erase(0, 1);
+                TargetVal = TargetVal.erase(0, 1);
             }
-            Section.erase(remove(Section.begin(), Section.end(), '`'), Section.end());
+
+            TargetVal.erase(remove(TargetVal.begin(), TargetVal.end(), '`'), TargetVal.end());
 
             //
             // Check if the value is valid based on byte counts
             //
-            if (ByteSize == EDIT_BYTE && Section.size() >= 3)
+            if (ByteSize == EDIT_BYTE && TargetVal.size() >= 3)
             {
                 ShowMessages("please specify a byte (hex) value for 'eb' or '!eb'\n\n");
                 return;
             }
-            if (ByteSize == EDIT_DWORD && Section.size() >= 9)
+            if (ByteSize == EDIT_DWORD && TargetVal.size() >= 9)
             {
                 ShowMessages(
                     "please specify a dword (hex) value for 'ed' or '!ed'\n\n");
                 return;
             }
-            if (ByteSize == EDIT_QWORD && Section.size() >= 17)
+            if (ByteSize == EDIT_QWORD && TargetVal.size() >= 17)
             {
                 ShowMessages(
                     "please specify a qword (hex) value for 'eq' or '!eq'\n\n");
@@ -441,7 +439,7 @@ CommandEditMemory(vector<string> SplitCommand, string Command)
             // check it above.
             //
 
-            if (!ConvertStringToUInt64(Section, &Value))
+            if (!ConvertStringToUInt64(TargetVal, &Value))
             {
                 ShowMessages("please specify a correct hex value to change the memory "
                              "content\n\n");
