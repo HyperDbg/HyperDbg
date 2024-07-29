@@ -337,6 +337,29 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 }
 
 /**
+ * @brief check and convert command token to a 64 bit unsigned integer
+ *
+ * @param TargetToken the target command token
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
+    std::string             TargetTokenValue = std::get<1>(TargetToken);
+
+    //
+    // Convert the token value to 64 bit unsigned integer
+    //
+    return ConvertStringToUInt64(TargetTokenValue, Result);
+}
+
+/**
  * @brief check and convert string to a 32 bit unsigned it and also
  *  check for special notations like 0x etc.
  * @param TextToConvert the target string

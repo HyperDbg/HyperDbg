@@ -937,8 +937,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".listen"] = {NULL, &CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
     g_CommandsList["listen"]  = {NULL, &CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
 
-    g_CommandsList["g"]  = {NULL, &CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
-    g_CommandsList["go"] = {NULL, &CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
+    g_CommandsList["g"]  = {&CommandG, NULL, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
+    g_CommandsList["go"] = {&CommandG, NULL, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
     g_CommandsList[".attach"] = {NULL, &CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
     g_CommandsList["attach"]  = {NULL, &CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
@@ -1047,11 +1047,11 @@ InitializeCommandsDictionary()
 
     g_CommandsList["bl"] = {NULL, &CommandBl, &CommandBlHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
-    g_CommandsList["be"] = {NULL, &CommandBe, &CommandBeHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
+    g_CommandsList["be"] = {&CommandBe, NULL, &CommandBeHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
-    g_CommandsList["bd"] = {NULL, &CommandBd, &CommandBdHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
+    g_CommandsList["bd"] = {&CommandBd, NULL, &CommandBdHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
-    g_CommandsList["bc"] = {NULL, &CommandBc, &CommandBcHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
+    g_CommandsList["bc"] = {&CommandBc, NULL, &CommandBcHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};
 
     g_CommandsList["!epthook2"] = {NULL, &CommandEptHook2, &CommandEptHook2Help, DEBUGGER_COMMAND_EPTHOOK2_ATTRIBUTES};
 

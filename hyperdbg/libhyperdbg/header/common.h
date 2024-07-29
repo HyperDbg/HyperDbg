@@ -146,6 +146,9 @@ BOOLEAN
 ConvertStringToUInt32(string TextToConvert, PUINT32 Result);
 
 BOOLEAN
+ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result);
+
+BOOLEAN
 HasEnding(string const & fullString, string const & ending);
 
 BOOLEAN

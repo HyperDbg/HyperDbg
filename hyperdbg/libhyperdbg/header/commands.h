@@ -577,7 +577,7 @@ VOID
 CommandEvents(vector<string> SplitCommand, string Command);
 
 VOID
-CommandG(vector<string> SplitCommand, string Command);
+CommandG(vector<CommandToken> CommandTokens);
 
 VOID
 CommandLm(vector<string> SplitCommand, string Command);
@@ -667,13 +667,13 @@ VOID
 CommandBl(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBe(vector<string> SplitCommand, string Command);
+CommandBe(vector<CommandToken> CommandTokens);
 
 VOID
-CommandBd(vector<string> SplitCommand, string Command);
+CommandBd(vector<CommandToken> CommandTokens);
 
 VOID
-CommandBc(vector<string> SplitCommand, string Command);
+CommandBc(vector<CommandToken> CommandTokens);
 
 VOID
 CommandSympath(vector<string> SplitCommand, string Command);
