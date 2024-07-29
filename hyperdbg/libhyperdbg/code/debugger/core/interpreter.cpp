@@ -116,7 +116,7 @@ public:
         return FALSE;
     }
 
-    std::vector<Token> parse(const std::string & input)
+    std::vector<Token> Parse(const std::string & input)
     {
         std::vector<Token> tokens;
         std::string        current;
@@ -224,7 +224,7 @@ public:
             {
                 if (!current.empty() && current != " ")
                 {
-                    addToken(tokens, current);
+                    AddToken(tokens, current);
                     current.clear();
                     continue;
                 }
@@ -244,14 +244,45 @@ public:
 
         if (!current.empty() && current != " ")
         {
-            addToken(tokens, current);
+            AddToken(tokens, current);
         }
 
         return tokens;
     }
 
+    //
+    // Function to convert TokenType to a string
+    //
+    std::string TokenTypeToString(TokenType Type)
+    {
+        switch (Type)
+        {
+        case TokenType::NumHex:
+            return "NumHex";
+        case TokenType::NumDec:
+            return "NumDec";
+        case TokenType::String:
+            return "String";
+        case TokenType::BracketString:
+            return "BracketString";
+        default:
+            return "Unknown";
+        }
+    }
+
+    //
+    // Function to print the elements of a vector of Tokens
+    //
+    VOID PrintTokens(const std::vector<Token> & Tokens)
+    {
+        for (const auto & Token : Tokens)
+        {
+            ShowMessages("TokenType: %s , Value: %s\n", TokenTypeToString(Token.first).c_str(), Token.second.c_str());
+        }
+    }
+
 private:
-    void addToken(std::vector<Token> & tokens, const std::string & str)
+    void AddToken(std::vector<Token> & tokens, const std::string & str)
     {
         auto tmp = str;
         if (IsDecNum(tmp)) // tmp will be modified to actual number
@@ -316,9 +347,20 @@ HyperDbgInterpreter(CHAR * Command)
     //
     string CommandString(Command);
 
+    //
     // for test
-    // CommandParser parser;
-    // auto          tokens1 = parser.parse(CommandString);
+    //
+    ShowMessages("------------------------------------------------------\n");
+
+    CommandParser Parser;
+    auto          Tokens1 = Parser.Parse(CommandString);
+
+    //
+    // Print the tokens
+    //
+    Parser.PrintTokens(Tokens1);
+
+    ShowMessages("\n------------------------------------------------------\n");
 
     //
     // Convert to lower case
