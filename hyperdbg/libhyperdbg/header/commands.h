@@ -498,7 +498,7 @@ VOID
 CommandWrmsr(vector<CommandToken> CommandTokens);
 
 VOID
-CommandPte(vector<string> SplitCommand, string Command);
+CommandPte(vector<CommandToken> CommandTokens);
 
 VOID
 CommandMonitor(vector<string> SplitCommand, string Command);
@@ -558,7 +558,7 @@ VOID
 CommandHide(vector<string> SplitCommand, string Command);
 
 VOID
-CommandUnhide(vector<string> SplitCommand, string Command);
+CommandUnhide(vector<CommandToken> CommandTokens);
 
 VOID
 CommandLogopen(vector<CommandToken> CommandTokens);
@@ -567,10 +567,10 @@ VOID
 CommandLogclose(vector<CommandToken> CommandTokens);
 
 VOID
-CommandVa2pa(vector<string> SplitCommand, string Command);
+CommandVa2pa(vector<CommandToken> CommandTokens);
 
 VOID
-CommandPa2va(vector<string> SplitCommand, string Command);
+CommandPa2va(vector<CommandToken> CommandTokens);
 
 VOID
 CommandEvents(vector<CommandToken> CommandTokens);
@@ -588,10 +588,10 @@ VOID
 CommandEditMemory(vector<CommandToken> CommandTokens);
 
 VOID
-CommandSearchMemory(vector<string> SplitCommand, string Command);
+CommandSearchMemory(vector<CommandToken> CommandTokens);
 
 VOID
-CommandMeasure(vector<string> SplitCommand, string Command);
+CommandMeasure(vector<CommandToken> CommandTokens);
 
 VOID
 CommandSettings(vector<string> SplitCommand, string Command);
@@ -702,7 +702,7 @@ VOID
 CommandRev(vector<string> SplitCommand, string Command);
 
 VOID
-CommandTrack(vector<string> SplitCommand, string Command);
+CommandTrack(vector<CommandToken> CommandTokens);
 
 VOID
 CommandPagein(vector<CommandToken> CommandTokens);

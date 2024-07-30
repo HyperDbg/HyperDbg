@@ -1026,14 +1026,14 @@ InitializeCommandsDictionary()
 
     g_CommandsList["rdmsr"] = {&CommandRdmsr, NULL, &CommandRdmsrHelp, DEBUGGER_COMMAND_RDMSR_ATTRIBUTES};
 
-    g_CommandsList["!va2pa"] = {NULL, &CommandVa2pa, &CommandVa2paHelp, DEBUGGER_COMMAND_VA2PA_ATTRIBUTES};
+    g_CommandsList["!va2pa"] = {&CommandVa2pa, NULL, &CommandVa2paHelp, DEBUGGER_COMMAND_VA2PA_ATTRIBUTES};
 
-    g_CommandsList["!pa2va"] = {NULL, &CommandPa2va, &CommandPa2vaHelp, DEBUGGER_COMMAND_PA2VA_ATTRIBUTES};
+    g_CommandsList["!pa2va"] = {&CommandPa2va, NULL, &CommandPa2vaHelp, DEBUGGER_COMMAND_PA2VA_ATTRIBUTES};
 
     g_CommandsList[".formats"] = {NULL, &CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
     g_CommandsList[".format"]  = {NULL, &CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
 
-    g_CommandsList["!pte"] = {NULL, &CommandPte, &CommandPteHelp, DEBUGGER_COMMAND_PTE_ATTRIBUTES};
+    g_CommandsList["!pte"] = {&CommandPte, NULL, &CommandPteHelp, DEBUGGER_COMMAND_PTE_ATTRIBUTES};
 
     g_CommandsList["~"]    = {&CommandCore, NULL, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
     g_CommandsList["core"] = {&CommandCore, NULL, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
@@ -1093,9 +1093,9 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!hide"] = {NULL, &CommandHide, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
 
-    g_CommandsList["!unhide"] = {NULL, &CommandUnhide, &CommandUnhideHelp, DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES};
+    g_CommandsList["!unhide"] = {&CommandUnhide, NULL, &CommandUnhideHelp, DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES};
 
-    g_CommandsList["!measure"] = {NULL, &CommandMeasure, &CommandMeasureHelp, DEBUGGER_COMMAND_MEASURE_ATTRIBUTES};
+    g_CommandsList["!measure"] = {&CommandMeasure, NULL, &CommandMeasureHelp, DEBUGGER_COMMAND_MEASURE_ATTRIBUTES};
 
     g_CommandsList["lm"] = {&CommandLm, NULL, &CommandLmHelp, DEBUGGER_COMMAND_LM_ATTRIBUTES};
 
@@ -1134,12 +1134,12 @@ InitializeCommandsDictionary()
     g_CommandsList["!ed"] = {&CommandEditMemory, NULL, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["!eq"] = {&CommandEditMemory, NULL, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
 
-    g_CommandsList["sb"]  = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["sd"]  = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["sq"]  = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["!sb"] = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["!sd"] = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["!sq"] = {NULL, &CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sb"]  = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sd"]  = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sq"]  = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["!sb"] = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["!sd"] = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["!sq"] = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
 
     g_CommandsList["r"] = {NULL, &CommandR, &CommandRHelp, DEBUGGER_COMMAND_R_ATTRIBUTES};
 
@@ -1174,8 +1174,8 @@ InitializeCommandsDictionary()
     g_CommandsList["!rev"] = {NULL, &CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
     g_CommandsList["rev"]  = {NULL, &CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
 
-    g_CommandsList["!track"] = {NULL, &CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
-    g_CommandsList["track"]  = {NULL, &CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+    g_CommandsList["!track"] = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+    g_CommandsList["track"]  = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
 
     g_CommandsList[".dump"] = {NULL, &CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["dump"]  = {NULL, &CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};

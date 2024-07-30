@@ -86,9 +86,9 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
                         BufferToSendAsIoctlSize,      // Input buffer length
                         ResultsBuffer,                // Output Buffer from driver.
                         MaximumSearchResults *
-                            sizeof(UINT64),           // Length of output buffer in bytes.
-                        NULL,                         // Bytes placed in buffer.
-                        NULL                          // synchronous call
+                            sizeof(UINT64), // Length of output buffer in bytes.
+                        NULL,               // Bytes placed in buffer.
+                        NULL                // synchronous call
         );
 
     if (!Status)
@@ -130,12 +130,12 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
 /**
  * @brief !s* s* commands handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandSearchMemory(vector<string> SplitCommand, string Command)
+CommandSearchMemory(vector<CommandToken> CommandTokens)
 {
     UINT64                 Address;
     vector<UINT64>         ValuesToEdit;
@@ -152,9 +152,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
     UINT32                 CountOfValues       = 0;
     UINT32                 FinalSize           = 0;
     UINT64 *               FinalBuffer         = NULL;
-    vector<string>         SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32                 IndexInCommandCaseSensitive = 0;
-    BOOLEAN                IsFirstCommand              = TRUE;
+    BOOLEAN                IsFirstCommand      = TRUE;
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -165,45 +163,47 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
         ProcId = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplitCommand.size() <= 4)
+    if (CommandTokens.size() <= 4)
     {
-        ShowMessages("incorrect use of the 's*'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
         CommandSearchMemoryHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         if (IsFirstCommand == TRUE)
         {
-            if (!Section.compare("!sb"))
+            std::string FirstCommand = GetLowerStringFromCommandToken(Section);
+
+            if (!FirstCommand.compare("!sb"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_PHYSICAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_BYTE;
             }
-            else if (!Section.compare("!sd"))
+            else if (!FirstCommand.compare("!sd"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_PHYSICAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_DWORD;
             }
-            else if (!Section.compare("!sq"))
+            else if (!FirstCommand.compare("!sq"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_PHYSICAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_QWORD;
             }
-            else if (!Section.compare("sb"))
+            else if (!FirstCommand.compare("sb"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_VIRTUAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_BYTE;
             }
-            else if (!Section.compare("sd"))
+            else if (!FirstCommand.compare("sd"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_VIRTUAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_DWORD;
             }
-            else if (!Section.compare("sq"))
+            else if (!FirstCommand.compare("sq"))
             {
                 SearchMemoryRequest.MemoryType = SEARCH_VIRTUAL_MEMORY;
                 SearchMemoryRequest.ByteSize   = SEARCH_QWORD;
@@ -213,7 +213,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
                 //
                 // What's this? :(
                 //
-                ShowMessages("unknown error happened !\n\n");
+                ShowMessages("unknown error happened!\n\n");
                 CommandSearchMemoryHelp();
                 return;
             }
@@ -230,7 +230,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
             //
             NextIsProcId = FALSE;
 
-            if (!ConvertStringToUInt32(Section, &ProcId))
+            if (!ConvertTokenToUInt32(Section, &ProcId))
             {
                 ShowMessages("please specify a correct hex process id\n\n");
                 CommandSearchMemoryHelp();
@@ -252,7 +252,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
             //
             NextIsLength = FALSE;
 
-            if (!ConvertStringToUInt64(Section, &Length))
+            if (!ConvertTokenToUInt64(Section, &Length))
             {
                 ShowMessages("please specify a correct hex length\n\n");
                 CommandSearchMemoryHelp();
@@ -271,7 +271,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
         //
         // Check if it's a process id or not
         //
-        if (!SetProcId && !Section.compare("pid"))
+        if (!SetProcId && CompareLowerCaseStrings(Section, "pid"))
         {
             NextIsProcId = TRUE;
             continue;
@@ -280,7 +280,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
         //
         // Check if it's a length or not
         //
-        if (!SetLength && !Section.compare("l"))
+        if (!SetLength && CompareLowerCaseStrings(Section, "l"))
         {
             NextIsLength = TRUE;
             continue;
@@ -288,10 +288,10 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &Address))
             {
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandSearchMemoryHelp();
                 return;
             }
@@ -310,36 +310,38 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
             //
             // Remove the hex notations
             //
-            if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
-                Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
+            std::string TargetVal = GetCaseSensitiveStringFromCommandToken(Section);
+
+            if (TargetVal.rfind("0x", 0) == 0 || TargetVal.rfind("0X", 0) == 0 ||
+                TargetVal.rfind("\\x", 0) == 0 || TargetVal.rfind("\\X", 0) == 0)
             {
-                Section = Section.erase(0, 2);
+                TargetVal = TargetVal.erase(0, 2);
             }
-            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
+            else if (TargetVal.rfind('x', 0) == 0 || TargetVal.rfind('X', 0) == 0)
             {
-                Section = Section.erase(0, 1);
+                TargetVal = TargetVal.erase(0, 1);
             }
-            Section.erase(remove(Section.begin(), Section.end(), '`'), Section.end());
+
+            TargetVal.erase(remove(TargetVal.begin(), TargetVal.end(), '`'), TargetVal.end());
 
             //
             // Check if the value is valid based on byte counts
             //
-            if (SearchMemoryRequest.ByteSize == SEARCH_BYTE && Section.size() >= 3)
+            if (SearchMemoryRequest.ByteSize == SEARCH_BYTE && TargetVal.size() >= 3)
             {
                 ShowMessages("please specify a byte (hex) value for 'sb' or '!sb'\n\n");
                 return;
             }
-            if (SearchMemoryRequest.ByteSize == SEARCH_DWORD && Section.size() >= 9)
+
+            if (SearchMemoryRequest.ByteSize == SEARCH_DWORD && TargetVal.size() >= 9)
             {
-                ShowMessages(
-                    "please specify a dword (hex) value for 'sd' or '!sd'\n\n");
+                ShowMessages("please specify a dword (hex) value for 'sd' or '!sd'\n\n");
                 return;
             }
-            if (SearchMemoryRequest.ByteSize == SEARCH_QWORD &&
-                Section.size() >= 17)
+
+            if (SearchMemoryRequest.ByteSize == SEARCH_QWORD && TargetVal.size() >= 17)
             {
-                ShowMessages(
-                    "please specify a qword (hex) value for 'sq' or '!sq'\n\n");
+                ShowMessages("please specify a qword (hex) value for 'sq' or '!sq'\n\n");
                 return;
             }
 
@@ -347,7 +349,7 @@ CommandSearchMemory(vector<string> SplitCommand, string Command)
             // Qword is checked by the following function, no need to double
             // check it above.
             //
-            if (!ConvertStringToUInt64(Section, &Value))
+            if (!ConvertStringToUInt64(TargetVal, &Value))
             {
                 ShowMessages("please specify a correct hex value to search in the "
                              "memory content\n\n");

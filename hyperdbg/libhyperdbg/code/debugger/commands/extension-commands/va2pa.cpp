@@ -41,24 +41,23 @@ CommandVa2paHelp()
 /**
  * @brief !va2pa command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandVa2pa(vector<string> SplitCommand, string Command)
+CommandVa2pa(vector<CommandToken> CommandTokens)
 {
     BOOL                              Status;
     ULONG                             ReturnedLength;
     UINT64                            TargetVa;
     UINT32                            Pid            = 0;
     DEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails = {0};
-    vector<string>                    SplitCommandCaseSensitive {Split(Command, ' ')};
 
-    if (SplitCommand.size() == 1 || SplitCommand.size() >= 5 ||
-        SplitCommand.size() == 3)
+    if (CommandTokens.size() == 1 || CommandTokens.size() >= 5 || CommandTokens.size() == 3)
     {
-        ShowMessages("incorrect use of the '!va2pa'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandVa2paHelp();
         return;
     }
@@ -72,18 +71,18 @@ CommandVa2pa(vector<string> SplitCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplitCommand.size() == 2)
+    if (CommandTokens.size() == 2)
     {
         //
         // It's just an address for current process
         //
-        if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(1), &TargetVa))
+        if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)), &TargetVa))
         {
             //
             // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplitCommandCaseSensitive.at(1).c_str());
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
             return;
         }
     }
@@ -92,37 +91,37 @@ CommandVa2pa(vector<string> SplitCommand, string Command)
         //
         // It might be address + pid
         //
-        if (!SplitCommand.at(1).compare("pid"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "pid"))
         {
-            if (!ConvertStringToUInt32(SplitCommand.at(2), &Pid))
+            if (!ConvertTokenToUInt32(CommandTokens.at(2), &Pid))
             {
                 ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
 
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(3), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)), &TargetVa))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplitCommandCaseSensitive.at(3).c_str());
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
                 return;
             }
         }
-        else if (!SplitCommand.at(2).compare("pid"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(2), "pid"))
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(1), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)), &TargetVa))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplitCommandCaseSensitive.at(1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
                 return;
             }
 
-            if (!ConvertStringToUInt32(SplitCommand.at(3), &Pid))
+            if (!ConvertTokenToUInt32(CommandTokens.at(3), &Pid))
             {
                 ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
