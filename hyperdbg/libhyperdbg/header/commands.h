@@ -555,7 +555,7 @@ VOID
 CommandTrace(vector<CommandToken> CommandTokens);
 
 VOID
-CommandHide(vector<CommandToken> CommandTokens);
+CommandHide(vector<string> SplitCommand, string Command);
 
 VOID
 CommandUnhide(vector<CommandToken> CommandTokens);

@@ -158,6 +158,9 @@ BOOLEAN
 CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare);
 
 BOOLEAN
+IsTokenBracketString(CommandToken TargetToken);
+
+BOOLEAN
 HasEnding(string const & fullString, string const & ending);
 
 BOOLEAN

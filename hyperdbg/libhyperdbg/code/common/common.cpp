@@ -514,6 +514,27 @@ CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare)
 }
 
 /**
+ * @brief Is token bracket string
+ *
+ * @param TargetToken the target command token
+ *
+ * @return BOOLEAN shows whether the token is bracket string or not
+ */
+BOOLEAN
+IsTokenBracketString(CommandToken TargetToken)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    CommandParsingTokenType TargetTokenValue = std::get<0>(TargetToken);
+
+    //
+    // Check if the token is a bracket string
+    //
+    return TargetTokenValue == CommandParsingTokenType::BracketString;
+}
+
+/**
  * @brief check and convert command token to a 32 bit unsigned integer
  *
  * @param TargetToken the target command token
