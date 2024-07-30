@@ -53,12 +53,12 @@ CommandMonitorHelp()
 /**
  * @brief !monitor command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandMonitor(vector<string> SplitCommand, string Command)
+CommandMonitor(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -77,14 +77,14 @@ CommandMonitor(vector<string> SplitCommand, string Command)
     BOOLEAN                            LengthAlreadySet            = FALSE;
     BOOLEAN                            SetAttributes               = FALSE;
     BOOLEAN                            HookMemoryTypeSet           = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_HOOK_MEMORY_TYPE          HookMemoryType              = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS; // by default virtual address
-    UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplitCommand.size() < 4)
+    if (CommandTokens.size() < 4)
     {
-        ShowMessages("incorrect use of the '!monitor'\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
         CommandMonitorHelp();
         return;
     }
@@ -97,8 +97,7 @@ CommandMonitor(vector<string> SplitCommand, string Command)
     // we are not sure what kind event the user need
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE,
             &Event,
             &EventLength,
@@ -116,17 +115,15 @@ CommandMonitor(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
-        if (!Section.compare("!monitor"))
+        if (CompareLowerCaseStrings(Section, "!monitor"))
         {
             continue;
         }
         else if (IsNextLength)
         {
-            if (!ConvertStringToUInt32(Section, &HookLength))
+            if (!ConvertTokenToUInt32(Section, &HookLength))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -136,61 +133,61 @@ CommandMonitor(vector<string> SplitCommand, string Command)
             LengthAlreadySet = TRUE;
             SetTo            = TRUE; // No longer need a second address
         }
-        else if (!Section.compare("r") && !SetAttributes)
+        else if (CompareLowerCaseStrings(Section, "r") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ;
             SetAttributes    = TRUE;
         }
-        else if (!Section.compare("w") && !SetAttributes)
+        else if (CompareLowerCaseStrings(Section, "w") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_WRITE;
             SetAttributes    = TRUE;
         }
-        else if (!Section.compare("x") && !SetAttributes)
+        else if (CompareLowerCaseStrings(Section, "x") && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_EXECUTE;
             SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("rw") || !Section.compare("wr")) && !SetAttributes)
+        else if ((CompareLowerCaseStrings(Section, "rw") || CompareLowerCaseStrings(Section, "wr")) && !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
             SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("rx") || !Section.compare("xr")) &&
+        else if ((CompareLowerCaseStrings(Section, "rx") || CompareLowerCaseStrings(Section, "xr")) &&
                  !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_EXECUTE;
             SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("wx") || !Section.compare("xw")) &&
+        else if ((CompareLowerCaseStrings(Section, "wx") || CompareLowerCaseStrings(Section, "xw")) &&
                  !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_WRITE_AND_EXECUTE;
             SetAttributes    = TRUE;
         }
-        else if ((!Section.compare("rwx") ||
-                  !Section.compare("rxw") ||
-                  !Section.compare("wrx") ||
-                  !Section.compare("wxr") ||
-                  !Section.compare("xrw") ||
-                  !Section.compare("xwr")) &&
+        else if ((CompareLowerCaseStrings(Section, "rwx") ||
+                  CompareLowerCaseStrings(Section, "rxw") ||
+                  CompareLowerCaseStrings(Section, "wrx") ||
+                  CompareLowerCaseStrings(Section, "wxr") ||
+                  CompareLowerCaseStrings(Section, "xrw") ||
+                  CompareLowerCaseStrings(Section, "xwr")) &&
                  !SetAttributes)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE_AND_EXECUTE;
             SetAttributes    = TRUE;
         }
-        else if (!Section.compare("l") && !SetTo && !LengthAlreadySet)
+        else if (CompareLowerCaseStrings(Section, "l") && !SetTo && !LengthAlreadySet)
         {
             IsNextLength = TRUE;
             continue;
         }
-        else if (!Section.compare("va") && !HookMemoryTypeSet)
+        else if (CompareLowerCaseStrings(Section, "va") && !HookMemoryTypeSet)
         {
             HookMemoryType    = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS;
             HookMemoryTypeSet = TRUE;
             continue;
         }
-        else if (!Section.compare("pa") && !HookMemoryTypeSet)
+        else if (CompareLowerCaseStrings(Section, "pa") && !HookMemoryTypeSet)
         {
             HookMemoryType    = DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS;
             HookMemoryTypeSet = TRUE;
@@ -204,14 +201,14 @@ CommandMonitor(vector<string> SplitCommand, string Command)
             if (!SetFrom)
             {
                 if (!SymbolConvertNameOrExprToAddress(
-                        SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        GetCaseSensitiveStringFromCommandToken(Section),
                         &OptionalParam1))
                 {
                     //
                     // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                                 GetCaseSensitiveStringFromCommandToken(Section).c_str());
                     CommandMonitorHelp();
 
                     FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -222,14 +219,14 @@ CommandMonitor(vector<string> SplitCommand, string Command)
             else if (!SetTo && !LengthAlreadySet)
             {
                 if (!SymbolConvertNameOrExprToAddress(
-                        SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        GetCaseSensitiveStringFromCommandToken(Section),
                         &OptionalParam2))
                 {
                     //
                     // Couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                                 GetCaseSensitiveStringFromCommandToken(Section).c_str());
 
                     CommandMonitorHelp();
 
@@ -243,7 +240,8 @@ CommandMonitor(vector<string> SplitCommand, string Command)
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandMonitorHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

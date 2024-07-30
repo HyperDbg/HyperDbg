@@ -39,12 +39,12 @@ CommandEptHookHelp()
 /**
  * @brief !epthook command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandEptHook(vector<string> SplitCommand, string Command)
+CommandEptHook(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -56,13 +56,13 @@ CommandEptHook(vector<string> SplitCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     BOOLEAN                            GetAddress                  = FALSE;
     UINT64                             OptionalParam1              = 0; // Set the target address
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplitCommand.size() < 2)
+    if (CommandTokens.size() < 2)
     {
-        ShowMessages("incorrect use of the '!epthook'\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
         CommandEptHookHelp();
         return;
     }
@@ -71,8 +71,7 @@ CommandEptHook(vector<string> SplitCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             HIDDEN_HOOK_EXEC_CC,
             &Event,
             &EventLength,
@@ -102,11 +101,9 @@ CommandEptHook(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
-        if (!Section.compare("!epthook"))
+        if (CompareLowerCaseStrings(Section, "!epthook"))
         {
             continue;
         }
@@ -116,14 +113,14 @@ CommandEptHook(vector<string> SplitCommand, string Command)
             // It's probably address
             //
             if (!SymbolConvertNameOrExprToAddress(
-                    SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                    GetCaseSensitiveStringFromCommandToken(Section),
                     &OptionalParam1))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandEptHookHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -139,7 +136,8 @@ CommandEptHook(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandEptHookHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

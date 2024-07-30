@@ -501,61 +501,61 @@ VOID
 CommandPte(vector<CommandToken> CommandTokens);
 
 VOID
-CommandMonitor(vector<string> SplitCommand, string Command);
+CommandMonitor(vector<CommandToken> CommandTokens);
 
 VOID
-CommandSyscallAndSysret(vector<string> SplitCommand, string Command);
+CommandSyscallAndSysret(vector<CommandToken> CommandTokens);
 
 VOID
-CommandEptHook(vector<string> SplitCommand, string Command);
+CommandEptHook(vector<CommandToken> CommandTokens);
 
 VOID
-CommandEptHook2(vector<string> SplitCommand, string Command);
+CommandEptHook2(vector<CommandToken> CommandTokens);
 
 VOID
-CommandCpuid(vector<string> SplitCommand, string Command);
+CommandCpuid(vector<CommandToken> CommandTokens);
 
 VOID
-CommandMsrread(vector<string> SplitCommand, string Command);
+CommandMsrread(vector<CommandToken> CommandTokens);
 
 VOID
-CommandMsrwrite(vector<string> SplitCommand, string Command);
+CommandMsrwrite(vector<CommandToken> CommandTokens);
 
 VOID
-CommandTsc(vector<string> SplitCommand, string Command);
+CommandTsc(vector<CommandToken> CommandTokens);
 
 VOID
-CommandPmc(vector<string> SplitCommand, string Command);
+CommandPmc(vector<CommandToken> CommandTokens);
 
 VOID
-CommandException(vector<string> SplitCommand, string Command);
+CommandException(vector<CommandToken> CommandTokens);
 
 VOID
-CommandCrwrite(vector<string> SplitCommand, string Command);
+CommandCrwrite(vector<CommandToken> CommandTokens);
 
 VOID
-CommandDr(vector<string> SplitCommand, string Command);
+CommandDr(vector<CommandToken> CommandTokens);
 
 VOID
-CommandInterrupt(vector<string> SplitCommand, string Command);
+CommandInterrupt(vector<CommandToken> CommandTokens);
 
 VOID
-CommandIoin(vector<string> SplitCommand, string Command);
+CommandIoin(vector<CommandToken> CommandTokens);
 
 VOID
-CommandIoout(vector<string> SplitCommand, string Command);
+CommandIoout(vector<CommandToken> CommandTokens);
 
 VOID
-CommandVmcall(vector<string> SplitCommand, string Command);
+CommandVmcall(vector<CommandToken> CommandTokens);
 
 VOID
-CommandMode(vector<string> SplitCommand, string Command);
+CommandMode(vector<CommandToken> CommandTokens);
 
 VOID
-CommandTrace(vector<string> SplitCommand, string Command);
+CommandTrace(vector<CommandToken> CommandTokens);
 
 VOID
-CommandHide(vector<string> SplitCommand, string Command);
+CommandHide(vector<CommandToken> CommandTokens);
 
 VOID
 CommandUnhide(vector<CommandToken> CommandTokens);
@@ -720,4 +720,4 @@ CommandAssemble(vector<string> SplitCommand, string Command);
 // hwdbg commands
 //
 VOID
-CommandHwClk(vector<string> SplitCommand, string Command);
+CommandHwClk(vector<CommandToken> CommandTokens);

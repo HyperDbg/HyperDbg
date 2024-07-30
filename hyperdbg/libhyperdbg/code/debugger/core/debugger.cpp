@@ -751,8 +751,7 @@ IsTagExist(UINT64 Tag)
  * script in this command split and the details are returned in the
  * input structure
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive case sensitive split command
+ * @param CommandTokens command tokens
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -760,13 +759,12 @@ IsTagExist(UINT64 Tag)
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> * SplitCommand,
-                vector<string> * SplitCommandCaseSensitive,
-                PBOOLEAN         ScriptSyntaxErrors,
-                PUINT64          BufferAddress,
-                PUINT32          BufferLength,
-                PUINT32          Pointer,
-                PUINT64          ScriptCodeBuffer)
+InterpretScript(vector<CommandToken> * CommandTokens,
+                PBOOLEAN               ScriptSyntaxErrors,
+                PUINT64                BufferAddress,
+                PUINT32                BufferLength,
+                PUINT32                Pointer,
+                PUINT64                ScriptCodeBuffer)
 {
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
@@ -1232,9 +1230,7 @@ InterpretScript(vector<string> * SplitCommand,
  * or code buffer in this command split and the details are returned in the
  * input structure
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive the initialized command that are split
- * by space case sensitive
+ * @param CommandTokens command tokens
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
@@ -1243,11 +1239,10 @@ InterpretScript(vector<string> * SplitCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretConditionsAndCodes(vector<string> * SplitCommand,
-                            vector<string> * SplitCommandCaseSensitive,
-                            BOOLEAN          IsConditionBuffer,
-                            PUINT64          BufferAddress,
-                            PUINT32          BufferLength)
+InterpretConditionsAndCodes(vector<CommandToken> * CommandTokens,
+                            BOOLEAN                IsConditionBuffer,
+                            PUINT64                BufferAddress,
+                            PUINT32                BufferLength)
 {
     BOOLEAN        IsAsm         = FALSE;
     BOOLEAN        IsTextVisited = FALSE;
@@ -1264,7 +1259,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     int            NewIndexToRemove = 0;
     int            Index            = 0;
 
-    for (auto Section : *SplitCommand)
+    for (auto Section : *CommandTokens)
     {
         Index++;
 
@@ -1690,9 +1685,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
  * input that needs to be considered for this event (other than just printing)
  * like sending over network, save to file, and send over a namedpipe
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive the initialized command that are split
- * by space case sensitive
+ * @param CommandTokens command tokens
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -1700,9 +1693,8 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> * SplitCommand,
-                vector<string> * SplitCommandCaseSensitive,
-                vector<string> & InputSources)
+InterpretOutput(vector<CommandToken> * CommandTokens,
+                vector<string> &       InputSources)
 {
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
@@ -2321,9 +2313,7 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 /**
  * @brief Interpret general event fields
  *
- * @param SplitCommand the commands that was split by space
- * @param SplitCommandCaseSensitive the commands that was split by space
- * case sensitive
+ * @param CommandTokens the command tokens
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled
  * by event detail buffer
@@ -2340,8 +2330,7 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  */
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                    SplitCommand,
-    vector<string> *                    SplitCommandCaseSensitive,
+    vector<CommandToken> *              CommandTokens,
     VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
@@ -2400,9 +2389,9 @@ InterpretGeneralEventAndActionsFields(
     //
     // Create a command string to show in the history
     //
-    for (auto Section : *SplitCommandCaseSensitive)
+    for (auto Section : *CommandTokens)
     {
-        CommandString.append(Section);
+        CommandString.append(GetCaseSensitiveStringFromCommandToken(Section));
         CommandString.append(" ");
     }
 
@@ -2426,16 +2415,14 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a condition buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
+    if (!InterpretConditionsAndCodes(CommandTokens, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
     {
         //
         // Indicate condition is not available
         //
         HasConditionBuffer = FALSE;
 
-        //
-        // ShowMessages("\nNo condition!\n");
-        //
+        /* ShowMessages("\nNo condition!\n"); */
     }
     else
     {
@@ -2468,7 +2455,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a code buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
+    if (!InterpretConditionsAndCodes(CommandTokens, FALSE, &CodeBufferAddress, &CodeBufferLength))
     {
         //
         // Indicate code is not available
@@ -2508,8 +2495,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a Script block in the command
     //
-    if (!InterpretScript(SplitCommand,
-                         SplitCommandCaseSensitive,
+    if (!InterpretScript(CommandTokens,
                          &HasScriptSyntaxError,
                          &ScriptBufferAddress,
                          &ScriptBufferLength,
@@ -2546,7 +2532,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a output path in the command
     //
-    if (!InterpretOutput(SplitCommand, SplitCommandCaseSensitive, ListOfOutputSources))
+    if (!InterpretOutput(CommandTokens, ListOfOutputSources))
     {
         //
         // Indicate output is not available
@@ -2917,12 +2903,13 @@ InterpretGeneralEventAndActionsFields(
     //
     // Interpret rest of the command
     //
-    for (auto Section : *SplitCommand)
+    for (auto Section : *CommandTokens)
     {
         Index++;
+
         if (IsNextCommandBufferSize)
         {
-            if (!ConvertStringToUInt32(Section, &RequestBuffer))
+            if (!ConvertTokenToUInt32(Section, &RequestBuffer))
             {
                 ShowMessages("err, buffer size is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -2958,11 +2945,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandImmediateMessaging)
         {
-            if (!Section.compare("yes"))
+            if (CompareLowerCaseStrings(Section, "yes"))
             {
                 ImmediateMessagePassing = TRUE;
             }
-            else if (!Section.compare("no"))
+            else if (CompareLowerCaseStrings(Section, "no"))
             {
                 ImmediateMessagePassing = FALSE;
             }
@@ -2989,15 +2976,15 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandExecutionStage)
         {
-            if (!Section.compare("pre"))
+            if (CompareLowerCaseStrings(Section, "pre"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
             }
-            else if (!Section.compare("post"))
+            else if (CompareLowerCaseStrings(Section, "post"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
             }
-            else if (!Section.compare("all"))
+            else if (CompareLowerCaseStrings(Section, "all"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
             }
@@ -3024,11 +3011,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandSc)
         {
-            if (!Section.compare("on"))
+            if (CompareLowerCaseStrings(Section, "on"))
             {
                 IsAShortCircuitingEventByDefault = TRUE;
             }
-            else if (!Section.compare("off"))
+            else if (CompareLowerCaseStrings(Section, "off"))
             {
                 IsAShortCircuitingEventByDefault = FALSE;
             }
@@ -3055,11 +3042,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandPid)
         {
-            if (!Section.compare("all"))
+            if (CompareLowerCaseStrings(Section, "all"))
             {
                 TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
             }
-            else if (!ConvertStringToUInt32(Section, &ProcessId))
+            else if (!ConvertTokenToUInt32(Section, &ProcessId))
             {
                 ShowMessages("err, pid is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -3086,7 +3073,7 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandCoreId)
         {
-            if (!ConvertStringToUInt32(Section, &CoreId))
+            if (!ConvertTokenToUInt32(Section, &CoreId))
             {
                 ShowMessages("err, core id is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -3109,7 +3096,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("pid"))
+        if (CompareLowerCaseStrings(Section, "pid"))
         {
             IsNextCommandPid = TRUE;
 
@@ -3120,7 +3107,7 @@ InterpretGeneralEventAndActionsFields(
 
             continue;
         }
-        if (!Section.compare("core"))
+        if (CompareLowerCaseStrings(Section, "core"))
         {
             IsNextCommandCoreId = TRUE;
 
@@ -3132,7 +3119,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("imm"))
+        if (CompareLowerCaseStrings(Section, "imm"))
         {
             //
             // the next command is immediate messaging indicator
@@ -3147,7 +3134,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("stage"))
+        if (CompareLowerCaseStrings(Section, "stage"))
         {
             //
             // the next command is execution mode (pre- and post-events)
@@ -3162,7 +3149,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("sc"))
+        if (CompareLowerCaseStrings(Section, "sc"))
         {
             //
             // the next command is the default short-circuiting state
@@ -3177,7 +3164,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("buffer"))
+        if (CompareLowerCaseStrings(Section, "buffer"))
         {
             IsNextCommandBufferSize = TRUE;
 
@@ -3377,8 +3364,7 @@ InterpretGeneralEventAndActionsFields(
     for (auto IndexToRemove : IndexesToRemove)
     {
         NewIndexToRemove++;
-        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        CommandTokens->erase(CommandTokens->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     //

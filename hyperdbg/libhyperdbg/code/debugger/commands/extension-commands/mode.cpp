@@ -40,12 +40,12 @@ CommandModeHelp()
 /**
  * @brief !mode command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandMode(vector<string> SplitCommand, string Command)
+CommandMode(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -55,7 +55,6 @@ CommandMode(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
     BOOLEAN                            SetMode                = FALSE;
     DEBUGGER_EVENT_MODE_TYPE           TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_INVALID;
@@ -65,8 +64,7 @@ CommandMode(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             TRAP_EXECUTION_MODE_CHANGED,
             &Event,
             &EventLength,
@@ -96,9 +94,11 @@ CommandMode(vector<string> SplitCommand, string Command)
     //
     // Check for size
     //
-    if (SplitCommand.size() > 2)
+    if (CommandTokens.size() > 2)
     {
-        ShowMessages("incorrect use of the '!mode'\n");
+        ShowMessages("incorrect use of the '%s'\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
         CommandModeHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -108,23 +108,23 @@ CommandMode(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!mode"))
+        if (CompareLowerCaseStrings(Section, "!mode"))
         {
             continue;
         }
-        else if (!Section.compare("u") && !SetMode)
+        else if (CompareLowerCaseStrings(Section, "u") && !SetMode)
         {
             TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_USER_MODE;
             SetMode                = TRUE;
         }
-        else if (!Section.compare("k") && !SetMode)
+        else if (CompareLowerCaseStrings(Section, "k") && !SetMode)
         {
             TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE;
             SetMode                = TRUE;
         }
-        else if ((!Section.compare("uk") || !Section.compare("ku")) && !SetMode)
+        else if ((CompareLowerCaseStrings(Section, "uk") || CompareLowerCaseStrings(Section, "ku")) && !SetMode)
         {
             TargetInterceptionMode = DEBUGGER_EVENT_MODE_TYPE_USER_MODE_AND_KERNEL_MODE;
             SetMode                = TRUE;
@@ -135,7 +135,7 @@ CommandMode(vector<string> SplitCommand, string Command)
             // Couldn't resolve or unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                         Section.c_str());
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
 
             CommandModeHelp();
 

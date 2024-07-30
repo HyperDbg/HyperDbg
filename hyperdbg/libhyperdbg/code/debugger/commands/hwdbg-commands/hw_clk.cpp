@@ -38,12 +38,12 @@ CommandHwClkHelp()
 /**
  * @brief !hw_clk command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandHwClk(vector<string> SplitCommand, string Command)
+CommandHwClk(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -59,11 +59,10 @@ CommandHwClk(vector<string> SplitCommand, string Command)
     size_t                             NewCompressedBufferSize               = 0;
     size_t                             NumberOfNeededFlipFlopsInTargetDevice = 0;
     size_t                             NumberOfBytesPerChunk                 = 0;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
     HWDBG_SHORT_SYMBOL *               NewScriptBuffer = NULL;
 
-    if (SplitCommand.size() >= 2 && !SplitCommand.at(1).compare("test"))
+    if (CommandTokens.size() >= 2 && CompareLowerCaseStrings(CommandTokens.at(1), "test"))
     {
         TCHAR        TestFilePath[MAX_PATH] = {0};
         const SIZE_T BufferSize             = 256; // Adjust based on the number of memory entries of the file
@@ -130,8 +129,7 @@ CommandHwClk(vector<string> SplitCommand, string Command)
         //
         //
         if (!InterpretGeneralEventAndActionsFields(
-                &SplitCommand,
-                &SplitCommandCaseSensitive,
+                &CommandTokens,
                 (VMM_EVENT_TYPE_ENUM)NULL, // not an event
                 &Event,
                 &EventLength,
@@ -300,7 +298,8 @@ CommandHwClk(vector<string> SplitCommand, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of the '%s'\n\n", SplitCommand.at(0).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandHwClkHelp();
         return;
     }

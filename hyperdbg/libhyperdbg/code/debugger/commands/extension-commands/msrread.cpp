@@ -38,12 +38,12 @@ CommandMsrreadHelp()
 /**
  * @brief !msrread command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandMsrread(vector<string> SplitCommand, string Command)
+CommandMsrread(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -55,7 +55,6 @@ CommandMsrread(vector<string> SplitCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS;
     BOOLEAN                            GetAddress                  = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -63,8 +62,7 @@ CommandMsrread(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             RDMSR_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -83,9 +81,9 @@ CommandMsrread(vector<string> SplitCommand, string Command)
     // Interpret command specific details (if any), it is because we can use
     // special msr bitmap here
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!msrread") || !Section.compare("!msread"))
+        if (CompareLowerCaseStrings(Section, "!msrread") || CompareLowerCaseStrings(Section, "!msread"))
         {
             continue;
         }
@@ -94,12 +92,13 @@ CommandMsrread(vector<string> SplitCommand, string Command)
             //
             // It's probably an msr
             //
-            if (!ConvertStringToUInt64(Section, &SpecialTarget))
+            if (!ConvertTokenToUInt64(Section, &SpecialTarget))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandMsrreadHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -115,7 +114,8 @@ CommandMsrread(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandMsrreadHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

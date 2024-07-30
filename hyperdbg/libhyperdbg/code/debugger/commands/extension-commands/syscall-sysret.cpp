@@ -76,12 +76,12 @@ CommandSysretHelp()
 /**
  * @brief !syscall, !syscall2 and !sysret, !sysret2 commands handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
+CommandSyscallAndSysret(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -93,7 +93,6 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS;
     BOOLEAN                            GetSyscallNumber            = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
     string                             Cmd;
 
@@ -101,12 +100,12 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     //
-    Cmd = SplitCommand.at(0);
+    Cmd = GetLowerStringFromCommandToken(CommandTokens.at(0));
+
     if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
         if (!InterpretGeneralEventAndActionsFields(
-                &SplitCommand,
-                &SplitCommandCaseSensitive,
+                &CommandTokens,
                 SYSCALL_HOOK_EFER_SYSCALL,
                 &Event,
                 &EventLength,
@@ -124,8 +123,7 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
     else
     {
         if (!InterpretGeneralEventAndActionsFields(
-                &SplitCommand,
-                &SplitCommandCaseSensitive,
+                &CommandTokens,
                 SYSCALL_HOOK_EFER_SYSRET,
                 &Event,
                 &EventLength,
@@ -153,12 +151,12 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
     //
     if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
-        for (auto Section : SplitCommand)
+        for (auto Section : CommandTokens)
         {
-            if (!Section.compare("!syscall") ||
-                !Section.compare("!syscall2") ||
-                !Section.compare("!sysret") ||
-                !Section.compare("!sysret2"))
+            if (CompareLowerCaseStrings(Section, "!syscall") ||
+                CompareLowerCaseStrings(Section, "!syscall2") ||
+                CompareLowerCaseStrings(Section, "!sysret") ||
+                CompareLowerCaseStrings(Section, "!sysret2"))
             {
                 continue;
             }
@@ -168,12 +166,13 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
                 //
                 // It's probably a syscall address
                 //
-                if (!ConvertStringToUInt64(Section, &SpecialTarget))
+                if (!ConvertTokenToUInt64(Section, &SpecialTarget))
                 {
                     //
                     // Unknown parameter
                     //
-                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("unknown parameter '%s'\n\n",
+                                 GetCaseSensitiveStringFromCommandToken(Section).c_str());
 
                     if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
                     {
@@ -197,7 +196,8 @@ CommandSyscallAndSysret(vector<string> SplitCommand, string Command)
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
 
                 if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
                 {

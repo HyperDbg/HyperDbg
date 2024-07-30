@@ -37,12 +37,12 @@ CommandDrHelp()
 /**
  * @brief !dr command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandDr(vector<string> SplitCommand, string Command)
+CommandDr(vector<CommandToken> CommandTokens)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -52,7 +52,6 @@ CommandDr(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -60,8 +59,7 @@ CommandDr(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             DEBUG_REGISTERS_ACCESSED,
             &Event,
             &EventLength,
@@ -79,9 +77,10 @@ CommandDr(vector<string> SplitCommand, string Command)
     //
     // Check for size
     //
-    if (SplitCommand.size() > 1)
+    if (CommandTokens.size() > 1)
     {
-        ShowMessages("incorrect use of the '!dr'\n");
+        ShowMessages("incorrect use of the '%s'\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandDrHelp();
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
