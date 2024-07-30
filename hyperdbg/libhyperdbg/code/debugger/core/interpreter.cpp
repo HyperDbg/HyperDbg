@@ -927,24 +927,24 @@ InitializeCommandsDictionary()
     g_CommandsList[".hh"]   = {NULL, NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList["help"]  = {NULL, NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
-    g_CommandsList["clear"] = {NULL, &CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList[".cls"]  = {NULL, &CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList["cls"]   = {NULL, &CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList["clear"] = {&CommandCls, NULL, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList[".cls"]  = {&CommandCls, NULL, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList["cls"]   = {&CommandCls, NULL, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
 
-    g_CommandsList[".connect"] = {NULL, &CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
-    g_CommandsList["connect"]  = {NULL, &CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
+    g_CommandsList[".connect"] = {&CommandConnect, NULL, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
+    g_CommandsList["connect"]  = {&CommandConnect, NULL, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
 
-    g_CommandsList[".listen"] = {NULL, &CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
-    g_CommandsList["listen"]  = {NULL, &CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
+    g_CommandsList[".listen"] = {&CommandListen, NULL, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
+    g_CommandsList["listen"]  = {&CommandListen, NULL, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
 
     g_CommandsList["g"]  = {&CommandG, NULL, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
     g_CommandsList["go"] = {&CommandG, NULL, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
-    g_CommandsList[".attach"] = {NULL, &CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
-    g_CommandsList["attach"]  = {NULL, &CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
+    g_CommandsList[".attach"] = {&CommandAttach, NULL, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
+    g_CommandsList["attach"]  = {&CommandAttach, NULL, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
 
-    g_CommandsList[".detach"] = {NULL, &CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
-    g_CommandsList["detach"]  = {NULL, &CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
+    g_CommandsList[".detach"] = {&CommandDetach, NULL, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
+    g_CommandsList["detach"]  = {&CommandDetach, NULL, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
 
     g_CommandsList[".start"] = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
     g_CommandsList["start"]  = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
@@ -955,8 +955,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".switch"] = {NULL, &CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
     g_CommandsList["switch"]  = {NULL, &CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
 
-    g_CommandsList[".kill"] = {NULL, &CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
-    g_CommandsList["kill"]  = {NULL, &CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
+    g_CommandsList[".kill"] = {&CommandKill, NULL, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
+    g_CommandsList["kill"]  = {&CommandKill, NULL, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
 
     g_CommandsList[".process"]  = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
     g_CommandsList[".process2"] = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
@@ -978,8 +978,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".setting"]  = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
     g_CommandsList[".settings"] = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
 
-    g_CommandsList[".disconnect"] = {NULL, &CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
-    g_CommandsList["disconnect"]  = {NULL, &CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
+    g_CommandsList[".disconnect"] = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
+    g_CommandsList["disconnect"]  = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
 
     g_CommandsList[".debug"] = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
     g_CommandsList["debug"]  = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
@@ -1011,12 +1011,12 @@ InitializeCommandsDictionary()
     g_CommandsList["eval"]     = {NULL, &CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
     g_CommandsList["evaluate"] = {NULL, &CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
 
-    g_CommandsList[".logopen"] = {NULL, &CommandLogopen, &CommandLogopenHelp, DEBUGGER_COMMAND_LOGOPEN_ATTRIBUTES};
+    g_CommandsList[".logopen"] = {&CommandLogopen, NULL, &CommandLogopenHelp, DEBUGGER_COMMAND_LOGOPEN_ATTRIBUTES};
 
-    g_CommandsList[".logclose"] = {NULL, &CommandLogclose, &CommandLogcloseHelp, DEBUGGER_COMMAND_LOGCLOSE_ATTRIBUTES};
+    g_CommandsList[".logclose"] = {&CommandLogclose, NULL, &CommandLogcloseHelp, DEBUGGER_COMMAND_LOGCLOSE_ATTRIBUTES};
 
-    g_CommandsList[".pagein"] = {NULL, &CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
-    g_CommandsList["pagein"]  = {NULL, &CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
+    g_CommandsList[".pagein"] = {&CommandPagein, NULL, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
+    g_CommandsList["pagein"]  = {&CommandPagein, NULL, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
 
     g_CommandsList["test"] = {&CommandTest, NULL, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
 

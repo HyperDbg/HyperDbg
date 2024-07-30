@@ -36,16 +36,17 @@ CommandDisconnectHelp()
 /**
  * @brief .disconnect command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandDisconnect(vector<string> SplitCommand, string Command)
+CommandDisconnect(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the '.disconnect'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandDisconnectHelp();
         return;
     }

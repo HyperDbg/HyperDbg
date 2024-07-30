@@ -17,7 +17,7 @@
  * @return VOID
  */
 VOID
-CommandClearScreenHelp()
+CommandClsHelp()
 {
     ShowMessages(".cls : clears the screen.\n\n");
 
@@ -27,12 +27,20 @@ CommandClearScreenHelp()
 /**
  * @brief .cls command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandClearScreen(vector<string> SplitCommand, string Command)
+CommandCls(vector<CommandToken> CommandTokens)
 {
+    if (CommandTokens.size() != 1)
+    {
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandClsHelp();
+        return;
+    }
+
     system("cls");
 }

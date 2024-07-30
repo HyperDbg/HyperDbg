@@ -36,12 +36,12 @@ CommandAttachHelp()
 /**
  * @brief .attach command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandAttach(vector<string> SplitCommand, string Command)
+CommandAttach(vector<CommandToken> CommandTokens)
 {
     UINT32  TargetPid = 0;
     BOOLEAN NextIsPid = FALSE;
@@ -67,7 +67,7 @@ CommandAttach(vector<string> SplitCommand, string Command)
     //
     // It's a attach to a target PID
     //
-    if (SplitCommand.size() >= 4)
+    if (CommandTokens.size() >= 4)
     {
         ShowMessages("incorrect use of the '.attach'\n\n");
         CommandAttachHelp();
@@ -85,7 +85,7 @@ CommandAttach(vector<string> SplitCommand, string Command)
         return;
     }
 
-    for (auto item : SplitCommand)
+    for (auto Section : CommandTokens)
     {
         //
         // Find out whether the user enters pid or not
@@ -94,19 +94,26 @@ CommandAttach(vector<string> SplitCommand, string Command)
         {
             NextIsPid = FALSE;
 
-            if (!ConvertStringToUInt32(item, &TargetPid))
+            if (!ConvertTokenToUInt32(Section, &TargetPid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandAttachHelp();
                 return;
             }
         }
-        else if (!item.compare("pid"))
+        else if (CompareLowerCaseStrings(Section, "pid"))
         {
             //
             // next item is a pid for the process
             //
             NextIsPid = TRUE;
+        }
+        else
+        {
+            ShowMessages("unknown parameter at '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
+            CommandAttachHelp();
+            return;
         }
     }
 

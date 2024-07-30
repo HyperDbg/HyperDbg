@@ -462,13 +462,13 @@ VOID
 CommandTest(vector<CommandToken> CommandTokens);
 
 VOID
-CommandClearScreen(vector<string> SplitCommand, string Command);
+CommandCls(vector<CommandToken> CommandTokens);
 
 VOID
 CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens);
 
 VOID
-CommandConnect(vector<string> SplitCommand, string Command);
+CommandConnect(vector<CommandToken> CommandTokens);
 
 VOID
 CommandLoad(vector<CommandToken> CommandTokens);
@@ -486,7 +486,7 @@ VOID
 CommandExit(vector<CommandToken> CommandTokens);
 
 VOID
-CommandDisconnect(vector<string> SplitCommand, string Command);
+CommandDisconnect(vector<CommandToken> CommandTokens);
 
 VOID
 CommandFormats(vector<string> SplitCommand, string Command);
@@ -561,10 +561,10 @@ VOID
 CommandUnhide(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLogopen(vector<string> SplitCommand, string Command);
+CommandLogopen(vector<CommandToken> CommandTokens);
 
 VOID
-CommandLogclose(vector<string> SplitCommand, string Command);
+CommandLogclose(vector<CommandToken> CommandTokens);
 
 VOID
 CommandVa2pa(vector<string> SplitCommand, string Command);
@@ -603,16 +603,16 @@ VOID
 CommandPause(vector<CommandToken> CommandTokens);
 
 VOID
-CommandListen(vector<string> SplitCommand, string Command);
+CommandListen(vector<CommandToken> CommandTokens);
 
 VOID
 CommandStatus(vector<string> SplitCommand, string Command);
 
 VOID
-CommandAttach(vector<string> SplitCommand, string Command);
+CommandAttach(vector<CommandToken> CommandTokens);
 
 VOID
-CommandDetach(vector<string> SplitCommand, string Command);
+CommandDetach(vector<CommandToken> CommandTokens);
 
 VOID
 CommandStart(vector<string> SplitCommand, string Command);
@@ -624,7 +624,7 @@ VOID
 CommandSwitch(vector<string> SplitCommand, string Command);
 
 VOID
-CommandKill(vector<string> SplitCommand, string Command);
+CommandKill(vector<CommandToken> CommandTokens);
 
 VOID
 CommandT(vector<CommandToken> CommandTokens);
@@ -705,7 +705,7 @@ VOID
 CommandTrack(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPagein(vector<string> SplitCommand, string Command);
+CommandPagein(vector<CommandToken> CommandTokens);
 
 VOID
 CommandDump(vector<string> SplitCommand, string Command);

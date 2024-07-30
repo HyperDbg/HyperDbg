@@ -98,15 +98,15 @@ ConnectRemoteDebugger(const CHAR * Ip, const CHAR * Port)
 /**
  * @brief .connect command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandConnect(vector<string> SplitCommand, string Command)
+CommandConnect(vector<CommandToken> CommandTokens)
 {
-    string ip;
-    string port;
+    string Ip;
+    string Port;
 
     if (g_IsConnectedToHyperDbgLocally || g_IsConnectedToRemoteDebuggee ||
         g_IsConnectedToRemoteDebugger)
@@ -124,7 +124,7 @@ CommandConnect(vector<string> SplitCommand, string Command)
         return;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Means that user entered just a connect so we have to
@@ -134,22 +134,24 @@ CommandConnect(vector<string> SplitCommand, string Command)
         CommandConnectHelp();
         return;
     }
-    else if (SplitCommand.at(1) == "local" && SplitCommand.size() == 2)
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "local") && CommandTokens.size() == 2)
     {
         //
         // connect to local debugger
         //
         ShowMessages("local debugging (vmi-mode)\n");
+
         ConnectLocalDebugger();
+
         return;
     }
-    else if (SplitCommand.size() == 3 || SplitCommand.size() == 2)
+    else if (CommandTokens.size() == 3 || CommandTokens.size() == 2)
     {
-        ip = SplitCommand.at(1);
+        Ip = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1));
 
-        if (SplitCommand.size() == 3)
+        if (CommandTokens.size() == 3)
         {
-            port = SplitCommand.at(2);
+            Port = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2));
         }
 
         //
@@ -157,15 +159,15 @@ CommandConnect(vector<string> SplitCommand, string Command)
         // system, let's first check the if the parameters are
         // valid
         //
-        if (!ValidateIP(ip))
+        if (!ValidateIP(Ip))
         {
             ShowMessages("incorrect ip address\n");
             return;
         }
 
-        if (SplitCommand.size() == 3)
+        if (CommandTokens.size() == 3)
         {
-            if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0)
+            if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
             {
                 ShowMessages("incorrect port\n");
                 return;
@@ -174,14 +176,14 @@ CommandConnect(vector<string> SplitCommand, string Command)
             //
             // connect to remote debugger
             //
-            ConnectRemoteDebugger(ip.c_str(), port.c_str());
+            ConnectRemoteDebugger(Ip.c_str(), Port.c_str());
         }
         else
         {
             //
             // connect to remote debugger (default port)
             //
-            ConnectRemoteDebugger(ip.c_str(), NULL);
+            ConnectRemoteDebugger(Ip.c_str(), NULL);
         }
     }
     else

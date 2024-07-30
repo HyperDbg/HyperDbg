@@ -33,16 +33,17 @@ CommandKillHelp()
 /**
  * @brief .kill command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandKill(vector<string> SplitCommand, string Command)
+CommandKill(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the '.kill'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandKillHelp();
         return;
     }

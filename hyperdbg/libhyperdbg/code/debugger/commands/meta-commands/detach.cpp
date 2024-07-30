@@ -63,16 +63,17 @@ DetachFromProcess()
 /**
  * @brief .detach command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandDetach(vector<string> SplitCommand, string Command)
+CommandDetach(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() >= 2)
+    if (CommandTokens.size() >= 2)
     {
-        ShowMessages("incorrect use of the '.detach'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandDetachHelp();
         return;
     }

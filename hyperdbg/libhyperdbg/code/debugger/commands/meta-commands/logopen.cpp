@@ -30,21 +30,26 @@ CommandLogopenHelp()
     ShowMessages(".logopen : saves commands and results in a file.\n\n");
 
     ShowMessages("syntax : \t.logopen [FilePath (string)]\n");
+
+    ShowMessages("\n");
+    ShowMessages("\t\te.g : .logopen c:\\users\\sina\\desktop\\log.txt\n");
+    ShowMessages("\t\te.g : .logopen \"c:\\users\\sina\\desktop\\log with space.txt\"\n");
 }
 
 /**
  * @brief .logopen command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandLogopen(vector<string> SplitCommand, string Command)
+CommandLogopen(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("please specify a file\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandLogopenHelp();
         return;
     }
@@ -57,24 +62,9 @@ CommandLogopen(vector<string> SplitCommand, string Command)
     }
 
     //
-    // Trim the command
-    //
-    Trim(Command);
-
-    //
-    // Remove .logopen from it
-    //
-    Command.erase(0, SplitCommand.at(0).size());
-
-    //
-    // Trim it again
-    //
-    Trim(Command);
-
-    //
     // Try to open it as file
     //
-    g_LogOpenFile.open(Command.c_str());
+    g_LogOpenFile.open(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
 
     //
     // Check if it's okay
@@ -94,7 +84,7 @@ CommandLogopen(vector<string> SplitCommand, string Command)
 
         ShowMessages("save commands and results into file : %s (%d-%02d-%02d "
                      "%02d:%02d:%02d)\n",
-                     Command.c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str(),
                      tm.tm_year + 1900,
                      tm.tm_mon + 1,
                      tm.tm_mday,
@@ -104,7 +94,7 @@ CommandLogopen(vector<string> SplitCommand, string Command)
     }
     else
     {
-        ShowMessages("unable to open file : %s\n", Command.c_str());
+        ShowMessages("unable to open file : %s\n", GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
         return;
     }
 }
