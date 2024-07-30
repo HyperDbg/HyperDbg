@@ -606,7 +606,7 @@ VOID
 CommandListen(vector<CommandToken> CommandTokens);
 
 VOID
-CommandStatus(vector<string> SplitCommand, string Command);
+CommandStatus(vector<CommandToken> CommandTokens);
 
 VOID
 CommandAttach(vector<CommandToken> CommandTokens);
@@ -618,10 +618,10 @@ VOID
 CommandStart(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRestart(vector<string> SplitCommand, string Command);
+CommandRestart(vector<CommandToken> CommandTokens);
 
 VOID
-CommandSwitch(vector<string> SplitCommand, string Command);
+CommandSwitch(vector<CommandToken> CommandTokens);
 
 VOID
 CommandKill(vector<CommandToken> CommandTokens);
@@ -648,10 +648,10 @@ VOID
 CommandCore(vector<CommandToken> CommandTokens);
 
 VOID
-CommandProcess(vector<string> SplitCommand, string Command);
+CommandProcess(vector<CommandToken> CommandTokens);
 
 VOID
-CommandThread(vector<string> SplitCommand, string Command);
+CommandThread(vector<CommandToken> CommandTokens);
 
 VOID
 CommandEval(vector<string> SplitCommand, string Command);
@@ -675,7 +675,7 @@ VOID
 CommandBc(vector<CommandToken> CommandTokens);
 
 VOID
-CommandSympath(vector<string> SplitCommand, string Command);
+CommandSympath(vector<CommandToken> CommandTokens);
 
 VOID
 CommandSym(vector<string> SplitCommand, string Command);

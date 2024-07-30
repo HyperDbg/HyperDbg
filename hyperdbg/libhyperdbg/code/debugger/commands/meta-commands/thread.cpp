@@ -111,26 +111,27 @@ CommandThreadListThreads(UINT64 Eprocess)
 /**
  * @brief .thread command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandThread(vector<string> SplitCommand, string Command)
+CommandThread(vector<CommandToken> CommandTokens)
 {
     UINT32  TargetThreadId = 0;
     UINT64  TargetThread   = 0;
     UINT64  TargetProcess  = 0;
     BOOLEAN CheckByClkIntr = FALSE;
 
-    if (SplitCommand.size() >= 5)
+    if (CommandTokens.size() >= 5)
     {
-        ShowMessages("incorrect use of the '.thread'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandThreadHelp();
         return;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Check if it's connected to a remote debuggee or not
@@ -151,9 +152,9 @@ CommandThread(vector<string> SplitCommand, string Command)
                                                NULL);
         }
     }
-    else if (SplitCommand.size() == 2)
+    else if (CommandTokens.size() == 2)
     {
-        if (!SplitCommand.at(1).compare("list"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "list"))
         {
             //
             // Sending null as the nt!_EPROCESS indicates that the target process is
@@ -171,12 +172,12 @@ CommandThread(vector<string> SplitCommand, string Command)
         {
             ShowMessages(
                 "err, unknown parameter at '%s'\n\n",
-                SplitCommand.at(1).c_str());
+                GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
             CommandThreadHelp();
             return;
         }
     }
-    else if (SplitCommand.size() == 3)
+    else if (CommandTokens.size() == 3)
     {
         //
         // Check if it's connected to a remote debuggee or not
@@ -189,9 +190,9 @@ CommandThread(vector<string> SplitCommand, string Command)
             return;
         }
 
-        if (!SplitCommand.at(1).compare("tid"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "tid"))
         {
-            if (!ConvertStringToUInt32(SplitCommand.at(2), &TargetThreadId))
+            if (!ConvertTokenToUInt32(CommandTokens.at(2), &TargetThreadId))
             {
                 ShowMessages(
                     "please specify a correct hex value for the thread id that you "
@@ -200,9 +201,9 @@ CommandThread(vector<string> SplitCommand, string Command)
                 return;
             }
         }
-        else if (!SplitCommand.at(1).compare("thread"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(1), "thread"))
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommand.at(2), &TargetThread))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)), &TargetThread))
             {
                 ShowMessages(
                     "please specify a correct hex value for the thread (nt!_ETHREAD) that you "
@@ -211,7 +212,7 @@ CommandThread(vector<string> SplitCommand, string Command)
                 return;
             }
         }
-        else if (!SplitCommand.at(1).compare("list") && !SplitCommand.at(2).compare("process"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(1), "list") && CompareLowerCaseStrings(CommandTokens.at(2), "process"))
         {
             ShowMessages(
                 "please specify a hex value for the process\n\n");
@@ -222,12 +223,12 @@ CommandThread(vector<string> SplitCommand, string Command)
         {
             ShowMessages(
                 "err, unknown parameter at '%s'\n\n",
-                SplitCommand.at(2).c_str());
+                GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             CommandThreadHelp();
             return;
         }
 
-        if (!SplitCommand.at(0).compare(".thread2"))
+        if (CompareLowerCaseStrings(CommandTokens.at(0), ".thread2"))
         {
             //
             // Check by changes to gs:[188]
@@ -251,13 +252,13 @@ CommandThread(vector<string> SplitCommand, string Command)
                                            CheckByClkIntr,
                                            NULL);
     }
-    else if (SplitCommand.size() == 4)
+    else if (CommandTokens.size() == 4)
     {
-        if (!SplitCommand.at(1).compare("list"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "list"))
         {
-            if (!SplitCommand.at(2).compare("process"))
+            if (CompareLowerCaseStrings(CommandTokens.at(2), "process"))
             {
-                if (!SymbolConvertNameOrExprToAddress(SplitCommand.at(3), &TargetProcess))
+                if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)), &TargetProcess))
                 {
                     ShowMessages(
                         "please specify a correct hex value for the process (nt!_EPROCESS) that you "
@@ -281,7 +282,7 @@ CommandThread(vector<string> SplitCommand, string Command)
             {
                 ShowMessages(
                     "err, unknown parameter at '%s'\n\n",
-                    SplitCommand.at(2).c_str());
+                    GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
                 CommandThreadHelp();
                 return;
             }
@@ -290,7 +291,7 @@ CommandThread(vector<string> SplitCommand, string Command)
         {
             ShowMessages(
                 "err, unknown parameter at '%s'\n\n",
-                SplitCommand.at(1).c_str());
+                GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
             CommandThreadHelp();
             return;
         }

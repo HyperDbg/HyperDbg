@@ -36,17 +36,17 @@ CommandSympathHelp()
 /**
  * @brief .sympath command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandSympath(vector<string> SplitCommand, string Command)
+CommandSympath(vector<CommandToken> CommandTokens)
 {
     string SymbolServer = "";
     string Token;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Show the current symbol path
@@ -60,26 +60,20 @@ CommandSympath(vector<string> SplitCommand, string Command)
             ShowMessages("current symbol server is : %s\n", SymbolServer.c_str());
         }
     }
+    else if (CommandTokens.size() != 2)
+    {
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandSympathHelp();
+        return;
+    }
     else
     {
         //
         // Save the symbol path
         //
 
-        //
-        // Trim the command
-        //
-        Trim(Command);
-
-        //
-        // Remove .sympath from it
-        //
-        Command.erase(0, SplitCommand.at(0).size());
-
-        //
-        // Trim it again
-        //
-        Trim(Command);
+        std::string TargetSymPath = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1));
 
         //
         // *** validate the symbols ***
@@ -89,13 +83,16 @@ CommandSympath(vector<string> SplitCommand, string Command)
         // Check if the string contains '*'
         //
         char Delimiter = '*';
-        if (Command.find(Delimiter) != std::string::npos)
+        if (TargetSymPath.find(Delimiter) != std::string::npos)
         {
             //
             // Found
             //
-            Token = Command.substr(0, Command.find(Delimiter));
+            Token = TargetSymPath.substr(0, TargetSymPath.find(Delimiter));
+
+            //
             // using transform() function and ::tolower in STL
+            //
             transform(Token.begin(), Token.end(), Token.begin(), ::tolower);
 
             //
@@ -106,7 +103,7 @@ CommandSympath(vector<string> SplitCommand, string Command)
                 //
                 // Save the config
                 //
-                CommandSettingsSetValueFromConfigFile("SymbolServer", Command);
+                CommandSettingsSetValueFromConfigFile("SymbolServer", TargetSymPath);
 
                 //
                 // Show the message

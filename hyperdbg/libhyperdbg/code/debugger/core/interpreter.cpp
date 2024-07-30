@@ -949,24 +949,24 @@ InitializeCommandsDictionary()
     g_CommandsList[".start"] = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
     g_CommandsList["start"]  = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
 
-    g_CommandsList[".restart"] = {NULL, &CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
-    g_CommandsList["restart"]  = {NULL, &CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+    g_CommandsList[".restart"] = {&CommandRestart, NULL, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+    g_CommandsList["restart"]  = {&CommandRestart, NULL, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
 
-    g_CommandsList[".switch"] = {NULL, &CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
-    g_CommandsList["switch"]  = {NULL, &CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+    g_CommandsList[".switch"] = {&CommandSwitch, NULL, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+    g_CommandsList["switch"]  = {&CommandSwitch, NULL, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
 
     g_CommandsList[".kill"] = {&CommandKill, NULL, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
     g_CommandsList["kill"]  = {&CommandKill, NULL, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
 
-    g_CommandsList[".process"]  = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
-    g_CommandsList[".process2"] = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
-    g_CommandsList["process"]   = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
-    g_CommandsList["process2"]  = {NULL, &CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList[".process"]  = {&CommandProcess, NULL, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList[".process2"] = {&CommandProcess, NULL, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList["process"]   = {&CommandProcess, NULL, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList["process2"]  = {&CommandProcess, NULL, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
 
-    g_CommandsList[".thread"]  = {NULL, &CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
-    g_CommandsList[".thread2"] = {NULL, &CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
-    g_CommandsList["thread"]   = {NULL, &CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
-    g_CommandsList["thread2"]  = {NULL, &CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList[".thread"]  = {&CommandThread, NULL, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList[".thread2"] = {&CommandThread, NULL, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList["thread"]   = {&CommandThread, NULL, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList["thread2"]  = {&CommandThread, NULL, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
 
     g_CommandsList["sleep"] = {&CommandSleep, NULL, &CommandSleepHelp, DEBUGGER_COMMAND_SLEEP_ATTRIBUTES};
 
@@ -984,8 +984,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".debug"] = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
     g_CommandsList["debug"]  = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
 
-    g_CommandsList[".status"] = {NULL, &CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
-    g_CommandsList["status"]  = {NULL, &CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
+    g_CommandsList[".status"] = {&CommandStatus, NULL, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
+    g_CommandsList["status"]  = {&CommandStatus, NULL, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
 
     g_CommandsList["load"]  = {&CommandLoad, NULL, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
     g_CommandsList[".load"] = {&CommandLoad, NULL, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
@@ -1143,8 +1143,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["r"] = {NULL, &CommandR, &CommandRHelp, DEBUGGER_COMMAND_R_ATTRIBUTES};
 
-    g_CommandsList[".sympath"] = {NULL, &CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
-    g_CommandsList["sympath"]  = {NULL, &CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
+    g_CommandsList[".sympath"] = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
+    g_CommandsList["sympath"]  = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
 
     g_CommandsList[".sym"] = {NULL, &CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
     g_CommandsList["sym"]  = {NULL, &CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};

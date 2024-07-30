@@ -41,18 +41,19 @@ CommandSwitchHelp()
 /**
  * @brief .switch command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandSwitch(vector<string> SplitCommand, string Command)
+CommandSwitch(vector<CommandToken> CommandTokens)
 {
     UINT32 PidOrTid = NULL;
 
-    if (SplitCommand.size() > 3 || SplitCommand.size() == 2)
+    if (CommandTokens.size() > 3 || CommandTokens.size() == 2)
     {
-        ShowMessages("incorrect use of the '.switch'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandSwitchHelp();
         return;
     }
@@ -71,13 +72,13 @@ CommandSwitch(vector<string> SplitCommand, string Command)
     //
     // Perform switching or listing the threads
     //
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         UdShowListActiveDebuggingProcessesAndThreads();
     }
-    else if (!SplitCommand.at(1).compare("pid"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "pid"))
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(2), &PidOrTid))
+        if (!ConvertTokenToUInt32(CommandTokens.at(2), &PidOrTid))
         {
             ShowMessages("please specify a correct hex value for process id\n\n");
             return;
@@ -91,9 +92,9 @@ CommandSwitch(vector<string> SplitCommand, string Command)
             ShowMessages("switched to process id: %x\n", PidOrTid);
         }
     }
-    else if (!SplitCommand.at(1).compare("tid"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "tid"))
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(2), &PidOrTid))
+        if (!ConvertTokenToUInt32(CommandTokens.at(2), &PidOrTid))
         {
             ShowMessages("please specify a correct hex value for thread id\n\n");
             return;
@@ -110,7 +111,7 @@ CommandSwitch(vector<string> SplitCommand, string Command)
     else
     {
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplitCommand.at(1).c_str());
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
         return;
     }
 }

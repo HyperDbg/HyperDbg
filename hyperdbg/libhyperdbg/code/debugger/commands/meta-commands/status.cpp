@@ -42,14 +42,14 @@ CommandStatusHelp()
 /**
  * @brief .status and status command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandStatus(vector<string> SplitCommand, string Command)
+CommandStatus(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
         ShowMessages("incorrect use of the '.status'\n\n");
         CommandStatusHelp();
