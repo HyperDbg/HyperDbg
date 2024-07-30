@@ -459,7 +459,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 //////////////////////////////////////////////////
 
 VOID
-CommandTest(vector<string> SplitCommand, string Command);
+CommandTest(vector<CommandToken> CommandTokens);
 
 VOID
 CommandClearScreen(vector<string> SplitCommand, string Command);
@@ -474,7 +474,7 @@ VOID
 CommandLoad(vector<CommandToken> CommandTokens);
 
 VOID
-CommandUnload(vector<string> SplitCommand, string Command);
+CommandUnload(vector<CommandToken> CommandTokens);
 
 VOID
 CommandScript(vector<string> SplitCommand, string Command);
@@ -492,10 +492,10 @@ VOID
 CommandFormats(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRdmsr(vector<string> SplitCommand, string Command);
+CommandRdmsr(vector<CommandToken> CommandTokens);
 
 VOID
-CommandWrmsr(vector<string> SplitCommand, string Command);
+CommandWrmsr(vector<CommandToken> CommandTokens);
 
 VOID
 CommandPte(vector<string> SplitCommand, string Command);
@@ -582,7 +582,7 @@ VOID
 CommandLm(vector<CommandToken> CommandTokens);
 
 VOID
-CommandSleep(vector<string> SplitCommand, string Command);
+CommandSleep(vector<CommandToken> CommandTokens);
 
 VOID
 CommandEditMemory(vector<CommandToken> CommandTokens);
@@ -627,10 +627,10 @@ VOID
 CommandKill(vector<string> SplitCommand, string Command);
 
 VOID
-CommandT(vector<string> SplitCommand, string Command);
+CommandT(vector<CommandToken> CommandTokens);
 
 VOID
-CommandI(vector<string> SplitCommand, string Command);
+CommandI(vector<CommandToken> CommandTokens);
 
 VOID
 CommandPrint(vector<string> SplitCommand, string Command);
@@ -642,7 +642,7 @@ VOID
 CommandDebug(vector<string> SplitCommand, string Command);
 
 VOID
-CommandP(vector<string> SplitCommand, string Command);
+CommandP(vector<CommandToken> CommandTokens);
 
 VOID
 CommandCore(vector<CommandToken> CommandTokens);
@@ -681,7 +681,7 @@ VOID
 CommandSym(vector<string> SplitCommand, string Command);
 
 VOID
-CommandX(vector<string> SplitCommand, string Command);
+CommandX(vector<CommandToken> CommandTokens);
 
 VOID
 CommandPrealloc(vector<CommandToken> CommandTokens);

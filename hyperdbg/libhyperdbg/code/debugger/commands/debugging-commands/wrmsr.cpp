@@ -33,13 +33,12 @@ CommandWrmsrHelp()
 /**
  * @brief wrmsr command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
  *
  * @return VOID
  */
 VOID
-CommandWrmsr(vector<string> SplitCommand, string Command)
+CommandWrmsr(vector<CommandToken> CommandTokens)
 {
     BOOL                           Status;
     UINT64                         Msr;
@@ -51,14 +50,14 @@ CommandWrmsr(vector<string> SplitCommand, string Command)
     UINT32                         CoreNumer       = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
     BOOLEAN                        IsFirstCommand  = TRUE;
 
-    if (SplitCommand.size() >= 6)
+    if (CommandTokens.size() >= 6)
     {
         ShowMessages("incorrect use of the 'wrmsr'\n\n");
         CommandWrmsrHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
         if (IsFirstCommand == TRUE)
         {
@@ -68,7 +67,7 @@ CommandWrmsr(vector<string> SplitCommand, string Command)
 
         if (IsNextCoreId)
         {
-            if (!ConvertStringToUInt32(Section, &CoreNumer))
+            if (!ConvertTokenToUInt32(Section, &CoreNumer))
             {
                 ShowMessages("please specify a correct hex value for core id\n\n");
                 CommandWrmsrHelp();
@@ -79,7 +78,7 @@ CommandWrmsr(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("core"))
+        if (CompareLowerCaseStrings(Section, "core"))
         {
             IsNextCoreId = TRUE;
             continue;
@@ -87,7 +86,7 @@ CommandWrmsr(vector<string> SplitCommand, string Command)
 
         if (!SetMsr)
         {
-            if (!ConvertStringToUInt64(Section, &Msr))
+            if (!ConvertTokenToUInt64(Section, &Msr))
             {
                 ShowMessages("please specify a correct hex value to be read\n\n");
                 CommandWrmsrHelp();
@@ -105,7 +104,7 @@ CommandWrmsr(vector<string> SplitCommand, string Command)
 
         if (SetMsr)
         {
-            if (!SymbolConvertNameOrExprToAddress(Section, &Value))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &Value))
             {
                 ShowMessages(
                     "please specify a correct hex value or an expression to put on the msr\n\n");

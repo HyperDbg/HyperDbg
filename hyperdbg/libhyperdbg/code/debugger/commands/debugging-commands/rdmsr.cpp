@@ -106,12 +106,12 @@ GetWindowsNumaNumberOfCores()
 /**
  * @brief rdmsr command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandRdmsr(vector<string> SplitCommand, string Command)
+CommandRdmsr(vector<CommandToken> CommandTokens)
 {
     BOOL                           Status;
     SIZE_T                         NumCPU;
@@ -123,14 +123,15 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
     UINT32                         CoreNumer      = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
     BOOLEAN                        IsFirstCommand = TRUE;
 
-    if (SplitCommand.size() >= 5)
+    if (CommandTokens.size() >= 5)
     {
-        ShowMessages("incorrect use of the 'rdmsr'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandRdmsrHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
         if (IsFirstCommand == TRUE)
         {
@@ -140,7 +141,7 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
 
         if (IsNextCoreId)
         {
-            if (!ConvertStringToUInt32(Section, &CoreNumer))
+            if (!ConvertTokenToUInt32(Section, &CoreNumer))
             {
                 ShowMessages("please specify a correct hex value for core id\n\n");
                 CommandRdmsrHelp();
@@ -150,13 +151,13 @@ CommandRdmsr(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("core"))
+        if (CompareLowerCaseStrings(Section, "core"))
         {
             IsNextCoreId = TRUE;
             continue;
         }
 
-        if (SetMsr || !ConvertStringToUInt64(Section, &Msr))
+        if (SetMsr || !ConvertTokenToUInt64(Section, &Msr))
         {
             ShowMessages("please specify a correct hex value to be read\n\n");
             CommandRdmsrHelp();

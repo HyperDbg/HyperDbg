@@ -44,12 +44,12 @@ CommandTHelp()
 /**
  * @brief handler of t command
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandT(vector<string> SplitCommand, string Command)
+CommandT(vector<CommandToken> CommandTokens)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -57,7 +57,7 @@ CommandT(vector<string> SplitCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
+    if (CommandTokens.size() != 1 && CommandTokens.size() != 2)
     {
         ShowMessages("incorrect use of the 't'\n\n");
         CommandTHelp();
@@ -72,9 +72,9 @@ CommandT(vector<string> SplitCommand, string Command)
     //
     // Check if the command has a counter parameter
     //
-    if (SplitCommand.size() == 2)
+    if (CommandTokens.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
+        if (!ConvertTokenToUInt32(CommandTokens.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandTHelp();
@@ -132,7 +132,7 @@ CommandT(vector<string> SplitCommand, string Command)
                                            RequestFormat);
             }
 
-            if (!SplitCommand.at(0).compare("tr"))
+            if (CompareLowerCaseStrings(CommandTokens.at(0), "tr"))
             {
                 //
                 // Show registers
