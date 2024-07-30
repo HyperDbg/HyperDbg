@@ -310,7 +310,7 @@ public:
     {
         for (const auto & Token : Tokens)
         {
-            ShowMessages("CommandParsingTokenType: %s , Value 1: %s, Value 2 (lower): %s\n",
+            ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
                          TokenTypeToString(std::get<0>(Token)).c_str(),
                          std::get<1>(Token).c_str(),
                          std::get<2>(Token).c_str());
