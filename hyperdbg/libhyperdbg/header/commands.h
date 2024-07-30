@@ -471,7 +471,7 @@ VOID
 CommandConnect(vector<string> SplitCommand, string Command);
 
 VOID
-CommandLoad(vector<string> SplitCommand, string Command);
+CommandLoad(vector<CommandToken> CommandTokens);
 
 VOID
 CommandUnload(vector<string> SplitCommand, string Command);
@@ -579,7 +579,7 @@ VOID
 CommandG(vector<CommandToken> CommandTokens);
 
 VOID
-CommandLm(vector<string> SplitCommand, string Command);
+CommandLm(vector<CommandToken> CommandTokens);
 
 VOID
 CommandSleep(vector<string> SplitCommand, string Command);
@@ -597,10 +597,10 @@ VOID
 CommandSettings(vector<string> SplitCommand, string Command);
 
 VOID
-CommandFlush(vector<string> SplitCommand, string Command);
+CommandFlush(vector<CommandToken> CommandTokens);
 
 VOID
-CommandPause(vector<string> SplitCommand, string Command);
+CommandPause(vector<CommandToken> CommandTokens);
 
 VOID
 CommandListen(vector<string> SplitCommand, string Command);
@@ -684,16 +684,16 @@ VOID
 CommandX(vector<string> SplitCommand, string Command);
 
 VOID
-CommandPrealloc(vector<string> SplitCommand, string Command);
+CommandPrealloc(vector<CommandToken> CommandTokens);
 
 VOID
-CommandPreactivate(vector<string> SplitCommand, string Command);
+CommandPreactivate(vector<CommandToken> CommandTokens);
 
 VOID
 CommandDtAndStruct(vector<string> SplitCommand, string Command);
 
 VOID
-CommandK(vector<string> SplitCommand, string Command);
+CommandK(vector<CommandToken> CommandTokens);
 
 VOID
 CommandPe(vector<string> SplitCommand, string Command);

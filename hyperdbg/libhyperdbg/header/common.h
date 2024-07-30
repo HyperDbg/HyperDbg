@@ -151,6 +151,9 @@ ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result);
 std::string
 GetCaseSensitiveStringFromCommandToken(CommandToken TargetToken);
 
+std::string
+GetLowerStringFromCommandToken(CommandToken TargetToken);
+
 BOOLEAN
 CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare);
 

@@ -449,8 +449,7 @@ ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result)
     //
     // Extract the token type and value from the tuple
     //
-    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
-    std::string             TargetTokenValue = std::get<1>(TargetToken);
+    std::string TargetTokenValue = std::get<1>(TargetToken);
 
     //
     // Convert the token value to 64 bit unsigned integer
@@ -470,8 +469,24 @@ GetCaseSensitiveStringFromCommandToken(CommandToken TargetToken)
     //
     // Extract the token type and value from the tuple
     //
-    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
-    std::string             TargetTokenValue = std::get<1>(TargetToken); // the first index is case sensitive
+    std::string TargetTokenValue = std::get<1>(TargetToken); // the first index is case sensitive
+
+    return TargetTokenValue;
+}
+
+/**
+ * @brief Get lower case string from command token
+ *
+ * @param TargetToken the target command token
+ * @return string the string value of the token
+ */
+std::string
+GetLowerStringFromCommandToken(CommandToken TargetToken)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    std::string TargetTokenValue = std::get<2>(TargetToken); // the second index is lower case
 
     return TargetTokenValue;
 }
@@ -490,8 +505,7 @@ CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare)
     //
     // Extract the token type and value from the tuple
     //
-    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
-    std::string             TargetTokenValue = std::get<2>(TargetToken); // the second index is lower case
+    std::string TargetTokenValue = std::get<2>(TargetToken); // the second index is lower case
 
     //
     // Convert the token value to 64 bit unsigned integer
@@ -513,8 +527,7 @@ ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result)
     //
     // Extract the token type and value from the tuple
     //
-    CommandParsingTokenType TargetTokenType  = std::get<0>(TargetToken);
-    std::string             TargetTokenValue = std::get<1>(TargetToken);
+    std::string TargetTokenValue = std::get<1>(TargetToken);
 
     //
     // Convert the token value to 32 bit unsigned integer

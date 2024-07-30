@@ -63,19 +63,22 @@ CommandPauseRequest()
 /**
  * @brief pause command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandPause(vector<string> SplitCommand, string Command)
+CommandPause(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
         ShowMessages("incorrect use of the 'pause'\n\n");
         CommandPauseHelp();
         return;
     }
 
+    //
+    // request to pause
+    //
     CommandPauseRequest();
 }

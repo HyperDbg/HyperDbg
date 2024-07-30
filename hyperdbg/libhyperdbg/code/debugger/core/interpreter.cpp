@@ -987,14 +987,16 @@ InitializeCommandsDictionary()
     g_CommandsList[".status"] = {NULL, &CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
     g_CommandsList["status"]  = {NULL, &CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
 
-    g_CommandsList["load"] = {NULL, &CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
+    g_CommandsList["load"]  = {&CommandLoad, NULL, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
+    g_CommandsList[".load"] = {&CommandLoad, NULL, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
 
     g_CommandsList["exit"]  = {&CommandExit, NULL, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
     g_CommandsList[".exit"] = {&CommandExit, NULL, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
 
-    g_CommandsList["flush"] = {NULL, &CommandFlush, &CommandFlushHelp, DEBUGGER_COMMAND_FLUSH_ATTRIBUTES};
+    g_CommandsList["flush"] = {&CommandFlush, NULL, &CommandFlushHelp, DEBUGGER_COMMAND_FLUSH_ATTRIBUTES};
 
-    g_CommandsList["pause"] = {NULL, &CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
+    g_CommandsList["pause"]  = {&CommandPause, NULL, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
+    g_CommandsList[".pause"] = {&CommandPause, NULL, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
 
     g_CommandsList["unload"] = {NULL, &CommandUnload, &CommandUnloadHelp, DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES};
 
@@ -1095,7 +1097,7 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!measure"] = {NULL, &CommandMeasure, &CommandMeasureHelp, DEBUGGER_COMMAND_MEASURE_ATTRIBUTES};
 
-    g_CommandsList["lm"] = {NULL, &CommandLm, &CommandLmHelp, DEBUGGER_COMMAND_LM_ATTRIBUTES};
+    g_CommandsList["lm"] = {&CommandLm, NULL, &CommandLmHelp, DEBUGGER_COMMAND_LM_ATTRIBUTES};
 
     g_CommandsList["p"]  = {NULL, &CommandP, &CommandPHelp, DEBUGGER_COMMAND_P_ATTRIBUTES};
     g_CommandsList["pr"] = {NULL, &CommandP, &CommandPHelp, DEBUGGER_COMMAND_P_ATTRIBUTES};
@@ -1149,17 +1151,17 @@ InitializeCommandsDictionary()
 
     g_CommandsList["x"] = {NULL, &CommandX, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
 
-    g_CommandsList["prealloc"]      = {NULL, &CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
-    g_CommandsList["preallocate"]   = {NULL, &CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
-    g_CommandsList["preallocation"] = {NULL, &CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["prealloc"]      = {&CommandPrealloc, NULL, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocate"]   = {&CommandPrealloc, NULL, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocation"] = {&CommandPrealloc, NULL, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
 
-    g_CommandsList["preactivate"]   = {NULL, &CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
-    g_CommandsList["preactive"]     = {NULL, &CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
-    g_CommandsList["preactivation"] = {NULL, &CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactivate"]   = {&CommandPreactivate, NULL, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactive"]     = {&CommandPreactivate, NULL, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactivation"] = {&CommandPreactivate, NULL, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
 
-    g_CommandsList["k"]  = {NULL, &CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
-    g_CommandsList["kd"] = {NULL, &CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
-    g_CommandsList["kq"] = {NULL, &CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
+    g_CommandsList["k"]  = {&CommandK, NULL, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
+    g_CommandsList["kd"] = {&CommandK, NULL, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
+    g_CommandsList["kq"] = {&CommandK, NULL, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
 
     g_CommandsList["dt"]  = {NULL, &CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
     g_CommandsList["!dt"] = {NULL, &CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};

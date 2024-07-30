@@ -38,14 +38,14 @@ CommandLoadHelp()
 /**
  * @brief load command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandLoad(vector<string> SplitCommand, string Command)
+CommandLoad(vector<CommandToken> CommandTokens)
 {
-    if (SplitCommand.size() != 2)
+    if (CommandTokens.size() != 2)
     {
         ShowMessages("incorrect use of the 'load'\n\n");
         CommandLoadHelp();
@@ -62,7 +62,7 @@ CommandLoad(vector<string> SplitCommand, string Command)
     //
     // Check for the module
     //
-    if (!SplitCommand.at(1).compare("vmm"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm"))
     {
         //
         // Check to make sure that the driver is not already loaded

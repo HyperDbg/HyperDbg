@@ -47,26 +47,23 @@ CommandKHelp()
 /**
  * @brief k command handler
  *
- * @param SplitCommand
- * @param Command
+ * @param CommandTokens
+ *
  * @return VOID
  */
 VOID
-CommandK(vector<string> SplitCommand, string Command)
+CommandK(vector<CommandToken> CommandTokens)
 {
-    UINT64         BaseAddress = NULL;  // Null base address means current RSP register
-    UINT32         Length      = 0x100; // Default length
-    vector<string> SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32         IndexInCommandCaseSensitive = 0;
-    BOOLEAN        IsFirstCommand              = TRUE;
-    BOOLEAN        IsNextBase                  = FALSE;
-    BOOLEAN        IsNextLength                = FALSE;
+    UINT64  BaseAddress    = NULL;  // Null base address means current RSP register
+    UINT32  Length         = 0x100; // Default length
+    BOOLEAN IsFirstCommand = TRUE;
+    BOOLEAN IsNextBase     = FALSE;
+    BOOLEAN IsNextLength   = FALSE;
 
-    string FirstCommand = SplitCommand.front();
-
-    if (SplitCommand.size() >= 6)
+    if (CommandTokens.size() >= 6)
     {
-        ShowMessages("incorrect use of the '%s'\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandKHelp();
         return;
     }
@@ -90,10 +87,8 @@ CommandK(vector<string> SplitCommand, string Command)
         Length = 0x200;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         if (IsFirstCommand)
         {
             IsFirstCommand = FALSE;
@@ -101,14 +96,14 @@ CommandK(vector<string> SplitCommand, string Command)
         }
         if (IsNextBase == TRUE)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section),
                                                   &BaseAddress))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 return;
             }
 
@@ -118,7 +113,7 @@ CommandK(vector<string> SplitCommand, string Command)
 
         if (IsNextLength == TRUE)
         {
-            if (!ConvertStringToUInt32(Section, &Length))
+            if (!ConvertTokenToUInt32(Section, &Length))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -127,13 +122,13 @@ CommandK(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("l"))
+        if (CompareLowerCaseStrings(Section, "l"))
         {
             IsNextLength = TRUE;
             continue;
         }
 
-        if (!Section.compare("base"))
+        if (CompareLowerCaseStrings(Section, "base"))
         {
             IsNextBase = TRUE;
             continue;
@@ -143,7 +138,7 @@ CommandK(vector<string> SplitCommand, string Command)
         // User inserts unexpected input
         //
         ShowMessages("err, incorrect use of the '%s' command\n\n",
-                     FirstCommand.c_str());
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandKHelp();
 
         return;
@@ -151,7 +146,8 @@ CommandK(vector<string> SplitCommand, string Command)
 
     if (IsNextLength || IsNextBase)
     {
-        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s' command\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandKHelp();
         return;
     }
@@ -160,21 +156,21 @@ CommandK(vector<string> SplitCommand, string Command)
     // Send callstack request
     //
 
-    if (!FirstCommand.compare("k"))
+    if (CompareLowerCaseStrings(CommandTokens.at(0), "k"))
     {
         KdSendCallStackPacketToDebuggee(BaseAddress,
                                         Length,
                                         DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS,
                                         g_IsRunningInstruction32Bit);
     }
-    else if (!FirstCommand.compare("kq"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "kq"))
     {
         KdSendCallStackPacketToDebuggee(BaseAddress,
                                         Length,
                                         DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITH_PARAMS,
                                         FALSE);
     }
-    else if (!FirstCommand.compare("kd"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "kd"))
     {
         KdSendCallStackPacketToDebuggee(BaseAddress,
                                         Length,
