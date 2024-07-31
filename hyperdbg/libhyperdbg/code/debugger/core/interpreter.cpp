@@ -1103,7 +1103,7 @@ InitializeCommandsDictionary()
     g_CommandsList["i"]  = {&CommandI, NULL, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, NULL, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
-    g_CommandsList["gu"] = {NULL, &CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
+    g_CommandsList["gu"] = {&CommandGu, NULL, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
 
     g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler, NULL, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler, NULL, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
@@ -1136,7 +1136,7 @@ InitializeCommandsDictionary()
     g_CommandsList["!sd"] = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
     g_CommandsList["!sq"] = {&CommandSearchMemory, NULL, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
 
-    g_CommandsList["r"] = {NULL, &CommandR, &CommandRHelp, DEBUGGER_COMMAND_R_ATTRIBUTES};
+    g_CommandsList["r"] = {&CommandR, NULL, &CommandRHelp, DEBUGGER_COMMAND_R_ATTRIBUTES};
 
     g_CommandsList[".sympath"] = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
     g_CommandsList["sympath"]  = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
@@ -1166,8 +1166,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList[".pe"] = {NULL, &CommandPe, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
 
-    g_CommandsList["!rev"] = {NULL, &CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
-    g_CommandsList["rev"]  = {NULL, &CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+    g_CommandsList["!rev"] = {&CommandRev, NULL, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+    g_CommandsList["rev"]  = {&CommandRev, NULL, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
 
     g_CommandsList["!track"] = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
     g_CommandsList["track"]  = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};

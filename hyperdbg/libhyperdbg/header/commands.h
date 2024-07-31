@@ -653,7 +653,7 @@ VOID
 CommandEval(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandR(vector<string> SplitCommand, string Command);
+CommandR(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandBp(vector<CommandToken> CommandTokens, string Command);
@@ -695,7 +695,7 @@ VOID
 CommandPe(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRev(vector<string> SplitCommand, string Command);
+CommandRev(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandTrack(vector<CommandToken> CommandTokens, string Command);
@@ -707,7 +707,7 @@ VOID
 CommandDump(vector<string> SplitCommand, string Command);
 
 VOID
-CommandGu(vector<string> SplitCommand, string Command);
+CommandGu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandAssemble(vector<string> SplitCommand, string Command);

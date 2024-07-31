@@ -406,12 +406,13 @@ HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId)
 /**
  * @brief handler of r command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandR(std::vector<std::string> SplitCommand, std::string Command)
+CommandR(vector<CommandToken> CommandTokens, string Command)
 {
     //
     // Interpret here
@@ -425,12 +426,7 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
 
     std::string SetRegValue;
 
-    if (SplitCommand[0] != "r")
-    {
-        return;
-    }
-
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // show all registers
@@ -447,6 +443,7 @@ CommandR(std::vector<std::string> SplitCommand, std::string Command)
 
         return;
     }
+
     //
     // clear additional space of the command string
     //
