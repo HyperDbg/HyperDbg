@@ -64,11 +64,12 @@ CommandPauseRequest()
  * @brief pause command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPause(vector<CommandToken> CommandTokens)
+CommandPause(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

@@ -49,11 +49,12 @@ CommandProcessHelp()
  * @brief .process command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandProcess(vector<CommandToken> CommandTokens)
+CommandProcess(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32                               TargetProcessId            = 0;
     UINT64                               TargetProcess              = 0;

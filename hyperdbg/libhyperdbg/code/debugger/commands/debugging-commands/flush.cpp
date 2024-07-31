@@ -102,11 +102,12 @@ CommandFlushRequestFlush()
  * @brief flush command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandFlush(vector<CommandToken> CommandTokens)
+CommandFlush(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

@@ -131,11 +131,12 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
  * @brief !s* s* commands handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandSearchMemory(vector<CommandToken> CommandTokens)
+CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64                 Address;
     vector<UINT64>         ValuesToEdit;

@@ -378,11 +378,12 @@ CommandLmShowKernelModeModule(const char * SearchModule)
  * @brief handle lm command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandLm(vector<CommandToken> CommandTokens)
+CommandLm(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN SetPid                = FALSE;
     BOOLEAN SetSearchFilter       = FALSE;

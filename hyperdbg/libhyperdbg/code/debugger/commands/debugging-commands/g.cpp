@@ -86,11 +86,12 @@ CommandGRequest()
  * @brief handler of g command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandG(vector<CommandToken> CommandTokens)
+CommandG(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

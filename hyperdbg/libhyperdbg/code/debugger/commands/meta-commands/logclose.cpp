@@ -34,11 +34,12 @@ CommandLogcloseHelp()
  * @brief .logclose command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandLogclose(vector<CommandToken> CommandTokens)
+CommandLogclose(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

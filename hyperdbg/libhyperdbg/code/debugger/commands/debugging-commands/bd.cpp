@@ -37,11 +37,12 @@ CommandBdHelp()
  * @brief handler of bd command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandBd(vector<CommandToken> CommandTokens)
+CommandBd(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64                            BreakpointId;
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};

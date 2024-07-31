@@ -107,11 +107,12 @@ GetWindowsNumaNumberOfCores()
  * @brief rdmsr command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandRdmsr(vector<CommandToken> CommandTokens)
+CommandRdmsr(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                           Status;
     SIZE_T                         NumCPU;

@@ -175,7 +175,7 @@ typedef std::tuple<CommandParsingTokenType, std::string, std::string> CommandTok
  *
  */
 typedef VOID (*CommandFuncType)(vector<string> SplitCommand, string Command);
-typedef VOID (*CommandFuncTypeNewParser)(vector<CommandToken> CommandTokens);
+typedef VOID (*CommandFuncTypeNewParser)(vector<CommandToken> CommandTokens, string Command);
 
 /**
  * @brief Command's help function type
@@ -459,178 +459,178 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 //////////////////////////////////////////////////
 
 VOID
-CommandTest(vector<CommandToken> CommandTokens);
+CommandTest(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCls(vector<CommandToken> CommandTokens);
+CommandCls(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens);
+CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandConnect(vector<CommandToken> CommandTokens);
+CommandConnect(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLoad(vector<CommandToken> CommandTokens);
+CommandLoad(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandUnload(vector<CommandToken> CommandTokens);
+CommandUnload(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandScript(vector<string> SplitCommand, string Command);
 
 VOID
-CommandCpu(vector<CommandToken> CommandTokens);
+CommandCpu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandExit(vector<CommandToken> CommandTokens);
+CommandExit(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDisconnect(vector<CommandToken> CommandTokens);
+CommandDisconnect(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandFormats(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRdmsr(vector<CommandToken> CommandTokens);
+CommandRdmsr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandWrmsr(vector<CommandToken> CommandTokens);
+CommandWrmsr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPte(vector<CommandToken> CommandTokens);
+CommandPte(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMonitor(vector<CommandToken> CommandTokens);
+CommandMonitor(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSyscallAndSysret(vector<CommandToken> CommandTokens);
+CommandSyscallAndSysret(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEptHook(vector<CommandToken> CommandTokens);
+CommandEptHook(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEptHook2(vector<CommandToken> CommandTokens);
+CommandEptHook2(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCpuid(vector<CommandToken> CommandTokens);
+CommandCpuid(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMsrread(vector<CommandToken> CommandTokens);
+CommandMsrread(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMsrwrite(vector<CommandToken> CommandTokens);
+CommandMsrwrite(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandTsc(vector<CommandToken> CommandTokens);
+CommandTsc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPmc(vector<CommandToken> CommandTokens);
+CommandPmc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandException(vector<CommandToken> CommandTokens);
+CommandException(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCrwrite(vector<CommandToken> CommandTokens);
+CommandCrwrite(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDr(vector<CommandToken> CommandTokens);
+CommandDr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandInterrupt(vector<CommandToken> CommandTokens);
+CommandInterrupt(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandIoin(vector<CommandToken> CommandTokens);
+CommandIoin(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandIoout(vector<CommandToken> CommandTokens);
+CommandIoout(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandVmcall(vector<CommandToken> CommandTokens);
+CommandVmcall(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMode(vector<CommandToken> CommandTokens);
+CommandMode(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandTrace(vector<CommandToken> CommandTokens);
+CommandTrace(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandHide(vector<string> SplitCommand, string Command);
 
 VOID
-CommandUnhide(vector<CommandToken> CommandTokens);
+CommandUnhide(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLogopen(vector<CommandToken> CommandTokens);
+CommandLogopen(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLogclose(vector<CommandToken> CommandTokens);
+CommandLogclose(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandVa2pa(vector<CommandToken> CommandTokens);
+CommandVa2pa(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPa2va(vector<CommandToken> CommandTokens);
+CommandPa2va(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEvents(vector<CommandToken> CommandTokens);
+CommandEvents(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandG(vector<CommandToken> CommandTokens);
+CommandG(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLm(vector<CommandToken> CommandTokens);
+CommandLm(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSleep(vector<CommandToken> CommandTokens);
+CommandSleep(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEditMemory(vector<CommandToken> CommandTokens);
+CommandEditMemory(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSearchMemory(vector<CommandToken> CommandTokens);
+CommandSearchMemory(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMeasure(vector<CommandToken> CommandTokens);
+CommandMeasure(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandSettings(vector<string> SplitCommand, string Command);
 
 VOID
-CommandFlush(vector<CommandToken> CommandTokens);
+CommandFlush(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPause(vector<CommandToken> CommandTokens);
+CommandPause(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandListen(vector<CommandToken> CommandTokens);
+CommandListen(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandStatus(vector<CommandToken> CommandTokens);
+CommandStatus(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandAttach(vector<CommandToken> CommandTokens);
+CommandAttach(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDetach(vector<CommandToken> CommandTokens);
+CommandDetach(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandStart(vector<string> SplitCommand, string Command);
 
 VOID
-CommandRestart(vector<CommandToken> CommandTokens);
+CommandRestart(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSwitch(vector<CommandToken> CommandTokens);
+CommandSwitch(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandKill(vector<CommandToken> CommandTokens);
+CommandKill(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandT(vector<CommandToken> CommandTokens);
+CommandT(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandI(vector<CommandToken> CommandTokens);
+CommandI(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPrint(vector<string> SplitCommand, string Command);
@@ -642,16 +642,16 @@ VOID
 CommandDebug(vector<string> SplitCommand, string Command);
 
 VOID
-CommandP(vector<CommandToken> CommandTokens);
+CommandP(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCore(vector<CommandToken> CommandTokens);
+CommandCore(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandProcess(vector<CommandToken> CommandTokens);
+CommandProcess(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandThread(vector<CommandToken> CommandTokens);
+CommandThread(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandEval(vector<string> SplitCommand, string Command);
@@ -660,40 +660,40 @@ VOID
 CommandR(vector<string> SplitCommand, string Command);
 
 VOID
-CommandBp(vector<CommandToken> CommandTokens);
+CommandBp(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBl(vector<CommandToken> CommandTokens);
+CommandBl(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBe(vector<CommandToken> CommandTokens);
+CommandBe(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBd(vector<CommandToken> CommandTokens);
+CommandBd(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBc(vector<CommandToken> CommandTokens);
+CommandBc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSympath(vector<CommandToken> CommandTokens);
+CommandSympath(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandSym(vector<string> SplitCommand, string Command);
 
 VOID
-CommandX(vector<CommandToken> CommandTokens);
+CommandX(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPrealloc(vector<CommandToken> CommandTokens);
+CommandPrealloc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPreactivate(vector<CommandToken> CommandTokens);
+CommandPreactivate(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandDtAndStruct(vector<string> SplitCommand, string Command);
 
 VOID
-CommandK(vector<CommandToken> CommandTokens);
+CommandK(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPe(vector<string> SplitCommand, string Command);
@@ -702,10 +702,10 @@ VOID
 CommandRev(vector<string> SplitCommand, string Command);
 
 VOID
-CommandTrack(vector<CommandToken> CommandTokens);
+CommandTrack(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPagein(vector<CommandToken> CommandTokens);
+CommandPagein(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandDump(vector<string> SplitCommand, string Command);
@@ -720,4 +720,4 @@ CommandAssemble(vector<string> SplitCommand, string Command);
 // hwdbg commands
 //
 VOID
-CommandHwClk(vector<CommandToken> CommandTokens);
+CommandHwClk(vector<CommandToken> CommandTokens, string Command);

@@ -257,11 +257,12 @@ CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
  * @brief .pagein command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPagein(vector<CommandToken> CommandTokens)
+CommandPagein(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32               Pid                = 0;
     UINT64               Length             = 0;

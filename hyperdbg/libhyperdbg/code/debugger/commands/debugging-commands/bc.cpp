@@ -37,11 +37,12 @@ CommandBcHelp()
  * @brief handler of bc command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandBc(vector<CommandToken> CommandTokens)
+CommandBc(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64                            BreakpointId;
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};

@@ -34,11 +34,12 @@ CommandWrmsrHelp()
  * @brief wrmsr command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandWrmsr(vector<CommandToken> CommandTokens)
+CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                           Status;
     UINT64                         Msr;

@@ -84,11 +84,12 @@ CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS
  * @brief !pte command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPte(vector<CommandToken> CommandTokens)
+CommandPte(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                     Status;
     ULONG                                    ReturnedLength;

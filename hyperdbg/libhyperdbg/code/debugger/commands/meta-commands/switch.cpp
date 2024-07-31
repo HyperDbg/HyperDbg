@@ -42,11 +42,12 @@ CommandSwitchHelp()
  * @brief .switch command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandSwitch(vector<CommandToken> CommandTokens)
+CommandSwitch(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 PidOrTid = NULL;
 

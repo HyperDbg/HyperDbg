@@ -40,11 +40,12 @@ CommandEptHookHelp()
  * @brief !epthook command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandEptHook(vector<CommandToken> CommandTokens)
+CommandEptHook(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

@@ -258,11 +258,12 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
  * @brief !e* and e* commands handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandEditMemory(vector<CommandToken> CommandTokens)
+CommandEditMemory(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64                         Address;
     UINT64 *                       FinalBuffer;

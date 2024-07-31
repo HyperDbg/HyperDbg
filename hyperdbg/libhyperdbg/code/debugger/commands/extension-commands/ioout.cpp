@@ -40,11 +40,12 @@ CommandIooutHelp()
  * @brief !ioout command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandIoout(vector<CommandToken> CommandTokens)
+CommandIoout(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

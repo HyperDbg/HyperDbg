@@ -36,11 +36,12 @@ CommandExitHelp()
  * @brief exit command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandExit(vector<CommandToken> CommandTokens)
+CommandExit(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

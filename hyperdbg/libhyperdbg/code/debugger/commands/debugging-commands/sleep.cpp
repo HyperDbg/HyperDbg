@@ -30,11 +30,12 @@ CommandSleepHelp()
  * @brief sleep command help
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandSleep(vector<CommandToken> CommandTokens)
+CommandSleep(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 MillisecondsTime = 0;
 

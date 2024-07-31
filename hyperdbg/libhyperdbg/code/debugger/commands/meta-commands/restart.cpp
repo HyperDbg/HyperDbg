@@ -39,11 +39,12 @@ CommandRestartHelp()
  * @brief .restart command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandRestart(vector<CommandToken> CommandTokens)
+CommandRestart(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

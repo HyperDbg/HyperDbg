@@ -77,11 +77,12 @@ CommandSysretHelp()
  * @brief !syscall, !syscall2 and !sysret, !sysret2 commands handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandSyscallAndSysret(vector<CommandToken> CommandTokens)
+CommandSyscallAndSysret(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

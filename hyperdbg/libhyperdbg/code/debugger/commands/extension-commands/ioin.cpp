@@ -40,11 +40,12 @@ CommandIoinHelp()
  * @brief !ioin command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandIoin(vector<CommandToken> CommandTokens)
+CommandIoin(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

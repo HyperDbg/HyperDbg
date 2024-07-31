@@ -41,11 +41,12 @@ CommandPa2vaHelp()
  * @brief !pa2va command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPa2va(vector<CommandToken> CommandTokens)
+CommandPa2va(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                              Status;
     ULONG                             ReturnedLength;

@@ -76,11 +76,12 @@ CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
  * @brief bp command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandBp(vector<CommandToken> CommandTokens)
+CommandBp(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL IsNextCoreId = FALSE;
     BOOL IsNextPid    = FALSE;

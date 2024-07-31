@@ -43,11 +43,12 @@ CommandStatusHelp()
  * @brief .status and status command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandStatus(vector<CommandToken> CommandTokens)
+CommandStatus(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

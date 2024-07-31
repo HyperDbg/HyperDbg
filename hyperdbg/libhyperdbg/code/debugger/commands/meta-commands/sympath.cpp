@@ -37,11 +37,12 @@ CommandSympathHelp()
  * @brief .sympath command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandSympath(vector<CommandToken> CommandTokens)
+CommandSympath(vector<CommandToken> CommandTokens, string Command)
 {
     string SymbolServer = "";
     string Token;

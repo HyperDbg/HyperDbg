@@ -37,11 +37,12 @@ CommandAttachHelp()
  * @brief .attach command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandAttach(vector<CommandToken> CommandTokens)
+CommandAttach(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32  TargetPid = 0;
     BOOLEAN NextIsPid = FALSE;

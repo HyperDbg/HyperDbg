@@ -48,11 +48,12 @@ CommandIHelp()
  * @brief handler of i command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandI(vector<CommandToken> CommandTokens)
+CommandI(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;

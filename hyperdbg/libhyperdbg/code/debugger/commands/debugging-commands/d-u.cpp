@@ -65,11 +65,12 @@ CommandReadMemoryAndDisassemblerHelp()
  * @brief u* d* !u* !d* commands handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens)
+CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32  Pid             = 0;
     UINT32  Length          = 0;

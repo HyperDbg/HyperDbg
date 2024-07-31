@@ -40,11 +40,12 @@ CommandLogopenHelp()
  * @brief .logopen command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandLogopen(vector<CommandToken> CommandTokens)
+CommandLogopen(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 2)
     {

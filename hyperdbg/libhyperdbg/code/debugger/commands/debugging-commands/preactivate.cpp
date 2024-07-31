@@ -35,11 +35,12 @@ CommandPreactivateHelp()
  * @brief preactivate command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPreactivate(vector<CommandToken> CommandTokens)
+CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                         Status;
     ULONG                        ReturnedLength;

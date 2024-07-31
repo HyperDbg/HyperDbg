@@ -28,11 +28,12 @@ CommandCpuHelp()
  * @brief cpu command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandCpu(vector<CommandToken> CommandTokens)
+CommandCpu(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

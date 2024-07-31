@@ -48,11 +48,12 @@ CommandKHelp()
  * @brief k command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandK(vector<CommandToken> CommandTokens)
+CommandK(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64  BaseAddress    = NULL;  // Null base address means current RSP register
     UINT32  Length         = 0x100; // Default length

@@ -47,11 +47,12 @@ CommandPreallocHelp()
  * @brief prealloc command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandPrealloc(vector<CommandToken> CommandTokens)
+CommandPrealloc(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                      Status;
     ULONG                     ReturnedLength;

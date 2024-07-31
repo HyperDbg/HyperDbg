@@ -31,11 +31,12 @@ CommandUnhideHelp()
  * @brief !unhide command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandUnhide(vector<CommandToken> CommandTokens)
+CommandUnhide(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN                                     Status;
     ULONG                                       ReturnedLength;

@@ -99,11 +99,12 @@ ConnectRemoteDebugger(const CHAR * Ip, const CHAR * Port)
  * @brief .connect command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandConnect(vector<CommandToken> CommandTokens)
+CommandConnect(vector<CommandToken> CommandTokens, string Command)
 {
     string Ip;
     string Port;

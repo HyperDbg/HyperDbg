@@ -64,11 +64,12 @@ DetachFromProcess()
  * @brief .detach command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandDetach(vector<CommandToken> CommandTokens)
+CommandDetach(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() >= 2)
     {

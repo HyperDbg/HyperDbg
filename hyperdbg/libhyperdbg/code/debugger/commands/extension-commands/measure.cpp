@@ -46,11 +46,12 @@ CommandMeasureHelp()
  * @brief !measure command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandMeasure(vector<CommandToken> CommandTokens)
+CommandMeasure(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN DefaultMode = FALSE;
 

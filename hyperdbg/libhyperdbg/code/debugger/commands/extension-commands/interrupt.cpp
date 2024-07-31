@@ -41,11 +41,12 @@ CommandInterruptHelp()
  * @brief !interrupt command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandInterrupt(vector<CommandToken> CommandTokens)
+CommandInterrupt(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

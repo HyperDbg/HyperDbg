@@ -39,11 +39,12 @@ CommandCoreHelp()
  * @brief ~ command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandCore(vector<CommandToken> CommandTokens)
+CommandCore(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 TargetCore = 0;
 

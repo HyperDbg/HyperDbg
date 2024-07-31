@@ -39,11 +39,12 @@ CommandHwClkHelp()
  * @brief !hw_clk command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandHwClk(vector<CommandToken> CommandTokens)
+CommandHwClk(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

@@ -112,11 +112,12 @@ CommandThreadListThreads(UINT64 Eprocess)
  * @brief .thread command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandThread(vector<CommandToken> CommandTokens)
+CommandThread(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32  TargetThreadId = 0;
     UINT64  TargetThread   = 0;

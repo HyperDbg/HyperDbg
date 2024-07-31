@@ -58,11 +58,12 @@ CommandEventsHelp()
  * @brief events command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandEvents(vector<CommandToken> CommandTokens)
+CommandEvents(vector<CommandToken> CommandTokens, string Command)
 {
     DEBUGGER_MODIFY_EVENTS_TYPE RequestedAction;
     UINT64                      RequestedTag;

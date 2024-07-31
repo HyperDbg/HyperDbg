@@ -38,11 +38,12 @@ CommandTscHelp()
  * @brief handler of !tsc command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandTsc(vector<CommandToken> CommandTokens)
+CommandTsc(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

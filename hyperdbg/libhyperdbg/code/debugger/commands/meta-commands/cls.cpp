@@ -28,11 +28,12 @@ CommandClsHelp()
  * @brief .cls command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandCls(vector<CommandToken> CommandTokens)
+CommandCls(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

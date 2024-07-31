@@ -45,11 +45,12 @@ CommandPHelp()
  * @brief handler of p command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandP(vector<CommandToken> CommandTokens)
+CommandP(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;

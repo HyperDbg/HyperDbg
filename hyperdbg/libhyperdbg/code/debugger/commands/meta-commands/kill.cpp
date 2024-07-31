@@ -34,11 +34,12 @@ CommandKillHelp()
  * @brief .kill command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandKill(vector<CommandToken> CommandTokens)
+CommandKill(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {

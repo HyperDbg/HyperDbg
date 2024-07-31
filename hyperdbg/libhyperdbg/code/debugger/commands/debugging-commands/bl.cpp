@@ -33,11 +33,12 @@ CommandBlHelp()
  * @brief handler of the bl command
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandBl(vector<CommandToken> CommandTokens)
+CommandBl(vector<CommandToken> CommandTokens, string Command)
 {
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 

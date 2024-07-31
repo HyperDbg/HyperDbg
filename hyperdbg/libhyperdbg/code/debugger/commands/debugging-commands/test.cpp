@@ -357,11 +357,12 @@ CommandTestSetDebugBreakState(BOOLEAN State)
  * @brief test command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandTest(vector<CommandToken> CommandTokens)
+CommandTest(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64 Context = NULL;
 

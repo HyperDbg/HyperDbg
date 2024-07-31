@@ -33,11 +33,12 @@ CommandXHelp()
  * @brief x command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandX(vector<CommandToken> CommandTokens)
+CommandX(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 2)
     {

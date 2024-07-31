@@ -39,11 +39,12 @@ CommandMsrwriteHelp()
  * @brief !msrwrite command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandMsrwrite(vector<CommandToken> CommandTokens)
+CommandMsrwrite(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;

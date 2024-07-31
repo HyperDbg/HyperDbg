@@ -39,11 +39,12 @@ CommandLoadHelp()
  * @brief load command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandLoad(vector<CommandToken> CommandTokens)
+CommandLoad(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 2)
     {

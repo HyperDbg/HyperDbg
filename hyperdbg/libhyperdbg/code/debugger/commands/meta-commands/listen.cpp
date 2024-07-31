@@ -46,11 +46,12 @@ CommandListenHelp()
  * @brief listen command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandListen(vector<CommandToken> CommandTokens)
+CommandListen(vector<CommandToken> CommandTokens, string Command)
 {
     string Port;
 

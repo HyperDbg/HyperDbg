@@ -37,11 +37,12 @@ CommandDisconnectHelp()
  * @brief .disconnect command handler
  *
  * @param CommandTokens
+ * @param Command
  *
  * @return VOID
  */
 VOID
-CommandDisconnect(vector<CommandToken> CommandTokens)
+CommandDisconnect(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {
