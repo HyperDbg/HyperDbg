@@ -173,7 +173,8 @@ CommandPte(vector<CommandToken> CommandTokens, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of the '!pte'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandPteHelp();
             return;
         }

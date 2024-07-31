@@ -95,7 +95,8 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         //
         // Means that user entered one command without any parameter
         //
-        ShowMessages("incorrect use of the '%s' command\n\n", FirstCommand.c_str());
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }

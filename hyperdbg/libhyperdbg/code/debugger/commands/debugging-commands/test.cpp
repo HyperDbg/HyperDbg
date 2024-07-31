@@ -465,7 +465,8 @@ CommandTest(vector<CommandToken> CommandTokens, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of the 'test'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandTestHelp();
         return;
     }

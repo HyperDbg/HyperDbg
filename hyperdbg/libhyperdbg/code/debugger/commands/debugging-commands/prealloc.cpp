@@ -62,7 +62,8 @@ CommandPrealloc(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandTokens.size() != 3)
     {
-        ShowMessages("incorrect use of the 'prealloc'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPreallocHelp();
         return;
     }

@@ -73,7 +73,8 @@ CommandPause(vector<CommandToken> CommandTokens, string Command)
 {
     if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the 'pause'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPauseHelp();
         return;
     }

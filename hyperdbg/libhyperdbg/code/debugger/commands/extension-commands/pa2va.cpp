@@ -129,7 +129,8 @@ CommandPa2va(vector<CommandToken> CommandTokens, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of the '!pa2va'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandPa2vaHelp();
             return;
         }

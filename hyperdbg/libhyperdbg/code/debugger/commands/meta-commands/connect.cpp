@@ -131,7 +131,8 @@ CommandConnect(vector<CommandToken> CommandTokens, string Command)
         // Means that user entered just a connect so we have to
         // ask to connect to what ?
         //
-        ShowMessages("incorrect use of the '.connect'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandConnectHelp();
         return;
     }
@@ -189,7 +190,8 @@ CommandConnect(vector<CommandToken> CommandTokens, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of the '.connect'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandConnectHelp();
         return;
     }

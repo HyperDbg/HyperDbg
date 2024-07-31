@@ -57,14 +57,16 @@ CommandMeasure(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandTokens.size() >= 3)
     {
-        ShowMessages("incorrect use of the '!measure'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandMeasureHelp();
         return;
     }
 
     if (CommandTokens.size() == 2 && !CompareLowerCaseStrings(CommandTokens.at(1), "default"))
     {
-        ShowMessages("incorrect use of the '!measure'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandMeasureHelp();
         return;
     }

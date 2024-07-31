@@ -117,7 +117,8 @@ CommandListen(vector<CommandToken> CommandTokens, string Command)
     }
     else
     {
-        ShowMessages("incorrect use of the '.listen'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandListenHelp();
         return;
     }

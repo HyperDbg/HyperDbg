@@ -573,6 +573,8 @@ HyperDbgInterpreter(CHAR * Command)
         }
         else
         {
+            string CaseSensitiveCommandString(Command);
+
             //
             // Check if command is case-sensitive or not
             //
@@ -581,17 +583,11 @@ HyperDbgInterpreter(CHAR * Command)
                 //
                 // Call the parser with tokens
                 //
-                Iterator->second.CommandFunctionNewParser(Tokens);
-            }
-            else if ((Iterator->second.CommandAttrib &
-                      DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE))
-            {
-                string CaseSensitiveCommandString(Command);
-                Iterator->second.CommandFunction(SplitCommand, CaseSensitiveCommandString);
+                Iterator->second.CommandFunctionNewParser(Tokens, CaseSensitiveCommandString);
             }
             else
             {
-                Iterator->second.CommandFunction(SplitCommand, CommandString);
+                Iterator->second.CommandFunction(SplitCommand, CaseSensitiveCommandString);
             }
         }
     }
@@ -1005,11 +1001,11 @@ InitializeCommandsDictionary()
 
     g_CommandsList["output"] = {NULL, &CommandOutput, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
 
-    g_CommandsList["print"] = {NULL, &CommandPrint, &CommandPrintHelp, DEBUGGER_COMMAND_PRINT_ATTRIBUTES};
+    g_CommandsList["print"] = {&CommandPrint, NULL, &CommandPrintHelp, DEBUGGER_COMMAND_PRINT_ATTRIBUTES};
 
-    g_CommandsList["?"]        = {NULL, &CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
-    g_CommandsList["eval"]     = {NULL, &CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
-    g_CommandsList["evaluate"] = {NULL, &CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
+    g_CommandsList["?"]        = {&CommandEval, NULL, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
+    g_CommandsList["eval"]     = {&CommandEval, NULL, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
+    g_CommandsList["evaluate"] = {&CommandEval, NULL, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
 
     g_CommandsList[".logopen"] = {&CommandLogopen, NULL, &CommandLogopenHelp, DEBUGGER_COMMAND_LOGOPEN_ATTRIBUTES};
 
@@ -1030,8 +1026,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pa2va"] = {&CommandPa2va, NULL, &CommandPa2vaHelp, DEBUGGER_COMMAND_PA2VA_ATTRIBUTES};
 
-    g_CommandsList[".formats"] = {NULL, &CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
-    g_CommandsList[".format"]  = {NULL, &CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
+    g_CommandsList[".formats"] = {&CommandFormats, NULL, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
+    g_CommandsList[".format"]  = {&CommandFormats, NULL, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
 
     g_CommandsList["!pte"] = {&CommandPte, NULL, &CommandPteHelp, DEBUGGER_COMMAND_PTE_ATTRIBUTES};
 

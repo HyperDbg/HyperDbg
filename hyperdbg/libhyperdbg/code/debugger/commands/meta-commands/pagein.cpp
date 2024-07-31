@@ -287,7 +287,8 @@ CommandPagein(vector<CommandToken> CommandTokens, string Command)
         //
         // Means that user entered one command without any parameter
         //
-        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPageinHelp();
         return;
     }
@@ -378,7 +379,8 @@ CommandPagein(vector<CommandToken> CommandTokens, string Command)
 
     if (IsNextLength || IsNextProcessId)
     {
-        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPageinHelp();
         return;
     }

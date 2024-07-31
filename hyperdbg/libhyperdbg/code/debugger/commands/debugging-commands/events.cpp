@@ -73,7 +73,8 @@ CommandEvents(vector<CommandToken> CommandTokens, string Command)
     //
     if (CommandTokens.size() != 1 && CommandTokens.size() != 3)
     {
-        ShowMessages("incorrect use of the '%s'\n\n", GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandEventsHelp();
         return;
     }
@@ -138,7 +139,8 @@ CommandEvents(vector<CommandToken> CommandTokens, string Command)
         //
         // unknown second command
         //
-        ShowMessages("incorrect use of the '%s'\n\n", GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandEventsHelp();
         return;
     }
