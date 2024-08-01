@@ -1,6 +1,7 @@
 set(SourceFiles
     "../include/platform/user/header/Environment.h"
     "../include/platform/user/header/Windows.h"
+    "header/assembler.h"
     "header/commands.h"
     "header/common.h"
     "header/communication.h"
@@ -31,6 +32,8 @@ set(SourceFiles
     "../script-eval/code/Regs.c"
     "../script-eval/code/ScriptEngineEval.c"
     "code/common/spinlock.cpp"
+    "code/debugger/commands/debugging-commands/a.cpp"
+    "code/debugger/commands/debugging-commands/core.cpp"
     "code/debugger/commands/debugging-commands/dt-struct.cpp"
     "code/debugger/commands/debugging-commands/gu.cpp"
     "code/debugger/commands/debugging-commands/k.cpp"
@@ -55,6 +58,7 @@ set(SourceFiles
     "code/debugger/core/interpreter.cpp"
     "code/debugger/kernel-level/kd.cpp"
     "code/debugger/kernel-level/kernel-listening.cpp"
+    "code/debugger/misc/assembler.cpp"
     "code/debugger/misc/callstack.cpp"
     "code/debugger/misc/disassembler.cpp"
     "code/debugger/misc/readmem.cpp"
@@ -103,7 +107,6 @@ set(SourceFiles
     "code/debugger/commands/debugging-commands/unload.cpp"
     "code/debugger/commands/debugging-commands/wrmsr.cpp"
     "code/debugger/commands/debugging-commands/x.cpp"
-    "code/debugger/commands/debugging-commands/~.cpp"
     "code/debugger/commands/extension-commands/cpuid.cpp"
     "code/debugger/commands/extension-commands/dr.cpp"
     "code/debugger/commands/extension-commands/epthook.cpp"
@@ -160,5 +163,6 @@ include_directories(
     "../dependencies/zydis/include"
     "."
     "../script-eval"
+    "../dependencies/keystone/include"
 )
 add_library(libhyperdbg SHARED ${SourceFiles})

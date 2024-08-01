@@ -40,19 +40,19 @@ typedef enum _LOG_TYPE
         DbgPrint("[+] Information (%s:%d) | " format "\n", \
                  __func__,                                 \
                  __LINE__,                                 \
-                 __VA_ARGS__)
+                 ##__VA_ARGS__)
 
 #    define LogWarning(format, ...)                    \
         DbgPrint("[-] Warning (%s:%d) | " format "\n", \
                  __func__,                             \
                  __LINE__,                             \
-                 __VA_ARGS__)
+                 ##__VA_ARGS__)
 
 #    define LogError(format, ...)                    \
         DbgPrint("[!] Error (%s:%d) | " format "\n", \
                  __func__,                           \
                  __LINE__,                           \
-                 __VA_ARGS__);                       \
+                 ##__VA_ARGS__);                       \
         DbgBreakPoint()
 
 /**
@@ -60,7 +60,7 @@ typedef enum _LOG_TYPE
  *
  */
 #    define Log(format, ...) \
-        DbgPrint(format, __VA_ARGS__)
+        DbgPrint(format, ##__VA_ARGS__)
 
 #else
 
@@ -76,7 +76,7 @@ typedef enum _LOG_TYPE
                                                 "[+] Information (%s:%d) | " format "\n", \
                                                 __func__,                                 \
                                                 __LINE__,                                 \
-                                                __VA_ARGS__)
+                                                ##__VA_ARGS__)
 
 /**
  * @brief Log in the case of priority message
@@ -90,7 +90,7 @@ typedef enum _LOG_TYPE
                                                 "[+] Information (%s:%d) | " format "\n", \
                                                 __func__,                                 \
                                                 __LINE__,                                 \
-                                                __VA_ARGS__)
+                                                ##__VA_ARGS__)
 
 /**
  * @brief Log in the case of warning
@@ -104,7 +104,7 @@ typedef enum _LOG_TYPE
                                                 "[-] Warning (%s:%d) | " format "\n", \
                                                 __func__,                             \
                                                 __LINE__,                             \
-                                                __VA_ARGS__)
+                                                ##__VA_ARGS__)
 
 /**
  * @brief Log in the case of error
@@ -118,7 +118,7 @@ typedef enum _LOG_TYPE
                                                 "[!] Error (%s:%d) | " format "\n", \
                                                 __func__,                           \
                                                 __LINE__,                           \
-                                                __VA_ARGS__);                       \
+                                                ##__VA_ARGS__);                       \
         if (DebugMode)                                                              \
         DbgBreakPoint()
 
@@ -132,7 +132,7 @@ typedef enum _LOG_TYPE
                                                 FALSE,                      \
                                                 FALSE,                      \
                                                 format,                     \
-                                                __VA_ARGS__)
+                                                ##__VA_ARGS__)
 
 /**
  * @brief Log without any prefix and bypass the stack
@@ -161,4 +161,4 @@ typedef enum _LOG_TYPE
                                             "[+] Information (%s:%d) | " format "\n", \
                                             __func__,                                 \
                                             __LINE__,                                 \
-                                            __VA_ARGS__)
+                                            ##__VA_ARGS__)
