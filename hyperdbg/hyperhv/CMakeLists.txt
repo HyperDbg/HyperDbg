@@ -165,3 +165,5 @@ wdk_add_library(hyperhv SHARED
     KMDF 1.15
     ${SourceFiles}
 )
+
+target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::BUFFEROVERFLOWK WDK::WMILIB )

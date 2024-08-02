@@ -1,0 +1,19 @@
+set(SourceFiles
+    "header/core/Core.h"
+    "header/driver/Driver.h"
+    "header/driver/Loader.h"
+    "header/misc/Global.h"
+    "header/pch.h"
+    "code/core/Core.c"
+    "code/driver/Driver.c"
+    "code/driver/Ioctl.c"
+    "code/driver/Loader.c"
+)
+include_directories(
+    "../../../HyperDbg/include"
+    "header"
+)
+wdk_add_driver(hyperdbg_driver
+    KMDF 1.15
+    ${SourceFiles}
+)
