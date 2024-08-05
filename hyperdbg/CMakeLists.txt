@@ -10,7 +10,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(WDK REQUIRED)
 
 add_subdirectory(hyperhv)
-target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::WMILIB zydisKernel)
+target_link_libraries(hyperhv zydisKernel)
 
 add_subdirectory(dependencies/pdbex/Source)
 add_subdirectory(symbol-parser)
@@ -20,15 +20,14 @@ add_subdirectory(script-engine)
 target_link_libraries(script-engine symbol-parser)
 
 add_subdirectory(hyperlog)
-target_link_libraries(hyperlog WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
 
 link_directories(libraries/kdserial/x64)
 add_subdirectory(kdserial)
-target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransport kdhv kdtelemetry)
+target_link_libraries(kdserial kdserialtransport kdhv kdtelemetry)
 
 
 add_subdirectory(hyperkd)
-target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
+target_link_libraries(hyperkd hyperlog hyperhv kdserial)
 
 #add_definitions(
 #        -DHPRDBGCTRL_EXPORTS
@@ -49,7 +48,7 @@ execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOUR
 
 
 add_subdirectory("examples/kernel/hyperdbg_driver")
-target_link_libraries(hyperdbg_driver WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
+target_link_libraries(hyperdbg_driver hyperlog hyperhv kdserial)
 
 #add_subdirectory("examples/user/hyperdbg_app")
 #target_link_libraries(hyperdbg_app libhyperdbg )
