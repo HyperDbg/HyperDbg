@@ -1,10 +1,10 @@
 set(SourceFiles
-    "../../../platform/user/header/Environment.h"
+    "../../../include/platform/user/header/Environment.h"
     "header/pch.h"
     "code/hyperdbg-app.cpp"
 )
 include_directories(
-    "../../../HyperDbg/include"
+    "../../../include"
     "header"
 )
 add_executable(hyperdbg_app ${SourceFiles})

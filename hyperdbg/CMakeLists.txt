@@ -40,7 +40,7 @@ target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperh
 
 #add_subdirectory(hyperdbg-cli)
 #target_link_libraries(hyperdbg-cli libhyperdbg )
-#
+ 
 #add_subdirectory(hyperdbg-test)
 #target_link_libraries(hyperdbg-test libhyperdbg )
 
@@ -51,6 +51,6 @@ execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOUR
 add_subdirectory("examples/kernel/hyperdbg_driver")
 target_link_libraries(hyperdbg_driver WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
 
-#add_subdirectory("../examples/user/hyperdbg_app")
-
+#add_subdirectory("examples/user/hyperdbg_app")
+#target_link_libraries(hyperdbg_app libhyperdbg )
 
