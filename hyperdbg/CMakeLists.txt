@@ -27,7 +27,10 @@ add_subdirectory(kdserial)
 target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransport kdhv kdtelemetry)
 
 
-#add_subdirectory(hyperkd)
+add_subdirectory(hyperkd)
+target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
+
+
 #add_subdirectory(libhyperdbg)
 #add_subdirectory(hyperdbg-cli)
 #add_subdirectory(hyperdbg-test)
@@ -35,6 +38,3 @@ target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransp
 #        "../examples/user/hyperdbg_app"
 
 
-#target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
-#target_link_libraries(hyperlog WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
-#target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
