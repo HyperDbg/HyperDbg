@@ -20,6 +20,7 @@ set(SourceFiles
     "uartp.h"
     "common.h"
     "win11sdk.h"
+    kdserial.def
 )
 wdk_add_library(kdserial SHARED
     KMDF 1.15
