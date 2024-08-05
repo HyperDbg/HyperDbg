@@ -30,13 +30,13 @@ target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransp
 add_subdirectory(hyperkd)
 target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
 
-add_definitions(
-        -DHPRDBGCTRL_EXPORTS
-)
-link_directories(libraries/keystone/release-lib)
-link_directories(libraries/zydis/user)
-add_subdirectory(libhyperdbg)
-target_link_libraries(libhyperdbg Zycore Zydis keystone script-engine )
+#add_definitions(
+#        -DHPRDBGCTRL_EXPORTS
+#)
+#link_directories(libraries/keystone/release-lib)
+#link_directories(libraries/zydis/user)
+#add_subdirectory(libhyperdbg)
+#target_link_libraries(libhyperdbg Zycore Zydis keystone script-engine )
 
 #add_subdirectory(hyperdbg-cli)
 #target_link_libraries(hyperdbg-cli libhyperdbg )
@@ -44,7 +44,13 @@ target_link_libraries(libhyperdbg Zycore Zydis keystone script-engine )
 #add_subdirectory(hyperdbg-test)
 #target_link_libraries(hyperdbg-test libhyperdbg )
 
-#add_subdirectory("../examples/kernel/hyperdbg_driver")
+set(save_src_dir ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../examples ${save_src_dir})
+
+
+add_subdirectory("examples/kernel/hyperdbg_driver")
+target_link_libraries(hyperdbg_driver WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
+
 #add_subdirectory("../examples/user/hyperdbg_app")
 
 

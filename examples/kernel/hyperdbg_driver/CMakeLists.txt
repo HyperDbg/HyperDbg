@@ -10,7 +10,7 @@ set(SourceFiles
     "code/driver/Loader.c"
 )
 include_directories(
-    "../../../HyperDbg/include"
+    "../../../include"
     "header"
 )
 wdk_add_driver(hyperdbg_driver
