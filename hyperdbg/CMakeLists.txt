@@ -30,11 +30,21 @@ target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransp
 add_subdirectory(hyperkd)
 target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
 
+add_definitions(
+        -DHPRDBGCTRL_EXPORTS
+)
+link_directories(libraries/keystone/release-lib)
+link_directories(libraries/zydis/user)
+add_subdirectory(libhyperdbg)
+target_link_libraries(libhyperdbg Zycore Zydis keystone script-engine )
 
-#add_subdirectory(libhyperdbg)
 #add_subdirectory(hyperdbg-cli)
+#target_link_libraries(hyperdbg-cli libhyperdbg )
+#
 #add_subdirectory(hyperdbg-test)
-#        "../examples/kernel/hyperdbg_driver"
-#        "../examples/user/hyperdbg_app"
+#target_link_libraries(hyperdbg-test libhyperdbg )
+
+#add_subdirectory("../examples/kernel/hyperdbg_driver")
+#add_subdirectory("../examples/user/hyperdbg_app")
 
 
