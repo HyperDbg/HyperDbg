@@ -197,5 +197,4 @@ wdk_add_library(hyperhv SHARED
         ${SourceFiles}
 )
 
-target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::WMILIB zydisKernel)
 
