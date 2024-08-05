@@ -9,18 +9,15 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(WDK REQUIRED)
 
-#add_subdirectory("hyperdbg-cli")
 add_subdirectory("hyperhv")
-#add_subdirectory("libhyperdbg")
-#add_subdirectory("hyperdbg-test")
+add_subdirectory("libhyperdbg")
 add_subdirectory("kdserial")
-
 add_subdirectory("hyperkd")
 add_subdirectory("hyperlog")
+add_subdirectory("hyperdbg-cli")
+#add_subdirectory("hyperdbg-test")
 #add_subdirectory("../examples/kernel/hyperdbg_driver")
 #add_subdirectory("../examples/user/hyperdbg_app")
-
-
 add_subdirectory("dependencies/pdbex/Source")
 add_subdirectory("symbol-parser")
 add_subdirectory("script-engine")
