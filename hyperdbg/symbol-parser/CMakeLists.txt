@@ -13,4 +13,13 @@ include_directories(
     "../dependencies"
     "."
 )
+
+
+set(save_src_dir ${CMAKE_CURRENT_SOURCE_DIR}/pdbex/)
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/pdbex/Source ${save_src_dir})
+
+add_subdirectory("pdbex")
+
 add_library(symbol-parser SHARED ${SourceFiles})
+
+target_link_libraries(symbol-parser  pdbex)

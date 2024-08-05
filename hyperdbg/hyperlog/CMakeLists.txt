@@ -9,6 +9,7 @@ set(SourceFiles
     "header/Logging.h"
     "header/pch.h"
     "header/UnloadDll.h"
+        hyperlog.def
 )
 include_directories(
     "../include"
@@ -18,3 +19,4 @@ wdk_add_library(hyperlog SHARED
     KMDF 1.15
     ${SourceFiles}
 )
+target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::WMILIB zydisKernel)
