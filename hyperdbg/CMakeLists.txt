@@ -2,29 +2,37 @@
 cmake_minimum_required(VERSION 3.15)
 project(HyperDbg C CXX)
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_C_STANDARD 23)
+#set(CMAKE_C_STANDARD 23)
 enable_language(ASM_MASM)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #list(APPEND CMAKE_MODULE_PATH "$ENV{path}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(WDK REQUIRED)
 
-add_subdirectory("dependencies/pdbex/Source")
-add_subdirectory("symbol-parser")
-add_subdirectory("script-engine")
-add_subdirectory("hyperlog")
-add_subdirectory("kdserial")
-add_subdirectory("hyperhv")
-add_subdirectory("hyperkd")
-add_subdirectory("libhyperdbg")
-add_subdirectory("hyperdbg-cli")
-#add_subdirectory("hyperdbg-test")
-#add_subdirectory("../examples/kernel/hyperdbg_driver")
-#add_subdirectory("../examples/user/hyperdbg_app")
-
-target_link_libraries(symbol-parser pdbex)
-target_link_libraries(script-engine symbol-parser)
+add_subdirectory(hyperhv)
 target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::WMILIB zydisKernel)
-target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB )
-target_link_libraries(hyperlog WDK::NTOSKRNL WDK::HAL WDK::WMILIB )
-target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB   hyperlog   hyperhv  kdserial )
+
+add_subdirectory(dependencies/pdbex/Source)
+add_subdirectory(symbol-parser)
+target_link_libraries(symbol-parser pdbex)
+
+add_subdirectory(script-engine)
+target_link_libraries(script-engine symbol-parser)
+
+
+#add_subdirectory(hyperlog)
+
+
+
+#add_subdirectory(kdserial)
+#add_subdirectory(hyperkd)
+#add_subdirectory(libhyperdbg)
+#add_subdirectory(hyperdbg-cli)
+#add_subdirectory(hyperdbg-test)
+#        "../examples/kernel/hyperdbg_driver"
+#        "../examples/user/hyperdbg_app"
+
+
+#target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
+#target_link_libraries(hyperlog WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
+#target_link_libraries(hyperkd WDK::NTOSKRNL WDK::HAL WDK::WMILIB hyperlog hyperhv kdserial)
