@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(HyperDbg C CXX)
 set(CMAKE_CXX_STANDARD 23)
-#set(CMAKE_C_STANDARD 23)
 enable_language(ASM_MASM)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #list(APPEND CMAKE_MODULE_PATH "$ENV{path}")
