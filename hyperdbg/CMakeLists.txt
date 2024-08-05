@@ -19,12 +19,14 @@ target_link_libraries(symbol-parser pdbex)
 add_subdirectory(script-engine)
 target_link_libraries(script-engine symbol-parser)
 
+add_subdirectory(hyperlog)
+target_link_libraries(hyperlog WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
 
-#add_subdirectory(hyperlog)
+link_directories(libraries/kdserial/x64)
+add_subdirectory(kdserial)
+target_link_libraries(kdserial WDK::NTOSKRNL WDK::HAL WDK::WMILIB kdserialtransport kdhv kdtelemetry)
 
 
-
-#add_subdirectory(kdserial)
 #add_subdirectory(hyperkd)
 #add_subdirectory(libhyperdbg)
 #add_subdirectory(hyperdbg-cli)
