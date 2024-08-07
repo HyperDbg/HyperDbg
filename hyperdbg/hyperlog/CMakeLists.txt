@@ -9,6 +9,7 @@ set(SourceFiles
     "header/Logging.h"
     "header/pch.h"
     "header/UnloadDll.h"
+        hyperlog.def
 )
 include_directories(
     "../include"

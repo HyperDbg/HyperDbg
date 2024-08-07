@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="code">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="header\driver">
+      <UniqueIdentifier>{3be15107-74b3-43be-a67f-a8be67bc868a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\driver">
+      <UniqueIdentifier>{47e13e84-8dc5-4204-8158-86db2fcde4c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\misc">
+      <UniqueIdentifier>{212ff9b8-b4a2-45dd-a5ae-ea3dbbcd9ef0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\core">
+      <UniqueIdentifier>{bb20556d-94ac-4484-ba8c-baae7177b3c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\core">
+      <UniqueIdentifier>{6ab251bc-78c5-409d-9560-4c3038383bc7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="header\driver\Driver.h">
+      <Filter>header\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="header\pch.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\misc\Global.h">
+      <Filter>header\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="header\driver\Loader.h">
+      <Filter>header\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="header\core\Core.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="code\driver\Driver.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="code\driver\Loader.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="code\core\Core.c">
+      <Filter>code\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\driver\Ioctl.c">
+      <Filter>code\driver</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

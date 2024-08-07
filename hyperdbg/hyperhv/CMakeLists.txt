@@ -14,19 +14,16 @@ set(SourceFiles
 )
 
 add_definitions(
-        -Dzydis_EXPORTS
         -DZYAN_NO_LIBC
         -DZYDIS_NO_LIBC
         -DZYCORE_STATIC_BUILD
         -DZYDIS_STATIC_BUILD
-        -DPOOL_NX_OPTIN
 )
 
 wdk_add_library(zydisKernel
         KMDF 1.15
         ${SourceFiles}
 )
-
 
 set(SourceFiles
         "../include/components/optimizations/code/AvlTree.c"
@@ -197,5 +194,4 @@ wdk_add_library(hyperhv SHARED
         ${SourceFiles}
 )
 
-target_link_libraries(hyperhv WDK::NTOSKRNL WDK::HAL WDK::WMILIB zydisKernel)
 

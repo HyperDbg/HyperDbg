@@ -9,10 +9,6 @@ set(SourceFiles
     "code/driver/Ioctl.c"
     "code/driver/Loader.c"
 )
-include_directories(
-    "../../../include"
-    "header"
-)
 wdk_add_driver(hyperdbg_driver
     KMDF 1.15
     ${SourceFiles}
