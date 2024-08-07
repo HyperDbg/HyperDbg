@@ -201,6 +201,8 @@ function(wdk_add_library _target)
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km/crt"
         )
 
+    target_link_libraries(${_target} WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
+
     if(DEFINED WDK_KMDF)
         target_include_directories(${_target} SYSTEM PRIVATE "${WDK_ROOT}/Include/wdf/kmdf/${WDK_KMDF}")
     endif()
