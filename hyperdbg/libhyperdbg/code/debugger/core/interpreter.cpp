@@ -1172,9 +1172,9 @@ InitializeCommandsDictionary()
     g_CommandsList["!track"] = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
     g_CommandsList["track"]  = {&CommandTrack, NULL, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
 
-    g_CommandsList[".dump"] = {NULL, &CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
-    g_CommandsList["dump"]  = {NULL, &CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
-    g_CommandsList["!dump"] = {NULL, &CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList[".dump"] = {&CommandDump, NULL, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["dump"]  = {&CommandDump, NULL, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["!dump"] = {&CommandDump, NULL, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 
     //
     // hwdbg commands

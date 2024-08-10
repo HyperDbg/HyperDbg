@@ -704,7 +704,7 @@ VOID
 CommandPagein(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDump(vector<string> SplitCommand, string Command);
+CommandDump(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandGu(vector<CommandToken> CommandTokens, string Command);
