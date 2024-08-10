@@ -10,6 +10,7 @@ New release of the HyperDbg Debugger.
 ### Added
 - Added feature to pause the debuggee immediately upon connection
 - Export SDK API for assembling instructions
+- Fix showing a list of active outputs using the 'output' command
 
 ### Changed
 

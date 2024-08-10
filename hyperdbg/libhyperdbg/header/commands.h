@@ -632,10 +632,10 @@ VOID
 CommandPrint(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandOutput(vector<string> SplitCommand, string Command);
+CommandOutput(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDebug(vector<string> SplitCommand, string Command);
+CommandDebug(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandP(vector<CommandToken> CommandTokens, string Command);
@@ -674,7 +674,7 @@ VOID
 CommandSympath(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSym(vector<string> SplitCommand, string Command);
+CommandSym(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandX(vector<CommandToken> CommandTokens, string Command);
@@ -692,7 +692,7 @@ VOID
 CommandK(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPe(vector<string> SplitCommand, string Command);
+CommandPe(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandRev(vector<CommandToken> CommandTokens, string Command);
@@ -710,7 +710,7 @@ VOID
 CommandGu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandAssemble(vector<string> SplitCommand, string Command);
+CommandAssemble(vector<CommandToken> CommandTokens, string Command);
 
 //
 // hwdbg commands

@@ -977,8 +977,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".disconnect"] = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
     g_CommandsList["disconnect"]  = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
 
-    g_CommandsList[".debug"] = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
-    g_CommandsList["debug"]  = {NULL, &CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
+    g_CommandsList[".debug"] = {&CommandDebug, NULL, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
+    g_CommandsList["debug"]  = {&CommandDebug, NULL, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
 
     g_CommandsList[".status"] = {&CommandStatus, NULL, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
     g_CommandsList["status"]  = {&CommandStatus, NULL, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
@@ -999,7 +999,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".script"] = {NULL, &CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
     g_CommandsList["script"]  = {NULL, &CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
 
-    g_CommandsList["output"] = {NULL, &CommandOutput, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
+    g_CommandsList["output"] = {&CommandOutput, NULL, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
 
     g_CommandsList["print"] = {&CommandPrint, NULL, &CommandPrintHelp, DEBUGGER_COMMAND_PRINT_ATTRIBUTES};
 
@@ -1141,8 +1141,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".sympath"] = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
     g_CommandsList["sympath"]  = {&CommandSympath, NULL, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
 
-    g_CommandsList[".sym"] = {NULL, &CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
-    g_CommandsList["sym"]  = {NULL, &CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
+    g_CommandsList[".sym"] = {&CommandSym, NULL, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
+    g_CommandsList["sym"]  = {&CommandSym, NULL, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
 
     g_CommandsList["x"] = {&CommandX, NULL, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
 
@@ -1164,7 +1164,7 @@ InitializeCommandsDictionary()
     g_CommandsList["struct"]    = {NULL, &CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
     g_CommandsList["structure"] = {NULL, &CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
 
-    g_CommandsList[".pe"] = {NULL, &CommandPe, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
+    g_CommandsList[".pe"] = {&CommandPe, NULL, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
 
     g_CommandsList["!rev"] = {&CommandRev, NULL, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
     g_CommandsList["rev"]  = {&CommandRev, NULL, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
@@ -1184,12 +1184,12 @@ InitializeCommandsDictionary()
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, NULL, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, NULL, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 
-    g_CommandsList["a"]         = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["asm"]       = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["assemble"]  = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["assembly"]  = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!a"]        = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!asm"]      = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!assemble"] = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!assembly"] = {NULL, &CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["a"]         = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["asm"]       = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assemble"]  = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assembly"]  = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!a"]        = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!asm"]      = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!assemble"] = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!assembly"] = {&CommandAssemble, NULL, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
 }

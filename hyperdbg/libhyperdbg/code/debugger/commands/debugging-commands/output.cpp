@@ -34,6 +34,8 @@ CommandOutputHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : output create MyOutputName1 file "
                  "c:\\rev\\output.txt\n");
+    ShowMessages("\t\te.g : output create MyOutputName1 file "
+                 "\"c:\\rev\\output file.txt\"\n");
     ShowMessages("\t\te.g : output create MyOutputName2 tcp 192.168.1.10:8080\n");
     ShowMessages("\t\te.g : output create MyOutputName3 namedpipe "
                  "\\\\.\\Pipe\\HyperDbgOutput\n");
@@ -46,12 +48,12 @@ CommandOutputHelp()
 /**
  * @brief output command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandOutput(vector<string> SplitCommand, string Command)
+CommandOutput(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_EVENT_FORWARDING     EventForwardingObject;
     DEBUGGER_EVENT_FORWARDING_TYPE Type;
@@ -63,11 +65,11 @@ CommandOutput(vector<string> SplitCommand, string Command)
     HANDLE                         SourceHandle      = INVALID_HANDLE_VALUE;
     SOCKET                         Socket            = NULL;
     HMODULE                        Module            = NULL;
-    vector<string>                 SplitCommandCaseSensitive {Split(Command, ' ')};
 
-    if (SplitCommand.size() <= 2)
+    if ((CommandTokens.size() != 1 && CommandTokens.size() <= 2) || CommandTokens.size() >= 6)
     {
-        ShowMessages("incorrect use of the 'output'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandOutputHelp();
         return;
     }
@@ -75,7 +77,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
     //
     // Check if the user needs a list of outputs or not
     //
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         IndexToShowList = 0;
 
@@ -145,7 +147,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
     //
     // Check if it's a create, open, or close
     //
-    if (!SplitCommand.at(1).compare("create"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "create"))
     {
         //
         // It's a create
@@ -154,9 +156,10 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // check if the parameters are okay for a create or not
         //
-        if (SplitCommand.size() <= 4)
+        if (CommandTokens.size() <= 4)
         {
-            ShowMessages("incorrect use of the 'output'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandOutputHelp();
             return;
         }
@@ -164,26 +167,26 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // Check for the type of the output source
         //
-        if (!SplitCommand.at(3).compare("file"))
+        if (CompareLowerCaseStrings(CommandTokens.at(3), "file"))
         {
             Type = EVENT_FORWARDING_FILE;
         }
-        else if (!SplitCommand.at(3).compare("namedpipe"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(3), "namedpipe"))
         {
             Type = EVENT_FORWARDING_NAMEDPIPE;
         }
-        else if (!SplitCommand.at(3).compare("tcp"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(3), "tcp"))
         {
             Type = EVENT_FORWARDING_TCP;
         }
-        else if (!SplitCommand.at(3).compare("module"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(3), "module"))
         {
             Type = EVENT_FORWARDING_MODULE;
         }
         else
         {
             ShowMessages("incorrect type near '%s'\n\n",
-                         SplitCommand.at(3).c_str());
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
             CommandOutputHelp();
             return;
         }
@@ -191,7 +194,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // Check to make sure that the name doesn't exceed the maximum character
         //
-        if (SplitCommand.at(2).size() >=
+        if (GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).size() >=
             MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME)
         {
             ShowMessages("name of the output cannot exceed form %d characters\n\n",
@@ -217,7 +220,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
                     CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
 
                 if (strcmp(CurrentOutputSourceDetails->Name,
-                           SplitCommandCaseSensitive.at(2).c_str()) == 0)
+                           GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str()) == 0)
                 {
                     //
                     // Indicate that we found this item
@@ -245,9 +248,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // try to open the source and get the handle
         //
-        DetailsOfSource = Command.substr(Command.find(SplitCommandCaseSensitive.at(3)) +
-                                             SplitCommandCaseSensitive.at(3).size() + 1,
-                                         Command.size());
+        DetailsOfSource = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4));
 
         SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource, &Socket, &Module);
 
@@ -315,7 +316,8 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // Move the name of the output source to the buffer
         //
-        strcpy_s(EventForwardingObject->Name, SplitCommandCaseSensitive.at(2).c_str());
+        strcpy_s(EventForwardingObject->Name,
+                 GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
 
         //
         // Check if list is initialized or not
@@ -332,7 +334,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
         InsertHeadList(&g_OutputSources,
                        &(EventForwardingObject->OutputSourcesList));
     }
-    else if (!SplitCommand.at(1).compare("open"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "open"))
     {
         //
         // It's an open
@@ -359,7 +361,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
                 OutputSourcesList);
 
             if (strcmp(CurrentOutputSourceDetails->Name,
-                       SplitCommandCaseSensitive.at(2).c_str()) == 0)
+                       GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str()) == 0)
             {
                 //
                 // Indicate that we found this item
@@ -401,7 +403,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
             return;
         }
     }
-    else if (!SplitCommand.at(1).compare("close"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "close"))
     {
         //
         // It's a close
@@ -428,7 +430,7 @@ CommandOutput(vector<string> SplitCommand, string Command)
                 OutputSourcesList);
 
             if (strcmp(CurrentOutputSourceDetails->Name,
-                       SplitCommandCaseSensitive.at(2).c_str()) == 0)
+                       GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str()) == 0)
             {
                 //
                 // Indicate that we found this item
@@ -475,7 +477,8 @@ CommandOutput(vector<string> SplitCommand, string Command)
         //
         // Invalid argument
         //
-        ShowMessages("incorrect option at '%s'\n\n", SplitCommand.at(1).c_str());
+        ShowMessages("incorrect option at '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandOutputHelp();
         return;
     }

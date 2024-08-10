@@ -40,6 +40,7 @@ CommandDebugHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : .debug remote serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
+    ShowMessages("\t\te.g : .debug remote namedpipe \"\\\\.\\pipe\\HyperDbg Pipe\"\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug close\n");
@@ -206,17 +207,17 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
 /**
  * @brief .debug command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandDebug(vector<string> SplitCommand, string Command)
+CommandDebug(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 Baudrate;
     UINT32 Port;
 
-    if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("close"))
+    if (CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "close"))
     {
         //
         // Check if the debugger is attached to a debuggee
@@ -232,9 +233,10 @@ CommandDebug(vector<string> SplitCommand, string Command)
         }
         return;
     }
-    else if (SplitCommand.size() <= 3)
+    else if (CommandTokens.size() <= 3)
     {
-        ShowMessages("incorrect use of the '.debug'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandDebugHelp();
         return;
     }
@@ -242,20 +244,21 @@ CommandDebug(vector<string> SplitCommand, string Command)
     //
     // Check the main command
     //
-    if (!SplitCommand.at(1).compare("remote"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "remote"))
     {
         //
         // in the case of the 'remote'
         //
 
-        if (!SplitCommand.at(2).compare("serial"))
+        if (CompareLowerCaseStrings(CommandTokens.at(2), "serial"))
         {
             //
             // Connect to a remote serial device
             //
-            if (SplitCommand.size() != 5)
+            if (CommandTokens.size() != 5)
             {
-                ShowMessages("incorrect use of the '.debug'\n\n");
+                ShowMessages("incorrect use of the '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
                 CommandDebugHelp();
                 return;
             }
@@ -263,18 +266,18 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Set baudrate
             //
-            if (!IsNumber(SplitCommand.at(3)))
+            if (!IsNumber(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3))))
             {
                 //
                 // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n",
-                             SplitCommand.at(3).c_str());
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
                 CommandDebugHelp();
                 return;
             }
 
-            Baudrate = stoi(SplitCommand.at(3));
+            Baudrate = stoi(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)));
 
             //
             // Check if baudrate is valid or not
@@ -292,7 +295,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplitCommand.at(4).c_str(), &Port))
+            if (!CommandDebugCheckComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), &Port))
             {
                 //
                 // com port is invalid
@@ -305,38 +308,32 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Everything is okay, connect to the remote machine to send (debugger)
             //
-            HyperDbgDebugRemoteDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate, FALSE);
+            HyperDbgDebugRemoteDeviceUsingComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), Baudrate, FALSE);
         }
-        else if (!SplitCommand.at(2).compare("namedpipe"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(2), "namedpipe"))
         {
-            //
-            // Connect to a remote namedpipe
-            //
-            string Delimiter = "namedpipe";
-            string Token     = Command.substr(
-                Command.find(Delimiter) + Delimiter.size() + 1,
-                Command.size());
-
             //
             // Connect to a namedpipe (it's probably a Virtual Machine debugging)
             //
-            HyperDbgDebugRemoteDeviceUsingNamedPipe(Token.c_str(), FALSE);
+            HyperDbgDebugRemoteDeviceUsingNamedPipe(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str(), FALSE);
         }
         else
         {
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", SplitCommand.at(2).c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             CommandDebugHelp();
             return;
         }
     }
-    else if (!SplitCommand.at(1).compare("prepare"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "prepare"))
     {
-        if (SplitCommand.size() != 5)
+        if (CommandTokens.size() != 5)
         {
-            ShowMessages("incorrect use of the '.debug'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandDebugHelp();
             return;
         }
@@ -345,23 +342,23 @@ CommandDebug(vector<string> SplitCommand, string Command)
         // in the case of the 'prepare'
         // currently we only support serial
         //
-        if (!SplitCommand.at(2).compare("serial"))
+        if (CompareLowerCaseStrings(CommandTokens.at(2), "serial"))
         {
             //
             // Set baudrate
             //
-            if (!IsNumber(SplitCommand.at(3)))
+            if (!IsNumber(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3))))
             {
                 //
                 // Unknown parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n",
-                             SplitCommand.at(3).c_str());
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
                 CommandDebugHelp();
                 return;
             }
 
-            Baudrate = stoi(SplitCommand.at(3));
+            Baudrate = stoi(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)));
 
             //
             // Check if baudrate is valid or not
@@ -379,7 +376,7 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(SplitCommand.at(4).c_str(), &Port))
+            if (!CommandDebugCheckComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), &Port))
             {
                 //
                 // com port is invalid
@@ -392,18 +389,20 @@ CommandDebug(vector<string> SplitCommand, string Command)
             //
             // Everything is okay, prepare to send (debuggee)
             //
-            HyperDbgDebugCurrentDeviceUsingComPort(SplitCommand.at(4).c_str(), Baudrate);
+            HyperDbgDebugCurrentDeviceUsingComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), Baudrate);
         }
         else
         {
-            ShowMessages("invalid parameter '%s'\n\n", SplitCommand.at(2));
+            ShowMessages("invalid parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             CommandDebugHelp();
             return;
         }
     }
     else
     {
-        ShowMessages("invalid parameter '%s'\n\n", SplitCommand.at(1));
+        ShowMessages("invalid parameter '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
         CommandDebugHelp();
         return;
     }

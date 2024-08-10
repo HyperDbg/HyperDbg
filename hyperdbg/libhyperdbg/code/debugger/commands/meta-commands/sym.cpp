@@ -41,37 +41,41 @@ CommandSymHelp()
     ShowMessages("\t\te.g : .sym load\n");
     ShowMessages("\t\te.g : .sym download\n");
     ShowMessages("\t\te.g : .sym add base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");
+    ShowMessages("\t\te.g : .sym add base fffff8077356000 path \"c:\\symbols files\\my_dll.pdb\"\n");
     ShowMessages("\t\te.g : .sym unload\n");
 }
 
 /**
  * @brief .sym command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandSym(vector<string> SplitCommand, string Command)
+CommandSym(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64 BaseAddress   = NULL;
     UINT32 UserProcessId = NULL;
+    string PathToPdb;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
-        ShowMessages("incorrect use of the '.sym'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandSymHelp();
         return;
     }
 
-    if (!SplitCommand.at(1).compare("table"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "table"))
     {
         //
         // Validate params
         //
-        if (SplitCommand.size() != 2)
+        if (CommandTokens.size() != 2)
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
@@ -81,14 +85,15 @@ CommandSym(vector<string> SplitCommand, string Command)
         //
         SymbolBuildAndShowSymbolTable();
     }
-    else if (!SplitCommand.at(1).compare("load") || !SplitCommand.at(1).compare("download"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "load") || CompareLowerCaseStrings(CommandTokens.at(1), "download"))
     {
         //
         // Validate params
         //
-        if (SplitCommand.size() != 2)
+        if (CommandTokens.size() != 2)
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
@@ -96,23 +101,24 @@ CommandSym(vector<string> SplitCommand, string Command)
         //
         // Load and download available symbols
         //
-        if (!SplitCommand.at(1).compare("load"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "load"))
         {
             SymbolLoadOrDownloadSymbols(FALSE, FALSE);
         }
-        else if (!SplitCommand.at(1).compare("download"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(1), "download"))
         {
             SymbolLoadOrDownloadSymbols(TRUE, FALSE);
         }
     }
-    else if (!SplitCommand.at(1).compare("reload"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "reload"))
     {
         //
         // Validate params
         //
-        if (SplitCommand.size() != 2 && SplitCommand.size() != 4)
+        if (CommandTokens.size() != 2 && CommandTokens.size() != 4)
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
@@ -120,24 +126,25 @@ CommandSym(vector<string> SplitCommand, string Command)
         //
         // Check for process id
         //
-        if (SplitCommand.size() == 4)
+        if (CommandTokens.size() == 4)
         {
-            if (!SplitCommand.at(2).compare("pid"))
+            if (CompareLowerCaseStrings(CommandTokens.at(2), "pid"))
             {
-                if (!ConvertStringToUInt32(SplitCommand.at(3), &UserProcessId))
+                if (!ConvertTokenToUInt32(CommandTokens.at(3), &UserProcessId))
                 {
                     //
                     // couldn't resolve or unknown parameter
                     //
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                                 SplitCommand.at(3).c_str());
+                                 GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
                     CommandSymHelp();
                     return;
                 }
             }
             else
             {
-                ShowMessages("incorrect use of the '.sym'\n\n");
+                ShowMessages("incorrect use of the '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
                 CommandSymHelp();
                 return;
             }
@@ -185,14 +192,15 @@ CommandSym(vector<string> SplitCommand, string Command)
             }
         }
     }
-    else if (!SplitCommand.at(1).compare("unload"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "unload"))
     {
         //
         // Validate params
         //
-        if (SplitCommand.size() != 2)
+        if (CommandTokens.size() != 2)
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
@@ -208,23 +216,22 @@ CommandSym(vector<string> SplitCommand, string Command)
         //
         // ScriptEngineUnloadModuleSymbolWrapper((char *)SplitCommand.at(2).c_str());
     }
-    else if (!SplitCommand.at(1).compare("add"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "add"))
     {
         //
         // Validate params
         //
-        if (SplitCommand.size() < 6)
+        if (CommandTokens.size() < 6)
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
 
-        if (!SplitCommand.at(2).compare("base"))
+        if (CompareLowerCaseStrings(CommandTokens.at(2), "base"))
         {
-            string Delimiter = "";
-            string PathToPdb = "";
-            if (!ConvertStringToUInt64(SplitCommand.at(3), &BaseAddress))
+            if (!ConvertTokenToUInt64(CommandTokens.at(3), &BaseAddress))
             {
                 ShowMessages("please add a valid hex address to be used as the base address\n\n");
                 CommandSymHelp();
@@ -234,9 +241,10 @@ CommandSym(vector<string> SplitCommand, string Command)
             //
             // Base address is now valid, check if next parameter is path
             //
-            if (SplitCommand.at(4).compare("path"))
+            if (!CompareLowerCaseStrings(CommandTokens.at(4), "path"))
             {
-                ShowMessages("incorrect use of the '.sym'\n\n");
+                ShowMessages("incorrect use of the '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
                 CommandSymHelp();
                 return;
             }
@@ -244,8 +252,7 @@ CommandSym(vector<string> SplitCommand, string Command)
             //
             // The rest of command is pdb path
             //
-            Delimiter = "path ";
-            PathToPdb = Command.substr(Command.find(Delimiter) + 5, Command.size());
+            PathToPdb = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(5));
 
             //
             // Check if pdb file exists or not
@@ -266,14 +273,16 @@ CommandSym(vector<string> SplitCommand, string Command)
         }
         else
         {
-            ShowMessages("incorrect use of the '.sym'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandSymHelp();
             return;
         }
     }
     else
     {
-        ShowMessages("unknown parameter at '%s'\n\n", SplitCommand.at(1).c_str());
+        ShowMessages("unknown parameter at '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
         CommandSymHelp();
         return;
     }
