@@ -611,7 +611,7 @@ VOID
 CommandDetach(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandStart(vector<string> SplitCommand, string Command);
+CommandStart(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandRestart(vector<CommandToken> CommandTokens, string Command);

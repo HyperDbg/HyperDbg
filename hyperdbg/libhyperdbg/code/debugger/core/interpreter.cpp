@@ -942,8 +942,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".detach"] = {&CommandDetach, NULL, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
     g_CommandsList["detach"]  = {&CommandDetach, NULL, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
 
-    g_CommandsList[".start"] = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
-    g_CommandsList["start"]  = {NULL, &CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
+    g_CommandsList[".start"] = {&CommandStart, NULL, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
+    g_CommandsList["start"]  = {&CommandStart, NULL, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
 
     g_CommandsList[".restart"] = {&CommandRestart, NULL, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
     g_CommandsList["restart"]  = {&CommandRestart, NULL, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};

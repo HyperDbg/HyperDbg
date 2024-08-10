@@ -14,6 +14,7 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - Fix showing a list of active outputs using the 'output' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/output))
+- Fix issue of passing arguments to the '.start' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.
