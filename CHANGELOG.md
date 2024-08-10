@@ -10,9 +10,10 @@ New release of the HyperDbg Debugger.
 ### Added
 - Added feature to pause the debuggee immediately upon connection
 - Export SDK API for assembling instructions
-- Fix showing a list of active outputs using the 'output' command
+- The 'struct' command now supports a path as output ([link](https://docs.hyperdbg.org/commands/debugging-commands/struct))
 
 ### Changed
+- Fix showing a list of active outputs using the 'output' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/output))
 
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.

@@ -2173,7 +2173,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // Split the arguments by space
     //
-    SplitedSymPath = Split(AdditionalParametersString, ' ');
+    SplitPathAndArgs(SplitedSymPath, AdditionalParametersString);
 
     //
     // Allocate buffer to convert it to the char*

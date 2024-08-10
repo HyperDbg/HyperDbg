@@ -686,7 +686,7 @@ VOID
 CommandPreactivate(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDtAndStruct(vector<string> SplitCommand, string Command);
+CommandDtAndStruct(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandK(vector<CommandToken> CommandTokens, string Command);

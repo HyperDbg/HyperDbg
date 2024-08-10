@@ -1158,11 +1158,11 @@ InitializeCommandsDictionary()
     g_CommandsList["kd"] = {&CommandK, NULL, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
     g_CommandsList["kq"] = {&CommandK, NULL, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
 
-    g_CommandsList["dt"]  = {NULL, &CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
-    g_CommandsList["!dt"] = {NULL, &CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
+    g_CommandsList["dt"]  = {&CommandDtAndStruct, NULL, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
+    g_CommandsList["!dt"] = {&CommandDtAndStruct, NULL, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
 
-    g_CommandsList["struct"]    = {NULL, &CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
-    g_CommandsList["structure"] = {NULL, &CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
+    g_CommandsList["struct"]    = {&CommandDtAndStruct, NULL, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
+    g_CommandsList["structure"] = {&CommandDtAndStruct, NULL, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
 
     g_CommandsList[".pe"] = {&CommandPe, NULL, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
 
