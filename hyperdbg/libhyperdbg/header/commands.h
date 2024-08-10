@@ -473,7 +473,7 @@ VOID
 CommandUnload(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandScript(vector<string> SplitCommand, string Command);
+CommandScript(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandCpu(vector<CommandToken> CommandTokens, string Command);

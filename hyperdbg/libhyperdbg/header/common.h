@@ -190,9 +190,6 @@ GetConfigFilePath(PWCHAR ConfigPath);
 VOID
 StringToWString(std::wstring & ws, const std::string & s);
 
-VOID
-SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command);
-
 size_t
 FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);
 

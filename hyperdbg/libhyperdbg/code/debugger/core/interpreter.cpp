@@ -996,8 +996,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["unload"] = {&CommandUnload, NULL, &CommandUnloadHelp, DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES};
 
-    g_CommandsList[".script"] = {NULL, &CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
-    g_CommandsList["script"]  = {NULL, &CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
+    g_CommandsList[".script"] = {&CommandScript, NULL, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
+    g_CommandsList["script"]  = {&CommandScript, NULL, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
 
     g_CommandsList["output"] = {&CommandOutput, NULL, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
 
