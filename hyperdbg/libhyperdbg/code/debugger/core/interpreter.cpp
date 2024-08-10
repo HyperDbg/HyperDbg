@@ -969,10 +969,10 @@ InitializeCommandsDictionary()
     g_CommandsList["event"]  = {&CommandEvents, NULL, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
     g_CommandsList["events"] = {&CommandEvents, NULL, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
 
-    g_CommandsList["setting"]   = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList["settings"]  = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList[".setting"]  = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList[".settings"] = {NULL, &CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["setting"]   = {&CommandSettings, NULL, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["settings"]  = {&CommandSettings, NULL, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList[".setting"]  = {&CommandSettings, NULL, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList[".settings"] = {&CommandSettings, NULL, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
 
     g_CommandsList[".disconnect"] = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
     g_CommandsList["disconnect"]  = {&CommandDisconnect, NULL, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
@@ -1086,7 +1086,7 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!trace"] = {&CommandTrace, NULL, &CommandTraceHelp, DEBUGGER_COMMAND_TRACE_ATTRIBUTES};
 
-    g_CommandsList["!hide"] = {NULL, &CommandHide, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
+    g_CommandsList["!hide"] = {&CommandHide, NULL, &CommandHideHelp, DEBUGGER_COMMAND_HIDE_ATTRIBUTES};
 
     g_CommandsList["!unhide"] = {&CommandUnhide, NULL, &CommandUnhideHelp, DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES};
 

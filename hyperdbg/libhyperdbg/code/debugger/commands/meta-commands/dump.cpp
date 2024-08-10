@@ -54,7 +54,7 @@ CommandDumpHelp()
 /**
  * @brief .dump command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */

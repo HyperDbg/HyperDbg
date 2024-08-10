@@ -551,7 +551,7 @@ VOID
 CommandTrace(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandHide(vector<string> SplitCommand, string Command);
+CommandHide(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandUnhide(vector<CommandToken> CommandTokens, string Command);
@@ -590,7 +590,7 @@ VOID
 CommandMeasure(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSettings(vector<string> SplitCommand, string Command);
+CommandSettings(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandFlush(vector<CommandToken> CommandTokens, string Command);

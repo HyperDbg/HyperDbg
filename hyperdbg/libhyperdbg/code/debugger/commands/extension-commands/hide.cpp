@@ -47,17 +47,18 @@ CommandHideHelp()
     ShowMessages("\t\te.g : !hide\n");
     ShowMessages("\t\te.g : !hide pid b60 \n");
     ShowMessages("\t\te.g : !hide name procexp.exe\n");
+    ShowMessages("\t\te.g : !hide name \"proc exp.exe\"\n");
 }
 
 /**
  * @brief !hide command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandHide(vector<string> SplitCommand, string Command)
+CommandHide(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN                                      Status;
     ULONG                                        ReturnedLength;
@@ -67,7 +68,7 @@ CommandHide(vector<string> SplitCommand, string Command)
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE FinalRequestBuffer = 0;
     size_t                                       RequestBufferSize  = 0;
 
-    if (SplitCommand.size() <= 2 && SplitCommand.size() != 1)
+    if (CommandTokens.size() <= 2 && CommandTokens.size() != 1)
     {
         ShowMessages("incorrect use of the '!hide'\n\n");
         CommandHideHelp();
@@ -77,7 +78,7 @@ CommandHide(vector<string> SplitCommand, string Command)
     //
     // Find out whether the user enters pid or name
     //
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         if (g_ActiveProcessDebuggingState.IsActive)
         {
@@ -90,20 +91,22 @@ CommandHide(vector<string> SplitCommand, string Command)
             // There is no user-debugging process
             //
             ShowMessages("you're not attached to any user-mode process, "
-                         "please explicitly specify the process id or process name\n");
+                         "please explicitly specify the process id or process name\n\n");
+            CommandHideHelp();
             return;
         }
     }
-    else if (!SplitCommand.at(1).compare("pid"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "pid"))
     {
         TrueIfProcessIdAndFalseIfProcessName = TRUE;
 
         //
         // Check for the user to not add extra arguments
         //
-        if (SplitCommand.size() != 3)
+        if (CommandTokens.size() != 3)
         {
-            ShowMessages("incorrect use of the '!hide'\n\n");
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandHideHelp();
             return;
         }
@@ -111,35 +114,15 @@ CommandHide(vector<string> SplitCommand, string Command)
         //
         // It's just a pid for the process
         //
-        if (!ConvertStringToUInt64(SplitCommand.at(2), &TargetPid))
+        if (!ConvertTokenToUInt64(CommandTokens.at(2), &TargetPid))
         {
             ShowMessages("incorrect process id\n\n");
             return;
         }
     }
-    else if (!SplitCommand.at(1).compare("name"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "name"))
     {
         TrueIfProcessIdAndFalseIfProcessName = FALSE;
-
-        //
-        // Trim the command
-        //
-        Trim(Command);
-
-        //
-        // Remove !hide from it
-        //
-        Command.erase(0, SplitCommand.at(0).size());
-
-        //
-        // remove name + space
-        //
-        Command.erase(0, 4 + 1);
-
-        //
-        // Trim it again
-        //
-        Trim(Command);
     }
     else
     {
@@ -203,8 +186,8 @@ CommandHide(vector<string> SplitCommand, string Command)
         //
         // It's a process name
         //
-        HideRequest.LengthOfProcessName = (UINT32)Command.size() + 1;
-        RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) + Command.size() + 1;
+        HideRequest.LengthOfProcessName = (UINT32)GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).size() + 1;
+        RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) + GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).size() + 1;
     }
 
     //
@@ -233,10 +216,17 @@ CommandHide(vector<string> SplitCommand, string Command)
     //
     // If it's a name then we should add it to the end of the buffer
     //
-    memcpy(((UINT64 *)((UINT64)FinalRequestBuffer +
-                       sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE))),
-           Command.c_str(),
-           Command.size());
+    if (!TrueIfProcessIdAndFalseIfProcessName)
+    {
+        std::string ProcNameStr = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2));
+
+        CHAR * ProcName = (CHAR *)ProcNameStr.c_str();
+
+        memcpy(((UINT64 *)((UINT64)FinalRequestBuffer +
+                           sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE))),
+               ProcName,
+               GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).size());
+    }
 
     //
     // Send the request to the kernel
