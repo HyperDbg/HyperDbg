@@ -308,6 +308,8 @@ public:
      */
     VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
+        ShowMessages("------------------------------------------------------\n");
+
         for (const auto & Token : Tokens)
         {
             ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
@@ -315,6 +317,8 @@ public:
                          std::get<1>(Token).c_str(),
                          std::get<2>(Token).c_str());
         }
+
+        ShowMessages("\n------------------------------------------------------\n");
     }
 
 private:
@@ -411,14 +415,10 @@ HyperDbgInterpreter(CHAR * Command)
     //
     auto Tokens = Parser.Parse(CommandString);
 
-    ShowMessages("------------------------------------------------------\n");
-
     //
     // Print the tokens
     //
     Parser.PrintTokens(Tokens);
-
-    ShowMessages("\n------------------------------------------------------\n");
 
     //
     // Check if user entered an empty input
