@@ -70,7 +70,8 @@ CommandHide(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandTokens.size() <= 2 && CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the '!hide'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandHideHelp();
         return;
     }
@@ -129,7 +130,8 @@ CommandHide(vector<CommandToken> CommandTokens, string Command)
         //
         // Invalid argument for the second parameter to the command
         //
-        ShowMessages("incorrect use of the '!hide'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandHideHelp();
         return;
     }

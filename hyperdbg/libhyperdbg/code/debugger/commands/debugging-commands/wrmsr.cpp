@@ -53,7 +53,8 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandTokens.size() >= 6)
     {
-        ShowMessages("incorrect use of the 'wrmsr'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandWrmsrHelp();
         return;
     }

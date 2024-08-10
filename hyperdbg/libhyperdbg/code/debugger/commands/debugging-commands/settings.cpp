@@ -311,8 +311,10 @@ CommandSettingsAddressConversion(vector<CommandToken> CommandTokens)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                         "for more details\n");
+            ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
             return;
         }
     }
@@ -321,8 +323,9 @@ CommandSettingsAddressConversion(vector<CommandToken> CommandTokens)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                     "for more details\n");
+        ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         return;
     }
 }
@@ -375,8 +378,9 @@ CommandSettingsAutoFlush(vector<CommandToken> CommandTokens)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                         "for more details\n");
+            ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             return;
         }
     }
@@ -385,8 +389,9 @@ CommandSettingsAutoFlush(vector<CommandToken> CommandTokens)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                     "for more details\n");
+        ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         return;
     }
 }
@@ -438,8 +443,9 @@ CommandSettingsAutoUpause(vector<CommandToken> CommandTokens)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                         "for more details\n");
+            ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             return;
         }
     }
@@ -448,8 +454,9 @@ CommandSettingsAutoUpause(vector<CommandToken> CommandTokens)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                     "for more details\n");
+        ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         return;
     }
 }
@@ -517,8 +524,9 @@ CommandSettingsSyntax(vector<CommandToken> CommandTokens)
             //
             // Sth is incorrect
             //
-            ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                         "for more details\n");
+            ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             return;
         }
     }
@@ -527,8 +535,9 @@ CommandSettingsSyntax(vector<CommandToken> CommandTokens)
         //
         // Sth is incorrect
         //
-        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                     "for more details\n");
+        ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         return;
     }
 }
@@ -618,10 +627,11 @@ CommandSettings(vector<CommandToken> CommandTokens, string Command)
     else
     {
         //
-        // optionm not found
+        // option not found
         //
-        ShowMessages("incorrect use of the 'settings', please use 'help settings' "
-                     "for more details\n");
+        ShowMessages("incorrect use of the '%s', please use 'help %s' for more information\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str(),
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         return;
     }
 }
