@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 //
 // Global Variables
 //
@@ -42,83 +40,6 @@ extern string g_ServerIp;
 class CommandParser
 {
 public:
-    /**
-     * @brief Get hex number
-     * @param str
-     * @return BOOL
-     */
-    BOOL GetHexNum(std::string & str)
-    {
-        if (str.empty() || (str.size() == 1 && str[0] == '0'))
-            return FALSE;
-
-        std::string Prefix("0x");
-
-        if (!str.compare(0, Prefix.size(), Prefix))
-        {
-            std::string num(str.substr(Prefix.size()));
-
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(num, &pos, 16);
-                str       = num; // modify
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-        else
-        {
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(str, &pos, 16);
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-    }
-
-    /**
-     * @brief Is Decimal Number
-     * @brief modifies str to actual number in string
-     * @param str
-     *
-     * @return BOOL
-     */
-    BOOL IsDecNum(std::string & str)
-    {
-        if (str.empty() || (str.size() == 1 && str[0] == '0') || str.size() < 3)
-            return FALSE;
-
-        std::string Prefix("0n");
-        std::string num(str.substr(Prefix.size()));
-
-        if (!str.compare(0, Prefix.size(), Prefix))
-        {
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(num, &pos, 10);
-                str       = num; // modify
-
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-
-        return FALSE;
-    }
-
     /**
      * @brief Parse the input string (commands)
      * @param input
@@ -213,7 +134,7 @@ public:
                     }
 
                     InQuotes = FALSE;
-                    tokens.emplace_back(CommandParsingTokenType::String, current, ToLower(current));
+                    AddStringToken(tokens, current);
                     current.clear();
 
                     continue;
@@ -234,7 +155,7 @@ public:
                     }
 
                     InBracket = FALSE;
-                    tokens.emplace_back(CommandParsingTokenType::BracketString, current, ToLower(current));
+                    AddBracketStringToken(tokens, current);
                     current.clear();
 
                     continue;
@@ -283,11 +204,8 @@ public:
     {
         switch (Type)
         {
-        case CommandParsingTokenType::NumHex:
-            return "NumHex";
-
-        case CommandParsingTokenType::NumDec:
-            return "NumDec";
+        case CommandParsingTokenType::Num:
+            return "Num";
 
         case CommandParsingTokenType::String:
             return "String";
@@ -312,10 +230,40 @@ public:
 
         for (const auto & Token : Tokens)
         {
+            auto CaseSensitiveText = std::get<1>(Token);
+            auto LowerCaseText     = std::get<2>(Token);
+
+            if (std::get<0>(Token) == CommandParsingTokenType::BracketString)
+            {
+                //
+                // Replace \n with \\n
+                //
+
+                //
+                // Search for \n and replace with \\n
+                //
+                std::string::size_type pos = 0;
+                while ((pos = CaseSensitiveText.find("\n", pos)) != std::string::npos)
+                {
+                    CaseSensitiveText.replace(pos, 1, "\\n");
+                    pos += 2; // Move past the newly added characters
+                }
+
+                //
+                // Do the same for lower case text
+                //
+                pos = 0;
+                while ((pos = LowerCaseText.find("\n", pos)) != std::string::npos)
+                {
+                    LowerCaseText.replace(pos, 1, "\\n");
+                    pos += 2; // Move past the newly added characters
+                }
+            }
+
             ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
                          TokenTypeToString(std::get<0>(Token)).c_str(),
-                         std::get<1>(Token).c_str(),
-                         std::get<2>(Token).c_str());
+                         CaseSensitiveText.c_str(),
+                         LowerCaseText.c_str());
         }
 
         ShowMessages("\n------------------------------------------------------\n");
@@ -343,22 +291,61 @@ private:
      *
      * @return VOID
      */
-    void AddToken(std::vector<CommandToken> & tokens, const std::string & str)
+    VOID AddToken(std::vector<CommandToken> & tokens, std::string & str)
     {
-        auto tmp = str;
+        auto   tmp    = str;
+        UINT64 tmpNum = 0;
 
-        if (IsDecNum(tmp)) // tmp will be modified to actual number
+        //
+        // Trim the string
+        //
+        Trim(tmp);
+
+        if (ConvertStringToUInt64(tmp, &tmpNum)) // tmp will be modified to actual number
         {
-            tokens.emplace_back(CommandParsingTokenType::NumDec, tmp, ToLower(tmp));
-        }
-        else if (std::all_of(str.begin(), str.end(), ::isdigit) || GetHexNum(tmp)) // tmp will be modified to actual number
-        {
-            tokens.emplace_back(CommandParsingTokenType::NumHex, tmp, ToLower(tmp));
+            tokens.emplace_back(CommandParsingTokenType::Num, tmp, ToLower(tmp));
         }
         else
         {
-            tokens.emplace_back(CommandParsingTokenType::String, str, ToLower(str));
+            AddStringToken(tokens, str);
         }
+    }
+
+    /**
+     * @brief Add String Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str)
+    {
+        auto tmp = str;
+
+        //
+        // Trim the string
+        //
+        Trim(tmp);
+
+        //
+        // If the string is empty, we don't need to add it
+        //
+        if (tmp.empty())
+            return;
+
+        tokens.emplace_back(CommandParsingTokenType::String, tmp, ToLower(tmp));
+    }
+
+    /**
+     * @brief Add Bracket String Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    VOID AddBracketStringToken(std::vector<CommandToken> & tokens, const std::string & str)
+    {
+        tokens.emplace_back(CommandParsingTokenType::BracketString, str, ToLower(str));
     }
 };
 

@@ -158,8 +158,7 @@ CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
  */
 typedef enum
 {
-    NumHex,
-    NumDec,
+    Num,
     String,
     BracketString
 } CommandParsingTokenType;
