@@ -350,6 +350,36 @@ private:
 };
 
 /**
+ * @brief Parse the command (used for testing purposes)
+ *
+ * @param Command The text of command
+ *
+ * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ */
+BOOLEAN
+HyperDbgTestCommandParser(CHAR * Command)
+{
+    CommandParser Parser;
+
+    //
+    // Convert to string
+    //
+    string CommandString(Command);
+
+    //
+    // Tokenize the command string
+    //
+    std::vector<CommandToken> Tokens = Parser.Parse(CommandString);
+
+    //
+    // Print the tokens
+    //
+    Parser.PrintTokens(Tokens);
+
+    return TRUE;
+}
+
+/**
  * @brief Interpret commands
  *
  * @param Command The text of command

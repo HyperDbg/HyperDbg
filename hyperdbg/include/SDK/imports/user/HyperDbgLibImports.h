@@ -57,6 +57,9 @@ hyperdbg_u_stop_vmm_driver();
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_interpreter(CHAR * command);
 
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_test_command_parser(CHAR * command);
+
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_show_signature();
 

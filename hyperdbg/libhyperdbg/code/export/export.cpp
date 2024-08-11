@@ -108,6 +108,19 @@ hyperdbg_u_interpreter(CHAR * command)
 }
 
 /**
+ * @brief Parse the command (used for testing purposes)
+ *
+ * @param command The text of command
+ *
+ * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ */
+BOOLEAN
+hyperdbg_u_test_command_parser(CHAR * command)
+{
+    return HyperDbgTestCommandParser(command);
+}
+
+/**
  * @brief Show the signature of the debugger
  *
  * @return VOID

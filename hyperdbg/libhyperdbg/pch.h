@@ -102,6 +102,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include <cctype>
 #include <cstring>
 #include <unordered_set>
+#include <regex>
 
 //
 // Scope definitions
@@ -165,7 +166,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/objects.h"
 #include "header/rev-ctrl.h"
 #include "header/assembler.h"
-#include <regex>
+
 //
 // hwdbg
 //

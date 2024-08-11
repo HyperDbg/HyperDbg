@@ -73,6 +73,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -95,12 +96,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="code\tests\hyperdbg-test.cpp" />
-    <ClCompile Include="code\tests\namedpipe.cpp" />
-    <ClCompile Include="code\tests\tools.cpp" />
+    <ClCompile Include="code\main.cpp" />
+    <ClCompile Include="code\namedpipe.cpp" />
+    <ClCompile Include="code\tests\test-parser.cpp" />
+    <ClCompile Include="code\tools.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>
@@ -110,6 +113,7 @@
     <ClInclude Include="..\include\platform\user\header\Environment.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\routines.h" />
+    <ClInclude Include="header\testcases.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

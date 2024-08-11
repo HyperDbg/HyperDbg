@@ -11,6 +11,155 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Create a named pipe server
+ *
+ * @return UINT32
+ */
+UINT32
+NamedPipeConnectingAndTransferringBuffers()
+{
+    // HANDLE  PipeHandle;
+    // BOOLEAN SentMessageResult;
+    // UINT32  ReadBytes;
+    // char *  Buffer;
+    //
+    // Buffer = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    //
+    // if (!Buffer)
+    // {
+    //     printf("err, could not allocate communication buffer\n");
+    //     _getch();
+    //     return 1;
+    // }
+    //
+    // RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    // strcpy_s(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE, "Hey there, Are you HyperDbg?");
+    //
+    // //
+    // // Perform our shaking with HyperDbg
+    // //
+    //
+    // //
+    // // It's not called directly, it's probably from HyperDbg
+    // //
+    // PipeHandle = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
+    //
+    // if (!PipeHandle)
+    // {
+    //     //
+    //     // Unable to create handle
+    //     //
+    //     free(Buffer);
+    //
+    //     printf("err, unable to create handle\n");
+    //     _getch();
+    //     return 1;
+    // }
+    //
+    // SentMessageResult =
+    //     NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
+    //
+    // if (!SentMessageResult)
+    // {
+    //     //
+    //     // Sending error
+    //     //
+    //     free(Buffer);
+    //
+    //     printf("err, unable to send message\n");
+    //     _getch();
+    //     return 1;
+    // }
+    //
+    // ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    //
+    // if (!ReadBytes)
+    // {
+    //     //
+    //     // Nothing to read
+    //     //
+    //     free(Buffer);
+    //
+    //     printf("err, unable to read message\n");
+    //     _getch();
+    //     return 1;
+    // }
+    //
+    // if (strcmp(Buffer,
+    //            "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)") ==
+    //     0)
+    // {
+    //     //
+    //     // *** Connected to the HyperDbg debugger ***
+    //     //
+    //
+    //     //
+    //     // Now we should request the test case number from the HyperDbg Debugger
+    //     //
+    //     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    //
+    //     strcpy_s(
+    //         Buffer,
+    //         TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
+    //         "Wow! I miss you... Would you plz send test cases?");
+    //
+    //     SentMessageResult =
+    //         NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
+    //
+    //     if (!SentMessageResult)
+    //     {
+    //         //
+    //         // Sending error
+    //         //
+    //         free(Buffer);
+    //
+    //         printf("err, sending error\n");
+    //         _getch();
+    //         return 1;
+    //     }
+    //
+    //     //
+    //     // Read the test case number
+    //     //
+    //     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    //     ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    //
+    //     if (!ReadBytes)
+    //     {
+    //         //
+    //         // Nothing to read
+    //         //
+    //         free(Buffer);
+    //
+    //         printf("err, nothing to read\n");
+    //         _getch();
+    //         return 1;
+    //     }
+    //
+    //     //
+    //     // Dispatch the test case number
+    //     //
+    //
+    //     ///  TestCreateLookupTable(PipeHandle, (PVOID)Buffer, ReadBytes);
+    //     printf("!!!! Read to run the test cases !!!!");
+    //     _getch();
+    //
+    //     //
+    //     // Close the pipe connection
+    //     //
+    //     NamedPipeClientClosePipe(PipeHandle);
+    //
+    //     //
+    //     // Make sure to exit the test program
+    //     //
+    //     exit(0);
+    // }
+    //
+    // free(Buffer);
+    return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //                            Server Side                                 //
 ////////////////////////////////////////////////////////////////////////////

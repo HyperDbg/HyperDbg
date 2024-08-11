@@ -20,16 +20,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\tests\hyperdbg-test.cpp">
-      <Filter>code\tests</Filter>
-    </ClCompile>
-    <ClCompile Include="code\tests\namedpipe.cpp">
-      <Filter>code\tests</Filter>
-    </ClCompile>
-    <ClCompile Include="code\tests\tools.cpp">
-      <Filter>code\tests</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\tests\test-parser.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="code\namedpipe.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\tools.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\main.cpp">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\user\header\Environment.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\testcases.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

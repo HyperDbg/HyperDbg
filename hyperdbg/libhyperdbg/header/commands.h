@@ -173,7 +173,7 @@ typedef std::tuple<CommandParsingTokenType, std::string, std::string> CommandTok
  * @brief Command's function type
  *
  */
-typedef VOID (*CommandFuncTypeNewParser)(vector<CommandToken> CommandTokens, string Command);
+typedef VOID (*CommandFuncTypeParser)(vector<CommandToken> CommandTokens, string Command);
 
 /**
  * @brief Command's help function type
@@ -187,9 +187,9 @@ typedef VOID (*CommandHelpFuncType)();
  */
 typedef struct _COMMAND_DETAIL
 {
-    CommandFuncTypeNewParser CommandFunctionNewParser;
-    CommandHelpFuncType      CommandHelpFunction;
-    UINT64                   CommandAttrib;
+    CommandFuncTypeParser CommandFunctionNewParser;
+    CommandHelpFuncType   CommandHelpFunction;
+    UINT64                CommandAttrib;
 
 } COMMAND_DETAIL, *PCOMMAND_DETAIL;
 

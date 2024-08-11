@@ -36,6 +36,9 @@ HyperDbgStopVmmDriver();
 INT
 HyperDbgInterpreter(CHAR * Command);
 
+BOOLEAN
+HyperDbgTestCommandParser(CHAR * Command);
+
 INT
 ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[]);
 
