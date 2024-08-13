@@ -226,8 +226,6 @@ public:
      */
     VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
-        ShowMessages("------------------------------------------------------\n");
-
         for (const auto & Token : Tokens)
         {
             auto CaseSensitiveText = std::get<1>(Token);
@@ -265,8 +263,6 @@ public:
                          CaseSensitiveText.c_str(),
                          LowerCaseText.c_str());
         }
-
-        ShowMessages("\n------------------------------------------------------\n");
     }
 
 private:
@@ -353,11 +349,13 @@ private:
  * @brief Parse the command (used for testing purposes)
  *
  * @param Command The text of command
+ * @param NumberOfTokens The number of tokens
+ * @param TokensList The tokens list
  *
  * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
  */
 BOOLEAN
-HyperDbgTestCommandParser(CHAR * Command)
+HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensList)
 {
     CommandParser Parser;
 
@@ -372,11 +370,59 @@ HyperDbgTestCommandParser(CHAR * Command)
     std::vector<CommandToken> Tokens = Parser.Parse(CommandString);
 
     //
-    // Print the tokens
+    // Check if the number of tokens is correct
     //
-    Parser.PrintTokens(Tokens);
+    if (Tokens.size() != NumberOfTokens)
+    {
+        ShowMessages("err, the number of tokens is not correct\n");
+        return FALSE;
+    }
 
+    //
+    // Check if the tokens are correct
+    //
+    for (size_t i = 0; i < Tokens.size(); i++)
+    {
+        auto Token = Tokens.at(i);
+
+        auto CaseSensitiveText = std::get<1>(Token);
+
+        if (strcmp(CaseSensitiveText.c_str(), TokensList[i]) != 0)
+        {
+            ShowMessages("err, the token is not correct\n");
+            return FALSE;
+        }
+    }
+
+    //
+    // Everything is correct
+    //
     return TRUE;
+}
+
+/**
+ * @brief Parse the command and show tokens (used for testing purposes)
+ *
+ * @param Command The text of command
+ *
+ * @return VOID
+ */
+VOID
+HyperDbgTestCommandParserShowTokens(CHAR * Command)
+{
+    CommandParser Parser;
+
+    //
+    // Convert to string
+    //
+    string CommandString(Command);
+
+    //
+    // Tokenize the command string
+    //
+    std::vector<CommandToken> Tokens = Parser.Parse(CommandString);
+
+    Parser.PrintTokens(Tokens);
 }
 
 /**
@@ -435,7 +481,7 @@ HyperDbgInterpreter(CHAR * Command)
     //
     // Print the tokens
     //
-    Parser.PrintTokens(Tokens);
+    // Parser.PrintTokens(Tokens);
 
     //
     // Check if user entered an empty input

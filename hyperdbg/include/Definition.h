@@ -59,6 +59,11 @@
  */
 #define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE 0x1000
 
+/**
+ * @brief Test cases file name for command parser
+ */
+#define COMMAND_PARSER_TEST_CASES_FILE "..\\..\\..\\tests\\command-parser\\command-parser-testcases.txt"
+
 //////////////////////////////////////////////////
 //				Delay Speeds                    //
 //////////////////////////////////////////////////

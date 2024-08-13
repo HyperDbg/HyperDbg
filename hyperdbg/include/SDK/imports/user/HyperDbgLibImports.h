@@ -52,13 +52,22 @@ IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_stop_vmm_driver();
 
 //
+// Testing parser
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_test_command_parser(CHAR * command, UINT32 number_of_tokens, CHAR ** tokens_list);
+
+IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_test_command_parser_show_tokens(CHAR * command);
+
+//
 // General imports
 //
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, UINT32 buffer_len, BOOLEAN check_file_existence);
+
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_interpreter(CHAR * command);
-
-IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
-hyperdbg_u_test_command_parser(CHAR * command);
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_show_signature();
