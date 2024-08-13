@@ -25,14 +25,14 @@ createTestCaseArray(const std::vector<std::string> & testCases)
     //
     // Allocate memory for the array of pointers (size: number of test cases)
     //
-    CHAR_PTR_PTR testCaseArray = new char *[testCases.size()];
+    CHAR_PTR_PTR testCaseArray = (CHAR_PTR_PTR)malloc(testCases.size() * sizeof(UINT64));
 
     //
     // Allocate memory for each string and copy the content
     //
     for (size_t i = 0; i < testCases.size(); ++i)
     {
-        testCaseArray[i] = new char[testCases[i].length() + 1]; // +1 for the null terminator
+        testCaseArray[i] = (char *)malloc(testCases[i].length() + 1); // +1 for the null terminator
         std::strcpy(testCaseArray[i], testCases[i].c_str());
     }
 
@@ -54,13 +54,13 @@ freeTestCaseArray(CHAR_PTR_PTR testCaseArray, size_t size)
     //
     for (size_t i = 0; i < size; ++i)
     {
-        delete[] testCaseArray[i];
+        free(testCaseArray[i]);
     }
 
     //
     // Free the array of pointers
     //
-    delete[] testCaseArray;
+    free(testCaseArray);
 }
 
 /**
@@ -304,7 +304,7 @@ TestCommandParser()
         //
         // Clean up memory
         //
-        freeTestCaseArray(testCaseArray, testCases.size());
+        freeTestCaseArray(testCaseArray, testCase.second.size());
     }
 
     return overallResult;
