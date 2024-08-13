@@ -21,18 +21,36 @@
 int
 main(int argc, char * argv[])
 {
-    // if (argc != 2)
-    // {
-    //     printf("you should not test functionalities directly, instead use 'test' "
-    //            "command from HyperDbg...\n");
-    //     return 1;
-    // }
+    if (argc != 2)
+    {
+        printf("you should not test functionalities directly, instead use 'test all' "
+               "command from HyperDbg...\n");
+        return 1;
+    }
 
-    //
-    // # Test case 1
-    // Testing command parser
-    //
-    TestCommandParser();
+    if (!strcmp(argv[1], "test-command-parser"))
+    {
+        //
+        // # Test case 1
+        // Testing command parser
+        //
+        if (TestCommandParser())
+        {
+            printf("\n[*] The main command parser test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[*] The main command parser test cases failed\n");
+        }
+    }
+    else
+    {
+        printf("unknown test case\n");
+    }
+
+    printf("\npress any key to exit...");
+
+    _getch();
 
     return 0;
 }

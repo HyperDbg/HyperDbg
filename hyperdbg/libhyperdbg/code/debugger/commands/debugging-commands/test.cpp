@@ -30,7 +30,6 @@ CommandTestHelp()
     ShowMessages("syntax : \ttest [Task (string)]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
     ShowMessages("\t\te.g : test trap-status\n");
     ShowMessages("\t\te.g : test pool\n");
@@ -93,6 +92,27 @@ CommandTestPerformKernelTestsIoctl()
         //
         ShowErrorMessage(KernelTestRequest.KernelStatus);
         return FALSE;
+    }
+}
+
+/**
+ * @brief perform test on for all functionalities
+ *
+ * @return VOID
+ */
+VOID
+CommandTestAllFunctionalities()
+{
+    HANDLE ThreadHandle;
+    HANDLE ProcessHandle;
+
+    //
+    // Test command parser
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)"test-command-parser"))
+    {
+        ShowMessages("err, start HyperDbg test process\n");
+        return;
     }
 }
 
@@ -370,10 +390,9 @@ CommandTest(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandSize == 1)
     {
-        //
-        // For testing functionalities
-        //
-        CommandTestPerformTest();
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandTestHelp();
     }
     else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "query"))
     {
@@ -462,6 +481,13 @@ CommandTest(vector<CommandToken> CommandTokens, string Command)
                          GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             return;
         }
+    }
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "all"))
+    {
+        //
+        // For testing functionalities
+        //
+        CommandTestAllFunctionalities();
     }
     else
     {

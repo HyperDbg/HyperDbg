@@ -221,8 +221,9 @@ ShowParsedCommandAndTokens(const std::pair<std::string, std::vector<std::string>
 BOOLEAN
 TestCommandParser()
 {
-    int  testNum            = 0;
-    CHAR filePath[MAX_PATH] = {0};
+    BOOLEAN overallResult      = TRUE;
+    int     testNum            = 0;
+    CHAR    filePath[MAX_PATH] = {0};
 
     //
     // Parse the test cases from the file
@@ -269,6 +270,11 @@ TestCommandParser()
         else
         {
             //
+            // Set overall result to FALSE since one of the test cases failed
+            //
+            overallResult = FALSE;
+
+            //
             // Show parsed command and tokens
             //
             cout << "\n============================================================" << endl;
@@ -301,5 +307,5 @@ TestCommandParser()
         freeTestCaseArray(testCaseArray, testCases.size());
     }
 
-    return TRUE;
+    return overallResult;
 }
