@@ -143,6 +143,15 @@ public:
 
             if (InBracket)
             {
+                if (input[i-1] == '{' && input[i - 2] != ' ') // check if we're dealing with " script{ "
+                {
+                    if (!current.empty() && current != " ")
+                    {
+                        AddToken(tokens, current);
+                        current.clear();
+                    }
+                }
+
                 if (c == '}')
                 {
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
