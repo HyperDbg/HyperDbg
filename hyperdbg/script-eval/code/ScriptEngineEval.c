@@ -294,8 +294,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                     UINT64 *                       StackIndx,
                     UINT64 *                       StackBaseIndx,
                     SYMBOL *                       ErrorOperator,
-                    UINT64 *                       ReturnValue
-    )
+                    UINT64 *                       ReturnValue)
 {
     PSYMBOL Operator;
     PSYMBOL Src0;
@@ -562,10 +561,6 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         SrcVal2 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE, StackBuffer, StackIndx, StackBaseIndx, ReturnValue);
-
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
-        *Indx = *Indx + 1;
 
         ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, (UINT32)SrcVal0, &HasError);
 
