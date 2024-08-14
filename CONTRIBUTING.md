@@ -28,6 +28,7 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Helping us start supporting HyperDbg on Linux (discussion needed).
 - Helping us start supporting HyperDbg on AMD processors (discussion needed).
 - Adding digital (FPGA) modules to the hwdbg hardware debugger.
+- Creating a [ret-sync](https://github.com/bootleg/ret-sync) module for HyperDbg.
 - Adding fuzzing capabilities to HyperDbg (maybe integrating [AFL++](https://github.com/AFLplusplus/AFLplusplus) into HyperDbg).
 - Working on live memory migration and adding support for kernel-mode time travel debugging.
 - Integrating the [z3 project](https://github.com/Z3Prover/z3) into HyperDbg and adding commands based on the z3 solver.
