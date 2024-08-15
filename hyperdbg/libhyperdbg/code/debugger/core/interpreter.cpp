@@ -50,8 +50,8 @@ public:
     {
         std::vector<CommandToken> tokens;
         std::string               current;
-        bool                      InQuotes  = FALSE;
-        bool                      InBracket = FALSE;
+        bool                      InQuotes   = FALSE;
+        int                       IdxBracket = 0;
 
         for (size_t i = 0; i < input.length(); ++i)
         {
@@ -121,7 +121,7 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\' && !InBracket)
+                if (c == '"' && input[i - 1] != '\\' && !IdxBracket)
                 {
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                     {
@@ -134,25 +134,21 @@ public:
                     }
 
                     InQuotes = FALSE;
-                    AddStringToken(tokens, current);
+                    AddStringToken(tokens, current, true); // true for StringLiteral type
                     current.clear();
 
                     continue;
                 }
             }
 
-            if (InBracket)
+            if (IdxBracket)
             {
-                if (input[i - 1] == '{' && input[i - 2] != ' ') // check if we're dealing with " script{ "
+                if (c == '}' && input[i - 1] != '\\' && IdxBracket) // not closing }
                 {
-                    if (!current.empty() && current != " ")
-                    {
-                        AddToken(tokens, current);
-                        current.clear();
-                    }
+                    IdxBracket--;
                 }
 
-                if (c == '}')
+                if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
                 {
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                     {
@@ -163,15 +159,29 @@ public:
                         }
                     }
 
-                    InBracket = FALSE;
                     AddBracketStringToken(tokens, current);
                     current.clear();
 
                     continue;
                 }
+
+                if (c == '{' && input[i - 1] != '\\')
+                {
+                    if (i) // check if this { is the first char to avoid out of range check
+                    {
+                        if (input[i - 1] != '\\')
+                        {
+                            IdxBracket++;
+                        }
+                    }
+                    else
+                    {
+                        IdxBracket++;
+                    }
+                }
             }
 
-            if (c == ' ' && !InQuotes && !InBracket)
+            if (c == ' ' && !InQuotes && !IdxBracket) // finding seperator space char
             {
                 if (!current.empty() && current != " ")
                 {
@@ -180,16 +190,39 @@ public:
 
                     continue;
                 }
+                continue; // avoid adding extra space char
             }
-            else if (c == '"' && input[i - 1] != '\\' && !InBracket)
+            else if (c == '"' && !IdxBracket)
             {
-                InQuotes = TRUE;
-                continue; // don't include '"' in string
+                if (i) // check if this " is the first char to avoid out of range check
+                {
+                    if (input[i - 1] != '\\')
+                    {
+                        InQuotes = TRUE;
+                        continue; // don't include '"' in string
+                    }
+                }
+                else
+                {
+                    InQuotes = TRUE;
+                    continue; // don't include '"' in string
+                }
             }
-            else if (c == '{' && !InQuotes && !InBracket)
+            else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
-                InBracket = TRUE;
-                continue; // don't include '{' in string
+                if (i) // check if this { is the first char to avoid out of range check
+                {
+                    if (input[i - 1] != '\\')
+                    {
+                        IdxBracket++;
+                        continue; // don't include '{' in string
+                    }
+                }
+                else
+                {
+                    IdxBracket++;
+                    continue; // don't include '{' in string
+                }
             }
 
             current += c;
@@ -198,6 +231,11 @@ public:
         if (!current.empty() && current != " ")
         {
             AddToken(tokens, current);
+        }
+
+        if (IdxBracket)
+        {
+            // error: script bracket not closed
         }
 
         return tokens;
@@ -218,6 +256,9 @@ public:
 
         case CommandParsingTokenType::String:
             return "String";
+
+        case CommandParsingTokenType::StringLiteral:
+            return "StringLiteral";
 
         case CommandParsingTokenType::BracketString:
             return "BracketString";
@@ -323,7 +364,7 @@ private:
      *
      * @return VOID
      */
-    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str)
+    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str, bool isLiteral = false)
     {
         auto tmp = str;
 
@@ -332,13 +373,28 @@ private:
         //
         Trim(tmp);
 
+        // removing extra \ char in case user entered \{ or \"
+        for (auto it = tmp.begin(); it != tmp.end(); ++it)
+        {
+            if (*(it) == '\\' && (*(it + 1) == '"' || *(it + 1) == '{' || *(it + 1) == '}'))
+            {
+                tmp.erase(it);
+            }
+        }
+
         //
         // If the string is empty, we don't need to add it
         //
         if (tmp.empty())
             return;
-
-        tokens.emplace_back(CommandParsingTokenType::String, tmp, ToLower(tmp));
+        if (isLiteral)
+        {
+            tokens.emplace_back(CommandParsingTokenType::StringLiteral, tmp, ToLower(tmp));
+        }
+        else
+        {
+            tokens.emplace_back(CommandParsingTokenType::String, tmp, ToLower(tmp));
+        }
     }
 
     /**
