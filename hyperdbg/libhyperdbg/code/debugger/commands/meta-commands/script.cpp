@@ -71,11 +71,6 @@ CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
     //
     LineContent = (char *)Input.c_str();
 
-    //
-    // Check if the it's a command or not
-    //
-    InterpreterRemoveComments(LineContent);
-
     if (IsEmptyString(LineContent))
     {
         return;

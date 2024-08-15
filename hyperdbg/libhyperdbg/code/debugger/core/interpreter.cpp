@@ -529,11 +529,6 @@ HyperDbgInterpreter(CHAR * Command)
     }
 
     //
-    // Remove the comments
-    //
-    InterpreterRemoveComments(Command);
-
-    //
     // Convert to string
     //
     string CommandString(Command);
@@ -717,6 +712,8 @@ HyperDbgInterpreter(CHAR * Command)
 
 /**
  * @brief Remove batch comments
+ * @param CommandText
+ * @details deprecated, not used anymore
  *
  * @return VOID
  */

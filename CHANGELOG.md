@@ -15,6 +15,7 @@ New release of the HyperDbg Debugger.
 - Automated tests for the main command parser
 
 ### Changed
+- HyperDbg command-line comment sign is changed from '#' to C-like comments ('//' and '/**/')
 - Integrating a new command parser for the regular HyperDbg commands
 - Fix showing a list of active outputs using the 'output' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/output))
 - Fix the issue of passing arguments to the '.start' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
