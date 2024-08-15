@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.10.1.0] - 2024-XX-XX
+## [0.10.1.0-beta] - 2024-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -12,6 +12,7 @@ New release of the HyperDbg Debugger.
 - Export SDK API for assembling instructions
 - The 'struct' command now supports a path as output ([link](https://docs.hyperdbg.org/commands/debugging-commands/struct))
 - Export SDK API closing connection to the remote debuggee
+- Automated tests for the main command parser
 
 ### Changed
 - Integrating a new command parser for the regular HyperDbg commands
@@ -19,6 +20,7 @@ New release of the HyperDbg Debugger.
 - Fix the issue of passing arguments to the '.start' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 - Fix the problem with parsing multiple spaces within the events (#420) ([link](https://github.com/HyperDbg/HyperDbg/issues/420))
 - Fix the problem with escaping '{' in the command parser (#421) ([link](https://github.com/HyperDbg/HyperDbg/issues/421))
+- Fix nested brackets issues in the main command parser
 
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.
