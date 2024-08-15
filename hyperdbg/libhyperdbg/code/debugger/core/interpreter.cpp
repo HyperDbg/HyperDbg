@@ -51,7 +51,7 @@ public:
         std::vector<CommandToken> tokens;
         std::string               current;
         bool                      InQuotes   = FALSE;
-        int                       IdxBracket = FALSE;
+        int                       IdxBracket = 0;
 
         for (size_t i = 0; i < input.length(); ++i)
         {
