@@ -205,6 +205,28 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
 }
 
 /**
+ * @brief Connect to a remote serial device (Debuggee)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgDebugCloseRemoteDebugger()
+{
+    //
+    // Check if the debugger is attached to a debuggee
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        KdCloseConnection();
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
  * @brief .debug command handler
  *
  * @param CommandTokens
@@ -222,15 +244,11 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         //
         // Check if the debugger is attached to a debuggee
         //
-        if (g_IsSerialConnectedToRemoteDebuggee)
+        if (!HyperDbgDebugCloseRemoteDebugger())
         {
-            KdCloseConnection();
+            ShowMessages("err, debugger is not attached to any instance of debuggee\n");
         }
-        else
-        {
-            ShowMessages(
-                "err, debugger is not attached to any instance of debuggee\n");
-        }
+
         return;
     }
     else if (CommandTokens.size() <= 3)

@@ -277,3 +277,6 @@ HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAft
 
 BOOLEAN
 HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+BOOLEAN
+HyperDbgDebugCloseRemoteDebugger();

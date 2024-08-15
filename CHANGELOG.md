@@ -11,6 +11,7 @@ New release of the HyperDbg Debugger.
 - Added feature to pause the debuggee immediately upon connection
 - Export SDK API for assembling instructions
 - The 'struct' command now supports a path as output ([link](https://docs.hyperdbg.org/commands/debugging-commands/struct))
+- Export SDK API closing connection to the remote debuggee
 
 ### Changed
 - Integrating a new command parser for the regular HyperDbg commands

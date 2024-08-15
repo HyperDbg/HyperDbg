@@ -518,8 +518,16 @@ hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOO
     return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe, pause_after_connection);
 }
 
+/**
+ * @brief Close the remote debugger
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
 BOOLEAN
-HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+hyperdbg_u_debug_close_remote_debugger()
+{
+    return HyperDbgDebugCloseRemoteDebugger();
+}
 
 /**
  * @brief Connect to the current debugger using COM port
