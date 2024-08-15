@@ -160,6 +160,7 @@ typedef enum
 {
     Num,
     String,
+    StringLiteral,
     BracketString
 } CommandParsingTokenType;
 
