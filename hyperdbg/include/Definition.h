@@ -50,9 +50,9 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Test cases file name
+ * @brief Default named pipe name for communication between debugger and debuggee process
  */
-#define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "script-test-cases"
+#define TEST_DEFAULT_NAMED_PIPE "\\\\.\\pipe\\HyperDbgPipe"
 
 /**
  * @brief Maximum buffer to communicate between debugger and debuggee process
@@ -63,6 +63,26 @@
  * @brief Test cases file name for command parser
  */
 #define COMMAND_PARSER_TEST_CASES_FILE "..\\..\\..\\tests\\command-parser\\command-parser-testcases.txt"
+
+/**
+ * @brief Test case parameter for testing main command parser
+ */
+#define TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER "test-command-parser"
+
+/**
+ * @brief Test case parameter for testing semantic script tests
+ */
+#define TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES "test-script-semantic-test-cases"
+
+/**
+ * @brief Test cases file name
+ */
+#define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "script-test-cases"
+
+/**
+ * @brief Test cases directory name for script semantic tests
+ */
+#define SCRIPT_SEMANTIC_TEST_CASE_DIRECTORY "..\\..\\..\\tests\\script-engine-test\\semantic-test-cases"
 
 //////////////////////////////////////////////////
 //				Delay Speeds                    //

@@ -17,3 +17,6 @@
 
 BOOLEAN
 TestCommandParser();
+
+BOOLEAN
+TestSemanticScripts();

@@ -28,7 +28,7 @@ main(int argc, char * argv[])
         return 1;
     }
 
-    if (!strcmp(argv[1], "test-command-parser"))
+    if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER))
     {
         //
         // # Test case 1
@@ -41,6 +41,21 @@ main(int argc, char * argv[])
         else
         {
             printf("\n[*] The main command parser test cases failed\n");
+        }
+    }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
+    {
+        //
+        // # Test case 2
+        // Testing script semantic test cases
+        //
+        if (TestSemanticScripts())
+        {
+            printf("\n[*] The script semantic test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[*] The script semantic test cases failed\n");
         }
     }
     else

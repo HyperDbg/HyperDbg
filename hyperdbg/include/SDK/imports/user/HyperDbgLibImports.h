@@ -67,7 +67,7 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, UINT32 buffer_len, BOOLEAN check_file_existence);
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_interpreter(CHAR * command);
+hyperdbg_u_run_command(CHAR * command);
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_show_signature();

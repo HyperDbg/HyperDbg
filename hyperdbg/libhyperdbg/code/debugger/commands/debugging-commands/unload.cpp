@@ -60,7 +60,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
     // Check for the module
     //
     if ((CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "vmm")) ||
-        (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "vmm") && CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
+        (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(2), "vmm") && CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {

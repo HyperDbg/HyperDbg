@@ -32,14 +32,16 @@ CommandDebugHelp()
         ".debug : debugs a target machine or makes this machine a debuggee.\n\n");
 
     ShowMessages(
-        "syntax : \t.debug [remote] [serial|namedpipe] [Baudrate (decimal)] [Address (string)]\n");
+        "syntax : \t.debug [remote] [serial|namedpipe] [pause] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages(
         "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages("syntax : \t.debug [close]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .debug remote serial 115200 com2\n");
+    ShowMessages("\t\te.g : .debug remote pause serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
+    ShowMessages("\t\te.g : .debug remote pause namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \"\\\\.\\pipe\\HyperDbg Pipe\"\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
@@ -236,8 +238,19 @@ HyperDbgDebugCloseRemoteDebugger()
 VOID
 CommandDebug(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32 Baudrate;
-    UINT32 Port;
+    UINT32  Baudrate;
+    UINT32  Port;
+    BOOLEAN IsFirstCommand          = TRUE;
+    BOOLEAN IsRemote                = FALSE;
+    BOOLEAN IsPrepare               = FALSE;
+    BOOLEAN IsSerial                = FALSE;
+    BOOLEAN IsNamedPipe             = FALSE;
+    BOOLEAN IsPause                 = FALSE;
+    BOOLEAN IsNamedPipeAddressKnown = FALSE;
+    string  NamedPipeAddress;
+    BOOLEAN IsComPortAddressKnown = FALSE;
+    string  ComAddress;
+    BOOLEAN IsComPortBaudrateKnown = FALSE;
 
     if (CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "close"))
     {
@@ -259,43 +272,48 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    //
-    // Check the main command
-    //
-    if (CompareLowerCaseStrings(CommandTokens.at(1), "remote"))
+    for (auto Section : CommandTokens)
     {
-        //
-        // in the case of the 'remote'
-        //
-
-        if (CompareLowerCaseStrings(CommandTokens.at(2), "serial"))
+        if (IsFirstCommand)
         {
-            //
-            // Connect to a remote serial device
-            //
-            if (CommandTokens.size() != 5)
-            {
-                ShowMessages("incorrect use of the '%s'\n\n",
-                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-                CommandDebugHelp();
-                return;
-            }
-
-            //
-            // Set baudrate
-            //
-            if (!IsNumber(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3))))
-            {
-                //
-                // Unknown parameter
-                //
-                ShowMessages("unknown parameter '%s'\n\n",
-                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
-                CommandDebugHelp();
-                return;
-            }
-
-            Baudrate = stoi(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)));
+            IsFirstCommand = FALSE;
+            continue;
+        }
+        else if (!IsRemote && CompareLowerCaseStrings(Section, "remote"))
+        {
+            IsRemote = TRUE;
+            continue;
+        }
+        else if (!IsPrepare && CompareLowerCaseStrings(Section, "prepare"))
+        {
+            IsPrepare = TRUE;
+            continue;
+        }
+        else if (!IsSerial && CompareLowerCaseStrings(Section, "serial"))
+        {
+            IsSerial = TRUE;
+            continue;
+        }
+        else if (!IsNamedPipe && CompareLowerCaseStrings(Section, "namedpipe"))
+        {
+            IsNamedPipe = TRUE;
+            continue;
+        }
+        else if (!IsPause && CompareLowerCaseStrings(Section, "pause"))
+        {
+            IsPause = TRUE;
+            continue;
+        }
+        else if (!IsNamedPipeAddressKnown && IsNamedPipe)
+        {
+            IsNamedPipeAddressKnown = TRUE;
+            NamedPipeAddress        = GetCaseSensitiveStringFromCommandToken(Section);
+            continue;
+        }
+        else if (!IsComPortBaudrateKnown && IsSerial && IsNumber(GetCaseSensitiveStringFromCommandToken(Section)))
+        {
+            IsComPortBaudrateKnown = TRUE;
+            Baudrate               = stoi(GetCaseSensitiveStringFromCommandToken(Section));
 
             //
             // Check if baudrate is valid or not
@@ -310,10 +328,17 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
                 return;
             }
 
+            continue;
+        }
+        else if (!IsComPortAddressKnown && IsSerial)
+        {
+            IsComPortAddressKnown = TRUE;
+            ComAddress            = GetCaseSensitiveStringFromCommandToken(Section);
+
             //
             // check if com port address is valid or not
             //
-            if (!CommandDebugCheckComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), &Port))
+            if (!CommandDebugCheckComPort(ComAddress.c_str(), &Port))
             {
                 //
                 // com port is invalid
@@ -323,105 +348,96 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
                 return;
             }
 
-            //
-            // Everything is okay, connect to the remote machine to send (debugger)
-            //
-            HyperDbgDebugRemoteDeviceUsingComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), Baudrate, FALSE);
-        }
-        else if (CompareLowerCaseStrings(CommandTokens.at(2), "namedpipe"))
-        {
-            //
-            // Connect to a namedpipe (it's probably a Virtual Machine debugging)
-            //
-            HyperDbgDebugRemoteDeviceUsingNamedPipe(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str(), FALSE);
+            continue;
         }
         else
         {
-            //
-            // Unknown parameter
-            //
-            ShowMessages("unknown parameter '%s'\n\n",
-                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandDebugHelp();
             return;
         }
     }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "prepare"))
+
+    //
+    // Validate parameters
+    //
+    if (IsRemote && IsPrepare)
     {
-        if (CommandTokens.size() != 5)
-        {
-            ShowMessages("incorrect use of the '%s'\n\n",
-                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-            CommandDebugHelp();
-            return;
-        }
+        ShowMessages("err, both 'remote' and 'prepare' can't be used together\n\n");
+        CommandDebugHelp();
+        return;
+    }
 
+    if (!IsRemote && !IsPrepare)
+    {
+        ShowMessages("err, either 'remote' or 'prepare' should be used\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
+    // Prepare cannot be specified with the 'pause'
+    //
+    if (IsPrepare && IsPause)
+    {
+        ShowMessages("err, 'pause' cannot be used with 'prepare'\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
+    // Named pipe cannot be used with the 'prepare'
+    //
+    if (IsNamedPipe && IsPrepare)
+    {
+        ShowMessages("err, named pipe cannot be used with 'prepare'\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
+    // Check if named pipe is empty or not if it's a named pipe
+    //
+    if (IsNamedPipe && NamedPipeAddress.empty())
+    {
+        ShowMessages("err, named pipe address is empty\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
+    // If it's serial, COM address and bausrate should be known
+    //
+    if (IsSerial && (!IsComPortAddressKnown || !IsComPortBaudrateKnown))
+    {
+        ShowMessages("err, COM port address or baudrate is unknown\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
+    // Perform connecting to the remote machine or prepare to send
+    //
+    if (IsPrepare)
+    {
         //
-        // in the case of the 'prepare'
-        // currently we only support serial
+        // Everything is okay, prepare to send (debuggee)
         //
-        if (CompareLowerCaseStrings(CommandTokens.at(2), "serial"))
-        {
-            //
-            // Set baudrate
-            //
-            if (!IsNumber(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3))))
-            {
-                //
-                // Unknown parameter
-                //
-                ShowMessages("unknown parameter '%s'\n\n",
-                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)).c_str());
-                CommandDebugHelp();
-                return;
-            }
-
-            Baudrate = stoi(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(3)));
-
-            //
-            // Check if baudrate is valid or not
-            //
-            if (!CommandDebugCheckBaudrate(Baudrate))
-            {
-                //
-                // Baud-rate is invalid
-                //
-                ShowMessages("err, baud rate is invalid\n\n");
-                CommandDebugHelp();
-                return;
-            }
-
-            //
-            // check if com port address is valid or not
-            //
-            if (!CommandDebugCheckComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), &Port))
-            {
-                //
-                // com port is invalid
-                //
-                ShowMessages("err, COM port is invalid\n\n");
-                CommandDebugHelp();
-                return;
-            }
-
-            //
-            // Everything is okay, prepare to send (debuggee)
-            //
-            HyperDbgDebugCurrentDeviceUsingComPort(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), Baudrate);
-        }
-        else
-        {
-            ShowMessages("invalid parameter '%s'\n\n",
-                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
-            CommandDebugHelp();
-            return;
-        }
+        HyperDbgDebugCurrentDeviceUsingComPort(ComAddress.c_str(), Baudrate);
     }
     else
     {
-        ShowMessages("invalid parameter '%s'\n\n",
-                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
-        CommandDebugHelp();
-        return;
+        //
+        // Everything is okay, connect to the remote machine to send (debugger)
+        //
+        if (IsNamedPipe)
+        {
+            HyperDbgDebugRemoteDeviceUsingNamedPipe(NamedPipeAddress.c_str(), IsPause);
+        }
+        else if (IsSerial)
+        {
+            HyperDbgDebugRemoteDeviceUsingComPort(ComAddress.c_str(), Baudrate, IsPause);
+        }
     }
 }

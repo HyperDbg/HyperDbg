@@ -109,9 +109,18 @@ CommandTestAllFunctionalities()
     //
     // Test command parser
     //
-    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)"test-command-parser"))
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER))
     {
-        ShowMessages("err, start HyperDbg test process\n");
+        ShowMessages("err, start HyperDbg test process for testing the main command parser\n");
+        return;
+    }
+
+    //
+    // Test script engine (script parser) using semantic tests
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
+    {
+        ShowMessages("err, start HyperDbg test process for testing semantic tests\n");
         return;
     }
 }

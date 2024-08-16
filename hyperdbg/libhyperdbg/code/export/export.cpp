@@ -97,12 +97,12 @@ hyperdbg_u_stop_vmm_driver()
 }
 
 /**
- * @brief Interprets the command
+ * @brief Run a command
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_interpreter(CHAR * command)
+hyperdbg_u_run_command(CHAR * command)
 {
     return HyperDbgInterpreter(command);
 }
