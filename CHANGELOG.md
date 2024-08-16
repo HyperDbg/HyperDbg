@@ -9,6 +9,7 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - Added feature to pause the debuggee immediately upon connection
+- The '.debug' command now supports pausing the debuggee at startup ([link](https://docs.hyperdbg.org/commands/meta-commands/.debug))
 - Export SDK API for assembling instructions
 - The 'struct' command now supports a path as output ([link](https://docs.hyperdbg.org/commands/debugging-commands/struct))
 - Export SDK API closing connection to the remote debuggee
