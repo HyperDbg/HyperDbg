@@ -257,7 +257,6 @@ public:
         //    // error: Quote not closed
         //}
 
-        PrintTokens(tokens);
         return tokens;
     }
 
