@@ -35,6 +35,9 @@
     <ClCompile Include="code\main.cpp">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\tests\test-semantic-scripts.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
