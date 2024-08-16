@@ -79,6 +79,11 @@
  */
 #define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "script-test-cases"
 
+/**
+ * @brief Test cases directory name for script semantic tests
+ */
+#define SCRIPT_SEMANTIC_TEST_CASE_DIRECTORY "..\\..\\..\\tests\\script-engine-test\\semantic-test-cases"
+
 //////////////////////////////////////////////////
 //				Delay Speeds                    //
 //////////////////////////////////////////////////

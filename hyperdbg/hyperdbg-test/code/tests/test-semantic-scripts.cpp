@@ -94,15 +94,14 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
 BOOLEAN
 TestSemanticScripts()
 {
-    BOOLEAN overallResult      = FALSE;
-    int     testNum            = 0;
-    CHAR    filePath[MAX_PATH] = {0};
+    int     testNum           = 0;
+    CHAR    dirPath[MAX_PATH] = {0};
 
     //
     // Parse the semantic script test cases from the file
     // Setup the path for the filenames
     //
-    if (!hyperdbg_u_setup_path_for_filename(COMMAND_PARSER_TEST_CASES_FILE, filePath, MAX_PATH, TRUE))
+    if (!hyperdbg_u_setup_path_for_filename(SCRIPT_SEMANTIC_TEST_CASE_DIRECTORY, dirPath, MAX_PATH, FALSE))
     {
         //
         // Error could not find the test case files
@@ -123,7 +122,12 @@ TestSemanticScripts()
     //
     // Run test cases
     //
-    ReadDirectoryAndTestSemanticTestcases("C:\\Users\\sina\\Desktop\\HyperDbg\\HyperDbg\\hyperdbg\\script-engine\\modules\\script-engine-test\\semantic-test-cases");
+    ReadDirectoryAndTestSemanticTestcases(dirPath);
 
-    return overallResult;
+    //
+    // Close the connection
+    //
+    hyperdbg_u_debug_close_remote_debugger();
+
+    return TRUE;
 }
