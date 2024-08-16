@@ -11,6 +11,81 @@
  */
 #include "pch.h"
 
+namespace fs = std::filesystem;
+
+/**
+ * @brief Read directory of semantic test cases and run each of them
+ *
+ * @param ScriptSemanticPath Path to the semantic test cases
+ *
+ * @return VOID
+ */
+VOID
+ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
+{
+    //
+    // Iterate through the directory
+    //
+    try
+    {
+        for (const auto & entry : fs::directory_iterator(ScriptSemanticPath))
+        {
+            //
+            // Check if the entry is a file
+            //
+            if (entry.is_regular_file())
+            {
+                //
+                // Get the file path
+                //
+                std::string filePath = entry.path().string();
+
+                //
+                // Output the file name
+                //
+                std::cout << "Test case file: " << entry.path().filename().string() << std::endl;
+
+                //
+                // Open the file and read its contents
+                //
+                std::ifstream file(filePath);
+                if (file.is_open())
+                {
+                    std::string content((std::istreambuf_iterator<char>(file)),
+                                        std::istreambuf_iterator<char>());
+
+                    //
+                    // Display the content of the file
+                    //
+                    std::cout << "Executing file " << entry.path().filename().string() << std::endl;
+
+                    // std::cout << content << std::endl;
+
+                    //
+                    // Run the test case command
+                    //
+                    hyperdbg_u_run_command((CHAR *)content.c_str());
+
+                    std::cout << "--------------------------------------------" << std::endl;
+
+                    //
+                    // Close the file
+                    //
+                    file.close();
+                }
+                else
+                {
+                    std::cerr << "Could not open file: " << filePath << std::endl;
+                }
+            }
+        }
+    }
+    catch (const fs::filesystem_error & e)
+    {
+        std::cerr << "Filesystem error: " << e.what() << std::endl;
+    }
+}
+
 /**
  * @brief Test semantic scripts
  *
@@ -46,13 +121,9 @@ TestSemanticScripts()
     }
 
     //
-    // Run a test command
+    // Run test cases
     //
-    if (hyperdbg_u_run_command((CHAR *)".process") != 0)
-    {
-        cout << "[-] Could not run the test command" << endl;
-        return FALSE;
-    }
+    ReadDirectoryAndTestSemanticTestcases("C:\\Users\\sina\\Desktop\\HyperDbg\\HyperDbg\\hyperdbg\\script-engine\\modules\\script-engine-test\\semantic-test-cases");
 
     return overallResult;
 }

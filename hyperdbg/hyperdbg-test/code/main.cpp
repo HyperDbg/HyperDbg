@@ -21,6 +21,8 @@
 int
 main(int argc, char * argv[])
 {
+    TestSemanticScripts();
+
     if (argc != 2)
     {
         printf("you should not test functionalities directly, instead use 'test all' "
