@@ -43,7 +43,7 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
                 //
                 // Output the file name
                 //
-                std::cout << "Test case file: " << entry.path().filename().string() << std::endl;
+                // std::cout << "Test case file: " << entry.path().filename().string() << std::endl;
 
                 //
                 // Open the file and read its contents
@@ -94,8 +94,8 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
 BOOLEAN
 TestSemanticScripts()
 {
-    int     testNum           = 0;
-    CHAR    dirPath[MAX_PATH] = {0};
+    int  testNum           = 0;
+    CHAR dirPath[MAX_PATH] = {0};
 
     //
     // Parse the semantic script test cases from the file

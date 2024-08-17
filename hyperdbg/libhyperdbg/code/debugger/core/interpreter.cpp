@@ -247,15 +247,15 @@ public:
             AddToken(tokens, current);
         }
 
-        //if (IdxBracket)
+        // if (IdxBracket)
         //{
-        //    // error: script bracket not closed
-        //}
+        //     // error: script bracket not closed
+        // }
 
-        //if (InQuotes)
+        // if (InQuotes)
         //{
-        //    // error: Quote not closed
-        //}
+        //     // error: Quote not closed
+        // }
 
         return tokens;
     }
@@ -300,7 +300,9 @@ public:
             auto CaseSensitiveText = std::get<1>(Token);
             auto LowerCaseText     = std::get<2>(Token);
 
-            if (std::get<0>(Token) == CommandParsingTokenType::BracketString)
+            if (std::get<0>(Token) == CommandParsingTokenType::BracketString ||
+                std::get<0>(Token) == CommandParsingTokenType::String ||
+                std::get<0>(Token) == CommandParsingTokenType::StringLiteral)
             {
                 //
                 // Replace \n with \\n
