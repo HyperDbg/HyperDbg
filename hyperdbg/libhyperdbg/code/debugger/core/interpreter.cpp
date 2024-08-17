@@ -59,14 +59,14 @@ public:
             if (c == '/') // start comment parse
             {
                 //
-                // if we're in a script braket, skip; it'll be handled later
+                // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!tokens.empty() && std::get<1>(tokens.back()) == "script")
+                if (!IdxBracket)
                 {
                     size_t j = i;
                     c        = input[++j];
 
-                    if (c == '/') // start to look fo comments
+                    if (c == '/') // start to look for comments
                     {
                         size_t EndPose = input.find('\n', i);
                         if (EndPose != std::string::npos)
@@ -99,7 +99,7 @@ public:
                             //
                             // here we could get the comment but for now we just skip
                             //
-                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two byte long
+                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
 
                             i = (i + (EndPose - i)) + 1; // one for /
 
@@ -114,6 +114,10 @@ public:
                             }
 
                             continue;
+                        }
+                        else
+                        {
+                            // error: comment not closed
                         }
                     }
                 }
@@ -134,7 +138,7 @@ public:
                     }
 
                     InQuotes = FALSE;
-                    AddStringToken(tokens, current, true); // true for StringLiteral type
+                    AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
                     current.clear();
 
                     continue;
@@ -165,7 +169,7 @@ public:
                     continue;
                 }
 
-                if (c == '{' && input[i - 1] != '\\')
+                if (c == '{' && input[i - 1] != '\\' && !InQuotes)
                 {
                     if (i) // check if this { is the first char to avoid out of range check
                     {
@@ -199,13 +203,19 @@ public:
                     if (input[i - 1] != '\\')
                     {
                         InQuotes = TRUE;
-                        continue; // don't include '"' in string
+                        if (!IdxBracket)
+                        {
+                            continue; // don't include '"' in string
+                        }
                     }
                 }
                 else
                 {
                     InQuotes = TRUE;
-                    continue; // don't include '"' in string
+                    if (!IdxBracket)
+                    {
+                        continue; // don't include '"' in string
+                    }
                 }
             }
             else if (c == '{' && !InQuotes && !IdxBracket) // first {
@@ -226,6 +236,10 @@ public:
             }
 
             current += c;
+            if (current == "and")
+            {
+                int x = 0;
+            }
         }
 
         if (!current.empty() && current != " ")
@@ -233,10 +247,15 @@ public:
             AddToken(tokens, current);
         }
 
-        if (IdxBracket)
-        {
-            // error: script bracket not closed
-        }
+        //if (IdxBracket)
+        //{
+        //    // error: script bracket not closed
+        //}
+
+        //if (InQuotes)
+        //{
+        //    // error: Quote not closed
+        //}
 
         return tokens;
     }
@@ -364,7 +383,7 @@ private:
      *
      * @return VOID
      */
-    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str, bool isLiteral = false)
+    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str, BOOL isLiteral = FALSE)
     {
         auto tmp = str;
 
@@ -372,15 +391,6 @@ private:
         // Trim the string
         //
         Trim(tmp);
-
-        // removing extra \ char in case user entered \{ or \"
-        for (auto it = tmp.begin(); it != tmp.end(); ++it)
-        {
-            if (*(it) == '\\' && (*(it + 1) == '"' || *(it + 1) == '{' || *(it + 1) == '}'))
-            {
-                tmp.erase(it);
-            }
-        }
 
         //
         // If the string is empty, we don't need to add it
