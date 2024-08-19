@@ -6,7 +6,7 @@
 	url = https://github.com/HyperDbg/zydis.git
 [submodule "hyperdbg/dependencies/pdbex"]
 	path = hyperdbg/dependencies/pdbex
-	url = https://github.com/HyperDbg/pdbex
+  url = https://github.com/HyperDbg/pdbex.git
 [submodule "hyperdbg/tests/script-engine-test"]
 	path = hyperdbg/tests/script-engine-test
 	url = https://github.com/HyperDbg/script-engine-test.git

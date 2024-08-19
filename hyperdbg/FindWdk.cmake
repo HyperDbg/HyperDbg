@@ -82,7 +82,7 @@ endif()
 message(STATUS "WDK_ROOT: " ${WDK_ROOT})
 message(STATUS "WDK_VERSION: " ${WDK_VERSION})
 
-set(WDK_WINVER "0x0601" CACHE STRING "Default WINVER for WDK targets")
+set(WDK_WINVER "0x0a01" CACHE STRING "Default WINVER for WDK targets")
 set(WDK_NTDDI_VERSION "" CACHE STRING "Specified NTDDI_VERSION for WDK targets if needed")
 
 set(WDK_ADDITIONAL_FLAGS_FILE "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/wdkflags.h")
@@ -200,6 +200,8 @@ function(wdk_add_library _target)
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km"
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km/crt"
         )
+
+    target_link_libraries(${_target} WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
 
     if(DEFINED WDK_KMDF)
         target_include_directories(${_target} SYSTEM PRIVATE "${WDK_ROOT}/Include/wdf/kmdf/${WDK_KMDF}")
