@@ -563,8 +563,6 @@ const unsigned char BuildSignature[] = {
 #    define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 #endif // !HIBYTE
 
-#define MAX_TEMP_COUNT 128
-
 #define MAX_STACK_BUFFER_COUNT 256
 
 #define MAX_EXECUTION_COUNT 1000000

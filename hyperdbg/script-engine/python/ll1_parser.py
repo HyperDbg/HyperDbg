@@ -58,6 +58,7 @@ class LL1Parser:
         self.OperatorsOneOperand = []
         self.RegistersList = []
         self.PseudoRegistersList = []
+        self.VariableTypeList = []
         self.keywordList = []
         self.SemantiRulesList = []
 
@@ -112,6 +113,7 @@ class LL1Parser:
         self.HeaderFile.write("#define OPERATORS_TWO_OPERAND_LIST_LENGTH " + str(len(self.OperatorsTwoOperand)) + "\n")
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
+        self.HeaderFile.write("#define SCRIPT_VARIABLE_TYPE_LIST_LENGTH " + str(len(self.VariableTypeList))+ "\n")
         self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsOneOperand) + len(self.OperatorsTwoOperand) + len(self.SemantiRulesList))+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
@@ -150,7 +152,7 @@ class LL1Parser:
         self.WriteSemanticMaps()
         self.WriteRegisterMaps()
         self.WritePseudoRegMaps()
-
+        self.WriteVariableTypeList()
 
         # Closes Grammar Input File 
         self.GrammarFile.close()
@@ -359,6 +361,9 @@ class LL1Parser:
                     continue
                 elif L[0][1:] == "PseudoRegisters":
                     self.PseudoRegistersList += Elements
+                    continue
+                elif L[0][1:] == "ScriptVariableType":
+                    self.VariableTypeList += Elements
                     continue
 
                 self.FunctionsDict[L[0]] = Elements
@@ -579,6 +584,19 @@ class LL1Parser:
                 self.SourceFile.write("{\"" + X + "\", "+ "PSEUDO_REGISTER_" + X.upper()   + "}\n")
             else:
                 self.SourceFile.write("{\"" + X + "\", "+ "PSEUDO_REGISTER_" + X.upper()   + "},\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
+
+    def WriteVariableTypeList(self):
+        self.SourceFile.write("const char* ScriptVariableTypeList[]= {\n")
+        self.HeaderFile.write("extern const char* ScriptVariableTypeList[];\n")
+
+        Counter = 0
+        for X in self.VariableTypeList:
+            if Counter == len(self.VariableTypeList)-1:
+                self.SourceFile.write("\"" + X + "\""   + "\n")
+            else:
+                self.SourceFile.write("\"" + X + "\""  + ",\n")
             Counter +=1
         self.SourceFile.write("};\n")
 

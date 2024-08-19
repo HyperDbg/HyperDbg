@@ -12,14 +12,14 @@
  */
 #include "pch.h"
 
+// #define _SCRIPT_ENGINE_IR_PRINT_EN
 // #define _SCRIPT_ENGINE_CODEEXEC_DBG_EN
 
 //
 // Global Variables
 //
 extern UINT64 * g_ScriptGlobalVariables;
-extern UINT64 * g_ScriptLocalVariables;
-extern UINT64 * g_ScriptTempVariables;
+extern UINT64 * g_ScriptStackBuffer;
 extern UINT64   g_CurrentExprEvalResult;
 extern BOOLEAN  g_CurrentExprEvalResultHasError;
 
@@ -314,7 +314,7 @@ VOID
 ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                         string      Expr)
 {
-    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
+    SCRIPT_ENGINE_GENERAL_REGISTERS ScriptGeneralRegisters = {0};
 
     //
     // Allocate global variables holder
@@ -334,46 +334,24 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     }
 
     //
-    // Allocate local variables holder, actually in reality each core should
-    // have its own set of local variables but as we never run multi-core scripts
-    // in user-mode, thus, it's okay to just have one buffer for local variables
+    // Allocate stack buffer holder, actually in reality each core should
+    // have its own set of stack buffer but as we never run multi-core scripts
+    // in user-mode, thus, it's okay to just have one buffer for stack buffer
     //
-    if (!g_ScriptLocalVariables)
+    if (!g_ScriptStackBuffer)
     {
-        g_ScriptLocalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+        g_ScriptStackBuffer = (UINT64 *)malloc(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-        if (g_ScriptLocalVariables == NULL)
+        if (g_ScriptStackBuffer == NULL)
         {
             free(g_ScriptGlobalVariables);
 
-            ShowMessages("err, could not allocate memory for user-mode local variables");
+            ShowMessages("err, could not allocate memory for user-mode stack buffer");
 
             return;
         }
 
-        RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
-    }
-
-    //
-    // Allocate temp variables holder, actually in reality each core should
-    // have its own set of temp variables but as we never run multi-core scripts
-    // in user-mode, thus, it's okay to just have one buffer for temp variables
-    //
-    if (!g_ScriptTempVariables)
-    {
-        g_ScriptTempVariables = (UINT64 *)malloc(MAX_TEMP_COUNT * sizeof(UINT64));
-
-        if (g_ScriptTempVariables == NULL)
-        {
-            free(g_ScriptGlobalVariables);
-            free(g_ScriptLocalVariables);
-
-            ShowMessages("err, could not allocate memory for user-mode temp variables");
-
-            return;
-        }
-
-        RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
+        RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
     }
 
     //
@@ -381,7 +359,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
 
-#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
+#ifdef _SCRIPT_ENGINE_IR_PRINT_EN
     //
     // Print symbol buffer
     //
@@ -391,41 +369,11 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
 
-    //
-    // Making symbol buffer
-    //
-
-    PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)malloc(sizeof(SYMBOL_BUFFER));
-    if (StackBuffer == NULL)
-    {
-        free(g_ScriptGlobalVariables);
-        free(g_ScriptLocalVariables);
-
-        ShowMessages("err, could not allocate memory for user-mode stack buffer");
-
-        return;
-    }
-    StackBuffer->Pointer = 0;
-    StackBuffer->Size    = 0;
-    StackBuffer->Message = NULL;
-    StackBuffer->Head    = (PSYMBOL)malloc(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
-    if (StackBuffer->Head == NULL)
-    {
-        free(g_ScriptGlobalVariables);
-        free(g_ScriptLocalVariables);
-        free(StackBuffer);
-        ShowMessages("err, could not allocate memory for user-mode stack buffer");
-
-        return;
-    }
-    RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
-
-    UINT64 StackIndx     = 0;
-    UINT64 StackBaseIndx = 0;
     UINT64 EXECUTENUMBER = 0;
-    UINT64 ReturnValue   = 0;
-    RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
-    RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+
+    ScriptGeneralRegisters.StackBuffer         = g_ScriptStackBuffer;
+    ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
+    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
     if (CodeBuffer->Message == NULL)
     {
@@ -444,22 +392,15 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             ActionBuffer.ImmediatelySendTheResults = FALSE;
             ActionBuffer.Tag                       = NULL;
 
-            //
-            // Fill the variables list for this run
-            //
-            VariablesList.TempList            = g_ScriptTempVariables;
-            VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-            VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
-
 #ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
-            printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
+            printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, ScriptGeneralRegisters.StackIndx, ScriptGeneralRegisters.StackBaseIndx);
             PSYMBOL Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                                          (unsigned long long)(i * sizeof(SYMBOL)));
             printf("Function = %s\n", FunctionNames[Operator->Value]);
             printf("Stack Buffer:\n");
-            for (UINT64 j = 0; j < StackIndx; j++)
+            for (UINT64 j = 0; j < ScriptGeneralRegisters.StackIndx; j++)
             {
-                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)StackBuffer->Head +
+                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters.StackBuffer +
                                                 (unsigned long long)(j * sizeof(SYMBOL)));
 
                 printf("StackIndx = %lld, Value = %lld", j, StackSymbol->Value);
@@ -469,7 +410,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                     printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
                 }
 
-                if (j == StackBaseIndx)
+                if (j == ScriptGeneralRegisters.StackBaseIndx)
                 {
                     printf("   <===== StackBaseIndx");
                 }
@@ -483,14 +424,10 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             //
             if (ScriptEngineExecute(GuestRegs,
                                     &ActionBuffer,
-                                    &VariablesList,
+                                    &ScriptGeneralRegisters,
                                     CodeBuffer,
                                     &i,
-                                    StackBuffer,
-                                    &StackIndx,
-                                    &StackBaseIndx,
-                                    &ErrorSymbol,
-                                    &ReturnValue) == TRUE)
+                                    &ErrorSymbol) == TRUE)
             {
                 ShowMessages("err, ScriptEngineExecute, function = %s\n",
                              FunctionNames[ErrorSymbol.Value]);
@@ -498,7 +435,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                 g_CurrentExprEvalResult         = NULL;
                 break;
             }
-            else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+            else if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
             {
                 ShowMessages("err, stack buffer overflow\n");
                 g_CurrentExprEvalResultHasError = TRUE;
@@ -515,9 +452,6 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
             EXECUTENUMBER++;
         }
-#ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
-        printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, StackIndx, StackBaseIndx);
-#endif
     }
     else
     {

@@ -57,11 +57,9 @@ typedef enum TOKEN_TYPE
     TEMP,
     STRING,
     WSTRING,
-    INPUT_VARIABLE_TYPE,
-    HANDLED_VARIABLE_TYPE,
     FUNCTION_TYPE,
     FUNCTION_PARAMETER_ID,
-    STACK_TEMP,
+    SCRIPT_VARIABLE_TYPE,
     UNKNOWN
 } TOKEN_TYPE;
 
@@ -111,19 +109,10 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE, PUSER_DEFINED_FUNCTION_NODE);
-
-PTOKEN
-NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+NewTemp(PUSER_DEFINED_FUNCTION_NODE, PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
-FreeTemp(PTOKEN Temp);
-
-void
-CleanTempList(void);
-
-void
-CleanStackTempList(void);
+FreeTemp(PUSER_DEFINED_FUNCTION_NODE, PSCRIPT_ENGINE_ERROR_TYPE);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //
@@ -263,7 +252,21 @@ IsTwoOperandOperator(PTOKEN Operator);
 char
 IsOneOperandOperator(PTOKEN Operator);
 
-char
-IsVariableType(PTOKEN Operator);
+/**
+ *
+ */
+typedef struct USER_DEFINED_FUNCTION_NODE
+{
+    char *                              Name;
+    long long unsigned                  Address;
+    long long unsigned                  VariableType;
+    long long unsigned                  ParameterNumber;
+    long long unsigned                  MaxTempNumber;
+    long long unsigned                  LocalVariableNumber;
+    long long unsigned                  IdTable;
+    long long unsigned                  FunctionParameterIdTable;
+    char *                              TempMap;
+    struct USER_DEFINED_FUNCTION_NODE * NextNode;
+} USER_DEFINED_FUNCTION_NODE, *PUSER_DEFINED_FUNCTION_NODE;
 
 #endif // !COMMON_H

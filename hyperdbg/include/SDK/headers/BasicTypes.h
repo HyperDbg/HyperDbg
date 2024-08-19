@@ -114,13 +114,14 @@ typedef struct GUEST_EXTRA_REGISTERS
 /**
  * @brief List of different variables
  */
-typedef struct _SCRIPT_ENGINE_VARIABLES_LIST
+typedef struct _SCRIPT_ENGINE_GENERAL_REGISTERS
 {
-    UINT64 * TempList;
+    UINT64 * StackBuffer;
     UINT64 * GlobalVariablesList;
-    UINT64 * LocalVariablesList;
-
-} SCRIPT_ENGINE_VARIABLES_LIST, *PSCRIPT_ENGINE_VARIABLES_LIST;
+    UINT64   StackIndx;
+    UINT64   StackBaseIndx;
+    UINT64   ReturnValue;
+} SCRIPT_ENGINE_GENERAL_REGISTERS, *PSCRIPT_ENGINE_GENERAL_REGISTERS;
 
 /**
  * @brief CR3 Structure

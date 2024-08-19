@@ -160,61 +160,23 @@ DebuggerInitialize()
     {
         CurrentDebuggerState = &g_DbgState[i];
 
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = PlatformMemAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
-        }
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
-        {
-            //
-            // Out of resource, initialization of script engine's local variable holders failed
-            //
-            return FALSE;
-        }
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
-        {
-            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = PlatformMemAllocateNonPagedPool(MAX_TEMP_COUNT * sizeof(UINT64));
-        }
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
-        {
-            //
-            // Out of resource, initialization of script engine's local variable holders failed
-            //
-            return FALSE;
+            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(sizeof(SYMBOL_BUFFER));
-
-            if (CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
-            {
-                PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer;
-                StackBuffer->Pointer       = 0;
-                StackBuffer->Size          = 0;
-                StackBuffer->Message       = NULL;
-                StackBuffer->Head          = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
-                if (!StackBuffer->Head)
-                {
-                    return FALSE;
-                }
-                RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
-            }
-        }
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
-        {
+            //
+            // Out of resource, initialization of script engine's stack buffer holders failed
+            //
             return FALSE;
         }
 
         //
-        // Zero the local and temp variables memory
+        // Zero stack buffer memory
         //
-        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
-        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
+        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
     }
 
     //
@@ -328,26 +290,8 @@ DebuggerUninitialize()
     {
         CurrentDebuggerState = &g_DbgState[i];
 
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
-        {
-            PlatformMemFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable);
-            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable = NULL;
-        }
-
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
-        {
-            PlatformMemFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable);
-            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable = NULL;
-        }
-
         if (CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer != NULL)
         {
-            PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer;
-            if ((StackBuffer)->Head != NULL)
-            {
-                PlatformMemFreePool(StackBuffer->Head);
-            }
-
             PlatformMemFreePool(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer);
             CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = NULL;
         }
@@ -1610,10 +1554,10 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                          DEBUGGEE_SCRIPT_PACKET *           ScriptDetails,
                          DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
-    SYMBOL_BUFFER                CodeBuffer    = {0};
-    ACTION_BUFFER                ActionBuffer  = {0};
-    SYMBOL                       ErrorSymbol   = {0};
-    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
+    SYMBOL_BUFFER                   CodeBuffer             = {0};
+    ACTION_BUFFER                   ActionBuffer           = {0};
+    SYMBOL                          ErrorSymbol            = {0};
+    SCRIPT_ENGINE_GENERAL_REGISTERS ScriptGeneralRegisters = {0};
 
     if (Action != NULL)
     {
@@ -1682,32 +1626,13 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     }
 
     //
-    // Fill the variables list for this run
+    // Fill the stack buffer for this run
     //
-    VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
-    RtlZeroMemory(DbgState->ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
-    VariablesList.LocalVariablesList = DbgState->ScriptEngineCoreSpecificLocalVariable;
-    VariablesList.TempList           = DbgState->ScriptEngineCoreSpecificTempVariable;
+    ScriptGeneralRegisters.StackBuffer         = DbgState->ScriptEngineCoreSpecificStackBuffer;
+    ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
+    RtlZeroMemory(ScriptGeneralRegisters.StackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
 
-    PSYMBOL_BUFFER StackBuffer = (PSYMBOL_BUFFER)DbgState->ScriptEngineCoreSpecificStackBuffer;
-    if (!StackBuffer || !StackBuffer->Head)
-    {
-        //
-        // Not allocate memroy to stack buffer
-        //
-        return FALSE;
-    }
-
-    StackBuffer->Pointer = 0;
-    StackBuffer->Size    = 0;
-    StackBuffer->Message = NULL;
-    RtlZeroMemory(StackBuffer->Head, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
-
-    UINT64 StackIndx     = 0;
-    UINT64 StackBaseIndx = 0;
     UINT64 EXECUTENUMBER = 0;
-    UINT64 ReturnValue   = 0;
 
     for (UINT64 i = 0; i < CodeBuffer.Pointer;)
     {
@@ -1717,20 +1642,16 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
 
         if (ScriptEngineExecute(DbgState->Regs,
                                 &ActionBuffer,
-                                &VariablesList,
+                                &ScriptGeneralRegisters,
                                 &CodeBuffer,
                                 &i,
-                                StackBuffer,
-                                &StackIndx,
-                                &StackBaseIndx,
-                                &ErrorSymbol,
-                                &ReturnValue) == TRUE)
+                                &ErrorSymbol) == TRUE)
         {
             LogInfo("err, ScriptEngineExecute, function = % s\n ",
                     FunctionNames[ErrorSymbol.Value]);
             break;
         }
-        else if (StackIndx >= MAX_STACK_BUFFER_COUNT)
+        else if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
         {
             LogInfo("err, stack buffer overflow\n");
             break;
