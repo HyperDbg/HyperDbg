@@ -27,3 +27,6 @@ CreateDirectoryRecursive(const std::string & Path);
 
 const std::vector<std::string>
 Split(const std::string & s, const char & c);
+
+VOID
+SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command);

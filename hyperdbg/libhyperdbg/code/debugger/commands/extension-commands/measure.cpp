@@ -45,30 +45,33 @@ CommandMeasureHelp()
 /**
  * @brief !measure command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandMeasure(vector<string> SplitCommand, string Command)
+CommandMeasure(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN DefaultMode = FALSE;
 
-    if (SplitCommand.size() >= 3)
+    if (CommandTokens.size() >= 3)
     {
-        ShowMessages("incorrect use of the '!measure'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandMeasureHelp();
         return;
     }
 
-    if (SplitCommand.size() == 2 && SplitCommand.at(1).compare("default"))
+    if (CommandTokens.size() == 2 && !CompareLowerCaseStrings(CommandTokens.at(1), "default"))
     {
-        ShowMessages("incorrect use of the '!measure'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandMeasureHelp();
         return;
     }
-    else if (SplitCommand.size() == 2 &&
-             !SplitCommand.at(1).compare("default"))
+    else if (CommandTokens.size() == 2 &&
+             CompareLowerCaseStrings(CommandTokens.at(1), "default"))
     {
         DefaultMode = TRUE;
     }

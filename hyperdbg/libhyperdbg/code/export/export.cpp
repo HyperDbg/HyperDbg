@@ -97,14 +97,42 @@ hyperdbg_u_stop_vmm_driver()
 }
 
 /**
- * @brief Interprets the command
+ * @brief Run a command
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_interpreter(CHAR * command)
+hyperdbg_u_run_command(CHAR * command)
 {
     return HyperDbgInterpreter(command);
+}
+
+/**
+ * @brief Parse the command (used for testing purposes)
+ *
+ * @param command The text of command
+ * @param number_of_tokens The number of tokens
+ * @param tokens_list The list of tokens
+ *
+ * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ */
+BOOLEAN
+hyperdbg_u_test_command_parser(CHAR * command, UINT32 number_of_tokens, CHAR ** tokens_list)
+{
+    return HyperDbgTestCommandParser(command, number_of_tokens, tokens_list);
+}
+
+/**
+ * @brief Parse and show tokens for the command (used for testing purposes)
+ *
+ * @param command The text of command
+ *
+ * @return VOID
+ */
+VOID
+hyperdbg_u_test_command_parser_show_tokens(CHAR * command)
+{
+    return HyperDbgTestCommandParserShowTokens(command);
 }
 
 /**
@@ -490,8 +518,16 @@ hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOO
     return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe, pause_after_connection);
 }
 
+/**
+ * @brief Close the remote debugger
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
 BOOLEAN
-HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+hyperdbg_u_debug_close_remote_debugger()
+{
+    return HyperDbgDebugCloseRemoteDebugger();
+}
 
 /**
  * @brief Connect to the current debugger using COM port
@@ -569,4 +605,20 @@ BOOLEAN
 hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size)
 {
     return HyperDbgAssemble(assembly_code, start_address, buffer_to_store_assembled_data, buffer_size);
+}
+
+/**
+ * @brief Setip the path for the filename
+ *
+ * @param filename The filename
+ * @param file_location
+ * @param buffer_len
+ * @param check_file_existence
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, UINT32 buffer_len, BOOLEAN check_file_existence)
+{
+    return SetupPathForFileName(filename, file_location, buffer_len, check_file_existence);
 }

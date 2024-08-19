@@ -30,7 +30,6 @@ CommandTestHelp()
     ShowMessages("syntax : \ttest [Task (string)]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
     ShowMessages("\t\te.g : test trap-status\n");
     ShowMessages("\t\te.g : test pool\n");
@@ -93,6 +92,36 @@ CommandTestPerformKernelTestsIoctl()
         //
         ShowErrorMessage(KernelTestRequest.KernelStatus);
         return FALSE;
+    }
+}
+
+/**
+ * @brief perform test on for all functionalities
+ *
+ * @return VOID
+ */
+VOID
+CommandTestAllFunctionalities()
+{
+    HANDLE ThreadHandle;
+    HANDLE ProcessHandle;
+
+    //
+    // Test command parser
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER))
+    {
+        ShowMessages("err, start HyperDbg test process for testing the main command parser\n");
+        return;
+    }
+
+    //
+    // Test script engine (script parser) using semantic tests
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
+    {
+        ShowMessages("err, start HyperDbg test process for testing semantic tests\n");
+        return;
     }
 }
 
@@ -356,60 +385,62 @@ CommandTestSetDebugBreakState(BOOLEAN State)
 /**
  * @brief test command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandTest(vector<string> SplitCommand, string Command)
+CommandTest(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64 Context = NULL;
 
-    if (SplitCommand.size() == 1)
+    UINT32 CommandSize = (UINT32)CommandTokens.size();
+
+    if (CommandSize == 1)
     {
-        //
-        // For testing functionalities
-        //
-        CommandTestPerformTest();
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandTestHelp();
     }
-    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("query"))
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "query"))
     {
         //
         // Query the state of debuggee in debugger mode
         //
         CommandTestQueryState();
     }
-    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("trap-status"))
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "trap-status"))
     {
         //
         // Query the state of trap flag in debugger mode
         //
         CommandTestQueryTrapState();
     }
-    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("pool"))
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "pool"))
     {
         //
         // Query the state of pre-allocated pools in debugger mode
         //
         CommandTestQueryPreAllocPoolsState();
     }
-    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("sync-task"))
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "sync-task"))
     {
         //
         // Send target task to the halted cores in debugger mode (synchronous)
         //
         CommandTestSetTargetTaskToHaltedCores(TRUE);
     }
-    else if (SplitCommand.size() == 2 && !SplitCommand.at(1).compare("async-task"))
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "async-task"))
     {
         //
         // Send target task to the halted cores in debugger mode (asynchronous)
         //
         CommandTestSetTargetTaskToHaltedCores(FALSE);
     }
-    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("target-core-task"))
+    else if (CommandSize == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "target-core-task"))
     {
-        if (!ConvertStringToUInt64(SplitCommand.at(2), &Context))
+        if (!ConvertTokenToUInt64(CommandTokens.at(2), &Context))
         {
             ShowMessages("err, you should enter a valid hex number as the core id\n\n");
             return;
@@ -420,47 +451,57 @@ CommandTest(vector<string> SplitCommand, string Command)
         //
         CommandTestSetTargetTaskToTargetCore((UINT32)Context);
     }
-    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("breakpoint"))
+    else if (CommandSize == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "breakpoint"))
     {
         //
         // Change breakpoint state
         //
-        if (!SplitCommand.at(2).compare("on"))
+        if (CompareLowerCaseStrings(CommandTokens.at(2), "on"))
         {
             CommandTestSetBreakpointState(TRUE);
         }
-        else if (!SplitCommand.at(2).compare("off"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(2), "off"))
         {
             CommandTestSetBreakpointState(FALSE);
         }
         else
         {
-            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplitCommand.at(2).c_str());
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             return;
         }
     }
-    else if (SplitCommand.size() == 3 && !SplitCommand.at(1).compare("trap"))
+    else if (CommandSize == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "trap"))
     {
         //
         // Change debug break state
         //
-        if (!SplitCommand.at(2).compare("on"))
+        if (CompareLowerCaseStrings(CommandTokens.at(2), "on"))
         {
             CommandTestSetDebugBreakState(TRUE);
         }
-        else if (!SplitCommand.at(2).compare("off"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(2), "off"))
         {
             CommandTestSetDebugBreakState(FALSE);
         }
         else
         {
-            ShowMessages("err, couldn't resolve error at '%s'\n\n", SplitCommand.at(2).c_str());
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             return;
         }
     }
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "all"))
+    {
+        //
+        // For testing functionalities
+        //
+        CommandTestAllFunctionalities();
+    }
     else
     {
-        ShowMessages("incorrect use of the 'test'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandTestHelp();
         return;
     }

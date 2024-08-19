@@ -130,9 +130,6 @@ IsNumber(const string & str);
 UINT32
 Log2Ceil(UINT32 n);
 
-vector<string>
-SplitIp(const string & str, char delim);
-
 BOOLEAN
 IsHexNotation(const string & s);
 
@@ -144,6 +141,24 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result);
 
 BOOLEAN
 ConvertStringToUInt32(string TextToConvert, PUINT32 Result);
+
+BOOLEAN
+ConvertTokenToUInt64(CommandToken TargetToken, PUINT64 Result);
+
+BOOLEAN
+ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result);
+
+std::string
+GetCaseSensitiveStringFromCommandToken(CommandToken TargetToken);
+
+std::string
+GetLowerStringFromCommandToken(CommandToken TargetToken);
+
+BOOLEAN
+CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare);
+
+BOOLEAN
+IsTokenBracketString(CommandToken TargetToken);
 
 BOOLEAN
 HasEnding(string const & fullString, string const & ending);
@@ -174,9 +189,6 @@ GetConfigFilePath(PWCHAR ConfigPath);
 
 VOID
 StringToWString(std::wstring & ws, const std::string & s);
-
-VOID
-SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command);
 
 size_t
 FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);

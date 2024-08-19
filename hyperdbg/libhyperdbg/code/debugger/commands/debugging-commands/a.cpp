@@ -174,12 +174,12 @@ ParseUserCmd(const std::string & command)
 /**
  * @brief a and !a commands handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandAssemble(vector<string> SplitCommand, string Command)
+CommandAssemble(vector<CommandToken> CommandTokens, string Command)
 {
     DEBUGGER_EDIT_MEMORY_TYPE MemoryType {};
     _CMD                      CMD {};

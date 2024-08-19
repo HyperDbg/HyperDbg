@@ -54,12 +54,12 @@ CommandDumpHelp()
 /**
  * @brief .dump command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandDump(vector<string> SplitCommand, string Command)
+CommandDump(vector<CommandToken> CommandTokens, string Command)
 {
     wstring                   Filepath;
     UINT32                    ActualLength;
@@ -74,10 +74,10 @@ CommandDump(vector<string> SplitCommand, string Command)
     BOOLEAN                   IsTheFirstAddr      = FALSE;
     BOOLEAN                   IsTheSecondAddr     = FALSE;
     BOOLEAN                   IsDumpPathSpecified = FALSE;
-    string                    FirstCommand        = SplitCommand.front();
+    string                    FirstCommand        = GetLowerStringFromCommandToken(CommandTokens.front());
     DEBUGGER_READ_MEMORY_TYPE MemoryType          = DEBUGGER_READ_VIRTUAL_ADDRESS;
 
-    if (SplitCommand.size() <= 4)
+    if (CommandTokens.size() <= 4)
     {
         ShowMessages("err, incorrect use of the '.dump' command\n\n");
         CommandDumpHelp();
@@ -93,7 +93,7 @@ CommandDump(vector<string> SplitCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
         if (IsFirstCommand == TRUE)
         {
@@ -102,7 +102,7 @@ CommandDump(vector<string> SplitCommand, string Command)
         }
         else if (NextIsProcId)
         {
-            if (!ConvertStringToUInt32(Section, &Pid))
+            if (!ConvertTokenToUInt32(Section, &Pid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandDumpHelp();
@@ -116,17 +116,17 @@ CommandDump(vector<string> SplitCommand, string Command)
             //
             // Convert path to wstring
             //
-            StringToWString(Filepath, Section);
+            StringToWString(Filepath, GetCaseSensitiveStringFromCommandToken(Section));
             IsDumpPathSpecified = TRUE;
 
             NextIsPath = FALSE;
         }
-        else if (!Section.compare("pid"))
+        else if (CompareLowerCaseStrings(Section, "pid"))
         {
             NextIsProcId = TRUE;
             continue;
         }
-        else if (!Section.compare("path"))
+        else if (CompareLowerCaseStrings(Section, "path"))
         {
             NextIsPath = TRUE;
             continue;
@@ -134,14 +134,16 @@ CommandDump(vector<string> SplitCommand, string Command)
         //
         // Check the 'From' address
         //
-        else if (!IsTheFirstAddr && SymbolConvertNameOrExprToAddress(Section, &StartAddress))
+        else if (!IsTheFirstAddr &&
+                 SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &StartAddress))
         {
             IsTheFirstAddr = TRUE;
         }
         //
         // Check the 'To' address
         //
-        else if (!IsTheSecondAddr && SymbolConvertNameOrExprToAddress(Section, &EndAddress))
+        else if (!IsTheSecondAddr &&
+                 SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &EndAddress))
         {
             IsTheSecondAddr = TRUE;
         }
@@ -151,7 +153,7 @@ CommandDump(vector<string> SplitCommand, string Command)
             // invalid input
             //
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                         Section.c_str());
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandDumpHelp();
 
             return;

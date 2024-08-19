@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 //
 // Global Variables
 //
@@ -42,101 +40,33 @@ extern string g_ServerIp;
 class CommandParser
 {
 public:
-    enum class TokenType
+    /**
+     * @brief Parse the input string (commands)
+     * @param input
+     *
+     * @return std::vector<CommandToken>
+     */
+    std::vector<CommandToken> Parse(const std::string & input)
     {
-        NumHex,
-        NumDec,
-        String,
-        BracketString
-    };
-
-    using Token = std::pair<TokenType, std::string>;
-
-    BOOL GetHexNum(std::string & str)
-    {
-        if (str.empty() || (str.size() == 1 && str[0] == '0'))
-            return FALSE;
-
-        std::string Prefix("0x");
-        if (!str.compare(0, Prefix.size(), Prefix))
-        {
-            std::string num(str.substr(Prefix.size()));
-
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(num, &pos, 16);
-                str       = num; // modify
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-        else
-        {
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(str, &pos, 16);
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-    }
-
-    //
-    // modifies str to acual number in string
-    //
-    BOOL IsDecNum(std::string & str)
-    {
-        if (str.empty() || (str.size() == 1 && str[0] == '0') || str.size() < 3)
-            return FALSE;
-
-        std::string Prefix("0n");
-        std::string num(str.substr(Prefix.size()));
-        if (!str.compare(0, Prefix.size(), Prefix))
-        {
-            try
-            {
-                size_t pos;
-                auto   ul = std::stoul(num, &pos, 10);
-                str       = num; // modify
-                return TRUE;
-            }
-            catch (...)
-            {
-                return FALSE;
-            }
-        }
-        return FALSE;
-    }
-
-    std::vector<Token> parse(const std::string & input)
-    {
-        std::vector<Token> tokens;
-        std::string        current;
-        bool               InQuotes  = FALSE;
-        bool               InBracket = FALSE;
+        std::vector<CommandToken> tokens;
+        std::string               current;
+        bool                      InQuotes   = FALSE;
+        int                       IdxBracket = 0;
 
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
-
             if (c == '/') // start comment parse
             {
                 //
-                // if we're in a script braket, skip; it'll be handled later
+                // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!(tokens.back().second == "script"))
+                if (!IdxBracket)
                 {
                     size_t j = i;
                     c        = input[++j];
-                    if (c == '/') // start to look fo comments
+
+                    if (c == '/') // start to look for comments
                     {
                         size_t EndPose = input.find('\n', i);
                         if (EndPose != std::string::npos)
@@ -145,7 +75,9 @@ public:
                             // here we could get the comment but for now we just skip
                             //
                             std::string comment(input.substr(i, EndPose - i));
+
                             i = i + (EndPose - i);
+
                             if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
                                 i++;
@@ -154,26 +86,38 @@ public:
                                     i++;
                                 }
                             }
+
                             continue;
                         }
                     }
                     else if (c == '*')
                     {
                         size_t EndPose = input.find("*/", i);
+
                         if (EndPose != std::string::npos)
                         {
+                            //
                             // here we could get the comment but for now we just skip
-                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two byte long
-                            i = (i + (EndPose - i)) + 1;                           // one for /
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n')       // handling " " and "\n"
+                            //
+                            std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
+
+                            i = (i + (EndPose - i)) + 1; // one for /
+
+                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
                                 i++;
+
                                 if (input[i + 1] == ' ' || input[i + 1] == '\n')
                                 {
                                     i++;
                                 }
                             }
+
                             continue;
+                        }
+                        else
+                        {
+                            // error: comment not closed
                         }
                     }
                 }
@@ -181,27 +125,37 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\' && !InBracket)
+                if (c == '"' && input[i - 1] != '\\' ) //&& !IdxBracket)
                 {
-                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    {
-                        i++;
-                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                    }
-
                     InQuotes = FALSE;
-                    tokens.emplace_back(TokenType::String, current);
-                    current.clear();
-                    continue;
+                    //
+                    // if the quoted text is not within brackets, regard it as a StringLiteral token
+                    //
+                    if (!IdxBracket)
+                    {
+                        AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
+                        current.clear();
+                        continue; // dont add " char
+                    }
+                    else
+                    {
+                        current += c;
+                        continue; // dont add " char
+                    }
+                    //
+                    // if we are indeed within brackets, we continue to add the '"' char to the current buffer
+                    //
                 }
             }
 
-            if (InBracket)
+            if (IdxBracket)
             {
-                if (c == '}')
+                if (c == '}' && input[i - 1] != '\\' && IdxBracket && !InQuotes) // not closing }
+                {
+                    IdxBracket--;
+                }
+
+                if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
                 {
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                     {
@@ -212,62 +166,340 @@ public:
                         }
                     }
 
-                    InBracket = FALSE;
-
-                    tokens.emplace_back(TokenType::BracketString, current);
+                    AddBracketStringToken(tokens, current);
                     current.clear();
+
                     continue;
+                }
+
+                if (c == '{' && input[i - 1] != '\\' && !InQuotes)
+                {
+                    if (i) // check if this { is the first char to avoid out of range check
+                    {
+                        if (input[i - 1] != '\\')
+                        {
+                            IdxBracket++;
+                        }
+                    }
+                    else
+                    {
+                        IdxBracket++;
+                    }
                 }
             }
 
-            if (c == ' ' && !InQuotes && !InBracket)
+            if (c == ' ' && !InQuotes && !IdxBracket) // finding seperator space char
             {
                 if (!current.empty() && current != " ")
                 {
-                    addToken(tokens, current);
+                    AddToken(tokens, current);
                     current.clear();
+
                     continue;
                 }
+                continue; // avoid adding extra space char
             }
-            else if (c == '"' && input[i - 1] != '\\' && !InBracket)
+            else if (c == '"' ) //&& !IdxBracket)
             {
-                InQuotes = TRUE;
-                continue; // dont inclue '"' in string
+                if (i) // check if this " is the first char to avoid out of range check
+                {
+                    if (input[i - 1] != '\\')
+                    {
+                        InQuotes = TRUE;
+                        if (!IdxBracket)
+                        {
+                            continue; // don't include '"' in string
+                        }
+                    }
+                }
+                else
+                {
+                    InQuotes = TRUE;
+                    if (!IdxBracket)
+                    {
+                        continue; // don't include '"' in string
+                    }
+                }
             }
-            else if (c == '{' && !InQuotes && !InBracket)
+            else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
-                InBracket = TRUE;
-                continue; // dont inclue '{' in string
+                if (i) // check if this { is the first char to avoid out of range check
+                {
+                    if (input[i - 1] != '\\')
+                    {
+                        IdxBracket++;
+                        continue; // don't include '{' in string
+                    }
+                }
+                else
+                {
+                    IdxBracket++;
+                    continue; // don't include '{' in string
+                }
             }
+
             current += c;
         }
 
         if (!current.empty() && current != " ")
         {
-            addToken(tokens, current);
+            AddToken(tokens, current);
+        }
+
+        if (IdxBracket)
+        {
+            // error: script bracket not closed
+        }
+
+        if (InQuotes)
+        {
+            // error: Quote not closed
         }
 
         return tokens;
     }
 
-private:
-    void addToken(std::vector<Token> & tokens, const std::string & str)
+    /**
+     * @brief Function to convert CommandParsingTokenType to a string
+     * @param Type
+     *
+     * @return std::string
+     */
+    std::string TokenTypeToString(CommandParsingTokenType Type)
     {
-        auto tmp = str;
-        if (IsDecNum(tmp)) // tmp will be modified to actual number
+        switch (Type)
         {
-            tokens.emplace_back(TokenType::NumDec, tmp);
+        case CommandParsingTokenType::Num:
+            return "Num";
+
+        case CommandParsingTokenType::String:
+            return "String";
+
+        case CommandParsingTokenType::StringLiteral:
+            return "StringLiteral";
+
+        case CommandParsingTokenType::BracketString:
+            return "BracketString";
+
+        default:
+            return "Unknown";
         }
-        else if (std::all_of(str.begin(), str.end(), ::isdigit) || GetHexNum(tmp)) // tmp will be modified to actual number
+    }
+
+    /**
+     * @brief Function to print the elements of a vector of Tokens
+     * @param Tokens
+     *
+     * @return VOID
+     */
+    VOID PrintTokens(const std::vector<CommandToken> & Tokens)
+    {
+        for (const auto & Token : Tokens)
         {
-            tokens.emplace_back(TokenType::NumHex, tmp);
+            auto CaseSensitiveText = std::get<1>(Token);
+            auto LowerCaseText     = std::get<2>(Token);
+
+            if (std::get<0>(Token) == CommandParsingTokenType::BracketString ||
+                std::get<0>(Token) == CommandParsingTokenType::String ||
+                std::get<0>(Token) == CommandParsingTokenType::StringLiteral)
+            {
+                //
+                // Replace \n with \\n
+                //
+
+                //
+                // Search for \n and replace with \\n
+                //
+                std::string::size_type pos = 0;
+                while ((pos = CaseSensitiveText.find("\n", pos)) != std::string::npos)
+                {
+                    CaseSensitiveText.replace(pos, 1, "\\n");
+                    pos += 2; // Move past the newly added characters
+                }
+
+                //
+                // Do the same for lower case text
+                //
+                pos = 0;
+                while ((pos = LowerCaseText.find("\n", pos)) != std::string::npos)
+                {
+                    LowerCaseText.replace(pos, 1, "\\n");
+                    pos += 2; // Move past the newly added characters
+                }
+            }
+
+            ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
+                         TokenTypeToString(std::get<0>(Token)).c_str(),
+                         CaseSensitiveText.c_str(),
+                         LowerCaseText.c_str());
+        }
+    }
+
+private:
+    /**
+     * @brief Convert a string to lowercase
+     * @param str
+     *
+     * @return std::string
+     */
+    std::string ToLower(const std::string & str) const
+    {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+
+        return result;
+    }
+
+    /**
+     * @brief Add Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    VOID AddToken(std::vector<CommandToken> & tokens, std::string & str)
+    {
+        auto   tmp    = str;
+        UINT64 tmpNum = 0;
+
+        //
+        // Trim the string
+        //
+        Trim(tmp);
+
+        if (ConvertStringToUInt64(tmp, &tmpNum)) // tmp will be modified to actual number
+        {
+            tokens.emplace_back(CommandParsingTokenType::Num, tmp, ToLower(tmp));
         }
         else
         {
-            tokens.emplace_back(TokenType::String, str);
+            AddStringToken(tokens, str);
         }
     }
+
+    /**
+     * @brief Add String Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str, BOOL isLiteral = FALSE)
+    {
+        auto tmp = str;
+
+        //
+        // Trim the string
+        //
+        Trim(tmp);
+
+        //
+        // If the string is empty, we don't need to add it
+        //
+        if (tmp.empty())
+            return;
+        if (isLiteral)
+        {
+            tokens.emplace_back(CommandParsingTokenType::StringLiteral, tmp, ToLower(tmp));
+        }
+        else
+        {
+            tokens.emplace_back(CommandParsingTokenType::String, tmp, ToLower(tmp));
+        }
+    }
+
+    /**
+     * @brief Add Bracket String Token
+     * @param tokens
+     * @param str
+     *
+     * @return VOID
+     */
+    VOID AddBracketStringToken(std::vector<CommandToken> & tokens, const std::string & str)
+    {
+        tokens.emplace_back(CommandParsingTokenType::BracketString, str, ToLower(str));
+    }
 };
+
+/**
+ * @brief Parse the command (used for testing purposes)
+ *
+ * @param Command The text of command
+ * @param NumberOfTokens The number of tokens
+ * @param TokensList The tokens list
+ *
+ * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ */
+BOOLEAN
+HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensList)
+{
+    CommandParser Parser;
+
+    //
+    // Convert to string
+    //
+    string CommandString(Command);
+
+    //
+    // Tokenize the command string
+    //
+    std::vector<CommandToken> Tokens = Parser.Parse(CommandString);
+
+    //
+    // Check if the number of tokens is correct
+    //
+    if (Tokens.size() != NumberOfTokens)
+    {
+        ShowMessages("err, the number of tokens is not correct\n");
+        return FALSE;
+    }
+
+    //
+    // Check if the tokens are correct
+    //
+    for (size_t i = 0; i < Tokens.size(); i++)
+    {
+        auto Token = Tokens.at(i);
+
+        auto CaseSensitiveText = std::get<1>(Token);
+
+        if (strcmp(CaseSensitiveText.c_str(), TokensList[i]) != 0)
+        {
+            ShowMessages("err, the token is not correct\n");
+            return FALSE;
+        }
+    }
+
+    //
+    // Everything is correct
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Parse the command and show tokens (used for testing purposes)
+ *
+ * @param Command The text of command
+ *
+ * @return VOID
+ */
+VOID
+HyperDbgTestCommandParserShowTokens(CHAR * Command)
+{
+    CommandParser Parser;
+
+    //
+    // Convert to string
+    //
+    string CommandString(Command);
+
+    //
+    // Tokenize the command string
+    //
+    std::vector<CommandToken> Tokens = Parser.Parse(CommandString);
+
+    Parser.PrintTokens(Tokens);
+}
 
 /**
  * @brief Interpret commands
@@ -282,6 +514,7 @@ HyperDbgInterpreter(CHAR * Command)
     BOOLEAN               HelpCommand       = FALSE;
     UINT64                CommandAttributes = NULL;
     CommandType::iterator Iterator;
+    CommandParser         Parser;
 
     //
     // Check if it's the first command and whether the mapping of command is
@@ -307,36 +540,33 @@ HyperDbgInterpreter(CHAR * Command)
     }
 
     //
-    // Remove the comments
-    //
-    InterpreterRemoveComments(Command);
-
-    //
     // Convert to string
     //
     string CommandString(Command);
 
-    // for test
-    // CommandParser parser;
-    // auto          tokens1 = parser.parse(CommandString);
+    //
+    // Tokenize the command string
+    //
+    auto Tokens = Parser.Parse(CommandString);
 
     //
-    // Convert to lower case
+    // Print the tokens
     //
-    transform(CommandString.begin(), CommandString.end(), CommandString.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    vector<string> SplitCommand {Split(CommandString, ' ')};
+    // Parser.PrintTokens(Tokens);
 
     //
     // Check if user entered an empty input
     //
-    if (SplitCommand.empty())
+    if (Tokens.empty())
     {
         ShowMessages("\n");
         return 0;
     }
 
-    string FirstCommand = SplitCommand.front();
+    //
+    // Get the first command (lower case)
+    //
+    string FirstCommand = GetLowerStringFromCommandToken(Tokens.front());
 
     //
     // Read the command's attributes
@@ -426,17 +656,18 @@ HyperDbgInterpreter(CHAR * Command)
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
         !FirstCommand.compare(".hh"))
     {
-        if (SplitCommand.size() == 2)
+        if (Tokens.size() == 2)
         {
             //
             // Show that it's a help command
             //
             HelpCommand  = TRUE;
-            FirstCommand = SplitCommand.at(1);
+            FirstCommand = GetLowerStringFromCommandToken(Tokens.at(1));
         }
         else
         {
-            ShowMessages("incorrect use of the '%s'\n", FirstCommand.c_str());
+            ShowMessages("incorrect use of the '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Tokens.at(0)).c_str());
             CommandHelpHelp();
             return 0;
         }
@@ -445,6 +676,7 @@ HyperDbgInterpreter(CHAR * Command)
     //
     // Start parsing commands
     //
+    string CaseSensitiveCommandString(Command);
     Iterator = g_CommandsList.find(FirstCommand);
 
     if (Iterator == g_CommandsList.end())
@@ -452,17 +684,15 @@ HyperDbgInterpreter(CHAR * Command)
         //
         //  Command doesn't exist
         //
-        string         CaseSensitiveCommandString(Command);
-        vector<string> CaseSensitiveSplitCommand {Split(CaseSensitiveCommandString, ' ')};
-
         if (!HelpCommand)
         {
-            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplitCommand.front().c_str());
+            ShowMessages("err, couldn't resolve command at '%s'\n",
+                         GetCaseSensitiveStringFromCommandToken(Tokens.front()).c_str());
         }
         else
         {
             ShowMessages("err, couldn't find the help for the command at '%s'\n",
-                         CaseSensitiveSplitCommand.at(1).c_str());
+                         GetCaseSensitiveStringFromCommandToken(Tokens.at(1)).c_str());
         }
     }
     else
@@ -474,18 +704,9 @@ HyperDbgInterpreter(CHAR * Command)
         else
         {
             //
-            // Check if command is case-sensitive or not
+            // Call the parser with tokens
             //
-            if ((Iterator->second.CommandAttrib &
-                 DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE))
-            {
-                string CaseSensitiveCommandString(Command);
-                Iterator->second.CommandFunction(SplitCommand, CaseSensitiveCommandString);
-            }
-            else
-            {
-                Iterator->second.CommandFunction(SplitCommand, CommandString);
-            }
+            Iterator->second.CommandFunctionNewParser(Tokens, CaseSensitiveCommandString);
         }
     }
 
@@ -502,6 +723,8 @@ HyperDbgInterpreter(CHAR * Command)
 
 /**
  * @brief Remove batch comments
+ * @param CommandText
+ * @details deprecated, not used anymore
  *
  * @return VOID
  */
@@ -820,9 +1043,9 @@ InitializeCommandsDictionary()
     g_CommandsList[".hh"]   = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList["help"]  = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
-    g_CommandsList["clear"] = {&CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList[".cls"]  = {&CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList["cls"]   = {&CommandClearScreen, &CommandClearScreenHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList["clear"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList[".cls"]  = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList["cls"]   = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
 
     g_CommandsList[".connect"] = {&CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
     g_CommandsList["connect"]  = {&CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
@@ -880,14 +1103,16 @@ InitializeCommandsDictionary()
     g_CommandsList[".status"] = {&CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
     g_CommandsList["status"]  = {&CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
 
-    g_CommandsList["load"] = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
+    g_CommandsList["load"]  = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
+    g_CommandsList[".load"] = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
 
     g_CommandsList["exit"]  = {&CommandExit, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
     g_CommandsList[".exit"] = {&CommandExit, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
 
     g_CommandsList["flush"] = {&CommandFlush, &CommandFlushHelp, DEBUGGER_COMMAND_FLUSH_ATTRIBUTES};
 
-    g_CommandsList["pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
+    g_CommandsList["pause"]  = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
+    g_CommandsList[".pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
 
     g_CommandsList["unload"] = {&CommandUnload, &CommandUnloadHelp, DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES};
 
@@ -934,7 +1159,6 @@ InitializeCommandsDictionary()
     g_CommandsList["!vmcall"] = {&CommandVmcall, &CommandVmcallHelp, DEBUGGER_COMMAND_VMCALL_ATTRIBUTES};
 
     g_CommandsList["!epthook"] = {&CommandEptHook, &CommandEptHookHelp, DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
-    g_CommandsList["bh"]       = {&CommandEptHook, &CommandEptHookHelp, DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
 
     g_CommandsList["bp"] = {&CommandBp, &CommandBpHelp, DEBUGGER_COMMAND_BP_ATTRIBUTES};
 
@@ -1001,54 +1225,22 @@ InitializeCommandsDictionary()
 
     g_CommandsList["gu"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
 
-    g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dd"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dq"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!db"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dc"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dd"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dq"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u"]    = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u64"] = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u64"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u2"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u2"]   = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u32"] = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u32"]  = {&CommandReadMemoryAndDisassembler,
-                              &CommandReadMemoryAndDisassemblerHelp,
-                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dd"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dq"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!db"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dc"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dd"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dq"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u"]    = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u64"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u64"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u2"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u2"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u32"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u32"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
 
     g_CommandsList["eb"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["ed"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};

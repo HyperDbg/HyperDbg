@@ -115,12 +115,12 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
 
 VOID
 HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
-                                 UINT64                       Address,
-                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
-                                 DEBUGGER_READ_READING_TYPE   ReadingType,
-                                 UINT32                       Pid,
-                                 UINT32                       Size,
-                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
+                                UINT64                       Address,
+                                DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                DEBUGGER_READ_READING_TYPE   ReadingType,
+                                UINT32                       Pid,
+                                UINT32                       Size,
+                                PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
 
 BOOLEAN
 HyperDbgReadMemory(UINT64                              TargetAddress,
@@ -153,10 +153,28 @@ CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length);
 //////////////////////////////////////////////////
 
 /**
+ * @brief Command's parsing type (enum)
+ *
+ */
+typedef enum
+{
+    Num,
+    String,
+    StringLiteral,
+    BracketString
+} CommandParsingTokenType;
+
+/**
+ * @brief Command's parsing type
+ *
+ */
+typedef std::tuple<CommandParsingTokenType, std::string, std::string> CommandToken;
+
+/**
  * @brief Command's function type
  *
  */
-typedef VOID (*CommandFuncType)(vector<string> SplitCommand, string Command);
+typedef VOID (*CommandFuncTypeParser)(vector<CommandToken> CommandTokens, string Command);
 
 /**
  * @brief Command's help function type
@@ -170,9 +188,9 @@ typedef VOID (*CommandHelpFuncType)();
  */
 typedef struct _COMMAND_DETAIL
 {
-    CommandFuncType     CommandFunction;
-    CommandHelpFuncType CommandHelpFunction;
-    UINT64              CommandAttrib;
+    CommandFuncTypeParser CommandFunctionNewParser;
+    CommandHelpFuncType   CommandHelpFunction;
+    UINT64                CommandAttrib;
 
 } COMMAND_DETAIL, *PCOMMAND_DETAIL;
 
@@ -186,22 +204,19 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
  * @brief Different attributes of commands
  *
  */
-#define DEBUGGER_COMMAND_ATTRIBUTE_EVENT \
-    0x1 | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
-#define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE     0x2
+#define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE     0x1
+#define DEBUGGER_COMMAND_ATTRIBUTE_EVENT                              0x2 | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION 0x4
-#define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE               0x8
-#define DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER                    0x10
-#define DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN           0x20
-#define DEBUGGER_COMMAND_ATTRIBUTE_HWDBG                              0x40
+#define DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER                    0x8
+#define DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN           0x10
+#define DEBUGGER_COMMAND_ATTRIBUTE_HWDBG                              0x20
 
 /**
  * @brief Absolute local commands
  *
  */
-#define DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL               \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | \
-        DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION
+#define DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION
 
 /**
  * @brief Command's attributes
@@ -252,7 +267,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
 #define DEBUGGER_COMMAND_DEBUG_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
 #define DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
@@ -273,19 +288,19 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
 #define DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_PRINT_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_EVAL_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_LOGOPEN_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
 #define DEBUGGER_COMMAND_LOGCLOSE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
@@ -298,14 +313,14 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_RDMSR_ATTRIBUTES NULL
 
-#define DEBUGGER_COMMAND_VA2PA_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+#define DEBUGGER_COMMAND_VA2PA_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
-#define DEBUGGER_COMMAND_PA2VA_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+#define DEBUGGER_COMMAND_PA2VA_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_FORMATS_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
-#define DEBUGGER_COMMAND_PTE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+#define DEBUGGER_COMMAND_PTE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_CORE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -348,7 +363,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_TRACE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
-#define DEBUGGER_COMMAND_HIDE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+#define DEBUGGER_COMMAND_HIDE_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_UNHIDE_ATTRIBUTES NULL
 
@@ -366,19 +381,19 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_E_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_S_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_R_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_BP_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_BE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -393,13 +408,13 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_SYM_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_X_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES NULL
 
@@ -409,22 +424,21 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_DT_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_STRUCT_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
-// #define DEBUGGER_COMMAND_REV_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 #define DEBUGGER_COMMAND_REV_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_TRACK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
-#define DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+#define DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_DUMP_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_GU_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
@@ -432,273 +446,272 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_HWDBG
 
 #define DEBUGGER_COMMAND_A_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
 
 VOID
-CommandTest(vector<string> SplitCommand, string Command);
+CommandTest(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandClearScreen(vector<string> SplitCommand, string Command);
+CommandCls(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplitCommand,
-                                 string         Command);
+CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandConnect(vector<string> SplitCommand, string Command);
+CommandConnect(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLoad(vector<string> SplitCommand, string Command);
+CommandLoad(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandUnload(vector<string> SplitCommand, string Command);
+CommandUnload(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandScript(vector<string> SplitCommand, string Command);
+CommandScript(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCpu(vector<string> SplitCommand, string Command);
+CommandCpu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandExit(vector<string> SplitCommand, string Command);
+CommandExit(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDisconnect(vector<string> SplitCommand, string Command);
+CommandDisconnect(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandFormats(vector<string> SplitCommand, string Command);
+CommandFormats(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandRdmsr(vector<string> SplitCommand, string Command);
+CommandRdmsr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandWrmsr(vector<string> SplitCommand, string Command);
+CommandWrmsr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPte(vector<string> SplitCommand, string Command);
+CommandPte(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMonitor(vector<string> SplitCommand, string Command);
+CommandMonitor(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSyscallAndSysret(vector<string> SplitCommand, string Command);
+CommandSyscallAndSysret(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEptHook(vector<string> SplitCommand, string Command);
+CommandEptHook(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEptHook2(vector<string> SplitCommand, string Command);
+CommandEptHook2(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCpuid(vector<string> SplitCommand, string Command);
+CommandCpuid(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMsrread(vector<string> SplitCommand, string Command);
+CommandMsrread(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMsrwrite(vector<string> SplitCommand, string Command);
+CommandMsrwrite(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandTsc(vector<string> SplitCommand, string Command);
+CommandTsc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPmc(vector<string> SplitCommand, string Command);
+CommandPmc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandException(vector<string> SplitCommand, string Command);
+CommandException(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCrwrite(vector<string> SplitCommand, string Command);
+CommandCrwrite(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDr(vector<string> SplitCommand, string Command);
+CommandDr(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandInterrupt(vector<string> SplitCommand, string Command);
+CommandInterrupt(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandIoin(vector<string> SplitCommand, string Command);
+CommandIoin(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandIoout(vector<string> SplitCommand, string Command);
+CommandIoout(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandVmcall(vector<string> SplitCommand, string Command);
+CommandVmcall(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMode(vector<string> SplitCommand, string Command);
+CommandMode(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandTrace(vector<string> SplitCommand, string Command);
+CommandTrace(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandHide(vector<string> SplitCommand, string Command);
+CommandHide(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandUnhide(vector<string> SplitCommand, string Command);
+CommandUnhide(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLogopen(vector<string> SplitCommand, string Command);
+CommandLogopen(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLogclose(vector<string> SplitCommand, string Command);
+CommandLogclose(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandVa2pa(vector<string> SplitCommand, string Command);
+CommandVa2pa(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPa2va(vector<string> SplitCommand, string Command);
+CommandPa2va(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEvents(vector<string> SplitCommand, string Command);
+CommandEvents(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandG(vector<string> SplitCommand, string Command);
+CommandG(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandLm(vector<string> SplitCommand, string Command);
+CommandLm(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSleep(vector<string> SplitCommand, string Command);
+CommandSleep(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEditMemory(vector<string> SplitCommand, string Command);
+CommandEditMemory(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSearchMemory(vector<string> SplitCommand, string Command);
+CommandSearchMemory(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandMeasure(vector<string> SplitCommand, string Command);
+CommandMeasure(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSettings(vector<string> SplitCommand, string Command);
+CommandSettings(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandFlush(vector<string> SplitCommand, string Command);
+CommandFlush(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPause(vector<string> SplitCommand, string Command);
+CommandPause(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandListen(vector<string> SplitCommand, string Command);
+CommandListen(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandStatus(vector<string> SplitCommand, string Command);
+CommandStatus(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandAttach(vector<string> SplitCommand, string Command);
+CommandAttach(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDetach(vector<string> SplitCommand, string Command);
+CommandDetach(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandStart(vector<string> SplitCommand, string Command);
+CommandStart(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandRestart(vector<string> SplitCommand, string Command);
+CommandRestart(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSwitch(vector<string> SplitCommand, string Command);
+CommandSwitch(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandKill(vector<string> SplitCommand, string Command);
+CommandKill(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandT(vector<string> SplitCommand, string Command);
+CommandT(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandI(vector<string> SplitCommand, string Command);
+CommandI(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPrint(vector<string> SplitCommand, string Command);
+CommandPrint(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandOutput(vector<string> SplitCommand, string Command);
+CommandOutput(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDebug(vector<string> SplitCommand, string Command);
+CommandDebug(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandP(vector<string> SplitCommand, string Command);
+CommandP(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandCore(vector<string> SplitCommand, string Command);
+CommandCore(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandProcess(vector<string> SplitCommand, string Command);
+CommandProcess(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandThread(vector<string> SplitCommand, string Command);
+CommandThread(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandEval(vector<string> SplitCommand, string Command);
+CommandEval(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandR(vector<string> SplitCommand, string Command);
+CommandR(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBp(vector<string> SplitCommand, string Command);
+CommandBp(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBl(vector<string> SplitCommand, string Command);
+CommandBl(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBe(vector<string> SplitCommand, string Command);
+CommandBe(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBd(vector<string> SplitCommand, string Command);
+CommandBd(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandBc(vector<string> SplitCommand, string Command);
+CommandBc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSympath(vector<string> SplitCommand, string Command);
+CommandSympath(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandSym(vector<string> SplitCommand, string Command);
+CommandSym(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandX(vector<string> SplitCommand, string Command);
+CommandX(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPrealloc(vector<string> SplitCommand, string Command);
+CommandPrealloc(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPreactivate(vector<string> SplitCommand, string Command);
+CommandPreactivate(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDtAndStruct(vector<string> SplitCommand, string Command);
+CommandDtAndStruct(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandK(vector<string> SplitCommand, string Command);
+CommandK(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPe(vector<string> SplitCommand, string Command);
+CommandPe(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandRev(vector<string> SplitCommand, string Command);
+CommandRev(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandTrack(vector<string> SplitCommand, string Command);
+CommandTrack(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandPagein(vector<string> SplitCommand, string Command);
+CommandPagein(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandDump(vector<string> SplitCommand, string Command);
+CommandDump(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandGu(vector<string> SplitCommand, string Command);
+CommandGu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
-CommandAssemble(vector<string> SplitCommand, string Command);
+CommandAssemble(vector<CommandToken> CommandTokens, string Command);
 
 //
 // hwdbg commands
 //
 VOID
-CommandHwClk(vector<string> SplitCommand, string Command);
+CommandHwClk(vector<CommandToken> CommandTokens, string Command);

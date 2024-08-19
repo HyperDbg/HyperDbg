@@ -34,20 +34,22 @@ CommandPreactivateHelp()
 /**
  * @brief preactivate command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandPreactivate(vector<string> SplitCommand, string Command)
+CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                         Status;
     ULONG                        ReturnedLength;
     DEBUGGER_PREACTIVATE_COMMAND PreactivateRequest = {0};
 
-    if (SplitCommand.size() != 2)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'Preactivate'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPreactivateHelp();
         return;
     }
@@ -55,7 +57,7 @@ CommandPreactivate(vector<string> SplitCommand, string Command)
     //
     // Set the type of preactivation
     //
-    if (!SplitCommand.at(1).compare("mode") || !SplitCommand.at(1).compare("!mode"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "mode") || CompareLowerCaseStrings(CommandTokens.at(1), "!mode"))
     {
         PreactivateRequest.Type = DEBUGGER_PREACTIVATE_COMMAND_TYPE_MODE;
     }
@@ -65,7 +67,7 @@ CommandPreactivate(vector<string> SplitCommand, string Command)
         // Couldn't resolve or unknown parameter
         //
         ShowMessages("err, couldn't resolve error at '%s'\n",
-                     SplitCommand.at(1).c_str());
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
         return;
     }
 

@@ -97,19 +97,21 @@ CommandFormatsShowResults(UINT64 U64Value)
 /**
  * @brief handler of .formats command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandFormats(vector<string> SplitCommand, string Command)
+CommandFormats(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64  ConstantValue = 0;
     BOOLEAN HasError      = TRUE;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
-        ShowMessages("incorrect use of the '.formats'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandFormatsHelp();
         return;
     }
@@ -122,7 +124,7 @@ CommandFormats(vector<string> SplitCommand, string Command)
     //
     // Remove .formats from it
     //
-    Command.erase(0, SplitCommand.at(0).size());
+    Command.erase(0, GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).size());
 
     //
     // Trim it again

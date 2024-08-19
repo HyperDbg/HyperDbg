@@ -38,16 +38,18 @@ CommandRestartHelp()
 /**
  * @brief .restart command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandRestart(vector<string> SplitCommand, string Command)
+CommandRestart(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the '.restart'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandRestartHelp();
         return;
     }

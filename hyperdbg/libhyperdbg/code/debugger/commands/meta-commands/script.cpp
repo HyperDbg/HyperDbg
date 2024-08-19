@@ -71,11 +71,6 @@ CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
     //
     LineContent = (char *)Input.c_str();
 
-    //
-    // Check if the it's a command or not
-    //
-    InterpreterRemoveComments(LineContent);
-
     if (IsEmptyString(LineContent))
     {
         return;
@@ -260,53 +255,36 @@ ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
 /**
  * @brief .script command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
  * @return VOID
  */
 VOID
-CommandScript(vector<string> SplitCommand, string Command)
+CommandScript(vector<CommandToken> CommandTokens, string Command)
 {
     vector<string> PathAndArgs;
+    BOOLEAN        IsFirstCommand = FALSE;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
-        ShowMessages("please specify a file\n");
+        ShowMessages("please specify a file\n\n");
         CommandScriptHelp();
         return;
     }
 
-    //
-    // Trim the command
-    //
-    Trim(Command);
-
-    //
-    // Remove .script from it
-    //
-    Command.erase(0, SplitCommand.at(0).size());
-
-    //
-    // Trim it again
-    //
-    Trim(Command);
-
-    //
-    // Split Path and args
-    //
-    SplitPathAndArgs(PathAndArgs, Command);
-
-    /*
-
-    for (auto item : PathAndArgs)
+    for (auto Section : CommandTokens)
     {
-        //
-        // The first argument is the path
-        //
-        ShowMessages("Arg : %s\n", item.c_str());
-    }
+        if (!IsFirstCommand)
+        {
+            IsFirstCommand = TRUE;
+            continue;
+        }
 
-    */
+        //
+        // Add the path and the arguments
+        //
+        PathAndArgs.push_back(GetCaseSensitiveStringFromCommandToken(Section));
+    }
 
     //
     // Parse the file and the possible arguments

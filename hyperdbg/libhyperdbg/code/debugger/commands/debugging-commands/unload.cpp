@@ -40,16 +40,18 @@ CommandUnloadHelp()
 /**
  * @brief unload command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandUnload(vector<string> SplitCommand, string Command)
+CommandUnload(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 2 && SplitCommand.size() != 3)
+    if (CommandTokens.size() != 2 && CommandTokens.size() != 3)
     {
-        ShowMessages("incorrect use of the 'unload'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandUnloadHelp();
         return;
     }
@@ -57,7 +59,8 @@ CommandUnload(vector<string> SplitCommand, string Command)
     //
     // Check for the module
     //
-    if ((SplitCommand.size() == 2 && !SplitCommand.at(1).compare("vmm")) || (SplitCommand.size() == 3 && !SplitCommand.at(2).compare("vmm") && !SplitCommand.at(1).compare("remove")))
+    if ((CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "vmm")) ||
+        (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(2), "vmm") && CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -88,7 +91,7 @@ CommandUnload(vector<string> SplitCommand, string Command)
         //
         // Check to remove the driver
         //
-        if (!SplitCommand.at(1).compare("remove"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "remove"))
         {
             //
             // Stop the driver

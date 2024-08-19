@@ -85,16 +85,18 @@ CommandGRequest()
 /**
  * @brief handler of g command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandG(vector<string> SplitCommand, string Command)
+CommandG(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the 'g'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandGHelp();
         return;
     }

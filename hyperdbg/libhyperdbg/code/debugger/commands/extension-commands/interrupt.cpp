@@ -40,12 +40,13 @@ CommandInterruptHelp()
 /**
  * @brief !interrupt command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandInterrupt(vector<string> SplitCommand, string Command)
+CommandInterrupt(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -57,7 +58,6 @@ CommandInterrupt(vector<string> SplitCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = 0;
     BOOLEAN                            GetEntry                    = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -65,8 +65,7 @@ CommandInterrupt(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             EXTERNAL_INTERRUPT_OCCURRED,
             &Event,
             &EventLength,
@@ -85,9 +84,9 @@ CommandInterrupt(vector<string> SplitCommand, string Command)
     // Interpret command specific details (if any)
     //
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!interrupt"))
+        if (CompareLowerCaseStrings(Section, "!interrupt"))
         {
             continue;
         }
@@ -96,12 +95,13 @@ CommandInterrupt(vector<string> SplitCommand, string Command)
             //
             // It's probably an index
             //
-            if (!ConvertStringToUInt64(Section, &SpecialTarget))
+            if (!ConvertTokenToUInt64(Section, &SpecialTarget))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandInterruptHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -133,7 +133,8 @@ CommandInterrupt(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandInterruptHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

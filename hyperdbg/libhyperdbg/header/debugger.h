@@ -119,9 +119,6 @@ typedef struct _DEBUGGER_SYNCRONIZATION_EVENTS_STATE
 //				    Functions                   //
 //////////////////////////////////////////////////
 
-VOID
-InterpreterRemoveComments(char * CommandText);
-
 BOOLEAN
 ShowErrorMessage(UINT32 Error);
 
@@ -139,13 +136,6 @@ DebuggerGetKernelBase();
 
 BOOLEAN
 DebuggerPauseDebuggee();
-
-BOOLEAN
-InterpretConditionsAndCodes(vector<string> * SplitCommand,
-                            vector<string> * SplitCommandCaseSensitive,
-                            BOOLEAN          IsConditionBuffer,
-                            PUINT64          BufferAddress,
-                            PUINT32          BufferLength);
 
 VOID
 FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
@@ -168,8 +158,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                    SplitCommand,
-    vector<string> *                    SplitCommandCaseSensitive,
+    vector<CommandToken> *              CommandTokens,
     VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
@@ -285,3 +274,6 @@ HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAft
 
 BOOLEAN
 HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+BOOLEAN
+HyperDbgDebugCloseRemoteDebugger();
