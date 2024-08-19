@@ -125,7 +125,7 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\' && !IdxBracket)
+                if (c == '"' && input[i - 1] != '\\' ) //&& !IdxBracket)
                 {
                     if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                     {
@@ -138,10 +138,23 @@ public:
                     }
 
                     InQuotes = FALSE;
-                    AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
-                    current.clear();
-
-                    continue;
+                    //
+                    // if the quoted text is not within brackets, regard it as a StringLiteral token
+                    //
+                    if (!IdxBracket)
+                    {
+                        AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
+                        current.clear();
+                        continue;
+                    }
+                    else
+                    {
+                        current += c;
+                        continue;
+                    }
+                    //
+                    // if we are indeed within brackets, we continue to add the '"' char to the current buffer
+                    //
                 }
             }
 
@@ -196,7 +209,7 @@ public:
                 }
                 continue; // avoid adding extra space char
             }
-            else if (c == '"' && !IdxBracket)
+            else if (c == '"' ) //&& !IdxBracket)
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {

@@ -765,6 +765,7 @@ script
 memcpy(" {                             buffer content @0x%x\n", @rdx);
 
 
+
 _____________________________________________________________
 !hook  routine!KeWaitForSingleObject script { 
 
@@ -781,6 +782,7 @@ script
  
 
 if (condition) {                              {   wait @timeout\n", @rcx);
+
 
 _____________________________________________________________
 !trace nt!ZwQuerySystemInformation script {
