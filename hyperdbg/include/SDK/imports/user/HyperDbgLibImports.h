@@ -55,7 +55,11 @@ hyperdbg_u_stop_vmm_driver();
 // Testing parser
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
-hyperdbg_u_test_command_parser(CHAR * command, UINT32 number_of_tokens, CHAR ** tokens_list);
+hyperdbg_u_test_command_parser(CHAR *   command,
+                               UINT32   number_of_tokens,
+                               CHAR **  tokens_list,
+                               UINT32 * failed_token_num,
+                               UINT32 * failed_token_position);
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_test_command_parser_show_tokens(CHAR * command);

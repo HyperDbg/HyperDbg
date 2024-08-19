@@ -33,6 +33,11 @@ createTestCaseArray(const std::vector<std::string> & testCases)
     for (size_t i = 0; i < testCases.size(); ++i)
     {
         testCaseArray[i] = (char *)malloc(testCases[i].length() + 1); // +1 for the null terminator
+
+        if (testCaseArray[i] == NULL)
+        {
+            return NULL;
+        }
         std::strcpy(testCaseArray[i], testCases[i].c_str());
     }
 
@@ -172,14 +177,47 @@ parseTestCases(const std::string & filename)
 }
 
 /**
+ * @brief Count the number of occurrences of the substring "\\n" up to a specified position
+ * @param str The string to search
+ * @param limit The position to search up to
+ *
+ * @return The number of occurrences of the substring "\\n"
+ */
+int
+countBackslashNUpToPosition(const std::string & str, std::size_t limit)
+{
+    int                    count  = 0;
+    std::string::size_type pos    = 0;
+    std::string            target = "\\n";
+
+    //
+    // Limit the string to search within the specified range
+    //
+    while ((pos = str.find(target, pos)) != std::string::npos && pos < limit)
+    {
+        ++count;
+        pos += target.length(); // Move past the current occurrence
+    }
+
+    return count;
+}
+
+/**
  * @brief Show parsed command and tokens
  * @param testCases A vector of pairs, where each pair contains a command and a vector of tokens
+ * @param failedTokenNum The number of the failed token
+ * @param failedTokenPosition The position of the failed token
  *
  * @return VOID
  */
 VOID
-ShowParsedCommandAndTokens(const std::pair<std::string, std::vector<std::string>> & testCase)
+ShowParsedCommandAndTokens(const std::pair<std::string,
+                                           std::vector<std::string>> & testCase,
+                           UINT32                                      failedTokenNum,
+                           UINT32                                      failedTokenPosition)
 {
+    UINT32 tokenNum = 0;
+
     //
     // Output the parsed test case
     //
@@ -209,7 +247,32 @@ ShowParsedCommandAndTokens(const std::pair<std::string, std::vector<std::string>
             pos += 2; // Move past the newly added characters
         }
 
-        std::cout << "  - \"" << showingToken << "\"" << std::endl;
+        if (tokenNum == failedTokenNum)
+        {
+            std::cout << "  x ";
+        }
+        else
+        {
+            std::cout << "  - ";
+        }
+
+        std::cout << "\"" << showingToken << "\"" << std::endl;
+
+        if (tokenNum == failedTokenNum)
+        {
+            std::cout << "     ";
+            int countOfSpaces = countBackslashNUpToPosition(showingToken, failedTokenPosition);
+
+            countOfSpaces += failedTokenPosition;
+
+            for (int i = 0; i < countOfSpaces; i++)
+            {
+                std::cout << " ";
+            }
+            std::cout << "^" << std::endl;
+        }
+
+        tokenNum++;
     }
 }
 
@@ -221,9 +284,11 @@ ShowParsedCommandAndTokens(const std::pair<std::string, std::vector<std::string>
 BOOLEAN
 TestCommandParser()
 {
-    BOOLEAN overallResult      = TRUE;
-    int     testNum            = 0;
-    CHAR    filePath[MAX_PATH] = {0};
+    BOOLEAN overallResult       = TRUE;
+    int     testNum             = 0;
+    CHAR    filePath[MAX_PATH]  = {0};
+    UINT32  failedTokenNum      = 0;
+    UINT32  failedTokenPosition = 0;
 
     //
     // Parse the test cases from the file
@@ -263,7 +328,11 @@ TestCommandParser()
         //
         // Check token with actual parser
         //
-        if (hyperdbg_u_test_command_parser((CHAR *)testCase.first.c_str(), (UINT32)testCase.second.size(), testCaseArray))
+        if (hyperdbg_u_test_command_parser((CHAR *)testCase.first.c_str(),
+                                           (UINT32)testCase.second.size(),
+                                           testCaseArray,
+                                           &failedTokenNum,
+                                           &failedTokenPosition))
         {
             cout << "[+] Test number " << testNum << " Passed " << endl;
         }
@@ -292,7 +361,7 @@ TestCommandParser()
             cout << "\n============================================================" << endl;
 
             cout << "\nThe parsed command and tokens (From file):" << endl;
-            ShowParsedCommandAndTokens(testCase);
+            ShowParsedCommandAndTokens(testCase, failedTokenNum, failedTokenPosition);
 
             cout << "\n[-] Test number " << testNum << " Failed " << endl;
             cout << "============================================================\n"

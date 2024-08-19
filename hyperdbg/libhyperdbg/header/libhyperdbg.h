@@ -37,7 +37,11 @@ INT
 HyperDbgInterpreter(CHAR * Command);
 
 BOOLEAN
-HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensList);
+HyperDbgTestCommandParser(CHAR *   Command,
+                          UINT32   NumberOfTokens,
+                          CHAR **  TokensList,
+                          UINT32 * FailedTokenNum,
+                          UINT32 * FailedTokenPosition);
 
 VOID
 HyperDbgTestCommandParserShowTokens(CHAR * Command);

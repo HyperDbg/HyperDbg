@@ -125,7 +125,7 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\' ) //&& !IdxBracket)
+                if (c == '"' && input[i - 1] != '\\') //&& !IdxBracket)
                 {
                     InQuotes = FALSE;
                     //
@@ -199,7 +199,7 @@ public:
                 }
                 continue; // avoid adding extra space char
             }
-            else if (c == '"' ) //&& !IdxBracket)
+            else if (c == '"') //&& !IdxBracket)
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
@@ -422,16 +422,60 @@ private:
 };
 
 /**
+ * @brief Find the position of the first difference between two strings
+ * @param Str1 The first string
+ * @param Str2 The second string
+ *
+ * @return The position of the first difference, or -1 if the strings are equal
+ */
+int
+FindDifferencePosition(const char * Str1, const char * Str2)
+{
+    int i = 0;
+
+    //
+    // Loop until a difference is found or until the end of any string is reached
+    //
+    while (Str1[i] != '\0' && Str2[i] != '\0')
+    {
+        if (Str1[i] != Str2[i])
+        {
+            return i; // Return the position of the first mismatch
+        }
+        i++;
+    }
+
+    //
+    // If one string ends before the other
+    //
+    if (Str1[i] != Str2[i])
+    {
+        return i;
+    }
+
+    //
+    // If no difference is found, return -1
+    //
+    return -1;
+}
+
+/**
  * @brief Parse the command (used for testing purposes)
  *
  * @param Command The text of command
  * @param NumberOfTokens The number of tokens
  * @param TokensList The tokens list
+ * @param FailedTokenNum The failed token number (if any)
+ * @param FailedTokenPosition The failed token position (if any)
  *
  * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
  */
 BOOLEAN
-HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensList)
+HyperDbgTestCommandParser(CHAR *   Command,
+                          UINT32   NumberOfTokens,
+                          CHAR **  TokensList,
+                          UINT32 * FailedTokenNum,
+                          UINT32 * FailedTokenPosition)
 {
     CommandParser Parser;
 
@@ -457,7 +501,7 @@ HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensL
     //
     // Check if the tokens are correct
     //
-    for (size_t i = 0; i < Tokens.size(); i++)
+    for (UINT32 i = 0; i < Tokens.size(); i++)
     {
         auto Token = Tokens.at(i);
 
@@ -465,6 +509,12 @@ HyperDbgTestCommandParser(CHAR * Command, UINT32 NumberOfTokens, CHAR ** TokensL
 
         if (strcmp(CaseSensitiveText.c_str(), TokensList[i]) != 0)
         {
+            //
+            // Set the failed token number
+            //
+            *FailedTokenNum      = i;
+            *FailedTokenPosition = FindDifferencePosition(CaseSensitiveText.c_str(), TokensList[i]);
+
             ShowMessages("err, the token is not correct\n");
             return FALSE;
         }

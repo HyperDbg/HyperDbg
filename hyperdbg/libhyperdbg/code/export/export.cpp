@@ -117,9 +117,13 @@ hyperdbg_u_run_command(CHAR * command)
  * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
  */
 BOOLEAN
-hyperdbg_u_test_command_parser(CHAR * command, UINT32 number_of_tokens, CHAR ** tokens_list)
+hyperdbg_u_test_command_parser(CHAR *   command,
+                               UINT32   number_of_tokens,
+                               CHAR **  tokens_list,
+                               UINT32 * failed_token_num,
+                               UINT32 * failed_token_position)
 {
-    return HyperDbgTestCommandParser(command, number_of_tokens, tokens_list);
+    return HyperDbgTestCommandParser(command, number_of_tokens, tokens_list, failed_token_num, failed_token_position);
 }
 
 /**
