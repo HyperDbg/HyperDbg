@@ -765,10 +765,11 @@ script
 memcpy(" {                             buffer content @0x%x\n", @rdx);
 
 
+
 _____________________________________________________________
 !hook  routine!KeWaitForSingleObject script { 
 
-if (condition) {                              {   wait @timeout\n", @rcx);
+if (condition) {                              {   wait @timeout\n"," @rcx);}}
 
 }
 ----------------------------------
@@ -780,7 +781,8 @@ script
 ----------------------------------
  
 
-if (condition) {                              {   wait @timeout\n", @rcx);
+if (condition) {                              {   wait @timeout\n"," @rcx);}}
+
 
 _____________________________________________________________
 !trace nt!ZwQuerySystemInformation script {
@@ -798,6 +800,7 @@ script
 
 
 DbgPrint(" {                           {   system info: %p\n", @r8);   
+
 
 _____________________________________________________________
 !monitor function!NtOpenProcess script {
@@ -818,6 +821,7 @@ script
 log(" {                                   {   process opened: %d\n", @r9);
 
 
+
 _____________________________________________________________
 !filter   nt!MmMapLockedPagesSpecifyCache script {
 
@@ -835,10 +839,11 @@ script
 
 trace(" {                             {   mapping pages @%p\n", @r10);
 
+
 _____________________________________________________________
 !watch kernel!ObReferenceObjectByHandle script {
 
-check(" {                             {   object handle: 0x%x\n", @r11);
+check(" {                             {   object handle: 0x%x\n","xxx" @r11);
 
 }
 ----------------------------------
@@ -850,7 +855,8 @@ script
 ----------------------------------
 
 
-check(" {                             {   object handle: 0x%x\n", @r11);
+check(" {                             {   object handle: 0x%x\n","xxx" @r11);
+
 
 _____________________________________________________________
 !watch kernel!ObReferenceObjectByHandle script { }{
@@ -871,6 +877,7 @@ script
 
 check(" {                             {   object handle: 0x%x\n", @r11);
 
+
 _____________________________________________________________
 !watch kernel!ObReferenceObjectByHandle script { }{
 
@@ -889,6 +896,7 @@ script
 
 
 check(" }  object handle: 0x%x\n", @r11);  
+
 
 _____________________________________________________________
 {block1}{block2}{block3} in sequence
@@ -920,6 +928,7 @@ script
 
 printf(" {                                    {   hi2 ! :%llx\n", @rax);
 
+
 _____________________________________________________________
 
 !epthook nt!ExAllocatePoolWithTag script { 
@@ -937,5 +946,6 @@ script
  
 
 printf(" {                                    {   hi ! :%llx\n", @rax);
+
 
 _____________________________________________________________

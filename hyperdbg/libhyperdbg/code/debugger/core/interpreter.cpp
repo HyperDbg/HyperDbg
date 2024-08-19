@@ -125,29 +125,32 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\' && !IdxBracket)
+                if (c == '"' && input[i - 1] != '\\' ) //&& !IdxBracket)
                 {
-                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    {
-                        i++;
-
-                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                    }
-
                     InQuotes = FALSE;
-                    AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
-                    current.clear();
-
-                    continue;
+                    //
+                    // if the quoted text is not within brackets, regard it as a StringLiteral token
+                    //
+                    if (!IdxBracket)
+                    {
+                        AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
+                        current.clear();
+                        continue; // dont add " char
+                    }
+                    else
+                    {
+                        current += c;
+                        continue; // dont add " char
+                    }
+                    //
+                    // if we are indeed within brackets, we continue to add the '"' char to the current buffer
+                    //
                 }
             }
 
             if (IdxBracket)
             {
-                if (c == '}' && input[i - 1] != '\\' && IdxBracket) // not closing }
+                if (c == '}' && input[i - 1] != '\\' && IdxBracket && !InQuotes) // not closing }
                 {
                     IdxBracket--;
                 }
@@ -196,7 +199,7 @@ public:
                 }
                 continue; // avoid adding extra space char
             }
-            else if (c == '"' && !IdxBracket)
+            else if (c == '"' ) //&& !IdxBracket)
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
@@ -236,10 +239,6 @@ public:
             }
 
             current += c;
-            if (current == "and")
-            {
-                int x = 0;
-            }
         }
 
         if (!current.empty() && current != " ")
@@ -247,15 +246,15 @@ public:
             AddToken(tokens, current);
         }
 
-        // if (IdxBracket)
-        //{
-        //     // error: script bracket not closed
-        // }
+        if (IdxBracket)
+        {
+            // error: script bracket not closed
+        }
 
-        // if (InQuotes)
-        //{
-        //     // error: Quote not closed
-        // }
+        if (InQuotes)
+        {
+            // error: Quote not closed
+        }
 
         return tokens;
     }
