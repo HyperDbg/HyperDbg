@@ -108,6 +108,7 @@ ScriptEngineBooleanExpresssionParse(
     PTOKEN                        FirstToken,
     PTOKEN_LIST                   MatchedStack,
     PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
+    PUSER_DEFINED_FUNCTION_NODE * CurrentUserDefinedFunction,
     PSYMBOL_BUFFER                CodeBuffer,
     char *                        str,
     char *                        c,
@@ -120,6 +121,7 @@ void
 CodeGen(
     PTOKEN_LIST                   MatchedStack,
     PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
+    PUSER_DEFINED_FUNCTION_NODE * CurrentUserDefinedFunction,
     PSYMBOL_BUFFER                CodeBuffer,
     PTOKEN                        Operator,
     PSCRIPT_ENGINE_ERROR_TYPE     Error);
@@ -146,7 +148,7 @@ int
 NewGlobalIdentifier(PTOKEN PTOKEN);
 
 int
-NewLocalIdentifier(PTOKEN PTOKEN);
+NewLocalIdentifier(PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction, PTOKEN PTOKEN);
 
 int
 LalrGetRhsSize(int RuleId);

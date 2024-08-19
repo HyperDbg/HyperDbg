@@ -684,6 +684,10 @@ GetToken(char * c, char * str)
                 {
                     Token->Type = REGISTER;
                 }
+                else if (IsVariableType(Token->Value))
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
+                }
                 else
                 {
                     BOOLEAN WasFound = FALSE;
@@ -740,6 +744,10 @@ GetToken(char * c, char * str)
                 else if (IsRegister(Token->Value))
                 {
                     Token->Type = REGISTER;
+                }
+                else if (IsVariableType(Token->Value))
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
                 }
                 else if (IsId(Token->Value))
                 {
@@ -808,6 +816,10 @@ GetToken(char * c, char * str)
             else if (IsRegister(Token->Value))
             {
                 Token->Type = REGISTER;
+            }
+            else if (IsVariableType(Token->Value))
+            {
+                Token->Type = SCRIPT_VARIABLE_TYPE;
             }
             else
             {
@@ -994,6 +1006,26 @@ IsRegister(char * str)
     if (RegisterToInt(str) == INVALID)
         return 0;
     return 1;
+}
+
+/**
+ * @brief Check if string is variable type or not
+ *
+ * @param str
+ * @return char
+ */
+char
+IsVariableType(char * str)
+{
+    for (int i = 0; i < SCRIPT_VARIABLE_TYPE_LIST_LENGTH; i++)
+    {
+        if (!strcmp(str, ScriptVariableTypeList[i]))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 /**

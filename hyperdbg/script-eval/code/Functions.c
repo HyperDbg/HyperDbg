@@ -26,15 +26,11 @@ extern BOOLEAN g_CurrentExprEvalResultHasError;
 // *** Definitions ***
 //
 UINT64
-GetValue(PGUEST_REGS                    GuestRegs,
-         PACTION_BUFFER                 ActionBuffer,
-         SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-         PSYMBOL                        Symbol,
-         BOOLEAN                        ReturnReference,
-         SYMBOL_BUFFER *                StackBuffer,
-         UINT64 *                       StackIndx,
-         UINT64 *                       StackBaseIndx,
-         UINT64 *                       ReturnValue);
+GetValue(PGUEST_REGS                      GuestRegs,
+         PACTION_BUFFER                   ActionBuffer,
+         PSCRIPT_ENGINE_GENERAL_REGISTERS ScriptGeneralRegisters,
+         PSYMBOL                          Symbol,
+         BOOLEAN                          ReturnReference);
 
 //
 // *** Functions ***
@@ -1257,7 +1253,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
  *
  * @param GuestRegs
  * @param ActionDetail
- * @param VariablesList
+ * @param ScriptGeneralRegisters
  * @param Tag
  * @param ImmediateMessagePassing
  * @param Format
@@ -1267,19 +1263,15 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
  * @return VOID
  */
 VOID
-ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
-                           ACTION_BUFFER *                ActionDetail,
-                           SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-                           UINT64                         Tag,
-                           BOOLEAN                        ImmediateMessagePassing,
-                           char *                         Format,
-                           UINT64                         ArgCount,
-                           PSYMBOL                        FirstArg,
-                           BOOLEAN *                      HasError,
-                           SYMBOL_BUFFER *                StackBuffer,
-                           UINT64 *                       StackIndx,
-                           UINT64 *                       StackBaseIndx,
-                           UINT64 *                       ReturnValue)
+ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,
+                           ACTION_BUFFER *                   ActionDetail,
+                           SCRIPT_ENGINE_GENERAL_REGISTERS * ScriptGeneralRegisters,
+                           UINT64                            Tag,
+                           BOOLEAN                           ImmediateMessagePassing,
+                           char *                            Format,
+                           UINT64                            ArgCount,
+                           PSYMBOL                           FirstArg,
+                           BOOLEAN *                         HasError)
 {
     //
     // *** The printf function ***
@@ -1312,7 +1304,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
         memcpy(&TempSymbol, Symbol, sizeof(SYMBOL));
         TempSymbol.Type &= 0x7fffffff;
 
-        Val = GetValue(GuestRegs, ActionDetail, VariablesList, &TempSymbol, FALSE, StackBuffer, StackIndx, StackBaseIndx, ReturnValue);
+        Val = GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, &TempSymbol, FALSE);
 
         CHAR PercentageChar = Format[Position];
 
