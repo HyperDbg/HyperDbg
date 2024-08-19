@@ -127,16 +127,6 @@ public:
             {
                 if (c == '"' && input[i - 1] != '\\' ) //&& !IdxBracket)
                 {
-                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    {
-                        i++;
-
-                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                    }
-
                     InQuotes = FALSE;
                     //
                     // if the quoted text is not within brackets, regard it as a StringLiteral token
@@ -145,12 +135,12 @@ public:
                     {
                         AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
                         current.clear();
-                        continue;
+                        continue; // dont add " char
                     }
                     else
                     {
                         current += c;
-                        continue;
+                        continue; // dont add " char
                     }
                     //
                     // if we are indeed within brackets, we continue to add the '"' char to the current buffer
@@ -160,7 +150,7 @@ public:
 
             if (IdxBracket)
             {
-                if (c == '}' && input[i - 1] != '\\' && IdxBracket) // not closing }
+                if (c == '}' && input[i - 1] != '\\' && IdxBracket && !InQuotes) // not closing }
                 {
                     IdxBracket--;
                 }
@@ -249,10 +239,6 @@ public:
             }
 
             current += c;
-            if (current == "and")
-            {
-                int x = 0;
-            }
         }
 
         if (!current.empty() && current != " ")
@@ -260,15 +246,15 @@ public:
             AddToken(tokens, current);
         }
 
-        // if (IdxBracket)
-        //{
-        //     // error: script bracket not closed
-        // }
+        if (IdxBracket)
+        {
+            // error: script bracket not closed
+        }
 
-        // if (InQuotes)
-        //{
-        //     // error: Quote not closed
-        // }
+        if (InQuotes)
+        {
+            // error: Quote not closed
+        }
 
         return tokens;
     }
