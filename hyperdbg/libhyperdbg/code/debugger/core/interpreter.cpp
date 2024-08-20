@@ -232,10 +232,17 @@ public:
             }
             else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
+
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
                     {
+                        if (input[i - 1] != ' ') // in case '{' is adjacent to previous command like "command{"
+                        {
+                            AddToken(tokens, current);
+                            current.clear();
+                        }
+
                         IdxBracket++;
                         continue; // don't include '{' in string
                     }
