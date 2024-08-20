@@ -715,20 +715,21 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetFunctionParameterIdentifier(Token) != -1)
+                            if (GetUserDefinedFunctionNode(Token))
+                            {
+                                Token->Type = FUNCTION_ID;
+                            }
+                            else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
                             }
+                            else if (GetLocalIdentifierVal(Token) != -1)
+                            {
+                                Token->Type = LOCAL_ID;
+                            }
                             else
                             {
-                                if (GetLocalIdentifierVal(Token) != -1)
-                                {
-                                    Token->Type = LOCAL_ID;
-                                }
-                                else
-                                {
-                                    Token->Type = LOCAL_UNRESOLVED_ID;
-                                }
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -776,20 +777,21 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetFunctionParameterIdentifier(Token) != -1)
+                            if (GetUserDefinedFunctionNode(Token))
+                            {
+                                Token->Type = FUNCTION_ID;
+                            }
+                            else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
                             }
+                            else if (GetLocalIdentifierVal(Token) != -1)
+                            {
+                                Token->Type = LOCAL_ID;
+                            }
                             else
                             {
-                                if (GetLocalIdentifierVal(Token) != -1)
-                                {
-                                    Token->Type = LOCAL_ID;
-                                }
-                                else
-                                {
-                                    Token->Type = LOCAL_UNRESOLVED_ID;
-                                }
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -848,20 +850,21 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (GetFunctionParameterIdentifier(Token) != -1)
+                        if (GetUserDefinedFunctionNode(Token))
+                        {
+                            Token->Type = FUNCTION_ID;
+                        }
+                        else if (GetFunctionParameterIdentifier(Token) != -1)
                         {
                             Token->Type = FUNCTION_PARAMETER_ID;
                         }
+                        else if (GetLocalIdentifierVal(Token) != -1)
+                        {
+                            Token->Type = LOCAL_ID;
+                        }
                         else
                         {
-                            if (GetLocalIdentifierVal(Token) != -1)
-                            {
-                                Token->Type = LOCAL_ID;
-                            }
-                            else
-                            {
-                                Token->Type = LOCAL_UNRESOLVED_ID;
-                            }
+                            Token->Type = LOCAL_UNRESOLVED_ID;
                         }
                     }
                 }

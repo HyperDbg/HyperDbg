@@ -104,27 +104,23 @@ __declspec(dllexport) BOOLEAN
 
 void
 ScriptEngineBooleanExpresssionParse(
-    UINT64                        BooleanExpressionSize,
-    PTOKEN                        FirstToken,
-    PTOKEN_LIST                   MatchedStack,
-    PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
-    PUSER_DEFINED_FUNCTION_NODE * CurrentUserDefinedFunction,
-    PSYMBOL_BUFFER                CodeBuffer,
-    char *                        str,
-    char *                        c,
-    PSCRIPT_ENGINE_ERROR_TYPE     Error);
+    UINT64                    BooleanExpressionSize,
+    PTOKEN                    FirstToken,
+    PTOKEN_LIST               MatchedStack,
+    PSYMBOL_BUFFER            CodeBuffer,
+    char *                    str,
+    char *                    c,
+    PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn);
 
 void
 CodeGen(
-    PTOKEN_LIST                   MatchedStack,
-    PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
-    PUSER_DEFINED_FUNCTION_NODE * CurrentUserDefinedFunction,
-    PSYMBOL_BUFFER                CodeBuffer,
-    PTOKEN                        Operator,
-    PSCRIPT_ENGINE_ERROR_TYPE     Error);
+    PTOKEN_LIST               MatchedStack,
+    PSYMBOL_BUFFER            CodeBuffer,
+    PTOKEN                    Operator,
+    PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 unsigned long long int
 RegisterToInt(char * str);
@@ -148,7 +144,7 @@ int
 NewGlobalIdentifier(PTOKEN PTOKEN);
 
 int
-NewLocalIdentifier(PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction, PTOKEN PTOKEN);
+NewLocalIdentifier(PTOKEN PTOKEN);
 
 int
 LalrGetRhsSize(int RuleId);
@@ -161,5 +157,8 @@ NewFunctionParameterIdentifier(PTOKEN Token);
 
 int
 GetFunctionParameterIdentifier(PTOKEN Token);
+
+PUSER_DEFINED_FUNCTION_NODE
+GetUserDefinedFunctionNode(PTOKEN Token);
 
 #endif

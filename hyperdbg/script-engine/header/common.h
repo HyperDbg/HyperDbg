@@ -57,7 +57,7 @@ typedef enum TOKEN_TYPE
     TEMP,
     STRING,
     WSTRING,
-    FUNCTION_TYPE,
+    FUNCTION_ID,
     FUNCTION_PARAMETER_ID,
     SCRIPT_VARIABLE_TYPE,
     UNKNOWN
@@ -109,10 +109,10 @@ PTOKEN
 CopyToken(PTOKEN Token);
 
 PTOKEN
-NewTemp(PUSER_DEFINED_FUNCTION_NODE, PSCRIPT_ENGINE_ERROR_TYPE);
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
-FreeTemp(PUSER_DEFINED_FUNCTION_NODE, PSCRIPT_ENGINE_ERROR_TYPE);
+FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //

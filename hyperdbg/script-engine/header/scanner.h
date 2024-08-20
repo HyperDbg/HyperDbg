@@ -30,6 +30,13 @@ PTOKEN_LIST GlobalIdTable;
 PTOKEN_LIST FunctionParameterIdTable;
 
 /**
+ * @brief 
+ */
+PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
+
+PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction;
+
+/**
  * @brief number of read characters from input
  */
 unsigned int InputIdx;
