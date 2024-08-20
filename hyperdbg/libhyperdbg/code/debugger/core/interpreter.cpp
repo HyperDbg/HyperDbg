@@ -782,6 +782,7 @@ VOID
 InterpreterRemoveComments(char * CommandText)
 {
     BOOLEAN IsComment       = FALSE;
+    BOOLEAN IsOnBracketString       = FALSE;
     BOOLEAN IsOnString      = FALSE;
     UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
 
@@ -801,6 +802,14 @@ InterpreterRemoveComments(char * CommandText)
                     i--;
                 }
             }
+        }
+        else if (CommandText[i] == '#' && !IsOnString)
+        {
+            //
+            // Comment detected
+            //
+            IsComment = TRUE;
+            i--;
         }
         else if (CommandText[i] == '#' && !IsOnString)
         {

@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 //
 // Global Variables
 //
