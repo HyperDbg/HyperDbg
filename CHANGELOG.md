@@ -23,6 +23,9 @@ New release of the HyperDbg Debugger.
 - Fix the problem with parsing multiple spaces within the events (#420) ([link](https://github.com/HyperDbg/HyperDbg/issues/420))
 - Fix the problem with escaping '{' in the command parser (#421) ([link](https://github.com/HyperDbg/HyperDbg/issues/421))
 - Fix nested brackets issues in the main command parser
+- Fix script engine bugs on order of passing arguments to functions (#453) ([link](https://github.com/HyperDbg/HyperDbg/issues/453))
+- Fix the script test case for factorial computation ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
+- Fix the script test case for computation iterative Fibonacci ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
 
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.
