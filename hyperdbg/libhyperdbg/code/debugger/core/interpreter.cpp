@@ -89,6 +89,15 @@ public:
 
                             continue;
                         }
+                        else
+                        {
+                            //
+                            // no "\n" found so we just mark the chars as comment till end of string
+                            //
+                            std::string comment(input.substr(i, input.size()));
+                            i = i + (input.size() - i);
+                            continue;
+                        }
                     }
                     else if (c == '*')
                     {
@@ -781,10 +790,10 @@ HyperDbgInterpreter(CHAR * Command)
 VOID
 InterpreterRemoveComments(char * CommandText)
 {
-    BOOLEAN IsComment       = FALSE;
-    BOOLEAN IsOnBracketString       = FALSE;
-    BOOLEAN IsOnString      = FALSE;
-    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
+    BOOLEAN IsComment         = FALSE;
+    BOOLEAN IsOnBracketString = FALSE;
+    BOOLEAN IsOnString        = FALSE;
+    UINT32  LengthOfCommand   = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {
