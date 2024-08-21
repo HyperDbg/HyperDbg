@@ -204,8 +204,8 @@ PrintToken(PTOKEN Token)
     case SCRIPT_VARIABLE_TYPE:
         printf(" SCRIPT_VARIABLE_TYPE>\n");
         break;
-    case FUNCTION_TYPE:
-        printf(" FUNCTION_TYPE>\n");
+    case FUNCTION_ID:
+        printf(" FUNCTION_ID>\n");
         break;
     case FUNCTION_PARAMETER_ID:
         printf(" FUNCTION_PARAMETER_ID>\n");
@@ -613,16 +613,16 @@ IsOctal(char c)
  * @return PTOKEN
  */
 PTOKEN
-NewTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PSCRIPT_ENGINE_ERROR_TYPE Error)
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
     int                 i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
-        if (CurrentFunctionSymbol->TempMap[i] == 0)
+        if (CurrentUserDefinedFunction->TempMap[i] == 0)
         {
-            TempID                            = i;
-            CurrentFunctionSymbol->TempMap[i] = 1;
+            TempID                                 = i;
+            CurrentUserDefinedFunction->TempMap[i] = 1;
             break;
         }
     }
@@ -636,9 +636,9 @@ NewTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PSCRIPT_ENGINE_ERROR_
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
 
-    if (CurrentFunctionSymbol->MaxTempNumber < (i + 1))
+    if (CurrentUserDefinedFunction->MaxTempNumber < (i + 1))
     {
-        CurrentFunctionSymbol->MaxTempNumber = i + 1;
+        CurrentUserDefinedFunction->MaxTempNumber = i + 1;
     }
 
     return Temp;
@@ -650,12 +650,12 @@ NewTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PSCRIPT_ENGINE_ERROR_
  * @param Temp
  */
 void
-FreeTemp(PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol, PTOKEN Temp)
+FreeTemp(PTOKEN Temp)
 {
     int id = (int)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
     {
-        CurrentFunctionSymbol->TempMap[id] = 0;
+        CurrentUserDefinedFunction->TempMap[id] = 0;
     }
 }
 
@@ -1058,6 +1058,13 @@ GetTerminalId(PTOKEN Token)
                 return i;
             }
         }
+        else if (Token->Type == FUNCTION_ID)
+        {
+            if (!strcmp("_function_id", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
         else if (Token->Type == FUNCTION_PARAMETER_ID)
         {
             if (!strcmp("_function_parameter_id", TerminalMap[i]))
@@ -1173,6 +1180,13 @@ LalrGetTerminalId(PTOKEN Token)
         else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
         {
             if (!strcmp("_local_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == FUNCTION_ID)
+        {
+            if (!strcmp("_function_id", LalrTerminalMap[i]))
             {
                 return i;
             }
