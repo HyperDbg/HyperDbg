@@ -112,7 +112,7 @@ PTOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
-FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+    FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //
@@ -245,6 +245,9 @@ IsType14Func(PTOKEN Operator);
 
 char
 IsType15Func(PTOKEN Operator);
+
+char
+IsAssignmentOperator(PTOKEN Operator);
 
 char
 IsTwoOperandOperator(PTOKEN Operator);

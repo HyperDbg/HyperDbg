@@ -1382,6 +1382,29 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             FreeTemp(Op1);
             FreeTemp(Op2);
         }
+        else if (IsAssignmentOperator(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
         else if (IsTwoOperandOperator(Operator))
         {
             PushSymbol(CodeBuffer, OperatorSymbol);

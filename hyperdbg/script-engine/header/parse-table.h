@@ -1,8 +1,8 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 197
-#define TERMINAL_COUNT 95
+#define RULES_COUNT 206
+#define TERMINAL_COUNT 105
 #define NONETERMINAL_COUNT 48
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
@@ -12,7 +12,8 @@
 #define REGISTER_MAP_LIST_LENGTH 120
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 16
 #define SCRIPT_VARIABLE_TYPE_LIST_LENGTH 10
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 119
+#define ASSIGNMENT_OPERATOR_LIST_LENGTH 10
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 129
 #define THREEOPFUNC1_LENGTH 1
 #define THREEOPFUNC2_LENGTH 2
 #define TWOOPFUNC1_LENGTH 5
@@ -36,6 +37,7 @@ extern const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];
 extern const char* KeywordList[];
 extern const char* OperatorsTwoOperandList[];
 extern const char* OperatorsOneOperandList[];
+extern const char* AssignmentOperatorList[];
 extern const char* ThreeOpFunc1[];
 extern const char* ThreeOpFunc2[];
 extern const char* TwoOpFunc1[];
