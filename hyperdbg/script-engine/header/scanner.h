@@ -15,22 +15,12 @@
 #    define SCANNER_H
 
 /**
- * @brief lookup table for storing Ids
- */
-PTOKEN_LIST IdTable;
-
-/**
  * @brief lookup table for storing global Ids
  */
 PTOKEN_LIST GlobalIdTable;
 
 /**
- * @brief lookup table for storing function parameter Ids
- */
-PTOKEN_LIST FunctionParameterIdTable;
-
-/**
- * @brief 
+ * @brief
  */
 PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
 

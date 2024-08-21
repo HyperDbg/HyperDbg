@@ -980,6 +980,26 @@ IsType15Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is assignemnt operator
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsAssignmentOperator(PTOKEN Operator)
+{
+    unsigned int n = ASSIGNMENT_OPERATOR_LIST_LENGTH;
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, AssignmentOperatorList[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *

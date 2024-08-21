@@ -48,7 +48,8 @@ class LL1Parser:
         self.MAXIMUM_RHS_LEN = 0
 
 
-        self.SPECIAL_TOKENS = ['%', '+', '~', '++', '-', '--', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^"]
+        self.SPECIAL_TOKENS = ['%', '+', '~', '++', '-', '--', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^",
+                              "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=" ]
 
         # INVALID rule indicator
         self.INVALID = 0x80000000
@@ -61,6 +62,7 @@ class LL1Parser:
         self.VariableTypeList = []
         self.keywordList = []
         self.SemantiRulesList = []
+        self.AssignmentOperator = []
 
 
         # Dictionaries used for storing first and follow sets 
@@ -114,7 +116,8 @@ class LL1Parser:
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
         self.HeaderFile.write("#define SCRIPT_VARIABLE_TYPE_LIST_LENGTH " + str(len(self.VariableTypeList))+ "\n")
-        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsOneOperand) + len(self.OperatorsTwoOperand) + len(self.SemantiRulesList))+ "\n")
+        self.HeaderFile.write("#define ASSIGNMENT_OPERATOR_LIST_LENGTH " + str(len(self.AssignmentOperator)) + "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsOneOperand) + len(self.OperatorsTwoOperand) + len(self.SemantiRulesList) + len(self.AssignmentOperator))+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
@@ -350,7 +353,7 @@ class LL1Parser:
                 if L[0][1:] == "OperatorsTwoOperand":
                     self.OperatorsTwoOperand += Elements
                     continue
-                if L[0][1:] == "OperatorsOneOperand":
+                elif L[0][1:] == "OperatorsOneOperand":
                     self.OperatorsOneOperand += Elements
                     continue
                 elif L[0][1:] == "SemantiRules":
@@ -364,6 +367,9 @@ class LL1Parser:
                     continue
                 elif L[0][1:] == "ScriptVariableType":
                     self.VariableTypeList += Elements
+                    continue
+                elif L[0][1:] == "AssignmentOperator":
+                    self.AssignmentOperator += Elements
                     continue
 
                 self.FunctionsDict[L[0]] = Elements
@@ -497,7 +503,8 @@ class LL1Parser:
         for X in self.keywordList:
                 self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
-        
+        for X in self.AssignmentOperator:
+            self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper().replace("_ASSIGNMENT", "")   + "},\n")
 
         self.SourceFile.write("};\n")
 
@@ -637,6 +644,20 @@ class LL1Parser:
                 self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + ",\n")
             Counter +=1
         self.SourceFile.write("};\n")
+
+        self.SourceFile.write("const char* AssignmentOperatorList[]= {\n")
+        self.HeaderFile.write("extern const char* AssignmentOperatorList[];\n")
+
+        Counter = 0
+        for X in self.AssignmentOperator:
+            if Counter == len(self.AssignmentOperator)-1:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
+            else:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + ",\n")
+            Counter +=1
+        self.SourceFile.write("};\n")        
+
+     
 
     def WriteMaps(self):
         for Key in self.FunctionsDict:

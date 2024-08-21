@@ -171,10 +171,20 @@ GetToken(char * c, char * str)
         *c = sgetc(str);
         if (*c == '>')
         {
-            strcpy(Token->Value, ">>");
-            Token->Type = SPECIAL_TOKEN;
-            *c          = sgetc(str);
-            return Token;
+            *c = sgetc(str);
+            if (*c == '=')
+            {
+                strcpy(Token->Value, ">>=");
+                Token->Type = SPECIAL_TOKEN;
+                *c          = sgetc(str);
+                return Token;
+            }
+            else
+            {
+                strcpy(Token->Value, ">>");
+                Token->Type = SPECIAL_TOKEN;
+                return Token;
+            }
         }
         else if (*c == '=')
         {
@@ -193,10 +203,20 @@ GetToken(char * c, char * str)
         *c = sgetc(str);
         if (*c == '<')
         {
-            strcpy(Token->Value, "<<");
-            Token->Type = SPECIAL_TOKEN;
-            *c          = sgetc(str);
-            return Token;
+            *c = sgetc(str);
+            if (*c == '=')
+            {
+                strcpy(Token->Value, "<<=");
+                Token->Type = SPECIAL_TOKEN;
+                *c          = sgetc(str);
+                return Token;
+            }
+            else
+            {
+                strcpy(Token->Value, "<<");
+                Token->Type = SPECIAL_TOKEN;
+                return Token;
+            }
         }
         else if (*c == '=')
         {
@@ -293,9 +313,19 @@ GetToken(char * c, char * str)
             return Token;
         }
     case '%':
-        strcpy(Token->Value, "%");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "%=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "%");
+            Token->Type = SPECIAL_TOKEN;
+        }
         return Token;
 
     case ',':
@@ -345,6 +375,13 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, "|=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
         else
         {
             strcpy(Token->Value, "|");
@@ -360,6 +397,13 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, "&=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
         else
         {
             strcpy(Token->Value, "&");
@@ -368,9 +412,19 @@ GetToken(char * c, char * str)
         }
 
     case '^':
-        strcpy(Token->Value, "^");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "^=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "^");
+            Token->Type = SPECIAL_TOKEN;
+        }
         return Token;
     case '@':
         *c = sgetc(str);
