@@ -130,6 +130,22 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     }
 
     //
+    // Check if trap flag is set
+    //
+    RFLAGS Rflags = {0};
+    Rflags.AsUInt = HvGetRflags();
+
+    if (Rflags.TrapFlag)
+    {
+        LogInfo("Warning, trap flag is while CPUID is executed, it might be an indication of an anti-debugging (anti-hypervisor) method");
+
+        //
+        // Inject a #DB exception
+        //
+        EventInjectDebugBreakpoint();
+    }
+
+    //
     // As the context to event trigger, we send the eax before the cpuid
     // so that the debugger can both read the eax as it's now changed by
     // the cpuid instruction and also can modify the results
