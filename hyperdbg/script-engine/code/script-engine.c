@@ -274,10 +274,8 @@ ScriptEngineParse(char * str)
     UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
     RtlZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
     UserDefinedFunctionHead->Name                     = _strdup("main");
-    IdTable                                           = NewTokenList();
-    FunctionParameterIdTable                          = NewTokenList();
-    UserDefinedFunctionHead->IdTable                  = (unsigned long long)IdTable;
-    UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)FunctionParameterIdTable;
+    UserDefinedFunctionHead->IdTable                  = (unsigned long long)NewTokenList();
+    UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
 
     CurrentUserDefinedFunction = UserDefinedFunctionHead;
@@ -671,10 +669,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             CurrentUserDefinedFunction->Name                     = _strdup(Op0->Value);
             CurrentUserDefinedFunction->Address                  = CodeBuffer->Pointer; // CurrentPointer
             CurrentUserDefinedFunction->VariableType             = (long long unsigned)VariableType;
-            IdTable                                              = NewTokenList();
-            FunctionParameterIdTable                             = NewTokenList();
-            CurrentUserDefinedFunction->IdTable                  = (unsigned long long)IdTable;
-            CurrentUserDefinedFunction->FunctionParameterIdTable = (unsigned long long)FunctionParameterIdTable;
+            CurrentUserDefinedFunction->IdTable                  = (unsigned long long)NewTokenList();
+            CurrentUserDefinedFunction->FunctionParameterIdTable = (unsigned long long)NewTokenList();
             CurrentUserDefinedFunction->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
 
             //
@@ -857,8 +853,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Symbol->Value = CodeBuffer->Pointer;
 
             CurrentUserDefinedFunction = UserDefinedFunctionHead;
-            IdTable                    = (PTOKEN_LIST)CurrentUserDefinedFunction->IdTable;
-            FunctionParameterIdTable   = (PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable;
         }
         else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE"))
         {
@@ -943,10 +937,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE") || !strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
         {
-            PSYMBOL Symbol                    = NULL;
-            PSYMBOL TempSymbol                = NULL;
-            int     VariableNum               = 0;
-            PTOKEN  FunctionToken             = NULL;
+            PSYMBOL Symbol        = NULL;
+            PSYMBOL TempSymbol    = NULL;
+            int     VariableNum   = 0;
+            PTOKEN  FunctionToken = NULL;
 
             while (MatchedStack->Pointer > 0)
             {
@@ -959,9 +953,9 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 else
                 {
                     VariableNum++;
-                    Symbol            = NewSymbol();
-                    Symbol->Type      = SYMBOL_SEMANTIC_RULE_TYPE;
-                    Symbol->Value     = FUNC_PUSH;
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_PUSH;
                     PushSymbol(CodeBuffer, Symbol);
                     RemoveSymbol(&Symbol);
 
@@ -1034,9 +1028,9 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 Temp = NewTemp(Error);
                 Push(MatchedStack, Temp);
 
-                Symbol = NewSymbol();
-                Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
-                Symbol->Value  = FUNC_MOV;
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                Symbol->Value = FUNC_MOV;
                 PushSymbol(CodeBuffer, Symbol);
                 RemoveSymbol(&Symbol);
 
@@ -1390,7 +1384,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
-
 
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
@@ -3199,9 +3192,9 @@ int
 GetLocalIdentifierVal(PTOKEN Token)
 {
     PTOKEN CurrentToken;
-    for (uintptr_t i = 0; i < IdTable->Pointer; i++)
+    for (uintptr_t i = 0; i < ((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
     {
-        CurrentToken = *(IdTable->Head + i);
+        CurrentToken = *(((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
             return (int)i;
@@ -3234,9 +3227,9 @@ int
 NewLocalIdentifier(PTOKEN Token)
 {
     PTOKEN CopiedToken = CopyToken(Token);
-    IdTable            = Push(IdTable, CopiedToken);
+    Push(((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable), CopiedToken);
     CurrentUserDefinedFunction->LocalVariableNumber++;
-    return IdTable->Pointer - 1;
+    return ((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer - 1;
 }
 
 /**
@@ -3248,9 +3241,9 @@ NewLocalIdentifier(PTOKEN Token)
 int
 NewFunctionParameterIdentifier(PTOKEN Token)
 {
-    PTOKEN CopiedToken       = CopyToken(Token);
-    FunctionParameterIdTable = Push(FunctionParameterIdTable, CopiedToken);
-    return FunctionParameterIdTable->Pointer - 1;
+    PTOKEN CopiedToken = CopyToken(Token);
+    Push(((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable), CopiedToken);
+    return ((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer - 1;
 }
 
 /**
@@ -3263,9 +3256,9 @@ int
 GetFunctionParameterIdentifier(PTOKEN Token)
 {
     PTOKEN CurrentToken;
-    for (uintptr_t i = 0; i < FunctionParameterIdTable->Pointer; i++)
+    for (uintptr_t i = 0; i < ((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer; i++)
     {
-        CurrentToken = *(FunctionParameterIdTable->Head + i);
+        CurrentToken = *(((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
             return (int)i;
