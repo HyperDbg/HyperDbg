@@ -232,7 +232,6 @@ public:
             }
             else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
-
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
@@ -271,7 +270,7 @@ public:
         {
             // error: Quote not closed
         }
-
+        
         return tokens;
     }
 
@@ -310,6 +309,30 @@ public:
      */
     VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
+        //
+        // get len of longest string
+        //
+        const int sz      = 200; // size
+        int       g_s1Len = 0, g_s2Len = 0, g_s3Len = 0;
+        int       s1 = 0, s2 = 0, s3 = 0;
+        char      LineToPrint1[sz], LineToPrint2[sz], LineToPrint3[sz];
+
+        for (const auto & Token : Tokens)
+        {
+            s1 = snprintf(LineToPrint1, sz, "CommandParsingTokenType: %s ", TokenTypeToString(std::get<0>(Token)).c_str());
+            s2 = snprintf(LineToPrint2, sz, ", Value 1: '%s'", std::get<1>(Token).c_str());
+            s3 = snprintf(LineToPrint3, sz, ", Value 2 (lower): '%s'", std::get<2>(Token).c_str());
+
+            if (s1 > g_s1Len)
+                g_s1Len = s1;
+
+            if (s2 > g_s2Len)
+                g_s2Len = s2;
+
+            if (s3 > g_s3Len)
+                g_s3Len = s3;
+        }
+
         for (const auto & Token : Tokens)
         {
             auto CaseSensitiveText = std::get<1>(Token);
@@ -344,10 +367,22 @@ public:
                 }
             }
 
-            ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
+            snprintf(LineToPrint1, sz, "CommandParsingTokenType: %s ", TokenTypeToString(std::get<0>(Token)).c_str());
+            snprintf(LineToPrint2, sz, ", Value 1: '%s'", CaseSensitiveText.c_str());
+            snprintf(LineToPrint3, sz, ", Value 2 (lower): '%s'", LowerCaseText.c_str());
+
+            ShowMessages("%-*s %-*s %-*s\n", // - for left align
+                         g_s1Len,
+                         LineToPrint1,
+                         g_s2Len,
+                         LineToPrint2,
+                         g_s3Len,
+                         LineToPrint3);
+
+            /*ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
                          TokenTypeToString(std::get<0>(Token)).c_str(),
                          CaseSensitiveText.c_str(),
-                         LowerCaseText.c_str());
+                         LowerCaseText.c_str());*/
         }
     }
 

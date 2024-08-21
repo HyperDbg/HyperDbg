@@ -234,7 +234,7 @@ ShowParsedCommandAndTokens(const std::pair<std::string,
     std::cout << "Command: \"" << showingCommand << "\"" << std::endl;
     std::cout << "____________________________________\n";
 
-    std::cout << "Tokens: " << std::endl;
+    std::cout << "Expected Tokens: " << std::endl;
 
     for (const auto & token : testCase.second)
     {
