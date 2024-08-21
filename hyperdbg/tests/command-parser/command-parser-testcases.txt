@@ -1451,3 +1451,2153 @@ khoobi?/**///testttt/**/
  //}*/ test3
 ---------------------------
 khoobi?
+_____________________________________________________________
+
+
+cmd18 /**/{block} next
+
+
+----------------------------------
+cmd18
+----------------------------------
+block
+----------------------------------
+next
+_____________________________________________________________
+/*!skip*/ commandF {content /* with */ inside} final??/****/
+----------------------------------
+commandF
+----------------------------------
+content /* with */ inside
+----------------------------------
+final??
+_____________________________________________________________
+cmd19 param {complex block /* with   comments */ inside//}/*****/
+----------------------------------
+cmd19
+----------------------------------
+param
+----------------------------------
+complex block /* with   comments */ inside//
+_____________________________________________________________
+cmd20 /* block comment */ {preserve this} last//
+----------------------------------
+cmd20
+----------------------------------
+preserve this
+----------------------------------
+last
+_____________________________________________________________
+commandG /* remove this */ param1////
+----------------------------------
+commandG
+----------------------------------
+param1
+_____________________________________________________________
+/*!skip this*/ cmd21 param {block /* with */ comment} final\\//
+----------------------------------
+cmd21
+----------------------------------
+param
+----------------------------------
+block /* with */ comment
+----------------------------------
+final\\
+_____________________________________________________________
+cmd22 param /* comment inside */ {block} last
+----------------------------------
+cmd22
+----------------------------------
+param
+----------------------------------
+block
+----------------------------------
+last
+_____________________________________________________________
+/*cmd43*/cmd23{complex block /* with */ content} final
+----------------------------------
+cmd23
+----------------------------------
+complex block /* with */ content
+----------------------------------
+final
+_____________________________________________________________
+/*/*//*/*//*/*//*/*//*/*/cmd24 param1 /* comment inside */ param2
+----------------------------------
+cmd24
+----------------------------------
+param1
+----------------------------------
+param2
+_____________________________________________________________
+cmd25 {keep /* special */ block//} final
+----------------------------------
+cmd25
+----------------------------------
+keep /* special */ block//
+----------------------------------
+final
+_____________________________________________________________
+// full line comment
+commandH {preserve this}/* comment */final
+----------------------------------
+commandH
+----------------------------------
+preserve this
+----------------------------------
+final
+_____________________________________________________________
+cmd26 param {block with /* inside */ comment}
+----------------------------------
+cmd26
+----------------------------------
+param
+----------------------------------
+block with /* inside */ comment
+_____________________________________________________________
+/*!ignore*/ cmd27 {nested /* block */ comment}{nested /* block */ comment} final
+----------------------------------
+cmd27
+----------------------------------
+nested /* block */ comment
+----------------------------------
+nested /* block */ comment
+----------------------------------
+final
+_____________________________________________________________
+
+
+
+
+cmd28 
+
+/* comment before */ 
+
+
+{block} next
+
+----------------------------------
+cmd28
+----------------------------------
+block
+----------------------------------
+next
+_____________________________________________________________
+/*/*/*/*/*
+
+
+*/
+
+
+commandI /* remove this */ param
+----------------------------------
+commandI
+----------------------------------
+param
+_____________________________________________________________
+
+cmd29 param {block /* with */ comment} final{
+
+}
+----------------------------------
+cmd29
+----------------------------------
+param
+----------------------------------
+block /* with */ comment
+----------------------------------
+final
+----------------------------------
+
+
+_____________________________________________________________
+/*!skip*/ cmd30 param {content /* inside */ block} last
+----------------------------------
+cmd30
+----------------------------------
+param
+----------------------------------
+content /* inside */ block
+----------------------------------
+last
+_____________________________________________________________
+cmd31 {{}} /* comment */ {keep this block} next
+----------------------------------
+cmd31
+----------------------------------
+{}
+----------------------------------
+keep this block
+----------------------------------
+next
+_____________________________________________________________
+cmd32 param /////////////////* comment inside */ {block} final
+----------------------------------
+cmd32
+----------------------------------
+param
+----------------------------------
+////////////////
+----------------------------------
+block
+----------------------------------
+final
+_____________________________________________________________
+cmd33 {complex block /* with */ comment}//////////////// result
+----------------------------------
+cmd33
+----------------------------------
+complex block /* with */ comment
+_____________________________________________________________
+
+// full comment
+commandJ param1 //* comment inside //*/ param2
+----------------------------------
+commandJ
+----------------------------------
+param1
+----------------------------------
+/
+----------------------------------
+param2
+_____________________________________________________________
+/*!skip
+
+
+
+
+
+*/ cmd34 {nested /* block */ comment}final//
+----------------------------------
+cmd34
+----------------------------------
+nested /* block */ comment
+----------------------------------
+final
+_____________________________________________________________
+cmd35 param {block {{}} comment} last
+----------------------------------
+cmd35
+----------------------------------
+param
+----------------------------------
+block {{}} comment
+----------------------------------
+last
+_____________________________________________________________
+cmd36 {keep /* nested */{{
+
+}} block} result
+----------------------------------
+cmd36
+----------------------------------
+keep /* nested */{{
+
+}} block
+----------------------------------
+result
+_____________________________________________________________
+cmd37 param1 /* comment inside */ param2//
+----------------------------------
+cmd37
+----------------------------------
+param1
+----------------------------------
+param2
+_____________________________________________________________
+cmd38 "test /**/" {complex block /* with */ content} final
+----------------------------------
+cmd38
+----------------------------------
+test/**/
+----------------------------------
+complex block /* with */ content
+----------------------------------
+final
+_____________________________________________________________
+/*!ignore*/ commandK {preserve this} final"test"
+----------------------------------
+commandK
+----------------------------------
+preserve this
+----------------------------------
+final
+----------------------------------
+"test"
+_____________________________________________________________
+cmd39 param "{block /* with */ comment}" last
+----------------------------------
+cmd39
+----------------------------------
+param
+----------------------------------
+{block /* with */ comment}
+----------------------------------
+last
+_____________________________________________________________
+cmd40 /* comment */ {nested block} final "
+
+test
+
+"
+----------------------------------
+cmd40
+----------------------------------
+nested block
+----------------------------------
+final
+----------------------------------
+"
+
+test
+
+"
+_____________________________________________________________
+// full line comment " test "
+commandL param1 /* comment */ param2
+----------------------------------
+commandL
+----------------------------------
+param1
+----------------------------------
+param2
+_____________________________________________________________
+""/*!skip*/ cmd41 {keep /* special */ block} final
+----------------------------------
+
+----------------------------------
+cmd41
+----------------------------------
+keep /* special */ block
+----------------------------------
+final
+_____________________________________________________________
+cmd42 param {nested block /* with */ comment//"}"} last
+----------------------------------
+cmd42
+----------------------------------
+param
+----------------------------------
+nested block /* with */ comment//"}"
+----------------------------------
+last
+_____________________________________________________________
+cmd43 /* comment before */ {blo""ck} next
+----------------------------------
+cmd43
+----------------------------------
+blo""ck
+----------------------------------
+next
+_____________________________________________________________
+commandM "/*" remove /* this */ param1
+----------------------------------
+commandM
+----------------------------------
+/*
+----------------------------------
+remove
+----------------------------------
+param1
+_____________________________________________________________
+/*!skip this*/" test me " cmd44 param {block /* with */ comment} final
+----------------------------------
+ test me 
+----------------------------------
+cmd44
+----------------------------------
+param
+----------------------------------
+block /* with */ comment
+----------------------------------
+final
+_____________________________________________________________
+cmd45 param {complex block /* with */ comment} "re   sul" t
+----------------------------------
+cmd45
+----------------------------------
+param
+----------------------------------
+complex block /* with */ comment
+----------------------------------
+re   sul
+----------------------------------
+t
+_____________________________________________________________
+cmd46 /* comment inside */ {nested block} final
+----------------------------------
+cmd46
+----------------------------------
+nested block
+----------------------------------
+final
+_____________________________________________________________
+// full comment
+commandN/**/"tos  t" param1 /* comment inside */ param2
+----------------------------------
+commandN
+----------------------------------
+tos  t
+----------------------------------
+param1
+----------------------------------
+param2
+_____________________________________________________________
+"t   est"/*!ignore*/ cmd47 {block /* with nested */ comment} final
+----------------------------------
+t   est
+----------------------------------
+cmd47
+----------------------------------
+block /* with nested */ comment
+----------------------------------
+final
+_____________________________________________________________
+cmd48 param {block 
+
+/* inside */ comment}"tt tt" next
+----------------------------------
+cmd48
+----------------------------------
+param
+----------------------------------
+block 
+
+/* inside */ comment
+----------------------------------
+tt tt
+----------------------------------
+next
+_____________________________________________________________
+cmd49 {keep /* special */ block}"" result
+----------------------------------
+cmd49
+----------------------------------
+keep /* special */ block
+----------------------------------
+
+----------------------------------
+result
+_____________________________________________________________
+
+
+"  "//
+
+cmd50 param1 /* comment inside */ param2
+----------------------------------
+  
+----------------------------------
+cmd50
+----------------------------------
+param1
+----------------------------------
+param2
+_____________________________________________________________
+
+cmdX {preserve /* complex {nested comment*/ within "" }} last 
+----------------------------------
+cmdX
+----------------------------------
+preserve /* complex {nested comment*/ within "" 
+----------------------------------
+last
+_____________________________________________________________
+/*multi-line comment
+starts*/cmdY param1 param2 "    "// inline end 
+----------------------------------
+cmdY
+----------------------------------
+param1
+----------------------------------
+param2
+----------------------------------
+    
+_____________________________________________________________
+
+cmdZ /*block before*/ paramA {block/*inside*/} "fi nal" 
+----------------------------------
+cmdZ
+----------------------------------
+paramA
+----------------------------------
+block/*inside*/
+----------------------------------
+fi nal
+_____________________________________________________________
+cmdWithTabs	tabbedParam1	tabbedParam2	{preserveThisTab}
+----------------------------------
+cmdWithTabs
+----------------------------------
+tabbedParam1
+----------------------------------
+tabbedParam2
+----------------------------------
+preserveThisTab
+_____________________________________________________________
+cmdCurlyBraces "me here" {{shouldStay}} {alsoStay}
+----------------------------------
+cmdCurlyBraces
+----------------------------------
+me here
+----------------------------------
+{shouldStay}
+----------------------------------
+alsoStay
+_____________________________________________________________
+cmdQuotes "preserve this //comment" {insideQuotes}
+----------------------------------
+cmdQuotes
+----------------------------------
+preserve this //comment
+----------------------------------
+insideQuotes
+_____________________________________________________________
+cmdMixed /* mix this */ param /* with that */ {and preserve /* these */}"plus thuis"
+----------------------------------
+cmdMixed
+----------------------------------
+param
+----------------------------------
+and preserve /* these */
+----------------------------------
+plus thuis
+_____________________________________________________________
+
+cmdNested1 /*begin /*nested*/ end*/ cmdEnd 
+----------------------------------
+cmdNested1
+----------------------------------
+cmdEnd
+_____________________________________________________________
+cmdNest!!ed2 /*{keep this} but //remove*/ param
+----------------------------------
+cmdNest!!ed2
+----------------------------------
+param
+_____________________________________________________________
+cmdComplex /* outer /* inner  outer */ final
+----------------------------------
+cmdComplex
+----------------------------------
+final
+_____________________________________________________________
+cmdSymbols !@#$%^&*()_+{}:<>?[];',./ `~ | {test these}
+----------------------------------
+cmdSymbols
+----------------------------------
+!@#$%^&*()_+{}:<>?[];',./
+----------------------------------
+`~
+----------------------------------
+|
+----------------------------------
+test these
+_____________________________________________________________
+cmdSpaces    excessive    spaces   here    {and within }
+----------------------------------
+cmdSpaces
+----------------------------------
+excessive
+----------------------------------
+spaces
+----------------------------------
+here
+----------------------------------
+and within 
+_____________________________________________________________
+cmdSlashSlash //double slash in cmd {preserve 
+f//this part}
+----------------------------------
+cmdSlashSlash
+----------------------------------
+f
+_____________________________________________________________
+cmdSlashAsterisk /*comment here*/ nextCmd /*and here*/
+----------------------------------
+cmdSlashAsterisk
+----------------------------------
+nextCmd
+_____________________________________________________________
+cmdSlashCombo // start /* middle */ end
+----------------------------------
+cmdSlashCombo
+_____________________________________________________________
+cmdEscaped "escaped // slash and quote\""
+----------------------------------
+cmdEscaped
+----------------------------------
+escaped // slash and quote"
+_____________________________________________________________
+cmdEmbedded/*before*/param/*inline {with special}*/ end
+----------------------------------
+cmdEmbedded
+----------------------------------
+param
+----------------------------------
+end
+_____________________________________________________________
+
+cmdBracketsInside { /*keep {inner} and outer*/ } final
+----------------------------------
+cmdBracketsInside
+----------------------------------
+ /*keep {inner} and outer*/ 
+----------------------------------
+final
+_____________________________________________________________
+cmdHTMLLike <html>/*ignore this*/</html> {content}
+----------------------------------
+cmdHTMLLike
+----------------------------------
+<html>
+----------------------------------
+</html>
+----------------------------------
+content
+_____________________________________________________________
+cmdMathSymbols "\"\"" {symbolsInside}
+----------------------------------
+cmdMathSymbols
+----------------------------------
+""
+----------------------------------
+symbolsInside
+_____________________________________________________________
+cmdExclamation !!multiple !exclamations {preserve!}
+----------------------------------
+cmdExclamation
+----------------------------------
+!!multiple
+----------------------------------
+!exclamations
+----------------------------------
+preserve!
+_____________________________________________________________
+cmdBackslash \backslash here and // there {preserve \here}
+----------------------------------
+cmdBackslash
+----------------------------------
+backslash
+----------------------------------
+here
+----------------------------------
+and
+_____________________________________________________________
+cmdParentheses (param1 param2) {inside ()}
+----------------------------------
+cmdParentheses
+----------------------------------
+(param1
+----------------------------------
+param2)
+----------------------------------
+inside ()
+_____________________________________________________________
+cmdBrackets [] {preserve [brackets]}
+----------------------------------
+cmdBrackets
+----------------------------------
+[]
+----------------------------------
+preserve [brackets]
+_____________________________________________________________
+cmdMultipleBrackets [{start}] end {preserve [this]}
+----------------------------------
+cmdMultipleBrackets
+----------------------------------
+[{start}]
+----------------------------------
+end
+----------------------------------
+preserve [this]
+_____________________________________________________________
+cmdSpecialSequence /*remove*/ /**/ param //comment
+----------------------------------
+cmdSpecialSequence
+----------------------------------
+param
+_____________________________________________________________
+cmdPercentSign %keep this intact {"100% sure"}
+----------------------------------
+cmdPercentSign
+----------------------------------
+%keep
+----------------------------------
+this
+----------------------------------
+intact
+----------------------------------
+"100% sure"
+_____________________________________________________________
+cmdEscapedQuotes "preserve // comment\"" {\"inside\"}
+----------------------------------
+cmdEscapedQuotes
+----------------------------------
+preserve // comment"
+----------------------------------
+\"inside\"
+_____________________________________________________________
+cmdCurlyCombo {keep this} and {also 
+
+
+
+
+
+
+
+
+
+
+
+
+this} // remove
+----------------------------------
+cmdCurlyCombo
+----------------------------------
+keep this
+----------------------------------
+and
+----------------------------------
+also 
+
+
+
+
+
+
+
+
+
+
+
+
+this
+_____________________________________________________________
+cmdQuotesCurly "\"inside quotes\""{keep this}"tse s"
+----------------------------------
+cmdQuotesCurly
+----------------------------------
+"inside quotes"
+----------------------------------
+keep this
+----------------------------------
+tse s
+_____________________________________________________________
+
+cmdPipeSymbol | pipe this | {keep inside}
+----------------------------------
+cmdPipeSymbol
+----------------------------------
+|
+----------------------------------
+pipe
+----------------------------------
+this
+----------------------------------
+|
+----------------------------------
+keep inside
+_____________________________________________________________
+cmdAngleBrackets <param> /* comment */ next {  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+}
+----------------------------------
+cmdAngleBrackets
+----------------------------------
+<param>
+----------------------------------
+next
+----------------------------------
+  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+_____________________________________________________________
+
+cmdSlashStart "// whole line comment /*and block*/ last"
+----------------------------------
+cmdSlashStart
+----------------------------------
+// whole line comment /*and block*/ last
+_____________________________________________________________
+cmdStarSlash /*entire line*/ {keep /*and this*/ intact}
+
+{
+  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+}
+----------------------------------
+cmdStarSlash
+----------------------------------
+keep /*and this*/ intact
+----------------------------------
+  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+_____________________________________________________________
+cmdMixedQuotesCurly "\"with curly {inside}\" "{preserve this}
+----------------------------------
+cmdMixedQuotesCurly
+----------------------------------
+"with curly {inside}" 
+----------------------------------
+preserve this
+_____________________________________________________________
+cmdWeirdCharacters{
+  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+}test{symbolsInside}
+----------------------------------
+cmdWeirdCharacters
+----------------------------------
+  void  printTime() {
+    printf("process pid %d \n",$pid);
+    timePtr = $time;
+    printf("TIME PTR %x\n", timePtr);
+    
+    yearPtr = timePtr - 10;
+    year = (db(yearPtr+1) << 8) | db(yearPtr);
+    
+    monthPtr = timePtr - E;
+    month = (db(monthPtr+1) << 8) | db(monthPtr);
+    
+    dayPtr = timePtr - C;
+    day = (db(dayPtr+1) << 8) | db(dayPtr);
+    hourPtr = timePtr - A;
+    hour = (db(hourPtr+1) << 8) | db(hourPtr);
+    minPtr = timePtr - 8;
+    min = (db(minPtr+1) << 8) | db(minPtr);
+    secPtr = timePtr - 6;
+    sec = (db(secPtr+1) << 8) | db(secPtr);
+    msecPtr = timePtr - 4;
+    msec = (db(msecPtr+1) << 8) | db(msecPtr);  
+    printf("FULL TIME : %d %d %d %d %d %d %d\n", year, month, day, hour, min, sec, msec);
+  }
+  printTime();
+----------------------------------
+test
+----------------------------------
+symbolsInside
+_____________________________________________________________
+
+cmdNestedQuotes "inside \"quotes" and {outside}
+----------------------------------
+cmdNestedQuotes
+----------------------------------
+inside "quotes
+----------------------------------
+and
+----------------------------------
+outside
+_____________________________________________________________
+{
+void Sleep(int milliseconds) {
+	.count = 0;
+	.delay = milliseconds * 1000; // Convert milliseconds to microseconds
+
+	while (.delay != 0) {
+	.delay--;
+		.count = 1000; // This constant can be adjusted based on the clock speed
+		while (.count != 0) {
+	.count--;
+			// Do nothing, just busy-wait
+		}
+	}
+}
+	
+Sleep(10);
+}
+----------------------------------
+void Sleep(int milliseconds) {
+	.count = 0;
+	.delay = milliseconds * 1000; // Convert milliseconds to microseconds
+
+	while (.delay != 0) {
+	.delay--;
+		.count = 1000; // This constant can be adjusted based on the clock speed
+		while (.count != 0) {
+	.count--;
+			// Do nothing, just busy-wait
+		}
+	}
+}
+	
+Sleep(10);
+_____________________________________________________________
+cmdStringInside /*comment*/ inside {string {with} braces}
+----------------------------------
+cmdStringInside
+----------------------------------
+inside
+----------------------------------
+string {with} braces
+_____________________________________________________________
+cmdHashSymbols #hashtag comment {#preserve this}
+----------------------------------
+cmdHashSymbols
+----------------------------------
+#hashtag
+----------------------------------
+comment
+----------------------------------
+#preserve this
+_____________________________________________________________
+cmdPercentage %preserve {? {
+void Sleep(int milliseconds) {
+	.count = 0;
+	.delay = milliseconds * 1000; // Convert milliseconds to microseconds
+
+	while (.delay != 0) {
+	.delay--;
+		.count = 1000; // This constant can be adjusted based on the clock speed
+		while (.count != 0) {
+	.count--;
+			// Do nothing, just busy-wait
+		}
+	}
+}
+	
+Sleep(10);
+}} next
+----------------------------------
+cmdPercentage
+----------------------------------
+%preserve
+----------------------------------
+? {
+void Sleep(int milliseconds) {
+	.count = 0;
+	.delay = milliseconds * 1000; // Convert milliseconds to microseconds
+
+	while (.delay != 0) {
+	.delay--;
+		.count = 1000; // This constant can be adjusted based on the clock speed
+		while (.count != 0) {
+	.count--;
+			// Do nothing, just busy-wait
+		}
+	}
+}
+	
+Sleep(10);
+}
+----------------------------------
+next
+_____________________________________________________________
+
+
+cmdFunctionLike funcName(param) /*comment*/ {block inside}
+----------------------------------
+cmdFunctionLike
+----------------------------------
+funcName(param)
+----------------------------------
+block inside
+_____________________________________________________________
+; j ; semicolon /*comment*/ {preserve;}
+----------------------------------
+;
+----------------------------------
+j
+----------------------------------
+;
+----------------------------------
+semicolon
+----------------------------------
+preserve;
+_____________________________________________________________
+cmdEllipsis ...preserve {these...} and next
+----------------------------------
+cmdEllipsis
+----------------------------------
+...preserve
+----------------------------------
+these...
+----------------------------------
+and
+----------------------------------
+next
+_____________________________________________________________
+cmdGreaterLess > greater < less {inside > < here}
+----------------------------------
+cmdGreaterLess
+----------------------------------
+>
+----------------------------------
+greater
+----------------------------------
+<
+----------------------------------
+less
+----------------------------------
+inside > < here
+_____________________________________________________________
+cmdAsteriskCombo *keep *these* *intact*
+----------------------------------
+cmdAsteriskCombo
+----------------------------------
+*keep
+----------------------------------
+*these*
+----------------------------------
+*intact*
+_____________________________________________________________
+cmdUnderScores _preserve _these {underscores_}
+----------------------------------
+cmdUnderScores
+----------------------------------
+_preserve
+----------------------------------
+_these
+----------------------------------
+underscores_
+_____________________________________________________________
+cmdHyphenDash{## @file user-mode-memory-allocations.ds
+# @author Sina Karvandi (sina@hyperdbg.org)
+# @brief Gathers memory allocations made by a process
+# @version 0.7
+# @date 2023-11-24
+# @copyright This script is released under the MIT License.
+# 
+# @details In order to run this script, you should use '.script'
+# command. 
+# @param ProcessPath: Please specify the target Process path to start
+#
+# Run it like:
+#     .script c:\users\sina\desktop\user-mode-memory-allocations.ds "C:\Windows\notepad.exe"
+#
+# It gathers different memory allocations (e.g., mallocs) like this:
+#
+#     [SYSCALL] NtAllocateVirtualMemory called from, pid: 3a8, name: Notepad.exe | requested size: 11c0
+#     [SYSRET] NtAllocateVirtualMemory called from, pid: 3a8, name: Notepad.exe | located at: 195a8880000, size: 2000
+#
+
+start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}}
+----------------------------------
+cmdHyphenDash
+----------------------------------
+## @file user-mode-memory-allocations.ds
+# @author Sina Karvandi (sina@hyperdbg.org)
+# @brief Gathers memory allocations made by a process
+# @version 0.7
+# @date 2023-11-24
+# @copyright This script is released under the MIT License.
+# 
+# @details In order to run this script, you should use '.script'
+# command. 
+# @param ProcessPath: Please specify the target Process path to start
+#
+# Run it like:
+#     .script c:\users\sina\desktop\user-mode-memory-allocations.ds "C:\Windows\notepad.exe"
+#
+# It gathers different memory allocations (e.g., mallocs) like this:
+#
+#     [SYSCALL] NtAllocateVirtualMemory called from, pid: 3a8, name: Notepad.exe | requested size: 11c0
+#     [SYSRET] NtAllocateVirtualMemory called from, pid: 3a8, name: Notepad.exe | located at: 195a8880000, size: 2000
+#
+
+start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}
+_____________________________________________________________
+cmdDigits123 123numbers 456inside {!syscall script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}}
+----------------------------------
+cmdDigits123
+----------------------------------
+123numbers
+----------------------------------
+456inside
+----------------------------------
+!syscall script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}
+_____________________________________________________________
+cmdDoubleQuotes ""empty quotes"" {preserve""}
+----------------------------------
+cmdDoubleQuotes
+----------------------------------
+
+----------------------------------
+empty
+----------------------------------
+quotes
+----------------------------------
+
+----------------------------------
+preserve""
+_____________________________________________________________
+///////*
+cmdRandomSymbols @$#*keep #this {preserved$}
+----------------------------------
+cmdRandomSymbols
+----------------------------------
+@$#*keep #this
+----------------------------------
+preserved$
+_____________________________________________________________
+cmdColon :preserve :this {!syscall pid $arg1 script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}}{!syscall pid $arg1 script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}}
+----------------------------------
+cmdColon
+----------------------------------
+:preserve
+----------------------------------
+:this
+----------------------------------
+!syscall pid $arg1 script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}
+----------------------------------
+!syscall pid $arg1 script {
+
+  //
+  // IOCTL Codes:
+  // 		AFD_Connect: 0x12007
+  //
+  /*
+  	
+  	typedef struct  _AFD_CONNECT_INFO {
+  		BOOLEAN		      UseSAN;
+  		ULONG		      Root;
+  		ULONG		      Unknown;
+  		SOCKADDR		  RemoteAddress;
+  	} AFD_CONNECT_INFO , *PAFD_CONNECT_INFO ;
+  	
+  	typedef struct sockaddr_in {
+  	short          sin_family;
+  	USHORT         sin_port;
+  	IN_ADDR        sin_addr;
+  	CHAR           sin_zero[8];
+  	} SOCKADDR_IN, *PSOCKADDR_IN;
+
+  */
+
+  if (@rax == 0x7) {
+  
+    // printf("IoControlCode: %x\n", dd(@rsp + 30));
+
+    if (dd(@rsp + 30) == 0x12007) {
+      //
+      // Details derived from: https://www.cyberus-technology.de/posts/network-analysis-with-tycho/
+      //
+
+      //
+      // Get the port address
+      //
+      port_num_high_bit = db(poi(@rsp + 38) + 1a);
+      port_num_low_bit = db(poi(@rsp + 38) + 1b);
+
+      port_num = 0;
+      port_num = port_num_high_bit << 8 | port_num_low_bit;
+
+      //
+      // Get the IP address
+      //
+      part0 = db(poi(@rsp + 38) + 1c);
+      part1 = db(poi(@rsp + 38) + 1d);
+      part2 = db(poi(@rsp + 38) + 1e);
+      part3 = db(poi(@rsp + 38) + 1f);
+
+      part0 = part0 << 0n24;
+      part1 = part1 << 0n16;
+      part2 = part2 << 0n8;
+      part3 = part3 << 0n0;
+
+      ip_addr = part0 | part1 | part2 | part3;
+
+      // printf("Process Id: %x, name: %s connects to ====> IP address (hex): %x\n", $pid, $pname, ip_addr);
+
+      printf("Process Id: %x, name: %s connects to ====> Address: %d.%d.%d.%d:%d\n",
+		$pid,
+		$pname,
+        (ip_addr & 0xFF000000) >> 0n24,
+        (ip_addr & 0x00FF0000) >> 0n16,
+        (ip_addr & 0x0000FF00) >> 0n8,
+        ip_addr & 0x000000FF,
+		port_num);
+    }
+  }
+}
+_____________________________________________________________
+cmdDollarSign $preserve $this {## @file process-behavior-logger.ds
+# @author HyperDbg Development Team
+# @brief Dataset maker script
+# @version 0.1
+# @date 2021-10-01
+# @copyright This script is released under the MIT License.
+# 
+# @details In order to run this script, you should use '.script'
+# command. 
+# @param ProcessId The first parameter is the target Process Id
+#
+# First, you need to specify the Process ID as the first argument.
+# For example, if your target process's ID is 0x1240, then you 
+# run the the scrip like this:
+# 
+# After that, use the script like: 
+#     .script c:\users\sina\desktop\process-behavior-logger.ds 0x1240
+#
+# It gathers different parameters in order to create a dataset
+# from the behavior of a special process.
+# Some of the commands are commented, you can uncomment them if you
+# need its results.
+#
+
+#
+# Configure the symbols, make sure that "ntoskrnl.exe"'s PDB is located 
+# at local symbol path
+#
+.sympath SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
+.sym reload
+
+#
+# The first parameter to investigate is system-call,
+# generally, the system-calls are with Windows x86_64 FASTCALL calling convention.
+# So, the parameters are passed in RCX, RDX, R8, R9, Stack
+# However, RCX is modified by Intel through kernel-to-user transition as 
+# RCX will contain address of next instruction (RIP), but in Windows, it 
+# remains its convention and saves the RCX temporarily on R10, so the R10
+# register represents RCX in this case.
+#
+!syscall pid $arg1 script { 
+          printf("method:syscall, pname: %s, pid: %x, tid: %x, syscall: %llx, rcx: %llx, rdx: %llx, r8: %llx, r9: %llx\n", 
+          $pname, $pid, $tid, @rax, @r10, @rdx, @r8, @r9); 
+          }
+
+#
+# And we'll get SYSRET(s), it is because we want to get the result of SYSCALLs
+# from the kernel, note that sysrets are related to the SYSCALLs by Thread ID
+# It means that we can find the actual sysret for the specific syscall by
+# looking for the Thread ID.
+# Note that the return result is in the RAX register.
+#
+!sysret pid $arg1 script { 
+          printf("method:sysret, pname: %s, pid: %x, tid: %x, rax: %llx\n", $pname, $pid, $tid, @rax); 
+          }
+
+#
+# The next parameter is kernel memory allocations
+# For this purpose, we hook nt!ExAllocatePoolWithTag
+# This is the prototype of this function from MSDN, and it's FASTCALL:
+# Link: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-exallocatepoolwithtag 
+#
+#	PVOID ExAllocatePoolWithTag(
+#	  __drv_strictTypeMatch(__drv_typeExpr)POOL_TYPE PoolType,
+#	  SIZE_T                                         NumberOfBytes,
+#	  ULONG                                          Tag
+#	);
+# 
+#
+!epthook nt!ExAllocatePoolWithTag pid $arg1 script {
+          printf("method:kmem, pname: %s, pid: %x, tid: %x, ret: %llx, PoolType: %llx, PoolSize: %llx, PoolTag: %llx\n",
+          $pname, $pid, $tid, poi(@rsp), @rcx, @rdx, @r8); 
+          }
+
+#
+# Next, we'll interested in any execution of CPUID instruction
+#
+!cpuid pid $arg1 script { 
+          printf("method:cpuid, pname: %s, pid: %x, tid: %x, rip: %llx, context: %x, eax: %x, ebx: %x, ecx: %x, edx: %x\n",
+          $pname, $pid, $tid, @rip, $context, @eax, @ebx, @ecx, @edx);
+          }
+
+#
+# Create a log from accesses to hardware debug registers
+# THIS COMMAND IS COMMENTED
+#
+# !dr pid $arg1 script { 
+#         printf("method:debugregs, pname: %s, pid: %x, tid: %x, rip: %llx\n", $pname, $pid, $tid, @rip); 
+#         }
+
+#
+# The other parameter is to get any call to first 32-entries of
+# Interrupt Descriptor Table (IDT)
+# THIS COMMAND IS COMMENTED
+#
+# !exception pid $arg1 script { 
+#         printf("method:exception, pname: %s, pid: %x, tid: %x, rip: %llx, context: %x\n", 
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+#
+# getting the execution of RDTSC/RDTSCP
+# THIS COMMAND IS COMMENTED
+#
+# !tsc pid $arg1 script { 
+#         printf("method:tsc, pname: %s, pid: %x, tid: %x, rip: %llx\n", $pname, $pid, $tid, @rip); 
+#         }
+
+#
+# getting the execution of RDMSR/WRMSR
+# THESE COMMANDS ARE COMMENTED
+#
+# !msrread pid $arg1 script { 
+#         printf("method:rdmsr, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+# !msrwrite pid $arg1 script {
+#         printf("method:wrmsr, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+#
+# getting the execution of I/O instructions (IN & OUT)
+# THESE COMMANDS ARE COMMENTED
+#
+# !ioin pid $arg1 script {
+#         printf("method:in, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+# !ioout pid $arg1 script { 
+#         printf("method:out, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context);
+#         }}
+----------------------------------
+cmdDollarSign
+----------------------------------
+$preserve $this
+----------------------------------
+## @file process-behavior-logger.ds
+# @author HyperDbg Development Team
+# @brief Dataset maker script
+# @version 0.1
+# @date 2021-10-01
+# @copyright This script is released under the MIT License.
+# 
+# @details In order to run this script, you should use '.script'
+# command. 
+# @param ProcessId The first parameter is the target Process Id
+#
+# First, you need to specify the Process ID as the first argument.
+# For example, if your target process's ID is 0x1240, then you 
+# run the the scrip like this:
+# 
+# After that, use the script like: 
+#     .script c:\users\sina\desktop\process-behavior-logger.ds 0x1240
+#
+# It gathers different parameters in order to create a dataset
+# from the behavior of a special process.
+# Some of the commands are commented, you can uncomment them if you
+# need its results.
+#
+
+#
+# Configure the symbols, make sure that "ntoskrnl.exe"'s PDB is located 
+# at local symbol path
+#
+.sympath SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
+.sym reload
+
+#
+# The first parameter to investigate is system-call,
+# generally, the system-calls are with Windows x86_64 FASTCALL calling convention.
+# So, the parameters are passed in RCX, RDX, R8, R9, Stack
+# However, RCX is modified by Intel through kernel-to-user transition as 
+# RCX will contain address of next instruction (RIP), but in Windows, it 
+# remains its convention and saves the RCX temporarily on R10, so the R10
+# register represents RCX in this case.
+#
+!syscall pid $arg1 script { 
+          printf("method:syscall, pname: %s, pid: %x, tid: %x, syscall: %llx, rcx: %llx, rdx: %llx, r8: %llx, r9: %llx\n", 
+          $pname, $pid, $tid, @rax, @r10, @rdx, @r8, @r9); 
+          }
+
+#
+# And we'll get SYSRET(s), it is because we want to get the result of SYSCALLs
+# from the kernel, note that sysrets are related to the SYSCALLs by Thread ID
+# It means that we can find the actual sysret for the specific syscall by
+# looking for the Thread ID.
+# Note that the return result is in the RAX register.
+#
+!sysret pid $arg1 script { 
+          printf("method:sysret, pname: %s, pid: %x, tid: %x, rax: %llx\n", $pname, $pid, $tid, @rax); 
+          }
+
+#
+# The next parameter is kernel memory allocations
+# For this purpose, we hook nt!ExAllocatePoolWithTag
+# This is the prototype of this function from MSDN, and it's FASTCALL:
+# Link: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-exallocatepoolwithtag 
+#
+#	PVOID ExAllocatePoolWithTag(
+#	  __drv_strictTypeMatch(__drv_typeExpr)POOL_TYPE PoolType,
+#	  SIZE_T                                         NumberOfBytes,
+#	  ULONG                                          Tag
+#	);
+# 
+#
+!epthook nt!ExAllocatePoolWithTag pid $arg1 script {
+          printf("method:kmem, pname: %s, pid: %x, tid: %x, ret: %llx, PoolType: %llx, PoolSize: %llx, PoolTag: %llx\n",
+          $pname, $pid, $tid, poi(@rsp), @rcx, @rdx, @r8); 
+          }
+
+#
+# Next, we'll interested in any execution of CPUID instruction
+#
+!cpuid pid $arg1 script { 
+          printf("method:cpuid, pname: %s, pid: %x, tid: %x, rip: %llx, context: %x, eax: %x, ebx: %x, ecx: %x, edx: %x\n",
+          $pname, $pid, $tid, @rip, $context, @eax, @ebx, @ecx, @edx);
+          }
+
+#
+# Create a log from accesses to hardware debug registers
+# THIS COMMAND IS COMMENTED
+#
+# !dr pid $arg1 script { 
+#         printf("method:debugregs, pname: %s, pid: %x, tid: %x, rip: %llx\n", $pname, $pid, $tid, @rip); 
+#         }
+
+#
+# The other parameter is to get any call to first 32-entries of
+# Interrupt Descriptor Table (IDT)
+# THIS COMMAND IS COMMENTED
+#
+# !exception pid $arg1 script { 
+#         printf("method:exception, pname: %s, pid: %x, tid: %x, rip: %llx, context: %x\n", 
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+#
+# getting the execution of RDTSC/RDTSCP
+# THIS COMMAND IS COMMENTED
+#
+# !tsc pid $arg1 script { 
+#         printf("method:tsc, pname: %s, pid: %x, tid: %x, rip: %llx\n", $pname, $pid, $tid, @rip); 
+#         }
+
+#
+# getting the execution of RDMSR/WRMSR
+# THESE COMMANDS ARE COMMENTED
+#
+# !msrread pid $arg1 script { 
+#         printf("method:rdmsr, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+# !msrwrite pid $arg1 script {
+#         printf("method:wrmsr, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+#
+# getting the execution of I/O instructions (IN & OUT)
+# THESE COMMANDS ARE COMMENTED
+#
+# !ioin pid $arg1 script {
+#         printf("method:in, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context); 
+#         }
+
+# !ioout pid $arg1 script { 
+#         printf("method:out, pname: %s, pid: %x, tid: %x, rip: %llx, context: %llx\n",
+#         $pname, $pid, $tid, @rip, $context);
+#         }
+_____________________________________________________________
+cmdAtSymbol @keep @this {
+start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}
+}
+----------------------------------
+cmdAtSymbol
+----------------------------------
+@keep
+----------------------------------
+@this
+----------------------------------
+
+start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}
+
+_____________________________________________________________
+cmdAlphanumeric a1b2c3 {preserve a4b5c6} next
+----------------------------------
+cmdAlphanumeric
+----------------------------------
+a1b2c3
+----------------------------------
+preserve a4b5c6
+----------------------------------
+next
+_____________________________________________________________
+cmdCurlyBracketsInside {}empty {{}preserve}
+----------------------------------
+cmdCurlyBracketsInside
+----------------------------------
+
+----------------------------------
+empty
+----------------------------------
+{}preserve
+_____________________________________________________________
+cmdMixedComments /*comment1*/ param //comment2 {keep}
+----------------------------------
+cmdMixedComments
+----------------------------------
+param
+----------------------------------
+keep
+_____________________________________________________________
+cmdAngleAndQuotes <param> /* start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}*/
+----------------------------------
+cmdAngleAndQuotes
+----------------------------------
+<param>
+_____________________________________________________________
+/* start path $arg1
+
+? .thread_intercept_thread = 0;
+? .target_pid = $pid;
+? .target_tid = 0;
+? .target_allocation_address = 0;
+? .target_allocation_size = 0;
+
+!sysret script {
+	if ($pid == .target_pid && .thread_intercept_thread == 1 && $tid == .target_tid) {
+		spinlock_unlock(&.thread_intercept_thread);
+		.target_tid = 0;
+		printf("[SYSRET] NtAllocateVirtualMemory called from, pid: %x, name: %s | located at: %llx, actual allocated size: %llx\n", $pid, $pname, dq(.target_allocation_address), dq(.target_allocation_size));
+	}
+}
+
+!syscall 18 script {
+	
+	if ($pid == .target_pid) {
+		spinlock_lock(&.thread_intercept_thread);
+		.target_tid = $tid;
+		.target_allocation_address = @rdx;
+		.target_allocation_size = @r9;
+		
+		if (dq(rdx) == 0) {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx\n", $pid, $pname, dq(r9));
+		}
+		else {
+			printf("[SYSCALL] NtAllocateVirtualMemory called from, pid: %x, name: %s | requested size: %llx, user-specific addr: %llx\n", $pid, $pname, dq(r9), dq(rdx));
+		}
+	}
+}*/cmdSpecialBraces {keep this} /*comment*/ {another preserve}
+----------------------------------
+cmdSpecialBraces
+----------------------------------
+keep this
+----------------------------------
+another preserve
+_____________________________________________________________
+cmdBacktick ``backtick preserve`` {inside`ticks`}
+----------------------------------
+cmdBacktick
+----------------------------------
+``backtick preserve``
+----------------------------------
+inside`ticks`
+_____________________________________________________________
+cmdComplexSyntax !@#preserve%&*()_+{}:<>?[];',./ `~ | {and this}
+----------------------------------
+cmdComplexSyntax
+----------------------------------
+!@#preserve%&*()_+{}:<>?[];',./
+----------------------------------
+`~
+----------------------------------
+|
+----------------------------------
+and this
