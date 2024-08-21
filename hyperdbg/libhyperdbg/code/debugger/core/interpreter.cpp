@@ -89,6 +89,15 @@ public:
 
                             continue;
                         }
+                        else
+                        {
+                            //
+                            // no "\n" found so we just mark the chars as comment till end of string
+                            //
+                            std::string comment(input.substr(i, input.size()));
+                            i = i + (input.size() - i);
+                            continue;
+                        }
                     }
                     else if (c == '*')
                     {
@@ -223,10 +232,17 @@ public:
             }
             else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
+
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
                     {
+                        if (input[i - 1] != ' ') // in case '{' is adjacent to previous command like "command{"
+                        {
+                            AddToken(tokens, current);
+                            current.clear();
+                        }
+
                         IdxBracket++;
                         continue; // don't include '{' in string
                     }
@@ -781,10 +797,10 @@ HyperDbgInterpreter(CHAR * Command)
 VOID
 InterpreterRemoveComments(char * CommandText)
 {
-    BOOLEAN IsComment       = FALSE;
-    BOOLEAN IsOnBracketString       = FALSE;
-    BOOLEAN IsOnString      = FALSE;
-    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
+    BOOLEAN IsComment         = FALSE;
+    BOOLEAN IsOnBracketString = FALSE;
+    BOOLEAN IsOnString        = FALSE;
+    UINT32  LengthOfCommand   = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {
