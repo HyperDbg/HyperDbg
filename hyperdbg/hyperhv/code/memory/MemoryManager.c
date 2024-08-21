@@ -26,7 +26,7 @@ ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T Bu
     PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
     PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
 
-    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE);
+    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
 
     if (VirtualAddress == NULL)
     {
@@ -55,7 +55,7 @@ WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T B
     PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
     PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
 
-    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE);
+    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
     if (VirtualAddress == NULL)
     {
         return FALSE;
@@ -174,17 +174,26 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
                 if (MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize) != STATUS_SUCCESS && *ReturnSize == 0)
                 {
                     //
-                    // If the memory is not readable
-                    // it might be an MMIO address
+                    // If the memory is not readable, it might be an MMIO address
                     // Try again with another method
                     //
-                    if (ReadPhysicalMemoryUsingMapIoSpace((PVOID)Address, UserBuffer, Size))
+                    LogInfo("reading using MMIO Map IO Space using VMCALL");
+
+                    //
+                    // Restore to normal EPTP from vmx-root
+                    //
+
+                    if (AsmVmxVmcall(VMCALL_BYPASS_EPT_CACHING_POLICIES, (UINT64)Address, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
                     {
+                        LogInfo("success");
+
                         *ReturnSize = Size;
                         return TRUE;
                     }
                     else
                     {
+                        LogInfo("no success");
+
                         //
                         // unknown error
                         //
