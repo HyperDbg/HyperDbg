@@ -64,19 +64,21 @@ public:
                 if (!IdxBracket)
                 {
                     size_t j = i;
-                    c        = input[++j];
+                    char   c2 = input[++j];
 
-                    if (c == '/') // start to look for comments
+                    if (c2 == '/') // start to look for comments
                     {
-                        size_t EndPose = input.find('\n', i);
-                        if (EndPose != std::string::npos)
+                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
+                        size_t NewLineChrPos = input.find('\n', i);
+
+                        if (NewLineSrtPos != std::string::npos && input[NewLineSrtPos - 1] != '\\') // is not escaped
                         {
                             //
                             // here we could get the comment but for now we just skip
                             //
-                            std::string comment(input.substr(i, EndPose - i));
+                            std::string comment(input.substr(i, NewLineSrtPos - i));
 
-                            i = i + (EndPose - i);
+                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will alos go past another time.
 
                             if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
@@ -87,19 +89,39 @@ public:
                                 }
                             }
 
-                            continue;
+                            continue; 
+                        }
+                        else if (NewLineChrPos != std::string::npos)
+                        {
+                            //
+                            // here we could get the comment but for now we just skip
+                            //
+                            std::string comment(input.substr(i, NewLineChrPos - i));
+
+                            i = i + (NewLineChrPos - i);
+
+                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                            {
+                                i++;
+                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                                {
+                                    i++;
+                                }
+                            }
+
+                            continue; // go past '\n'
                         }
                         else
                         {
                             //
-                            // no "\n" found so we just mark the chars as comment till end of string
+                            // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
                             //
                             std::string comment(input.substr(i, input.size()));
                             i = i + (input.size() - i);
                             continue;
                         }
                     }
-                    else if (c == '*')
+                    else if (c2 == '*')
                     {
                         size_t EndPose = input.find("*/", i);
 
