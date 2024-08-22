@@ -1016,7 +1016,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
             {
-                if (FunctionToken->Type == (TOKEN_TYPE)VARIABLE_TYPE_VOID)
+                if ((VARIABLE_TYPE *)Node->VariableType == VARIABLE_TYPE_VOID)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                     break;
@@ -1051,6 +1051,99 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             }
 
             RemoveToken(&FunctionToken);
+        }
+        else if (!strcmp(Operator->Value, "@MULTIPLE_ASSIGNMENT"))
+        {
+            PSYMBOL Symbol = NewSymbol();
+            Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value  = FUNC_MOV;
+
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            for (int i = MatchedStack->Pointer; i > 0; i--)
+            {
+                Op1 = Top(MatchedStack);
+                if (Op1->Type == TEMP || Op1->Type == HEX || Op1->Type == OCTAL || Op1->Type == BINARY)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    Pop(MatchedStack);
+                    break;
+                }
+                else if (Op1->Type == GLOBAL_UNRESOLVED_ID)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = NewSymbol();
+                    free((void *)Op1Symbol->Value);
+                    Op1Symbol->Value = NewGlobalIdentifier(Op1);
+                    SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
+                    Pop(MatchedStack);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                }
+                else if (Op1->Type == LOCAL_UNRESOLVED_ID)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = NewSymbol();
+                    free((void *)Op1Symbol->Value);
+                    Op1Symbol->Value = NewLocalIdentifier(Op1);
+                    SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
+                    Pop(MatchedStack);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    RemoveSymbol(&Op1Symbol);
+                }
+                else if (Op1->Type == LOCAL_ID || Op1->Type == GLOBAL_ID || Op1->Type == FUNCTION_PARAMETER_ID || Op1->Type == REGISTER)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = ToSymbol(Op1, Error);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    Pop(MatchedStack);
+                    RemoveSymbol(&Op1Symbol);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            RemoveSymbol(&Symbol);
+            Op1 = 0;
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                FreeTemp(Op0);
+                break;
+            }
+
+            if (MatchedStack->Pointer > 0)
+            {
+                if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
+                {
+                    VariableType = HandleType(MatchedStack);
+
+                    if (VariableType == VARIABLE_TYPE_UNKNOWN)
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                        break;
+                    }
+
+                    // Op1Symbol->VariableType = (unsigned long long)VariableType;
+                }
+            }
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
         }
         else if (!strcmp(Operator->Value, "@MOV"))
         {
