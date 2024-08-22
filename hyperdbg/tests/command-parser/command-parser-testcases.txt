@@ -3601,3 +3601,1905 @@ cmdComplexSyntax
 |
 ----------------------------------
 and this
+_____________________________________________________________
+
+//
+? printf("Result : %s", @rcx);
+----------------------------------
+?
+----------------------------------
+printf(
+----------------------------------
+Result : %s
+----------------------------------
+,
+----------------------------------
+@rcx);
+_____________________________________________________________
+? printf("Process name: %s", $pname);
+
+----------------------------------
+?
+----------------------------------
+printf(
+----------------------------------
+Process name: %s
+----------------------------------
+,
+----------------------------------
+$pname);
+_____________________________________________________________
+? print(dq(@rcx));
+
+----------------------------------
+?
+----------------------------------
+print(dq(@rcx));
+_____________________________________________________________
+? print($proc+@rdx);
+
+----------------------------------
+?
+----------------------------------
+print($proc+@rdx);
+_____________________________________________________________
+? print(poi(@rax+a0));
+
+----------------------------------
+?
+----------------------------------
+print(poi(@rax+a0));
+_____________________________________________________________
+? printf("Result : %ws\"", poi($proc+ 10));
+
+----------------------------------
+?
+----------------------------------
+printf(
+----------------------------------
+Result : %ws"
+----------------------------------
+poi($proc+
+----------------------------------
+10));
+_____________________________________________________________
+? printf("Result : %s", poi($proc+10));
+
+----------------------------------
+?
+----------------------------------
+printf(
+----------------------------------
+Result : %s
+----------------------------------
+,
+----------------------------------
+poi($proc+10));
+_____________________________________________________________
+? print(dw(NtCreateFile+10));
+
+----------------------------------
+?
+----------------------------------
+print(dw(NtCreateFile+10));
+_____________________________________________________________
+? print(dw(NtCreateFile+@rcx+($proc|3+poi(poi(@rax)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))){ })))));
+
+----------------------------------
+?
+----------------------------------
+print(dw(NtCreateFile+@rcx+($proc|3+poi(poi(@rax))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+----------------------------------
+ 
+----------------------------------
+)))));
+_____________________________________________________________
+__kernel_entry NTSYSCALLAPI NTSTATUS NtOpenFile(
+  PHANDLE            FileHandle,
+  ACCESS_MASK        DesiredAccess,
+  POBJECT_ATTRIBUTES ObjectAttributes,
+  PIO_STATUS_BLOCK   IoStatusBlock,
+  ULONG              ShareAccess,
+  ULONG              OpenOptions
+);
+----------------------------------
+NTSYSCALLAPI
+----------------------------------
+NTSTATUS
+----------------------------------
+PHANDLE
+----------------------------------
+FileHandle
+----------------------------------
+ACCESS_MASK
+----------------------------------
+DesiredAccess,
+----------------------------------
+POBJECT_ATTRIBUTES
+----------------------------------
+ObjectAttributes,
+----------------------------------
+PIO_STATUS_BLOCK
+----------------------------------
+IoStatusBlock,
+----------------------------------
+ULONG
+----------------------------------
+ShareAccess,
+----------------------------------
+ULONG
+----------------------------------
+OpenOptions
+----------------------------------
+);
+_____________________________________________________________
+From the relative-address point of view, this function is stored in the memory like this:
+----------------------------------
+From
+----------------------------------
+the
+----------------------------------
+relative-address
+----------------------------------
+point
+----------------------------------
+of
+----------------------------------
+view,
+----------------------------------
+this
+----------------------------------
+function
+----------------------------------
+is
+----------------------------------
+stored
+----------------------------------
+in
+----------------------------------
+the
+----------------------------------
+memory
+----------------------------------
+like
+----------------------------------
+this:
+_____________________________________________________________
+   +0x000 Length           : Uint2B
+   +0x002 MaximumLength    : Uint2B
+   +0x008 Buffer           : Ptr64 Wchar
+
+----------------------------------
++0x000
+----------------------------------
+Length
+----------------------------------
+:
+----------------------------------
+Uint2B
+----------------------------------
++0x002
+----------------------------------
+MaximumLength
+----------------------------------
+:
+----------------------------------
+Uint2B
+----------------------------------
++0x008
+----------------------------------
+Buffer
+----------------------------------
+:
+----------------------------------
+Ptr64
+----------------------------------
+Wchar
+_____________________________________________________________
+!epthook nt!NtOpenFile script {
+	printf("%ws\n", dq(poi(r8 + 10) + 0x8));
+}----------------------------------
+!epthook
+----------------------------------
+nt!NtOpenFile
+----------------------------------
+script
+----------------------------------
+
+	printf("%ws\n", dq(poi(r8 + 10) + 0x8));
+_____________________________________________________________
+				  		fffff801`639b1030   			 48 F               	       mov qword	ptr ss:[rsp+0x08], rbx
+fffff801`639b1035    24 10                      mov qword ptr ss:[rsp+0x10], rbp
+----------------------------------
+fffff801`639b1030
+----------------------------------
+48
+----------------------------------
+F
+----------------------------------
+mov
+----------------------------------
+qword
+----------------------------------
+ptr
+----------------------------------
+ss:[rsp+0x08],
+----------------------------------
+rbx
+----------------------------------
+fffff801`639b1035
+----------------------------------
+24
+----------------------------------
+10
+----------------------------------
+mov
+----------------------------------
+qword
+----------------------------------
+ptr
+----------------------------------
+ss:[rsp+0x10],
+----------------------------------
+rbp
+_____________________________________________________________
+!epthook nt!ExAllocatePoolWithTag script {
+
+	if (poi(@rsp") == nt!CmpAllocatePoolWithTag+0x9") {
+		pause();
+	}
+}
+----------------------------------
+!epthook
+----------------------------------
+nt!ExAllocatePoolWithTag
+----------------------------------
+script
+----------------------------------
+
+	if (poi(@rsp") == nt!CmpAllocatePoolWithTag+0x9") {
+		pause();
+	}
+
+_____________________________________________________________
+? .my_lock = 0;
+? .my_counter = 0;
+
+----------------------------------
+?
+----------------------------------
+.my_lock
+----------------------------------
+=
+----------------------------------
+0;
+----------------------------------
+?
+----------------------------------
+.my_counter
+----------------------------------
+=
+----------------------------------
+0;
+_____________________________________________________________
+{spinlock_lock(&.my_lock); 
+
+.my_counter = .my_counter + 1;
+printf("NtCreateFile syscall (0x0055) is called %llx times\n", .my_counter);
+	
+spinlock_unlock(&.my_lock);{}}
+
+----------------------------------
+spinlock_lock(&.my_lock); 
+
+.my_counter = .my_counter + 1;
+printf("NtCreateFile syscall (0x0055) is called %llx times\n", .my_counter);
+	
+spinlock_unlock(&.my_lock);{}
+_____________________________________________________________
+? .my_lock = 0;
+? .my_counter = 0;
+
+!syscall script {
+
+if ($context == 0x55) {
+
+	spinlock_lock(&.my_lock); 
+	
+	.my_counter = .my_counter + 1;
+	printf("NtCreateFile syscall (0x0055) is called %llx times\n", .my_counter);
+	
+	spinlock_unlock(&.my_lock);
+
+	}
+}
+----------------------------------
+?
+----------------------------------
+.my_lock
+----------------------------------
+=
+----------------------------------
+0;
+----------------------------------
+?
+----------------------------------
+.my_counter
+----------------------------------
+script
+----------------------------------
+
+if ($context == 0x55) {
+
+	spinlock_lock(&.my_lock); 
+	
+	.my_counter = .my_counter + 1;
+	printf("NtCreateFile syscall (0x0055) is called %llx times\n", .my_counter);
+	
+	spinlock_unlock(&.my_lock);
+
+	}
+_____________________________________________________________
+? @ebx = @rdx | 0xfffff550 + @edx;
+
+----------------------------------
+?
+----------------------------------
+@ebx
+----------------------------------
+@rdx
+----------------------------------
+|
+----------------------------------
+0xfffff550
+----------------------------------
++
+----------------------------------
+@edx;
+_____________________________________________________________
+? @rip =  0xfffff8003ad6f010;" @rsp = fffff800`5b660000;
+
+
+\"
+
+
+"
+
+----------------------------------
+?
+----------------------------------
+@rip
+----------------------------------
+=
+----------------------------------
+0xfffff8003ad6f010;
+----------------------------------
+ @rsp = fffff800`5b660000;
+
+
+"
+
+_____________________________________________________________
+if (check_address(@r11) == 1) 
+{ 
+    printf("address is valid.\n");
+}
+else 
+{
+    printf("address is invalid.\n");
+}
+----------------------------------
+if
+----------------------------------
+(check_address(@r11)
+----------------------------------
+==
+----------------------------------
+1)
+----------------------------------
+{
+----------------------------------
+printf(
+----------------------------------
+address is valid.\n
+----------------------------------
+);
+----------------------------------
+}
+----------------------------------
+else
+----------------------------------
+{
+----------------------------------
+printf(
+----------------------------------
+"address is invalid.\n"
+----------------------------------
+);
+----------------------------------
+}
+_____________________________________________________________
+!epthook nt!NtCreateFile script {
+	if(wcscmp(L"\\??\\C:\\folder\\test.txt",poi(poi(@r8+10)+8)) == 0){
+		pause();
+	}
+}
+----------------------------------
+!epthook
+----------------------------------
+nt!NtCreateFile
+----------------------------------
+script
+----------------------------------
+
+	if(wcscmp(L"\\??\\C:\\folder\\test.txt",poi(poi(@r8+10)+8)) == 0){
+		pause();
+	}
+_____________________________________________________________
+!epthook 004C5A1C pid 225c script {
+	@zf = 0;
+}
+----------------------------------
+!epthook
+----------------------------------
+004C5A1C
+----------------------------------
+pid
+----------------------------------
+225c
+----------------------------------
+script
+----------------------------------
+
+	@zf = 0;
+
+_____________________________________________________________
+!exception 0xe pid 4 script "{
+	
+	.Result = interlocked_increment(&.my_counter);
+}"
+----------------------------------
+!exception
+----------------------------------
+0xe
+----------------------------------
+pid
+----------------------------------
+4
+----------------------------------
+script
+----------------------------------
+"{
+	
+	.Result = interlocked_increment(&.my_counter);
+}"
+_____________________________________________________________
+!sysret script {
+
+	if (.thread_id == $tid) {
+		
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		//
+		// Reset the thread id holder
+		//
+		.thread_id = 0;
+	}
+}
+----------------------------------
+!sysret
+----------------------------------
+script
+----------------------------------
+
+	if (.thread_id == $tid) {
+		
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		//
+		// Reset the thread id holder
+		//
+		.thread_id = 0;
+	}
+
+_____________________________________________________________
+!syscall script { 
+	
+	if ($pid == $arg1 && @rax == $arg2) {
+		
+		spinlock_lock(&.thread_id_lock);
+		
+		if (.thread_id == 0) {
+			
+			//
+			// Save the thread id for the SYSRET event
+			//
+			.thread_id = $tid;
+			
+			//
+			// Show the parameters
+			//
+			printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", $tid, @rax, @rcx, @rdx, @r8, @r9);
+			
+		}
+		
+		spinlock_unlock(&.thread_id_lock);
+	}
+}
+----------------------------------
+!syscall
+----------------------------------
+script
+----------------------------------
+ 
+	
+	if ($pid == $arg1 && @rax == $arg2) {
+		
+		spinlock_lock(&.thread_id_lock);
+		
+		if (.thread_id == 0) {
+			
+			//
+			// Save the thread id for the SYSRET event
+			//
+			.thread_id = $tid;
+			
+			//
+			// Show the parameters
+			//
+			printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", $tid, @rax, @rcx, @rdx, @r8, @r9);
+			
+		}
+		
+		spinlock_unlock(&.thread_id_lock);
+	}
+
+_____________________________________________________________
+? .thread_id = 0;
+? .thread_id_lock = 0;
+
+!sysret script {
+
+	if (.thread_id == $tid) {
+		
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		//
+		// Reset the thread id holder
+		//
+		.thread_id = 0;
+	}
+}
+
+!syscall script { 
+	
+	if ($pid == $arg1 && @rax == $arg2) {
+		
+		spinlock_lock(&.thread_id_lock);
+		
+		if (.thread_id == 0) {
+			
+			//
+			// Save the thread id for the SYSRET event
+			//
+			.thread_id = $tid;
+			
+			//
+			// Show the parameters
+			//
+			printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", $tid, @rax, @rcx, @rdx, @r8, @r9);
+			
+		}
+		
+		spinlock_unlock(&.thread_id_lock);
+	}
+}
+
+----------------------------------
+?
+----------------------------------
+.thread_id
+----------------------------------
+=
+----------------------------------
+0;
+----------------------------------
+?
+----------------------------------
+.thread_id_lock
+----------------------------------
+=
+----------------------------------
+0;
+----------------------------------
+!sysret
+----------------------------------
+script
+----------------------------------
+
+
+	if (.thread_id == $tid) {
+		
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		//
+		// Reset the thread id holder
+		//
+		.thread_id = 0;
+	}
+
+----------------------------------
+!syscall
+----------------------------------
+script
+----------------------------------
+ 
+	
+	if ($pid == $arg1 && @rax == $arg2) {
+		
+		spinlock_lock(&.thread_id_lock);
+		
+		if (.thread_id == 0) {
+			
+			//
+			// Save the thread id for the SYSRET event
+			//
+			.thread_id = $tid;
+			
+			//
+			// Show the parameters
+			//
+			printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", $tid, @rax, @rcx, @rdx, @r8, @r9);
+			
+		}
+		
+		spinlock_unlock(&.thread_id_lock);
+	}
+_____________________________________________________________
+? .script c:\users\sina\desktop\script.ds 1240 55
+
+----------------------------------
+?
+----------------------------------
+.script
+----------------------------------
+c:\users\sina\desktop\script.ds
+----------------------------------
+1240
+----------------------------------
+55
+_____________________________________________________________
+HyperDbg> !epthook fffff805`5cdb2030 script { print(@r8); }
+
+----------------------------------
+HyperDbg>
+----------------------------------
+!epthook
+----------------------------------
+fffff805`5cdb2030
+----------------------------------
+script
+----------------------------------
+ print(@r8); 
+_____________________________________________________________
+!syscall pid 1c38 script {
+
+	printf("Syscall number : %llx\n", @rax);
+	
+	if ($context == 0x55) {
+		pause();
+	}
+
+}
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+1c38
+----------------------------------
+script
+----------------------------------
+
+
+	printf("Syscall number : %llx\n", @rax);
+	
+	if ($context == 0x55) {
+		pause();
+	}
+
+
+_____________________________________________________________
+.thread_intercept_thread = 0;
+
+!sysret script {
+	if ($tid == 60c && .thread_intercept_thread == 1) {
+		.thread_intercept_thread = 0;
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		@rax = 0xC0000005;
+		printf("[%llx] result of syscall changed to : %llx\n", $tid, @rax);
+
+	}
+}
+
+!syscall script { 
+	if ($tid == 60c && @rax == 0x55) {		
+		.thread_intercept_thread = 1;
+		printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n",
+		         $tid, @rax, @rcx, @rdx, @r8, @r9);	
+	}
+}
+
+
+----------------------------------
+.thread_intercept_thread
+----------------------------------
+=
+----------------------------------
+0;
+----------------------------------
+!sysret
+----------------------------------
+script
+----------------------------------
+
+	if ($tid == 60c && .thread_intercept_thread == 1) {
+		.thread_intercept_thread = 0;
+		printf("[%llx] result of syscall: %llx\n", $tid, @rax);
+		
+		@rax = 0xC0000005;
+		printf("[%llx] result of syscall changed to : %llx\n", $tid, @rax);
+
+	}
+
+----------------------------------
+!syscall
+----------------------------------
+script
+----------------------------------
+ 
+	if ($tid == 60c && @rax == 0x55) {		
+		.thread_intercept_thread = 1;
+		printf("[%llx] syscall num: %llx, arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n",
+		         $tid, @rax, @rcx, @rdx, @r8, @r9);	
+	}
+_____________________________________________________________
+# Address of test variable: 7ff7f6ba8210 | pid: 2a0c
+
+
+!monitor w 7ff7f6ba8210 7ff7f6ba8210+4 stage all pid 2a0c script {
+
+	if ($stage == 1) {
+		
+		//
+		// Called after the memory modification 
+		//
+		final_val = dq($context);
+		
+		printf(" final value is: %d\n", final_val);
+	
+	}
+	else {
+	
+		//
+		// Called before the memory modification 
+		//
+		prev_val = dq($context);
+		printf(" previous value is: %d", prev_val);
+	}
+}
+
+
+
+!monitor w 7ff7f6ba8210 7ff7f6ba8210+4 stage all pid 2a0c script {
+
+	if ($stage == 1) {
+		
+		//
+		// Called after the memory modification 
+		//
+		final_val = dq($context);
+		
+		printf(" final value is: %d\n", final_val);
+		
+		if (final_val != 0 && final_val % 0n10 == 0) {
+			
+			//
+			// Reset the value
+			//
+			eq($context, 0x0);
+			
+			printf("reset\n");
+		
+		}
+	
+	}
+	else {
+	
+		//
+		// Called before the memory modification 
+		//
+		prev_val = dq($context);
+		printf(" previous value is: %d", prev_val);
+	}
+}
+
+----------------------------------
+#
+----------------------------------
+Address
+----------------------------------
+of
+----------------------------------
+test
+----------------------------------
+variable:
+----------------------------------
+7ff7f6ba8210
+----------------------------------
+|
+----------------------------------
+pid:
+----------------------------------
+2a0c
+----------------------------------
+!monitor
+----------------------------------
+w
+----------------------------------
+7ff7f6ba8210
+----------------------------------
+7ff7f6ba8210+4
+----------------------------------
+stage
+----------------------------------
+all
+----------------------------------
+pid
+----------------------------------
+2a0c
+----------------------------------
+script
+----------------------------------
+
+
+	if ($stage == 1) {
+		
+		//
+		// Called after the memory modification 
+		//
+		final_val = dq($context);
+		
+		printf(" final value is: %d\n", final_val);
+	
+	}
+	else {
+	
+		//
+		// Called before the memory modification 
+		//
+		prev_val = dq($context);
+		printf(" previous value is: %d", prev_val);
+	}
+
+----------------------------------
+!monitor
+----------------------------------
+w
+----------------------------------
+7ff7f6ba8210
+----------------------------------
+7ff7f6ba8210+4
+----------------------------------
+stage
+----------------------------------
+all
+----------------------------------
+pid
+----------------------------------
+2a0c
+----------------------------------
+script
+----------------------------------
+
+
+	if ($stage == 1) {
+		
+		//
+		// Called after the memory modification 
+		//
+		final_val = dq($context);
+		
+		printf(" final value is: %d\n", final_val);
+		
+		if (final_val != 0 && final_val % 0n10 == 0) {
+			
+			//
+			// Reset the value
+			//
+			eq($context, 0x0);
+			
+			printf("reset\n");
+		
+		}
+	
+	}
+	else {
+	
+		//
+		// Called before the memory modification 
+		//
+		prev_val = dq($context);
+		printf(" previous value is: %d", prev_val);
+	}
+
+_____________________________________________________________
+!cpuid 1 script {
+
+	//
+	// Invalid supporting details
+	//
+	
+	@eax = 0;
+	
+	@ebx = 0;
+	@ecx = 0;
+	@edx = 0;
+	
+	event_sc(1);
+}
+
+!cpuid 1 script {
+
+	//
+	// Invalid supporting details
+	//
+	
+	@eax = 0;
+	
+	@ebx = 0;
+	@ecx = 0;
+	@edx = 0;
+	
+	event_sc(1);
+}
+
+
+----------------------------------
+!cpuid 
+----------------------------------
+1
+----------------------------------
+script
+----------------------------------
+
+
+	//
+	// Invalid supporting details
+	//
+	
+	@eax = 0;
+	
+	@ebx = 0;
+	@ecx = 0;
+	@edx = 0;
+	
+	event_sc(1);
+----------------------------------
+!cpuid 
+----------------------------------
+1
+----------------------------------
+script
+----------------------------------
+
+
+	//
+	// Invalid supporting details
+	//
+	
+	@eax = 0;
+	
+	@ebx = 0;
+	@ecx = 0;
+	@edx = 0;
+	
+	event_sc(1);
+_____________________________________________________________
+!exception 0xe script { 
+	   printf("page-fault in process : %s, pid: %x, addr: %llx\n", $pname, $pid, @cr2);
+}
+
+!interrupt d1 script {
+	printf("core: %x, rip: %llx, %x\n", $core, @rip, $pid );
+}
+
+----------------------------------
+!exception
+----------------------------------
+0xe
+----------------------------------
+script
+----------------------------------
+ 
+	   printf("page-fault in process : %s, pid: %x, addr: %llx\n", $pname, $pid, @cr2);
+----------------------------------
+!interrupt
+----------------------------------
+d1
+----------------------------------
+script
+----------------------------------
+
+	printf("core: %x, rip: %llx, %x\n", $core, @rip, $pid );
+_____________________________________________________________
+{
+
+	if (@rip & 0xff000000`00000000) {
+		printf("clk interrupt received at the kernel: %llx\n", @rip);
+	}
+	else{
+		pause();
+	}
+}!interrupt d1 pid 0x2748 script script {
+
+	if (@rip & 0xff000000`00000000) {
+		printf("clk interrupt received at the kernel: %llx\n", @rip);
+	}
+	else{
+		pause();
+	}
+}
+
+
+----------------------------------
+
+	if (@rip & 0xff000000`00000000) {
+		printf("clk interrupt received at the kernel: %llx\n", @rip);
+	}
+	else{
+		pause();
+	}
+----------------------------------
+!interrupt
+----------------------------------
+d1
+----------------------------------
+pid
+----------------------------------
+0x2748 script
+----------------------------------
+script
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rip & 0xff000000`00000000) {
+		printf("clk interrupt received at the kernel: %llx\n", @rip);
+	}
+	else{
+		pause();
+	}
+
+_____________________________________________________________
+!syscall pid 0x16fc script {{}{}{}{{{}}}
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			pause();
+		}
+
+	}
+}
+
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+{}{}{}{{{}}}
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			pause();
+		}
+
+	}
+_____________________________________________________________
+!syscall pid 0x16fc script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			printf("Ip address is : %x\n", ip_addr);
+			
+			
+			
+		}
+
+	}
+}
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			printf("Ip address is : %x\n", ip_addr);
+			
+			
+			
+		}
+
+	}
+_____________________________________________________________
+? {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			
+			printf("Port address is : %d \n", port_num);
+			
+		}
+
+	}
+
+}
+
+----------------------------------
+?
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			
+			printf("Port address is : %d \n", port_num);
+			
+		}
+
+	}
+
+
+_____________________________________________________________
+? {
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Ip address is : %d.%d.%d.%d\n", (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff));
+			
+			
+		}
+
+	}
+}
+
+----------------------------------
+?
+----------------------------------
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Ip address is : %d.%d.%d.%d\n", (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff));
+			
+			
+		}
+
+	}
+_____________________________________________________________
+!syscall pid 0x16fc script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Ip address is : %d.%d.%d.%d:%d\n", (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff),port_num );
+			
+			
+		}
+
+	}
+
+}
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Ip address is : %d.%d.%d.%d:%d\n", (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff),port_num );
+			
+			
+		}
+
+	}
+
+
+_____________________________________________________________
+!syscall script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Process Id: %x, Process name: %s ====> Connects to Ip address: %d.%d.%d.%d:%d\n", $pid, $pname, (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff), port_num);
+			
+		}
+	}
+}
+
+----------------------------------
+!syscall
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Process Id: %x, Process name: %s ====> Connects to Ip address: %d.%d.%d.%d:%d\n", $pid, $pname, (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff), port_num);
+			
+		}
+	}
+_____________________________________________________________
+!syscall pid 0x16fc script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			pause();
+
+		}
+	}
+}
+
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			pause();
+
+		}
+	}
+_____________________________________________________________
+!syscall pid 0x16fc script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i< buffer_len;i++) {
+				printf(" %x", db(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+}
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i< buffer_len;i++) {
+				printf(" %x", db(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+_____________________________________________________________
+!syscall pid 0x16fc script {
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			
+			
+			printf("\n\n=============={}{}{}{P}{{{{{{\}}}}=============================================================\n");
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i < buffer_len;i++) {
+				printf(" %x", db(poi(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+}
+
+----------------------------------
+!syscall
+----------------------------------
+pid
+----------------------------------
+0x16fc
+----------------------------------
+script
+----------------------------------
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			
+			
+			printf("\n\n=============={}{}{}{P}{{{{{{\}}}}=============================================================\n");
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i < buffer_len;i++) {
+				printf(" %x", db(poi(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+_____________________________________________________________
+!syscall script {
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			
+			
+			printf("\n\n===========================================================================\n");
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i < buffer_len;i++) {
+				printf(" %x", db(poi(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+}
+
+----------------------------------
+!syscall
+----------------------------------
+script
+----------------------------------
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x1201F) {
+		
+			buffer_len = dq(poi(poi(@rsp+38)));
+			
+			
+			printf("\n\n===========================================================================\n");
+			printf("Packet buffer is: %s\n", dq(poi(poi(@rsp+38))+8));
+			
+			for (i = 0; i < buffer_len;i++) {
+				printf(" %x", db(poi(poi(poi(@rsp+38))+8)+i));
+			}
+
+		}
+	}
+_____________________________________________________________
+syscall pid @arg1 script {
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Process Id: %x, Process name: %s ====> Connects to Ip address: %d.%d.%d.%d:%d\n", $pid, $pname, (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff), port_num);
+			
+		}
+	}
+}
+
+----------------------------------
+syscall
+----------------------------------
+pid
+----------------------------------
+@arg1
+----------------------------------
+script
+----------------------------------
+
+
+	if (@rax == 0x7) {
+	
+		if (dd(@rsp + 30) == 0x12007) {
+		
+			port_num_value_high = db(poi(rsp+38)+1a);
+			port_num_value_low = db(poi(rsp+38)+1b);
+			
+			port_num = 0;
+			port_num = port_num_value_high << 0n8 | port_num_value_low;
+			
+			//printf("Port address is : %d \n", port_num);
+			
+			part0 = db(poi(@rsp+38) + 1c);
+			part1 = db(poi(@rsp+38) + 1d);
+			part2 = db(poi(@rsp+38) + 1e);
+			part3 = db(poi(@rsp+38) + 1f);
+			
+			part0 = part0 << 0n24;
+			part1 = part1 << 0n16;
+			part2 = part2 << 0n8;
+			part3 = part3 << 0n0;
+			
+			ip_addr = part0 | part1 | part2 | part3;
+			
+			// printf("Ip address is : %x\n", ip_addr);
+			
+			printf("Process Id: %x, Process name: %s ====> Connects to Ip address: %d.%d.%d.%d:%d\n", $pid, $pname, (ip_addr & 0xff000000) >> 0n24, (ip_addr & 0x00ff0000) >> 0n16, (ip_addr & 0x0000ff00) >> 0n8, (ip_addr & 0x000000ff), port_num);
+			
+		}
+	}
+_____________________________________________________________
+!msrread c0000082 script {
+
+	//
+	// Fill the EDX:EAX
+	//
+	@rdx = f0f0f0f0;
+	@rax = 10203040;
+	
+	event_sc(1);
+	
+	printf("%llx is read!\n", @rcx);
+
+}
+
+
+----------------------------------
+!msrread
+----------------------------------
+c0000082
+----------------------------------
+script
+----------------------------------
+
+
+	//
+	// Fill the EDX:EAX
+	//
+	@rdx = f0f0f0f0;
+	@rax = 10203040;
+	
+	event_sc(1);
+	
+	printf("%llx is read!\n", @rcx);
+
+
+_____________________________________________________________
+!epthook nt!DbgBreakPointWithStatus script {
+
+	@rip = poi(@rsp); // pop the return address from stack
+	@rsp = @rsp + 8; // adjust the stack {{{}}}{}{}{}{}
+	
+	printf("nt!DbgBreakPointWithStatus is ignored.\n");
+
+}
+
+
+----------------------------------
+!epthook
+----------------------------------
+nt!DbgBreakPointWithStatus
+----------------------------------
+script
+----------------------------------
+
+
+	@rip = poi(@rsp); // pop the return address from stack
+	@rsp = @rsp + 8; // adjust the stack {{{}}}{}{}{}{}
+	
+	printf("nt!DbgBreakPointWithStatus is ignored.\n");
+
+_____________________________________________________________
+!monitor rw ffffc105`a506b0a8 ffffc105`a506b0a8+7 script {
+	if (@rip != nt!SwapContext+0x25b && @rip != nt!KiStackAttachProcess+0x1b5 && @rip != nt!KiDetachProcess+0x184) {
+		pause();
+	}
+}
+
+----------------------------------
+!monitor
+----------------------------------
+rw
+----------------------------------
+ffffc105`a506b0a8
+----------------------------------
+ffffc105`a506b0a8+7
+----------------------------------
+script
+----------------------------------
+
+	if (@rip != nt!SwapContext+0x25b && @rip != nt!KiStackAttachProcess+0x1b5 && @rip != nt!KiDetachProcess+0x184) {
+		pause();
+	}
+_____________________________________________________________
+!epthook kdnet!KdSendPacket script {
+
+
+	printf("\n------------------------------------------------------------------------\n");
+	printf("PacketType: %llx, FirstBuffer: %llx, SecondBuffer: %llx, KdContext: %llx\n", @rcx, @rdx, @r8, @r9);
+	
+	byte_len = 100;
+	
+	for (i = 0; i <= byte_len;i++) {
+		
+		if (dq(@rdx + i) == ffffc105a50f0080) {
+			pause();
+		}
+	}
+		
+	for (i = 0; i <= byte_len;i++) {
+		
+		if (dq(@r8 + i) == ffffc105a50f0080) {
+			pause();
+		}
+	}
+}
+
+----------------------------------
+!epthook
+----------------------------------
+kdnet!KdSendPacket
+----------------------------------
+script
+----------------------------------
+
+
+
+	printf("\n------------------------------------------------------------------------\n");
+	printf("PacketType: %llx, FirstBuffer: %llx, SecondBuffer: %llx, KdContext: %llx\n", @rcx, @rdx, @r8, @r9);
+	
+	byte_len = 100;
+	
+	for (i = 0; i <= byte_len;i++) {
+		
+		if (dq(@rdx + i) == ffffc105a50f0080) {
+			pause();
+		}
+	}
+		
+	for (i = 0; i <= byte_len;i++) {
+		
+		if (dq(@r8 + i) == ffffc105a50f0080) {
+			pause();
+		}
+	}
+
+_____________________________________________________________
+!epthook nt!MmDbgCopyMemory script {
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+}
+
+!epthook nt!MiDbgCopyMemory script {
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+}
+!epthook nt!MiCopyFromUntrustedMemory script {
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+}
+
+----------------------------------
+!epthook
+----------------------------------
+nt!MmDbgCopyMemory
+----------------------------------
+script
+----------------------------------
+
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+----------------------------------
+!epthook
+----------------------------------
+nt!MiDbgCopyMemory
+----------------------------------
+script
+----------------------------------
+
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+
+----------------------------------
+!epthook
+----------------------------------
+nt!MiCopyFromUntrustedMemory
+----------------------------------
+script
+----------------------------------
+
+	if (db(@rcx) == 0x4f && db(@rcx + 1) == 0x00 &&  db(@rcx + 2) == 0x6E ) {
+		printf("nt!MmDbgCopyMemory is called form RIP: %llx, Address: %llx, And the string is : %ws\n", @rip, @rcx, @rcx);
+	}
+
+_____________________________________________________________
+cmdBacktick "backtick preserve" {inside ticks}
+----------------------------------
+cmdBacktick
+----------------------------------
+backtick preserve
+----------------------------------
+inside ticks
