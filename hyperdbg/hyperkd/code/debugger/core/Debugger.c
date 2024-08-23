@@ -162,7 +162,7 @@ DebuggerInitialize()
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
         {
-            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
         }
 
         if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
@@ -176,7 +176,7 @@ DebuggerInitialize()
         //
         // Zero stack buffer memory
         //
-        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
     }
 
     //
@@ -1630,7 +1630,7 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
     //
     ScriptGeneralRegisters.StackBuffer         = DbgState->ScriptEngineCoreSpecificStackBuffer;
     ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
-    RtlZeroMemory(ScriptGeneralRegisters.StackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+    RtlZeroMemory(ScriptGeneralRegisters.StackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
     UINT64 EXECUTENUMBER = 0;
 
