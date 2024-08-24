@@ -56,52 +56,77 @@ public:
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
+
             if (c == '/') // start comment parse
             {
                 //
                 // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!IdxBracket)
+                if (!IdxBracket && !InQuotes)
                 {
                     size_t j = i;
-                    c        = input[++j];
+                    char   c2 = input[++j];
 
-                    if (c == '/') // start to look for comments
+                    if (c2 == '/') // start to look for comments
                     {
-                        size_t EndPose = input.find('\n', i);
-                        if (EndPose != std::string::npos)
+                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
+                        size_t NewLineChrPos = input.find('\n', i);
+
+                        bool IsNewLineEsc = false;
+                        if (NewLineSrtPos != std::string::npos)
+                        {
+                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\'; 
+                        }
+
+                        if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
                         {
                             //
                             // here we could get the comment but for now we just skip
                             //
-                            std::string comment(input.substr(i, EndPose - i));
+                            std::string comment(input.substr(i, NewLineSrtPos - i));
 
-                            i = i + (EndPose - i);
+                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            {
-                                i++;
-                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                                {
-                                    i++;
-                                }
-                            }
+                            continue; 
+                        }
+                        else if (NewLineChrPos != std::string::npos)
+                        {
+                            //
+                            // here we could get the comment but for now we just skip
+                            //
+                            std::string comment(input.substr(i, NewLineChrPos - i));
 
-                            continue;
+                            i = i + (NewLineChrPos - i);
+
+                            continue; // go past '\n'
                         }
                         else
                         {
                             //
-                            // no "\n" found so we just mark the chars as comment till end of string
+                            // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
                             //
                             std::string comment(input.substr(i, input.size()));
+
+                            // fix the escaped newline
+                            if (IsNewLineEsc)
+                            {
+                                size_t start_pos = 0;
+                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
+                                {
+                                    comment.replace(start_pos, 3, "\\n");
+                                    start_pos += 2; // Handles case where 'to' is a substring of 'from'
+                                }
+
+                                IsNewLineEsc = false;
+                            }
+
                             i = i + (input.size() - i);
                             continue;
                         }
                     }
-                    else if (c == '*')
+                    else if (c2 == '*')
                     {
-                        size_t EndPose = input.find("*/", i);
+                        size_t EndPose = input.find("*/", i+2); // +2 for cases like /*/
 
                         if (EndPose != std::string::npos)
                         {
@@ -111,16 +136,6 @@ public:
                             std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
 
                             i = (i + (EndPose - i)) + 1; // one for /
-
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            {
-                                i++;
-
-                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                                {
-                                    i++;
-                                }
-                            }
 
                             continue;
                         }
@@ -137,6 +152,7 @@ public:
                 if (c == '"' && input[i - 1] != '\\') //&& !IdxBracket)
                 {
                     InQuotes = FALSE;
+
                     //
                     // if the quoted text is not within brackets, regard it as a StringLiteral token
                     //
@@ -166,15 +182,6 @@ public:
 
                 if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
                 {
-                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    {
-                        i++;
-                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                    }
-
                     AddBracketStringToken(tokens, current);
                     current.clear();
 
@@ -212,6 +219,12 @@ public:
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
+                    if (input[i - 1] != ' ' && !IdxBracket) // is prev cmd adjacent to "
+                    {
+                        AddStringToken(tokens, current);
+                        current.clear();
+                    }
+
                     if (input[i - 1] != '\\')
                     {
                         InQuotes = TRUE;
@@ -232,7 +245,6 @@ public:
             }
             else if (c == '{' && !InQuotes && !IdxBracket) // first {
             {
-
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
@@ -254,7 +266,20 @@ public:
                 }
             }
 
+            //
+            // ignore astray \n
+            //
+            if (c == '\\' && !InQuotes)
+            {
+                if (current.empty() && input[i + 1] == 'n')
+                {
+                    i++;
+                    continue;
+                }
+            }
+
             current += c;
+            
         }
 
         if (!current.empty() && current != " ")
@@ -271,7 +296,7 @@ public:
         {
             // error: Quote not closed
         }
-
+        
         return tokens;
     }
 
@@ -310,6 +335,30 @@ public:
      */
     VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
+        //
+        // get len of longest string
+        //
+        const int sz      = 200; // size
+        int       g_s1Len = 0, g_s2Len = 0, g_s3Len = 0;
+        int       s1 = 0, s2 = 0, s3 = 0;
+        char      LineToPrint1[sz], LineToPrint2[sz], LineToPrint3[sz];
+
+        for (const auto & Token : Tokens)
+        {
+            s1 = snprintf(LineToPrint1, sz, "CommandParsingTokenType: %s ", TokenTypeToString(std::get<0>(Token)).c_str());
+            s2 = snprintf(LineToPrint2, sz, ", Value 1: '%s'", std::get<1>(Token).c_str());
+            s3 = snprintf(LineToPrint3, sz, ", Value 2 (lower): '%s'", std::get<2>(Token).c_str());
+
+            if (s1 > g_s1Len)
+                g_s1Len = s1;
+
+            if (s2 > g_s2Len)
+                g_s2Len = s2;
+
+            if (s3 > g_s3Len)
+                g_s3Len = s3;
+        }
+
         for (const auto & Token : Tokens)
         {
             auto CaseSensitiveText = std::get<1>(Token);
@@ -344,10 +393,22 @@ public:
                 }
             }
 
-            ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
+            snprintf(LineToPrint1, sz, "CommandParsingTokenType: %s ", TokenTypeToString(std::get<0>(Token)).c_str());
+            snprintf(LineToPrint2, sz, ", Value 1: '%s'", CaseSensitiveText.c_str());
+            snprintf(LineToPrint3, sz, ", Value 2 (lower): '%s'", LowerCaseText.c_str());
+
+            ShowMessages("%-*s %-*s %-*s\n", // - for left align
+                         g_s1Len,
+                         LineToPrint1,
+                         g_s2Len,
+                         LineToPrint2,
+                         g_s3Len,
+                         LineToPrint3);
+
+            /*ShowMessages("CommandParsingTokenType: %s , Value 1: '%s', Value 2 (lower): '%s'\n",
                          TokenTypeToString(std::get<0>(Token)).c_str(),
                          CaseSensitiveText.c_str(),
-                         LowerCaseText.c_str());
+                         LowerCaseText.c_str());*/
         }
     }
 
