@@ -70,15 +70,16 @@ public:
                     {
                         size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
                         size_t NewLineChrPos = input.find('\n', i);
+                        bool   IsNewLineEsc  = input[NewLineSrtPos - 1] == '\\'; 
 
-                        if (NewLineSrtPos != std::string::npos && input[NewLineSrtPos - 1] != '\\') // is not escaped
+                        if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
                         {
                             //
                             // here we could get the comment but for now we just skip
                             //
                             std::string comment(input.substr(i, NewLineSrtPos - i));
 
-                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will alos go past another time.
+                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
                             if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
                             {
@@ -117,6 +118,20 @@ public:
                             // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
                             //
                             std::string comment(input.substr(i, input.size()));
+
+                            // fix the escaped newline
+                            if (IsNewLineEsc)
+                            {
+                                size_t start_pos = 0;
+                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
+                                {
+                                    comment.replace(start_pos, 3, "\\n");
+                                    start_pos += 2; // Handles case where 'to' is a substring of 'from'
+                                }
+
+                                IsNewLineEsc = false;
+                            }
+
                             i = i + (input.size() - i);
                             continue;
                         }
@@ -276,6 +291,7 @@ public:
             }
 
             current += c;
+            
         }
 
         if (!current.empty() && current != " ")
