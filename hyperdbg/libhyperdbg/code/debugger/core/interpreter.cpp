@@ -70,7 +70,12 @@ public:
                     {
                         size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
                         size_t NewLineChrPos = input.find('\n', i);
-                        bool   IsNewLineEsc  = input[NewLineSrtPos - 1] == '\\'; 
+
+                        bool IsNewLineEsc = false;
+                        if (NewLineSrtPos != std::string::npos)
+                        {
+                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\'; 
+                        }
 
                         if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
                         {
