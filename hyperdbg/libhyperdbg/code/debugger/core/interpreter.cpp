@@ -219,7 +219,7 @@ public:
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
-                    if (input[i - 1] != ' ' && !IdxBracket) // is prev cmd adjacent to "
+                    if (input[i - 1] != ' ' && !IdxBracket && !current.empty()) // is prev cmd adjacent to "
                     {
                         AddStringToken(tokens, current);
                         current.clear();
