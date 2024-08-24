@@ -56,6 +56,20 @@ public:
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
+
+            //
+            // 
+            //
+            if (c == '\\')
+            {
+                if (current.empty() && input[i + 1] == 'n')
+                {
+                    i++;
+                    continue;
+                }
+            }
+            
+
             if (c == '/') // start comment parse
             {
                 //
@@ -86,14 +100,14 @@ public:
 
                             i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            {
-                                i++;
-                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                                {
-                                    i++;
-                                }
-                            }
+                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                            //{
+                            //    i++;
+                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                            //    {
+                            //        i++;
+                            //    }
+                            //}
 
                             continue; 
                         }
@@ -106,14 +120,14 @@ public:
 
                             i = i + (NewLineChrPos - i);
 
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            {
-                                i++;
-                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                                {
-                                    i++;
-                                }
-                            }
+                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                            //{
+                            //    i++;
+                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                            //    {
+                            //        i++;
+                            //    }
+                            //}
 
                             continue; // go past '\n'
                         }
@@ -143,7 +157,7 @@ public:
                     }
                     else if (c2 == '*')
                     {
-                        size_t EndPose = input.find("*/", i);
+                        size_t EndPose = input.find("*/", i+2); // +2 for cases like /*/
 
                         if (EndPose != std::string::npos)
                         {
@@ -154,15 +168,15 @@ public:
 
                             i = (i + (EndPose - i)) + 1; // one for /
 
-                            if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            {
-                                i++;
+                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                            //{
+                            //    i++;
 
-                                if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                                {
-                                    i++;
-                                }
-                            }
+                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                            //    {
+                            //        i++;
+                            //    }
+                            //}
 
                             continue;
                         }
@@ -208,14 +222,14 @@ public:
 
                 if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
                 {
-                    if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    {
-                        i++;
-                        if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                    }
+                    //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
+                    //{
+                    //    i++;
+                    //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
+                    //    {
+                    //        i++;
+                    //    }
+                    //}
 
                     AddBracketStringToken(tokens, current);
                     current.clear();
