@@ -57,25 +57,12 @@ public:
         {
             char c = input[i];
 
-            //
-            // 
-            //
-            if (c == '\\')
-            {
-                if (current.empty() && input[i + 1] == 'n')
-                {
-                    i++;
-                    continue;
-                }
-            }
-            
-
             if (c == '/') // start comment parse
             {
                 //
                 // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!IdxBracket)
+                if (!IdxBracket && !InQuotes)
                 {
                     size_t j = i;
                     char   c2 = input[++j];
@@ -165,6 +152,7 @@ public:
                 if (c == '"' && input[i - 1] != '\\') //&& !IdxBracket)
                 {
                     InQuotes = FALSE;
+
                     //
                     // if the quoted text is not within brackets, regard it as a StringLiteral token
                     //
@@ -231,6 +219,12 @@ public:
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
+                    if (input[i - 1] != ' ' && !IdxBracket) // is prev cmd adjacent to "
+                    {
+                        AddStringToken(tokens, current);
+                        current.clear();
+                    }
+
                     if (input[i - 1] != '\\')
                     {
                         InQuotes = TRUE;
@@ -269,6 +263,18 @@ public:
                 {
                     IdxBracket++;
                     continue; // don't include '{' in string
+                }
+            }
+
+            //
+            // ignore astray \n
+            //
+            if (c == '\\' && !InQuotes)
+            {
+                if (current.empty() && input[i + 1] == 'n')
+                {
+                    i++;
+                    continue;
                 }
             }
 
