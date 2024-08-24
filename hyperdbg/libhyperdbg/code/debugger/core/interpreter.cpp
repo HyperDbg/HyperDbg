@@ -100,15 +100,6 @@ public:
 
                             i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
-                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            //{
-                            //    i++;
-                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                            //    {
-                            //        i++;
-                            //    }
-                            //}
-
                             continue; 
                         }
                         else if (NewLineChrPos != std::string::npos)
@@ -119,15 +110,6 @@ public:
                             std::string comment(input.substr(i, NewLineChrPos - i));
 
                             i = i + (NewLineChrPos - i);
-
-                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            //{
-                            //    i++;
-                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                            //    {
-                            //        i++;
-                            //    }
-                            //}
 
                             continue; // go past '\n'
                         }
@@ -167,16 +149,6 @@ public:
                             std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
 
                             i = (i + (EndPose - i)) + 1; // one for /
-
-                            //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                            //{
-                            //    i++;
-
-                            //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                            //    {
-                            //        i++;
-                            //    }
-                            //}
 
                             continue;
                         }
@@ -222,15 +194,6 @@ public:
 
                 if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
                 {
-                    //if (input[i + 1] == ' ' || input[i + 1] == '\n') // handling " " and "\n"
-                    //{
-                    //    i++;
-                    //    if (input[i + 1] == ' ' || input[i + 1] == '\n')
-                    //    {
-                    //        i++;
-                    //    }
-                    //}
-
                     AddBracketStringToken(tokens, current);
                     current.clear();
 
