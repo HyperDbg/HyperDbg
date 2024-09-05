@@ -61,20 +61,26 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
             ShowMessages("current symbol server is : %s\n", SymbolServer.c_str());
         }
     }
-    else if (CommandTokens.size() != 2)
-    {
-        ShowMessages("incorrect use of the '%s'\n\n",
-                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-        CommandSympathHelp();
-        return;
-    }
     else
     {
         //
         // Save the symbol path
         //
 
-        std::string TargetSymPath = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1));
+        //
+        // Trim the command
+        //
+        Trim(Command);
+
+        //
+        // Remove .sympath from it
+        //
+        Command.erase(0, GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).size());
+
+        //
+        // Trim it again
+        //
+        Trim(Command);
 
         //
         // *** validate the symbols ***
@@ -84,16 +90,13 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
         // Check if the string contains '*'
         //
         char Delimiter = '*';
-        if (TargetSymPath.find(Delimiter) != std::string::npos)
+        if (Command.find(Delimiter) != std::string::npos)
         {
             //
             // Found
             //
-            Token = TargetSymPath.substr(0, TargetSymPath.find(Delimiter));
-
-            //
+            Token = Command.substr(0, Command.find(Delimiter));
             // using transform() function and ::tolower in STL
-            //
             transform(Token.begin(), Token.end(), Token.begin(), ::tolower);
 
             //
@@ -104,7 +107,7 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
                 //
                 // Save the config
                 //
-                CommandSettingsSetValueFromConfigFile("SymbolServer", TargetSymPath);
+                CommandSettingsSetValueFromConfigFile("SymbolServer", Command);
 
                 //
                 // Show the message
