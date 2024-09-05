@@ -26,6 +26,7 @@ New release of the HyperDbg Debugger.
 - Fix script engine bugs on order of passing arguments to functions (#453) ([link](https://github.com/HyperDbg/HyperDbg/issues/453))
 - Fix the script test case for factorial computation ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
 - Fix the script test case for computation iterative Fibonacci ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
+- Fix miscomputation of physical address width for physical address validity checks (#469) ([link](https://github.com/HyperDbg/HyperDbg/issues/469))
 
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.
