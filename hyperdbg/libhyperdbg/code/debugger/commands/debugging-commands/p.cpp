@@ -117,22 +117,10 @@ CommandP(vector<CommandToken> CommandTokens, string Command)
             //   (float)StepCount), i);
             //
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
+            //
+            // Perform Step-over
+            //
+            SteppingStepOver();
 
             if (CompareLowerCaseStrings(CommandTokens.at(0), "pr"))
             {

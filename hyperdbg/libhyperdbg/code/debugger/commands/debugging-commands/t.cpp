@@ -52,8 +52,7 @@ CommandTHelp()
 VOID
 CommandT(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32                           StepCount;
-    DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
+    UINT32 StepCount;
 
     //
     // Validate the commands
@@ -65,11 +64,6 @@ CommandT(vector<CommandToken> CommandTokens, string Command)
         CommandTHelp();
         return;
     }
-
-    //
-    // Set type of step
-    //
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN;
 
     //
     // Check if the command has a counter parameter
@@ -117,22 +111,10 @@ CommandT(vector<CommandToken> CommandTokens, string Command)
             //   (float)StepCount), i);
             //
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
+            //
+            // Instrument (regular) the instruction
+            //
+            SteppingRegularStepIn();
 
             if (CompareLowerCaseStrings(CommandTokens.at(0), "tr"))
             {

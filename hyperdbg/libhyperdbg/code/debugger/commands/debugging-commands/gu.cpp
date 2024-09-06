@@ -51,9 +51,9 @@ CommandGuHelp()
 VOID
 CommandGu(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32                           StepCount;
-    DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
-    BOOLEAN                          BreakOnNextInstruction = FALSE;
+    UINT32  StepCount;
+    BOOLEAN LastInstruction        = FALSE;
+    BOOLEAN BreakOnNextInstruction = FALSE;
 
     //
     // Validate the commands
@@ -65,11 +65,6 @@ CommandGu(vector<CommandToken> CommandTokens, string Command)
         CommandGuHelp();
         return;
     }
-
-    //
-    // Set type of request
-    //
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU;
 
     //
     // Check if the command has a counter parameter
@@ -131,25 +126,13 @@ CommandGu(vector<CommandToken> CommandTokens, string Command)
                 //
                 // It's the last instruction, so we gonna show the instruction
                 //
-                RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION;
+                LastInstruction = TRUE;
             }
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
+            //
+            // Perform a GU step
+            //
+            SteppingStepOverForGu(LastInstruction);
 
             //
             // Check if user pressed CTRL+C

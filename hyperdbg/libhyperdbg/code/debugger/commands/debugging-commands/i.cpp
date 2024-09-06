@@ -55,8 +55,7 @@ CommandIHelp()
 VOID
 CommandI(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32                           StepCount;
-    DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
+    UINT32 StepCount;
 
     //
     // Validate the commands
@@ -77,11 +76,6 @@ CommandI(vector<CommandToken> CommandTokens, string Command)
         ShowMessages("the instrumentation step-in is only supported in Debugger Mode\n");
         return;
     }
-
-    //
-    // Set type of step
-    //
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN;
 
     //
     // Check if the command has a counter parameter
@@ -122,7 +116,7 @@ CommandI(vector<CommandToken> CommandTokens, string Command)
             //
             // It's stepping over serial connection in kernel debugger
             //
-            KdSendStepPacketToDebuggee(RequestFormat);
+            SteppingInstrumentationStepIn();
 
             if (CompareLowerCaseStrings(CommandTokens.at(0), "ir"))
             {

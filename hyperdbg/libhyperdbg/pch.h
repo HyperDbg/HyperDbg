@@ -164,6 +164,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/pe-parser.h"
 #include "header/ud.h"
 #include "header/objects.h"
+#include "header/steppings.h"
 #include "header/rev-ctrl.h"
 #include "header/assembler.h"
 

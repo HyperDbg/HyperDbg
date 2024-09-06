@@ -65,7 +65,7 @@ IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_test_command_parser_show_tokens(CHAR * command);
 
 //
-// General imports
+// General imports/exports
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, UINT32 buffer_len, BOOLEAN check_file_existence);
@@ -202,6 +202,25 @@ hyperdbg_u_pause_debuggee();
 //
 VOID
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer);
+
+//
+// Stepping and tracing instruction
+// Exported functionality of 't', 'p', 'i', '!track', 'gu' commands
+//
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in();
+
+BOOLEAN
+hyperdbg_u_stepping_regular_step_in();
+
+BOOLEAN
+hyperdbg_u_stepping_step_over();
+
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in_for_tracking();
+
+BOOLEAN
+hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction);
 
 //
 // Start a process

@@ -626,3 +626,60 @@ hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, 
 {
     return SetupPathForFileName(filename, file_location, buffer_len, check_file_existence);
 }
+
+/**
+ * @brief Perform instrumentation step-in
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in()
+{
+    return SteppingInstrumentationStepIn();
+}
+
+/**
+ * @brief Perform regular step-in
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_regular_step_in()
+{
+    return SteppingRegularStepIn();
+}
+
+/**
+ * @brief Perform step-over
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_step_over()
+{
+    return SteppingStepOver();
+}
+
+/**
+ * @brief Perform instrumentation step-in for tracking
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in_for_tracking()
+{
+    return SteppingInstrumentationStepInForTracking();
+}
+
+/**
+ * @brief Perform step-over for gu
+ *
+ * @param last_instruction
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction)
+{
+    return SteppingStepOverForGu(last_instruction);
+}
