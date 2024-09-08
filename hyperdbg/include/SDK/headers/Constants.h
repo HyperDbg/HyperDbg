@@ -17,8 +17,8 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 11
-#define VERSION_PATCH 0
+#define VERSION_MINOR 10
+#define VERSION_PATCH 1
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
