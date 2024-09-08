@@ -26,16 +26,12 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
 //////////////////////////////////////////////////
 
 BOOL
-ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
-                    ACTION_BUFFER *                ActionDetail,
-                    SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-                    SYMBOL_BUFFER *                CodeBuffer,
-                    UINT64 *                       Indx,
-                    SYMBOL_BUFFER *                StackBuffer,
-                    UINT64 *                       StackIndx,
-                    UINT64 *                       StackBaseIndx,
-                    SYMBOL *                       ErrorOperator,
-                    UINT64 *                       ReturnValue);
+ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
+                    ACTION_BUFFER *                  ActionDetail,
+                    PSCRIPT_ENGINE_GENERAL_REGISTERS ScriptGeneralRegisters,
+                    SYMBOL_BUFFER *                  CodeBuffer,
+                    UINT64 *                         Indx,
+                    SYMBOL *                         ErrorOperator);
 
 UINT64
 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);

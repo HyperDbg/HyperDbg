@@ -177,9 +177,9 @@ UdPrintError()
  * @brief List of threads by owner process id
  *
  * @param OwnerPID
- * @return BOOL if there was an error then returns false, otherwise return true
+ * @return BOOLEAN if there was an error then returns false, otherwise return true
  */
-BOOL
+BOOLEAN
 UdListProcessThreads(DWORD OwnerPID)
 {
     HANDLE        ThreadSnap = INVALID_HANDLE_VALUE;

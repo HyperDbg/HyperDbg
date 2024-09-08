@@ -45,21 +45,23 @@ CommandListenHelp()
 /**
  * @brief listen command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandListen(vector<string> SplitCommand, string Command)
+CommandListen(vector<CommandToken> CommandTokens, string Command)
 {
-    string port;
+    string Port;
 
-    if (SplitCommand.size() >= 3)
+    if (CommandTokens.size() >= 3)
     {
         //
         // Means that user entered invalid parameters
         //
-        ShowMessages("incorrect use of the '.listen'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandListenHelp();
         return;
     }
@@ -82,7 +84,7 @@ CommandListen(vector<string> SplitCommand, string Command)
         return;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // listen on default port
@@ -92,16 +94,16 @@ CommandListen(vector<string> SplitCommand, string Command)
 
         return;
     }
-    else if (SplitCommand.size() == 2)
+    else if (CommandTokens.size() == 2)
     {
-        port = SplitCommand.at(1);
+        Port = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1));
 
         //
         // means that probably wants to listen
         // on a specific port, let's see if the
         // port is valid or not
         //
-        if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0)
+        if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
         {
             ShowMessages("incorrect port\n");
             return;
@@ -110,12 +112,13 @@ CommandListen(vector<string> SplitCommand, string Command)
         //
         // listen on the port
         //
-        ShowMessages("listening on %s ...\n", port.c_str());
-        RemoteConnectionListen(port.c_str());
+        ShowMessages("listening on %s ...\n", Port.c_str());
+        RemoteConnectionListen(Port.c_str());
     }
     else
     {
-        ShowMessages("incorrect use of the '.listen'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandListenHelp();
         return;
     }

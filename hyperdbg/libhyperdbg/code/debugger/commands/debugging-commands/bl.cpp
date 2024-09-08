@@ -32,21 +32,23 @@ CommandBlHelp()
 /**
  * @brief handler of the bl command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandBl(vector<string> SplitCommand, string Command)
+CommandBl(vector<CommandToken> CommandTokens, string Command)
 {
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the 'bl'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandBlHelp();
         return;
     }

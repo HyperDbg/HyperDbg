@@ -15,14 +15,16 @@
 #    define SCANNER_H
 
 /**
- * @brief lookup table for storing Ids
+ * @brief lookup table for storing global Ids
  */
-PTOKEN_LIST IdTable;
+PTOKEN_LIST GlobalIdTable;
 
 /**
  * @brief
  */
-PTOKEN_LIST FunctionParameterIdTable;
+PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
+
+PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction;
 
 /**
  * @brief number of read characters from input
@@ -65,4 +67,7 @@ IsId(char * str);
 
 char
 IsRegister(char * str);
+
+char
+IsVariableType(char * str);
 #endif // !SCANNER_H

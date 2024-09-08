@@ -146,6 +146,7 @@
     <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\rev-ctrl.h" />
     <ClInclude Include="header\script-engine.h" />
+    <ClInclude Include="header\steppings.h" />
     <ClInclude Include="header\symbol.h" />
     <ClInclude Include="header\tests.h" />
     <ClInclude Include="header\transparency.h" />
@@ -183,6 +184,7 @@
     <ClCompile Include="code\debugger\core\break-control.cpp" />
     <ClCompile Include="code\debugger\core\debugger.cpp" />
     <ClCompile Include="code\debugger\core\interpreter.cpp" />
+    <ClCompile Include="code\debugger\core\steppings.cpp" />
     <ClCompile Include="code\debugger\kernel-level\kd.cpp" />
     <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp" />
     <ClCompile Include="code\debugger\misc\assembler.cpp" />

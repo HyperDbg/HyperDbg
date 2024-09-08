@@ -1813,11 +1813,12 @@ KdCommandPacketAndBufferToDebuggee(
 
 /**
  * @brief check if the debuggee needs to be paused
+ * @param SignalRunningFlag
  *
  * @return VOID
  */
 VOID
-KdBreakControlCheckAndPauseDebugger()
+KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
 {
     //
     // Check if debuggee is running, otherwise the user
@@ -1836,7 +1837,10 @@ KdBreakControlCheckAndPauseDebugger()
         //
         // Signal the event
         //
-        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+        if (SignalRunningFlag)
+        {
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+        }
     }
 }
 
@@ -1943,11 +1947,15 @@ KdTheRemoteSystemIsRunning()
  * @details wait to connect to debuggee (this is debugger)
  *
  * @param SerialHandle
+ * @param IsNamedPipe
+ * @param PauseAfterConnection
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
-                                        BOOLEAN IsNamedPipe)
+                                        BOOLEAN IsNamedPipe,
+                                        BOOLEAN PauseAfterConnection)
 {
     BOOL  Status;        /* Status */
     DWORD EventMask = 0; /* Event mask to trigger */
@@ -2055,19 +2063,32 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
         g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
 
         //
-        // Now, the user can press ctrl+c to pause the debuggee
-        //
-        ShowMessages("press CTRL+C to pause the debuggee\n");
-
-        //
         // Process CTRL+C breaks again
         //
         g_IgnorePauseRequests = FALSE;
 
         //
-        // Wait for event on this thread
+        // Now, the user can press ctrl+c to pause the debuggee
         //
-        KdTheRemoteSystemIsRunning();
+        ShowMessages("press CTRL+C to pause the debuggee\n");
+
+        //
+        // If the user wants to pause after connection
+        //
+        if (PauseAfterConnection)
+        {
+            //
+            // Pause the target debuggee after connection
+            //
+            KdBreakControlCheckAndPauseDebugger(FALSE);
+        }
+        else
+        {
+            //
+            // Wait for event on this thread
+            //
+            KdTheRemoteSystemIsRunning();
+        }
     }
 
     return TRUE;
@@ -2220,10 +2241,17 @@ StartAgain:
  * @param Port
  * @param IsPreparing
  * @param IsNamedPipe
+ * @param PauseAfterConnection
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port, BOOLEAN IsPreparing, BOOLEAN IsNamedPipe)
+KdPrepareAndConnectDebugPort(const CHAR * PortName,
+                             DWORD        Baudrate,
+                             UINT32       Port,
+                             BOOLEAN      IsPreparing,
+                             BOOLEAN      IsNamedPipe,
+                             BOOLEAN      PauseAfterConnection)
 {
     HANDLE                     Comm;               /* Handle to the Serial port */
     BOOL                       Status;             /* Status */
@@ -2642,7 +2670,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         // If we are here, then it's a debugger (not debuggee)
         // let's prepare the debuggee
         //
-        KdPrepareSerialConnectionToRemoteSystem(Comm, IsNamedPipe);
+        KdPrepareSerialConnectionToRemoteSystem(Comm, IsNamedPipe, PauseAfterConnection);
     }
 
     //

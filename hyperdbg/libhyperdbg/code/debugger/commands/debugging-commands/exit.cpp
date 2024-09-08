@@ -35,16 +35,18 @@ CommandExitHelp()
 /**
  * @brief exit command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandExit(vector<string> SplitCommand, string Command)
+CommandExit(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the 'exit'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandExitHelp();
         return;
     }

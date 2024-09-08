@@ -191,19 +191,15 @@ VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
 
 VOID
-ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
-                           ACTION_BUFFER *                ActionDetail,
-                           SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-                           UINT64                         Tag,
-                           BOOLEAN                        ImmediateMessagePassing,
-                           char *                         Format,
-                           UINT64                         ArgCount,
-                           PSYMBOL                        FirstArg,
-                           BOOLEAN *                      HasError,
-                           SYMBOL_BUFFER *                StackBuffer,
-                           UINT64 *                       StackIndx,
-                           UINT64 *                       StackBaseIndx,
-                           UINT64 *                       ReturnValue);
+ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,
+                           ACTION_BUFFER *                   ActionDetail,
+                           SCRIPT_ENGINE_GENERAL_REGISTERS * ScriptGeneralRegisters,
+                           UINT64                            Tag,
+                           BOOLEAN                           ImmediateMessagePassing,
+                           char *                            Format,
+                           UINT64                            ArgCount,
+                           PSYMBOL                           FirstArg,
+                           BOOLEAN *                         HasError);
 
 VOID
 ScriptEngineFunctionEventInject(UINT32 InterruptionType, UINT32 Vector, BOOL * HasError);

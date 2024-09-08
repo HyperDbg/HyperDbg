@@ -72,12 +72,12 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
     }
 
     //
-    // Insure driver file is in the specified directory.
+    // Insure test file is in the specified directory
     //
     if ((fileHandle = CreateFile(TestLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
         INVALID_HANDLE_VALUE)
     {
-        ShowMessages("%s.exe is not loaded.\n", TEST_PROCESS_NAME);
+        ShowMessages("%s.exe is not loaded\n", TEST_PROCESS_NAME);
 
         //
         // Indicate failure.
@@ -295,6 +295,63 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
 
     free(BufferToRead);
     free(BufferToSend);
+
+    return FALSE;
+}
+
+/**
+ * @brief Opens test process
+ *
+ * @param ThreadHandle Pointer to receive Thread Handle
+ * @param ProcessHandle Pointer to receive Process Handle
+ * @param Args Arguments
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+OpenHyperDbgTestProcess(PHANDLE ThreadHandle,
+                        PHANDLE ProcessHandle,
+                        CHAR *  Args)
+{
+    PROCESS_INFORMATION ProcessInfo       = {0};
+    STARTUPINFO         StartupInfo       = {0};
+    CHAR                CmdArgs[MAX_PATH] = {0};
+
+    //
+    // the only compulsory field
+    //
+    StartupInfo.cb = sizeof(StartupInfo);
+
+    //
+    // Set-up path
+    //
+    if (!SetupTestName(g_TestLocation, sizeof(g_TestLocation)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Format CmdArgs to include executable and its arguments
+    //
+    sprintf_s(CmdArgs, sizeof(CmdArgs), "\"%s\" %s", g_TestLocation, Args);
+
+    //
+    // Open test process
+    //
+    if (CreateProcessA(NULL, CmdArgs, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo, &ProcessInfo))
+    {
+        //
+        // Set the output handles
+        //
+        *ThreadHandle  = ProcessInfo.hThread;
+        *ProcessHandle = ProcessInfo.hProcess;
+
+        return TRUE;
+    }
+    else
+    {
+        ShowMessages("err, CreateProcess failed with error %x\n", GetLastError());
+    }
 
     return FALSE;
 }

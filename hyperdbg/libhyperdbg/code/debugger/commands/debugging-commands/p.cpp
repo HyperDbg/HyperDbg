@@ -44,12 +44,13 @@ CommandPHelp()
 /**
  * @brief handler of p command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandP(vector<string> SplitCommand, string Command)
+CommandP(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32                           StepCount;
     DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -57,9 +58,10 @@ CommandP(vector<string> SplitCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
+    if (CommandTokens.size() != 1 && CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'p'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPHelp();
         return;
     }
@@ -72,9 +74,9 @@ CommandP(vector<string> SplitCommand, string Command)
     //
     // Check if the command has a counter parameter
     //
-    if (SplitCommand.size() == 2)
+    if (CommandTokens.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
+        if (!ConvertTokenToUInt32(CommandTokens.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandPHelp();
@@ -115,24 +117,12 @@ CommandP(vector<string> SplitCommand, string Command)
             //   (float)StepCount), i);
             //
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
+            //
+            // Perform Step-over
+            //
+            SteppingStepOver();
 
-            if (!SplitCommand.at(0).compare("pr"))
+            if (CompareLowerCaseStrings(CommandTokens.at(0), "pr"))
             {
                 //
                 // Show registers

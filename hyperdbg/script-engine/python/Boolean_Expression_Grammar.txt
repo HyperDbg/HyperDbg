@@ -108,6 +108,13 @@ E12->_octal @PUSH
 E12->_binary @PUSH
 E12->_pseudo_register @PUSH
 
+E12->E13 ( VA2 ) @END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE
+E13->_function_id @PUSH
+
+VA2->eps
+VA2->EXP VA3
+VA3->, EXP VA3
+VA3->eps
 
 STRING->_string @PUSH
 WSTRING->_wstring @PUSH

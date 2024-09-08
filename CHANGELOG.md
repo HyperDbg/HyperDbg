@@ -4,11 +4,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1.0] - 2024-09-08
+New release of the HyperDbg Debugger.
+
+### Added
+- Added feature to pause the debuggee immediately upon connection
+- The '.debug' command now supports pausing the debuggee at startup ([link](https://docs.hyperdbg.org/commands/meta-commands/.debug))
+- Export SDK API for assembling instructions
+- The 'struct' command now supports a path as output ([link](https://docs.hyperdbg.org/commands/debugging-commands/struct))
+- Export SDK API closing connection to the remote debuggee
+- Automated tests for the main command parser
+- Export SDK APIs for stepping and tracing instructions
+- Export SDK APIs for tracking execution
+
+### Changed
+- HyperDbg command-line comment sign is changed from '#' to C-like comments ('//' and '/**/')
+- Integrating a new command parser for the regular HyperDbg commands
+- Fix showing a list of active outputs using the 'output' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/output))
+- Fix the issue of passing arguments to the '.start' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- Fix the problem with parsing multiple spaces within the events (#420) ([link](https://github.com/HyperDbg/HyperDbg/issues/420))
+- Fix the problem with escaping '{' in the command parser (#421) ([link](https://github.com/HyperDbg/HyperDbg/issues/421))
+- Fix nested brackets issues in the main command parser
+- Fix script engine bugs on order of passing arguments to functions (#453) ([link](https://github.com/HyperDbg/HyperDbg/issues/453))
+- Fix the script test case for factorial computation ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
+- Fix the script test case for computation iterative Fibonacci ([link](https://github.com/HyperDbg/script-engine-test/blob/main/semantic-test-cases/manual-test-cases_60-69.ds))
+- Fix miscomputation of physical address width for physical address validity checks (#469) ([link](https://github.com/HyperDbg/HyperDbg/issues/469))
+
 ## [0.10.0.0] - 2024-07-22
 New release of the HyperDbg Debugger.
 
 ### Added
 - Support using assembly conditions and codes in all events ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-a-condition))([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/how-to-create-an-action))
+- Added support for forwarding events to binary (DLL) modules ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding))([link](https://docs.hyperdbg.org/commands/debugging-commands/output))([link](https://github.com/HyperDbg/event-forwarding-examples))
 - Added the assembler command 'a' for virtual memory ([link](https://docs.hyperdbg.org/commands/debugging-commands/a))
 - Added the assembler command '!a' for physical memory ([link](https://docs.hyperdbg.org/commands/extension-commands/a))
 - Providing a unified SDK API for reading memory in the VMI Mode and the Debugger Mode

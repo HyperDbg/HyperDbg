@@ -32,37 +32,24 @@ CommandXHelp()
 /**
  * @brief x command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandX(vector<string> SplitCommand, string Command)
+CommandX(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'x'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandXHelp();
         return;
     }
 
     //
-    // Trim the command
-    //
-    Trim(Command);
-
-    //
-    // Remove x from it
-    //
-    Command.erase(0, SplitCommand.at(0).size());
-
-    //
-    // Trim it again
-    //
-    Trim(Command);
-
-    //
     // Search for mask
     //
-    ScriptEngineSearchSymbolForMaskWrapper(Command.c_str());
+    ScriptEngineSearchSymbolForMaskWrapper(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
 }

@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/Imports/User/HyperDbgLibImports.h"
+#include "SDK/imports/user/HyperDbgLibImports.h"
 
 using namespace std;
 
@@ -151,7 +151,7 @@ main(int argc, char * argv[])
             previous_command = current_command;
         }
 
-        INT CommandExecutionResult = hyperdbg_u_interpreter((CHAR *)current_command.c_str());
+        INT CommandExecutionResult = hyperdbg_u_run_command((CHAR *)current_command.c_str());
 
         //
         // if the debugger encounters an exit state then the return will be 1

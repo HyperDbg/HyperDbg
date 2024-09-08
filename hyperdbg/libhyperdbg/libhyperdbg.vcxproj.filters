@@ -167,6 +167,9 @@
     <ClInclude Include="header\assembler.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\steppings.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -549,6 +552,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\misc\assembler.cpp">
       <Filter>code\debugger\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\steppings.cpp">
+      <Filter>code\debugger\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

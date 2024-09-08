@@ -30,20 +30,23 @@ CommandUnhideHelp()
 /**
  * @brief !unhide command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandUnhide(vector<string> SplitCommand, string Command)
+CommandUnhide(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN                                     Status;
     ULONG                                       ReturnedLength;
     DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE UnhideRequest = {0};
 
-    if (SplitCommand.size() >= 2)
+    if (CommandTokens.size() >= 2)
     {
-        ShowMessages("incorrect use of the '!unhide'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
         CommandUnhideHelp();
         return;
     }

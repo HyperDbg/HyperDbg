@@ -6,7 +6,7 @@ HyperDbg is a large-scale project that requires a lot of time and effort from th
 
 ## Things to Work on
 
-Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discussions) or an [issue](https://github.com/HyperDbg/HyperDbg/issues), or even better, join the [HyperDbg groups](https://t.me/HyperDbg) on social media. Discuss the way you want to implement your changes and inform developers, because we often see people simultaneously working on the same issue. To avoid this collision, make sure to inform us before you start developing.
+Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discussions) or an [issue](https://github.com/HyperDbg/HyperDbg/issues), or even better, join the HyperDbg groups ([Telegram](https://t.me/HyperDbg), [Discord](https://discord.gg/anSPsGUtzN), [Matrix](https://matrix.to/#/#hyperdbg-discussion:matrix.org)) on social media. Discuss the way you want to implement your changes and inform developers, because we often see people simultaneously working on the same issue. To avoid this collision, make sure to inform us before you start developing.
 
 - Writing blog posts and creating videos about use-cases of HyperDbg (make sure to add it to the [awesome](https://github.com/HyperDbg/awesome) repository).
 - Fixing unresolved GitHub [issues](https://github.com/HyperDbg/HyperDbg/issues).
@@ -28,6 +28,7 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Helping us start supporting HyperDbg on Linux (discussion needed).
 - Helping us start supporting HyperDbg on AMD processors (discussion needed).
 - Adding digital (FPGA) modules to the hwdbg hardware debugger.
+- Creating a [ret-sync](https://github.com/bootleg/ret-sync) module for HyperDbg.
 - Adding fuzzing capabilities to HyperDbg (maybe integrating [AFL++](https://github.com/AFLplusplus/AFLplusplus) into HyperDbg).
 - Working on live memory migration and adding support for kernel-mode time travel debugging.
 - Integrating the [z3 project](https://github.com/Z3Prover/z3) into HyperDbg and adding commands based on the z3 solver.

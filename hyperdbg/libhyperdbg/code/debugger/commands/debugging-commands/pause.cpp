@@ -63,19 +63,24 @@ CommandPauseRequest()
 /**
  * @brief pause command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandPause(vector<string> SplitCommand, string Command)
+CommandPause(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the 'pause'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPauseHelp();
         return;
     }
 
+    //
+    // request to pause
+    //
     CommandPauseRequest();
 }

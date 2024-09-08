@@ -751,8 +751,7 @@ IsTagExist(UINT64 Tag)
  * script in this command split and the details are returned in the
  * input structure
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive case sensitive split command
+ * @param CommandTokens command tokens
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -760,241 +759,46 @@ IsTagExist(UINT64 Tag)
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> * SplitCommand,
-                vector<string> * SplitCommandCaseSensitive,
-                PBOOLEAN         ScriptSyntaxErrors,
-                PUINT64          BufferAddress,
-                PUINT32          BufferLength,
-                PUINT32          Pointer,
-                PUINT64          ScriptCodeBuffer)
+InterpretScript(vector<CommandToken> * CommandTokens,
+                PBOOLEAN               ScriptSyntaxErrors,
+                PUINT64                BufferAddress,
+                PUINT32                BufferLength,
+                PUINT32                Pointer,
+                PUINT64                ScriptCodeBuffer)
 {
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         AppendedFinalBuffer;
-    vector<string> SaveBuffer;
-    vector<int>    IndexesToRemove;
-    UINT32         Index            = 0;
-    UINT32         NewIndexToRemove = 0;
-    INT32          OpenBracket      = 0; // Should be signed
-    UINT32         CountOfOpenBrackets;
-    UINT32         CountOfCloseBrackets;
-    UINT32         IndexInCommandCaseSensitive       = 0;
-    vector<string> SplitCommandCaseSensitiveInstance = *SplitCommandCaseSensitive;
-    string         TempStr;
+    BOOLEAN IsTextVisited       = FALSE;
+    string  TargetBracketString = "";
+
+    vector<int> IndexesToRemove;
+    UINT32      Index            = 0;
+    UINT32      NewIndexToRemove = 0;
 
     //
     // Indicate that there is an error at first
     //
     *ScriptSyntaxErrors = TRUE;
 
-    for (auto Section : *SplitCommand)
+    for (auto Section : *CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
         Index++;
 
-        if (IsInState)
-        {
-            if (OpenBracket == 0 && Section.find('{') == string::npos)
-            {
-                //
-                // Check if the buffer is ended or not
-                //
-                if (!Section.compare("}"))
-                {
-                    //
-                    // Save to remove this string from the command
-                    //
-                    IndexesToRemove.push_back(Index);
-                    IsEnded = TRUE;
-                    break;
-                }
-
-                //
-                // Check if the script is end or not
-                //
-                if (HasEnding(Section, "}"))
-                {
-                    //
-                    // Save to remove this string from the command
-                    //
-                    IndexesToRemove.push_back(Index);
-
-                    //
-                    // remove the last character and append it to the ConditionBuffer
-                    //
-                    TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
-                    SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                    IsEnded = TRUE;
-                    break;
-                }
-            }
-
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            //
-            // Check if script contains bracket "{"
-            //
-            if (Section.find('{') != string::npos)
-            {
-                //
-                // We find a { between the script
-                //
-
-                //
-                // Check the count of brackets in the string and add it to OpenBracket
-                //
-                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
-
-                //
-                // Add it to the open brackets
-                //
-                OpenBracket += CountOfBrackets;
-            }
-
-            //
-            // Check if script contains bracket "}"
-            //
-            if (Section.find('}') != string::npos)
-            {
-                //
-                // We find a } between the script
-                //
-
-                //
-                // Check the count of brackets in the string and add it to OpenBracket
-                //
-                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
-
-                //
-                // Add it to the open brackets
-                //
-                OpenBracket -= CountOfBrackets;
-
-                if (OpenBracket < 0)
-                {
-                    OpenBracket = 0;
-                    IsEnded     = TRUE;
-                    TempStr     = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
-                    SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-                    break;
-                }
-            }
-
-            //
-            // Add the text as the script screen
-            //
-            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
-
-            //
-            // We want to stay in this condition
-            //
-            continue;
-        }
-
-        if (IsTextVisited && !Section.compare("{"))
+        if (IsTextVisited && IsTokenBracketString(Section))
         {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
-            IsInState = TRUE;
+            //
+            // Fill the bracket string
+            //
+            TargetBracketString = GetCaseSensitiveStringFromCommandToken(Section);
+
+            IsTextVisited = FALSE;
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
-        {
-            //
-            // Section starts with {
-            //
-
-            //
-            // Check if script contains bracket "{"
-            //
-            if (Section.find('{') != string::npos)
-            {
-                //
-                // We find a { between the script
-                //
-
-                //
-                // Check the count of brackets in the string and add it to OpenBracket
-                //
-                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '{');
-
-                //
-                // Add it to the open brackets (-1 because script starts with { which
-                // is not related to our interpretation of script)
-                //
-                OpenBracket += CountOfBrackets - 1;
-            }
-
-            //
-            // Check if it ends with }
-            //
-            if (OpenBracket == 0 && HasEnding(Section, "}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Check if script contains bracket "}"
-            //
-            if (Section.find('}') != string::npos)
-            {
-                //
-                // We find a } between the script
-                //
-
-                //
-                // Check the count of brackets in the string and add it to OpenBracket
-                //
-                UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
-
-                //
-                // Add it to the open brackets
-                //
-                OpenBracket -= CountOfBrackets;
-
-                if (OpenBracket < 0)
-                {
-                    OpenBracket = 0;
-                    IsEnded     = TRUE;
-                    TempStr     = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
-                    SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-                    break;
-                }
-            }
-
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
-
-            IsInState = TRUE;
-            continue;
-        }
-
-        //
-        // Check if it's a script
-        //
-        if (!Section.compare("script"))
+        if (CompareLowerCaseStrings(Section, "script"))
         {
             //
             // Save to remove this string from the command
@@ -1003,158 +807,31 @@ InterpretScript(vector<string> * SplitCommand,
 
             IsTextVisited = TRUE;
             continue;
-        }
-
-        //
-        // Check if it's a script with script{
-        //
-        if (!Section.compare("script{"))
-        {
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            IsTextVisited = TRUE;
-            IsInState     = TRUE;
-            continue;
-        }
-
-        //
-        // It's a script
-        //
-        if (Section.rfind("script{", 0) == 0)
-        {
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            IsTextVisited        = TRUE;
-            IsInState            = TRUE;
-            CountOfOpenBrackets  = (UINT32)count(Section.begin(), Section.end(), '{');
-            CountOfCloseBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
-
-            //
-            // Check if script contains bracket "{"
-            //
-            if (Section.find('{') != string::npos)
-            {
-                //
-                // We find a { between the script
-                //
-
-                //
-                // Add it to the open brackets (-1 because script starts with { which
-                // is not related to our interpretation of script)
-                //
-                OpenBracket += CountOfOpenBrackets - 1;
-            }
-
-            if (CountOfOpenBrackets == CountOfCloseBrackets || (OpenBracket == 0 && HasEnding(Section, "}")))
-            {
-                //
-                // remove the last character and first character append it to the
-                // ConditionBuffer
-                //
-                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded     = TRUE;
-                OpenBracket = 0;
-                break;
-            }
-            else
-            {
-                //
-                // Section starts with script{
-                //
-                SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
-
-                //
-                // Check if script contains bracket "}"
-                //
-                if (Section.find('}') != string::npos)
-                {
-                    //
-                    // We find a } between the script
-                    //
-
-                    //
-                    // Check the count of brackets in the string and add it to OpenBracket
-                    //
-                    UINT32 CountOfBrackets = (UINT32)count(Section.begin(), Section.end(), '}');
-
-                    //
-                    // Add it to the open brackets
-                    //
-                    OpenBracket -= CountOfBrackets;
-
-                    if (OpenBracket < 0)
-                    {
-                        OpenBracket = 0;
-                        IsEnded     = TRUE;
-                    }
-                }
-
-                continue;
-            }
         }
     }
 
     //
-    // Now we have everything in script buffer
+    // Now we have everything in buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
+    if (TargetBracketString.length() == 0)
     {
         //
-        // Nothing in condition buffer, return zero
+        // Nothing in output buffer, return zero
         //
         return FALSE;
     }
 
-    //
-    // Check if we see that all the '{' ended with '}' or not
-    //
-    if (OpenBracket != 0)
-    {
-        //
-        // Not all open brackets close with a }
-        //
-        return FALSE;
-    }
-
-    //
-    // Check if we see '}' at the end
-    //
-    if (!IsEnded)
-    {
-        //
-        // Nothing in condition buffer, return zero
-        //
-        return FALSE;
-    }
-
-    //
-    // If we reach here then there is sth in script buffer
-    //
-    for (auto Section : SaveBuffer)
-    {
-        AppendedFinalBuffer.append(Section);
-        AppendedFinalBuffer.append(" ");
-    }
-
-    if (AppendedFinalBuffer.rfind("file:", 0) == 0)
+    if (TargetBracketString.rfind("file:", 0) == 0)
     {
         //
         // It's a file script
         //
-        std::ifstream     t(AppendedFinalBuffer.erase(0, 5).c_str());
+        std::ifstream     t(TargetBracketString.erase(0, 5).c_str());
         std::stringstream buffer;
         buffer << t.rdbuf();
-        AppendedFinalBuffer = buffer.str();
-        if (AppendedFinalBuffer.empty())
+        TargetBracketString = buffer.str();
+        if (TargetBracketString.empty())
         {
             ShowMessages("err, either script file is not found or it's empty\n");
 
@@ -1170,12 +847,12 @@ InterpretScript(vector<string> * SplitCommand,
         }
     }
 
-    // ShowMessages("script : %s\n", AppendedFinalBuffer.c_str());
+    // ShowMessages("script : %s\n", TargetBracketString.c_str());
 
     //
     // Run script engine handler
     //
-    PVOID CodeBuffer = ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str(), TRUE);
+    PVOID CodeBuffer = ScriptEngineParseWrapper((char *)TargetBracketString.c_str(), TRUE);
 
     if (CodeBuffer == NULL)
     {
@@ -1219,8 +896,7 @@ InterpretScript(vector<string> * SplitCommand,
     {
         NewIndexToRemove++;
 
-        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        CommandTokens->erase(CommandTokens->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1232,9 +908,7 @@ InterpretScript(vector<string> * SplitCommand,
  * or code buffer in this command split and the details are returned in the
  * input structure
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive the initialized command that are split
- * by space case sensitive
+ * @param CommandTokens command tokens
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
@@ -1243,292 +917,82 @@ InterpretScript(vector<string> * SplitCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretConditionsAndCodes(vector<string> * SplitCommand,
-                            vector<string> * SplitCommandCaseSensitive,
-                            BOOLEAN          IsConditionBuffer,
-                            PUINT64          BufferAddress,
-                            PUINT32          BufferLength)
+InterpretConditionsAndCodes(vector<CommandToken> * CommandTokens,
+                            BOOLEAN                IsConditionBuffer,
+                            PUINT64                BufferAddress,
+                            PUINT32                BufferLength)
 {
-    BOOLEAN        IsAsm         = FALSE;
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         Temp;
-    string         TempStr;
-    string         AppendedFinalBuffer;
-    vector<string> SaveBuffer;
-    vector<CHAR>   ParsedBytes;
-    vector<int>    IndexesToRemove;
-    UCHAR *        FinalBuffer;
-    UINT32         AssembledByteCount;
-    int            NewIndexToRemove = 0;
-    int            Index            = 0;
+    BOOLEAN IsAsm               = FALSE;
+    BOOLEAN IsTextVisited       = FALSE;
+    string  TargetBracketString = "";
 
-    for (auto Section : *SplitCommand)
+    string       Temp;
+    vector<CHAR> ParsedBytes;
+    vector<int>  IndexesToRemove;
+    UCHAR *      FinalBuffer;
+    UINT32       AssembledByteCount;
+    int          NewIndexToRemove = 0;
+    int          Index            = 0;
+
+    for (auto Section : *CommandTokens)
     {
         Index++;
 
-        if (IsInState)
-        {
-            //
-            // Check if the buffer is ended or not
-            //
-            if (!Section.compare("}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Check if the condition is end or not
-            //
-            if (HasEnding(Section, "}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                //
-                // remove the last character and append it to the ConditionBuffer
-                //
-                SaveBuffer.emplace_back(Section.begin(), Section.begin() + Section.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            //
-            // Add the codes into condition bi
-            //
-            SaveBuffer.push_back(Section);
-
-            //
-            // We want to stay in this condition
-            //
-            continue;
-        }
-
-        if (IsTextVisited && !Section.compare("{"))
+        if (IsTextVisited && IsTokenBracketString(Section))
         {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
-            IsInState = TRUE;
+            //
+            // Fill the bracket string
+            //
+            TargetBracketString = GetCaseSensitiveStringFromCommandToken(Section);
+
+            IsTextVisited = FALSE;
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
+        if (!IsConditionBuffer && CompareLowerCaseStrings(Section, "code"))
         {
-            //
-            // Section starts with {
-            //
-
-            //
-            // Check if it ends with }
-            //
-            if (HasEnding(Section, "}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                TempStr = Section.erase(0, 1);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
-
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
-            SaveBuffer.push_back(Section.erase(0, 1));
-
-            IsInState = TRUE;
+            IsTextVisited = TRUE;
             continue;
         }
 
-        if (!Section.compare("asm"))
-        {
-            if (IsTextVisited)
-            {
-                ShowMessages("wrong use of \"asm\"\n"); // asm must not be after condition or code
-            }
-            else
-            {
-                IndexesToRemove.push_back(Index);
-
-                IsAsm = TRUE;
-                continue;
-            }
-        }
-
-        if (IsConditionBuffer)
-        {
-            if (!Section.compare("condition"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                IsTextVisited = TRUE;
-                continue;
-            }
-        }
-        else
+        if (IsConditionBuffer && CompareLowerCaseStrings(Section, "condition"))
         {
             //
-            // It's code
+            // Save to remove this string from the command
             //
-            if (!Section.compare("code"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
+            IndexesToRemove.push_back(Index);
 
-                IsTextVisited = TRUE;
-                continue;
-            }
+            IsTextVisited = TRUE;
+            continue;
         }
 
-        if (IsConditionBuffer)
-        {
-            if (!Section.compare("condition{"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                IsTextVisited = TRUE;
-                IsInState     = TRUE;
-                continue;
-            }
-        }
-        else
+        if (CompareLowerCaseStrings(Section, "asm"))
         {
             //
-            // It's code
+            // Save to remove this string from the command
             //
-            if (!Section.compare("code{"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
+            IndexesToRemove.push_back(Index);
 
-                IsTextVisited = TRUE;
-                IsInState     = TRUE;
-                continue;
-            }
-        }
-
-        if (IsConditionBuffer)
-        {
-            if (Section.rfind("condition{", 0) == 0)
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                IsTextVisited = TRUE;
-                IsInState     = TRUE;
-
-                if (!HasEnding(Section, "}"))
-                {
-                    //
-                    // Section starts with condition{
-                    //
-                    SaveBuffer.push_back(Section.erase(0, 10));
-                    continue;
-                }
-                else
-                {
-                    //
-                    // remove the last character and first character append it to the
-                    // ConditionBuffer
-                    //
-                    TempStr = Section.erase(0, 10);
-                    SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                    IsEnded = TRUE;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            //
-            // It's a code
-            //
-            if (Section.rfind("code{", 0) == 0)
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                IsTextVisited = TRUE;
-                IsInState     = TRUE;
-
-                if (!HasEnding(Section, "}"))
-                {
-                    //
-                    // Section starts with code{
-                    //
-                    SaveBuffer.push_back(Section.erase(0, 5));
-                    continue;
-                }
-                else
-                {
-                    //
-                    // remove the last character and first character append it to the
-                    // ConditionBuffer
-                    //
-                    TempStr = Section.erase(0, 5);
-                    SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                    IsEnded = TRUE;
-                    break;
-                }
-            }
+            IsAsm = TRUE;
+            continue;
         }
     }
 
     //
-    // Now we have everything in condition buffer
+    // Now we have everything in condition/code buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
-    {
-        //
-        // Nothing in condition buffer, return zero
-        //
-        return FALSE;
-    }
-
-    //
-    // Check if we see '}' at the end
-    //
-    if (!IsEnded)
+    if (TargetBracketString.length() == 0)
     {
         //
         // Nothing in condition buffer, return zero
@@ -1541,20 +1005,8 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     //
     if (IsAsm)
     {
-        //
-        // Append " " between two std::strings
-        //
-        auto ApndSemCln = [](std::string a, std::string b) {
-            return std::move(a) + ' ' + std::move(b);
-        };
-
-        //
-        // Concatenate each assembly line
-        //
-        std::string AsmCode = std::accumulate(std::next(SaveBuffer.begin()), SaveBuffer.end(), SaveBuffer[0], ApndSemCln);
-
         AssembleData AssembleData;
-        AssembleData.AsmRaw = AsmCode; // by now, it should only have one element
+        AssembleData.AsmRaw = TargetBracketString; // by now, it should only have one element
         AssembleData.ParseAssemblyData();
 
         //
@@ -1598,62 +1050,59 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
         //
         // Append a 'ret' at the end of the buffer
         //
-        SaveBuffer.push_back("c3");
+        TargetBracketString += "c3";
 
         //
         // If we reach here then there is sth in condition buffer
         //
-        for (auto Section : SaveBuffer)
+
+        //
+        // Check if the TargetBracketString is started with '0x'
+        //
+        if (TargetBracketString.rfind("0x", 0) == 0 || TargetBracketString.rfind("0X", 0) == 0 || TargetBracketString.rfind("\\x", 0) == 0 || TargetBracketString.rfind("\\X", 0) == 0)
+        {
+            Temp = TargetBracketString.erase(0, 2);
+        }
+        else if (TargetBracketString.rfind('x', 0) == 0 || TargetBracketString.rfind('X', 0) == 0)
+        {
+            Temp = TargetBracketString.erase(0, 1);
+        }
+        else
+        {
+            Temp = std::move(TargetBracketString);
+        }
+
+        //
+        // replace \x s
+        //
+        ReplaceAll(Temp, "\\x", "");
+
+        //
+        // check if the buffer is aligned to 2
+        //
+        if (Temp.size() % 2 != 0)
         {
             //
-            // Check if the section is started with '0x'
+            // Add a zero to the start of the buffer
             //
-            if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 || Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0)
-            {
-                Temp = Section.erase(0, 2);
-            }
-            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
-            {
-                Temp = Section.erase(0, 1);
-            }
-            else
-            {
-                Temp = std::move(Section);
-            }
+            Temp.insert(0, 1, '0');
+        }
 
-            //
-            // replace \x s
-            //
-            ReplaceAll(Temp, "\\x", "");
-
-            //
-            // check if the buffer is aligned to 2
-            //
-            if (Temp.size() % 2 != 0)
-            {
-                //
-                // Add a zero to the start of the buffer
-                //
-                Temp.insert(0, 1, '0');
-            }
-
-            if (!IsHexNotation(Temp))
-            {
-                ShowMessages("please enter condition code in a hex notation\n");
-                return FALSE;
-            }
-            AppendedFinalBuffer.append(Temp);
+        if (!IsHexNotation(Temp))
+        {
+            ShowMessages("please enter condition code in a hex notation\n");
+            return FALSE;
         }
 
         //
         // Convert it to vectored bytes
         //
-        ParsedBytes = HexToBytes(AppendedFinalBuffer);
+        ParsedBytes = HexToBytes(Temp);
 
         //
         // Convert to a contigues buffer
         //
-        FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+        FinalBuffer = (UCHAR *)malloc(ParsedBytes.size());
 
         if (FinalBuffer == NULL)
         {
@@ -1677,8 +1126,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
     {
         NewIndexToRemove++;
 
-        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        CommandTokens->erase(CommandTokens->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1690,9 +1138,7 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
  * input that needs to be considered for this event (other than just printing)
  * like sending over network, save to file, and send over a namedpipe
  *
- * @param SplitCommand the initialized command that are split by space
- * @param SplitCommandCaseSensitive the initialized command that are split
- * by space case sensitive
+ * @param CommandTokens command tokens
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -1700,127 +1146,40 @@ InterpretConditionsAndCodes(vector<string> * SplitCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> * SplitCommand,
-                vector<string> * SplitCommandCaseSensitive,
-                vector<string> & InputSources)
+InterpretOutput(vector<CommandToken> * CommandTokens,
+                vector<string> &       InputSources)
 {
-    BOOLEAN        IsTextVisited = FALSE;
-    BOOLEAN        IsInState     = FALSE;
-    BOOLEAN        IsEnded       = FALSE;
-    string         AppendedFinalBuffer;
-    vector<string> SaveBuffer;
-    vector<int>    IndexesToRemove;
-    string         Token;
-    string         TempStr;
-    int            NewIndexToRemove                  = 0;
-    int            Index                             = 0;
-    char           Delimiter                         = ',';
-    size_t         Pos                               = 0;
-    vector<string> SplitCommandCaseSensitiveInstance = *SplitCommandCaseSensitive;
-    UINT32         IndexInCommandCaseSensitive       = 0;
+    BOOLEAN IsTextVisited       = FALSE;
+    string  TargetBracketString = "";
 
-    for (auto Section : *SplitCommand)
+    vector<int> IndexesToRemove;
+    string      Token;
+    int         NewIndexToRemove = 0;
+    int         Index            = 0;
+    char        Delimiter        = ',';
+    size_t      Pos              = 0;
+
+    for (auto Section : *CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
         Index++;
 
-        if (IsInState)
-        {
-            //
-            // Check if the buffer is ended or not
-            //
-            if (!Section.compare("}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Check if the output is end or not
-            //
-            if (HasEnding(Section, "}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                //
-                // remove the last character and append it to the output buffer
-                //
-                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            //
-            // Add the codes into buffer buffer
-            //
-            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
-
-            //
-            // We want to stay in this condition
-            //
-            continue;
-        }
-
-        if (IsTextVisited && !Section.compare("{"))
+        if (IsTextVisited && IsTokenBracketString(Section))
         {
             //
             // Save to remove this string from the command
             //
             IndexesToRemove.push_back(Index);
 
-            IsInState = TRUE;
+            //
+            // Fill the bracket string
+            //
+            TargetBracketString = GetCaseSensitiveStringFromCommandToken(Section);
+
+            IsTextVisited = FALSE;
             continue;
         }
 
-        if (IsTextVisited && Section.rfind('{', 0) == 0)
-        {
-            //
-            // Section starts with {
-            //
-
-            //
-            // Check if it ends with }
-            //
-            if (HasEnding(Section, "}"))
-            {
-                //
-                // Save to remove this string from the command
-                //
-                IndexesToRemove.push_back(Index);
-
-                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
-
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
-
-            IsInState = TRUE;
-            continue;
-        }
-
-        if (!Section.compare("output"))
+        if (CompareLowerCaseStrings(Section, "output"))
         {
             //
             // Save to remove this string from the command
@@ -1829,96 +1188,32 @@ InterpretOutput(vector<string> * SplitCommand,
 
             IsTextVisited = TRUE;
             continue;
-        }
-
-        if (!Section.compare("output{"))
-        {
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            IsTextVisited = TRUE;
-            IsInState     = TRUE;
-            continue;
-        }
-
-        if (Section.rfind("output{", 0) == 0)
-        {
-            //
-            // Save to remove this string from the command
-            //
-            IndexesToRemove.push_back(Index);
-
-            IsTextVisited = TRUE;
-            IsInState     = TRUE;
-
-            if (!HasEnding(Section, "}"))
-            {
-                //
-                // Section starts with output{
-                //
-                SaveBuffer.push_back(SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
-                continue;
-            }
-            else
-            {
-                //
-                // remove the last character and first character append it to the
-                // Output
-                //
-                TempStr = SplitCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
-                SaveBuffer.emplace_back(TempStr.begin(), TempStr.begin() + TempStr.size() - 1);
-
-                IsEnded = TRUE;
-                break;
-            }
         }
     }
 
     //
-    // Now we have everything in buffer buffer
+    // Now we have everything in buffer
     // Check to see if it is empty or not
     //
-    if (SaveBuffer.size() == 0)
+    if (TargetBracketString.length() == 0)
     {
         //
         // Nothing in output buffer, return zero
         //
         return FALSE;
-    }
-
-    //
-    // Check if we see '}' at the end
-    //
-    if (!IsEnded)
-    {
-        //
-        // Nothing in output buffer, return zero
-        //
-        return FALSE;
-    }
-
-    //
-    // If we reach here then there is sth in condition buffer
-    //
-    for (auto Section : SaveBuffer)
-    {
-        AppendedFinalBuffer.append(Section);
-        AppendedFinalBuffer.append(" ");
     }
 
     //
     // Check if we see multiple sources or it's just one single output
     //
-    if (AppendedFinalBuffer.find(Delimiter) != std::string::npos)
+    if (TargetBracketString.find(Delimiter) != std::string::npos)
     {
         //
         // Delimiter found !
         //
-        while ((Pos = AppendedFinalBuffer.find(Delimiter)) != string::npos)
+        while ((Pos = TargetBracketString.find(Delimiter)) != string::npos)
         {
-            Token = AppendedFinalBuffer.substr(0, Pos);
+            Token = TargetBracketString.substr(0, Pos);
             Trim(Token);
 
             if (!Token.empty())
@@ -1926,12 +1221,12 @@ InterpretOutput(vector<string> * SplitCommand,
                 InputSources.push_back(Token);
             }
 
-            AppendedFinalBuffer.erase(0, Pos + sizeof(Delimiter) / sizeof(char));
+            TargetBracketString.erase(0, Pos + sizeof(Delimiter) / sizeof(char));
         }
 
-        if (!AppendedFinalBuffer.empty())
+        if (!TargetBracketString.empty())
         {
-            InputSources.push_back(AppendedFinalBuffer);
+            InputSources.push_back(TargetBracketString);
         }
     }
     else
@@ -1939,19 +1234,17 @@ InterpretOutput(vector<string> * SplitCommand,
         //
         // Delimiter not found !
         //
-        InputSources.push_back(AppendedFinalBuffer);
+        InputSources.push_back(TargetBracketString);
     }
 
     //
-    // Removing the code or condition indexes from the command
+    // Removing indexes from the command
     //
     NewIndexToRemove = 0;
     for (auto IndexToRemove : IndexesToRemove)
     {
         NewIndexToRemove++;
-
-        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        CommandTokens->erase(CommandTokens->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -2321,9 +1614,7 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 /**
  * @brief Interpret general event fields
  *
- * @param SplitCommand the commands that was split by space
- * @param SplitCommandCaseSensitive the commands that was split by space
- * case sensitive
+ * @param CommandTokens the command tokens
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled
  * by event detail buffer
@@ -2340,8 +1631,7 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  */
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                    SplitCommand,
-    vector<string> *                    SplitCommandCaseSensitive,
+    vector<CommandToken> *              CommandTokens,
     VMM_EVENT_TYPE_ENUM                 EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
     PUINT32                             EventBufferLength,
@@ -2400,9 +1690,9 @@ InterpretGeneralEventAndActionsFields(
     //
     // Create a command string to show in the history
     //
-    for (auto Section : *SplitCommandCaseSensitive)
+    for (auto Section : *CommandTokens)
     {
-        CommandString.append(Section);
+        CommandString.append(GetCaseSensitiveStringFromCommandToken(Section));
         CommandString.append(" ");
     }
 
@@ -2426,16 +1716,14 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a condition buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
+    if (!InterpretConditionsAndCodes(CommandTokens, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
     {
         //
         // Indicate condition is not available
         //
         HasConditionBuffer = FALSE;
 
-        //
-        // ShowMessages("\nNo condition!\n");
-        //
+        /* ShowMessages("\nNo condition!\n"); */
     }
     else
     {
@@ -2468,7 +1756,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a code buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplitCommand, SplitCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
+    if (!InterpretConditionsAndCodes(CommandTokens, FALSE, &CodeBufferAddress, &CodeBufferLength))
     {
         //
         // Indicate code is not available
@@ -2508,8 +1796,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a Script block in the command
     //
-    if (!InterpretScript(SplitCommand,
-                         SplitCommandCaseSensitive,
+    if (!InterpretScript(CommandTokens,
                          &HasScriptSyntaxError,
                          &ScriptBufferAddress,
                          &ScriptBufferLength,
@@ -2546,7 +1833,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a output path in the command
     //
-    if (!InterpretOutput(SplitCommand, SplitCommandCaseSensitive, ListOfOutputSources))
+    if (!InterpretOutput(CommandTokens, ListOfOutputSources))
     {
         //
         // Indicate output is not available
@@ -2917,12 +2204,13 @@ InterpretGeneralEventAndActionsFields(
     //
     // Interpret rest of the command
     //
-    for (auto Section : *SplitCommand)
+    for (auto Section : *CommandTokens)
     {
         Index++;
+
         if (IsNextCommandBufferSize)
         {
-            if (!ConvertStringToUInt32(Section, &RequestBuffer))
+            if (!ConvertTokenToUInt32(Section, &RequestBuffer))
             {
                 ShowMessages("err, buffer size is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -2958,11 +2246,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandImmediateMessaging)
         {
-            if (!Section.compare("yes"))
+            if (CompareLowerCaseStrings(Section, "yes"))
             {
                 ImmediateMessagePassing = TRUE;
             }
-            else if (!Section.compare("no"))
+            else if (CompareLowerCaseStrings(Section, "no"))
             {
                 ImmediateMessagePassing = FALSE;
             }
@@ -2989,15 +2277,15 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandExecutionStage)
         {
-            if (!Section.compare("pre"))
+            if (CompareLowerCaseStrings(Section, "pre"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION;
             }
-            else if (!Section.compare("post"))
+            else if (CompareLowerCaseStrings(Section, "post"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION;
             }
-            else if (!Section.compare("all"))
+            else if (CompareLowerCaseStrings(Section, "all"))
             {
                 CallingStage = VMM_CALLBACK_CALLING_STAGE_ALL_EVENT_EMULATION;
             }
@@ -3024,11 +2312,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandSc)
         {
-            if (!Section.compare("on"))
+            if (CompareLowerCaseStrings(Section, "on"))
             {
                 IsAShortCircuitingEventByDefault = TRUE;
             }
-            else if (!Section.compare("off"))
+            else if (CompareLowerCaseStrings(Section, "off"))
             {
                 IsAShortCircuitingEventByDefault = FALSE;
             }
@@ -3055,11 +2343,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandPid)
         {
-            if (!Section.compare("all"))
+            if (CompareLowerCaseStrings(Section, "all"))
             {
                 TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
             }
-            else if (!ConvertStringToUInt32(Section, &ProcessId))
+            else if (!ConvertTokenToUInt32(Section, &ProcessId))
             {
                 ShowMessages("err, pid is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -3086,7 +2374,7 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandCoreId)
         {
-            if (!ConvertStringToUInt32(Section, &CoreId))
+            if (!ConvertTokenToUInt32(Section, &CoreId))
             {
                 ShowMessages("err, core id is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
@@ -3109,7 +2397,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("pid"))
+        if (CompareLowerCaseStrings(Section, "pid"))
         {
             IsNextCommandPid = TRUE;
 
@@ -3120,7 +2408,7 @@ InterpretGeneralEventAndActionsFields(
 
             continue;
         }
-        if (!Section.compare("core"))
+        if (CompareLowerCaseStrings(Section, "core"))
         {
             IsNextCommandCoreId = TRUE;
 
@@ -3132,7 +2420,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("imm"))
+        if (CompareLowerCaseStrings(Section, "imm"))
         {
             //
             // the next command is immediate messaging indicator
@@ -3147,7 +2435,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("stage"))
+        if (CompareLowerCaseStrings(Section, "stage"))
         {
             //
             // the next command is execution mode (pre- and post-events)
@@ -3162,7 +2450,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("sc"))
+        if (CompareLowerCaseStrings(Section, "sc"))
         {
             //
             // the next command is the default short-circuiting state
@@ -3177,7 +2465,7 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
-        if (!Section.compare("buffer"))
+        if (CompareLowerCaseStrings(Section, "buffer"))
         {
             IsNextCommandBufferSize = TRUE;
 
@@ -3377,8 +2665,7 @@ InterpretGeneralEventAndActionsFields(
     for (auto IndexToRemove : IndexesToRemove)
     {
         NewIndexToRemove++;
-        SplitCommand->erase(SplitCommand->begin() + (IndexToRemove - NewIndexToRemove));
-        SplitCommandCaseSensitive->erase(SplitCommandCaseSensitive->begin() + (IndexToRemove - NewIndexToRemove));
+        CommandTokens->erase(CommandTokens->begin() + (IndexToRemove - NewIndexToRemove));
     }
 
     //

@@ -130,7 +130,7 @@ CheckAddressPhysical(UINT64 PAddr)
     //
     // get max address for physical address
     //
-    MaxPA = ((UINT64)1ull << (AddrWidth - 1)) - 1;
+    MaxPA = ((UINT64)1ull << (AddrWidth)) - 1;
 
     // LogInfo("Max physical address: %llx", MaxPA);
 

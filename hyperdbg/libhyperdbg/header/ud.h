@@ -93,7 +93,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 BOOLEAN
 UdShowListActiveDebuggingProcessesAndThreads();
 
-BOOL
+BOOLEAN
 UdListProcessThreads(DWORD OwnerPID);
 
 BOOLEAN

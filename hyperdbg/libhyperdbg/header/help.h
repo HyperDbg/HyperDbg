@@ -142,7 +142,7 @@ VOID
 CommandGHelp();
 
 VOID
-CommandClearScreenHelp();
+CommandClsHelp();
 
 VOID
 CommandSleepHelp();

@@ -97,14 +97,46 @@ hyperdbg_u_stop_vmm_driver()
 }
 
 /**
- * @brief Interprets the command
+ * @brief Run a command
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_interpreter(CHAR * command)
+hyperdbg_u_run_command(CHAR * command)
 {
     return HyperDbgInterpreter(command);
+}
+
+/**
+ * @brief Parse the command (used for testing purposes)
+ *
+ * @param command The text of command
+ * @param number_of_tokens The number of tokens
+ * @param tokens_list The list of tokens
+ *
+ * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ */
+BOOLEAN
+hyperdbg_u_test_command_parser(CHAR *   command,
+                               UINT32   number_of_tokens,
+                               CHAR **  tokens_list,
+                               UINT32 * failed_token_num,
+                               UINT32 * failed_token_position)
+{
+    return HyperDbgTestCommandParser(command, number_of_tokens, tokens_list, failed_token_num, failed_token_position);
+}
+
+/**
+ * @brief Parse and show tokens for the command (used for testing purposes)
+ *
+ * @param command The text of command
+ *
+ * @return VOID
+ */
+VOID
+hyperdbg_u_test_command_parser_show_tokens(CHAR * command)
+{
+    return HyperDbgTestCommandParserShowTokens(command);
 }
 
 /**
@@ -466,30 +498,40 @@ hyperdbg_u_get_kernel_base()
  *
  * @param port_name The port name
  * @param baudrate The baudrate
+ * @param pause_after_connection Pause after connection
  *
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate)
+hyperdbg_u_connect_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate, BOOLEAN pause_after_connection)
 {
-    return HyperDbgDebugRemoteDeviceUsingComPort(port_name, baudrate);
+    return HyperDbgDebugRemoteDeviceUsingComPort(port_name, baudrate, pause_after_connection);
 }
 
 /**
  * @brief Connect to the remote debugger using named pipe
  *
  * @param named_pipe The named pipe
+ * @param pause_after_connection Pause after connection
  *
  * @return BOOLEAN Returns true if it was successful
  */
 BOOLEAN
-hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe)
+hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection)
 {
-    return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe);
+    return HyperDbgDebugRemoteDeviceUsingNamedPipe(named_pipe, pause_after_connection);
 }
 
+/**
+ * @brief Close the remote debugger
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
 BOOLEAN
-HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+hyperdbg_u_debug_close_remote_debugger()
+{
+    return HyperDbgDebugCloseRemoteDebugger();
+}
 
 /**
  * @brief Connect to the current debugger using COM port
@@ -536,4 +578,108 @@ hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments)
                              path,
                              arguments,
                              FALSE);
+}
+
+/**
+ * @brief Assembler function to get the length of the assembly code
+ *
+ * @param assembly_code The assembly code
+ * @param start_address The start address of the assembly code
+ * @param length The length of the assembly code
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_assemble_get_length(const CHAR * assembly_code, UINT64 start_address, UINT32 * length)
+{
+    return HyperDbgAssembleGetLength(assembly_code, start_address, length);
+}
+
+/**
+ * @brief Assembler function
+ *
+ * @param assembly_code The assembly code
+ * @param start_address The start address of the assembly code
+ * @param buffer_to_store_assembled_data The buffer to store the assembled data
+ * @param buffer_size The size of the buffer
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size)
+{
+    return HyperDbgAssemble(assembly_code, start_address, buffer_to_store_assembled_data, buffer_size);
+}
+
+/**
+ * @brief Setip the path for the filename
+ *
+ * @param filename The filename
+ * @param file_location
+ * @param buffer_len
+ * @param check_file_existence
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_setup_path_for_filename(const CHAR * filename, CHAR * file_location, UINT32 buffer_len, BOOLEAN check_file_existence)
+{
+    return SetupPathForFileName(filename, file_location, buffer_len, check_file_existence);
+}
+
+/**
+ * @brief Perform instrumentation step-in
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in()
+{
+    return SteppingInstrumentationStepIn();
+}
+
+/**
+ * @brief Perform regular step-in
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_regular_step_in()
+{
+    return SteppingRegularStepIn();
+}
+
+/**
+ * @brief Perform step-over
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_step_over()
+{
+    return SteppingStepOver();
+}
+
+/**
+ * @brief Perform instrumentation step-in for tracking
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_instrumentation_step_in_for_tracking()
+{
+    return SteppingInstrumentationStepInForTracking();
+}
+
+/**
+ * @brief Perform step-over for gu
+ *
+ * @param last_instruction
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction)
+{
+    return SteppingStepOverForGu(last_instruction);
 }

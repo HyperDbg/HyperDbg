@@ -44,37 +44,33 @@ CommandTHelp()
 /**
  * @brief handler of t command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandT(vector<string> SplitCommand, string Command)
+CommandT(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32                           StepCount;
-    DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
+    UINT32 StepCount;
 
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
+    if (CommandTokens.size() != 1 && CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 't'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandTHelp();
         return;
     }
 
     //
-    // Set type of step
-    //
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN;
-
-    //
     // Check if the command has a counter parameter
     //
-    if (SplitCommand.size() == 2)
+    if (CommandTokens.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
+        if (!ConvertTokenToUInt32(CommandTokens.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandTHelp();
@@ -115,24 +111,12 @@ CommandT(vector<string> SplitCommand, string Command)
             //   (float)StepCount), i);
             //
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                           g_ActiveProcessDebuggingState.ThreadId,
-                                           RequestFormat);
-            }
+            //
+            // Instrument (regular) the instruction
+            //
+            SteppingRegularStepIn();
 
-            if (!SplitCommand.at(0).compare("tr"))
+            if (CompareLowerCaseStrings(CommandTokens.at(0), "tr"))
             {
                 //
                 // Show registers

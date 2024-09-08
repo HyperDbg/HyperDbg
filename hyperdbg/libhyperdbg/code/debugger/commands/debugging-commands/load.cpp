@@ -38,16 +38,18 @@ CommandLoadHelp()
 /**
  * @brief load command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandLoad(vector<string> SplitCommand, string Command)
+CommandLoad(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 2)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'load'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandLoadHelp();
         return;
     }
@@ -62,7 +64,7 @@ CommandLoad(vector<string> SplitCommand, string Command)
     //
     // Check for the module
     //
-    if (!SplitCommand.at(1).compare("vmm"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm"))
     {
         //
         // Check to make sure that the driver is not already loaded

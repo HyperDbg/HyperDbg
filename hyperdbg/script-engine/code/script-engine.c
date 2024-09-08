@@ -271,7 +271,14 @@ ScriptEngineParse(char * str)
     PTOKEN_LIST    MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
-    PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead = NULL;
+    UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
+    RtlZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
+    UserDefinedFunctionHead->Name                     = _strdup("main");
+    UserDefinedFunctionHead->IdTable                  = (unsigned long long)NewTokenList();
+    UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)NewTokenList();
+    UserDefinedFunctionHead->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
+
+    CurrentUserDefinedFunction = UserDefinedFunctionHead;
 
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
     char *                   ErrorMessage = NULL;
@@ -279,9 +286,8 @@ ScriptEngineParse(char * str)
     static FirstCall = 1;
     if (FirstCall)
     {
-        IdTable                  = NewTokenList();
-        FunctionParameterIdTable = NewTokenList();
-        FirstCall                = 0;
+        GlobalIdTable = NewTokenList();
+        FirstCall     = 0;
     }
 
     PTOKEN TopToken = NewUnknownToken();
@@ -327,6 +333,33 @@ ScriptEngineParse(char * str)
         return (PVOID)CodeBuffer;
     }
 
+    //
+    // add stack index
+    //
+    PSYMBOL TempSymbol = NewSymbol();
+    TempSymbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+    TempSymbol->Value  = FUNC_ADD;
+    PushSymbol(CodeBuffer, TempSymbol);
+    RemoveSymbol(&TempSymbol);
+
+    TempSymbol        = NewSymbol();
+    TempSymbol->Type  = SYMBOL_NUM_TYPE;
+    TempSymbol->Value = 0xffffffffffffffff;
+    PushSymbol(CodeBuffer, TempSymbol);
+    RemoveSymbol(&TempSymbol);
+
+    TempSymbol        = NewSymbol();
+    TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+    TempSymbol->Value = 0;
+    PushSymbol(CodeBuffer, TempSymbol);
+    RemoveSymbol(&TempSymbol);
+
+    TempSymbol        = NewSymbol();
+    TempSymbol->Type  = SYMBOL_STACK_INDEX_TYPE;
+    TempSymbol->Value = 0;
+    PushSymbol(CodeBuffer, TempSymbol);
+    RemoveSymbol(&TempSymbol);
+
     do
     {
         RemoveToken(&TopToken);
@@ -346,7 +379,7 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, &UserDefinedFunctionHead, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -431,7 +464,7 @@ ScriptEngineParse(char * str)
                 {
                     WaitForWaitStatementBooleanExpression = TRUE;
                 }
-                CodeGen(MatchedStack, &UserDefinedFunctionHead, CodeBuffer, TopToken, &Error);
+                CodeGen(MatchedStack, CodeBuffer, TopToken, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -467,11 +500,44 @@ ScriptEngineParse(char * str)
     if (Error != SCRIPT_ENGINE_ERROR_FREE)
     {
         ErrorMessage = HandleError(&Error, str);
-        CleanTempList();
     }
     else
     {
         ErrorMessage = NULL;
+
+        PSYMBOL Symbol;
+        //
+        // change local id to stack temp
+        //
+        for (UINT64 i = 0; i < CodeBuffer->Pointer; i++)
+        {
+            Symbol = CodeBuffer->Head + i;
+            if (Symbol->Type == SYMBOL_LOCAL_ID_TYPE)
+            {
+                Symbol->Type = SYMBOL_TEMP_TYPE;
+                Symbol->Value += UserDefinedFunctionHead->MaxTempNumber;
+            }
+            else if (Symbol->Type == SYMBOL_VARIABLE_COUNT_TYPE)
+            {
+                UINT64 VariableCount = Symbol->Value;
+                for (UINT64 j = 0; j < VariableCount; j++)
+                {
+                    Symbol = CodeBuffer->Head + i + j + 1;
+                    if ((Symbol->Type & 0x7fffffff) == SYMBOL_LOCAL_ID_TYPE)
+                    {
+                        Symbol->Type = SYMBOL_TEMP_TYPE | (Symbol->Type & 0xffffffff00000000);
+                        Symbol->Value += UserDefinedFunctionHead->MaxTempNumber;
+                    }
+                }
+                i += VariableCount;
+            }
+        }
+
+        //
+        // set memory size for stack buffer
+        //
+        Symbol        = CodeBuffer->Head + 1;
+        Symbol->Value = CurrentUserDefinedFunction->MaxTempNumber + CurrentUserDefinedFunction->LocalVariableNumber;
     }
     CodeBuffer->Message = ErrorMessage;
 
@@ -489,14 +555,20 @@ ScriptEngineParse(char * str)
             if (Node->Name)
                 free(Node->Name);
 
-            if (Node->ParameterBuffer)
-                RemoveSymbolBuffer((PVOID)Node->ParameterBuffer);
+            if (Node->IdTable)
+                RemoveTokenList((PTOKEN_LIST)Node->IdTable);
+
+            if (Node->FunctionParameterIdTable)
+                RemoveTokenList((PTOKEN_LIST)Node->FunctionParameterIdTable);
+
+            if (Node->TempMap)
+                free(Node->TempMap);
 
             PUSER_DEFINED_FUNCTION_NODE Temp = Node;
             Node                             = Node->NextNode;
             free(Temp);
         }
-        UserDefinedFunctionHead = NULL;
+        UserDefinedFunctionHead = 0;
     }
 
     if (CurrentIn)
@@ -504,12 +576,6 @@ ScriptEngineParse(char * str)
 
     if (TopToken)
         RemoveToken(&TopToken);
-
-    if (FunctionParameterIdTable)
-    {
-        RemoveTokenList(FunctionParameterIdTable);
-        FunctionParameterIdTable = NewTokenList();
-    }
 
     return (PVOID)CodeBuffer;
 }
@@ -523,7 +589,7 @@ ScriptEngineParse(char * str)
  * @param Error
  */
 void
-CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
+CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     PTOKEN Op0  = NULL;
     PTOKEN Op1  = NULL;
@@ -540,8 +606,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
     //
     // It is in user-defined function if CurrentFunctionSymbol is not null
     //
-    static PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction = NULL;
-    OperatorSymbol                                                = ToSymbol(Operator, Error);
+    OperatorSymbol = ToSymbol(Operator, Error);
 
 #ifdef _SCRIPT_ENGINE_CODEGEN_DBG_EN
     //
@@ -562,13 +627,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
 
     while (TRUE)
     {
-        if (IsVariableType(Operator))
-        {
-            PTOKEN PToken = CopyToken(Operator);
-            PToken->Type  = INPUT_VARIABLE_TYPE;
-            Push(MatchedStack, PToken);
-        }
-        else if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
+        if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
         {
             Op0          = Pop(MatchedStack);
             VariableType = HandleType(MatchedStack);
@@ -598,28 +657,21 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             RemoveSymbol(&JumpAddressSymbol);
 
-            if (!*UserDefinedFunctionHead)
+            PUSER_DEFINED_FUNCTION_NODE Node = UserDefinedFunctionHead;
+            while (Node->NextNode)
             {
-                *UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-                RtlZeroMemory(*UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
-                CurrentUserDefinedFunction = *UserDefinedFunctionHead;
+                Node = Node->NextNode;
             }
-            else
-            {
-                PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
-                while (Node->NextNode)
-                {
-                    Node = Node->NextNode;
-                }
-                Node->NextNode = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-                RtlZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
-                CurrentUserDefinedFunction = Node->NextNode;
-            }
+            Node->NextNode = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
+            RtlZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
+            CurrentUserDefinedFunction = Node->NextNode;
 
-            CurrentUserDefinedFunction->Name         = _strdup(Op0->Value);
-            UINT64 CurrentPointer                    = CodeBuffer->Pointer;
-            CurrentUserDefinedFunction->Address      = CurrentPointer;
-            CurrentUserDefinedFunction->VariableType = (long long unsigned)VariableType;
+            CurrentUserDefinedFunction->Name                     = _strdup(Op0->Value);
+            CurrentUserDefinedFunction->Address                  = CodeBuffer->Pointer; // CurrentPointer
+            CurrentUserDefinedFunction->VariableType             = (long long unsigned)VariableType;
+            CurrentUserDefinedFunction->IdTable                  = (unsigned long long)NewTokenList();
+            CurrentUserDefinedFunction->FunctionParameterIdTable = (unsigned long long)NewTokenList();
+            CurrentUserDefinedFunction->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
 
             //
             // push stack base index
@@ -695,16 +747,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
 
-            Op0Symbol = NewSymbol();
-            free((void *)Op0Symbol->Value);
-            Op0Symbol->Value = NewFunctionParameterIdentifier(Op0);
-            SetType(&Op0Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
-
-            if (!CurrentUserDefinedFunction->ParameterBuffer)
-            {
-                CurrentUserDefinedFunction->ParameterBuffer = NewSymbolBuffer();
-            }
-            PushSymbol(CurrentUserDefinedFunction->ParameterBuffer, Op0Symbol);
+            NewFunctionParameterIdentifier(Op0);
             CurrentUserDefinedFunction->ParameterNumber++;
         }
         else if (!strcmp(Operator->Value, "@END_OF_USER_DEFINED_FUNCTION"))
@@ -717,18 +760,39 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            long long unsigned StackTempNumber = 0;
+
+            //
+            // change local id to stack temp
+            //
             for (UINT64 i = CurrentUserDefinedFunction->Address; i < CurrentPointer; i++)
             {
                 Symbol = CodeBuffer->Head + i;
-                if (Symbol->Type == SYMBOL_STACK_TEMP_TYPE && (Symbol->Value + 1) > StackTempNumber)
+                if (Symbol->Type == SYMBOL_LOCAL_ID_TYPE)
                 {
-                    StackTempNumber = Symbol->Value + 1;
+                    Symbol->Type = SYMBOL_TEMP_TYPE;
+                    Symbol->Value += CurrentUserDefinedFunction->MaxTempNumber;
+                }
+                else if (Symbol->Type == SYMBOL_VARIABLE_COUNT_TYPE)
+                {
+                    UINT64 VariableCount = Symbol->Value;
+                    for (UINT64 j = 0; j < VariableCount; j++)
+                    {
+                        Symbol = CodeBuffer->Head + i + j + 1;
+                        if ((Symbol->Type & 0x7fffffff) == SYMBOL_LOCAL_ID_TYPE)
+                        {
+                            Symbol->Type = SYMBOL_TEMP_TYPE | (Symbol->Type & 0xffffffff00000000);
+                            Symbol->Value += CurrentUserDefinedFunction->MaxTempNumber;
+                        }
+                    }
+                    i += VariableCount;
                 }
             }
 
-            Symbol                                      = CodeBuffer->Head + CurrentUserDefinedFunction->Address + 6;
-            CurrentUserDefinedFunction->StackTempNumber = Symbol->Value = StackTempNumber;
+            //
+            // set memory size for stack buffer
+            //
+            Symbol        = CodeBuffer->Head + CurrentUserDefinedFunction->Address + 6;
+            Symbol->Value = CurrentUserDefinedFunction->MaxTempNumber + CurrentUserDefinedFunction->LocalVariableNumber;
 
             //
             // modify jump address
@@ -788,9 +852,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             Symbol        = CodeBuffer->Head + CurrentUserDefinedFunction->Address - 1;
             Symbol->Value = CodeBuffer->Pointer;
 
-            CleanStackTempList();
-
-            CurrentUserDefinedFunction = NULL;
+            CurrentUserDefinedFunction = UserDefinedFunctionHead;
         }
         else if (!strcmp(Operator->Value, "@RETURN_OF_USER_DEFINED_FUNCTION_WITHOUT_VALUE"))
         {
@@ -873,85 +935,40 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
         }
-
-        else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION"))
-        {
-            PTOKEN FunctionToken = Top(MatchedStack);
-            BOOL   Found         = FALSE;
-
-            PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
-            while (Node)
-            {
-                if (!strcmp((const char *)FunctionToken->Value, Node->Name))
-                {
-                    Found = TRUE;
-                    break;
-                }
-                Node = Node->NextNode;
-            }
-
-            if (!Found)
-            {
-                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION;
-                break;
-            }
-
-            FunctionToken->Type = FUNCTION_TYPE;
-        }
-        else if (!strcmp(Operator->Value, "@CALL_USER_DEFINED_FUNCTION_PARAMETER"))
-        {
-            // will rewrite here to input variable's type
-            PSYMBOL TempSymbol = NULL;
-
-            TempSymbol        = NewSymbol();
-            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
-            TempSymbol->Value = FUNC_PUSH;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
-
-            Op0Symbol = ToSymbol(Top(MatchedStack), Error);
-            PushSymbol(CodeBuffer, Op0Symbol);
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
-            {
-                break;
-            }
-        }
         else if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITHOUT_RETURNING_VALUE") || !strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
         {
-            PSYMBOL Symbol                    = NULL;
-            int     TargetFunctionVariableNum = 0;
-            int     VariableNum               = 0;
-            PTOKEN  FunctionToken             = NULL;
-            BOOL    Found                     = FALSE;
-            PTOKEN  ReturnValueToken          = NULL;
+            PSYMBOL Symbol        = NULL;
+            PSYMBOL TempSymbol    = NULL;
+            int     VariableNum   = 0;
+            PTOKEN  FunctionToken = NULL;
 
             while (MatchedStack->Pointer > 0)
             {
                 FunctionToken = Pop(MatchedStack);
 
-                if (FunctionToken->Type == FUNCTION_TYPE)
+                if (FunctionToken->Type == FUNCTION_ID)
                 {
                     break;
                 }
                 else
                 {
                     VariableNum++;
-                    // RemoveToken(&FunctionToken);
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_PUSH;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+
+                    Symbol = ToSymbol(FunctionToken, Error);
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    RemoveToken(&FunctionToken);
                 }
             }
 
-            PUSER_DEFINED_FUNCTION_NODE Node = *UserDefinedFunctionHead;
-            while (Node)
-            {
-                if (!strcmp((const char *)FunctionToken->Value, Node->Name))
-                {
-                    Found = TRUE;
-                    break;
-                }
-                Node = Node->NextNode;
-            }
+            PUSER_DEFINED_FUNCTION_NODE Node = GetUserDefinedFunctionNode(FunctionToken);
 
-            if (!Found)
+            if (!Node)
             {
                 *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION;
                 break;
@@ -963,44 +980,43 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
 
-            PSYMBOL TempSymbol = NULL;
-            TempSymbol         = NewSymbol();
-            TempSymbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
-            TempSymbol->Value  = FUNC_CALL;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_CALL;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
-            TempSymbol        = NewSymbol();
-            TempSymbol->Type  = SYMBOL_NUM_TYPE;
-            TempSymbol->Value = Node->Address;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = Node->Address;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
-            TempSymbol        = NewSymbol();
-            TempSymbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
-            TempSymbol->Value = FUNC_SUB;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_SUB;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
-            TempSymbol        = NewSymbol();
-            TempSymbol->Type  = SYMBOL_NUM_TYPE;
-            TempSymbol->Value = Node->ParameterNumber;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = Node->ParameterNumber;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
-            TempSymbol       = NewSymbol();
-            TempSymbol->Type = SYMBOL_STACK_INDEX_TYPE;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol       = NewSymbol();
+            Symbol->Type = SYMBOL_STACK_INDEX_TYPE;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
-            TempSymbol       = NewSymbol();
-            TempSymbol->Type = SYMBOL_STACK_INDEX_TYPE;
-            PushSymbol(CodeBuffer, TempSymbol);
-            RemoveSymbol(&TempSymbol);
+            Symbol       = NewSymbol();
+            Symbol->Type = SYMBOL_STACK_INDEX_TYPE;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
             if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
             {
-                if (FunctionToken->Type == (TOKEN_TYPE)VARIABLE_TYPE_VOID)
+                if ((VARIABLE_TYPE *)Node->VariableType == VARIABLE_TYPE_VOID)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                     break;
@@ -1009,12 +1025,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 //
                 // Add return variable symbol
                 //
-                Temp = NewTemp(Error, CurrentUserDefinedFunction);
+                Temp = NewTemp(Error);
                 Push(MatchedStack, Temp);
 
-                PSYMBOL Symbol = NewSymbol();
-                Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
-                Symbol->Value  = FUNC_MOV;
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                Symbol->Value = FUNC_MOV;
                 PushSymbol(CodeBuffer, Symbol);
                 RemoveSymbol(&Symbol);
 
@@ -1026,6 +1042,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
 
                 TempSymbol = ToSymbol(Temp, Error);
                 PushSymbol(CodeBuffer, TempSymbol);
+                RemoveSymbol(&TempSymbol);
 
                 if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
@@ -1034,6 +1051,99 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             }
 
             RemoveToken(&FunctionToken);
+        }
+        else if (!strcmp(Operator->Value, "@MULTIPLE_ASSIGNMENT"))
+        {
+            PSYMBOL Symbol = NewSymbol();
+            Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value  = FUNC_MOV;
+
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            for (int i = MatchedStack->Pointer; i > 0; i--)
+            {
+                Op1 = Top(MatchedStack);
+                if (Op1->Type == TEMP || Op1->Type == HEX || Op1->Type == OCTAL || Op1->Type == BINARY)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    Pop(MatchedStack);
+                    break;
+                }
+                else if (Op1->Type == GLOBAL_UNRESOLVED_ID)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = NewSymbol();
+                    free((void *)Op1Symbol->Value);
+                    Op1Symbol->Value = NewGlobalIdentifier(Op1);
+                    SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
+                    Pop(MatchedStack);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                }
+                else if (Op1->Type == LOCAL_UNRESOLVED_ID)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = NewSymbol();
+                    free((void *)Op1Symbol->Value);
+                    Op1Symbol->Value = NewLocalIdentifier(Op1);
+                    SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
+                    Pop(MatchedStack);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    RemoveSymbol(&Op1Symbol);
+                }
+                else if (Op1->Type == LOCAL_ID || Op1->Type == GLOBAL_ID || Op1->Type == FUNCTION_PARAMETER_ID || Op1->Type == REGISTER)
+                {
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Op1Symbol = ToSymbol(Op1, Error);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    Pop(MatchedStack);
+                    RemoveSymbol(&Op1Symbol);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            RemoveSymbol(&Symbol);
+            Op1 = 0;
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                FreeTemp(Op0);
+                break;
+            }
+
+            if (MatchedStack->Pointer > 0)
+            {
+                if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
+                {
+                    VariableType = HandleType(MatchedStack);
+
+                    if (VariableType == VARIABLE_TYPE_UNKNOWN)
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                        break;
+                    }
+
+                    // Op1Symbol->VariableType = (unsigned long long)VariableType;
+                }
+            }
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
         }
         else if (!strcmp(Operator->Value, "@MOV"))
         {
@@ -1063,7 +1173,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
 
             if (MatchedStack->Pointer > 0)
             {
-                if (Top(MatchedStack)->Type == INPUT_VARIABLE_TYPE)
+                if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
                 {
                     VariableType = HandleType(MatchedStack);
 
@@ -1108,7 +1218,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1268,7 +1378,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1316,7 +1426,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -1359,6 +1469,28 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             FreeTemp(Op1);
             FreeTemp(Op2);
         }
+        else if (IsAssignmentOperator(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
         else if (IsTwoOperandOperator(Operator))
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
@@ -1368,7 +1500,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -2023,7 +2155,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -2052,7 +2184,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2079,7 +2211,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2101,7 +2233,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -2130,7 +2262,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
                 break;
             }
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2158,7 +2290,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunct
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error, CurrentUserDefinedFunction);
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2281,14 +2413,13 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
  */
 void
 ScriptEngineBooleanExpresssionParse(
-    UINT64                        BooleanExpressionSize,
-    PTOKEN                        FirstToken,
-    PTOKEN_LIST                   MatchedStack,
-    PUSER_DEFINED_FUNCTION_NODE * UserDefinedFunctionHead,
-    PSYMBOL_BUFFER                CodeBuffer,
-    char *                        str,
-    char *                        c,
-    PSCRIPT_ENGINE_ERROR_TYPE     Error)
+    UINT64                    BooleanExpressionSize,
+    PTOKEN                    FirstToken,
+    PTOKEN_LIST               MatchedStack,
+    PSYMBOL_BUFFER            CodeBuffer,
+    char *                    str,
+    char *                    c,
+    PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     PTOKEN_LIST Stack = NewTokenList();
 
@@ -2416,7 +2547,7 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    CodeGen(MatchedStack, UserDefinedFunctionHead, CodeBuffer, SemanticRule, Error);
+                    CodeGen(MatchedStack, CodeBuffer, SemanticRule, Error);
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
                         break;
@@ -2662,11 +2793,6 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     case TEMP:
         Symbol->Value = DecimalToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_TEMP_TYPE);
-        return Symbol;
-
-    case STACK_TEMP:
-        Symbol->Value = DecimalToInt(Token->Value);
-        SetType(&Symbol->Type, SYMBOL_STACK_TEMP_TYPE);
         return Symbol;
 
     case STRING:
@@ -3138,9 +3264,9 @@ int
 GetGlobalIdentifierVal(PTOKEN Token)
 {
     PTOKEN CurrentToken;
-    for (uintptr_t i = 0; i < IdTable->Pointer; i++)
+    for (uintptr_t i = 0; i < GlobalIdTable->Pointer; i++)
     {
-        CurrentToken = *(IdTable->Head + i);
+        CurrentToken = *(GlobalIdTable->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
             return (int)i;
@@ -3159,9 +3285,9 @@ int
 GetLocalIdentifierVal(PTOKEN Token)
 {
     PTOKEN CurrentToken;
-    for (uintptr_t i = 0; i < IdTable->Pointer; i++)
+    for (uintptr_t i = 0; i < ((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
     {
-        CurrentToken = *(IdTable->Head + i);
+        CurrentToken = *(((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
             return (int)i;
@@ -3180,8 +3306,8 @@ int
 NewGlobalIdentifier(PTOKEN Token)
 {
     PTOKEN CopiedToken = CopyToken(Token);
-    IdTable            = Push(IdTable, CopiedToken);
-    return IdTable->Pointer - 1;
+    GlobalIdTable      = Push(GlobalIdTable, CopiedToken);
+    return GlobalIdTable->Pointer - 1;
 }
 
 /**
@@ -3194,8 +3320,9 @@ int
 NewLocalIdentifier(PTOKEN Token)
 {
     PTOKEN CopiedToken = CopyToken(Token);
-    IdTable            = Push(IdTable, CopiedToken);
-    return IdTable->Pointer - 1;
+    Push(((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable), CopiedToken);
+    CurrentUserDefinedFunction->LocalVariableNumber++;
+    return ((PTOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer - 1;
 }
 
 /**
@@ -3207,9 +3334,9 @@ NewLocalIdentifier(PTOKEN Token)
 int
 NewFunctionParameterIdentifier(PTOKEN Token)
 {
-    PTOKEN CopiedToken       = CopyToken(Token);
-    FunctionParameterIdTable = Push(FunctionParameterIdTable, CopiedToken);
-    return FunctionParameterIdTable->Pointer - 1;
+    PTOKEN CopiedToken = CopyToken(Token);
+    Push(((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable), CopiedToken);
+    return ((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer - 1;
 }
 
 /**
@@ -3222,15 +3349,37 @@ int
 GetFunctionParameterIdentifier(PTOKEN Token)
 {
     PTOKEN CurrentToken;
-    for (uintptr_t i = 0; i < FunctionParameterIdTable->Pointer; i++)
+    for (uintptr_t i = 0; i < ((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer; i++)
     {
-        CurrentToken = *(FunctionParameterIdTable->Head + i);
+        CurrentToken = *(((PTOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
             return (int)i;
         }
     }
     return -1;
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ * @return bool
+ */
+PUSER_DEFINED_FUNCTION_NODE
+GetUserDefinedFunctionNode(PTOKEN Token)
+{
+    PUSER_DEFINED_FUNCTION_NODE Node = UserDefinedFunctionHead;
+    while (Node)
+    {
+        if (!strcmp((const char *)Token->Value, Node->Name))
+        {
+            return Node;
+            break;
+        }
+        Node = Node->NextNode;
+    }
+    return 0;
 }
 
 /**
@@ -3280,6 +3429,10 @@ LalrIsOperandType(PTOKEN Token)
         return TRUE;
     }
     else if (Token->Type == FUNCTION_PARAMETER_ID)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == FUNCTION_ID)
     {
         return TRUE;
     }

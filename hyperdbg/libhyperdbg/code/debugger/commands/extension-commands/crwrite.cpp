@@ -38,12 +38,13 @@ CommandCrwriteHelp()
 /**
  * @brief !crwrite command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandCrwrite(vector<string> SplitCommand, string Command)
+CommandCrwrite(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -57,12 +58,12 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
     UINT64                             MaskRegister                = 0xFFFFFFFFFFFFFFFF;
     BOOLEAN                            GetRegister                 = FALSE;
     BOOLEAN                            GetMask                     = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
-    if (SplitCommand.size() < 2)
+    if (CommandTokens.size() < 2)
     {
-        ShowMessages("incorrect use of the '!crwrite'\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandCrwriteHelp();
         return;
     }
@@ -72,8 +73,7 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             CONTROL_REGISTER_MODIFIED,
             &Event,
             &EventLength,
@@ -91,9 +91,9 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!crwrite"))
+        if (CompareLowerCaseStrings(Section, "!crwrite"))
         {
             continue;
         }
@@ -102,12 +102,13 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
             //
             // It's probably a CR
             //
-            if (!ConvertStringToUInt64(Section, &TargetRegister))
+            if (!ConvertTokenToUInt64(Section, &TargetRegister))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandCrwriteHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -120,12 +121,13 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
         }
         else if (!GetMask)
         {
-            if (!ConvertStringToUInt64(Section, &MaskRegister))
+            if (!ConvertTokenToUInt64(Section, &MaskRegister))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandCrwriteHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -141,7 +143,8 @@ CommandCrwrite(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandCrwriteHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

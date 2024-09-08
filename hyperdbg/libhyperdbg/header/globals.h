@@ -330,16 +330,10 @@ CommandType g_CommandsList;
 UINT64 * g_ScriptGlobalVariables;
 
 /**
- * @brief Holder of local variables for script engine
+ * @brief Holder of stack buffer for script engine
  *
  */
-UINT64 * g_ScriptLocalVariables;
-
-/**
- * @brief Holder of temp variables for script engine
- *
- */
-UINT64 * g_ScriptTempVariables;
+UINT64 * g_ScriptStackBuffer;
 
 /**
  * @brief Is list of command initialized

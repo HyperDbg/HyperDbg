@@ -102,6 +102,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include <cctype>
 #include <cstring>
 #include <unordered_set>
+#include <regex>
 
 //
 // Scope definitions
@@ -137,8 +138,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // Imports/Exports
 //
-#include "SDK/Imports/User/HyperDbgScriptImports.h"
-#include "SDK/Imports/User/HyperDbgLibImports.h"
+#include "SDK/imports/user/HyperDbgScriptImports.h"
+#include "SDK/imports/user/HyperDbgLibImports.h"
 
 //
 // General
@@ -163,9 +164,10 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/pe-parser.h"
 #include "header/ud.h"
 #include "header/objects.h"
+#include "header/steppings.h"
 #include "header/rev-ctrl.h"
 #include "header/assembler.h"
-#include <regex>
+
 //
 // hwdbg
 //

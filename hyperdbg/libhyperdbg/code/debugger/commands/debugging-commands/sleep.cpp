@@ -29,23 +29,25 @@ CommandSleepHelp()
 /**
  * @brief sleep command help
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandSleep(vector<string> SplitCommand, string Command)
+CommandSleep(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 MillisecondsTime = 0;
 
-    if (SplitCommand.size() != 2)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'sleep'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandSleepHelp();
         return;
     }
 
-    if (!ConvertStringToUInt32(SplitCommand.at(1), &MillisecondsTime))
+    if (!ConvertTokenToUInt32(CommandTokens.at(1), &MillisecondsTime))
     {
         ShowMessages(
             "please specify a correct hex value for time (milliseconds)\n\n");

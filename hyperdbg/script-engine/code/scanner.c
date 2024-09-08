@@ -171,10 +171,20 @@ GetToken(char * c, char * str)
         *c = sgetc(str);
         if (*c == '>')
         {
-            strcpy(Token->Value, ">>");
-            Token->Type = SPECIAL_TOKEN;
-            *c          = sgetc(str);
-            return Token;
+            *c = sgetc(str);
+            if (*c == '=')
+            {
+                strcpy(Token->Value, ">>=");
+                Token->Type = SPECIAL_TOKEN;
+                *c          = sgetc(str);
+                return Token;
+            }
+            else
+            {
+                strcpy(Token->Value, ">>");
+                Token->Type = SPECIAL_TOKEN;
+                return Token;
+            }
         }
         else if (*c == '=')
         {
@@ -193,10 +203,20 @@ GetToken(char * c, char * str)
         *c = sgetc(str);
         if (*c == '<')
         {
-            strcpy(Token->Value, "<<");
-            Token->Type = SPECIAL_TOKEN;
-            *c          = sgetc(str);
-            return Token;
+            *c = sgetc(str);
+            if (*c == '=')
+            {
+                strcpy(Token->Value, "<<=");
+                Token->Type = SPECIAL_TOKEN;
+                *c          = sgetc(str);
+                return Token;
+            }
+            else
+            {
+                strcpy(Token->Value, "<<");
+                Token->Type = SPECIAL_TOKEN;
+                return Token;
+            }
         }
         else if (*c == '=')
         {
@@ -293,9 +313,19 @@ GetToken(char * c, char * str)
             return Token;
         }
     case '%':
-        strcpy(Token->Value, "%");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "%=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "%");
+            Token->Type = SPECIAL_TOKEN;
+        }
         return Token;
 
     case ',':
@@ -345,6 +375,13 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, "|=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
         else
         {
             strcpy(Token->Value, "|");
@@ -360,6 +397,13 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, "&=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
         else
         {
             strcpy(Token->Value, "&");
@@ -368,9 +412,19 @@ GetToken(char * c, char * str)
         }
 
     case '^':
-        strcpy(Token->Value, "^");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "^=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "^");
+            Token->Type = SPECIAL_TOKEN;
+        }
         return Token;
     case '@':
         *c = sgetc(str);
@@ -684,6 +738,10 @@ GetToken(char * c, char * str)
                 {
                     Token->Type = REGISTER;
                 }
+                else if (IsVariableType(Token->Value))
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
+                }
                 else
                 {
                     BOOLEAN WasFound = FALSE;
@@ -711,20 +769,21 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetFunctionParameterIdentifier(Token) != -1)
+                            if (GetUserDefinedFunctionNode(Token))
+                            {
+                                Token->Type = FUNCTION_ID;
+                            }
+                            else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
                             }
+                            else if (GetLocalIdentifierVal(Token) != -1)
+                            {
+                                Token->Type = LOCAL_ID;
+                            }
                             else
                             {
-                                if (GetLocalIdentifierVal(Token) != -1)
-                                {
-                                    Token->Type = LOCAL_ID;
-                                }
-                                else
-                                {
-                                    Token->Type = LOCAL_UNRESOLVED_ID;
-                                }
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -740,6 +799,10 @@ GetToken(char * c, char * str)
                 else if (IsRegister(Token->Value))
                 {
                     Token->Type = REGISTER;
+                }
+                else if (IsVariableType(Token->Value))
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
                 }
                 else if (IsId(Token->Value))
                 {
@@ -768,20 +831,21 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetFunctionParameterIdentifier(Token) != -1)
+                            if (GetUserDefinedFunctionNode(Token))
+                            {
+                                Token->Type = FUNCTION_ID;
+                            }
+                            else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
                             }
+                            else if (GetLocalIdentifierVal(Token) != -1)
+                            {
+                                Token->Type = LOCAL_ID;
+                            }
                             else
                             {
-                                if (GetLocalIdentifierVal(Token) != -1)
-                                {
-                                    Token->Type = LOCAL_ID;
-                                }
-                                else
-                                {
-                                    Token->Type = LOCAL_UNRESOLVED_ID;
-                                }
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -808,6 +872,10 @@ GetToken(char * c, char * str)
             else if (IsRegister(Token->Value))
             {
                 Token->Type = REGISTER;
+            }
+            else if (IsVariableType(Token->Value))
+            {
+                Token->Type = SCRIPT_VARIABLE_TYPE;
             }
             else
             {
@@ -836,20 +904,21 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (GetFunctionParameterIdentifier(Token) != -1)
+                        if (GetUserDefinedFunctionNode(Token))
+                        {
+                            Token->Type = FUNCTION_ID;
+                        }
+                        else if (GetFunctionParameterIdentifier(Token) != -1)
                         {
                             Token->Type = FUNCTION_PARAMETER_ID;
                         }
+                        else if (GetLocalIdentifierVal(Token) != -1)
+                        {
+                            Token->Type = LOCAL_ID;
+                        }
                         else
                         {
-                            if (GetLocalIdentifierVal(Token) != -1)
-                            {
-                                Token->Type = LOCAL_ID;
-                            }
-                            else
-                            {
-                                Token->Type = LOCAL_UNRESOLVED_ID;
-                            }
+                            Token->Type = LOCAL_UNRESOLVED_ID;
                         }
                     }
                 }
@@ -994,6 +1063,26 @@ IsRegister(char * str)
     if (RegisterToInt(str) == INVALID)
         return 0;
     return 1;
+}
+
+/**
+ * @brief Check if string is variable type or not
+ *
+ * @param str
+ * @return char
+ */
+char
+IsVariableType(char * str)
+{
+    for (int i = 0; i < SCRIPT_VARIABLE_TYPE_LIST_LENGTH; i++)
+    {
+        if (!strcmp(str, ScriptVariableTypeList[i]))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 /**

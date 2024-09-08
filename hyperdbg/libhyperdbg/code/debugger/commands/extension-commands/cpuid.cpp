@@ -39,12 +39,13 @@ CommandCpuidHelp()
 /**
  * @brief !cpuid command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandCpuid(vector<string> SplitCommand, string Command)
+CommandCpuid(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -56,7 +57,6 @@ CommandCpuid(vector<string> SplitCommand, string Command)
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -64,8 +64,7 @@ CommandCpuid(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             CPUID_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -83,9 +82,9 @@ CommandCpuid(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any), of CPUID EAX index
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!cpuid"))
+        if (CompareLowerCaseStrings(Section, "!cpuid"))
         {
             continue;
         }
@@ -94,12 +93,13 @@ CommandCpuid(vector<string> SplitCommand, string Command)
             //
             // It's probably an msr
             //
-            if (!ConvertStringToUInt64(Section, &SpecialTarget))
+            if (!ConvertTokenToUInt64(Section, &SpecialTarget))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandCpuidHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -118,7 +118,9 @@ CommandCpuid(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
+
             CommandCpuidHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);

@@ -36,12 +36,13 @@ CommandBdHelp()
 /**
  * @brief handler of bd command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandBd(vector<string> SplitCommand, string Command)
+CommandBd(vector<CommandToken> CommandTokens, string Command)
 {
     UINT64                            BreakpointId;
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
@@ -49,9 +50,10 @@ CommandBd(vector<string> SplitCommand, string Command)
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 2)
+    if (CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'bd'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandBdHelp();
         return;
     }
@@ -59,7 +61,7 @@ CommandBd(vector<string> SplitCommand, string Command)
     //
     // Get the breakpoint id
     //
-    if (!ConvertStringToUInt64(SplitCommand.at(1), &BreakpointId))
+    if (!ConvertTokenToUInt64(CommandTokens.at(1), &BreakpointId))
     {
         ShowMessages("please specify a correct hex value for breakpoint id\n\n");
         CommandBdHelp();

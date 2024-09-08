@@ -377,12 +377,13 @@ CommandLmShowKernelModeModule(const char * SearchModule)
 /**
  * @brief handle lm command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandLm(vector<string> SplitCommand, string Command)
+CommandLm(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN SetPid                = FALSE;
     BOOLEAN SetSearchFilter       = FALSE;
@@ -396,29 +397,29 @@ CommandLm(vector<string> SplitCommand, string Command)
     //
     // Interpret command specific details (if any)
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("lm"))
+        if (CompareLowerCaseStrings(Section, "lm"))
         {
             continue;
         }
-        else if (!Section.compare("pid") && !SetPid)
+        else if (CompareLowerCaseStrings(Section, "pid") && !SetPid)
         {
             SetPid = TRUE;
         }
-        else if (!Section.compare("m") && !SetSearchFilter)
+        else if (CompareLowerCaseStrings(Section, "m") && !SetSearchFilter)
         {
             SetSearchFilter = TRUE;
         }
         else if (SetPid)
         {
-            if (!ConvertStringToUInt32(Section, &TargetPid))
+            if (!ConvertTokenToUInt32(Section, &TargetPid))
             {
                 //
                 // couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                             Section.c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandLmHelp();
                 return;
             }
@@ -426,7 +427,7 @@ CommandLm(vector<string> SplitCommand, string Command)
         }
         else if (SetSearchFilter)
         {
-            if (Section.length() >= MAX_PATH)
+            if (GetCaseSensitiveStringFromCommandToken(Section).length() >= MAX_PATH)
             {
                 ShowMessages("err, string is too large for search, please enter "
                              "smaller string\n");
@@ -435,11 +436,11 @@ CommandLm(vector<string> SplitCommand, string Command)
             }
 
             SearchStringEntered = TRUE;
-            strcpy(Search, Section.c_str());
+            strcpy(Search, GetLowerStringFromCommandToken(Section).c_str());
 
             SetSearchFilter = FALSE;
         }
-        else if (!Section.compare("km"))
+        else if (CompareLowerCaseStrings(Section, "km"))
         {
             if (OnlyShowUserModules)
             {
@@ -450,7 +451,7 @@ CommandLm(vector<string> SplitCommand, string Command)
 
             OnlyShowKernelModules = TRUE;
         }
-        else if (!Section.compare("um"))
+        else if (CompareLowerCaseStrings(Section, "um"))
         {
             if (OnlyShowKernelModules)
             {
@@ -467,7 +468,7 @@ CommandLm(vector<string> SplitCommand, string Command)
             // Unknown parameter
             //
             ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                         Section.c_str());
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandLmHelp();
             return;
         }

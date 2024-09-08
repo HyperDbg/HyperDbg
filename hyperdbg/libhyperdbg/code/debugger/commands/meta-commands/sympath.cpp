@@ -36,17 +36,18 @@ CommandSympathHelp()
 /**
  * @brief .sympath command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandSympath(vector<string> SplitCommand, string Command)
+CommandSympath(vector<CommandToken> CommandTokens, string Command)
 {
     string SymbolServer = "";
     string Token;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Show the current symbol path
@@ -74,7 +75,7 @@ CommandSympath(vector<string> SplitCommand, string Command)
         //
         // Remove .sympath from it
         //
-        Command.erase(0, SplitCommand.at(0).size());
+        Command.erase(0, GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).size());
 
         //
         // Trim it again

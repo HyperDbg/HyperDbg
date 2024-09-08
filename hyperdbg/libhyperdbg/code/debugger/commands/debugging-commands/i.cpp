@@ -47,22 +47,23 @@ CommandIHelp()
 /**
  * @brief handler of i command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandI(vector<string> SplitCommand, string Command)
+CommandI(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32                           StepCount;
-    DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
+    UINT32 StepCount;
 
     //
     // Validate the commands
     //
-    if (SplitCommand.size() != 1 && SplitCommand.size() != 2)
+    if (CommandTokens.size() != 1 && CommandTokens.size() != 2)
     {
-        ShowMessages("incorrect use of the 'i'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandIHelp();
         return;
     }
@@ -77,16 +78,11 @@ CommandI(vector<string> SplitCommand, string Command)
     }
 
     //
-    // Set type of step
-    //
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN;
-
-    //
     // Check if the command has a counter parameter
     //
-    if (SplitCommand.size() == 2)
+    if (CommandTokens.size() == 2)
     {
-        if (!ConvertStringToUInt32(SplitCommand.at(1), &StepCount))
+        if (!ConvertTokenToUInt32(CommandTokens.at(1), &StepCount))
         {
             ShowMessages("please specify a correct hex value for [count]\n\n");
             CommandIHelp();
@@ -120,9 +116,9 @@ CommandI(vector<string> SplitCommand, string Command)
             //
             // It's stepping over serial connection in kernel debugger
             //
-            KdSendStepPacketToDebuggee(RequestFormat);
+            SteppingInstrumentationStepIn();
 
-            if (!SplitCommand.at(0).compare("ir"))
+            if (CompareLowerCaseStrings(CommandTokens.at(0), "ir"))
             {
                 //
                 // Show registers

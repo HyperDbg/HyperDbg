@@ -33,16 +33,18 @@ CommandLogcloseHelp()
 /**
  * @brief .logclose command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandLogclose(vector<string> SplitCommand, string Command)
+CommandLogclose(vector<CommandToken> CommandTokens, string Command)
 {
-    if (SplitCommand.size() != 1)
+    if (CommandTokens.size() != 1)
     {
-        ShowMessages("incorrect use of the '.logclose'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandLogcloseHelp();
         return;
     }

@@ -48,12 +48,13 @@ CommandProcessHelp()
 /**
  * @brief .process command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandProcess(vector<string> SplitCommand, string Command)
+CommandProcess(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32                               TargetProcessId            = 0;
     UINT64                               TargetProcess              = 0;
@@ -65,14 +66,15 @@ CommandProcess(vector<string> SplitCommand, string Command)
     BOOLEAN                              IsSetByClkIntr             = FALSE;
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS ProcessListNeededItems     = {0};
 
-    if (SplitCommand.size() >= 4)
+    if (CommandTokens.size() >= 4)
     {
-        ShowMessages("incorrect use of the '.process'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandProcessHelp();
         return;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Check if it's connected to a remote debuggee or not
@@ -96,9 +98,9 @@ CommandProcess(vector<string> SplitCommand, string Command)
                                                 NULL);
         }
     }
-    else if (SplitCommand.size() == 2)
+    else if (CommandTokens.size() == 2)
     {
-        if (!SplitCommand.at(1).compare("list"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "list"))
         {
             //
             // Query for nt!_EPROCESS.ImageFileName, nt!_EPROCESS.UniqueProcessId,
@@ -161,12 +163,12 @@ CommandProcess(vector<string> SplitCommand, string Command)
         {
             ShowMessages(
                 "err, unknown parameter at '%s'\n\n",
-                SplitCommand.at(1).c_str());
+                GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1)).c_str());
             CommandProcessHelp();
             return;
         }
     }
-    else if (SplitCommand.size() == 3)
+    else if (CommandTokens.size() == 3)
     {
         //
         // Check if it's connected to a remote debuggee or not
@@ -179,9 +181,9 @@ CommandProcess(vector<string> SplitCommand, string Command)
             return;
         }
 
-        if (!SplitCommand.at(1).compare("pid"))
+        if (CompareLowerCaseStrings(CommandTokens.at(1), "pid"))
         {
-            if (!ConvertStringToUInt32(SplitCommand.at(2), &TargetProcessId))
+            if (!ConvertTokenToUInt32(CommandTokens.at(2), &TargetProcessId))
             {
                 ShowMessages(
                     "please specify a correct hex value for the process id that you "
@@ -190,9 +192,9 @@ CommandProcess(vector<string> SplitCommand, string Command)
                 return;
             }
         }
-        else if (!SplitCommand.at(1).compare("process"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(1), "process"))
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommand.at(2), &TargetProcess))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)), &TargetProcess))
             {
                 ShowMessages(
                     "please specify a correct hex value for the process (nt!_EPROCESS) that you "
@@ -205,7 +207,7 @@ CommandProcess(vector<string> SplitCommand, string Command)
         {
             ShowMessages(
                 "err, unknown parameter at '%s'\n\n",
-                SplitCommand.at(2).c_str());
+                GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
             CommandProcessHelp();
             return;
         }
@@ -213,7 +215,7 @@ CommandProcess(vector<string> SplitCommand, string Command)
         //
         // Check for switching method
         //
-        if (!SplitCommand.at(0).compare(".process2"))
+        if (CompareLowerCaseStrings(CommandTokens.at(0), ".process2"))
         {
             IsSetByClkIntr = FALSE;
         }

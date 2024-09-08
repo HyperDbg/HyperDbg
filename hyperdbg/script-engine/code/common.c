@@ -201,20 +201,15 @@ PrintToken(PTOKEN Token)
     case UNKNOWN:
         printf(" UNKNOWN>\n");
         break;
-    case INPUT_VARIABLE_TYPE:
-        printf(" INPUT_VARIABLE_TYPE>\n");
+    case SCRIPT_VARIABLE_TYPE:
+        printf(" SCRIPT_VARIABLE_TYPE>\n");
         break;
-    case HANDLED_VARIABLE_TYPE:
-        printf(" HANDLED_VARIABLE_TYPE>\n");
-        break;
-    case FUNCTION_TYPE:
-        printf(" FUNCTION_TYPE>\n");
+    case FUNCTION_ID:
+        printf(" FUNCTION_ID>\n");
         break;
     case FUNCTION_PARAMETER_ID:
         printf(" FUNCTION_PARAMETER_ID>\n");
         break;
-    case STACK_TEMP:
-        printf(" STACK_TEMP>\n");
     default:
         printf(" ERROR>\n");
         break;
@@ -618,55 +613,16 @@ IsOctal(char c)
  * @return PTOKEN
  */
 PTOKEN
-NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error, PUSER_DEFINED_FUNCTION_NODE CurrentFunctionSymbol)
-{
-    if (CurrentFunctionSymbol)
-    {
-        return NewStackTemp(Error);
-    }
-    else
-    {
-        static unsigned int TempID = 0;
-        int                 i;
-        for (i = 0; i < MAX_TEMP_COUNT; i++)
-        {
-            if (TempMap[i] == 0)
-            {
-                TempID     = i;
-                TempMap[i] = 1;
-                break;
-            }
-        }
-        if (i == MAX_TEMP_COUNT)
-        {
-            *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
-        }
-        PTOKEN Temp = NewUnknownToken();
-        char   TempValue[8];
-        sprintf(TempValue, "%d", TempID);
-        strcpy(Temp->Value, TempValue);
-        Temp->Type = TEMP;
-        return Temp;
-    }
-}
-
-/**
- * @brief Allocates a new temporary variable in stack and returns it
- *
- * @param Error
- * @return PTOKEN
- */
-PTOKEN
-NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
     int                 i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
-        if (StackTempMap[i] == 0)
+        if (CurrentUserDefinedFunction->TempMap[i] == 0)
         {
-            TempID          = i;
-            StackTempMap[i] = 1;
+            TempID                                 = i;
+            CurrentUserDefinedFunction->TempMap[i] = 1;
             break;
         }
     }
@@ -678,7 +634,13 @@ NewStackTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     char   TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
-    Temp->Type = STACK_TEMP;
+    Temp->Type = TEMP;
+
+    if (CurrentUserDefinedFunction->MaxTempNumber < (i + 1))
+    {
+        CurrentUserDefinedFunction->MaxTempNumber = i + 1;
+    }
+
     return Temp;
 }
 
@@ -693,38 +655,7 @@ FreeTemp(PTOKEN Temp)
     int id = (int)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
     {
-        TempMap[id] = 0;
-    }
-    else if (Temp->Type == STACK_TEMP)
-    {
-        StackTempMap[id] = 0;
-    }
-}
-
-/**
- * @brief Resets the temporary variables map
- *
- */
-void
-CleanTempList(void)
-{
-    for (int i = 0; i < MAX_TEMP_COUNT; i++)
-    {
-        TempMap[i]      = 0;
-        StackTempMap[i] = 0;
-    }
-}
-
-/**
- * @brief Resets the stack temporary variables map
- *
- */
-void
-CleanStackTempList(void)
-{
-    for (int i = 0; i < MAX_TEMP_COUNT; i++)
-    {
-        StackTempMap[i] = 0;
+        CurrentUserDefinedFunction->TempMap[id] = 0;
     }
 }
 
@@ -1049,24 +980,22 @@ IsType15Func(PTOKEN Operator)
 }
 
 /**
- * @brief Checks whether this Token type is VariableType
+ * @brief Checks whether this Token type is assignemnt operator
  *
  * @param Operator
  * @return char
  */
-
 char
-IsVariableType(PTOKEN Operator)
+IsAssignmentOperator(PTOKEN Operator)
 {
-    unsigned int n = VARIABLETYPE_LENGTH;
+    unsigned int n = ASSIGNMENT_OPERATOR_LIST_LENGTH;
     for (unsigned int i = 0; i < n; i++)
     {
-        if (!strcmp(Operator->Value, VARIABLETYPE[i]))
+        if (!strcmp(Operator->Value, AssignmentOperatorList[i]))
         {
             return 1;
         }
     }
-
     return 0;
 }
 
@@ -1149,6 +1078,13 @@ GetTerminalId(PTOKEN Token)
                 return i;
             }
         }
+        else if (Token->Type == FUNCTION_ID)
+        {
+            if (!strcmp("_function_id", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
         else if (Token->Type == FUNCTION_PARAMETER_ID)
         {
             if (!strcmp("_function_parameter_id", TerminalMap[i]))
@@ -1166,6 +1102,13 @@ GetTerminalId(PTOKEN Token)
         else if (Token->Type == PSEUDO_REGISTER)
         {
             if (!strcmp("_pseudo_register", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == SCRIPT_VARIABLE_TYPE)
+        {
+            if (!strcmp("_script_variable_type", TerminalMap[i]))
             {
                 return i;
             }
@@ -1257,6 +1200,13 @@ LalrGetTerminalId(PTOKEN Token)
         else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
         {
             if (!strcmp("_local_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == FUNCTION_ID)
+        {
+            if (!strcmp("_function_id", LalrTerminalMap[i]))
             {
                 return i;
             }

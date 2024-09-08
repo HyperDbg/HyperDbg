@@ -12,6 +12,11 @@
 #pragma once
 
 //
+// namespace
+//
+using namespace std;
+
+//
 // Environment headers
 //
 #include "platform/user/header/Environment.h"
@@ -28,6 +33,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <filesystem>
 
 //
 // Program Defined Headers
@@ -36,5 +42,9 @@
 #include "Definition.h"
 #include "..\hyperdbg-test\header\namedpipe.h"
 #include "..\hyperdbg-test\header\routines.h"
+#include "..\hyperdbg-test\header\testcases.h"
 
-using namespace std;
+//
+// import libhyperdbg
+//
+#include "SDK/imports/user/HyperDbgLibImports.h"

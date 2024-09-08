@@ -38,21 +38,23 @@ CommandPrintHelp()
 /**
  * @brief handler of print command
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandPrint(vector<string> SplitCommand, string Command)
+CommandPrint(vector<CommandToken> CommandTokens, string Command)
 {
     PVOID  CodeBuffer;
     UINT64 BufferAddress;
     UINT32 BufferLength;
     UINT32 Pointer;
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
-        ShowMessages("incorrect use of the 'print'\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPrintHelp();
         return;
     }
@@ -65,7 +67,7 @@ CommandPrint(vector<string> SplitCommand, string Command)
     //
     // Remove print from it
     //
-    Command.erase(0, SplitCommand.at(0).size());
+    Command.erase(0, GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).size());
 
     //
     // Trim it again

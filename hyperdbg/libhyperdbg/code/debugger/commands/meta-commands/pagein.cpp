@@ -256,23 +256,22 @@ CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
 /**
  * @brief .pagein command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandPagein(vector<string> SplitCommand, string Command)
+CommandPagein(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT32               Pid               = 0;
-    UINT64               Length            = 0;
-    UINT64               TargetAddressFrom = NULL;
-    UINT64               TargetAddressTo   = NULL;
-    BOOLEAN              IsNextProcessId   = FALSE;
-    BOOLEAN              IsFirstCommand    = TRUE;
-    BOOLEAN              IsNextLength      = FALSE;
-    vector<string>       SplitCommandCaseSensitive {Split(Command, ' ')};
-    UINT32               IndexInCommandCaseSensitive = 0;
-    PAGE_FAULT_EXCEPTION PageFaultErrorCode          = {0};
+    UINT32               Pid                = 0;
+    UINT64               Length             = 0;
+    UINT64               TargetAddressFrom  = NULL;
+    UINT64               TargetAddressTo    = NULL;
+    BOOLEAN              IsNextProcessId    = FALSE;
+    BOOLEAN              IsFirstCommand     = TRUE;
+    BOOLEAN              IsNextLength       = FALSE;
+    PAGE_FAULT_EXCEPTION PageFaultErrorCode = {0};
 
     //
     // By default if the user-debugger is active, we use these commands
@@ -283,20 +282,19 @@ CommandPagein(vector<string> SplitCommand, string Command)
         Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
-    if (SplitCommand.size() == 1)
+    if (CommandTokens.size() == 1)
     {
         //
         // Means that user entered one command without any parameter
         //
-        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPageinHelp();
         return;
     }
 
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        IndexInCommandCaseSensitive++;
-
         if (IsFirstCommand)
         {
             IsFirstCommand = FALSE;
@@ -304,7 +302,7 @@ CommandPagein(vector<string> SplitCommand, string Command)
         }
         if (IsNextProcessId == TRUE)
         {
-            if (!ConvertStringToUInt32(Section, &Pid))
+            if (!ConvertTokenToUInt32(Section, &Pid))
             {
                 ShowMessages("err, you should enter a valid process id\n\n");
                 return;
@@ -315,7 +313,7 @@ CommandPagein(vector<string> SplitCommand, string Command)
 
         if (IsNextLength == TRUE)
         {
-            if (!SymbolConvertNameOrExprToAddress(Section, &Length))
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section), &Length))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -324,13 +322,13 @@ CommandPagein(vector<string> SplitCommand, string Command)
             continue;
         }
 
-        if (!Section.compare("l"))
+        if (CompareLowerCaseStrings(Section, "l"))
         {
             IsNextLength = TRUE;
             continue;
         }
 
-        // if (!Section.compare("pid"))
+        // if (CompareLowerCaseStrings(Section, "pid"))
         // {
         //     IsNextProcessId = TRUE;
         //     continue;
@@ -340,20 +338,20 @@ CommandPagein(vector<string> SplitCommand, string Command)
         // Probably it's address or mode string
         //
 
-        if (CommandPageinCheckAndInterpretModeString(Section, &PageFaultErrorCode))
+        if (CommandPageinCheckAndInterpretModeString(GetLowerStringFromCommandToken(Section), &PageFaultErrorCode))
         {
             continue;
         }
         else if (TargetAddressFrom == 0)
         {
-            if (!SymbolConvertNameOrExprToAddress(SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+            if (!SymbolConvertNameOrExprToAddress(GetCaseSensitiveStringFromCommandToken(Section),
                                                   &TargetAddressFrom))
             {
                 //
                 // Couldn't resolve or unknown parameter
                 //
                 ShowMessages("err, couldn't resolve error at '%s'\n",
-                             SplitCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 return;
             }
         }
@@ -381,7 +379,8 @@ CommandPagein(vector<string> SplitCommand, string Command)
 
     if (IsNextLength || IsNextProcessId)
     {
-        ShowMessages("incorrect use of the '.pagein' command\n\n");
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandPageinHelp();
         return;
     }

@@ -39,12 +39,13 @@ CommandIooutHelp()
 /**
  * @brief !ioout command handler
  *
- * @param SplitCommand
+ * @param CommandTokens
  * @param Command
+ *
  * @return VOID
  */
 VOID
-CommandIoout(vector<string> SplitCommand, string Command)
+CommandIoout(vector<CommandToken> CommandTokens, string Command)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
@@ -56,7 +57,6 @@ CommandIoout(vector<string> SplitCommand, string Command)
     UINT32                             ActionScriptLength          = 0;
     UINT64                             SpecialTarget               = DEBUGGER_EVENT_ALL_IO_PORTS;
     BOOLEAN                            GetPort                     = FALSE;
-    vector<string>                     SplitCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
@@ -64,8 +64,7 @@ CommandIoout(vector<string> SplitCommand, string Command)
     //
     //
     if (!InterpretGeneralEventAndActionsFields(
-            &SplitCommand,
-            &SplitCommandCaseSensitive,
+            &CommandTokens,
             OUT_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,
@@ -84,9 +83,9 @@ CommandIoout(vector<string> SplitCommand, string Command)
     // Interpret command specific details (if any)
     //
     //
-    for (auto Section : SplitCommand)
+    for (auto Section : CommandTokens)
     {
-        if (!Section.compare("!ioout"))
+        if (CompareLowerCaseStrings(Section, "!ioout"))
         {
             continue;
         }
@@ -95,12 +94,13 @@ CommandIoout(vector<string> SplitCommand, string Command)
             //
             // It's probably an I/O port
             //
-            if (!ConvertStringToUInt64(Section, &SpecialTarget))
+            if (!ConvertTokenToUInt64(Section, &SpecialTarget))
             {
                 //
                 // Unknown parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
                 CommandIooutHelp();
 
                 FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
@@ -116,7 +116,8 @@ CommandIoout(vector<string> SplitCommand, string Command)
             //
             // Unknown parameter
             //
-            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
             CommandIooutHelp();
 
             FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
