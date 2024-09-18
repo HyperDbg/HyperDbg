@@ -286,19 +286,19 @@ class ScriptEngineSetValue(
           outputTempVariables := inputTempVariables
         }
 
-      }/*
-      is(symbolPseudoRegType) {
+      }
+      is(symbolStackIndexType) {
 
         if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.stack_assignments) == true) {
           //
           // To be implemented
           //
-          outputPin := 0.U
+          outputPin := inputPin
           outputLocalGlobalVariables := inputLocalGlobalVariables
           outputTempVariables := inputTempVariables
         }
 
-      }*/
+      }
       is(symbolTempType) {
 
         if (
