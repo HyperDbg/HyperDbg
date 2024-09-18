@@ -46,13 +46,17 @@ public:
      *
      * @return std::vector<CommandToken>
      */
-    std::vector<CommandToken> Parse(const std::string & input)
+    std::vector<CommandToken> Parse(const std::string & ConstInput)
     {
         std::vector<CommandToken> tokens;
         std::string               current;
         bool                      InQuotes   = FALSE;
         int                       IdxBracket = 0;
 
+        //
+        // mainly for removing \ from escaped chars
+        //
+        std::string input = ConstInput;
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
@@ -62,66 +66,150 @@ public:
                 //
                 // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!IdxBracket && !InQuotes)
+                if (!InQuotes)
                 {
                     size_t j = i;
                     char   c2 = input[++j];
 
                     if (c2 == '/') // start to look for comments
                     {
+                        //
+                        // assuming " }" as the end of a line comment aka //
+                        //
+                        size_t CloseBrktPos;
+                        for (CloseBrktPos = input.find("}", i); CloseBrktPos != std::string::npos; )
+                        {
+                             CloseBrktPos = input.find("}", CloseBrktPos);
+                             if (input[CloseBrktPos - 1] == '\\')
+                             {
+                                 input.erase(CloseBrktPos - 1, 1);
+                                 CloseBrktPos += 1;
+                             }
+                             else
+                             {
+                                 break;
+                             }
+                        }
+
                         size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
                         size_t NewLineChrPos = input.find('\n', i);
 
-                        bool IsNewLineEsc = false;
-                        if (NewLineSrtPos != std::string::npos)
-                        {
-                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\'; 
-                        }
+                        vector<size_t> PosVec;
+                        PosVec.push_back(CloseBrktPos);
+                        PosVec.push_back(NewLineSrtPos);
+                        PosVec.push_back(NewLineChrPos); // *** check fo npos
 
-                        if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
-                        {
-                            //
-                            // here we could get the comment but for now we just skip
-                            //
-                            std::string comment(input.substr(i, NewLineSrtPos - i));
+                        auto min = min_element(PosVec.begin(), PosVec.end());
 
-                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
-
-                            continue; 
-                        }
-                        else if (NewLineChrPos != std::string::npos)
+                        if (CloseBrktPos != std::string::npos && input[CloseBrktPos-1] != '\\')
                         {
                             //
                             // here we could get the comment but for now we just skip
                             //
-                            std::string comment(input.substr(i, NewLineChrPos - i));
+                            std::string comment(input.substr(i, CloseBrktPos - i));
 
-                            i = i + (NewLineChrPos - i);
+                            //
+                            // append comments to be passed to script engine
+                            //
+                            if (IdxBracket)
+                            {
+                                current += comment;
+                            }
 
-                            continue; // go past '\n'
+                            //
+                            // forward the buffer
+                            //
+                            i = i + (CloseBrktPos - i) - 1;
+
+                            continue;
                         }
                         else
                         {
-                            //
-                            // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
-                            //
-                            std::string comment(input.substr(i, input.size()));
-
-                            // fix the escaped newline
-                            if (IsNewLineEsc)
+                            bool IsNewLineEsc = false;
+                            if (NewLineSrtPos != std::string::npos)
                             {
-                                size_t start_pos = 0;
-                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
-                                {
-                                    comment.replace(start_pos, 3, "\\n");
-                                    start_pos += 2; // Handles case where 'to' is a substring of 'from'
-                                }
-
-                                IsNewLineEsc = false;
+                                IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
                             }
 
-                            i = i + (input.size() - i);
-                            continue;
+                            if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
+                            {
+                                //
+                                // here we could get the comment but for now we just skip
+                                //
+                                std::string comment(input.substr(i, NewLineSrtPos - i));
+
+                                //
+                                // append comments to be passed to script engine
+                                //
+                                if (IdxBracket)
+                                {
+                                    current += comment;
+                                }
+
+                                //
+                                // forward the buffer
+                                //
+                                i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
+
+                                continue;
+                            }
+                            else if (NewLineChrPos != std::string::npos)
+                            {
+                                //
+                                // here we could get the comment but for now we just skip
+                                //
+                                std::string comment(input.substr(i, NewLineChrPos - i));
+
+                                //
+                                // append comments to be passed to script engine
+                                //
+                                if (IdxBracket)
+                                {
+                                    current += comment;
+                                }
+
+                                //
+                                // forward the buffer
+                                //
+                                i = i + (NewLineChrPos - i);
+
+                                continue; // go past '\n'
+                            }
+                            else
+                            {
+                                //
+                                // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
+                                //
+                                std::string comment(input.substr(i, input.size()));
+
+                                // fix the escaped newline
+                                if (IsNewLineEsc)
+                                {
+                                    size_t start_pos = 0;
+                                    while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
+                                    {
+                                        comment.replace(start_pos, 3, "\\n");
+                                        start_pos += 2; // Handles case where 'to' is a substring of 'from'
+                                    }
+
+                                    IsNewLineEsc = false;
+                                }
+
+                                //
+                                // append comments to be passed to script engine
+                                //
+                                if (IdxBracket)
+                                {
+                                    current += comment;
+                                }
+
+                                //
+                                // forward the buffer
+                                //
+                                i = i + (input.size() - i);
+
+                                continue;
+                            }
                         }
                     }
                     else if (c2 == '*')
@@ -135,7 +223,18 @@ public:
                             //
                             std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
 
-                            i = (i + (EndPose - i)) + 1; // one for /
+                            //
+                            // append comments to be passed to script engine
+                            //
+                            if (IdxBracket)
+                            {
+                                current += comment;
+                            }
+
+                            //
+                            // forward the buffer
+                            //
+                            i = (i + (EndPose - i)) + 1; // +1 for /
 
                             continue;
                         }
