@@ -136,6 +136,7 @@ object ScriptEngineConfigurations {
     HwdbgScriptCapabilities.assign_registers,
     // HwdbgScriptCapabilities.assign_pseudo_registers,
     HwdbgScriptCapabilities.conditional_statements_and_comparison_operators,
+    HwdbgScriptCapabilities.stack_assignments,
 
     //
     // Operators
@@ -234,37 +235,39 @@ object HwdbgScriptCapabilities {
   val assign_registers: Long = 1L << 1
   val assign_pseudo_registers: Long = 1L << 2
   val conditional_statements_and_comparison_operators: Long = 1L << 3
+  val stack_assignments: Long = 1L << 4
 
   //
   // Operators
   //
-  val func_or: Long = 1L << 4
-  val func_xor: Long = 1L << 5
-  val func_and: Long = 1L << 6
-  val func_asr: Long = 1L << 7
-  val func_asl: Long = 1L << 8
-  val func_add: Long = 1L << 9
-  val func_sub: Long = 1L << 10
-  val func_mul: Long = 1L << 11
-  val func_div: Long = 1L << 12
-  val func_mod: Long = 1L << 13
-  val func_gt: Long = 1L << 14
-  val func_lt: Long = 1L << 15
-  val func_egt: Long = 1L << 16
-  val func_elt: Long = 1L << 17
-  val func_equal: Long = 1L << 18
-  val func_neq: Long = 1L << 19
-  val func_jmp: Long = 1L << 20
-  val func_jz: Long = 1L << 21
-  val func_jnz: Long = 1L << 22
-  val func_mov: Long = 1L << 23
-  val func_printf: Long = 1L << 24
+  val func_or: Long = 1L << 5
+  val func_xor: Long = 1L << 6
+  val func_and: Long = 1L << 7
+  val func_asr: Long = 1L << 8
+  val func_asl: Long = 1L << 9
+  val func_add: Long = 1L << 10
+  val func_sub: Long = 1L << 11
+  val func_mul: Long = 1L << 12
+  val func_div: Long = 1L << 13
+  val func_mod: Long = 1L << 14
+  val func_gt: Long = 1L << 15
+  val func_lt: Long = 1L << 16
+  val func_egt: Long = 1L << 17
+  val func_elt: Long = 1L << 18
+  val func_equal: Long = 1L << 19
+  val func_neq: Long = 1L << 20
+  val func_jmp: Long = 1L << 21
+  val func_jz: Long = 1L << 22
+  val func_jnz: Long = 1L << 23
+  val func_mov: Long = 1L << 24
+  val func_printf: Long = 1L << 25
 
   def allCapabilities: Seq[Long] = Seq(
     assign_local_global_var,
     assign_registers,
     assign_pseudo_registers,
     conditional_statements_and_comparison_operators,
+    stack_assignments,
     func_or,
     func_xor,
     func_and,
