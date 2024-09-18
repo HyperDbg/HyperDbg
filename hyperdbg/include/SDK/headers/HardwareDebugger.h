@@ -119,6 +119,7 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
         UINT64 assign_registers : 1;
         UINT64 assign_pseudo_registers : 1;
         UINT64 conditional_statements_and_comparison_operators : 1;
+        UINT64 stack_assignments : 1;
 
         UINT64 func_or : 1;
         UINT64 func_xor : 1;

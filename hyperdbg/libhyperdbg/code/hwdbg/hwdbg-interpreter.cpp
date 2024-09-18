@@ -323,6 +323,16 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
 
                 break;
 
+            case SYMBOL_STACK_INDEX_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.stack_assignments)
+                {
+                    NotSupported = TRUE;
+                    ShowMessages("err, temporary variables (for conditional statement) is not supported\n");
+                }
+
+                break;
+
             default:
 
                 NotSupported = TRUE;

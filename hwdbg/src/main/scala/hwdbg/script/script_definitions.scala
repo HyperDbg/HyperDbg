@@ -39,7 +39,7 @@ object ScriptConstants {
  */
 object ScriptConstantTypes {
   object ScriptDataTypes extends ChiselEnum {
-    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
+    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolFunctionParameterType, symbolStackIndexType, symbolStackBaseIndexType, symbolReturnValueType  = Value
   }
 }
 
