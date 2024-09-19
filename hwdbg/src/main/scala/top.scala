@@ -105,6 +105,11 @@ class DebuggerModule(
 object Main extends App {
 
   //
+  // Load configuration from JSON file
+  //
+  LoadConfiguration.loadFromJson("src/main/scala/hwdbg/configs/config.json")
+
+  //
   // Generate hwdbg verilog files
   //
   println(
