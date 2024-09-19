@@ -156,7 +156,7 @@ object MainWithInitializedBRAM extends App {
         ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES,
         MemoryCommunicationConfigurations.BLOCK_RAM_ADDR_WIDTH,
         MemoryCommunicationConfigurations.BLOCK_RAM_DATA_WIDTH,
-        DebuggerPorts.PORT_PINS_MAP
+        DebuggerConfigurations.PORT_PINS_MAP
       ),
       firtoolOpts = Array(
         "-disable-all-randomization",

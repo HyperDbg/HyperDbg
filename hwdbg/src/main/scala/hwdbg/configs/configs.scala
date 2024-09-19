@@ -54,25 +54,6 @@ object Version {
 
 /**
  * @brief
- *   The configuration of ports and pins
- */
-object DebuggerPorts {
-
-  //
-  // The following constant shows the key value object of the mappings
-  // of pins to ports (used for inputs/outputs)
-  //    For example,
-  //                port 0 (in) -> contains 12 pins
-  //                port 1 (in) -> contains 20 pins
-  //
-  // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
-  val PORT_PINS_MAP: Array[Int] = Array(12, 20)
-  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
-
-}
-
-/**
- * @brief
  *   Design constants
  */
 object DebuggerConfigurations {
@@ -87,6 +68,18 @@ object DebuggerConfigurations {
   //
   val NUMBER_OF_PINS: Int = 32
 
+  //
+  // The configuration of ports and pins
+  //
+  // The following constant shows the key value object of the mappings
+  // of pins to ports (used for inputs/outputs)
+  //    For example,
+  //                port 0 (in) -> contains 12 pins
+  //                port 1 (in) -> contains 20 pins
+  //
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
+  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
+  val PORT_PINS_MAP: Array[Int] = Array(12, 20)
 }
 
 /**
