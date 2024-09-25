@@ -147,7 +147,7 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
  * @return VOID
  */
 std::vector<UINT32>
-ParseLine(const std::string & Line)
+HwdbgParseStringMemoryLine(const std::string & Line)
 {
     std::vector<UINT32> Values;
     std::stringstream   Ss(Line);
@@ -609,7 +609,7 @@ HwdbgInterpreterFillMemoryFromFile(
             break;
         }
 
-        vector<UINT32> Values = ParseLine(Line);
+        vector<UINT32> Values = HwdbgParseStringMemoryLine(Line);
 
         for (UINT32 Value : Values)
         {
