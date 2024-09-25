@@ -137,6 +137,11 @@ class DebuggerModuleTestingBRAM(
 object MainWithInitializedBRAM extends App {
 
   //
+  // Load configuration from JSON file
+  //
+  LoadConfiguration.loadFromJson("src/main/scala/hwdbg/configs/config.json")
+
+  //
   // Generate hwdbg verilog files
   //
   println(
@@ -156,7 +161,7 @@ object MainWithInitializedBRAM extends App {
         ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES,
         MemoryCommunicationConfigurations.BLOCK_RAM_ADDR_WIDTH,
         MemoryCommunicationConfigurations.BLOCK_RAM_DATA_WIDTH,
-        DebuggerPorts.PORT_PINS_MAP
+        DebuggerConfigurations.PORT_PINS_MAP
       ),
       firtoolOpts = Array(
         "-disable-all-randomization",
