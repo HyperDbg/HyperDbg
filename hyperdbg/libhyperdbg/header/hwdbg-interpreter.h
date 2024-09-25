@@ -49,7 +49,14 @@ HwdbgInterpreterFillFileFromMemory(
     HWDBG_ACTION_ENUMS           RequestedAction);
 
 BOOLEAN
-HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName,
+                                   UINT32 *      MemoryBuffer,
+                                   size_t        BufferSize);
+
+SIZE_T
+HwdbgComputeNumberOfFlipFlopsNeeded(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    UINT32                       NumberOfStages);
 
 BOOLEAN
 HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(

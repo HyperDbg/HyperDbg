@@ -212,18 +212,7 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
 
                         UINT32 NumberOfOperandsImplemented = NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
 
-                        //
-                        // Calculate the number of flip-flops needed in the target device
-                        // + operator symbol itself which only contains value (type is always equal to SYMBOL_SEMANTIC_RULE_TYPE)
-                        // so, it is not counted as a flip-flop
-                        //
-                        NumberOfNeededFlipFlopsInTargetDevice = (NumberOfStagesForScript * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) * g_HwdbgInstanceInfo.scriptVariableLength * sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) + // size of operator (GET and SET)
-                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2) +                                                                                                                               // size of main operator (/ 2 is becasue Type is not inffered)
-                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                    // size of local (and global) variables
-                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables * g_HwdbgInstanceInfo.scriptVariableLength) +                                                                                                                         // size of temporary variables
-                                                                (NumberOfStagesForScript * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)) * 2) +                            // size of stage index register + targetStage (* 2)
-                                                                (NumberOfStagesForScript) +                                                                                                                                                                                                                              // stage enable flip-flop
-                                                                (NumberOfStagesForScript * g_HwdbgInstanceInfo.numberOfPins);                                                                                                                                                                                            // input => output flip-flop
+                        NumberOfNeededFlipFlopsInTargetDevice = HwdbgComputeNumberOfFlipFlopsNeeded(&g_HwdbgInstanceInfo, NumberOfStagesForScript);
 
                         ShowMessages("hwdbg script buffer (buffer size=%d, stages=%d, operands needed: %d - operands used: %d (%.2f%%), total used flip-flops=%d, number of bytes per chunk: %d):\n\n",
                                      NewCompressedBufferSize,

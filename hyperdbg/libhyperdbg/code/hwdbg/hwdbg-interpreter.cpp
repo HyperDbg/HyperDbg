@@ -584,7 +584,10 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+HwdbgInterpreterFillMemoryFromFile(
+    const TCHAR * FileName,
+    UINT32 *      MemoryBuffer,
+    size_t        BufferSize)
 {
     std::ifstream File(FileName);
     std::string   Line;
@@ -798,6 +801,70 @@ HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
     free(TempBuffer);
 
     return TRUE;
+}
+
+/**
+ * @brief Function to compute number of flip-flops needed in the target device
+ *
+ * @param InstanceInfo
+ * @param NumberOfStages
+ *
+ * @return SIZE_T
+ */
+SIZE_T
+HwdbgComputeNumberOfFlipFlopsNeeded(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    UINT32                       NumberOfStages)
+{
+    //
+    // Calculate the number of flip-flops needed in the target device
+    // + operator symbol itself which only contains value (type is always equal to SYMBOL_SEMANTIC_RULE_TYPE)
+    // so, it is not counted as a flip-flop
+    //
+    SIZE_T NumberOfNeededFlipFlopsInTargetDevice = 0;
+
+    //
+    // size of operator (GET and SET)
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages *
+                                              (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) *
+                                              g_HwdbgInstanceInfo.scriptVariableLength *
+                                              sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64));
+
+    //
+    // size of main operator (/ 2 is becasue Type is not inffered)
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2);
+
+    //
+    // size of local (and global) variables
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables * g_HwdbgInstanceInfo.scriptVariableLength);
+
+    //
+    // size of temporary variables
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables * g_HwdbgInstanceInfo.scriptVariableLength);
+
+    //
+    // size of stage index register + targetStage (* 2)
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)) * 2);
+
+    //
+    // stage enable flip-flop
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages);
+
+    //
+    // input => output flip-flop
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfPins);
+
+    //
+    // return the number of flip-flops needed in the target device
+    //
+    return NumberOfNeededFlipFlopsInTargetDevice;
 }
 
 /**
