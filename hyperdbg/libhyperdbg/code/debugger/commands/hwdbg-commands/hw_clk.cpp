@@ -105,7 +105,7 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
             //
             // Show script capabilities
             //
-            HwdbgInterpreterShowScriptCapabilities(&g_HwdbgInstanceInfo);
+            HardwareScriptInterpreterShowScriptCapabilities(&g_HwdbgInstanceInfo);
 
             ShowMessages("Debuggee Number Of Pins: 0x%x\n", g_HwdbgInstanceInfo.numberOfPins);
             ShowMessages("Debuggee Number Of Ports: 0x%x\n", g_HwdbgInstanceInfo.numberOfPorts);
@@ -165,11 +165,11 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
         //
         // Check the script capabilities with the generated script
         //
-        if (HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
-                                                                    ScriptBuffer,
-                                                                    ActionScript->ScriptBufferSize / sizeof(SYMBOL),
-                                                                    &NumberOfStagesForScript,
-                                                                    &NumberOfOperandsForScript))
+        if (HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
+                                                                             ScriptBuffer,
+                                                                             ActionScript->ScriptBufferSize / sizeof(SYMBOL),
+                                                                             &NumberOfStagesForScript,
+                                                                             &NumberOfOperandsForScript))
         {
             ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
 
@@ -190,23 +190,23 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
                     //
                     // Compress script buffer
                     //
-                    if (HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(&g_HwdbgInstanceInfo,
-                                                                              (SYMBOL *)ScriptBuffer,
-                                                                              ActionScript->ScriptBufferSize,
-                                                                              NumberOfStagesForScript,
-                                                                              &NewScriptBuffer,
-                                                                              &NewCompressedBufferSize) == TRUE &&
+                    if (HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(&g_HwdbgInstanceInfo,
+                                                                                       (SYMBOL *)ScriptBuffer,
+                                                                                       ActionScript->ScriptBufferSize,
+                                                                                       NumberOfStagesForScript,
+                                                                                       &NewScriptBuffer,
+                                                                                       &NewCompressedBufferSize) == TRUE &&
 
                         //
                         // we put bram data width size here instead of script variable length (g_HwdbgInstanceInfo.scriptVariableLength)
                         // since we want it to read one symbol filed at a time
                         //
-                        HwdbgInterpreterCompressBuffer((UINT64 *)NewScriptBuffer,
-                                                       NewCompressedBufferSize,
-                                                       g_HwdbgInstanceInfo.scriptVariableLength,
-                                                       g_HwdbgInstanceInfo.bramDataWidth,
-                                                       &NewCompressedBufferSize,
-                                                       &NumberOfBytesPerChunk) == TRUE)
+                        HardwareScriptInterpreterCompressBuffer((UINT64 *)NewScriptBuffer,
+                                                                NewCompressedBufferSize,
+                                                                g_HwdbgInstanceInfo.scriptVariableLength,
+                                                                g_HwdbgInstanceInfo.bramDataWidth,
+                                                                &NewCompressedBufferSize,
+                                                                &NumberOfBytesPerChunk) == TRUE)
                     {
                         ShowMessages("\n---------------------------------------------------------\n");
 

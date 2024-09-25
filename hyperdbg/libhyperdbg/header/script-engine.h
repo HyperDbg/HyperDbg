@@ -96,9 +96,6 @@ ScriptEngineWrapperGetPointer(PVOID SymbolBuffer);
 VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer);
 
-BOOLEAN
-ScriptEngineFuncNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);
-
 UINT64
 ScriptEngineEvalUInt64StyleExpressionWrapper(const string & Expr, PBOOLEAN HasError);
 

@@ -59,33 +59,6 @@ HwdbgComputeNumberOfFlipFlopsNeeded(
     UINT32                       NumberOfStages);
 
 BOOLEAN
-HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
-    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-    SYMBOL *                     SymbolBuffer,
-    size_t                       SymbolBufferLength,
-    UINT32                       NumberOfStages,
-    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
-    size_t *                     NewBufferSize);
-
-BOOLEAN
-HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
-                               size_t   BufferLength,
-                               UINT32   ScriptVariableLength,
-                               UINT32   BramDataWidth,
-                               size_t * NewBufferSize,
-                               size_t * NumberOfBytesPerChunk);
-
-VOID
-HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo);
-
-BOOLEAN
-HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                                        PVOID                        ScriptBuffer,
-                                                        UINT32                       CountOfScriptSymbolChunks,
-                                                        UINT32 *                     NumberOfStages,
-                                                        UINT32 *                     NumberOfOperands);
-
-BOOLEAN
 HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                            const TCHAR *                FileName,
                                            DEBUGGER_REMOTE_PACKET_TYPE  PacketType,

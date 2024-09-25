@@ -1,0 +1,689 @@
+/**
+ * @file hardware.c
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Hardware (chip debugger) related functions
+ * @details
+ * @version 0.11
+ * @date 2024-09-25
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
+#include "pch.h"
+
+/**
+ * @brief Shows the script capablities of the target debuggee
+ *
+ * @param InstanceInfo
+ *
+ * @return VOID
+ */
+VOID
+HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
+{
+    printf("\nThis debuggee supports the following operatiors:\n");
+    printf("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
+           InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
+           InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
+    printf("\tregisters (pin/ports) assignment: %s \n",
+           InstanceInfo->scriptCapabilities.assign_registers ? "supported" : "not supported");
+    printf("\tpseudo-registers assignment: %s \n",
+           InstanceInfo->scriptCapabilities.assign_pseudo_registers ? "supported" : "not supported");
+    printf("\tconditional statements and comparison operators: %s \n",
+           InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators ? "supported" : "not supported");
+
+    printf("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
+    printf("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
+    printf("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
+    printf("\tarithmetic shift right: %s \n", InstanceInfo->scriptCapabilities.func_asr ? "supported" : "not supported");
+    printf("\tarithmetic shift left: %s \n", InstanceInfo->scriptCapabilities.func_asl ? "supported" : "not supported");
+    printf("\taddition: %s \n", InstanceInfo->scriptCapabilities.func_add ? "supported" : "not supported");
+    printf("\tsubtraction: %s \n", InstanceInfo->scriptCapabilities.func_sub ? "supported" : "not supported");
+    printf("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
+    printf("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
+    printf("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
+
+    printf("\tgreater than: %s \n",
+           (InstanceInfo->scriptCapabilities.func_gt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tless than: %s \n",
+           (InstanceInfo->scriptCapabilities.func_lt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tgreater than or equal to: %s \n",
+           (InstanceInfo->scriptCapabilities.func_egt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tless than or equal to: %s \n",
+           (InstanceInfo->scriptCapabilities.func_elt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tequal: %s \n",
+           (InstanceInfo->scriptCapabilities.func_equal && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tnot equal: %s \n",
+           (InstanceInfo->scriptCapabilities.func_neq && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tjump: %s \n",
+           (InstanceInfo->scriptCapabilities.func_jmp && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tjump if zero: %s \n",
+           (InstanceInfo->scriptCapabilities.func_jz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tjump if not zero: %s \n",
+           (InstanceInfo->scriptCapabilities.func_jnz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    printf("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
+    printf("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
+    printf("\n");
+}
+
+/**
+ * @brief Check the script capablities with the target script buffer
+ *
+ * @param InstanceInfo
+ * @param ScriptBuffer
+ * @param CountOfScriptSymbolChunks
+ * @param NumberOfStages
+ * @param NumberOfOperands
+ *
+ * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
+ */
+BOOLEAN
+HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                                                 PVOID                        ScriptBuffer,
+                                                                 UINT32                       CountOfScriptSymbolChunks,
+                                                                 UINT32 *                     NumberOfStages,
+                                                                 UINT32 *                     NumberOfOperands)
+{
+    BOOLEAN  NotSupported = FALSE;
+    SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
+
+    UINT32 Stages              = 0;
+    UINT32 Operands            = 0;
+    UINT32 NumberOfGetOperands = 0;
+    UINT32 NumberOfSetOperands = 0;
+
+    for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
+    {
+        if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
+        {
+            //
+            // *** For operands ***
+            //
+            Operands++;
+            printf("  \t%lld. found a non-semnatic rule (operand) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+
+            //
+            // Validate the operand
+            //
+            switch (SymbolArray[i].Type)
+            {
+            case SYMBOL_GLOBAL_ID_TYPE:
+            case SYMBOL_LOCAL_ID_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_local_global_var)
+                {
+                    NotSupported = TRUE;
+                    printf("err, global/local variable assignment is not supported\n");
+                }
+
+                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedLocalAndGlobalVariables)
+                {
+                    NotSupported = TRUE;
+                    printf("err, global/local variable index is out of range of supported by this instance of hwdbg\n");
+                }
+
+                break;
+
+            case SYMBOL_UNDEFINED:
+            case SYMBOL_NUM_TYPE:
+
+                //
+                // No need to check
+                //
+                break;
+
+            case SYMBOL_REGISTER_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_registers)
+                {
+                    NotSupported = TRUE;
+                    printf("err, register assignment is not supported\n");
+                }
+                break;
+
+            case SYMBOL_PSEUDO_REG_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.assign_pseudo_registers)
+                {
+                    NotSupported = TRUE;
+                    printf("err, pseudo register index is not supported\n");
+                }
+                break;
+
+            case SYMBOL_TEMP_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, temporary variables (for conditional statement) is not supported\n");
+                }
+
+                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedTemporaryVariables)
+                {
+                    NotSupported = TRUE;
+                    printf("err, temp variable index (number of operands for conditional statements) is out of range of supported by this instance of hwdbg\n");
+                }
+
+                break;
+
+            case SYMBOL_STACK_INDEX_TYPE:
+
+                if (!InstanceInfo->scriptCapabilities.stack_assignments)
+                {
+                    NotSupported = TRUE;
+                    printf("err, temporary variables (for conditional statement) is not supported\n");
+                }
+
+                break;
+
+            default:
+
+                NotSupported = TRUE;
+                printf("err, unknown operand type: %lld (0x%llx)\n", SymbolArray[i].Type, SymbolArray[i].Type);
+                break;
+            }
+        }
+        else
+        {
+            //
+            // *** For operators ***
+            //
+            Stages++;
+            printf("- %lld. found a semnatic rule (operator) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+
+            if (FuncGetNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
+            {
+                NotSupported = TRUE;
+                printf("err, unknown operand type for the operator (0x%llx)\n",
+                       SymbolArray[i].Type);
+
+                return FALSE;
+            }
+
+            //
+            // Validate the operator
+            //
+            switch (SymbolArray[i].Value)
+            {
+            case FUNC_OR:
+                if (!InstanceInfo->scriptCapabilities.func_or)
+                {
+                    NotSupported = TRUE;
+                    printf("err, OR is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_XOR:
+                if (!InstanceInfo->scriptCapabilities.func_xor)
+                {
+                    NotSupported = TRUE;
+                    printf("err, XOR is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_AND:
+                if (!InstanceInfo->scriptCapabilities.func_and)
+                {
+                    NotSupported = TRUE;
+                    printf("err, AND is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ASR:
+                if (!InstanceInfo->scriptCapabilities.func_asr)
+                {
+                    NotSupported = TRUE;
+                    printf("err, arithmetic shift right is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ASL:
+                if (!InstanceInfo->scriptCapabilities.func_asl)
+                {
+                    NotSupported = TRUE;
+                    printf("err, arithmetic shift left is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ADD:
+                if (!InstanceInfo->scriptCapabilities.func_add)
+                {
+                    NotSupported = TRUE;
+                    printf("err, addition is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_SUB:
+                if (!InstanceInfo->scriptCapabilities.func_sub)
+                {
+                    NotSupported = TRUE;
+                    printf("err, subtraction is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MUL:
+                if (!InstanceInfo->scriptCapabilities.func_mul)
+                {
+                    NotSupported = TRUE;
+                    printf("err, multiplication is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_DIV:
+                if (!InstanceInfo->scriptCapabilities.func_div)
+                {
+                    NotSupported = TRUE;
+                    printf("err, division is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MOD:
+                if (!InstanceInfo->scriptCapabilities.func_mod)
+                {
+                    NotSupported = TRUE;
+                    printf("err, modulus is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_GT:
+
+                if (!InstanceInfo->scriptCapabilities.func_gt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, greater than is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_LT:
+                if (!InstanceInfo->scriptCapabilities.func_lt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, less than is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_EGT:
+                if (!InstanceInfo->scriptCapabilities.func_egt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, greater than or equal to is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_ELT:
+                if (!InstanceInfo->scriptCapabilities.func_elt ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, less than or equal to is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_EQUAL:
+                if (!InstanceInfo->scriptCapabilities.func_equal ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, equal is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_NEQ:
+                if (!InstanceInfo->scriptCapabilities.func_neq ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, not equal is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JMP:
+                if (!InstanceInfo->scriptCapabilities.func_jmp ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, jump is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JZ:
+                if (!InstanceInfo->scriptCapabilities.func_jz ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, jump if zero is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_JNZ:
+                if (!InstanceInfo->scriptCapabilities.func_jnz ||
+                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
+                {
+                    NotSupported = TRUE;
+                    printf("err, jump if not zero is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_MOV:
+                if (!InstanceInfo->scriptCapabilities.func_mov)
+                {
+                    NotSupported = TRUE;
+                    printf("err, move is not supported by the debuggee\n");
+                }
+                break;
+
+            case FUNC_PRINTF:
+                if (!InstanceInfo->scriptCapabilities.func_printf)
+                {
+                    NotSupported = TRUE;
+                    printf("err, printf is not supported by the debuggee\n");
+                }
+                break;
+
+            default:
+
+                NotSupported = TRUE;
+                printf("err, undefined operator for hwdbg: %lld (0x%llx)\n",
+                       SymbolArray[i].Type,
+                       SymbolArray[i].Type);
+
+                break;
+            }
+        }
+    }
+
+    //
+    // Set the number of stages
+    //
+    *NumberOfStages = Stages;
+
+    //
+    // Set the number of operands
+    //
+    *NumberOfOperands = Operands;
+
+    //
+    // Script capabilities support this buffer
+    //
+    if (NotSupported)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}
+
+/**
+ * @brief Function to compress the buffer
+ *
+ * @param Buffer
+ * @param BufferLength
+ * @param ScriptVariableLength
+ * @param BramDataWidth
+ * @param NewBufferSize
+ * @param NumberOfBytesPerChunk
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,
+                                        size_t   BufferLength,
+                                        UINT32   ScriptVariableLength,
+                                        UINT32   BramDataWidth,
+                                        size_t * NewBufferSize,
+                                        size_t * NumberOfBytesPerChunk)
+{
+    if (ScriptVariableLength <= 7 || ScriptVariableLength > 64)
+    {
+        printf("err, invalid bit size, it should be between 7 and 64\n");
+        return FALSE;
+    }
+
+    if (ScriptVariableLength > BramDataWidth)
+    {
+        printf("err, script variable length cannot be more than the BRAM data width\n");
+        return FALSE;
+    }
+
+    //
+    // Calculate the number of 64-bit chunks
+    //
+    size_t NumberOfChunks = BufferLength / sizeof(UINT64);
+
+    //
+    // Calculate the number of bytes needed for the new compressed buffer
+    //
+    size_t NewBytesPerChunk = (BramDataWidth + 7) / 8; // ceil(BramDataWidth / 8)
+    *NumberOfBytesPerChunk  = NewBytesPerChunk;
+
+    *NewBufferSize = NumberOfChunks * NewBytesPerChunk;
+
+    //
+    // Create a temporary buffer to hold the compressed data
+    //
+    UINT8 * TempBuffer = (UINT8 *)malloc(*NewBufferSize);
+
+    if (TempBuffer == NULL)
+    {
+        printf("err, memory allocation failed\n");
+        return FALSE;
+    }
+
+    //
+    // Compress each chunk and store it in the temporary buffer
+    //
+    for (size_t i = 0; i < NumberOfChunks; ++i)
+    {
+        uint64_t Chunk = Buffer[i];
+        for (size_t j = 0; j < NewBytesPerChunk; ++j)
+        {
+            TempBuffer[i * NewBytesPerChunk + j] = (uint8_t)((Chunk >> (j * 8)) & 0xFF);
+        }
+    }
+
+    //
+    // Copy the compressed data back to the original buffer
+    //
+    RtlZeroMemory(Buffer, BufferLength);
+    memcpy(Buffer, TempBuffer, *NewBufferSize);
+
+    //
+    // Free the temporary buffer
+    //
+    free(TempBuffer);
+
+    return TRUE;
+}
+
+/**
+ * @brief Function to compress the buffer
+ *
+ * @param InstanceInfo
+ * @param SymbolBuffer
+ * @param SymbolBufferLength
+ * @param NumberOfStages
+ * @param NewShortSymbolBuffer
+ * @param NewBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
+    HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+    SYMBOL *                     SymbolBuffer,
+    size_t                       SymbolBufferLength,
+    UINT32                       NumberOfStages,
+    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
+    size_t *                     NewBufferSize)
+
+{
+    //
+    // Check if the instance info is valid
+    //
+    if (!g_HwdbgInstanceInfoIsValid)
+    {
+        printf("err, instance info is not valid\n");
+        return FALSE;
+    }
+
+    //
+    // Compute the number of symbol operators
+    //
+    UINT32 NumberOfOperands = InstanceInfo->maximumNumberOfSupportedGetScriptOperators + InstanceInfo->maximumNumberOfSupportedSetScriptOperators;
+
+    SIZE_T NumberOfSymbols = SymbolBufferLength / sizeof(SymbolBuffer[0]);
+
+    *NewBufferSize = NumberOfStages * (NumberOfOperands + 1) * sizeof(HWDBG_SHORT_SYMBOL); // number of stage + maximum number of operands
+
+    //
+    // Create a temporary buffer to hold the compressed data
+    //
+    HWDBG_SHORT_SYMBOL * HwdbgShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)malloc(*NewBufferSize);
+
+    if (!HwdbgShortSymbolBuffer)
+    {
+        printf("err, could not allocate compression buffer\n");
+        return FALSE;
+    }
+
+    //
+    // Zeroing the short symbol buffer
+    //
+    RtlZeroMemory(HwdbgShortSymbolBuffer, *NewBufferSize);
+
+    //
+    // Filling the short symbol buffer from original buffer
+    //
+    UINT32 IndexOfShortSymbolBuffer = 0;
+
+    for (UINT32 i = 0; i < NumberOfSymbols; i++)
+    {
+        if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+        {
+            //
+            // *** This is an operator ***
+            //
+
+            //
+            // Move the symbol buffer into a short symbol buffer
+            //
+            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+
+            //
+            // Now we read the number of operands (SET and GET)
+            //
+            UINT32 NumberOfGetOperands = 0;
+            UINT32 NumberOfSetOperands = 0;
+
+            if (!FuncGetNumberOfOperands(SymbolBuffer[i].Value, &NumberOfGetOperands, &NumberOfSetOperands))
+            {
+                printf("err, unknown operand type for the operator (0x%llx)\n",
+                       SymbolBuffer[i].Value);
+
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // Check if the number of GET operands is more than the maximum supported GET operands
+            //
+            if (NumberOfGetOperands > InstanceInfo->maximumNumberOfSupportedGetScriptOperators)
+            {
+                printf("err, the number of get operands is more than the maximum supported get operands\n");
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // Check if the number of SET operands is more than the maximum supported SET operands
+            //
+            if (NumberOfSetOperands > InstanceInfo->maximumNumberOfSupportedSetScriptOperators)
+            {
+                printf("err, the number of set operands is more than the maximum supported set operands\n");
+                free(HwdbgShortSymbolBuffer);
+                return FALSE;
+            }
+
+            //
+            // *** Now we need to fill operands (GET) ***
+            //
+            for (size_t j = 0; j < NumberOfGetOperands; j++)
+            {
+                i++;
+                IndexOfShortSymbolBuffer++;
+
+                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+                {
+                    printf("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
+                    free(HwdbgShortSymbolBuffer);
+                    return FALSE;
+                }
+
+                //
+                // Move the symbol buffer into a short symbol buffer
+                //
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+            }
+
+            //
+            // Leave empty space for GET operands that are not used for this operator
+            //
+            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedGetScriptOperators - NumberOfGetOperands;
+
+            //
+            // *** Now we need to fill operands (SET) ***
+            //
+            for (size_t j = 0; j < NumberOfSetOperands; j++)
+            {
+                i++;
+                IndexOfShortSymbolBuffer++;
+
+                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
+                {
+                    printf("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
+                    free(HwdbgShortSymbolBuffer);
+                    return FALSE;
+                }
+
+                //
+                // Move the symbol buffer into a short symbol buffer
+                //
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
+                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
+            }
+
+            //
+            // Leave empty space for SET operands that are not used for this operator
+            //
+            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedSetScriptOperators - NumberOfSetOperands;
+
+            //
+            // Increment the index of the short symbol buffer
+            //
+            IndexOfShortSymbolBuffer++;
+        }
+        else
+        {
+            //
+            // Error, we are not expecting a non-semantic rule here
+            //
+            printf("err, not expecting a non-semantic rule at: %llx\n", SymbolBuffer[i].Type);
+            free(HwdbgShortSymbolBuffer);
+            return FALSE;
+        }
+    }
+
+    //
+    // Set the new short symbol buffer address
+    //
+    *NewShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)HwdbgShortSymbolBuffer;
+
+    return TRUE;
+}

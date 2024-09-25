@@ -38,6 +38,9 @@
     <ClInclude Include="..\include\platform\user\header\Environment.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="header\hardware.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.c">
@@ -59,6 +62,9 @@
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="code\type.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hardware.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

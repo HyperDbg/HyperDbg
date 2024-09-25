@@ -795,17 +795,3 @@ ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer)
 {
     RemoveSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
 }
-
-/**
- * @brief wrapper for getting operand count
- * @param FuncType
- * @param NumberOfGetOperands
- * @param NumberOfSetOperands
- *
- * @return BOOLEAN
- */
-BOOLEAN
-ScriptEngineFuncNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands)
-{
-    return FuncGetNumberOfOperands(FuncType, NumberOfGetOperands, NumberOfSetOperands);
-}
