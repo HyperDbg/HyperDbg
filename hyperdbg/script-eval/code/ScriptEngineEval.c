@@ -11,7 +11,7 @@
  *
  */
 #include "pch.h"
-#include "..\script-eval\header\ScriptEngineInternalHeader.h"
+#include "../script-eval/header/ScriptEngineInternalHeader.h"
 
 /**
  * @brief Get the Pseudo reg value
