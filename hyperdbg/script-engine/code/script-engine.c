@@ -21,6 +21,41 @@
 //
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
 extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
+extern PVOID                      g_MessageHandler;
+
+/**
+ * @brief Show messages
+ *
+ * @param Fmt format string message
+ */
+VOID
+ShowMessages(const char * Fmt, ...)
+{
+    va_list ArgList;
+    va_list Args;
+
+    if (g_MessageHandler == NULL)
+    {
+        va_start(Args, Fmt);
+        vprintf(Fmt, Args);
+        va_end(Args);
+    }
+    else
+    {
+        char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+        va_start(ArgList, Fmt);
+        int sprintfresult = vsprintf_s(TempMessage, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT, Fmt, ArgList);
+        va_end(ArgList);
+
+        if (sprintfresult != -1)
+        {
+            //
+            // There is another handler
+            //
+            ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
+        }
+    }
+}
 
 /**
  * @brief Converts name to address
@@ -67,6 +102,14 @@ ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const c
 VOID
 ScriptEngineSetTextMessageCallback(PVOID Handler)
 {
+    //
+    // Set the script engine message handler
+    //
+    g_MessageHandler = Handler;
+
+    //
+    // Call message handler of the symbol parser
+    //
     SymSetTextMessageCallback(Handler);
 }
 

@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgSymImports.h"
 #include "SDK/headers/HardwareDebugger.h"
 #include "common.h"
