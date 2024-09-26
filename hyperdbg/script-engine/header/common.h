@@ -68,10 +68,11 @@ typedef enum TOKEN_TYPE
  */
 typedef struct _TOKEN
 {
-    TOKEN_TYPE   Type;
-    char *       Value;
-    unsigned int Len;
-    unsigned int MaxLen;
+    TOKEN_TYPE         Type;
+    char *             Value;
+    unsigned int       Len;
+    unsigned int       MaxLen;
+    unsigned long long VariableType;
 } TOKEN, *PTOKEN;
 
 /**

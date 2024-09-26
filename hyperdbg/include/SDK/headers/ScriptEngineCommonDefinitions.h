@@ -6,10 +6,11 @@ typedef struct SYMBOL
 {
     long long unsigned Type;
     long long unsigned Len;
-    long long unsigned VariableType;
     long long unsigned Value;
     
 } SYMBOL, *PSYMBOL;
+
+#define SIZE_SYMBOL_WITHOUT_LEN sizeof(long long unsigned) * 2
 
 typedef struct HWDBG_SHORT_SYMBOL
 {

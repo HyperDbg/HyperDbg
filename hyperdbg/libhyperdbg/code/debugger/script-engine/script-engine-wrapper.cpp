@@ -340,7 +340,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     if (!g_ScriptStackBuffer)
     {
-        g_ScriptStackBuffer = (UINT64 *)malloc(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+        g_ScriptStackBuffer = (UINT64 *)malloc(MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
         if (g_ScriptStackBuffer == NULL)
         {
@@ -350,8 +350,6 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
             return;
         }
-
-        RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
     }
 
     //
@@ -373,7 +371,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
     ScriptGeneralRegisters.StackBuffer         = g_ScriptStackBuffer;
     ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
-    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
     if (CodeBuffer->Message == NULL)
     {
@@ -400,15 +398,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             printf("Stack Buffer:\n");
             for (UINT64 j = 0; j < ScriptGeneralRegisters.StackIndx; j++)
             {
-                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters.StackBuffer +
-                                                (unsigned long long)(j * sizeof(SYMBOL)));
-
-                printf("StackIndx = %lld, Value = %lld", j, StackSymbol->Value);
-
-                if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
-                {
-                    printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
-                }
+                printf("StackIndx = %lld, Value = %lld", j, ScriptGeneralRegisters.StackBuffer[j]);
 
                 if (j == ScriptGeneralRegisters.StackBaseIndx)
                 {
