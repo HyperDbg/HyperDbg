@@ -21,49 +21,49 @@
 VOID
 HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
 {
-    printf("\nThis debuggee supports the following operatiors:\n");
-    printf("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
-           InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
-           InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
-    printf("\tregisters (pin/ports) assignment: %s \n",
-           InstanceInfo->scriptCapabilities.assign_registers ? "supported" : "not supported");
-    printf("\tpseudo-registers assignment: %s \n",
-           InstanceInfo->scriptCapabilities.assign_pseudo_registers ? "supported" : "not supported");
-    printf("\tconditional statements and comparison operators: %s \n",
-           InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators ? "supported" : "not supported");
+    ShowMessages("\nThis debuggee supports the following operatiors:\n");
+    ShowMessages("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
+                 InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
+                 InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
+    ShowMessages("\tregisters (pin/ports) assignment: %s \n",
+                 InstanceInfo->scriptCapabilities.assign_registers ? "supported" : "not supported");
+    ShowMessages("\tpseudo-registers assignment: %s \n",
+                 InstanceInfo->scriptCapabilities.assign_pseudo_registers ? "supported" : "not supported");
+    ShowMessages("\tconditional statements and comparison operators: %s \n",
+                 InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators ? "supported" : "not supported");
 
-    printf("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
-    printf("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
-    printf("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
-    printf("\tarithmetic shift right: %s \n", InstanceInfo->scriptCapabilities.func_asr ? "supported" : "not supported");
-    printf("\tarithmetic shift left: %s \n", InstanceInfo->scriptCapabilities.func_asl ? "supported" : "not supported");
-    printf("\taddition: %s \n", InstanceInfo->scriptCapabilities.func_add ? "supported" : "not supported");
-    printf("\tsubtraction: %s \n", InstanceInfo->scriptCapabilities.func_sub ? "supported" : "not supported");
-    printf("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
-    printf("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
-    printf("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
+    ShowMessages("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
+    ShowMessages("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
+    ShowMessages("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
+    ShowMessages("\tarithmetic shift right: %s \n", InstanceInfo->scriptCapabilities.func_asr ? "supported" : "not supported");
+    ShowMessages("\tarithmetic shift left: %s \n", InstanceInfo->scriptCapabilities.func_asl ? "supported" : "not supported");
+    ShowMessages("\taddition: %s \n", InstanceInfo->scriptCapabilities.func_add ? "supported" : "not supported");
+    ShowMessages("\tsubtraction: %s \n", InstanceInfo->scriptCapabilities.func_sub ? "supported" : "not supported");
+    ShowMessages("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
+    ShowMessages("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
+    ShowMessages("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
 
-    printf("\tgreater than: %s \n",
-           (InstanceInfo->scriptCapabilities.func_gt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tless than: %s \n",
-           (InstanceInfo->scriptCapabilities.func_lt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tgreater than or equal to: %s \n",
-           (InstanceInfo->scriptCapabilities.func_egt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tless than or equal to: %s \n",
-           (InstanceInfo->scriptCapabilities.func_elt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tequal: %s \n",
-           (InstanceInfo->scriptCapabilities.func_equal && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tnot equal: %s \n",
-           (InstanceInfo->scriptCapabilities.func_neq && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tjump: %s \n",
-           (InstanceInfo->scriptCapabilities.func_jmp && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tjump if zero: %s \n",
-           (InstanceInfo->scriptCapabilities.func_jz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tjump if not zero: %s \n",
-           (InstanceInfo->scriptCapabilities.func_jnz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    printf("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
-    printf("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
-    printf("\n");
+    ShowMessages("\tgreater than: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_gt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tless than: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_lt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tgreater than or equal to: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_egt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tless than or equal to: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_elt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tequal: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_equal && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tnot equal: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_neq && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jmp && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump if zero: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tjump if not zero: %s \n",
+                 (InstanceInfo->scriptCapabilities.func_jnz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
+    ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
+    ShowMessages("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
+    ShowMessages("\n");
 }
 
 /**
@@ -100,7 +100,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
             // *** For operands ***
             //
             Operands++;
-            printf("  \t%lld. found a non-semnatic rule (operand) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+            ShowMessages("  \t%lld. found a non-semnatic rule (operand) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
 
             //
             // Validate the operand
@@ -113,13 +113,13 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.assign_local_global_var)
                 {
                     NotSupported = TRUE;
-                    printf("err, global/local variable assignment is not supported\n");
+                    ShowMessages("err, global/local variable assignment is not supported\n");
                 }
 
                 if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedLocalAndGlobalVariables)
                 {
                     NotSupported = TRUE;
-                    printf("err, global/local variable index is out of range of supported by this instance of hwdbg\n");
+                    ShowMessages("err, global/local variable index is out of range of supported by this instance of hwdbg\n");
                 }
 
                 break;
@@ -137,7 +137,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.assign_registers)
                 {
                     NotSupported = TRUE;
-                    printf("err, register assignment is not supported\n");
+                    ShowMessages("err, register assignment is not supported\n");
                 }
                 break;
 
@@ -146,7 +146,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.assign_pseudo_registers)
                 {
                     NotSupported = TRUE;
-                    printf("err, pseudo register index is not supported\n");
+                    ShowMessages("err, pseudo register index is not supported\n");
                 }
                 break;
 
@@ -155,13 +155,13 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, temporary variables (for conditional statement) is not supported\n");
+                    ShowMessages("err, temporary variables (for conditional statement) is not supported\n");
                 }
 
                 if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedTemporaryVariables)
                 {
                     NotSupported = TRUE;
-                    printf("err, temp variable index (number of operands for conditional statements) is out of range of supported by this instance of hwdbg\n");
+                    ShowMessages("err, temp variable index (number of operands for conditional statements) is out of range of supported by this instance of hwdbg\n");
                 }
 
                 break;
@@ -171,7 +171,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.stack_assignments)
                 {
                     NotSupported = TRUE;
-                    printf("err, temporary variables (for conditional statement) is not supported\n");
+                    ShowMessages("err, temporary variables (for conditional statement) is not supported\n");
                 }
 
                 break;
@@ -179,7 +179,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
             default:
 
                 NotSupported = TRUE;
-                printf("err, unknown operand type: %lld (0x%llx)\n", SymbolArray[i].Type, SymbolArray[i].Type);
+                ShowMessages("err, unknown operand type: %lld (0x%llx)\n", SymbolArray[i].Type, SymbolArray[i].Type);
                 break;
             }
         }
@@ -189,13 +189,13 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
             // *** For operators ***
             //
             Stages++;
-            printf("- %lld. found a semnatic rule (operator) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
+            ShowMessages("- %lld. found a semnatic rule (operator) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
 
             if (FuncGetNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
             {
                 NotSupported = TRUE;
-                printf("err, unknown operand type for the operator (0x%llx)\n",
-                       SymbolArray[i].Type);
+                ShowMessages("err, unknown operand type for the operator (0x%llx)\n",
+                             SymbolArray[i].Type);
 
                 return FALSE;
             }
@@ -209,7 +209,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_or)
                 {
                     NotSupported = TRUE;
-                    printf("err, OR is not supported by the debuggee\n");
+                    ShowMessages("err, OR is not supported by the debuggee\n");
                 }
                 break;
 
@@ -217,7 +217,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_xor)
                 {
                     NotSupported = TRUE;
-                    printf("err, XOR is not supported by the debuggee\n");
+                    ShowMessages("err, XOR is not supported by the debuggee\n");
                 }
                 break;
 
@@ -225,7 +225,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_and)
                 {
                     NotSupported = TRUE;
-                    printf("err, AND is not supported by the debuggee\n");
+                    ShowMessages("err, AND is not supported by the debuggee\n");
                 }
                 break;
 
@@ -233,7 +233,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_asr)
                 {
                     NotSupported = TRUE;
-                    printf("err, arithmetic shift right is not supported by the debuggee\n");
+                    ShowMessages("err, arithmetic shift right is not supported by the debuggee\n");
                 }
                 break;
 
@@ -241,7 +241,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_asl)
                 {
                     NotSupported = TRUE;
-                    printf("err, arithmetic shift left is not supported by the debuggee\n");
+                    ShowMessages("err, arithmetic shift left is not supported by the debuggee\n");
                 }
                 break;
 
@@ -249,7 +249,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_add)
                 {
                     NotSupported = TRUE;
-                    printf("err, addition is not supported by the debuggee\n");
+                    ShowMessages("err, addition is not supported by the debuggee\n");
                 }
                 break;
 
@@ -257,7 +257,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_sub)
                 {
                     NotSupported = TRUE;
-                    printf("err, subtraction is not supported by the debuggee\n");
+                    ShowMessages("err, subtraction is not supported by the debuggee\n");
                 }
                 break;
 
@@ -265,7 +265,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_mul)
                 {
                     NotSupported = TRUE;
-                    printf("err, multiplication is not supported by the debuggee\n");
+                    ShowMessages("err, multiplication is not supported by the debuggee\n");
                 }
                 break;
 
@@ -273,7 +273,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_div)
                 {
                     NotSupported = TRUE;
-                    printf("err, division is not supported by the debuggee\n");
+                    ShowMessages("err, division is not supported by the debuggee\n");
                 }
                 break;
 
@@ -281,7 +281,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_mod)
                 {
                     NotSupported = TRUE;
-                    printf("err, modulus is not supported by the debuggee\n");
+                    ShowMessages("err, modulus is not supported by the debuggee\n");
                 }
                 break;
 
@@ -291,7 +291,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, greater than is not supported by the debuggee\n");
+                    ShowMessages("err, greater than is not supported by the debuggee\n");
                 }
                 break;
 
@@ -300,7 +300,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, less than is not supported by the debuggee\n");
+                    ShowMessages("err, less than is not supported by the debuggee\n");
                 }
                 break;
 
@@ -309,7 +309,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, greater than or equal to is not supported by the debuggee\n");
+                    ShowMessages("err, greater than or equal to is not supported by the debuggee\n");
                 }
                 break;
 
@@ -318,7 +318,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, less than or equal to is not supported by the debuggee\n");
+                    ShowMessages("err, less than or equal to is not supported by the debuggee\n");
                 }
                 break;
 
@@ -327,7 +327,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, equal is not supported by the debuggee\n");
+                    ShowMessages("err, equal is not supported by the debuggee\n");
                 }
                 break;
 
@@ -336,7 +336,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, not equal is not supported by the debuggee\n");
+                    ShowMessages("err, not equal is not supported by the debuggee\n");
                 }
                 break;
 
@@ -345,7 +345,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, jump is not supported by the debuggee\n");
+                    ShowMessages("err, jump is not supported by the debuggee\n");
                 }
                 break;
 
@@ -354,7 +354,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, jump if zero is not supported by the debuggee\n");
+                    ShowMessages("err, jump if zero is not supported by the debuggee\n");
                 }
                 break;
 
@@ -363,7 +363,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                     !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
                 {
                     NotSupported = TRUE;
-                    printf("err, jump if not zero is not supported by the debuggee\n");
+                    ShowMessages("err, jump if not zero is not supported by the debuggee\n");
                 }
                 break;
 
@@ -371,7 +371,7 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_mov)
                 {
                     NotSupported = TRUE;
-                    printf("err, move is not supported by the debuggee\n");
+                    ShowMessages("err, move is not supported by the debuggee\n");
                 }
                 break;
 
@@ -379,16 +379,16 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                 if (!InstanceInfo->scriptCapabilities.func_printf)
                 {
                     NotSupported = TRUE;
-                    printf("err, printf is not supported by the debuggee\n");
+                    ShowMessages("err, printf is not supported by the debuggee\n");
                 }
                 break;
 
             default:
 
                 NotSupported = TRUE;
-                printf("err, undefined operator for hwdbg: %lld (0x%llx)\n",
-                       SymbolArray[i].Type,
-                       SymbolArray[i].Type);
+                ShowMessages("err, undefined operator for hwdbg: %lld (0x%llx)\n",
+                             SymbolArray[i].Type,
+                             SymbolArray[i].Type);
 
                 break;
             }
@@ -440,13 +440,13 @@ HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,
 {
     if (ScriptVariableLength <= 7 || ScriptVariableLength > 64)
     {
-        printf("err, invalid bit size, it should be between 7 and 64\n");
+        ShowMessages("err, invalid bit size, it should be between 7 and 64\n");
         return FALSE;
     }
 
     if (ScriptVariableLength > BramDataWidth)
     {
-        printf("err, script variable length cannot be more than the BRAM data width\n");
+        ShowMessages("err, script variable length cannot be more than the BRAM data width\n");
         return FALSE;
     }
 
@@ -470,7 +470,7 @@ HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,
 
     if (TempBuffer == NULL)
     {
-        printf("err, memory allocation failed\n");
+        ShowMessages("err, memory allocation failed\n");
         return FALSE;
     }
 
@@ -527,7 +527,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     //
     if (!g_HwdbgInstanceInfoIsValid)
     {
-        printf("err, instance info is not valid\n");
+        ShowMessages("err, instance info is not valid\n");
         return FALSE;
     }
 
@@ -547,7 +547,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
     if (!HwdbgShortSymbolBuffer)
     {
-        printf("err, could not allocate compression buffer\n");
+        ShowMessages("err, could not allocate compression buffer\n");
         return FALSE;
     }
 
@@ -583,8 +583,8 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
             if (!FuncGetNumberOfOperands(SymbolBuffer[i].Value, &NumberOfGetOperands, &NumberOfSetOperands))
             {
-                printf("err, unknown operand type for the operator (0x%llx)\n",
-                       SymbolBuffer[i].Value);
+                ShowMessages("err, unknown operand type for the operator (0x%llx)\n",
+                             SymbolBuffer[i].Value);
 
                 free(HwdbgShortSymbolBuffer);
                 return FALSE;
@@ -595,7 +595,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
             //
             if (NumberOfGetOperands > InstanceInfo->maximumNumberOfSupportedGetScriptOperators)
             {
-                printf("err, the number of get operands is more than the maximum supported get operands\n");
+                ShowMessages("err, the number of get operands is more than the maximum supported get operands\n");
                 free(HwdbgShortSymbolBuffer);
                 return FALSE;
             }
@@ -605,7 +605,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
             //
             if (NumberOfSetOperands > InstanceInfo->maximumNumberOfSupportedSetScriptOperators)
             {
-                printf("err, the number of set operands is more than the maximum supported set operands\n");
+                ShowMessages("err, the number of set operands is more than the maximum supported set operands\n");
                 free(HwdbgShortSymbolBuffer);
                 return FALSE;
             }
@@ -620,7 +620,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
                 if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
                 {
-                    printf("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
+                    ShowMessages("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
                     free(HwdbgShortSymbolBuffer);
                     return FALSE;
                 }
@@ -647,7 +647,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
                 if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
                 {
-                    printf("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
+                    ShowMessages("err, not expecting a semantic rule at operand: %llx\n", SymbolBuffer[i].Value);
                     free(HwdbgShortSymbolBuffer);
                     return FALSE;
                 }
@@ -674,7 +674,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
             //
             // Error, we are not expecting a non-semantic rule here
             //
-            printf("err, not expecting a non-semantic rule at: %llx\n", SymbolBuffer[i].Type);
+            ShowMessages("err, not expecting a non-semantic rule at: %llx\n", SymbolBuffer[i].Type);
             free(HwdbgShortSymbolBuffer);
             return FALSE;
         }

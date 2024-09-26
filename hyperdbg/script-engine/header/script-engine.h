@@ -31,6 +31,9 @@ typedef enum _SCRIPT_ENGINE_ERROR_TYPE
 } SCRIPT_ENGINE_ERROR_TYPE,
     *PSCRIPT_ENGINE_ERROR_TYPE;
 
+VOID
+ShowMessages(const char * Fmt, ...);
+
 PSYMBOL
 NewSymbol(void);
 
