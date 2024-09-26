@@ -277,6 +277,7 @@ ScriptEngineParse(char * str)
     UserDefinedFunctionHead->IdTable                  = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
+    UserDefinedFunctionHead->VariableType             = (unsigned long long)VARIABLE_TYPE_VOID;
 
     CurrentUserDefinedFunction = UserDefinedFunctionHead;
 
@@ -632,7 +633,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op0          = Pop(MatchedStack);
             VariableType = HandleType(MatchedStack);
 
-            if (VariableType == VARIABLE_TYPE_UNKNOWN)
+            if (VariableType->Kind == TY_UNKNOWN)
             {
                 *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
                 break;
@@ -741,7 +742,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op0          = Pop(MatchedStack);
             VariableType = HandleType(MatchedStack);
 
-            if (VariableType == VARIABLE_TYPE_UNKNOWN)
+            if (VariableType->Kind == TY_UNKNOWN)
             {
                 *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
                 break;
@@ -861,7 +862,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentUserDefinedFunction->VariableType != (unsigned long long)VARIABLE_TYPE_VOID)
+            if (((VARIABLE_TYPE *)CurrentUserDefinedFunction->VariableType)->Kind != TY_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE;
                 break;
@@ -889,7 +890,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            if (CurrentUserDefinedFunction->VariableType == (unsigned long long)VARIABLE_TYPE_VOID)
+            if (((VARIABLE_TYPE *)CurrentUserDefinedFunction->VariableType)->Kind == TY_VOID)
             {
                 *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                 break;
@@ -1016,7 +1017,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             if (!strcmp(Operator->Value, "@END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE"))
             {
-                if ((VARIABLE_TYPE *)Node->VariableType == VARIABLE_TYPE_VOID)
+                if (((VARIABLE_TYPE *)Node->VariableType)->Kind == TY_VOID)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE;
                     break;
@@ -1126,7 +1127,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 {
                     VariableType = HandleType(MatchedStack);
 
-                    if (VariableType == VARIABLE_TYPE_UNKNOWN)
+                    if (VariableType->Kind == TY_UNKNOWN)
                     {
                         *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
                         break;
@@ -1177,13 +1178,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 {
                     VariableType = HandleType(MatchedStack);
 
-                    if (VariableType == VARIABLE_TYPE_UNKNOWN)
+                    if (VariableType->Kind == TY_UNKNOWN)
                     {
                         *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
                         break;
                     }
 
-                    //Op1Symbol->VariableType = (unsigned long long)VariableType;
+                    // Op1Symbol->VariableType = (unsigned long long)VariableType;
                 }
             }
 
@@ -2601,9 +2602,9 @@ NewSymbol(void)
         return NULL;
     }
 
-    Symbol->Value        = 0;
-    Symbol->Len          = 0;
-    Symbol->Type         = 0;
+    Symbol->Value = 0;
+    Symbol->Len   = 0;
+    Symbol->Type  = 0;
     return Symbol;
 }
 
@@ -2630,7 +2631,7 @@ NewStringSymbol(PTOKEN Token)
 
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
-    Symbol->Len          = Token->Len;
+    Symbol->Len = Token->Len;
     return Symbol;
 }
 
@@ -2657,7 +2658,7 @@ NewWstringSymbol(PTOKEN Token)
 
     memcpy(&Symbol->Value, Token->Value, Token->Len);
     SetType(&Symbol->Type, SYMBOL_WSTRING_TYPE);
-    Symbol->Len          = Token->Len;
+    Symbol->Len = Token->Len;
     return Symbol;
 }
 
