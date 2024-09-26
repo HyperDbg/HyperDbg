@@ -144,24 +144,18 @@ GetValue(PGUEST_REGS                      GuestRegs,
             return ScriptGeneralRegisters->ReturnValue;
 
     case SYMBOL_TEMP_TYPE:
-    {
-        PSYMBOL TempSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                                       (unsigned long long)((ScriptGeneralRegisters->StackBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
+
         if (ReturnReference)
-            return (UINT64)&TempSymbol->Value;
+            return (UINT64)&ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value];
         else
-            return TempSymbol->Value;
-    }
+            return ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value];
 
     case SYMBOL_FUNCTION_PARAMETER_ID_TYPE:
-    {
-        PSYMBOL TempSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                                       (unsigned long long)((ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value) * sizeof(SYMBOL)));
+
         if (ReturnReference)
-            return (UINT64)&TempSymbol->Value;
+            return (UINT64)&ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value];
         else
-            return TempSymbol->Value;
-    }
+            return ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value];
     }
 
     //
@@ -207,22 +201,12 @@ SetValue(PGUEST_REGS                       GuestRegs,
         return;
 
     case SYMBOL_TEMP_TYPE:
-    {
-        PSYMBOL TempSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                                       (unsigned long long)((ScriptGeneralRegisters->StackBaseIndx + Symbol->Value) * sizeof(SYMBOL)));
-
-        TempSymbol->Value = Value;
+        ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value] = Value;
         return;
-    }
 
     case SYMBOL_FUNCTION_PARAMETER_ID_TYPE:
-    {
-        PSYMBOL TempSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                                       (unsigned long long)((ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value) * sizeof(SYMBOL)));
-
-        TempSymbol->Value = Value;
+        ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value] = Value;
         return;
-    }
     }
 }
 
@@ -1335,7 +1319,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src0->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src0->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1403,7 +1387,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src0->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src0->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1718,13 +1702,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
 
-        Des = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                        (unsigned long long)(ScriptGeneralRegisters->StackIndx * sizeof(SYMBOL)));
-
-        Des->Value        = SrcVal0;
-        Des->Len          = 0;
-        Des->Type         = 0;
-        Des->VariableType = 0;
+        ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackIndx] = SrcVal0;
         ScriptGeneralRegisters->StackIndx++;
 
         break;
@@ -1732,10 +1710,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
     case FUNC_POP:
         ScriptGeneralRegisters->StackIndx--;
 
-        Src0 = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                         (unsigned long long)(ScriptGeneralRegisters->StackIndx * sizeof(SYMBOL)));
-
-        SrcVal0 = Src0->Value;
+        SrcVal0 = ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackIndx];
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -1752,13 +1727,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         *Indx = *Indx + 1;
 
-        Des = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                        (unsigned long long)(ScriptGeneralRegisters->StackIndx * sizeof(SYMBOL)));
-
-        Des->Value        = *Indx;
-        Des->Len          = 0;
-        Des->Type         = SYMBOL_RETURN_ADDRESS_TYPE;
-        Des->VariableType = 0;
+        ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackIndx] = *Indx;
 
         ScriptGeneralRegisters->StackIndx++;
 
@@ -1768,11 +1737,8 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
     case FUNC_RET:
 
         ScriptGeneralRegisters->StackIndx--;
-        Src0 = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters->StackBuffer +
-                         (unsigned long long)(ScriptGeneralRegisters->StackIndx * sizeof(SYMBOL)));
 
-        SrcVal0 = Src0->Value;
-        *Indx   = SrcVal0;
+        *Indx = ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackIndx];
         break;
     case FUNC_STRCMP:
 
@@ -1784,7 +1750,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src0->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src0->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1802,7 +1768,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src1->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
@@ -1833,7 +1799,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src0->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src0->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src0->Len) /
                          sizeof(SYMBOL));
             SrcVal0 = (UINT64)&Src0->Value;
         }
@@ -1851,7 +1817,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src1->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
@@ -1890,7 +1856,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src1->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
@@ -1908,7 +1874,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src2->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src2->Len) /
                          sizeof(SYMBOL));
             SrcVal2 = (UINT64)&Src2->Value;
         }
@@ -1947,7 +1913,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src1->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
@@ -1965,7 +1931,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src2->Type == SYMBOL_STRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src2->Len) /
                          sizeof(SYMBOL));
             SrcVal2 = (UINT64)&Src2->Value;
         }
@@ -2004,7 +1970,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src1->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src1->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src1->Len) /
                          sizeof(SYMBOL));
             SrcVal1 = (UINT64)&Src1->Value;
         }
@@ -2022,7 +1988,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         if (Src2->Type == SYMBOL_WSTRING_TYPE)
         {
             *Indx =
-                *Indx + ((3 * sizeof(unsigned long long) + Src2->Len) /
+                *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src2->Len) /
                          sizeof(SYMBOL));
             SrcVal2 = (UINT64)&Src2->Value;
         }
@@ -2054,7 +2020,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         //
 
         *Indx =
-            *Indx + ((3 * sizeof(unsigned long long) + Src0->Len) /
+            *Indx + ((SIZE_SYMBOL_WITHOUT_LEN + Src0->Len) /
                      sizeof(SYMBOL));
 
         Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
