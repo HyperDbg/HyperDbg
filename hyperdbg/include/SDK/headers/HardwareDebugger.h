@@ -28,6 +28,13 @@
  */
 #define DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET 0x0
 
+/**
+ * @brief Initial default buffer size (BRAN Size)
+ * @details Number of 4-Byte intergers (256 * 4 Byte * 8 bits = 8-kilobits)
+ *
+ */
+#define DEFAULT_INITIAL_BRAM_BUFFER_SIZE 256
+
 //////////////////////////////////////////////////
 //                   Enums                      //
 //////////////////////////////////////////////////

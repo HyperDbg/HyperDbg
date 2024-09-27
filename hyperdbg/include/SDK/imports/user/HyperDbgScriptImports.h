@@ -35,7 +35,8 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                                                                  PVOID                        ScriptBuffer,
                                                                  UINT32                       CountOfScriptSymbolChunks,
                                                                  UINT32 *                     NumberOfStages,
-                                                                 UINT32 *                     NumberOfOperands);
+                                                                 UINT32 *                     NumberOfOperands,
+                                                                 UINT32 *                     NumberOfOperandsImplemented);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,

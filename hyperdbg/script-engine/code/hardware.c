@@ -74,6 +74,7 @@ HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * Ins
  * @param CountOfScriptSymbolChunks
  * @param NumberOfStages
  * @param NumberOfOperands
+ * @param NumberOfOperandsImplemented
  *
  * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
  */
@@ -82,7 +83,8 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
                                                                  PVOID                        ScriptBuffer,
                                                                  UINT32                       CountOfScriptSymbolChunks,
                                                                  UINT32 *                     NumberOfStages,
-                                                                 UINT32 *                     NumberOfOperands)
+                                                                 UINT32 *                     NumberOfOperands,
+                                                                 UINT32 *                     NumberOfOperandsImplemented)
 {
     BOOLEAN  NotSupported = FALSE;
     SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
@@ -404,6 +406,11 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
     // Set the number of operands
     //
     *NumberOfOperands = Operands;
+
+    //
+    // Set the number of operands implemented
+    //
+    *NumberOfOperandsImplemented = *NumberOfStages * (InstanceInfo->maximumNumberOfSupportedGetScriptOperators + InstanceInfo->maximumNumberOfSupportedSetScriptOperators);
 
     //
     // Script capabilities support this buffer
