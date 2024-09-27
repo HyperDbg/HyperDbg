@@ -687,3 +687,19 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
 
     return TRUE;
 }
+
+/**
+ * @brief Function free the short symbol buffer
+ *
+ * @param NewShortSymbolBuffer
+ *
+ * @return VOID
+ */
+VOID
+HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(HWDBG_SHORT_SYMBOL * NewShortSymbolBuffer)
+{
+    if (NewShortSymbolBuffer)
+    {
+        free(NewShortSymbolBuffer);
+    }
+}

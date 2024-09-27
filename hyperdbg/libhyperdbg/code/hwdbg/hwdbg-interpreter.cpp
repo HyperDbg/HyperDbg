@@ -585,3 +585,45 @@ HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
 
     return Result;
 }
+
+/**
+ * @brief Show instance info details
+ *
+ * @param InstanceInfo
+ *
+ * @return VOID
+ */
+VOID
+HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
+{
+    UINT32 PortNum = 0;
+
+    ShowMessages("Debuggee Version: 0x%x\n", InstanceInfo->version);
+    ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", InstanceInfo->maximumNumberOfStages);
+    ShowMessages("Debuggee Script Variable Length: 0x%x\n", InstanceInfo->scriptVariableLength);
+    ShowMessages("Debuggee Number of Supported Local (and global) Variables: 0x%x\n", InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
+    ShowMessages("Debuggee Number of Supported Temporary Variables: 0x%x\n", InstanceInfo->numberOfSupportedTemporaryVariables);
+    ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", InstanceInfo->maximumNumberOfSupportedGetScriptOperators);
+    ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", InstanceInfo->maximumNumberOfSupportedSetScriptOperators);
+    ShowMessages("Debuggee Shared Memory Size: 0x%x\n", InstanceInfo->sharedMemorySize);
+    ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", InstanceInfo->debuggerAreaOffset);
+    ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", InstanceInfo->debuggeeAreaOffset);
+    ShowMessages("Debuggee Script Capabilities Mask: 0x%llx\n", InstanceInfo->scriptCapabilities);
+
+    //
+    // Show script capabilities
+    //
+    HardwareScriptInterpreterShowScriptCapabilities(&g_HwdbgInstanceInfo);
+
+    ShowMessages("Debuggee Number Of Pins: 0x%x\n", InstanceInfo->numberOfPins);
+    ShowMessages("Debuggee Number Of Ports: 0x%x\n", InstanceInfo->numberOfPorts);
+
+    ShowMessages("Debuggee BRAM Address Width: 0x%x\n", InstanceInfo->bramAddrWidth);
+    ShowMessages("Debuggee BRAM Data Width: 0x%x (%d bit)\n", InstanceInfo->bramDataWidth, InstanceInfo->bramDataWidth);
+
+    for (auto item : g_HwdbgPortConfiguration)
+    {
+        ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
+        PortNum++;
+    }
+}

@@ -67,7 +67,6 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
     {
         TCHAR        TestFilePath[MAX_PATH] = {0};
         const SIZE_T BufferSize             = 256; // Adjust based on the number of memory entries of the file
-        UINT32       PortNum                = 0;
         UINT32       MemoryBuffer[BufferSize];
 
         if (SetupPathForFileName(HWDBG_TEST_READ_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
@@ -90,34 +89,7 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
         {
             ShowMessages("instance info interpreted successfully\n");
 
-            ShowMessages("Debuggee Version: 0x%x\n", g_HwdbgInstanceInfo.version);
-            ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfStages);
-            ShowMessages("Debuggee Script Variable Length: 0x%x\n", g_HwdbgInstanceInfo.scriptVariableLength);
-            ShowMessages("Debuggee Number of Supported Local (and global) Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables);
-            ShowMessages("Debuggee Number of Supported Temporary Variables: 0x%x\n", g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables);
-            ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators);
-            ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators);
-            ShowMessages("Debuggee Shared Memory Size: 0x%x\n", g_HwdbgInstanceInfo.sharedMemorySize);
-            ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggerAreaOffset);
-            ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", g_HwdbgInstanceInfo.debuggeeAreaOffset);
-            ShowMessages("Debuggee Script Capabilities Mask: 0x%llx\n", g_HwdbgInstanceInfo.scriptCapabilities);
-
-            //
-            // Show script capabilities
-            //
-            HardwareScriptInterpreterShowScriptCapabilities(&g_HwdbgInstanceInfo);
-
-            ShowMessages("Debuggee Number Of Pins: 0x%x\n", g_HwdbgInstanceInfo.numberOfPins);
-            ShowMessages("Debuggee Number Of Ports: 0x%x\n", g_HwdbgInstanceInfo.numberOfPorts);
-
-            ShowMessages("Debuggee BRAM Address Width: 0x%x\n", g_HwdbgInstanceInfo.bramAddrWidth);
-            ShowMessages("Debuggee BRAM Data Width: 0x%x (%d bit)\n", g_HwdbgInstanceInfo.bramDataWidth, g_HwdbgInstanceInfo.bramDataWidth);
-
-            for (auto item : g_HwdbgPortConfiguration)
-            {
-                ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
-                PortNum++;
-            }
+            HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
         }
         else
         {
@@ -278,12 +250,16 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
         }
 
         //
-        // Free the allocated memory
+        // Free the allocated memory for the short symbol buffer
         //
         if (NewScriptBuffer != NULL)
         {
-            free(NewScriptBuffer);
+            HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(NewScriptBuffer);
         }
+
+        //
+        // Free the allocated memory
+        //
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
     }
     else

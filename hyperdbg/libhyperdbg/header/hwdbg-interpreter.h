@@ -72,3 +72,6 @@ HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                  UINT32                       NumberOfSymbols,
                                  HWDBG_SHORT_SYMBOL *         Buffer,
                                  UINT32                       BufferLength);
+
+VOID
+HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo);

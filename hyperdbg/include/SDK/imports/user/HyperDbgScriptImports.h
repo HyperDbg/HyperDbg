@@ -54,6 +54,9 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
     size_t *                     NewBufferSize);
 
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
+HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(HWDBG_SHORT_SYMBOL * NewShortSymbolBuffer);
+
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE PVOID
 ScriptEngineParse(char * str);
 

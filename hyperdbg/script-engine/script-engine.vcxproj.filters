@@ -64,5 +64,8 @@
     <ClCompile Include="code\hardware.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\pch.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
