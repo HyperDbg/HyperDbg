@@ -172,6 +172,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // hwdbg
 //
 #include "header/hwdbg-interpreter.h"
+#include "header/hwdbg-scripts.h"
 
 //
 // Libraries

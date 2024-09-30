@@ -37,6 +37,9 @@
 //				    Functions                   //
 //////////////////////////////////////////////////
 
+VOID
+HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo);
+
 BOOLEAN
 HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived);
 
@@ -67,11 +70,11 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
                                            UINT32                       BufferLength);
 
 BOOLEAN
-HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                 const TCHAR *                FileName,
-                                 UINT32                       NumberOfSymbols,
-                                 HWDBG_SHORT_SYMBOL *         Buffer,
-                                 UINT32                       BufferLength);
+HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
 
-VOID
-HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo);
+BOOLEAN
+HwdbgWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                          const CHAR *                 FileName);
+
+BOOLEAN
+HwdbgLoadInstanceInfo(const TCHAR * InstanceFilePathToRead, UINT32 InitialBramBufferSize);
