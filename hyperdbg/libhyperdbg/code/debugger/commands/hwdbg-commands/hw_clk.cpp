@@ -75,23 +75,23 @@ CommandHwClkReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuff
 /**
  * @brief Print the actual script
  *
- * @param ActionScript
  * @param ScriptBuffer
+ * @param ScriptBufferSize
  *
  * @return VOID
  */
 VOID
-CommandHwClkPrintScriptBuffer(PDEBUGGER_GENERAL_ACTION ActionScript, CHAR * ScriptBuffer)
+CommandHwClkPrintScriptBuffer(CHAR * ScriptBuffer, UINT32 ScriptBufferSize)
 {
     //
     // Print the actual script
     //
     ShowMessages("\nHyperDbg (general) script buffer (size=%d, flip-flops (just script)=%d):\n\n",
-                 ActionScript->ScriptBufferSize,
-                 ActionScript->ScriptBufferSize * 8 // Converted to bits
+                 ScriptBufferSize,
+                 ScriptBufferSize * 8 // Converted to bits
     );
 
-    for (size_t i = 0; i < ActionScript->ScriptBufferSize; i++)
+    for (size_t i = 0; i < ScriptBufferSize; i++)
     {
         ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
     }
@@ -313,6 +313,335 @@ CommandHwClkWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * In
 }
 
 /**
+ * @brief Load the instance info
+ *
+ * @param InstanceFilePathToRead
+ * @param InitialBramBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandHwClkLoadInstanceInfo(const TCHAR * InstanceFilePathToRead, UINT32 InitialBramBufferSize)
+{
+    UINT32 * MemoryBuffer = NULL;
+
+    //
+    // Allocate memory buffer to read the instance info
+    //
+    MemoryBuffer = (UINT32 *)malloc(InitialBramBufferSize * sizeof(UINT32));
+
+    if (MemoryBuffer == NULL)
+    {
+        //
+        // Memory allocation failed
+        //
+        ShowMessages("err, unable to allocate memory for the instance info packet of the debuggee");
+        return FALSE;
+    }
+
+    //
+    // *** Read the instance info from the file ***
+    //
+    if (CommandHwClkReadInstanceInfoFromFile(InstanceFilePathToRead, MemoryBuffer, InitialBramBufferSize))
+    {
+        ShowMessages("instance info read successfully\n");
+    }
+    else
+    {
+        ShowMessages("err, unable to read instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
+    }
+
+    //
+    // *** Interpret instance info packet ***
+    //
+    if (HwdbgInterpretPacket(MemoryBuffer, InitialBramBufferSize))
+    {
+        ShowMessages("instance info interpreted successfully\n");
+        HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
+    }
+    else
+    {
+        ShowMessages("err, unable to interpret instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
+    }
+
+    //
+    // The instance info is loaded successfully
+    //
+    free(MemoryBuffer);
+    return TRUE;
+}
+
+/**
+ * @brief Create hwdbg script
+ * @param ScriptBuffer
+ * @param ScriptBufferSize
+ * @param HardwareScriptFilePathToSave
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandHwClkCreateHwdbgScript(CHAR *        ScriptBuffer,
+                              UINT32        ScriptBufferSize,
+                              const TCHAR * HardwareScriptFilePathToSave)
+{
+    UINT32               NumberOfStagesForScript               = 0;
+    UINT32               NumberOfOperandsImplemented           = 0;
+    UINT32               NumberOfOperandsForScript             = 0;
+    size_t               NewCompressedBufferSize               = 0;
+    size_t               NumberOfNeededFlipFlopsInTargetDevice = 0;
+    size_t               NumberOfBytesPerChunk                 = 0;
+    HWDBG_SHORT_SYMBOL * NewScriptBuffer                       = NULL;
+
+    //
+    // *** Check the script capabilities with the generated script ***
+    //
+    if (!HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
+                                                                          ScriptBuffer,
+                                                                          ScriptBufferSize / sizeof(SYMBOL),
+                                                                          &NumberOfStagesForScript,
+                                                                          &NumberOfOperandsForScript,
+                                                                          &NumberOfOperandsImplemented))
+    {
+        ShowMessages("\n[-] target script is NOT supported by this instance of hwdbg!\n");
+        return FALSE;
+    }
+    else
+    {
+        ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
+    }
+
+    //
+    // *** Compress the script buffer based on the instance info ***
+    //
+    if (!CommandHwClkCompressScriptBuffer(&g_HwdbgInstanceInfo,
+                                          (SYMBOL *)ScriptBuffer,
+                                          ScriptBufferSize,
+                                          NumberOfStagesForScript,
+                                          &NewScriptBuffer,
+                                          &NewCompressedBufferSize,
+                                          &NumberOfBytesPerChunk))
+    {
+        ShowMessages("err, unable to compress the script buffer\n");
+        return FALSE;
+    }
+
+    //
+    // Print the hwdbg script buffer
+    //
+    CommandHwClkPrintHwdbgScriptBuffer(&g_HwdbgInstanceInfo,
+                                       NewCompressedBufferSize,
+                                       NumberOfStagesForScript,
+                                       NumberOfOperandsForScript,
+                                       NewScriptBuffer,
+                                       NumberOfNeededFlipFlopsInTargetDevice,
+                                       NumberOfBytesPerChunk,
+                                       NumberOfOperandsImplemented);
+
+    //
+    // *** Write script configuration packet into a file ***
+    //
+
+    //
+    // Write script configuration packet into a file
+    //
+    if (!CommandHwClkWriteScriptConfigurationPacketIntoFile(&g_HwdbgInstanceInfo,
+                                                            HardwareScriptFilePathToSave,
+                                                            NumberOfStagesForScript,
+                                                            NumberOfOperandsImplemented,
+                                                            NewScriptBuffer,
+                                                            NewCompressedBufferSize))
+    {
+        ShowMessages("err, unable to write script buffer\n");
+        return FALSE;
+    }
+
+    //
+    // *** Free the allocated memory ***
+    //
+
+    //
+    // Free the allocated memory for the short symbol buffer
+    //
+    if (NewScriptBuffer != NULL)
+    {
+        HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(NewScriptBuffer);
+    }
+
+    //
+    // The script buffer is created successfully
+    //
+    return TRUE;
+}
+
+/** Get script buffer from raw string
+ * @param ScriptBuffer
+ * @param CodeBuffer
+ * @param BufferAddress
+ * @param BufferLength
+ * @param Pointer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandHwClkGetScriptBufferFromRawString(string   ScriptString,
+                                         PVOID *  CodeBuffer,
+                                         UINT64 * BufferAddress,
+                                         UINT32 * BufferLength,
+                                         UINT32 * Pointer)
+{
+    PVOID ResultingCodeBuffer = NULL;
+
+    //
+    // Run script engine handler
+    //
+    ResultingCodeBuffer = ScriptEngineParseWrapper((char *)ScriptString.c_str(), TRUE);
+
+    if (ResultingCodeBuffer == NULL)
+    {
+        //
+        // return to show that this item contains an script error
+        //
+        return FALSE;
+    }
+
+    //
+    // Print symbols (test)
+    //
+    // PrintSymbolBufferWrapper(ResultingCodeBuffer);
+
+    //
+    // Set the buffer and length
+    //
+    *BufferAddress = ScriptEngineWrapperGetHead(ResultingCodeBuffer);
+    *BufferLength  = ScriptEngineWrapperGetSize(ResultingCodeBuffer);
+    *Pointer       = ScriptEngineWrapperGetPointer(ResultingCodeBuffer);
+
+    //
+    // Set the code buffer
+    //
+    *CodeBuffer = ResultingCodeBuffer;
+
+    //
+    // The script buffer is copied successfully
+    //
+    return TRUE;
+}
+
+/**
+ * @brief !hw_clk perform test
+ *
+ * @param CommandTokens
+ * @param InstanceFilePathToRead
+ * @param InstanceFilePathToSave
+ * @param HardwareScriptFilePathToSave
+ * @param InitialBramBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandHwClkPerfomTest(vector<CommandToken> CommandTokens,
+                       const TCHAR *        InstanceFilePathToRead,
+                       const TCHAR *        InstanceFilePathToSave,
+                       const TCHAR *        HardwareScriptFilePathToSave,
+                       UINT32               InitialBramBufferSize)
+{
+    UINT32                             EventLength;
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
+    PDEBUGGER_GENERAL_EVENT_DETAIL     Event                       = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger       = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionCustomCode            = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionScript                = NULL;
+    UINT32                             ActionBreakToDebuggerLength = 0;
+    UINT32                             ActionCustomCodeLength      = 0;
+    UINT32                             ActionScriptLength          = 0;
+    CHAR *                             ScriptBuffer                = NULL;
+    BOOLEAN                            Result                      = FALSE;
+
+    //
+    // Load the instance info
+    //
+    if (!CommandHwClkLoadInstanceInfo(InstanceFilePathToRead, InitialBramBufferSize))
+    {
+        //
+        // No need for freeing memory so reuturn directly
+        //
+        return FALSE;
+    }
+
+    //
+    // Interpret and fill the general event and action fields for the target script
+    //
+    if (!InterpretGeneralEventAndActionsFields(
+            &CommandTokens,
+            (VMM_EVENT_TYPE_ENUM)NULL, // not an event
+            &Event,
+            &EventLength,
+            &ActionBreakToDebugger,
+            &ActionBreakToDebuggerLength,
+            &ActionCustomCode,
+            &ActionCustomCodeLength,
+            &ActionScript,
+            &ActionScriptLength,
+            &EventParsingErrorCause))
+    {
+        //
+        // No need for freeing memory so reuturn directly
+        //
+        return FALSE;
+    }
+
+    //
+    // Print the actual script
+    //
+    ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));
+    CommandHwClkPrintScriptBuffer(ScriptBuffer, ActionScript->ScriptBufferSize);
+
+    //
+    // Create hwdbg script
+    //
+    if (!CommandHwClkCreateHwdbgScript(ScriptBuffer,
+                                       ActionScript->ScriptBufferSize,
+                                       HardwareScriptFilePathToSave))
+    {
+        ShowMessages("err, unable to create hwdbg script\n");
+        Result = FALSE;
+        goto FreeAndReturnResult;
+    }
+
+    //
+    // Write an additional updated test instance info request into a file
+    //
+    if (!CommandHwClkWriteTestInstanceInfoRequestIntoFile(&g_HwdbgInstanceInfo,
+                                                          InstanceFilePathToSave))
+    {
+        ShowMessages("err, unable to write instance info request\n");
+        Result = FALSE;
+        goto FreeAndReturnResult;
+    }
+
+    //
+    // The test is performed successfully
+    //
+    Result = TRUE;
+
+FreeAndReturnResult:
+
+    //
+    // Free the allocated memory
+    //
+    FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+
+    //
+    // Return the result
+    //
+    return Result;
+}
+
+/**
  * @brief !hw_clk command handler
  *
  * @param CommandTokens
@@ -323,165 +652,16 @@ CommandHwClkWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * In
 VOID
 CommandHwClk(vector<CommandToken> CommandTokens, string Command)
 {
-    PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
-    PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
-    PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
-    PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
-    UINT32                             EventLength;
-    UINT64                             SpecialTarget                         = 0;
-    UINT32                             ActionBreakToDebuggerLength           = 0;
-    UINT32                             ActionCustomCodeLength                = 0;
-    UINT32                             ActionScriptLength                    = 0;
-    UINT32                             NumberOfStagesForScript               = 0;
-    UINT32                             NumberOfOperandsImplemented           = 0;
-    UINT32                             NumberOfOperandsForScript             = 0;
-    size_t                             NewCompressedBufferSize               = 0;
-    size_t                             NumberOfNeededFlipFlopsInTargetDevice = 0;
-    size_t                             NumberOfBytesPerChunk                 = 0;
-    DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
-    HWDBG_SHORT_SYMBOL *               NewScriptBuffer = NULL;
-    CHAR *                             ScriptBuffer    = NULL;
-    UINT32                             MemoryBuffer[DEFAULT_INITIAL_BRAM_BUFFER_SIZE];
-
     if (CommandTokens.size() >= 2 && CompareLowerCaseStrings(CommandTokens.at(1), "test"))
     {
         //
-        // Read the instance info from the file
+        // Perform test with default file path and initial BRAM buffer size
         //
-        if (CommandHwClkReadInstanceInfoFromFile(HWDBG_TEST_READ_INSTANCE_INFO_PATH, MemoryBuffer, DEFAULT_INITIAL_BRAM_BUFFER_SIZE))
-        {
-            ShowMessages("instance info read successfully\n");
-
-            HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
-        }
-        else
-        {
-            ShowMessages("err, unable to read instance info packet of the debuggee");
-            return;
-        }
-
-        //
-        // Interpret packet
-        //
-        if (HwdbgInterpretPacket(MemoryBuffer, DEFAULT_INITIAL_BRAM_BUFFER_SIZE))
-        {
-            ShowMessages("instance info interpreted successfully\n");
-
-            HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
-        }
-        else
-        {
-            ShowMessages("err, unable to interpret instance info packet of the debuggee");
-            return;
-        }
-
-        //
-        // Interpret and fill the general event and action fields
-        //
-        //
-        if (!InterpretGeneralEventAndActionsFields(
-                &CommandTokens,
-                (VMM_EVENT_TYPE_ENUM)NULL, // not an event
-                &Event,
-                &EventLength,
-                &ActionBreakToDebugger,
-                &ActionBreakToDebuggerLength,
-                &ActionCustomCode,
-                &ActionCustomCodeLength,
-                &ActionScript,
-                &ActionScriptLength,
-                &EventParsingErrorCause))
-        {
-            return;
-        }
-
-        //
-        // Print the actual script
-        //
-        ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));
-        CommandHwClkPrintScriptBuffer(ActionScript, ScriptBuffer);
-
-        //
-        // Check the script capabilities with the generated script
-        //
-        if (!HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(&g_HwdbgInstanceInfo,
-                                                                              ScriptBuffer,
-                                                                              ActionScript->ScriptBufferSize / sizeof(SYMBOL),
-                                                                              &NumberOfStagesForScript,
-                                                                              &NumberOfOperandsForScript,
-                                                                              &NumberOfOperandsImplemented))
-        {
-            ShowMessages("\n[-] target script is NOT supported by this instance of hwdbg!\n");
-            return;
-        }
-        else
-        {
-            ShowMessages("\n[+] target script is supported by this instance of hwdbg!\n");
-        }
-
-        //
-        // Compress the script buffer based on the instance info
-        //
-        if (!CommandHwClkCompressScriptBuffer(&g_HwdbgInstanceInfo,
-                                              (SYMBOL *)ScriptBuffer,
-                                              ActionScript->ScriptBufferSize,
-                                              NumberOfStagesForScript,
-                                              &NewScriptBuffer,
-                                              &NewCompressedBufferSize,
-                                              &NumberOfBytesPerChunk))
-        {
-            ShowMessages("err, unable to compress the script buffer\n");
-            return;
-        }
-
-        //
-        // Print the hwdbg script buffer
-        //
-        CommandHwClkPrintHwdbgScriptBuffer(&g_HwdbgInstanceInfo,
-                                           NewCompressedBufferSize,
-                                           NumberOfStagesForScript,
-                                           NumberOfOperandsForScript,
-                                           NewScriptBuffer,
-                                           NumberOfNeededFlipFlopsInTargetDevice,
-                                           NumberOfBytesPerChunk,
-                                           NumberOfOperandsImplemented);
-
-        //
-        // Write script configuration packet into a file
-        //
-        if (!CommandHwClkWriteScriptConfigurationPacketIntoFile(&g_HwdbgInstanceInfo,
-                                                                HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,
-                                                                NumberOfStagesForScript,
-                                                                NumberOfOperandsImplemented,
-                                                                NewScriptBuffer,
-                                                                NewCompressedBufferSize))
-        {
-            ShowMessages("err, unable to write script buffer\n");
-            return;
-        }
-
-        //
-        // Write test instance info request into a file
-        //
-        if (!CommandHwClkWriteTestInstanceInfoRequestIntoFile(&g_HwdbgInstanceInfo,
-                                                              HWDBG_TEST_WRITE_INSTANCE_INFO_PATH))
-        {
-            ShowMessages("err, unable to write instance info request\n");
-            return;
-        }
-
-        //
-        // Free the allocated memory for the short symbol buffer
-        //
-        if (NewScriptBuffer != NULL)
-        {
-            HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(NewScriptBuffer);
-        }
-
-        //
-        // Free the allocated memory
-        //
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+        CommandHwClkPerfomTest(CommandTokens,
+                               HWDBG_TEST_READ_INSTANCE_INFO_PATH,
+                               HWDBG_TEST_WRITE_INSTANCE_INFO_PATH,
+                               HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,
+                               DEFAULT_INITIAL_BRAM_BUFFER_SIZE);
     }
     else
     {
