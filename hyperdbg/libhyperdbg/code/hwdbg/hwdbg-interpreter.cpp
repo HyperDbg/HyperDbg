@@ -17,7 +17,6 @@
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
 extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
 extern std::vector<UINT32>        g_HwdbgPortConfiguration;
-;
 
 /**
  * @brief Interpret packets of hwdbg
@@ -104,6 +103,11 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
             // Copy the instance info into the global hwdbg instance info
             //
             RtlCopyMemory(&g_HwdbgInstanceInfo, InstanceInfoPacket, sizeof(HWDBG_INSTANCE_INFORMATION));
+
+            //
+            // Reset previous port configurations (if any)
+            //
+            g_HwdbgPortConfiguration.clear();
 
             //
             // Instance info is valid from now
@@ -518,75 +522,6 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
 }
 
 /**
- * @brief Sends a HyperDbg script packet to the hwdbg
- *
- * @param InstanceInfo
- * @param FileName
- * @param Buffer
- * @param BufferLength
- *
- * @return BOOLEAN
- */
-BOOLEAN
-HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                 const TCHAR *                FileName,
-                                 UINT32                       NumberOfSymbols,
-                                 HWDBG_SHORT_SYMBOL *         Buffer,
-                                 UINT32                       BufferLength)
-{
-    HWDBG_SCRIPT_BUFFER ScriptBuffer = {0};
-    BOOLEAN             Result       = FALSE;
-
-    //
-    // Make the packet's structure
-    //
-    ScriptBuffer.scriptNumberOfSymbols = NumberOfSymbols;
-
-    //
-    // Allocate a buffer for storing the header packet + buffer (if not empty)
-    //
-    CHAR * FinalBuffer = (CHAR *)malloc(BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
-
-    if (!FinalBuffer)
-    {
-        return FALSE;
-    }
-
-    RtlZeroMemory(FinalBuffer, BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
-
-    //
-    // Copy the packet into the FinalBuffer
-    //
-    memcpy(FinalBuffer, &ScriptBuffer, sizeof(HWDBG_SCRIPT_BUFFER));
-
-    //
-    // Copy the buffer (if available) into the FinalBuffer
-    //
-    if (Buffer != NULL)
-    {
-        memcpy(FinalBuffer + sizeof(HWDBG_SCRIPT_BUFFER), Buffer, BufferLength);
-    }
-
-    //
-    // Here we would send FinalBuffer to the hardware debugger
-    //
-    Result = HwdbgInterpreterSendPacketAndBufferToHwdbg(
-        InstanceInfo,
-        FileName,
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
-        hwdbgActionConfigureScriptBuffer,
-        FinalBuffer,
-        BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
-
-    //
-    // Free the allocated memory after use
-    //
-    free(FinalBuffer);
-
-    return Result;
-}
-
-/**
  * @brief Show instance info details
  *
  * @param InstanceInfo
@@ -626,4 +561,140 @@ HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
         ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
         PortNum++;
     }
+}
+
+/**
+ * @brief Read the instance info from the file
+ * @param FileName
+ * @param MemoryBuffer
+ * @param BufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+{
+    TCHAR TestFilePath[MAX_PATH] = {0};
+
+    if (SetupPathForFileName(HWDBG_TEST_READ_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
+        HwdbgInterpreterFillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
+    {
+        //
+        // Print the content of MemoryBuffer for verification
+        //
+        for (SIZE_T I = 0; I < BufferSize; ++I)
+        {
+            ShowMessages("%08x ", MemoryBuffer[I]);
+            ShowMessages("\n");
+        }
+
+        //
+        // the instance info packet is read successfully
+        //
+        return TRUE;
+    }
+
+    //
+    // the instance info packet is not read successfully
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Write test instance info request into a file
+ *
+ * @param InstanceInfo
+ * @param FileName
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                          const CHAR *                 FileName)
+{
+    TCHAR TestFilePath[MAX_PATH] = {0};
+
+    //
+    // Write test instance info request into a file
+    //
+    if (SetupPathForFileName(FileName, TestFilePath, sizeof(TestFilePath), FALSE) &&
+        HwdbgInterpreterSendPacketAndBufferToHwdbg(
+            InstanceInfo,
+            TestFilePath,
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+            hwdbgActionSendInstanceInfo,
+            NULL,
+            NULL_ZERO))
+    {
+        ShowMessages("[*] instance info successfully written into file: %s\n", TestFilePath);
+        return TRUE;
+    }
+
+    //
+    // Unable to write instance info request into a file
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Load the instance info
+ *
+ * @param InstanceFilePathToRead
+ * @param InitialBramBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgLoadInstanceInfo(const TCHAR * InstanceFilePathToRead, UINT32 InitialBramBufferSize)
+{
+    UINT32 * MemoryBuffer = NULL;
+
+    //
+    // Allocate memory buffer to read the instance info
+    //
+    MemoryBuffer = (UINT32 *)malloc(InitialBramBufferSize * sizeof(UINT32));
+
+    if (MemoryBuffer == NULL)
+    {
+        //
+        // Memory allocation failed
+        //
+        ShowMessages("err, unable to allocate memory for the instance info packet of the debuggee");
+        return FALSE;
+    }
+
+    //
+    // *** Read the instance info from the file ***
+    //
+    if (HwdbgReadInstanceInfoFromFile(InstanceFilePathToRead, MemoryBuffer, InitialBramBufferSize))
+    {
+        ShowMessages("instance info read successfully\n");
+    }
+    else
+    {
+        ShowMessages("err, unable to read instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
+    }
+
+    //
+    // *** Interpret instance info packet ***
+    //
+    if (HwdbgInterpretPacket(MemoryBuffer, InitialBramBufferSize))
+    {
+        ShowMessages("instance info interpreted successfully\n");
+        HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
+    }
+    else
+    {
+        ShowMessages("err, unable to interpret instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
+    }
+
+    //
+    // The instance info is loaded successfully
+    //
+    free(MemoryBuffer);
+    return TRUE;
 }
