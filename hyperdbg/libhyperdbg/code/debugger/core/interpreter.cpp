@@ -73,22 +73,62 @@ public:
 
                     if (c2 == '/') // start to look for comments
                     {
+
                         //
-                        // assuming " }" as the end of a line comment aka //
+                        // to solve cases like: //"}"
                         //
-                        size_t CloseBrktPos;
-                        for (CloseBrktPos = input.find("}", i); CloseBrktPos != std::string::npos; )
+                        size_t StrLitEnd = 0;
+                        size_t StrLitBeg = input.find("\"", i);
+                        if (StrLitBeg != std::string::npos )
                         {
-                             CloseBrktPos = input.find("}", CloseBrktPos);
-                             if (input[CloseBrktPos - 1] == '\\')
-                             {
-                                 input.erase(CloseBrktPos - 1, 1);
-                                 CloseBrktPos += 1;
-                             }
-                             else
-                             {
-                                 break;
-                             }
+                            if (i) 
+                            {
+                                if (input[i - 1] != '\\') // if not escaped
+                                {
+                                    StrLitEnd = input.find("\"", StrLitBeg + 1);
+                                    if (StrLitEnd != std::string::npos)
+                                    {
+                                        std::string StrLit(input.substr(i, StrLitEnd - i + 1));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                StrLitEnd = input.find("\"", StrLitBeg + 1);
+                                if (StrLitEnd != std::string::npos)
+                                {
+                                    std::string StrLit(input.substr(i, StrLitEnd - i + 1));
+                                }
+                            }
+                        }
+                         
+                        //
+                        // assuming " }" as the end of a line comment aka //, if we are within {}
+                        //
+                        bool   CmntEndBrkt  = false;
+                        size_t CloseBrktPos = 0;
+                        if (IdxBracket)
+                        {
+                            //
+                            // loop for escaped }
+                            //
+                            for (CloseBrktPos = input.find("}", StrLitEnd); CloseBrktPos != std::string::npos;)
+                            {
+                                CloseBrktPos = input.find("}", CloseBrktPos);
+                                if (input[CloseBrktPos - 1] == '\\')
+                                {
+                                    input.erase(CloseBrktPos - 1, 1);
+                                    CloseBrktPos += 1;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            CloseBrktPos = std::string::npos;
                         }
 
                         size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
@@ -97,16 +137,16 @@ public:
                         vector<size_t> PosVec;
                         PosVec.push_back(CloseBrktPos);
                         PosVec.push_back(NewLineSrtPos);
-                        PosVec.push_back(NewLineChrPos); // *** check fo npos
+                        PosVec.push_back(NewLineChrPos); 
 
-                        auto min = min_element(PosVec.begin(), PosVec.end());
+                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
 
-                        if (CloseBrktPos != std::string::npos && input[CloseBrktPos-1] != '\\')
+                        if (min != std::string::npos && input[min - 1] != '\\')
                         {
                             //
                             // here we could get the comment but for now we just skip
                             //
-                            std::string comment(input.substr(i, CloseBrktPos - i));
+                            std::string comment(input.substr(i, min - i));
 
                             //
                             // append comments to be passed to script engine
@@ -119,7 +159,7 @@ public:
                             //
                             // forward the buffer
                             //
-                            i = i + (CloseBrktPos - i) - 1;
+                            i = i + (min - i) - 1;
 
                             continue;
                         }
@@ -131,52 +171,52 @@ public:
                                 IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
                             }
 
-                            if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
-                            {
-                                //
-                                // here we could get the comment but for now we just skip
-                                //
-                                std::string comment(input.substr(i, NewLineSrtPos - i));
+                            //if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
+                            //{
+                            //    //
+                            //    // here we could get the comment but for now we just skip
+                            //    //
+                            //    std::string comment(input.substr(i, NewLineSrtPos - i));
 
-                                //
-                                // append comments to be passed to script engine
-                                //
-                                if (IdxBracket)
-                                {
-                                    current += comment;
-                                }
+                            //    //
+                            //    // append comments to be passed to script engine
+                            //    //
+                            //    if (IdxBracket)
+                            //    {
+                            //        current += comment;
+                            //    }
 
-                                //
-                                // forward the buffer
-                                //
-                                i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
+                            //    //
+                            //    // forward the buffer
+                            //    //
+                            //    i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
-                                continue;
-                            }
-                            else if (NewLineChrPos != std::string::npos)
-                            {
-                                //
-                                // here we could get the comment but for now we just skip
-                                //
-                                std::string comment(input.substr(i, NewLineChrPos - i));
+                            //    continue;
+                            //}
+                            //else if (NewLineChrPos != std::string::npos)
+                            //{
+                            //    //
+                            //    // here we could get the comment but for now we just skip
+                            //    //
+                            //    std::string comment(input.substr(i, NewLineChrPos - i));
 
-                                //
-                                // append comments to be passed to script engine
-                                //
-                                if (IdxBracket)
-                                {
-                                    current += comment;
-                                }
+                            //    //
+                            //    // append comments to be passed to script engine
+                            //    //
+                            //    if (IdxBracket)
+                            //    {
+                            //        current += comment;
+                            //    }
 
-                                //
-                                // forward the buffer
-                                //
-                                i = i + (NewLineChrPos - i);
+                            //    //
+                            //    // forward the buffer
+                            //    //
+                            //    i = i + (NewLineChrPos - i);
 
-                                continue; // go past '\n'
-                            }
-                            else
-                            {
+                            //    continue; // go past '\n'
+                            //}
+                            //else
+                            //{
                                 //
                                 // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
                                 //
@@ -210,7 +250,7 @@ public:
 
                                 continue;
                             }
-                        }
+                        //}
                     }
                     else if (c2 == '*')
                     {
