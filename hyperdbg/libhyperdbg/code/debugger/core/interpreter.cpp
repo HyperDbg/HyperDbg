@@ -288,62 +288,73 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\') //&& !IdxBracket)
+                if (c == '"' )
                 {
-                    InQuotes = FALSE;
-
-                    //
-                    // if the quoted text is not within brackets, regard it as a StringLiteral token
-                    //
-                    if (!IdxBracket)
+                    if (input[i - 1] != '\\')
                     {
-                        AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
-                        current.clear();
-                        continue; // dont add " char
+                        InQuotes = FALSE;
+
+                        //
+                        // if the quoted text is not within brackets, regard it as a StringLiteral token
+                        //
+                        if (!IdxBracket)
+                        {
+                            AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
+                            current.clear();
+                            continue; // dont add " char
+                        }
+                        else
+                        {
+                            current += c;
+                            continue; // dont add " char
+                        }
+                        //
+                        // if we are indeed within brackets, we continue to add the '"' char to the current buffer
+                        //
                     }
                     else
                     {
+                        input.erase(i - 1, 1);
+                        i--;                // compensate for the removed char
+                        current.pop_back(); // remove last read \\ 
                         current += c;
-                        continue; // dont add " char
+                        continue;
+
                     }
-                    //
-                    // if we are indeed within brackets, we continue to add the '"' char to the current buffer
-                    //
                 }
             }
 
-            if (IdxBracket)
+            if (c == '}')
             {
-                if (c == '}' && input[i - 1] != '\\' && IdxBracket && !InQuotes) // not closing }
+                if (input[i - 1] != '\\')
                 {
-                    IdxBracket--;
-                }
-
-                if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
-                {
-                    AddBracketStringToken(tokens, current);
-                    current.clear();
-
-                    continue;
-                }
-
-                if (c == '{' && input[i - 1] != '\\' && !InQuotes)
-                {
-                    if (i) // check if this { is the first char to avoid out of range check
+                    if (IdxBracket)
                     {
-                        if (input[i - 1] != '\\')
+                        if (!InQuotes) // not closing }
                         {
-                            IdxBracket++;
+                            IdxBracket--;
+                        }
+
+                        if (!IdxBracket) // is closing }
+                        {
+                            AddBracketStringToken(tokens, current);
+                            current.clear();
+
+                            continue;
                         }
                     }
-                    else
-                    {
-                        IdxBracket++;
-                    }
+                }
+                else
+                {
+                    input.erase(i - 1, 1);
+                    i--;                // compensate for the removed char
+                    current.pop_back(); // remove last read \\
+
                 }
             }
 
-            if (c == ' ' && !InQuotes && !IdxBracket) // finding seperator space char
+
+            if ( (c == ' ' || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -358,7 +369,7 @@ public:
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
-                    if (input[i - 1] != ' ' && !IdxBracket && !current.empty()) // is prev cmd adjacent to "
+                    if (input[i - 1] != ' ' && !IdxBracket && !current.empty() && !InQuotes) // is prev cmd adjacent to "
                     {
                         AddStringToken(tokens, current);
                         current.clear();
@@ -382,26 +393,35 @@ public:
                     }
                 }
             }
-            else if (c == '{' && !InQuotes && !IdxBracket) // first {
+            else if (c == '{' && !InQuotes )
             {
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
                     {
-                        if (input[i - 1] != ' ') // in case '{' is adjacent to previous command like "command{"
+                        if (input[i - 1] != ' ' && !IdxBracket) // in case '{' is adjacent to previous command like "command{", on first {
                         {
                             AddToken(tokens, current);
                             current.clear();
                         }
 
                         IdxBracket++;
-                        continue; // don't include '{' in string
+                        if (IdxBracket == 1) // first {
+                            continue; // don't include '{' in string
+                    }
+                    else
+                    {
+                        input.erase(i - 1,1);
+                        i--; //compensate for the removed char
+                        current.pop_back(); // remove last read \\
+
                     }
                 }
                 else
                 {
                     IdxBracket++;
-                    continue; // don't include '{' in string
+                    if (IdxBracket == 1) // first {
+                        continue; // don't include '{' in string
                 }
             }
 
