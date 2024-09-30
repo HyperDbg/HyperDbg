@@ -46,13 +46,17 @@ public:
      *
      * @return std::vector<CommandToken>
      */
-    std::vector<CommandToken> Parse(const std::string & input)
+    std::vector<CommandToken> Parse(const std::string & ConstInput)
     {
         std::vector<CommandToken> tokens;
         std::string               current;
         bool                      InQuotes   = FALSE;
         int                       IdxBracket = 0;
 
+        //
+        // mainly for removing \ from escaped chars
+        //
+        std::string input = ConstInput;
         for (size_t i = 0; i < input.length(); ++i)
         {
             char c = input[i];
@@ -62,67 +66,191 @@ public:
                 //
                 // if we're in a script bracket, should we skip? it'll be handled later?
                 //
-                if (!IdxBracket && !InQuotes)
+                if (!InQuotes)
                 {
                     size_t j  = i;
                     char   c2 = input[++j];
 
                     if (c2 == '/') // start to look for comments
                     {
-                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
-                        size_t NewLineChrPos = input.find('\n', i);
 
-                        bool IsNewLineEsc = false;
-                        if (NewLineSrtPos != std::string::npos)
+                        //
+                        // to solve cases like: //"}"
+                        //
+                        size_t StrLitEnd = 0;
+                        size_t StrLitBeg = input.find("\"", i);
+                        if (StrLitBeg != std::string::npos )
                         {
-                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
+                            if (i) 
+                            {
+                                if (input[i - 1] != '\\') // if not escaped
+                                {
+                                    StrLitEnd = input.find("\"", StrLitBeg + 1);
+                                    if (StrLitEnd != std::string::npos)
+                                    {
+                                        std::string StrLit(input.substr(i, StrLitEnd - i + 1));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                StrLitEnd = input.find("\"", StrLitBeg + 1);
+                                if (StrLitEnd != std::string::npos)
+                                {
+                                    std::string StrLit(input.substr(i, StrLitEnd - i + 1));
+                                }
+                            }
                         }
-
-                        if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
+                         
+                        //
+                        // assuming " }" as the end of a line comment aka //, if we are within {}
+                        //
+                        bool   CmntEndBrkt  = false;
+                        size_t CloseBrktPos = 0;
+                        if (IdxBracket)
                         {
                             //
-                            // here we could get the comment but for now we just skip
+                            // loop for escaped }
                             //
-                            std::string comment(input.substr(i, NewLineSrtPos - i));
-
-                            i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
-
-                            continue;
-                        }
-                        else if (NewLineChrPos != std::string::npos)
-                        {
-                            //
-                            // here we could get the comment but for now we just skip
-                            //
-                            std::string comment(input.substr(i, NewLineChrPos - i));
-
-                            i = i + (NewLineChrPos - i);
-
-                            continue; // go past '\n'
+                            for (CloseBrktPos = input.find("}", StrLitEnd); CloseBrktPos != std::string::npos;)
+                            {
+                                CloseBrktPos = input.find("}", CloseBrktPos);
+                                if (input[CloseBrktPos - 1] == '\\')
+                                {
+                                    input.erase(CloseBrktPos - 1, 1);
+                                    CloseBrktPos += 1;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
-                            //
-                            // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
-                            //
-                            std::string comment(input.substr(i, input.size()));
+                            CloseBrktPos = std::string::npos;
+                        }
 
-                            // fix the escaped newline
-                            if (IsNewLineEsc)
+                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
+                        size_t NewLineChrPos = input.find('\n', i);
+
+                        vector<size_t> PosVec;
+                        PosVec.push_back(CloseBrktPos);
+                        PosVec.push_back(NewLineSrtPos);
+                        PosVec.push_back(NewLineChrPos); 
+
+                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
+
+                        if (min != std::string::npos && input[min - 1] != '\\')
+                        {
+                            //
+                            // here we could get the comment but for now we just skip
+                            //
+                            std::string comment(input.substr(i, min - i));
+
+                            //
+                            // append comments to be passed to script engine
+                            //
+                            if (IdxBracket)
                             {
-                                size_t start_pos = 0;
-                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
-                                {
-                                    comment.replace(start_pos, 3, "\\n");
-                                    start_pos += 2; // Handles case where 'to' is a substring of 'from'
-                                }
-
-                                IsNewLineEsc = false;
+                                current += comment;
                             }
 
-                            i = i + (input.size() - i);
+                            //
+                            // forward the buffer
+                            //
+                            i = i + (min - i) - 1;
+
                             continue;
                         }
+                        else
+                        {
+                            bool IsNewLineEsc = false;
+                            if (NewLineSrtPos != std::string::npos)
+                            {
+                                IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
+                            }
+
+                            //if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
+                            //{
+                            //    //
+                            //    // here we could get the comment but for now we just skip
+                            //    //
+                            //    std::string comment(input.substr(i, NewLineSrtPos - i));
+
+                            //    //
+                            //    // append comments to be passed to script engine
+                            //    //
+                            //    if (IdxBracket)
+                            //    {
+                            //        current += comment;
+                            //    }
+
+                            //    //
+                            //    // forward the buffer
+                            //    //
+                            //    i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
+
+                            //    continue;
+                            //}
+                            //else if (NewLineChrPos != std::string::npos)
+                            //{
+                            //    //
+                            //    // here we could get the comment but for now we just skip
+                            //    //
+                            //    std::string comment(input.substr(i, NewLineChrPos - i));
+
+                            //    //
+                            //    // append comments to be passed to script engine
+                            //    //
+                            //    if (IdxBracket)
+                            //    {
+                            //        current += comment;
+                            //    }
+
+                            //    //
+                            //    // forward the buffer
+                            //    //
+                            //    i = i + (NewLineChrPos - i);
+
+                            //    continue; // go past '\n'
+                            //}
+                            //else
+                            //{
+                                //
+                                // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
+                                //
+                                std::string comment(input.substr(i, input.size()));
+
+                                // fix the escaped newline
+                                if (IsNewLineEsc)
+                                {
+                                    size_t start_pos = 0;
+                                    while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
+                                    {
+                                        comment.replace(start_pos, 3, "\\n");
+                                        start_pos += 2; // Handles case where 'to' is a substring of 'from'
+                                    }
+
+                                    IsNewLineEsc = false;
+                                }
+
+                                //
+                                // append comments to be passed to script engine
+                                //
+                                if (IdxBracket)
+                                {
+                                    current += comment;
+                                }
+
+                                //
+                                // forward the buffer
+                                //
+                                i = i + (input.size() - i);
+
+                                continue;
+                            }
+                        //}
                     }
                     else if (c2 == '*')
                     {
@@ -135,7 +263,18 @@ public:
                             //
                             std::string comment(input.substr(i, EndPose - i + 2)); // */ is two bytes long
 
-                            i = (i + (EndPose - i)) + 1; // one for /
+                            //
+                            // append comments to be passed to script engine
+                            //
+                            if (IdxBracket)
+                            {
+                                current += comment;
+                            }
+
+                            //
+                            // forward the buffer
+                            //
+                            i = (i + (EndPose - i)) + 1; // +1 for /
 
                             continue;
                         }
@@ -149,62 +288,73 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' && input[i - 1] != '\\') //&& !IdxBracket)
+                if (c == '"' )
                 {
-                    InQuotes = FALSE;
-
-                    //
-                    // if the quoted text is not within brackets, regard it as a StringLiteral token
-                    //
-                    if (!IdxBracket)
+                    if (input[i - 1] != '\\')
                     {
-                        AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
-                        current.clear();
-                        continue; // dont add " char
+                        InQuotes = FALSE;
+
+                        //
+                        // if the quoted text is not within brackets, regard it as a StringLiteral token
+                        //
+                        if (!IdxBracket)
+                        {
+                            AddStringToken(tokens, current, TRUE); // TRUE for StringLiteral type
+                            current.clear();
+                            continue; // dont add " char
+                        }
+                        else
+                        {
+                            current += c;
+                            continue; // dont add " char
+                        }
+                        //
+                        // if we are indeed within brackets, we continue to add the '"' char to the current buffer
+                        //
                     }
                     else
                     {
+                        input.erase(i - 1, 1);
+                        i--;                // compensate for the removed char
+                        current.pop_back(); // remove last read \\ 
                         current += c;
-                        continue; // dont add " char
+                        continue;
+
                     }
-                    //
-                    // if we are indeed within brackets, we continue to add the '"' char to the current buffer
-                    //
                 }
             }
 
-            if (IdxBracket)
+            if (c == '}')
             {
-                if (c == '}' && input[i - 1] != '\\' && IdxBracket && !InQuotes) // not closing }
+                if (input[i - 1] != '\\')
                 {
-                    IdxBracket--;
-                }
-
-                if (c == '}' && input[i - 1] != '\\' && !IdxBracket) // is closing }
-                {
-                    AddBracketStringToken(tokens, current);
-                    current.clear();
-
-                    continue;
-                }
-
-                if (c == '{' && input[i - 1] != '\\' && !InQuotes)
-                {
-                    if (i) // check if this { is the first char to avoid out of range check
+                    if (IdxBracket)
                     {
-                        if (input[i - 1] != '\\')
+                        if (!InQuotes) // not closing }
                         {
-                            IdxBracket++;
+                            IdxBracket--;
+                        }
+
+                        if (!IdxBracket) // is closing }
+                        {
+                            AddBracketStringToken(tokens, current);
+                            current.clear();
+
+                            continue;
                         }
                     }
-                    else
-                    {
-                        IdxBracket++;
-                    }
+                }
+                else
+                {
+                    input.erase(i - 1, 1);
+                    i--;                // compensate for the removed char
+                    current.pop_back(); // remove last read \\
+
                 }
             }
 
-            if (c == ' ' && !InQuotes && !IdxBracket) // finding seperator space char
+
+            if ( (c == ' ' || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -219,7 +369,7 @@ public:
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
-                    if (input[i - 1] != ' ' && !IdxBracket) // is prev cmd adjacent to "
+                    if (input[i - 1] != ' ' && !IdxBracket && !current.empty() && !InQuotes) // is prev cmd adjacent to "
                     {
                         AddStringToken(tokens, current);
                         current.clear();
@@ -243,26 +393,35 @@ public:
                     }
                 }
             }
-            else if (c == '{' && !InQuotes && !IdxBracket) // first {
+            else if (c == '{' && !InQuotes )
             {
                 if (i) // check if this { is the first char to avoid out of range check
                 {
                     if (input[i - 1] != '\\')
                     {
-                        if (input[i - 1] != ' ') // in case '{' is adjacent to previous command like "command{"
+                        if (input[i - 1] != ' ' && !IdxBracket) // in case '{' is adjacent to previous command like "command{", on first {
                         {
                             AddToken(tokens, current);
                             current.clear();
                         }
 
                         IdxBracket++;
-                        continue; // don't include '{' in string
+                        if (IdxBracket == 1) // first {
+                            continue; // don't include '{' in string
+                    }
+                    else
+                    {
+                        input.erase(i - 1,1);
+                        i--; //compensate for the removed char
+                        current.pop_back(); // remove last read \\
+
                     }
                 }
                 else
                 {
                     IdxBracket++;
-                    continue; // don't include '{' in string
+                    if (IdxBracket == 1) // first {
+                        continue; // don't include '{' in string
                 }
             }
 
