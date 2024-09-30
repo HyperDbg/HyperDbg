@@ -64,7 +64,7 @@ public:
                 //
                 if (!IdxBracket && !InQuotes)
                 {
-                    size_t j = i;
+                    size_t j  = i;
                     char   c2 = input[++j];
 
                     if (c2 == '/') // start to look for comments
@@ -75,7 +75,7 @@ public:
                         bool IsNewLineEsc = false;
                         if (NewLineSrtPos != std::string::npos)
                         {
-                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\'; 
+                            IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
                         }
 
                         if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
@@ -87,7 +87,7 @@ public:
 
                             i = i + (NewLineSrtPos - i) + 1; // +1 for "\n". the "continue;" will also go past another time.
 
-                            continue; 
+                            continue;
                         }
                         else if (NewLineChrPos != std::string::npos)
                         {
@@ -126,7 +126,7 @@ public:
                     }
                     else if (c2 == '*')
                     {
-                        size_t EndPose = input.find("*/", i+2); // +2 for cases like /*/
+                        size_t EndPose = input.find("*/", i + 2); // +2 for cases like /*/
 
                         if (EndPose != std::string::npos)
                         {
@@ -279,7 +279,6 @@ public:
             }
 
             current += c;
-            
         }
 
         if (!current.empty() && current != " ")
@@ -296,7 +295,7 @@ public:
         {
             // error: Quote not closed
         }
-        
+
         return tokens;
     }
 
@@ -1432,14 +1431,6 @@ InitializeCommandsDictionary()
     g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 
-    //
-    // hwdbg commands
-    //
-    g_CommandsList["!hw_clk"]      = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
-    g_CommandsList["!hw_clock"]    = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
-    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
-    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
-
     g_CommandsList["a"]         = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["asm"]       = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["assemble"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
@@ -1448,4 +1439,14 @@ InitializeCommandsDictionary()
     g_CommandsList["!asm"]      = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assemble"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assembly"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+
+    //
+    // hwdbg commands
+    //
+    g_CommandsList["!hw_clk"]      = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hw_clock"]    = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+
+    g_CommandsList["!hw"] = {&CommandHw, &CommandHwHelp, DEBUGGER_COMMAND_HWDBG_HW_ATTRIBUTES};
 }

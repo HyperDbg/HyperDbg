@@ -15,9 +15,6 @@
 // Global Variables
 //
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
-extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
-extern std::vector<UINT32>        g_HwdbgPortConfiguration;
-extern const char *               HwdbgActionEnumNames[];
 
 /**
  * @brief help of the !hw_clk command

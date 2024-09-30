@@ -29,3 +29,10 @@ HwdbgScriptSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                             UINT32                       NumberOfSymbols,
                             HWDBG_SHORT_SYMBOL *         Buffer,
                             UINT32                       BufferLength);
+
+BOOLEAN
+HwdbgScriptGetScriptBufferFromRawString(string   ScriptString,
+                                        PVOID *  CodeBuffer,
+                                        UINT64 * BufferAddress,
+                                        UINT32 * BufferLength,
+                                        UINT32 * Pointer);

@@ -105,6 +105,11 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
             RtlCopyMemory(&g_HwdbgInstanceInfo, InstanceInfoPacket, sizeof(HWDBG_INSTANCE_INFORMATION));
 
             //
+            // Reset previous port configurations (if any)
+            //
+            g_HwdbgPortConfiguration.clear();
+
+            //
             // Instance info is valid from now
             //
             g_HwdbgInstanceInfoIsValid = TRUE;
