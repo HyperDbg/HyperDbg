@@ -33,81 +33,6 @@ CommandHwHelp()
 }
 
 /**
- * @brief !hw run script
- *
- * @param ScriptString
- * @param InstanceFilePathToRead
- * @param HardwareScriptFilePathToSave
- * @param InitialBramBufferSize
- *
- * @return BOOLEAN
- */
-BOOLEAN
-CommandHwRunScript(std::string   ScriptString,
-                   const TCHAR * InstanceFilePathToRead,
-                   const TCHAR * HardwareScriptFilePathToSave,
-                   UINT32        InitialBramBufferSize)
-{
-    PVOID   CodeBuffer;
-    UINT64  BufferAddress;
-    UINT32  BufferLength;
-    UINT32  Pointer;
-    BOOLEAN Result = FALSE;
-
-    //
-    // Load the instance info
-    //
-    if (!HwdbgLoadInstanceInfo(InstanceFilePathToRead, InitialBramBufferSize))
-    {
-        //
-        // Unable to load the instance info
-        //
-        return FALSE;
-    }
-
-    //
-    // Get the script buffer from the raw string (script)
-    //
-    if (!HwdbgScriptGetScriptBufferFromRawString(ScriptString.c_str(),
-                                                 &CodeBuffer,
-                                                 &BufferAddress,
-                                                 &BufferLength,
-                                                 &Pointer))
-    {
-        //
-        // Unable to get script buffer from script
-        //
-        return FALSE;
-    }
-
-    //
-    // Print the actual script
-    //
-    HwdbgScriptPrintScriptBuffer((CHAR *)BufferAddress, BufferLength);
-
-    //
-    // Create hwdbg script
-    //
-    if (!HwdbgScriptCreateHwdbgScript((CHAR *)BufferAddress,
-                                      BufferLength,
-                                      HardwareScriptFilePathToSave))
-    {
-        ShowMessages("err, unable to create hwdbg script\n");
-        return FALSE;
-    }
-
-    //
-    // The test is performed successfully
-    //
-    Result = TRUE;
-
-    //
-    // Return the result
-    //
-    return Result;
-}
-
-/**
  * @brief !hw command handler
  *
  * @param CommandTokens
@@ -123,10 +48,10 @@ CommandHw(vector<CommandToken> CommandTokens, string Command)
         //
         // Perform test with default file path and initial BRAM buffer size
         //
-        CommandHwRunScript(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)),
-                           HWDBG_TEST_READ_INSTANCE_INFO_PATH,
-                           HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,
-                           DEFAULT_INITIAL_BRAM_BUFFER_SIZE);
+        HwdbgScriptRunScript(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str(),
+                             HWDBG_TEST_READ_INSTANCE_INFO_PATH,
+                             HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,
+                             DEFAULT_INITIAL_BRAM_BUFFER_SIZE);
     }
     else
     {

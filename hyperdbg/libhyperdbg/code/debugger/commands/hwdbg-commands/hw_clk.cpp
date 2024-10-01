@@ -153,7 +153,7 @@ FreeAndReturnResult:
 VOID
 CommandHwClk(vector<CommandToken> CommandTokens, string Command)
 {
-    if (CommandTokens.size() >= 2 && CompareLowerCaseStrings(CommandTokens.at(1), "test"))
+    if (CommandTokens.size() >= 2)
     {
         //
         // Perform test with default file path and initial BRAM buffer size

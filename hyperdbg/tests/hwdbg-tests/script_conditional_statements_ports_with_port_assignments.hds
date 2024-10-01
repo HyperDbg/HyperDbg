@@ -1,0 +1,12 @@
+{
+	if (@hw_pin0 == 1) {
+		@hw_port0 = 0x55;
+		@hw_port1 = 0x85;
+	} elsif (@hw_pin1 == 1) {
+		@hw_port0 = 0x99;
+		@hw_port1 = 0x12;
+	} else {
+		@hw_pin6 = 0;
+		@hw_pin7 = 0;
+	}
+}

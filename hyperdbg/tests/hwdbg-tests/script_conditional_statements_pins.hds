@@ -1,0 +1,12 @@
+{
+	if (@hw_pin0 == 1) {
+		@hw_pin2 = 0;
+		@hw_pin3 = 0;
+	} elsif (@hw_pin1 == 1) {
+		@hw_pin4 = 0;
+		@hw_pin5 = 0;
+	} else {
+		@hw_pin6 = 0;
+		@hw_pin7 = 0;
+	}
+}

@@ -445,3 +445,72 @@ HwdbgScriptSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
 
     return Result;
 }
+
+/**
+ * @brief Run script in hwdbg
+ *
+ * @param Script
+ * @param InstanceFilePathToRead
+ * @param HardwareScriptFilePathToSave
+ * @param InitialBramBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgScriptRunScript(const CHAR *  Script,
+                     const TCHAR * InstanceFilePathToRead,
+                     const TCHAR * HardwareScriptFilePathToSave,
+                     UINT32        InitialBramBufferSize)
+{
+    PVOID  CodeBuffer;
+    UINT64 BufferAddress;
+    UINT32 BufferLength;
+    UINT32 Pointer;
+
+    //
+    // Load the instance info
+    //
+    if (!HwdbgLoadInstanceInfo(InstanceFilePathToRead, InitialBramBufferSize))
+    {
+        //
+        // Unable to load the instance info
+        //
+        return FALSE;
+    }
+
+    //
+    // Get the script buffer from the raw string (script)
+    //
+    if (!HwdbgScriptGetScriptBufferFromRawString(Script,
+                                                 &CodeBuffer,
+                                                 &BufferAddress,
+                                                 &BufferLength,
+                                                 &Pointer))
+    {
+        //
+        // Unable to get script buffer from script
+        //
+        return FALSE;
+    }
+
+    //
+    // Print the actual script
+    //
+    HwdbgScriptPrintScriptBuffer((CHAR *)BufferAddress, BufferLength);
+
+    //
+    // Create hwdbg script
+    //
+    if (!HwdbgScriptCreateHwdbgScript((CHAR *)BufferAddress,
+                                      BufferLength,
+                                      HardwareScriptFilePathToSave))
+    {
+        ShowMessages("err, unable to create hwdbg script\n");
+        return FALSE;
+    }
+
+    //
+    // Return the result
+    //
+    return TRUE;
+}

@@ -36,3 +36,9 @@ HwdbgScriptGetScriptBufferFromRawString(string   ScriptString,
                                         UINT64 * BufferAddress,
                                         UINT32 * BufferLength,
                                         UINT32 * Pointer);
+
+BOOLEAN
+HwdbgScriptRunScript(const CHAR *  Script,
+                     const TCHAR * InstanceFilePathToRead,
+                     const TCHAR * HardwareScriptFilePathToSave,
+                     UINT32        InitialBramBufferSize);

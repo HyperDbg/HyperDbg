@@ -242,6 +242,16 @@ hyperdbg_u_assemble_get_length(const CHAR * assembly_code, UINT64 start_address,
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size);
 
+//
+// hwdbg functions
+// Exported functionality of the '!hw' and '!hw_*' commands
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hwdbg_script_run_script(const CHAR *  script,
+                        const TCHAR * instance_filepath_to_read,
+                        const TCHAR * hardware_script_file_path_to_save,
+                        UINT32        initial_bram_buffer_size);
+
 #ifdef __cplusplus
 }
 #endif

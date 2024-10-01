@@ -45,6 +45,11 @@ using namespace std;
 #include "../hyperdbg-test/header/testcases.h"
 
 //
+// Hardware Debugger Headers
+//
+#include "../hyperdbg-test/header/hwdbg-tests.h"
+
+//
 // import libhyperdbg
 //
 #include "SDK/imports/user/HyperDbgLibImports.h"
