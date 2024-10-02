@@ -696,8 +696,8 @@ hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction)
  */
 BOOLEAN
 hwdbg_script_run_script(const CHAR *  script,
-                        const TCHAR * instance_filepath_to_read,
-                        const TCHAR * hardware_script_file_path_to_save,
+                        const CHAR * instance_filepath_to_read,
+                        const CHAR * hardware_script_file_path_to_save,
                         UINT32        initial_bram_buffer_size)
 {
     return HwdbgScriptRunScript(script,

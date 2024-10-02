@@ -67,6 +67,11 @@
 /**
  * @brief Test case parameter for testing main command parser
  */
+#define TEST_HWDBG_FUNCTIONALITIES "test-hwdbg-functionalities"
+
+/**
+ * @brief Test case parameter for testing main command parser
+ */
 #define TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER "test-command-parser"
 
 /**
@@ -83,6 +88,21 @@
  * @brief Test cases directory name for script semantic tests
  */
 #define SCRIPT_SEMANTIC_TEST_CASE_DIRECTORY "..\\..\\..\\tests\\script-engine-test\\semantic-test-cases"
+
+/**
+ * @brief Test cases directory name for hwdbg script (code) tests
+ */
+#define HWDBG_SCRIPT_TEST_CASE_CODE_DIRECTORY "..\\..\\..\\tests\\hwdbg-tests\\scripts\\codes"
+
+/**
+ * @brief Test cases directory name for hwdbg script (compiled-scripts) tests
+ */
+#define HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "..\\..\\..\\tests\\hwdbg-tests\\scripts\\compiled-scripts"
+
+/**
+ * @brief Test cases directory name for hwdbg script (sample-tests) tests
+ */
+#define HWDBG_SCRIPT_TEST_CASE_SAMPLE_TESTS_DIRECTORY "..\\..\\..\\tests\\hwdbg-tests\\scripts\\sample-tests"
 
 //////////////////////////////////////////////////
 //				Delay Speeds                    //
