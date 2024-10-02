@@ -75,6 +75,9 @@ ScriptEngineSymbolAbortLoadingWrapper();
 VOID
 ScriptEngineWrapperTestParser(const string & Expr);
 
+VOID
+ScriptEngineWrapperTestParserForHwdbg(const string & Expr);
+
 BOOLEAN
 ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
 

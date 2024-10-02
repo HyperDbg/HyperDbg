@@ -134,7 +134,12 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                         //
                         // Concatenate the new content (prepend the original content)
                         //
-                        std::string newContent = "; The raw script file is available at: " HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" + entry.path().filename().string() + "\n;\n; !hw script " + commentedContent + "\n" + compiledContent;
+                        std::string newContent = "; The raw script file is available at: " HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" +
+                                                 entry.path().filename().string() +
+                                                 "\n;\n; !hw script " +
+                                                 commentedContent +
+                                                 "\n" +
+                                                 compiledContent;
 
                         //
                         // Write the new content back to the file (overwriting it)

@@ -22,6 +22,8 @@ extern UINT64 * g_ScriptGlobalVariables;
 extern UINT64 * g_ScriptStackBuffer;
 extern UINT64   g_CurrentExprEvalResult;
 extern BOOLEAN  g_CurrentExprEvalResultHasError;
+extern UINT64 * g_HwdbgPinsStatus;
+extern BOOLEAN  g_HwdbgInstanceInfoIsValid;
 
 //
 // Temporary structures used only for testing
@@ -709,6 +711,32 @@ ScriptEngineWrapperTestParser(const string & Expr)
     free(AllocationsForCastings.Buff4);
     free(AllocationsForCastings.Buff5);
     free(AllocationsForCastings.Buff6);
+}
+
+/**
+ * @brief test parser for hwdbg
+ * @param Expr
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineWrapperTestParserForHwdbg(const string & Expr)
+{
+    if (!g_HwdbgPinsStatus)
+    {
+        g_HwdbgPinsStatus = (UINT64 *)malloc(MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
+
+        if (g_HwdbgPinsStatus == NULL)
+        {
+            ShowMessages("err, could not allocate memory for hwdbg pins status");
+
+            return;
+        }
+
+        RtlZeroMemory(g_HwdbgPinsStatus, MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
+    }
+
+    ScriptEngineEvalWrapper((PGUEST_REGS)g_HwdbgPinsStatus, Expr);
 }
 
 /**

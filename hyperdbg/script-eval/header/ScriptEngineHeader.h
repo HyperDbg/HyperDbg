@@ -21,6 +21,12 @@ SetRegValue(PGUEST_REGS GuestRegs, UINT32 RegisterId, UINT64 Value);
 UINT64
 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
 
+BOOLEAN
+SetRegValueHwdbg(UINT64 * Regs, UINT32 RegisterId, UINT64 Value);
+
+UINT64
+GetRegValueHwdbg(UINT64 * Regs, UINT32 RegId);
+
 //////////////////////////////////////////////////
 //			        Functions                   //
 //////////////////////////////////////////////////

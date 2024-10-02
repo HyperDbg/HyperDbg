@@ -60,6 +60,11 @@
 #define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE 0x1000
 
 /**
+ * @brief Maximum hwdbg testing pins count (for emulating the script behavior)
+ */
+#define MAX_HWDBG_TESTING_PIN_COUNT 500
+
+/**
  * @brief Test cases file name for command parser
  */
 #define COMMAND_PARSER_TEST_CASES_FILE "..\\..\\..\\tests\\command-parser\\command-parser-testcases.txt"

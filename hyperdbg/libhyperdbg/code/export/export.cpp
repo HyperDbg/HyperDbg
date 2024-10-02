@@ -695,13 +695,27 @@ hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction)
  * @return BOOLEAN
  */
 BOOLEAN
-hwdbg_script_run_script(const CHAR *  script,
+hwdbg_script_run_script(const CHAR * script,
                         const CHAR * instance_filepath_to_read,
                         const CHAR * hardware_script_file_path_to_save,
-                        UINT32        initial_bram_buffer_size)
+                        UINT32       initial_bram_buffer_size)
 {
     return HwdbgScriptRunScript(script,
                                 instance_filepath_to_read,
                                 hardware_script_file_path_to_save,
                                 initial_bram_buffer_size);
+}
+
+/**
+ * @brief Run (test evaluation) hwdbg script
+ *
+ * @param Expr
+ *
+ * @return VOID
+ */
+VOID
+hwdbg_script_engine_wrapper_test_parser(const char * Expr)
+{
+    std::string StrExpr = Expr; // Convert const char* to std::string
+    ScriptEngineWrapperTestParserForHwdbg(StrExpr);
 }

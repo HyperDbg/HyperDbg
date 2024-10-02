@@ -252,6 +252,9 @@ hwdbg_script_run_script(const CHAR * script,
                         const CHAR * hardware_script_file_path_to_save,
                         UINT32       initial_bram_buffer_size);
 
+VOID
+hwdbg_script_engine_wrapper_test_parser(const CHAR * Expr);
+
 #ifdef __cplusplus
 }
 #endif
