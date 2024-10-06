@@ -1482,6 +1482,21 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 }
 
 /**
+ * @brief Detects whether the string starts with another string
+ *
+ * @param const char * pre
+ * @param const char * str
+ * @return BOOLEAN Returns true if it starts with and false if not strats with
+ */
+BOOLEAN
+CommonIsStringStartsWith(const char * pre, const char * str)
+{
+    size_t lenpre = strlen(pre),
+           lenstr = strlen(str);
+    return lenstr < lenpre ? FALSE : memcmp(pre, str, lenpre) == 0;
+}
+
+/**
  * @brief Run a special event's action(s)
  *
  * @param DbgState The state of the debugger on the current core
@@ -1495,7 +1510,8 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE *        DbgState,
                        DEBUGGER_EVENT *                   Event,
                        DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList           = 0;
+    PCHAR       CurrentProcessName = 0;
 
     //
     // Find and run all the actions in this Event
@@ -1519,8 +1535,18 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE *        DbgState,
 
         case RUN_SCRIPT:
 
-            // DebuggerPerformRunScript(DbgState, CurrentAction, NULL, EventTriggerDetail);
-            DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail, TRUE);
+            CurrentProcessName = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
+
+            if (CurrentProcessName != NULL && CommonIsStringStartsWith(CurrentProcessName, "TestCpuid.exe"))
+            {
+                LogInfo("VM-exit is handled by broadcasting NMIs to pause all residing cores for process id: %llx", PsGetCurrentProcessId());
+
+                DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail, TRUE);
+            }
+            else
+            {
+                DebuggerPerformRunScript(DbgState, CurrentAction, NULL, EventTriggerDetail);
+            }
 
             break;
 

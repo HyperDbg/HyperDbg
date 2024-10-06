@@ -1294,7 +1294,7 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     //
     if (ContinueImmediately)
     {
-        LogInfo("VM-exit is handled by broadcasting NMIs to pause all residing cores");
+        // LogInfo("VM-exit is handled by broadcasting NMIs to pause all residing cores");
     }
 
     KdManageSystemHaltOnVmxRoot(DbgState, EventDetails, ContinueImmediately);
@@ -2304,6 +2304,7 @@ KdDispatchAndPerformCommandsFromDebuggerJustContinueDebuggee(PROCESSOR_DEBUGGING
     // Unlock other cores
     //
     KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+    LogInfo("Continuing the core normally");
 }
 
 /**
