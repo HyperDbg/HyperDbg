@@ -1,8 +1,12 @@
 PUBLIC AsmGetCs
 PUBLIC AsmGetDs
+PUBLIC AsmSetDs
 PUBLIC AsmGetEs
+PUBLIC AsmSetEs
 PUBLIC AsmGetSs
+PUBLIC AsmSetSs
 PUBLIC AsmGetFs
+PUBLIC AsmSetFs
 PUBLIC AsmGetGs
 PUBLIC AsmGetLdtr
 PUBLIC AsmGetTr
@@ -44,12 +48,32 @@ AsmGetDs ENDP
 
 ;------------------------------------------------------------------------
 
+AsmSetDs PROC
+
+    mov     rax, rcx
+    mov     ds, rax 
+    ret
+
+AsmSetDs ENDP
+
+;------------------------------------------------------------------------
+
 AsmGetEs PROC
 
     mov     rax, es
     ret
 
 AsmGetEs ENDP
+
+;------------------------------------------------------------------------
+
+AsmSetEs PROC
+
+    mov     rax, rcx
+    mov     es, rax 
+    ret
+
+AsmSetEs ENDP
 
 ;------------------------------------------------------------------------
 
@@ -62,12 +86,32 @@ AsmGetSs ENDP
 
 ;------------------------------------------------------------------------
 
+AsmSetSs PROC
+
+    mov     rax, rcx
+    mov     ss, rax 
+    ret
+
+AsmSetSs ENDP
+
+;------------------------------------------------------------------------
+
 AsmGetFs PROC
 
     mov     rax, fs
     ret
 
 AsmGetFs ENDP
+
+;------------------------------------------------------------------------
+
+AsmSetFs PROC
+
+    mov     rax, rcx
+    mov     fs, rax 
+    ret
+
+AsmSetFs ENDP
 
 ;------------------------------------------------------------------------
 
