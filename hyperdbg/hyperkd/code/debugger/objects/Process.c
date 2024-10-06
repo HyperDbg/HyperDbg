@@ -47,7 +47,7 @@ ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     if ((g_ProcessSwitch.ProcessId != NULL_ZERO && g_ProcessSwitch.ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId())) ||
         (g_ProcessSwitch.Process != (UINT64)NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
-        KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
+        KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL, FALSE);
 
         //
         // Found

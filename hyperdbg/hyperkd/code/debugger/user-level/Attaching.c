@@ -407,7 +407,8 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
-                                              NULL);
+                                              NULL,
+                                              FALSE);
     }
     else
     {

@@ -41,7 +41,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
     {
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
-                                              NULL);
+                                              NULL,
+                                              FALSE);
         Result = TRUE;
         break;
     }
@@ -61,7 +62,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
 
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-                                              TriggeredEventDetail);
+                                              TriggeredEventDetail,
+                                              FALSE);
 
         //
         // Restore the register
@@ -118,7 +120,8 @@ DebuggerVmcallHandler(UINT32 CoreId,
 
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_PAUSE,
-                                                  NULL);
+                                                  NULL,
+                                                  FALSE);
         }
 
         Result = TRUE;

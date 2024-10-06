@@ -283,7 +283,6 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             // traps by using 'test trap off', so stepping still works
             //
 
-
             //
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
             // debugger is attached)
@@ -604,7 +603,8 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     //
                     KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                           Reason,
-                                                          &TargetContext);
+                                                          &TargetContext,
+                                                          FALSE);
                 }
             }
 
@@ -731,7 +731,8 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
             TargetContext.Context = (PVOID)GuestRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                  &TargetContext);
+                                                  &TargetContext,
+                                                  FALSE);
 
             //
             // Increment rip

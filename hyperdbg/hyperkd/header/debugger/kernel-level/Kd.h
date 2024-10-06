@@ -179,7 +179,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
 
 VOID
 KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
-                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                            BOOLEAN                           ContinueImmediately);
 BOOLEAN
 KdCheckAndHandleNmiCallback(_In_ UINT32 CoreId);
 
@@ -206,9 +207,10 @@ KdHandleBreakpointAndDebugBreakpointsCallback(_In_ UINT32                       
                                               _In_ DEBUGGEE_PAUSING_REASON      Reason,
                                               PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
-KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState,
-                                      _In_ DEBUGGEE_PAUSING_REASON        Reason,
-                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails);
+KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                                      BOOLEAN                           ContinueImmediately);
 
 VOID
 KdHandleRegisteredMtfCallback(_In_ UINT32 CoreId);

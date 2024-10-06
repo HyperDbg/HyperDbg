@@ -30,7 +30,7 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
         //
         // Halt the debuggee, we have found the target thread
         //
-        KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL);
+        KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL, FALSE);
 
         //
         // Found

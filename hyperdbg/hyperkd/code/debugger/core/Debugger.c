@@ -1513,13 +1513,14 @@ DebuggerPerformActions(PROCESSOR_DEBUGGING_STATE *        DbgState,
         {
         case BREAK_TO_DEBUGGER:
 
-            DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail);
+            DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail, FALSE);
 
             break;
 
         case RUN_SCRIPT:
 
-            DebuggerPerformRunScript(DbgState, CurrentAction, NULL, EventTriggerDetail);
+            // DebuggerPerformRunScript(DbgState, CurrentAction, NULL, EventTriggerDetail);
+            DebuggerPerformBreakToDebugger(DbgState, CurrentAction, EventTriggerDetail, TRUE);
 
             break;
 
@@ -1735,13 +1736,15 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
  * @param Tag Tag of event
  * @param Action Action object
  * @param EventTriggerDetail Event trigger detail
+ * @param ContinueImmediately
  *
  * @return VOID
  */
 VOID
 DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                DEBUGGER_EVENT_ACTION *            Action,
-                               DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail)
+                               DEBUGGER_TRIGGERED_EVENT_DETAILS * EventTriggerDetail,
+                               BOOLEAN                            ContinueImmediately)
 {
     UNREFERENCED_PARAMETER(Action);
 
@@ -1755,7 +1758,8 @@ DebuggerPerformBreakToDebugger(PROCESSOR_DEBUGGING_STATE *        DbgState,
         KdHandleBreakpointAndDebugBreakpoints(
             DbgState,
             DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-            EventTriggerDetail);
+            EventTriggerDetail,
+            ContinueImmediately);
     }
     else
     {

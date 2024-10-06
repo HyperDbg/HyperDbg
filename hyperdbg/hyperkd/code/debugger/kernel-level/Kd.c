@@ -489,7 +489,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                 //
                 KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &TargetContext);
+                                                      &TargetContext,
+                                                      FALSE);
             }
         }
     }
@@ -500,7 +501,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                              &TargetContext);
+                                              &TargetContext,
+                                              FALSE);
     }
 }
 
@@ -1127,7 +1129,7 @@ KdHandleBreakpointAndDebugBreakpointsCallback(UINT32                            
 {
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
-    KdHandleBreakpointAndDebugBreakpoints(DbgState, Reason, EventDetails);
+    KdHandleBreakpointAndDebugBreakpoints(DbgState, Reason, EventDetails, FALSE);
 }
 
 /**
@@ -1194,7 +1196,8 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
             TargetContext.Context = (PVOID)LastVmexitRip;
             KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                                   DbgState->IgnoreDisasmInNextPacket ? DEBUGGEE_PAUSING_REASON_DEBUGGEE_TRACKING_STEPPED : DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                  &TargetContext);
+                                                  &TargetContext,
+                                                  FALSE);
         }
     }
 }
@@ -1206,14 +1209,15 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
  * @param DbgState The state of the debugger on the current core
  * @param Reason
  * @param EventDetails
+ * @param ContinueImmediately
  *
  * @return VOID
  */
-_Use_decl_annotations_
 VOID
 KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                       DEBUGGEE_PAUSING_REASON           Reason,
-                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                                      BOOLEAN                           ContinueImmediately)
 {
     //
     // Lock handling breaks
@@ -1288,7 +1292,12 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(DbgState, EventDetails);
+    if (ContinueImmediately)
+    {
+        LogInfo("VM-exit is handled by broadcasting NMIs to pause all residing cores");
+    }
+
+    KdManageSystemHaltOnVmxRoot(DbgState, EventDetails, ContinueImmediately);
 
     //
     // Clear the halting reason
@@ -1383,7 +1392,7 @@ KdHandleNmi(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(DbgState, NULL);
+    KdManageSystemHaltOnVmxRoot(DbgState, NULL, FALSE);
 
     //
     // Unlock handling breaks
@@ -2282,6 +2291,22 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 }
 
 /**
+ * @brief This just continues the debuggee
+ * @details when we reach here, we are on the first core
+ * @param DbgState The state of the debugger on the current core
+ *
+ * @return VOID
+ */
+VOID
+KdDispatchAndPerformCommandsFromDebuggerJustContinueDebuggee(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    //
+    // Unlock other cores
+    //
+    KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+}
+
+/**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
  * @param DbgState The state of the debugger on the current core
@@ -3154,13 +3179,14 @@ KdIsGuestOnUsermode32Bit()
  * @details This function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param DbgState The state of the debugger on the current core
  * @param EventDetails
- * @param MainCore the core that triggered the event
+ * @param ContinueImmediately Whether to continue immediately or not
  *
  * @return VOID
  */
 VOID
 KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
-                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                            BOOLEAN                           ContinueImmediately)
 {
     DEBUGGEE_KD_PAUSED_PACKET PausePacket;
     ULONG                     ExitInstructionLength = 0;
@@ -3260,18 +3286,25 @@ StartAgain:
                                                   ExitInstructionLength);
 
         //
-        // Send the pause packet, along with RIP and an indication
-        // to pause to the debugger
-        //
-        KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
-                                   (CHAR *)&PausePacket,
-                                   sizeof(DEBUGGEE_KD_PAUSED_PACKET));
-
-        //
         // Perform Commands from the debugger
         //
-        KdDispatchAndPerformCommandsFromDebugger(DbgState);
+        if (ContinueImmediately)
+        {
+            KdDispatchAndPerformCommandsFromDebuggerJustContinueDebuggee(DbgState);
+        }
+        else
+        {
+            //
+            // Send the pause packet, along with RIP and an indication
+            // to pause to the debugger
+            //
+            KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                       DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
+                                       (CHAR *)&PausePacket,
+                                       sizeof(DEBUGGEE_KD_PAUSED_PACKET));
+
+            KdDispatchAndPerformCommandsFromDebugger(DbgState);
+        }
 
         //
         // Check if it's a change core event or not, otherwise finish the execution
