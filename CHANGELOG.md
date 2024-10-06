@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2.0] - 2024-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- Automated test case parsing and test case compilation (generation) for the hwdbg debugger
+- Export hwdbg testing functions
+- Automated test case interpretation and emulation of hwdbg hardware scripts
+- Create JSON representation of hwdbg configs
+
+### Changed
+- Fix main command parser bugs according to test cases
+- Improvements in symbol structure, token structure, and stack buffer in the script engine
+- Fix compatibility mode program crash when terminating 32-bit process (#479) ([link](https://github.com/HyperDbg/HyperDbg/pull/479))
+- Extensive refactor of chip instance info interpretation codes of hwdbg debugger
+- Separating functions of hwdbg interpreter and script manager
+- Fix synthesize inconsistencies between Icarus iVerilog and Xilinx ISim
+- Fix runtime error for deallocating memory from separate DLLs
+- Exporting standard functions (import/export) for the script engine
+- Exporting standard functions (import/export) for the symbol parser
+- Avoid passing signals once the stage is not configured
+
 ## [0.10.1.0] - 2024-09-08
 New release of the HyperDbg Debugger.
 
