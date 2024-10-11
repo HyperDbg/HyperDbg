@@ -161,6 +161,15 @@ class ScriptEngineGetValue(
           outputValue := 0.U
         }
       }
+      is(symbolStackIndexType) {
+
+        if (HwdbgScriptCapabilities.isCapabilitySupported(instanceInfo.scriptCapabilities, HwdbgScriptCapabilities.stack_assignments) == true) {
+          //
+          // To be implemented
+          //
+          outputValue := 0.U // io.inputPin.asUInt
+        }
+      }
       is(symbolTempType) {
 
         if (

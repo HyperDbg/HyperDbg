@@ -102,6 +102,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="code\hardware\hwdbg-tests.cpp" />
     <ClCompile Include="code\main.cpp" />
     <ClCompile Include="code\namedpipe.cpp" />
     <ClCompile Include="code\tests\test-parser.cpp" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\platform\user\header\Environment.h" />
+    <ClInclude Include="header\hwdbg-tests.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\routines.h" />
     <ClInclude Include="header\testcases.h" />

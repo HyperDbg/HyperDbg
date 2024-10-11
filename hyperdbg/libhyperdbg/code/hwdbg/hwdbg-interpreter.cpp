@@ -17,7 +17,6 @@
 extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
 extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
 extern std::vector<UINT32>        g_HwdbgPortConfiguration;
-;
 
 /**
  * @brief Interpret packets of hwdbg
@@ -106,6 +105,11 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
             RtlCopyMemory(&g_HwdbgInstanceInfo, InstanceInfoPacket, sizeof(HWDBG_INSTANCE_INFORMATION));
 
             //
+            // Reset previous port configurations (if any)
+            //
+            g_HwdbgPortConfiguration.clear();
+
+            //
             // Instance info is valid from now
             //
             g_HwdbgInstanceInfoIsValid = TRUE;
@@ -147,7 +151,7 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
  * @return VOID
  */
 std::vector<UINT32>
-ParseLine(const std::string & Line)
+HwdbgParseStringMemoryLine(const std::string & Line)
 {
     std::vector<UINT32> Values;
     std::stringstream   Ss(Line);
@@ -169,403 +173,6 @@ ParseLine(const std::string & Line)
 }
 
 /**
- * @brief Shows the script capablities of the target debuggee
- *
- * @param InstanceInfo
- *
- * @return VOID
- */
-VOID
-HwdbgInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
-{
-    ShowMessages("\nThis debuggee supports the following operatiors:\n");
-    ShowMessages("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
-                 InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
-                 InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
-    ShowMessages("\tregisters (pin/ports) assignment: %s \n",
-                 InstanceInfo->scriptCapabilities.assign_registers ? "supported" : "not supported");
-    ShowMessages("\tpseudo-registers assignment: %s \n",
-                 InstanceInfo->scriptCapabilities.assign_pseudo_registers ? "supported" : "not supported");
-    ShowMessages("\tconditional statements and comparison operators: %s \n",
-                 InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators ? "supported" : "not supported");
-
-    ShowMessages("\tor: %s \n", InstanceInfo->scriptCapabilities.func_or ? "supported" : "not supported");
-    ShowMessages("\txor: %s \n", InstanceInfo->scriptCapabilities.func_xor ? "supported" : "not supported");
-    ShowMessages("\tand: %s \n", InstanceInfo->scriptCapabilities.func_and ? "supported" : "not supported");
-    ShowMessages("\tarithmetic shift right: %s \n", InstanceInfo->scriptCapabilities.func_asr ? "supported" : "not supported");
-    ShowMessages("\tarithmetic shift left: %s \n", InstanceInfo->scriptCapabilities.func_asl ? "supported" : "not supported");
-    ShowMessages("\taddition: %s \n", InstanceInfo->scriptCapabilities.func_add ? "supported" : "not supported");
-    ShowMessages("\tsubtraction: %s \n", InstanceInfo->scriptCapabilities.func_sub ? "supported" : "not supported");
-    ShowMessages("\tmultiplication: %s \n", InstanceInfo->scriptCapabilities.func_mul ? "supported" : "not supported");
-    ShowMessages("\tdivision: %s \n", InstanceInfo->scriptCapabilities.func_div ? "supported" : "not supported");
-    ShowMessages("\tmodulus: %s \n", InstanceInfo->scriptCapabilities.func_mod ? "supported" : "not supported");
-
-    ShowMessages("\tgreater than: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_gt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tless than: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_lt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tgreater than or equal to: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_egt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tless than or equal to: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_elt && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tequal: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_equal && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tnot equal: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_neq && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tjump: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_jmp && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tjump if zero: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_jz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tjump if not zero: %s \n",
-                 (InstanceInfo->scriptCapabilities.func_jnz && InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators) ? "supported" : "not supported");
-    ShowMessages("\tmove: %s \n", InstanceInfo->scriptCapabilities.func_mov ? "supported" : "not supported");
-    ShowMessages("\tprintf: %s \n", InstanceInfo->scriptCapabilities.func_printf ? "supported" : "not supported");
-    ShowMessages("\n");
-}
-
-/**
- * @brief Check the script capablities with the target script buffer
- *
- * @param InstanceInfo
- * @param ScriptBuffer
- * @param CountOfScriptSymbolChunks
- * @param NumberOfStages
- * @param NumberOfOperands
- *
- * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
- */
-BOOLEAN
-HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                                        PVOID                        ScriptBuffer,
-                                                        UINT32                       CountOfScriptSymbolChunks,
-                                                        UINT32 *                     NumberOfStages,
-                                                        UINT32 *                     NumberOfOperands)
-{
-    BOOLEAN  NotSupported = FALSE;
-    SYMBOL * SymbolArray  = (SYMBOL *)ScriptBuffer;
-
-    UINT32 Stages              = 0;
-    UINT32 Operands            = 0;
-    UINT32 NumberOfGetOperands = 0;
-    UINT32 NumberOfSetOperands = 0;
-
-    for (size_t i = 0; i < CountOfScriptSymbolChunks; i++)
-    {
-        if (SymbolArray[i].Type != SYMBOL_SEMANTIC_RULE_TYPE)
-        {
-            //
-            // *** For operands ***
-            //
-            Operands++;
-            ShowMessages("  \t%d. found a non-semnatic rule (operand) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
-
-            //
-            // Validate the operand
-            //
-            switch (SymbolArray[i].Type)
-            {
-            case SYMBOL_GLOBAL_ID_TYPE:
-            case SYMBOL_LOCAL_ID_TYPE:
-
-                if (!InstanceInfo->scriptCapabilities.assign_local_global_var)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, global/local variable assignment is not supported\n");
-                }
-
-                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedLocalAndGlobalVariables)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, global/local variable index is out of range of supported by this instance of hwdbg\n");
-                }
-
-                break;
-
-            case SYMBOL_UNDEFINED:
-            case SYMBOL_NUM_TYPE:
-
-                //
-                // No need to check
-                //
-                break;
-
-            case SYMBOL_REGISTER_TYPE:
-
-                if (!InstanceInfo->scriptCapabilities.assign_registers)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, register assignment is not supported\n");
-                }
-                break;
-
-            case SYMBOL_PSEUDO_REG_TYPE:
-
-                if (!InstanceInfo->scriptCapabilities.assign_pseudo_registers)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, pseudo register index is not supported\n");
-                }
-                break;
-
-            case SYMBOL_TEMP_TYPE:
-
-                if (!InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, temporary variables (for conditional statement) is not supported\n");
-                }
-
-                if (SymbolArray[i].Value >= InstanceInfo->numberOfSupportedTemporaryVariables)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, temp variable index (number of operands for conditional statements) is out of range of supported by this instance of hwdbg\n");
-                }
-
-                break;
-
-            default:
-
-                NotSupported = TRUE;
-                ShowMessages("err, unknown operand type: %d (0x%x)\n", SymbolArray[i].Type, SymbolArray[i].Type);
-                break;
-            }
-        }
-        else
-        {
-            //
-            // *** For operators ***
-            //
-            Stages++;
-            ShowMessages("- %d. found a semnatic rule (operator) | type: 0x%x, value: 0x%x\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
-
-            if (ScriptEngineFuncNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
-            {
-                NotSupported = TRUE;
-                ShowMessages("err, unknown operand type for the operator (0x%x)\n",
-                             SymbolArray[i].Type);
-
-                return FALSE;
-            }
-
-            //
-            // Validate the operator
-            //
-            switch (SymbolArray[i].Value)
-            {
-            case FUNC_OR:
-                if (!InstanceInfo->scriptCapabilities.func_or)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, OR is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_XOR:
-                if (!InstanceInfo->scriptCapabilities.func_xor)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, XOR is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_AND:
-                if (!InstanceInfo->scriptCapabilities.func_and)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, AND is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_ASR:
-                if (!InstanceInfo->scriptCapabilities.func_asr)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, arithmetic shift right is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_ASL:
-                if (!InstanceInfo->scriptCapabilities.func_asl)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, arithmetic shift left is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_ADD:
-                if (!InstanceInfo->scriptCapabilities.func_add)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, addition is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_SUB:
-                if (!InstanceInfo->scriptCapabilities.func_sub)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, subtraction is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_MUL:
-                if (!InstanceInfo->scriptCapabilities.func_mul)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, multiplication is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_DIV:
-                if (!InstanceInfo->scriptCapabilities.func_div)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, division is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_MOD:
-                if (!InstanceInfo->scriptCapabilities.func_mod)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, modulus is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_GT:
-
-                if (!InstanceInfo->scriptCapabilities.func_gt ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, greater than is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_LT:
-                if (!InstanceInfo->scriptCapabilities.func_lt ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, less than is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_EGT:
-                if (!InstanceInfo->scriptCapabilities.func_egt ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, greater than or equal to is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_ELT:
-                if (!InstanceInfo->scriptCapabilities.func_elt ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, less than or equal to is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_EQUAL:
-                if (!InstanceInfo->scriptCapabilities.func_equal ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, equal is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_NEQ:
-                if (!InstanceInfo->scriptCapabilities.func_neq ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, not equal is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_JMP:
-                if (!InstanceInfo->scriptCapabilities.func_jmp ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, jump is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_JZ:
-                if (!InstanceInfo->scriptCapabilities.func_jz ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, jump if zero is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_JNZ:
-                if (!InstanceInfo->scriptCapabilities.func_jnz ||
-                    !InstanceInfo->scriptCapabilities.conditional_statements_and_comparison_operators)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, jump if not zero is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_MOV:
-                if (!InstanceInfo->scriptCapabilities.func_mov)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, move is not supported by the debuggee\n");
-                }
-                break;
-
-            case FUNC_PRINTF:
-                if (!InstanceInfo->scriptCapabilities.func_printf)
-                {
-                    NotSupported = TRUE;
-                    ShowMessages("err, printf is not supported by the debuggee\n");
-                }
-                break;
-
-            default:
-
-                NotSupported = TRUE;
-                ShowMessages("err, undefined operator for hwdbg: %d (0x%x)\n",
-                             SymbolArray[i].Type,
-                             SymbolArray[i].Type);
-
-                break;
-            }
-        }
-    }
-
-    //
-    // Set the number of stages
-    //
-    *NumberOfStages = Stages;
-
-    //
-    // Set the number of operands
-    //
-    *NumberOfOperands = Operands;
-
-    //
-    // Script capabilities support this buffer
-    //
-    if (NotSupported)
-    {
-        return FALSE;
-    }
-    else
-    {
-        return TRUE;
-    }
-}
-
-/**
  * @brief Function to read the file and fill the memory buffer
  *
  * @param FileName
@@ -574,7 +181,10 @@ HwdbgInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATI
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+HwdbgInterpreterFillMemoryFromFile(
+    const TCHAR * FileName,
+    UINT32 *      MemoryBuffer,
+    size_t        BufferSize)
 {
     std::ifstream File(FileName);
     std::string   Line;
@@ -596,7 +206,7 @@ HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer
             break;
         }
 
-        vector<UINT32> Values = ParseLine(Line);
+        vector<UINT32> Values = HwdbgParseStringMemoryLine(Line);
 
         for (UINT32 Value : Values)
         {
@@ -709,273 +319,67 @@ HwdbgInterpreterFillFileFromMemory(
 }
 
 /**
- * @brief Function to compress the buffer
- *
- * @param Buffer
- * @param BufferLength
- * @param ScriptVariableLength
- * @param BramDataWidth
- * @param NewBufferSize
- * @param NumberOfBytesPerChunk
- *
- * @return BOOLEAN
- */
-BOOLEAN
-HwdbgInterpreterCompressBuffer(UINT64 * Buffer,
-                               size_t   BufferLength,
-                               UINT32   ScriptVariableLength,
-                               UINT32   BramDataWidth,
-                               size_t * NewBufferSize,
-                               size_t * NumberOfBytesPerChunk)
-{
-    if (ScriptVariableLength <= 7 || ScriptVariableLength > 64)
-    {
-        ShowMessages("err, invalid bit size, it should be between 7 and 64\n");
-        return FALSE;
-    }
-
-    if (ScriptVariableLength > BramDataWidth)
-    {
-        ShowMessages("err, script variable length cannot be more than the BRAM data width\n");
-        return FALSE;
-    }
-
-    //
-    // Calculate the number of 64-bit chunks
-    //
-    size_t NumberOfChunks = BufferLength / sizeof(UINT64);
-
-    //
-    // Calculate the number of bytes needed for the new compressed buffer
-    //
-    size_t NewBytesPerChunk = (BramDataWidth + 7) / 8; // ceil(BramDataWidth / 8)
-    *NumberOfBytesPerChunk  = NewBytesPerChunk;
-
-    *NewBufferSize = NumberOfChunks * NewBytesPerChunk;
-
-    //
-    // Create a temporary buffer to hold the compressed data
-    //
-    UINT8 * TempBuffer = (UINT8 *)malloc(*NewBufferSize);
-
-    if (TempBuffer == NULL)
-    {
-        ShowMessages("err, memory allocation failed\n");
-        return FALSE;
-    }
-
-    //
-    // Compress each chunk and store it in the temporary buffer
-    //
-    for (size_t i = 0; i < NumberOfChunks; ++i)
-    {
-        uint64_t Chunk = Buffer[i];
-        for (size_t j = 0; j < NewBytesPerChunk; ++j)
-        {
-            TempBuffer[i * NewBytesPerChunk + j] = (uint8_t)((Chunk >> (j * 8)) & 0xFF);
-        }
-    }
-
-    //
-    // Copy the compressed data back to the original buffer
-    //
-    RtlZeroMemory(Buffer, BufferLength);
-    memcpy(Buffer, TempBuffer, *NewBufferSize);
-
-    //
-    // Free the temporary buffer
-    //
-    free(TempBuffer);
-
-    return TRUE;
-}
-
-/**
- * @brief Function to compress the buffer
+ * @brief Function to compute number of flip-flops needed in the target device
  *
  * @param InstanceInfo
- * @param SymbolBuffer
- * @param SymbolBufferLength
  * @param NumberOfStages
- * @param NewShortSymbolBuffer
- * @param NewBufferSize
  *
- * @return BOOLEAN
+ * @return SIZE_T
  */
-BOOLEAN
-HwdbgInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
+SIZE_T
+HwdbgComputeNumberOfFlipFlopsNeeded(
     HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-    SYMBOL *                     SymbolBuffer,
-    size_t                       SymbolBufferLength,
-    UINT32                       NumberOfStages,
-    HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
-    size_t *                     NewBufferSize)
-
+    UINT32                       NumberOfStages)
 {
     //
-    // Check if the instance info is valid
+    // Calculate the number of flip-flops needed in the target device
+    // + operator symbol itself which only contains value (type is always equal to SYMBOL_SEMANTIC_RULE_TYPE)
+    // so, it is not counted as a flip-flop
     //
-    if (!g_HwdbgInstanceInfoIsValid)
-    {
-        ShowMessages("err, instance info is not valid\n");
-        return FALSE;
-    }
+    SIZE_T NumberOfNeededFlipFlopsInTargetDevice = 0;
 
     //
-    // Compute the number of symbol operators
+    // size of operator (GET and SET)
     //
-    UINT32 NumberOfOperands = InstanceInfo->maximumNumberOfSupportedGetScriptOperators + InstanceInfo->maximumNumberOfSupportedSetScriptOperators;
-
-    SIZE_T NumberOfSymbols = SymbolBufferLength / sizeof(SymbolBuffer[0]);
-
-    *NewBufferSize = NumberOfStages * (NumberOfOperands + 1) * sizeof(HWDBG_SHORT_SYMBOL); // number of stage + maximum number of operands
-
-    //
-    // Create a temporary buffer to hold the compressed data
-    //
-    HWDBG_SHORT_SYMBOL * HwdbgShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)malloc(*NewBufferSize);
-
-    if (!HwdbgShortSymbolBuffer)
-    {
-        ShowMessages("err, could not allocate compression buffer\n");
-        return FALSE;
-    }
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages *
+                                              (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators) *
+                                              g_HwdbgInstanceInfo.scriptVariableLength *
+                                              sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64));
 
     //
-    // Zeroing the short symbol buffer
+    // size of main operator (/ 2 is becasue Type is not inffered)
     //
-    RtlZeroMemory(HwdbgShortSymbolBuffer, *NewBufferSize);
-
-    //
-    // Filling the short symbol buffer from original buffer
-    //
-    UINT32 IndexOfShortSymbolBuffer = 0;
-
-    for (UINT32 i = 0; i < NumberOfSymbols; i++)
-    {
-        if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
-        {
-            //
-            // *** This is an operator ***
-            //
-
-            //
-            // Move the symbol buffer into a short symbol buffer
-            //
-            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
-            HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
-
-            //
-            // Now we read the number of operands (SET and GET)
-            //
-            UINT32 NumberOfGetOperands = 0;
-            UINT32 NumberOfSetOperands = 0;
-
-            if (!FuncGetNumberOfOperands(SymbolBuffer[i].Value, &NumberOfGetOperands, &NumberOfSetOperands))
-            {
-                ShowMessages("err, unknown operand type for the operator (0x%x)\n",
-                             SymbolBuffer[i].Value);
-
-                free(HwdbgShortSymbolBuffer);
-                return FALSE;
-            }
-
-            //
-            // Check if the number of GET operands is more than the maximum supported GET operands
-            //
-            if (NumberOfGetOperands > InstanceInfo->maximumNumberOfSupportedGetScriptOperators)
-            {
-                ShowMessages("err, the number of get operands is more than the maximum supported get operands\n");
-                free(HwdbgShortSymbolBuffer);
-                return FALSE;
-            }
-
-            //
-            // Check if the number of SET operands is more than the maximum supported SET operands
-            //
-            if (NumberOfSetOperands > InstanceInfo->maximumNumberOfSupportedSetScriptOperators)
-            {
-                ShowMessages("err, the number of set operands is more than the maximum supported set operands\n");
-                free(HwdbgShortSymbolBuffer);
-                return FALSE;
-            }
-
-            //
-            // *** Now we need to fill operands (GET) ***
-            //
-            for (size_t j = 0; j < NumberOfGetOperands; j++)
-            {
-                i++;
-                IndexOfShortSymbolBuffer++;
-
-                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
-                {
-                    ShowMessages("err, not expecting a semantic rule at operand: %x\n", SymbolBuffer[i].Value);
-                    free(HwdbgShortSymbolBuffer);
-                    return FALSE;
-                }
-
-                //
-                // Move the symbol buffer into a short symbol buffer
-                //
-                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
-                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
-            }
-
-            //
-            // Leave empty space for GET operands that are not used for this operator
-            //
-            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedGetScriptOperators - NumberOfGetOperands;
-
-            //
-            // *** Now we need to fill operands (SET) ***
-            //
-            for (size_t j = 0; j < NumberOfSetOperands; j++)
-            {
-                i++;
-                IndexOfShortSymbolBuffer++;
-
-                if (SymbolBuffer[i].Type == SYMBOL_SEMANTIC_RULE_TYPE)
-                {
-                    ShowMessages("err, not expecting a semantic rule at operand: %x\n", SymbolBuffer[i].Value);
-                    free(HwdbgShortSymbolBuffer);
-                    return FALSE;
-                }
-
-                //
-                // Move the symbol buffer into a short symbol buffer
-                //
-                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Type  = SymbolBuffer[i].Type;
-                HwdbgShortSymbolBuffer[IndexOfShortSymbolBuffer].Value = SymbolBuffer[i].Value;
-            }
-
-            //
-            // Leave empty space for SET operands that are not used for this operator
-            //
-            IndexOfShortSymbolBuffer = IndexOfShortSymbolBuffer + InstanceInfo->maximumNumberOfSupportedSetScriptOperators - NumberOfSetOperands;
-
-            //
-            // Increment the index of the short symbol buffer
-            //
-            IndexOfShortSymbolBuffer++;
-        }
-        else
-        {
-            //
-            // Error, we are not expecting a non-semantic rule here
-            //
-            ShowMessages("err, not expecting a non-semantic rule at: %x\n", SymbolBuffer[i].Type);
-            free(HwdbgShortSymbolBuffer);
-            return FALSE;
-        }
-    }
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2);
 
     //
-    // Set the new short symbol buffer address
+    // size of local (and global) variables
     //
-    *NewShortSymbolBuffer = (HWDBG_SHORT_SYMBOL *)HwdbgShortSymbolBuffer;
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfSupportedLocalAndGlobalVariables * g_HwdbgInstanceInfo.scriptVariableLength);
 
-    return TRUE;
+    //
+    // size of temporary variables
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfSupportedTemporaryVariables * g_HwdbgInstanceInfo.scriptVariableLength);
+
+    //
+    // size of stage index register + targetStage (* 2)
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * Log2Ceil(g_HwdbgInstanceInfo.maximumNumberOfStages * (g_HwdbgInstanceInfo.maximumNumberOfSupportedGetScriptOperators + g_HwdbgInstanceInfo.maximumNumberOfSupportedSetScriptOperators + 1)) * 2);
+
+    //
+    // stage enable flip-flop
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages);
+
+    //
+    // input => output flip-flop
+    //
+    NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.numberOfPins);
+
+    //
+    // return the number of flip-flops needed in the target device
+    //
+    return NumberOfNeededFlipFlopsInTargetDevice;
 }
 
 /**
@@ -1118,70 +522,179 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
 }
 
 /**
- * @brief Sends a HyperDbg script packet to the hwdbg
+ * @brief Show instance info details
  *
  * @param InstanceInfo
+ *
+ * @return VOID
+ */
+VOID
+HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
+{
+    UINT32 PortNum = 0;
+
+    ShowMessages("Debuggee Version: 0x%x\n", InstanceInfo->version);
+    ShowMessages("Debuggee Maximum Number Of Stages: 0x%x\n", InstanceInfo->maximumNumberOfStages);
+    ShowMessages("Debuggee Script Variable Length: 0x%x\n", InstanceInfo->scriptVariableLength);
+    ShowMessages("Debuggee Number of Supported Local (and global) Variables: 0x%x\n", InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
+    ShowMessages("Debuggee Number of Supported Temporary Variables: 0x%x\n", InstanceInfo->numberOfSupportedTemporaryVariables);
+    ShowMessages("Debuggee Maximum Number Of Supported GET Script Operators: 0x%x\n", InstanceInfo->maximumNumberOfSupportedGetScriptOperators);
+    ShowMessages("Debuggee Maximum Number Of Supported SET Script Operators: 0x%x\n", InstanceInfo->maximumNumberOfSupportedSetScriptOperators);
+    ShowMessages("Debuggee Shared Memory Size: 0x%x\n", InstanceInfo->sharedMemorySize);
+    ShowMessages("Debuggee Debugger Area Offset: 0x%x\n", InstanceInfo->debuggerAreaOffset);
+    ShowMessages("Debuggee Debuggee Area Offset: 0x%x\n", InstanceInfo->debuggeeAreaOffset);
+    ShowMessages("Debuggee Script Capabilities Mask: 0x%llx\n", InstanceInfo->scriptCapabilities);
+
+    //
+    // Show script capabilities
+    //
+    HardwareScriptInterpreterShowScriptCapabilities(&g_HwdbgInstanceInfo);
+
+    ShowMessages("Debuggee Number Of Pins: 0x%x\n", InstanceInfo->numberOfPins);
+    ShowMessages("Debuggee Number Of Ports: 0x%x\n", InstanceInfo->numberOfPorts);
+
+    ShowMessages("Debuggee BRAM Address Width: 0x%x\n", InstanceInfo->bramAddrWidth);
+    ShowMessages("Debuggee BRAM Data Width: 0x%x (%d bit)\n", InstanceInfo->bramDataWidth, InstanceInfo->bramDataWidth);
+
+    for (auto item : g_HwdbgPortConfiguration)
+    {
+        ShowMessages("Port number %d ($hw_port%d): 0x%x\n", PortNum, PortNum, item);
+        PortNum++;
+    }
+}
+
+/**
+ * @brief Read the instance info from the file
  * @param FileName
- * @param Buffer
- * @param BufferLength
+ * @param MemoryBuffer
+ * @param BufferSize
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgInterpreterSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                 const TCHAR *                FileName,
-                                 UINT32                       NumberOfSymbols,
-                                 HWDBG_SHORT_SYMBOL *         Buffer,
-                                 UINT32                       BufferLength)
+HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
 {
-    HWDBG_SCRIPT_BUFFER ScriptBuffer = {0};
-    BOOLEAN             Result       = FALSE;
+    TCHAR TestFilePath[MAX_PATH] = {0};
 
-    //
-    // Make the packet's structure
-    //
-    ScriptBuffer.scriptNumberOfSymbols = NumberOfSymbols;
-
-    //
-    // Allocate a buffer for storing the header packet + buffer (if not empty)
-    //
-    CHAR * FinalBuffer = (CHAR *)malloc(BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
-
-    if (!FinalBuffer)
+    if (SetupPathForFileName(HWDBG_TEST_READ_INSTANCE_INFO_PATH, TestFilePath, sizeof(TestFilePath), TRUE) &&
+        HwdbgInterpreterFillMemoryFromFile(TestFilePath, MemoryBuffer, BufferSize))
     {
+        //
+        // Print the content of MemoryBuffer for verification
+        //
+        for (SIZE_T I = 0; I < BufferSize; ++I)
+        {
+            ShowMessages("%08x ", MemoryBuffer[I]);
+            ShowMessages("\n");
+        }
+
+        //
+        // the instance info packet is read successfully
+        //
+        return TRUE;
+    }
+
+    //
+    // the instance info packet is not read successfully
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Write test instance info request into a file
+ *
+ * @param InstanceInfo
+ * @param FileName
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
+                                          const CHAR *                 FileName)
+{
+    TCHAR TestFilePath[MAX_PATH] = {0};
+
+    //
+    // Write test instance info request into a file
+    //
+    if (SetupPathForFileName(FileName, TestFilePath, sizeof(TestFilePath), FALSE) &&
+        HwdbgInterpreterSendPacketAndBufferToHwdbg(
+            InstanceInfo,
+            TestFilePath,
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
+            hwdbgActionSendInstanceInfo,
+            NULL,
+            NULL_ZERO))
+    {
+        ShowMessages("[*] instance info successfully written into file: %s\n", TestFilePath);
+        return TRUE;
+    }
+
+    //
+    // Unable to write instance info request into a file
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Load the instance info
+ *
+ * @param InstanceFilePathToRead
+ * @param InitialBramBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HwdbgLoadInstanceInfo(const TCHAR * InstanceFilePathToRead, UINT32 InitialBramBufferSize)
+{
+    UINT32 * MemoryBuffer = NULL;
+
+    //
+    // Allocate memory buffer to read the instance info
+    //
+    MemoryBuffer = (UINT32 *)malloc(InitialBramBufferSize * sizeof(UINT32));
+
+    if (MemoryBuffer == NULL)
+    {
+        //
+        // Memory allocation failed
+        //
+        ShowMessages("err, unable to allocate memory for the instance info packet of the debuggee");
         return FALSE;
     }
 
-    RtlZeroMemory(FinalBuffer, BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
-
     //
-    // Copy the packet into the FinalBuffer
+    // *** Read the instance info from the file ***
     //
-    memcpy(FinalBuffer, &ScriptBuffer, sizeof(HWDBG_SCRIPT_BUFFER));
-
-    //
-    // Copy the buffer (if available) into the FinalBuffer
-    //
-    if (Buffer != NULL)
+    if (HwdbgReadInstanceInfoFromFile(InstanceFilePathToRead, MemoryBuffer, InitialBramBufferSize))
     {
-        memcpy(FinalBuffer + sizeof(HWDBG_SCRIPT_BUFFER), Buffer, BufferLength);
+        ShowMessages("instance info read successfully\n");
+    }
+    else
+    {
+        ShowMessages("err, unable to read instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
     }
 
     //
-    // Here we would send FinalBuffer to the hardware debugger
+    // *** Interpret instance info packet ***
     //
-    Result = HwdbgInterpreterSendPacketAndBufferToHwdbg(
-        InstanceInfo,
-        FileName,
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_HARDWARE_LEVEL,
-        hwdbgActionConfigureScriptBuffer,
-        FinalBuffer,
-        BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
+    if (HwdbgInterpretPacket(MemoryBuffer, InitialBramBufferSize))
+    {
+        ShowMessages("instance info interpreted successfully\n");
+        HwdbgShowIntanceInfo(&g_HwdbgInstanceInfo);
+    }
+    else
+    {
+        ShowMessages("err, unable to interpret instance info packet of the debuggee");
+        free(MemoryBuffer);
+        return FALSE;
+    }
 
     //
-    // Free the allocated memory after use
+    // The instance info is loaded successfully
     //
-    free(FinalBuffer);
-
-    return Result;
+    free(MemoryBuffer);
+    return TRUE;
 }

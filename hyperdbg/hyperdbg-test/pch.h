@@ -40,9 +40,14 @@ using namespace std;
 //
 #include "SDK/HyperDbgSdk.h"
 #include "Definition.h"
-#include "..\hyperdbg-test\header\namedpipe.h"
-#include "..\hyperdbg-test\header\routines.h"
-#include "..\hyperdbg-test\header\testcases.h"
+#include "../hyperdbg-test/header/namedpipe.h"
+#include "../hyperdbg-test/header/routines.h"
+#include "../hyperdbg-test/header/testcases.h"
+
+//
+// Hardware Debugger Headers
+//
+#include "../hyperdbg-test/header/hwdbg-tests.h"
 
 //
 // import libhyperdbg

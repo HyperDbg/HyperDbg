@@ -28,3 +28,9 @@ HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
  *
  */
 BOOLEAN g_HwdbgInstanceInfoIsValid;
+
+/**
+ * @brief Message handler function
+ *
+ */
+PVOID g_MessageHandler;

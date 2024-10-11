@@ -1,0 +1,11 @@
+{
+	.test_var = @hw_port0 + @hw_port1;
+	
+	if (.test_var == 4) {
+		@hw_pin10 = 0x1;
+	} elsif (.test_var == 0) {
+		@hw_pin11 = 0x1;
+	} else {
+		@hw_pin12 = 0x1;
+	}
+}

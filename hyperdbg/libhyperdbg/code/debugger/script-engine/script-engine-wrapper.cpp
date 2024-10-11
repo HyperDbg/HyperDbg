@@ -22,6 +22,8 @@ extern UINT64 * g_ScriptGlobalVariables;
 extern UINT64 * g_ScriptStackBuffer;
 extern UINT64   g_CurrentExprEvalResult;
 extern BOOLEAN  g_CurrentExprEvalResultHasError;
+extern UINT64 * g_HwdbgPinsStatus;
+extern BOOLEAN  g_HwdbgInstanceInfoIsValid;
 
 //
 // Temporary structures used only for testing
@@ -340,7 +342,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     if (!g_ScriptStackBuffer)
     {
-        g_ScriptStackBuffer = (UINT64 *)malloc(MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+        g_ScriptStackBuffer = (UINT64 *)malloc(MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
         if (g_ScriptStackBuffer == NULL)
         {
@@ -350,8 +352,6 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
             return;
         }
-
-        RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
     }
 
     //
@@ -373,7 +373,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
     ScriptGeneralRegisters.StackBuffer         = g_ScriptStackBuffer;
     ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
-    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(SYMBOL));
+    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
     if (CodeBuffer->Message == NULL)
     {
@@ -400,15 +400,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             printf("Stack Buffer:\n");
             for (UINT64 j = 0; j < ScriptGeneralRegisters.StackIndx; j++)
             {
-                PSYMBOL StackSymbol = (PSYMBOL)((unsigned long long)ScriptGeneralRegisters.StackBuffer +
-                                                (unsigned long long)(j * sizeof(SYMBOL)));
-
-                printf("StackIndx = %lld, Value = %lld", j, StackSymbol->Value);
-
-                if (StackSymbol->Type == SYMBOL_RETURN_ADDRESS_TYPE)
-                {
-                    printf(", Type = SYMBOL_RETURN_ADDRESS_TYPE");
-                }
+                printf("StackIndx = %lld, Value = %lld", j, ScriptGeneralRegisters.StackBuffer[j]);
 
                 if (j == ScriptGeneralRegisters.StackBaseIndx)
                 {
@@ -722,6 +714,32 @@ ScriptEngineWrapperTestParser(const string & Expr)
 }
 
 /**
+ * @brief test parser for hwdbg
+ * @param Expr
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineWrapperTestParserForHwdbg(const string & Expr)
+{
+    if (!g_HwdbgPinsStatus)
+    {
+        g_HwdbgPinsStatus = (UINT64 *)malloc(MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
+
+        if (g_HwdbgPinsStatus == NULL)
+        {
+            ShowMessages("err, could not allocate memory for hwdbg pins status");
+
+            return;
+        }
+
+        RtlZeroMemory(g_HwdbgPinsStatus, MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
+    }
+
+    ScriptEngineEvalWrapper((PGUEST_REGS)g_HwdbgPinsStatus, Expr);
+}
+
+/**
  * @brief In the local debugging (VMI mode) environment, this function computes the expressions
  * @details for example, if the user u ExAllocatePoolWithTag+0x10 this will evaluate the expr
  * @param Expr
@@ -794,18 +812,4 @@ VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer)
 {
     RemoveSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
-}
-
-/**
- * @brief wrapper for getting operand count
- * @param FuncType
- * @param NumberOfGetOperands
- * @param NumberOfSetOperands
- *
- * @return BOOLEAN
- */
-BOOLEAN
-ScriptEngineFuncNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands)
-{
-    return FuncGetNumberOfOperands(FuncType, NumberOfGetOperands, NumberOfSetOperands);
 }

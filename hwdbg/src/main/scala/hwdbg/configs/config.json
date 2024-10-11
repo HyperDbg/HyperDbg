@@ -1,0 +1,52 @@
+{
+    "Version": {
+      "VERSION_MAJOR": 0,
+      "VERSION_MINOR": 2,
+      "VERSION_PATCH": 0
+    },
+    "DebuggerConfigurations": {
+      "ENABLE_DEBUG": true,
+      "NUMBER_OF_PINS": 32,
+      "PORT_PINS_MAP": [12, 20]
+    },
+    "ScriptEngineConfigurations": {
+      "MAXIMUM_NUMBER_OF_STAGES": 32,
+      "MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS": 2,
+      "MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS": 1,
+      "SCRIPT_VARIABLE_LENGTH": 8,
+      "NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES": 2,
+      "NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES": 2,
+      "SCRIPT_ENGINE_EVAL_CAPABILITIES": [
+        "assign_local_global_var",
+        "assign_registers",
+        "conditional_statements_and_comparison_operators",
+        "stack_assignments",
+        "func_or",
+        "func_xor",
+        "func_and",
+        "func_asl",
+        "func_add",
+        "func_sub",
+        "func_mul",
+        "func_gt",
+        "func_lt",
+        "func_egt",
+        "func_elt",
+        "func_equal",
+        "func_neq",
+        "func_jmp",
+        "func_jz",
+        "func_jnz",
+        "func_mov"
+      ]
+    },
+    "MemoryCommunicationConfigurations": {
+      "BLOCK_RAM_ADDR_WIDTH": 13,
+      "BLOCK_RAM_DATA_WIDTH": 32,
+      "ENABLE_BLOCK_RAM_DELAY": true,
+      "DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE": 1024,
+      "BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION": 0,
+      "BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION": 512
+    }
+  }
+  

@@ -49,9 +49,10 @@ NewUnknownToken()
     // Init fields
     //
     strcpy(Token->Value, "");
-    Token->Type   = UNKNOWN;
-    Token->Len    = 0;
-    Token->MaxLen = TOKEN_VALUE_MAX_LEN;
+    Token->Type         = UNKNOWN;
+    Token->Len          = 0;
+    Token->MaxLen       = TOKEN_VALUE_MAX_LEN;
+    Token->VariableType = 0;
 
     return Token;
 }
@@ -75,11 +76,12 @@ NewToken(TOKEN_TYPE Type, char * Value)
     //
     // Init fields
     //
-    unsigned int Len = (unsigned int)strlen(Value);
-    Token->Type      = Type;
-    Token->Len       = Len;
-    Token->MaxLen    = Len;
-    Token->Value     = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+    unsigned int Len    = (unsigned int)strlen(Value);
+    Token->Type         = Type;
+    Token->Len          = Len;
+    Token->MaxLen       = Len;
+    Token->Value        = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+    Token->VariableType = 0;
 
     if (Token->Value == NULL)
     {
@@ -316,10 +318,11 @@ CopyToken(PTOKEN Token)
         return NULL;
     }
 
-    TokenCopy->Type   = Token->Type;
-    TokenCopy->MaxLen = Token->MaxLen;
-    TokenCopy->Len    = Token->Len;
-    TokenCopy->Value  = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
+    TokenCopy->Type         = Token->Type;
+    TokenCopy->MaxLen       = Token->MaxLen;
+    TokenCopy->Len          = Token->Len;
+    TokenCopy->Value        = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
+    TokenCopy->VariableType = Token->VariableType;
 
     if (TokenCopy->Value == NULL)
     {

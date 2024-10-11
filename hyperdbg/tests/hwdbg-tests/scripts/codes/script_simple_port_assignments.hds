@@ -1,0 +1,13 @@
+{
+
+	//
+	// Assignment to @hw_port0
+	//
+	.test_var = @hw_port0 + 1;
+	@hw_port0 = .test_var; 
+	
+	//
+	// Assignment to @hw_port1
+	//
+	@hw_port1 = @hw_port1 - 2; 
+}

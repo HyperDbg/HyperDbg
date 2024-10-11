@@ -12,6 +12,23 @@
  */
 #include "pch.h"
 
+#if defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
+extern BOOLEAN g_HwdbgInstanceInfoIsValid;
+#endif // defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
+
+/**
+ * @brief Get the register value for hardware debugging
+ *
+ * @param Regs
+ * @param RegId
+ * @return UINT64
+ */
+UINT64
+GetRegValueHwdbg(UINT64 * Regs, UINT32 RegId)
+{
+    return Regs[RegId];
+}
+
 /**
  * @brief Get the register value
  *
@@ -22,6 +39,13 @@
 UINT64
 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 {
+#if defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
+    if (g_HwdbgInstanceInfoIsValid)
+    {
+        return GetRegValueHwdbg((UINT64 *)GuestRegs, RegId);
+    }
+#endif // defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
+
     switch (RegId)
     {
     case REGISTER_RAX:
@@ -948,6 +972,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
     }
+}
+
+/**
+ * @brief Set the register value for hardware debugging
+ *
+ * @param Regs
+ * @param RegisterId
+ * @param Value
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SetRegValueHwdbg(UINT64 * Regs, UINT32 RegisterId, UINT64 Value)
+{
+    Regs[RegisterId] = Value;
+    return TRUE;
 }
 
 /**
@@ -1987,10 +2027,19 @@ SetRegValue(PGUEST_REGS GuestRegs, UINT32 RegisterId, UINT64 Value)
  * @param GuestRegs
  * @param Symbol
  * @param Value
+ * @param ActionBuffer
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 SetRegValueUsingSymbol(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 {
+#if defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
+    if (g_HwdbgInstanceInfoIsValid == FALSE)
+        return SetRegValue(GuestRegs, (UINT32)Symbol->Value, Value);
+    else
+        return SetRegValueHwdbg((UINT64 *)GuestRegs, (UINT32)Symbol->Value, Value);
+#else
     return SetRegValue(GuestRegs, (UINT32)Symbol->Value, Value);
+#endif // defined(SCRIPT_ENGINE_USER_MODE) && defined(HYPERDBG_LIBHYPERDBG)
 }

@@ -40,7 +40,7 @@ main(int argc, char * argv[])
         }
         else
         {
-            printf("\n[*] The main command parser test cases failed\n");
+            printf("\n[x] The main command parser test cases failed\n");
         }
     }
     else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
@@ -55,7 +55,21 @@ main(int argc, char * argv[])
         }
         else
         {
-            printf("\n[*] The script semantic test cases failed\n");
+            printf("\n[x] The script semantic test cases failed\n");
+        }
+    }
+    else if (!strcmp(argv[1], TEST_HWDBG_FUNCTIONALITIES))
+    {
+        //
+        // # Test hwdbg functionalities
+        //
+        if (HwdbgTestCreateTestCases())
+        {
+            printf("\n[*] The hwdbg test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[x] The hwdbg test cases failed\n");
         }
     }
     else

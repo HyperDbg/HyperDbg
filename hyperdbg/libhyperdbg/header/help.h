@@ -290,3 +290,6 @@ CommandAssembleHelp();
 //
 VOID
 CommandHwClkHelp();
+
+VOID
+CommandHwHelp();

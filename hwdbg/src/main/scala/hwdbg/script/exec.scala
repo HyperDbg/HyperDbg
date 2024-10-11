@@ -70,6 +70,12 @@ class ScriptExecutionEngine(
   val stageRegs = Reg(Vec(instanceInfo.maximumNumberOfStages, new Stage(debug, instanceInfo)))
 
   //
+  // Stage configuration done 
+  // Whether the state are configured or not
+  //
+  val stageConfigurationValid = RegInit(false.B)
+
+  //
   // Stage configuration registers
   //
   val configState = RegInit(sConfigStageSymbol)
@@ -102,6 +108,12 @@ class ScriptExecutionEngine(
     switch(configState) {
 
       is(sConfigStageSymbol) {
+
+        //
+        // Since the chip is in the configuring status, just pass all the input 
+        // to output since the stage data is not valid at this stage
+        //
+        stageConfigurationValid := false.B
 
         //
         // Configure the stage symbol (The first symbol is the stage operator)
@@ -170,12 +182,19 @@ class ScriptExecutionEngine(
           configGetSetOperatorNumber := 0.U // reset the counter
 
           when(io.finishedScriptConfiguration === true.B) {
+
             //
             // Not configuring anymore, reset the stage number
             //
             configStageNumber := 0.U // reset the stage number
             stageIndex := 0.U // reset the stage index
             configState := sConfigStageSymbol
+
+            //
+            // Stage data is now valid and can be used (scripts can apply from now on)
+            //
+            stageConfigurationValid := true.B
+
           }.otherwise {
             configStageNumber := configStageNumber + 1.U // Increment the stage number holder of current configuration
             configState := sConfigStageSymbol // the next state is again a stage symbol
@@ -221,7 +240,9 @@ class ScriptExecutionEngine(
       // (i - 1) is because the 0th index registers are used for storing data but the
       // script engine assumes that the symbols start from 0, so -1 is used here
       //
-      when(stageRegs(i - 1).stageIndex === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
+      // Also, if the stage data is valid (configuration applied at least once)
+      //
+      when(stageConfigurationValid === true.B && stageRegs(i - 1).stageIndex === stageRegs(i - 1).targetStage && stageRegs(i - 1).stageEnable === true.B) {
 
         //
         // *** Based on target stage, this stage needs evaluation ***

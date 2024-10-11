@@ -143,6 +143,9 @@ AsmGetCs();
 extern unsigned short
 AsmGetDs();
 
+extern void 
+AsmSetDs(unsigned short DsSelector);
+
 /**
  * @brief Get ES Register
  *
@@ -150,6 +153,9 @@ AsmGetDs();
  */
 extern unsigned short
 AsmGetEs();
+
+extern void
+AsmSetEs(unsigned short EsSelector);
 
 /**
  * @brief Get SS Register
@@ -159,6 +165,9 @@ AsmGetEs();
 extern unsigned short
 AsmGetSs();
 
+extern void
+AsmSetSs(unsigned short SsSelector);
+
 /**
  * @brief Get FS Register
  *
@@ -166,6 +175,9 @@ AsmGetSs();
  */
 extern unsigned short
 AsmGetFs();
+
+extern void
+AsmSetFs(unsigned short FsSelector);
 
 /**
  * @brief Get GS Register

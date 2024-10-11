@@ -12,6 +12,13 @@
 #pragma once
 
 //
+// Scope definitions
+//
+#define HYPERDBG_SYMBOL_PARSER
+
+using namespace std;
+
+//
 // Environment headers
 //
 #include "platform/user/header/Environment.h"
@@ -40,12 +47,15 @@ typedef RFLAGS * PRFLAGS;
 #endif // USE_LIB_IA32
 
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/imports/user/HyperDbgLibImports.h"
 #include "Definition.h"
-#include "..\symbol-parser\header\common-utils.h"
-#include "..\symbol-parser\header\symbol-parser.h"
+#include "SDK/imports/user/HyperDbgLibImports.h"
+#include "../symbol-parser/header/common-utils.h"
+#include "../symbol-parser/header/symbol-parser.h"
 
-using namespace std;
+//
+// Module imports/exports
+//
+#include "SDK/imports/user/HyperDbgSymImports.h"
 
 //
 // Needed to link symbol server

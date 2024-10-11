@@ -443,6 +443,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_GU_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
+#define DEBUGGER_COMMAND_HWDBG_HW_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_HWDBG
+
 #define DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_HWDBG
 
 #define DEBUGGER_COMMAND_A_ATTRIBUTES \
@@ -715,3 +717,6 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command);
 //
 VOID
 CommandHwClk(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandHw(vector<CommandToken> CommandTokens, string Command);

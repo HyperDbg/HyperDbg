@@ -11,7 +11,10 @@ lazy val root = (project in file("."))
     name := "hwdbg",
     libraryDependencies ++= Seq(
       "org.chipsalliance" %% "chisel" % chiselVersion,
-      "org.scalatest" %% "scalatest" % "3.2.16" % "test"
+      "org.scalatest" %% "scalatest" % "3.2.16" % "test",
+      "io.circe" %% "circe-core" % "0.14.3",
+      "io.circe" %% "circe-generic" % "0.14.3",
+      "io.circe" %% "circe-parser" % "0.14.3"
     ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",

@@ -18,7 +18,7 @@
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 10
-#define VERSION_PATCH 1
+#define VERSION_PATCH 2
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -76,7 +76,7 @@
 #define BUILD_SEC_CH0 (__TIME__[6])
 #define BUILD_SEC_CH1 (__TIME__[7])
 
-#ifndef HYPERDBG_KERNEL_MODE
+#ifdef __cplusplus // becasue it's not valid in C
 
 const unsigned char BuildDateTime[] = {
     BUILD_YEAR_CH0,
@@ -150,7 +150,7 @@ const unsigned char BuildSignature[] = {
 
     '\0'};
 
-#endif // SCRIPT_ENGINE_KERNEL_MODE
+#endif
 
 //////////////////////////////////////////////////
 //				Message Tracing                 //

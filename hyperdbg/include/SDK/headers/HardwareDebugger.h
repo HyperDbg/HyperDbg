@@ -28,6 +28,31 @@
  */
 #define DEFAULT_INITIAL_DEBUGGER_TO_DEBUGGEE_OFFSET 0x0
 
+/**
+ * @brief Initial default buffer size (BRAN Size)
+ * @details Number of 4-Byte intergers (256 * 4 Byte * 8 bits = 8-kilobits)
+ *
+ */
+#define DEFAULT_INITIAL_BRAM_BUFFER_SIZE 256
+
+/**
+ * @brief Path to read the sample of the instance info
+ *
+ */
+#define HWDBG_TEST_READ_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\sim\\hwdbg\\DebuggerModuleTestingBRAM\\bram_instance_info.txt"
+
+/**
+ * @brief Path to write the sample of the script buffer
+ *
+ */
+#define HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH "..\\..\\..\\..\\hwdbg\\src\\test\\bram\\script_buffer.hex.txt"
+
+/**
+ * @brief Path to write the sample of the instance info requests
+ *
+ */
+#define HWDBG_TEST_WRITE_INSTANCE_INFO_PATH "..\\..\\..\\..\\hwdbg\\src\\test\\bram\\instance_info.hex.txt"
+
 //////////////////////////////////////////////////
 //                   Enums                      //
 //////////////////////////////////////////////////
@@ -119,6 +144,7 @@ typedef struct _HWDBG_INSTANCE_INFORMATION
         UINT64 assign_registers : 1;
         UINT64 assign_pseudo_registers : 1;
         UINT64 conditional_statements_and_comparison_operators : 1;
+        UINT64 stack_assignments : 1;
 
         UINT64 func_or : 1;
         UINT64 func_xor : 1;

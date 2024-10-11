@@ -18,6 +18,9 @@
     <Filter Include="header\platform">
       <UniqueIdentifier>{3b15cfee-d573-4538-aa01-0bac669f0360}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\hardware">
+      <UniqueIdentifier>{18515e99-bdbe-465f-9c92-58dc89591116}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -38,6 +41,9 @@
     <ClCompile Include="code\tests\test-semantic-scripts.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
+    <ClCompile Include="code\hardware\hwdbg-tests.cpp">
+      <Filter>code\hardware</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -53,6 +59,9 @@
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\testcases.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hwdbg-tests.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

@@ -388,8 +388,8 @@ def extract_stage_details(dut):
         print("\n\n")
 
 def set_input_pins(dut):
-    dut.io_inputPin_0.value = 0
-    dut.io_inputPin_1.value = 0
+    dut.io_inputPin_0.value = 1
+    dut.io_inputPin_1.value = 1
     dut.io_inputPin_2.value = 1
     dut.io_inputPin_3.value = 1
     dut.io_inputPin_4.value = 1

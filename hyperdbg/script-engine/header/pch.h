@@ -12,6 +12,11 @@
 #pragma once
 
 //
+// Scope definitions
+//
+#define HYPERDBG_SCRIPT_ENGINE
+
+//
 // Environment headers
 //
 #include "platform/user/header/Environment.h"
@@ -30,12 +35,19 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgSymImports.h"
 #include "SDK/headers/HardwareDebugger.h"
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
-#include "..\include\SDK\headers\ScriptEngineCommonDefinitions.h"
+#include "../include/SDK/headers/ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"
 #include "type.h"
+#include "hardware.h"
+
+//
+// Import/export definitions
+//
+#include "SDK/imports/user/HyperDbgScriptImports.h"

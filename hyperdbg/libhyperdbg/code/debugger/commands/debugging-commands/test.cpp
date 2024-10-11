@@ -126,6 +126,27 @@ CommandTestAllFunctionalities()
 }
 
 /**
+ * @brief perform test for all functionalities of hwdbg
+ *
+ * @return VOID
+ */
+VOID
+CommandTestAllHwdbg()
+{
+    HANDLE ThreadHandle;
+    HANDLE ProcessHandle;
+
+    //
+    // Test hwdbg functionalities
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_HWDBG_FUNCTIONALITIES))
+    {
+        ShowMessages("err, start HyperDbg test process for testing hwdbg functionalities\n");
+        return;
+    }
+}
+
+/**
  * @brief perform test on the remote process
  *
  * @return BOOLEAN returns true if the results was true and false if the results
@@ -497,6 +518,13 @@ CommandTest(vector<CommandToken> CommandTokens, string Command)
         // For testing functionalities
         //
         CommandTestAllFunctionalities();
+    }
+    else if (CommandSize == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "hwdbg"))
+    {
+        //
+        // For testing functionalities of hwdbg
+        //
+        CommandTestAllHwdbg();
     }
     else
     {

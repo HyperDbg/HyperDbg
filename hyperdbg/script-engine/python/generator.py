@@ -96,7 +96,7 @@ object ScriptConstants {
  */
 object ScriptConstantTypes {
   object ScriptDataTypes extends ChiselEnum {
-    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolUserDefinedFunctionType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolStackTempType, symbolFunctionParameterType  = Value
+    val symbolUndefined, symbolGlobalIdType, symbolLocalIdType, symbolNumType, symbolRegisterType, symbolPseudoRegType, symbolSemanticRuleType, symbolTempType, symbolStringType, symbolVariableCountType, symbolInvalid, symbolWstringType, symbolFunctionParameterIdType, symbolReturnAddressType, symbolFunctionParameterType, symbolStackIndexType, symbolStackBaseIndexType, symbolReturnValueType  = Value
   }
 }
 
@@ -113,10 +113,11 @@ typedef struct SYMBOL
 {
     long long unsigned Type;
     long long unsigned Len;
-    long long unsigned VariableType;
     long long unsigned Value;
     
 } SYMBOL, *PSYMBOL;
+
+#define SIZE_SYMBOL_WITHOUT_LEN sizeof(long long unsigned) * 2
 
 typedef struct HWDBG_SHORT_SYMBOL
 {

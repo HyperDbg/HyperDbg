@@ -170,6 +170,9 @@
     <ClInclude Include="header\steppings.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\hwdbg-scripts.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -555,6 +558,12 @@
     </ClCompile>
     <ClCompile Include="code\debugger\core\steppings.cpp">
       <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hwdbg\hwdbg-scripts.cpp">
+      <Filter>code\hwdbg</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\hwdbg-commands\hw.cpp">
+      <Filter>code\debugger\commands\hwdbg-commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

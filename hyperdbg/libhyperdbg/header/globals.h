@@ -685,3 +685,9 @@ BOOLEAN g_HwdbgInstanceInfoIsValid;
  *
  */
 std::vector<UINT32> g_HwdbgPortConfiguration;
+
+/**
+ * @brief Holder of pins (and ports) status of hwdbg
+ *
+ */
+UINT64 * g_HwdbgPinsStatus;

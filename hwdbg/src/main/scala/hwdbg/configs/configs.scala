@@ -15,6 +15,11 @@
  */
 package hwdbg.configs
 
+import io.circe._
+import io.circe.parser._
+import io.circe.generic.auto._
+import scala.io.Source
+
 import chisel3._
 import chisel3.util._
 
@@ -22,7 +27,7 @@ import hwdbg.utils._
 
 /**
  * @brief
- *   Version of hwdbg
+ *   Version of hwdbg (Definition and Default Values)
  * @warning
  *   will be checked with HyperDbg
  */
@@ -31,9 +36,9 @@ object Version {
   //
   // Constant version info
   //
-  val VERSION_MAJOR: Int = 0
-  val VERSION_MINOR: Int = 1
-  val VERSION_PATCH: Int = 0
+  var VERSION_MAJOR: Int = 0
+  var VERSION_MINOR: Int = 1
+  var VERSION_PATCH: Int = 0
 
   def getEncodedVersion: Int = {
     (VERSION_MAJOR << 16) | (VERSION_MINOR << 8) | VERSION_PATCH
@@ -54,10 +59,22 @@ object Version {
 
 /**
  * @brief
- *   The configuration of ports and pins
+ *   Design constants (Definition and Default Values)
  */
-object DebuggerPorts {
+object DebuggerConfigurations {
 
+  //
+  // whether to enable debug or not
+  //
+  var ENABLE_DEBUG: Boolean = true
+
+  //
+  // Number of input/output pins
+  //
+  var NUMBER_OF_PINS: Int = 32
+
+  //
+  // The configuration of ports and pins
   //
   // The following constant shows the key value object of the mappings
   // of pins to ports (used for inputs/outputs)
@@ -65,70 +82,51 @@ object DebuggerPorts {
   //                port 0 (in) -> contains 12 pins
   //                port 1 (in) -> contains 20 pins
   //
-  // val PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
-  val PORT_PINS_MAP: Array[Int] = Array(12, 20)
-  // val PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
-
+  // var PORT_PINS_MAP: Array[Int] = Array(12, 18, 2)
+  // var PORT_PINS_MAP: Array[Int] = Array(12, 10, 5, 3, 2)
+  var PORT_PINS_MAP: Array[Int] = Array(12, 20)
 }
 
 /**
  * @brief
- *   Design constants
- */
-object DebuggerConfigurations {
-
-  //
-  // whether to enable debug or not
-  //
-  val ENABLE_DEBUG: Boolean = true
-
-  //
-  // Number of input/output pins
-  //
-  val NUMBER_OF_PINS: Int = 32
-
-}
-
-/**
- * @brief
- *   Design constants for script engine
+ *   Design constants for script engine (Definition and Default Values)
  */
 object ScriptEngineConfigurations {
 
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_STAGES: Int = 32
+  var MAXIMUM_NUMBER_OF_STAGES: Int = 32
 
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS: Int = 2 // for get values
+  var MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS: Int = 2 // for get values
 
   //
   // Maximum number of stages
   //
-  val MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int = 1 // for get value
+  var MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int = 1 // for get value
 
   //
   // Script variable length
   //
-  val SCRIPT_VARIABLE_LENGTH: Int = 8
+  var SCRIPT_VARIABLE_LENGTH: Int = 8
 
   //
   // Number supported of local and global variables
   //
-  val NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES: Int = 2
+  var NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES: Int = 2
 
   //
   // Number supported of temporary variables
   //
-  val NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES: Int = 2
+  var NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES: Int = 2
 
   //
   // Define the capabilities you want to enable
   //
-  val SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
+  var SCRIPT_ENGINE_EVAL_CAPABILITIES = Seq(
     //
     // Statements and expressions
     //
@@ -136,6 +134,7 @@ object ScriptEngineConfigurations {
     HwdbgScriptCapabilities.assign_registers,
     // HwdbgScriptCapabilities.assign_pseudo_registers,
     HwdbgScriptCapabilities.conditional_statements_and_comparison_operators,
+    HwdbgScriptCapabilities.stack_assignments,
 
     //
     // Operators
@@ -165,39 +164,39 @@ object ScriptEngineConfigurations {
 
 /**
  * @brief
- *   The constants for memory communication
+ *   The constants for memory communication (Definition and Default Values)
  */
 object MemoryCommunicationConfigurations {
 
   //
   // Address width of the Block RAM (BRAM)
   //
-  val BLOCK_RAM_ADDR_WIDTH: Int = 13
+  var BLOCK_RAM_ADDR_WIDTH: Int = 13
 
   //
   // Data width of the Block RAM (BRAM)
   //
-  val BLOCK_RAM_DATA_WIDTH: Int = 32
+  var BLOCK_RAM_DATA_WIDTH: Int = 32
 
   //
   // Emulate block RAM by inferring a register to delay one clock cycle
   //
-  val ENABLE_BLOCK_RAM_DELAY: Boolean = true
+  var ENABLE_BLOCK_RAM_DELAY: Boolean = true
 
   //
   // Default number of bytes used in initialized SRAM memory
   //
-  val DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE: Int = 8192 / 8 // 8 Kilobits
+  var DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE: Int = 8192 / 8 // 8 Kilobits
 
   //
   // Base address of PS to PL SRAM communication memory
   //
-  val BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION: Int = 0
+  var BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION: Int = 0
 
   //
   // Base address of PL to PS SRAM communication memory
   //
-  val BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION: Int = DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE / 2
+  var BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION: Int = DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE / 2
 }
 
 /**
@@ -225,6 +224,10 @@ case class HwdbgInstanceInformation(
     portsConfiguration: Array[Int] // Port arrangement
 )
 
+/**
+ * @brief
+ *   The script engine capabilities (Definition and Default Values)
+ */
 object HwdbgScriptCapabilities {
 
   //
@@ -234,37 +237,39 @@ object HwdbgScriptCapabilities {
   val assign_registers: Long = 1L << 1
   val assign_pseudo_registers: Long = 1L << 2
   val conditional_statements_and_comparison_operators: Long = 1L << 3
+  val stack_assignments: Long = 1L << 4
 
   //
   // Operators
   //
-  val func_or: Long = 1L << 4
-  val func_xor: Long = 1L << 5
-  val func_and: Long = 1L << 6
-  val func_asr: Long = 1L << 7
-  val func_asl: Long = 1L << 8
-  val func_add: Long = 1L << 9
-  val func_sub: Long = 1L << 10
-  val func_mul: Long = 1L << 11
-  val func_div: Long = 1L << 12
-  val func_mod: Long = 1L << 13
-  val func_gt: Long = 1L << 14
-  val func_lt: Long = 1L << 15
-  val func_egt: Long = 1L << 16
-  val func_elt: Long = 1L << 17
-  val func_equal: Long = 1L << 18
-  val func_neq: Long = 1L << 19
-  val func_jmp: Long = 1L << 20
-  val func_jz: Long = 1L << 21
-  val func_jnz: Long = 1L << 22
-  val func_mov: Long = 1L << 23
-  val func_printf: Long = 1L << 24
+  val func_or: Long = 1L << 5
+  val func_xor: Long = 1L << 6
+  val func_and: Long = 1L << 7
+  val func_asr: Long = 1L << 8
+  val func_asl: Long = 1L << 9
+  val func_add: Long = 1L << 10
+  val func_sub: Long = 1L << 11
+  val func_mul: Long = 1L << 12
+  val func_div: Long = 1L << 13
+  val func_mod: Long = 1L << 14
+  val func_gt: Long = 1L << 15
+  val func_lt: Long = 1L << 16
+  val func_egt: Long = 1L << 17
+  val func_elt: Long = 1L << 18
+  val func_equal: Long = 1L << 19
+  val func_neq: Long = 1L << 20
+  val func_jmp: Long = 1L << 21
+  val func_jz: Long = 1L << 22
+  val func_jnz: Long = 1L << 23
+  val func_mov: Long = 1L << 24
+  val func_printf: Long = 1L << 25
 
   def allCapabilities: Seq[Long] = Seq(
     assign_local_global_var,
     assign_registers,
     assign_pseudo_registers,
     conditional_statements_and_comparison_operators,
+    stack_assignments,
     func_or,
     func_xor,
     func_and,
@@ -359,5 +364,137 @@ object HwdbgInstanceInformation {
       bramDataWidth = bramDataWidth,
       portsConfiguration = portsConfiguration
     )
+  }
+}
+
+object ConfigLoader {
+
+  //
+  // Case classes for each configuration section
+  //
+  case class VersionConfig(
+    VERSION_MAJOR: Int,
+    VERSION_MINOR: Int,
+    VERSION_PATCH: Int
+    )
+  case class DebuggerConfigurationsConfig(
+    ENABLE_DEBUG: Boolean,
+    NUMBER_OF_PINS: Int,
+    PORT_PINS_MAP: Array[Int]
+    )
+  case class ScriptEngineConfigurationsConfig(
+      MAXIMUM_NUMBER_OF_STAGES: Int,
+      MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS: Int,
+      MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS: Int,
+      SCRIPT_VARIABLE_LENGTH: Int,
+      NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES: Int,
+      NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES: Int,
+      SCRIPT_ENGINE_EVAL_CAPABILITIES: Seq[String]
+  )
+  case class MemoryCommunicationConfigurationsConfig(
+      BLOCK_RAM_ADDR_WIDTH: Int,
+      BLOCK_RAM_DATA_WIDTH: Int,
+      ENABLE_BLOCK_RAM_DELAY: Boolean,
+      DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE: Int,
+      BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION: Int,
+      BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION: Int
+  )
+  case class FullConfig(
+      Version: VersionConfig,
+      DebuggerConfigurations: DebuggerConfigurationsConfig,
+      ScriptEngineConfigurations: ScriptEngineConfigurationsConfig,
+      MemoryCommunicationConfigurations: MemoryCommunicationConfigurationsConfig
+  )
+
+  //
+  // Function to load configuration from a JSON file
+  //
+  def loadConfig(filePath: String): Option[FullConfig] = {
+    val source = Source.fromFile(filePath)
+    val jsonString = try source.getLines().mkString("\n") finally source.close()
+
+    decode[FullConfig](jsonString) match {
+      case Right(config) => Some(config)
+      case Left(error) =>
+        println(s"Failed to parse JSON configuration: $error")
+        None
+    }
+  }
+}
+
+object LoadConfiguration {
+
+  def loadFromJson(configPath: String): Unit = {
+    
+    val configOpt = ConfigLoader.loadConfig(configPath)
+
+    configOpt.foreach { config =>
+
+      //
+      // *** Set the values in the respective objects ***
+      //
+
+      //
+      // Read the version
+      //
+      Version.VERSION_MAJOR = config.Version.VERSION_MAJOR
+      Version.VERSION_MINOR = config.Version.VERSION_MINOR
+      Version.VERSION_PATCH = config.Version.VERSION_PATCH
+
+      //
+      // Read the debugger configurations
+      //
+      DebuggerConfigurations.ENABLE_DEBUG = config.DebuggerConfigurations.ENABLE_DEBUG
+      DebuggerConfigurations.NUMBER_OF_PINS = config.DebuggerConfigurations.NUMBER_OF_PINS
+      DebuggerConfigurations.PORT_PINS_MAP = config.DebuggerConfigurations.PORT_PINS_MAP
+
+      //
+      // Read the script engine configurations
+      //
+      ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES = config.ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_STAGES
+      ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS = config.ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_GET_SCRIPT_OPERATORS
+      ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS = config.ScriptEngineConfigurations.MAXIMUM_NUMBER_OF_SUPPORTED_SET_SCRIPT_OPERATORS
+      ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH = config.ScriptEngineConfigurations.SCRIPT_VARIABLE_LENGTH
+      ScriptEngineConfigurations.NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES = config.ScriptEngineConfigurations.NUMBER_OF_SUPPORTED_LOCAL_AND_GLOBAL_VARIABLES
+      ScriptEngineConfigurations.NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES = config.ScriptEngineConfigurations.NUMBER_OF_SUPPORTED_TEMPORARY_VARIABLES
+      
+      //
+      // Convert string capability names to the corresponding values in HwdbgScriptCapabilities
+      //
+      ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES = config.ScriptEngineConfigurations.SCRIPT_ENGINE_EVAL_CAPABILITIES.flatMap {
+        case "assign_local_global_var" => Some(HwdbgScriptCapabilities.assign_local_global_var)
+        case "assign_registers" => Some(HwdbgScriptCapabilities.assign_registers)
+        case "conditional_statements_and_comparison_operators" => Some(HwdbgScriptCapabilities.conditional_statements_and_comparison_operators)
+        case "stack_assignments" => Some(HwdbgScriptCapabilities.stack_assignments)
+        case "func_or" => Some(HwdbgScriptCapabilities.func_or)
+        case "func_xor" => Some(HwdbgScriptCapabilities.func_xor)
+        case "func_and" => Some(HwdbgScriptCapabilities.func_and)
+        case "func_asl" => Some(HwdbgScriptCapabilities.func_asl)
+        case "func_add" => Some(HwdbgScriptCapabilities.func_add)
+        case "func_sub" => Some(HwdbgScriptCapabilities.func_sub)
+        case "func_mul" => Some(HwdbgScriptCapabilities.func_mul)
+        case "func_gt" => Some(HwdbgScriptCapabilities.func_gt)
+        case "func_lt" => Some(HwdbgScriptCapabilities.func_lt)
+        case "func_egt" => Some(HwdbgScriptCapabilities.func_egt)
+        case "func_elt" => Some(HwdbgScriptCapabilities.func_elt)
+        case "func_equal" => Some(HwdbgScriptCapabilities.func_equal)
+        case "func_neq" => Some(HwdbgScriptCapabilities.func_neq)
+        case "func_jmp" => Some(HwdbgScriptCapabilities.func_jmp)
+        case "func_jz" => Some(HwdbgScriptCapabilities.func_jz)
+        case "func_jnz" => Some(HwdbgScriptCapabilities.func_jnz)
+        case "func_mov" => Some(HwdbgScriptCapabilities.func_mov)
+        case _ => None
+      }
+
+      //
+      // Read memory communication configurations
+      //
+      MemoryCommunicationConfigurations.BLOCK_RAM_ADDR_WIDTH = config.MemoryCommunicationConfigurations.BLOCK_RAM_ADDR_WIDTH
+      MemoryCommunicationConfigurations.BLOCK_RAM_DATA_WIDTH = config.MemoryCommunicationConfigurations.BLOCK_RAM_DATA_WIDTH
+      MemoryCommunicationConfigurations.ENABLE_BLOCK_RAM_DELAY = config.MemoryCommunicationConfigurations.ENABLE_BLOCK_RAM_DELAY
+      MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE = config.MemoryCommunicationConfigurations.DEFAULT_CONFIGURATION_INITIALIZED_MEMORY_SIZE
+      MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION = config.MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PS_TO_PL_COMMUNICATION
+      MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION = config.MemoryCommunicationConfigurations.BASE_ADDRESS_OF_PL_TO_PS_COMMUNICATION
+    }
   }
 }

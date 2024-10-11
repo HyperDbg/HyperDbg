@@ -1,0 +1,10 @@
+{
+	@hw_pin0 = 0x1;
+	@hw_pin1 = 0x0;
+	@hw_pin2 = 0x1;
+	@hw_pin3 = 0x0;
+	@hw_pin4 = 0x1;
+	@hw_pin5 = 0x0;
+	@hw_pin6 = 0x1;
+	@hw_pin7 = 0x0;
+}

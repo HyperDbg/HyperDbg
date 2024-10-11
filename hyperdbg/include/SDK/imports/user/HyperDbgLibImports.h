@@ -200,26 +200,26 @@ hyperdbg_u_pause_debuggee();
 // Set breakpoint
 // Exported functionality of the 'bp' command
 //
-VOID
+IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer);
 
 //
 // Stepping and tracing instruction
 // Exported functionality of 't', 'p', 'i', '!track', 'gu' commands
 //
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_stepping_instrumentation_step_in();
 
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_stepping_regular_step_in();
 
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_stepping_step_over();
 
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_stepping_instrumentation_step_in_for_tracking();
 
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction);
 
 //
@@ -241,6 +241,19 @@ hyperdbg_u_assemble_get_length(const CHAR * assembly_code, UINT64 start_address,
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_assemble(const CHAR * assembly_code, UINT64 start_address, PVOID buffer_to_store_assembled_data, UINT32 buffer_size);
+
+//
+// hwdbg functions
+// Exported functionality of the '!hw' and '!hw_*' commands
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hwdbg_script_run_script(const CHAR * script,
+                        const CHAR * instance_filepath_to_read,
+                        const CHAR * hardware_script_file_path_to_save,
+                        UINT32       initial_bram_buffer_size);
+
+VOID
+hwdbg_script_engine_wrapper_test_parser(const CHAR * Expr);
 
 #ifdef __cplusplus
 }

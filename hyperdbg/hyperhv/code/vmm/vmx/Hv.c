@@ -468,6 +468,11 @@ HvRestoreRegisters()
     UINT64 GdtrLimit;
     UINT64 IdtrBase;
     UINT64 IdtrLimit;
+    UINT16 DsSelector;
+    UINT16 EsSelector;
+    UINT16 SsSelector;
+    UINT16 FsSelector;
+
 
     //
     // Restore FS Base
@@ -488,6 +493,18 @@ HvRestoreRegisters()
     __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
     AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
+
+    //
+    // Restore Segment Selector
+    //
+    VmxVmread16P(VMCS_GUEST_DS_SELECTOR, &DsSelector);
+    AsmSetDs(DsSelector);
+    VmxVmread16P(VMCS_GUEST_ES_SELECTOR, &EsSelector);
+    AsmSetEs(EsSelector);
+    VmxVmread16P(VMCS_GUEST_SS_SELECTOR, &SsSelector);
+    AsmSetSs(SsSelector);
+    VmxVmread16P(VMCS_GUEST_FS_SELECTOR, &FsSelector);
+    AsmSetFs(FsSelector);
 
     //
     // Restore IDTR
