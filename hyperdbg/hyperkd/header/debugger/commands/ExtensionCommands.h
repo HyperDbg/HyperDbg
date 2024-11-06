@@ -83,3 +83,6 @@ ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event);
 
 VOID
 ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT Event);
+
+VOID
+ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket, BOOLEAN OperateOnVmxRoot);

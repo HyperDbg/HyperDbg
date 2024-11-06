@@ -74,6 +74,7 @@ ListeningSerialPortInDebugger()
     BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
     PVOID                                       CallerAddress                 = NULL;
     UINT32                                      CallerSize                    = NULL_ZERO;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET   PcitreePacket;
 
 StartAgain:
 
@@ -1019,6 +1020,26 @@ StartAgain:
             // Perform updates for the symbol table
             //
             SymbolBuildAndUpdateSymbolTable(&SymbolUpdatePacket->SymbolDetailPacket);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCITREE:
+
+            PcitreePacket = (DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (PcitreePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                ShowMessages("Got packet from debuggee: (0000:00:00) VID:DID: %x:%x\n", PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId, PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId);
+            }
+            else
+            {
+                ShowErrorMessage(PcitreePacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of pcitree query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
 
             break;
 

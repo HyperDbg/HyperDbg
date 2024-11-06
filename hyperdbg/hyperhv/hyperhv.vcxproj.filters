@@ -305,6 +305,9 @@
     <ClCompile Include="code\memory\Segmentation.c">
       <Filter>code\memory</Filter>
     </ClCompile>
+    <ClCompile Include="code\devices\Pci.c">
+      <Filter>code\devices</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -567,6 +570,9 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxRegions.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\devices\Pci.h">
+      <Filter>header\devices</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

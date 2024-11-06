@@ -275,3 +275,6 @@ KdBreakControlCheckAndContinueDebugger();
 
 VOID
 KdSetStatusAndWaitForPause();
+
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);

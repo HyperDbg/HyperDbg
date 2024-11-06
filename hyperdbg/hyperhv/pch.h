@@ -104,6 +104,7 @@
 #include "components/spinlock/header/Spinlock.h"
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"
+#include "devices/Pci.h"
 #include "vmm/vmx/Mtf.h"
 #include "vmm/vmx/Counters.h"
 #include "vmm/vmx/IdtEmulation.h"
