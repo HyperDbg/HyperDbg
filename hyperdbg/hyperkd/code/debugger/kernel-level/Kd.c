@@ -1763,6 +1763,11 @@ KdQuerySystemState()
 {
     ULONG ProcessorsCount;
 
+    //
+    // Show APIC details (test should be removed)
+    //
+    VmFuncApicShowDetails();
+
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //

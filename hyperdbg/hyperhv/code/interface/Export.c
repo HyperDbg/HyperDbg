@@ -813,3 +813,14 @@ VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId)
 {
     HvEnableAndCheckForPreviousExternalInterrupts(&g_GuestState[CoreId]);
 }
+
+/**
+ * @brief Show details of xapic or x2apic
+ *
+ * @return VOID
+ */
+VOID
+VmFuncApicShowDetails()
+{
+    ApicShowDetails();
+}

@@ -26,7 +26,7 @@
 
 #define APIC_LVR            0x30
 #define APIC_LVR_MASK       0xFF00FF
-#define GET_APIC_VERSION(x) ((x)&0xFFu)
+#define GET_APIC_VERSION(x) ((x) & 0xFFu)
 #define GET_APIC_MAXLVT(x)  (((x) >> 16) & 0xFFu)
 
 #define APIC_INTEGRATED(x) (1)
@@ -152,6 +152,9 @@ ApicInitialize();
 
 VOID
 ApicUninitialize();
+
+VOID
+ApicShowDetails();
 
 VOID
 ApicSelfIpi(UINT32 Vector);
