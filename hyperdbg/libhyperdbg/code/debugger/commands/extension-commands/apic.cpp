@@ -42,7 +42,9 @@ CommandApicHelp()
  * @return VOID
  */
 BOOLEAN
-CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType, PVOID ApicBuffer, UINT32 ExpectedRequestSize)
+CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
+                       PVOID                      ApicBuffer,
+                       UINT32                     ExpectedRequestSize)
 {
     BOOL                   Status;
     ULONG                  ReturnedLength;
@@ -77,7 +79,15 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType, PVOID ApicBuffer, UI
         //
         // Send the request over serial kernel debugger
         //
-        return KdSendApicActionPacketsToDebuggee(ApicRequest, RequestSize);
+        if (!KdSendApicActionPacketsToDebuggee(ApicRequest, RequestSize))
+        {
+            return FALSE;
+        }
+        else
+        {
+            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+            return TRUE;
+        }
     }
     else
     {
@@ -89,9 +99,9 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType, PVOID ApicBuffer, UI
         Status = DeviceIoControl(
             g_DeviceHandle,                // Handle to device
             IOCTL_PERFROM_ACTIONS_ON_APIC, // IO Control Code (IOCTL)
-            &ApicRequest,                  // Input Buffer to driver.
+            ApicRequest,                   // Input Buffer to driver.
             SIZEOF_DEBUGGER_APIC_REQUEST,  // Input buffer length
-            &ApicBuffer,                   // Output Buffer from driver.
+            ApicRequest,                   // Output Buffer from driver.
             RequestSize,                   // Length of output
                                            // buffer in bytes.
             &ReturnedLength,               // Bytes placed in buffer.
@@ -109,7 +119,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType, PVOID ApicBuffer, UI
             //
             // Fill the request buffer
             //
-            RtlCopyMemory(ApicBuffer, ApicRequest, ExpectedRequestSize);
+            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
             return TRUE;
         }
         else
@@ -170,7 +180,7 @@ CommandApic(vector<CommandToken> CommandTokens, string Command)
     //
     // Show different fields of the Local APIC
     //
-    ShowMessages("***  (xAPIC Mode) PHYSICAL LAPIC ID = %u, Ver = 0x%x, MaxLvtEntry = %d, DirectedEOI = P%d/E%d, (SW: '%s')\n"
+    ShowMessages("***  PHYSICAL LAPIC ID = %u, Ver = 0x%x, MaxLvtEntry = %d, DirectedEOI = P%d/E%d, (SW: '%s')\n"
                  "     -> TPR = 0x%08x,  PPR = 0x%08x\n"
                  "     -> LDR = 0x%08x,  SVR = 0x%08x,  Err = 0x%08x\n"
                  "     -> LVT_INT0 = 0x%08x,  LVT_INT1 = 0x%08x\n"
