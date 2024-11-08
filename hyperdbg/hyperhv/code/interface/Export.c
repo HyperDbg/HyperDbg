@@ -815,12 +815,13 @@ VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId)
 }
 
 /**
- * @brief Show details of xapic or x2apic
+ * @brief Store the details Local APIC in xapic or x2apic modes
+ * @param LocalApicBuffer
  *
  * @return VOID
  */
-VOID
-VmFuncApicShowDetails()
+BOOLEAN
+VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer)
 {
-    ApicShowDetails();
+    return ApicStoreLocalApicFields(LocalApicBuffer);
 }

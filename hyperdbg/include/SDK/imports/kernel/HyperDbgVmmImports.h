@@ -215,8 +215,8 @@ VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, S
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
 
-IMPORT_EXPORT_VMM VOID
-VmFuncApicShowDetails();
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer);
 
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
