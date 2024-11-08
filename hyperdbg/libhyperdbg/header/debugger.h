@@ -278,3 +278,6 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
 
 BOOLEAN
 HyperDbgDebugCloseRemoteDebugger();
+
+BOOLEAN
+HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic);

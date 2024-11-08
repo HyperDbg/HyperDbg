@@ -134,12 +134,13 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
 }
 
 /**
- * @brief !apic command handler
+ * @brief Request to get Local APIC
+ * @param LocalApic
  *
  * @return BOOLEAN
  */
 BOOLEAN
-CommandGetLocalApic(PLAPIC_PAGE LocalApic)
+HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic)
 {
     return CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC, LocalApic, sizeof(LAPIC_PAGE));
 }
@@ -172,7 +173,7 @@ CommandApic(vector<CommandToken> CommandTokens, string Command)
     //
     // Get the local APIC results
     //
-    if (CommandGetLocalApic(&LocalApic) == FALSE)
+    if (HyperDbgGetLocalApic(&LocalApic) == FALSE)
     {
         return;
     }
