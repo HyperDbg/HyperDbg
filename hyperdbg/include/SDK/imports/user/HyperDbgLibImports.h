@@ -233,6 +233,13 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_start_process_with_args(const WCHAR * path, const WCHAR * arguments);
 
 //
+// APIC related command
+// Exported functionality of the '!apic' command
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_command_get_local_apic(PLAPIC_PAGE local_apic, BOOLEAN * is_using_x2apic);
+
+//
 // Assembler
 // Exported functionality of the 'a' command
 //

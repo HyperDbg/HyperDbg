@@ -985,6 +985,42 @@ KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndP
 }
 
 /**
+ * @brief Send requests for APIC packet to the debuggee
+ * @param ApicPage
+ * @param ExpectedRequestSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 ExpectedRequestSize)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, ApicRequest, ExpectedRequestSize);
+
+    //
+    // Send the APIC request packets
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_ACTIONS_ON_APIC,
+            (CHAR *)ApicRequest,
+            sizeof(DEBUGGER_APIC_REQUEST) // only sending the request header
+            ))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of actions to APIC is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a breakpoint set or 'bp' command packet to the debuggee
  * @param BpPacket
  *

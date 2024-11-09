@@ -2308,6 +2308,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
@@ -2991,6 +2992,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
                                            (CHAR *)PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_ACTIONS_ON_APIC:
+
+                ApicPacket = (DEBUGGER_APIC_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Call APIC handler (size to send is computed by this function)
+                //
+                SizeToSend = ExtensionCommandPerformActionsForApicRequests(ApicPacket);
+
+                //
+                // Send the result of the APIC requests back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_APIC_REQUESTS,
+                                           (CHAR *)ApicPacket,
+                                           SizeToSend);
 
                 break;
 

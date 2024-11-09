@@ -813,3 +813,16 @@ VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId)
 {
     HvEnableAndCheckForPreviousExternalInterrupts(&g_GuestState[CoreId]);
 }
+
+/**
+ * @brief Store the details Local APIC in xapic or x2apic modes
+ * @param LocalApicBuffer
+ * @param IsUsingX2APIC
+ *
+ * @return VOID
+ */
+BOOLEAN
+VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC)
+{
+    return ApicStoreLocalApicFields(LocalApicBuffer, IsUsingX2APIC);
+}
