@@ -22,16 +22,19 @@
 UINT32
 ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest)
 {
+    BOOLEAN     IsUsingX2APIC      = FALSE;
     PLAPIC_PAGE BufferToStoreLApic = (LAPIC_PAGE *)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST));
 
     if (ApicRequest->ApicType == DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC)
     {
-        if (VmFuncApicStoreLocalApicFields(BufferToStoreLApic))
+        if (VmFuncApicStoreLocalApicFields(BufferToStoreLApic, &IsUsingX2APIC))
         {
             //
             // The status was okay
             //
-            ApicRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+            ApicRequest->KernelStatus  = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+            ApicRequest->IsUsingX2APIC = IsUsingX2APIC;
+
             return sizeof(DEBUGGER_APIC_REQUEST) + sizeof(LAPIC_PAGE);
         }
         else

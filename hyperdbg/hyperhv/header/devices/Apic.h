@@ -154,7 +154,7 @@ VOID
 ApicUninitialize();
 
 BOOLEAN
-ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer);
+ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer, PBOOLEAN IsUsingX2APIC);
 
 VOID
 ApicSelfIpi(UINT32 Vector);

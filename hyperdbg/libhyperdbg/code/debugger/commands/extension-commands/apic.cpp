@@ -38,13 +38,15 @@ CommandApicHelp()
  * @param ApicType
  * @param ApicBuffer
  * @param ExpectedRequestSize
+ * @param IsUsingX2APIC
  *
  * @return VOID
  */
 BOOLEAN
 CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
                        PVOID                      ApicBuffer,
-                       UINT32                     ExpectedRequestSize)
+                       UINT32                     ExpectedRequestSize,
+                       PBOOLEAN                   IsUsingX2APIC)
 {
     BOOL                   Status;
     ULONG                  ReturnedLength;
@@ -85,7 +87,9 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         }
         else
         {
+            *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
             RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+
             return TRUE;
         }
     }
@@ -119,7 +123,9 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             //
             // Fill the request buffer
             //
+            *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
             RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+
             return TRUE;
         }
         else
@@ -135,14 +141,19 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
 
 /**
  * @brief Request to get Local APIC
+ *
  * @param LocalApic
+ * @param IsUsingX2APIC
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic)
+HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic, PBOOLEAN IsUsingX2APIC)
 {
-    return CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC, LocalApic, sizeof(LAPIC_PAGE));
+    return CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC,
+                                  LocalApic,
+                                  sizeof(LAPIC_PAGE),
+                                  IsUsingX2APIC);
 }
 
 /**
@@ -156,6 +167,7 @@ HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic)
 VOID
 CommandApic(vector<CommandToken> CommandTokens, string Command)
 {
+    BOOLEAN    IsUsingX2APIC = FALSE;
     UINT8      i = 0, j = 0;
     UINT32     k         = 0;
     UINT32     Reg       = 0;
@@ -173,7 +185,7 @@ CommandApic(vector<CommandToken> CommandTokens, string Command)
     //
     // Get the local APIC results
     //
-    if (HyperDbgGetLocalApic(&LocalApic) == FALSE)
+    if (HyperDbgGetLocalApic(&LocalApic, &IsUsingX2APIC) == FALSE)
     {
         return;
     }
@@ -181,7 +193,7 @@ CommandApic(vector<CommandToken> CommandTokens, string Command)
     //
     // Show different fields of the Local APIC
     //
-    ShowMessages("***  PHYSICAL LAPIC ID = %u, Ver = 0x%x, MaxLvtEntry = %d, DirectedEOI = P%d/E%d, (SW: '%s')\n"
+    ShowMessages("***  (%s Mode) PHYSICAL LAPIC ID = %u, Ver = 0x%x, MaxLvtEntry = %d, DirectedEOI = P%d/E%d, (SW: '%s')\n"
                  "     -> TPR = 0x%08x,  PPR = 0x%08x\n"
                  "     -> LDR = 0x%08x,  SVR = 0x%08x,  Err = 0x%08x\n"
                  "     -> LVT_INT0 = 0x%08x,  LVT_INT1 = 0x%08x\n"
@@ -189,6 +201,7 @@ CommandApic(vector<CommandToken> CommandTokens, string Command)
                  "     -> LVT_TMR  = 0x%08x,  LVT_TSR  = 0x%08x\n"
                  "     -> LVT_ERR  = 0x%08x\n"
                  "     -> InitialCount = 0x%08x, CurrentCount = 0x%08x, DivideConfig = 0x%08x\n",
+                 IsUsingX2APIC ? "X2APIC" : "XAPIC",
                  LocalApic.Id >> 24,
                  LocalApic.Version,
                  (LocalApic.Version & 0xFF0000) >> 16,

@@ -1041,6 +1041,7 @@ typedef enum _DEBUGGER_APIC_REQUEST_TYPE
 typedef struct _DEBUGGER_APIC_REQUEST
 {
     DEBUGGER_APIC_REQUEST_TYPE ApicType;
+    BOOLEAN                    IsUsingX2APIC;
     UINT32                     KernelStatus;
 
 } DEBUGGER_APIC_REQUEST, *PDEBUGGER_APIC_REQUEST;

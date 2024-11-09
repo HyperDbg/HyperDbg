@@ -184,18 +184,21 @@ ApicTriggerGenericNmi()
 /**
  * @brief Stire the details of APIC in xAPIC and x2APIC mode
  * @param LApicBuffer
+ * @param IsUsingX2APIC
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer)
+ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer, PBOOLEAN IsUsingX2APIC)
 {
     if (g_CompatibilityCheck.IsX2Apic)
     {
+        *IsUsingX2APIC = TRUE;
         return ApicStoreLocalApicInX2ApicMode(LApicBuffer);
     }
     else
     {
+        *IsUsingX2APIC = FALSE;
         return ApicStoretLocalApicInXApicMode(LApicBuffer);
     }
 }

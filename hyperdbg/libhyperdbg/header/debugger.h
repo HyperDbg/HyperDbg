@@ -280,4 +280,4 @@ BOOLEAN
 HyperDbgDebugCloseRemoteDebugger();
 
 BOOLEAN
-HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic);
+HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic, PBOOLEAN IsUsingX2APIC);
