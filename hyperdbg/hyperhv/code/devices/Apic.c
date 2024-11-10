@@ -15,6 +15,183 @@
 #include "pch.h"
 
 /**
+ * @brief Perfom read I/O APIC
+ *
+ * @param IoApicBaseVa
+ * @param Reg
+ *
+ * @return UINT64
+ */
+UINT64
+IoApicRead(volatile IO_APIC_ENT * IoApicBaseVa, UINT32 Reg)
+{
+    UINT32 High = 0, Low;
+
+    IoApicBaseVa->Reg = Reg;
+    Low               = IoApicBaseVa->Data;
+
+    if (Reg >= IOAPIC_REDTBL(0) && Reg < IOAPIC_REDTBL(IOAPIC_REDTBL_MAX))
+    {
+        // ASSERT(Reg % 2 == 0);
+        Reg++;
+        IoApicBaseVa->Reg = Reg;
+        High              = IoApicBaseVa->Data;
+        return IOAPIC_APPEND_QWORD(High, Low);
+    }
+    else
+    {
+        return Low;
+    }
+}
+
+/**
+ * @brief Perfom write to I/O APIC
+ *
+ * @param IoApicBaseVa
+ * @param Reg
+ * @param Data
+ *
+ * @return VOID
+ */
+VOID
+IoApicWrite(volatile IO_APIC_ENT * IoApicBaseVa, UINT32 Reg, UINT64 Data)
+{
+    IoApicBaseVa->Reg  = Reg;
+    IoApicBaseVa->Data = IOAPIC_LOW_DWORD(Data);
+
+    if (Reg >= IOAPIC_REDTBL(0) && Reg < IOAPIC_REDTBL(IOAPIC_REDTBL_MAX))
+    {
+        // ASSERT(Reg % 2 == 0);
+        Reg++;
+        IoApicBaseVa->Reg  = Reg;
+        IoApicBaseVa->Data = IOAPIC_HIGH_DWORD(Data);
+    }
+}
+
+/**
+ * @brief Dump redirections
+ *
+ * @param Desc
+ * @param CommandReg
+ * @param DestSelf
+ * @param Lh
+ * @param Ll
+ *
+ * @return ULONG
+ */
+ULONG
+ApicDumpRedir(PUCHAR    Desc,
+              BOOLEAN   CommandReg,
+              BOOLEAN   DestSelf,
+              ULONGLONG Lh,
+              ULONGLONG Ll)
+{
+    static PUCHAR DelMode[] = {
+        (PUCHAR) "FixedDel",
+        (PUCHAR) "LowestDl",
+        (PUCHAR) "res010  ",
+        (PUCHAR) "remoterd",
+        (PUCHAR) "NMI     ",
+        (PUCHAR) "RESET   ",
+        (PUCHAR) "res110  ",
+        (PUCHAR) "ExtINTA "};
+
+    static PUCHAR DesShDesc[] = {(PUCHAR) "",
+                                 (PUCHAR) "  Dest=Self",
+                                 (PUCHAR) "   Dest=ALL",
+                                 (PUCHAR) " Dest=Othrs"};
+
+    ULONG Del, Dest, Delstat, Rirr, Trig, Masked, Destsh;
+
+    Del     = (Ll >> 8) & 0x7;
+    Dest    = (Ll >> 11) & 0x1;
+    Delstat = (Ll >> 12) & 0x1;
+    Rirr    = (Ll >> 14) & 0x1;
+    Trig    = (Ll >> 15) & 0x1;
+    Masked  = (Ll >> 16) & 0x1;
+    Destsh  = (Ll >> 18) & 0x3;
+
+    if (CommandReg)
+    {
+        //
+        // command reg's don't have a mask
+        //
+        Masked = 0;
+    }
+
+    Log("%s: %016llx  Vec:%02X  %s  ",
+        Desc,
+        Ll,
+        Ll & 0xff,
+        DelMode[Del]);
+
+    if (DestSelf)
+    {
+        Log("%s", DesShDesc[1]);
+    }
+    else if (CommandReg && Destsh)
+    {
+        Log("%s", DesShDesc[Destsh]);
+    }
+    else
+    {
+        if (Dest)
+        {
+            Log("Lg:%08x", Lh);
+        }
+        else
+        {
+            Log("PhysDest:%02X", (Lh >> 56) & 0xFF);
+        }
+    }
+
+    Log("%s  %s  %s  %s\n",
+        Delstat ? "-Pend" : "     ",
+        Trig ? "level" : "edge ",
+        Rirr ? "rirr" : "    ",
+        Masked ? "masked" : "      ");
+
+    return 0;
+}
+
+/**
+ * @brief Dump I/O APIC
+ *
+ * @return VOID
+ */
+VOID
+ApicDumpIoApic()
+{
+    UINT32 Index, Max;
+    UCHAR  Desc[40];
+    UINT64 ll, lh;
+
+    UINT64 ApicBasePa = IO_APIC_DEFAULT_BASE_ADDR;
+
+    ll = IoApicRead(g_IoApicBase, IO_VERS_REGISTER),
+
+    Max = (ll >> 16) & 0xff;
+
+    Log("IoApic @ %08x  ID:%x (%x)  Arb:%x\n",
+        ApicBasePa,
+        IoApicRead(g_IoApicBase, IO_ID_REGISTER) >> 24,
+        ll & 0xFF,
+        IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER));
+
+    //
+    // Dump inti table
+    //
+    Max *= 2;
+    for (Index = 0; Index <= Max; Index += 2)
+    {
+        ll = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 0);
+        lh = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 1);
+        sprintf((CHAR *)Desc, "Inti%02X.", Index / 2);
+        ApicDumpRedir(Desc, FALSE, FALSE, lh, ll);
+    }
+}
+
+/**
  * @brief Trigger NMI on XAPIC
  * @param Low
  * @param High
@@ -121,6 +298,8 @@ ApicStoretLocalApicInXApicMode(PLAPIC_PAGE LApicBuffer)
 BOOLEAN
 ApicStoreLocalApicInX2ApicMode(PLAPIC_PAGE LApicBuffer)
 {
+    ApicDumpIoApic();
+
     //
     // Store fields
     //
@@ -213,10 +392,36 @@ ApicInitialize()
 {
     UINT64           ApicBaseMSR;
     PHYSICAL_ADDRESS PaApicBase;
+    PHYSICAL_ADDRESS PaIoApicBase;
 
     ApicBaseMSR = __readmsr(IA32_APIC_BASE);
+
     if (!(ApicBaseMSR & (1 << 11)))
+    {
         return FALSE;
+    }
+
+    //
+    // Map I/O APIC default base address
+    //
+    // The exact APIC base address should be read from MADT table (ACPI)
+    // However, we don't have an ACPI parser right now, but the address
+    // is proved to stay at this (default) physical address since Intel
+    // recommends OS/BIOS to not relocate it, but it could be relocated
+    // however, this address is valid for almost all of the systems
+    //
+    PaIoApicBase.QuadPart = IO_APIC_DEFAULT_BASE_ADDR & 0xFFFFFF000;
+    g_IoApicBase          = MmMapIoSpace(PaIoApicBase, 0x1000, MmNonCached);
+
+    if (!g_IoApicBase)
+    {
+        //
+        // Not gonna fail the initialization since the IOAPIC might be relocated by
+        // either OS/BIOS
+        //
+
+        // return FALSE;
+    }
 
     if (ApicBaseMSR & (1 << 10))
     {
@@ -230,7 +435,9 @@ ApicInitialize()
         g_ApicBase          = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
 
         if (!g_ApicBase)
+        {
             return FALSE;
+        }
 
         g_CompatibilityCheck.IsX2Apic = FALSE;
     }
@@ -247,10 +454,20 @@ VOID
 ApicUninitialize()
 {
     //
-    // Unmap I/O Base
+    // Unmap Local APIC base
     //
     if (g_ApicBase)
+    {
         MmUnmapIoSpace(g_ApicBase, 0x1000);
+    }
+
+    //
+    // Unmap I/O APIC base
+    //
+    if (g_IoApicBase)
+    {
+        MmUnmapIoSpace(g_IoApicBase, 0x1000);
+    }
 }
 
 /**
