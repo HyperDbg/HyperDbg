@@ -10,6 +10,7 @@
  *
  */
 #pragma once
+#include "Pcie.h"
 
 #define SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS \
     sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)
@@ -1307,6 +1308,23 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
     UINT32 KernelStatus;
 
 } DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET \
+    sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)
+
+/**
+ * @brief Pcitree Structure
+ *
+ */
+typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
+{
+    UINT32   KernelStatus;
+    PCI_TREE PciTree;
+
+} DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 
 /* ==============================================================================================
  */

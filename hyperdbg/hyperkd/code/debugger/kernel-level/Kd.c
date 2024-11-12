@@ -2322,6 +2322,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     UINT32                                              ReturnSize                   = 0;
     DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
     DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET           PcitreePacket                = {0};
 
     while (TRUE)
     {
@@ -3090,6 +3091,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // No need to wait for new commands
                 //
                 EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCITREE:
+
+                PcitreePacket = (DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Enumerate PCI tree
+                //
+                ExtensionCommandPcitree(PcitreePacket, TRUE);
+
+                //
+                // Send the result of '!pcitree' back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCITREE,
+                                           (CHAR *)PcitreePacket,
+                                           sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET));
 
                 break;
 

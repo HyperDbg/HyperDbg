@@ -3398,3 +3398,32 @@ KdUninitializeConnection()
     //
     g_IsDebuggerConntectedToNamedPipe = FALSE;
 }
+
+/**
+ * @brief Sends '!pcitree' command, including buffer, to the debuggee
+ * @param PcitreePacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket)
+{
+    //
+    // Send '!pcitree' packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCITREE,
+            (CHAR *)PcitreePacket,
+            sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of Pcitree packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
+
+    return TRUE;
+}

@@ -12,6 +12,11 @@
 #include "SDK/headers/HardwareDebugger.h"
 
 //
+// Devices
+//
+#include "SDK/headers/Pcie.h"
+
+//
 // Asserts
 //
 #include "SDK/headers/Assertions.h"

@@ -933,3 +933,10 @@ BroadcastEnableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
 BroadcastDisableEferSyscallEventsOnAllProcessors();
+
+//////////////////////////////////////////////////
+//     Device-related Functions                	//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM QWORD
+PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);

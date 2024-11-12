@@ -637,3 +637,37 @@ ExtensionCommandIoBitmapResetAllCores()
     //
     BroadcastIoBitmapResetAllCores();
 }
+
+/**
+ * @brief routines for !pcitree
+ *
+ * @param PcitreePacket
+ * @param OperateOnVmxRoot
+ * @return VOID
+ */
+VOID
+ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket, BOOLEAN OperateOnVmxRoot)
+{
+    DWORD DeviceIdVendorId = 0;
+
+    DeviceIdVendorId = (DWORD)PciReadCam(0, 0, 0, 0, sizeof(DWORD));
+    if (DeviceIdVendorId != MAXDWORD64)
+    {
+        LogInfo("DeviceIdVendorId: %x\n", DeviceIdVendorId);
+        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
+        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
+        PcitreePacket->KernelStatus                                                          = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        PcitreePacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+    }
+
+    //
+    // We currently don't use OperateOnVmxRoot, but we might in the future
+    //
+    if (OperateOnVmxRoot)
+    {
+        NOP_FUNCTION();
+    }
+}
