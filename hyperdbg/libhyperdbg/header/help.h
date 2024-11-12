@@ -214,6 +214,9 @@ VOID
 CommandCoreHelp();
 
 VOID
+CommandApicHelp();
+
+VOID
 CommandProcessHelp();
 
 VOID

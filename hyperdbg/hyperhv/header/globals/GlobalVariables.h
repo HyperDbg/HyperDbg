@@ -75,10 +75,16 @@ BOOLEAN g_IsEptHook2sDetourListInitialized;
 BOOLEAN g_TransparentMode;
 
 /**
- * @brief APIC Base
+ * @brief Local APIC Base
  *
  */
 VOID * g_ApicBase;
+
+/**
+ * @brief I/O APIC Base
+ *
+ */
+VOID * g_IoApicBase;
 
 /**
  * @brief check for broadcasting NMI mechanism support and its

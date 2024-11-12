@@ -566,6 +566,7 @@
       <Filter>code\debugger\commands\hwdbg-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\pcitree.cpp">
+    <ClCompile Include="code\debugger\commands\extension-commands\apic.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
     </ClCompile>
   </ItemGroup>

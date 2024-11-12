@@ -322,6 +322,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PTE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_APIC_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_CORE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
@@ -699,6 +701,9 @@ CommandPe(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandRev(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandApic(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandTrack(vector<CommandToken> CommandTokens, string Command);

@@ -1445,6 +1445,10 @@ InitializeCommandsDictionary()
     g_CommandsList["~"]    = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
     g_CommandsList["core"] = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
 
+    g_CommandsList["!apic"]      = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!lapic"]     = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!localapic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+
     g_CommandsList["!monitor"] = {&CommandMonitor, &CommandMonitorHelp, DEBUGGER_COMMAND_MONITOR_ATTRIBUTES};
 
     g_CommandsList["!vmcall"] = {&CommandVmcall, &CommandVmcallHelp, DEBUGGER_COMMAND_VMCALL_ATTRIBUTES};
