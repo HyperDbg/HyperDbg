@@ -45,8 +45,7 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                     Status;
     ULONG                                    ReturnedLength;
-    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeReqPacket  = {0};
-    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeRespPacket = {0};
+    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket = {0};
 
     if (CommandTokens.size() != 1)
     {
@@ -56,76 +55,72 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    for (UINT8 b = 0; b < BUS_MAX_NUM; b++)
+    //
+    // Send buffer
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        for (UINT8 d = 0; d < DEVICE_MAX_NUM; d++)
+        KdSendPcitreePacketToDebuggee(&PcitreePacket);
+    }
+    else
+    {
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+
+        ShowMessages("Sending IOCTL\n");
+
+        //
+        // Send IOCTL
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                  // Handle to device
+            IOCTL_PCIE_ENDPOINT_ENUM,                        // IO Control Code (IOCTL)
+            &PcitreePacket,                                  // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Input buffer length
+            &PcitreePacket,                                  // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Length of output
+                                                             // buffer in bytes.
+            &ReturnedLength,                                 // Bytes placed in buffer.
+            NULL                                             // synchronous call
+        );
+
+        ShowMessages("Done sending IOCTL\n");
+
+        if (!Status)
         {
-            for (UINT8 f = 0; f < FUNCTION_MAX_NUM; f++)
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return;
+        }
+
+        if (PcitreePacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            //
+            // Print PCI device tree
+            //
+            ShowMessages("%-12s | %-9s | %s\n%s\n", "DBDF", "VID:DID", "Class Code", "---------------------------------------");
+            for (UINT8 i = 0; i < (PcitreePacket.EndpointsTotalNum < EP_MAX_NUM ? PcitreePacket.EndpointsTotalNum : EP_MAX_NUM); i++)
             {
-                //
-                // Prepare buffer
-                //
-                PcitreeReqPacket.RequestedBus      = b;
-                PcitreeReqPacket.RequestedDevice   = d;
-                PcitreeReqPacket.RequestedFunction = f;
+                ShowMessages("%04x:%02x:%02x:%x | %04x:%04x | %04x%04x%04x\n",
+                             0, // TODO: Add support for domains beyond 0000
+                             PcitreePacket.Endpoints[i].Bus,
+                             PcitreePacket.Endpoints[i].Device,
+                             PcitreePacket.Endpoints[i].Function,
+                             PcitreePacket.Endpoints[i].ConfigSpace.VendorId,
+                             PcitreePacket.Endpoints[i].ConfigSpace.DeviceId,
+                             PcitreePacket.Endpoints[i].ConfigSpace.ClassCode[0],
+                             PcitreePacket.Endpoints[i].ConfigSpace.ClassCode[1],
+                             PcitreePacket.Endpoints[i].ConfigSpace.ClassCode[2]
 
-                //
-                // Send buffer
-                //
-                if (g_IsSerialConnectedToRemoteDebuggee)
-                {
-                    KdSendPcitreePacketToDebuggee(&PcitreeReqPacket);
-                }
-                else
-                {
-                    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
-
-                    ShowMessages("Sending IOCTL\n");
-
-                    //
-                    // Send IOCTL
-                    //
-                    Status = DeviceIoControl(
-                        g_DeviceHandle,                                  // Handle to device
-                        IOCTL_PCIE_ENDPOINT_ENUM,                        // IO Control Code (IOCTL)
-                        &PcitreeReqPacket,                               // Input Buffer to driver.
-                        SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Input buffer length
-                        &PcitreeRespPacket,                              // Output Buffer from driver.
-                        SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Length of output
-                                                                         // buffer in bytes.
-                        &ReturnedLength,                                 // Bytes placed in buffer.
-                        NULL                                             // synchronous call
-                    );
-
-                    ShowMessages("Done sending IOCTL\n");
-
-                    if (!Status)
-                    {
-                        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-                        return;
-                    }
-
-                    if (PcitreeRespPacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-                    {
-                        ShowMessages("Result: (%04x:%2x:%2x:%x) VID:DID: %x:%x\n",
-                                     0,
-                                     PcitreeRespPacket.RequestedBus,
-                                     PcitreeRespPacket.RequestedDevice,
-                                     PcitreeRespPacket.RequestedFunction,
-                                     PcitreeRespPacket.Device.Function[0].ConfigSpace.CommonHeader.VendorId,
-                                     PcitreeRespPacket.Device.Function[0].ConfigSpace.CommonHeader.DeviceId);
-                    }
-                    else
-                    {
-                        //
-                        // An err occurred, no results
-                        //
-                        ShowMessages("An err occured, no results:");
-
-                        ShowErrorMessage(PcitreeRespPacket.KernelStatus);
-                    }
-                }
+                );
             }
+        }
+        else
+        {
+            //
+            // An err occurred, no results
+            //
+            ShowMessages("An err occured, no results:");
+
+            ShowErrorMessage(PcitreePacket.KernelStatus);
         }
     }
 }

@@ -30,14 +30,15 @@
 #define FUNCTION_BIT_WIDTH 3
 
 //
-// NOTES
-// - To speed up PCI device enumeration, the parameters below limit the max BDF range to what might be reasonably expected on real-world systems.
-// - Ensure the following parameters do not result in exceeding MaxSerialPacketSize. Consider sending multiple packets if necessary.
+// NOTE
+// On real-world systems, the number of endpoints will likely not exceed 255.
+// If increasing EP_MAX_NUM is necessary, ensure PCI_EP_MINIMAL[EP_MAX_NUM] does not result in exceeding MaxSerialPacketSize.
 //
 #define DOMAIN_MAX_NUM   0
-#define BUS_MAX_NUM      32
+#define BUS_MAX_NUM      255
 #define DEVICE_MAX_NUM   32
 #define FUNCTION_MAX_NUM 8
+#define EP_MAX_NUM       255
 
 /**
  * @brief PCI Common Header
@@ -78,6 +79,32 @@ typedef struct _PORTABLE_PCI_DEVICE_HEADER
 } PORTABLE_PCI_DEVICE_HEADER, *PPORTABLE_PCI_DEVICE_HEADER;
 
 /**
+ * @brief PCI Configuration Space Minimal Header for !pcitree
+ *
+ */
+typedef struct _PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL
+{
+    //
+    // Common header
+    //
+    UINT16 VendorId;
+    UINT16 DeviceId;
+    UINT8  ClassCode[3];
+} PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL, *PPORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL;
+
+/**
+ * @brief PCI Endpoint Minimal Data Structure for !pcitree
+ *
+ */
+typedef struct _PCI_EP_MINIMAL
+{
+    UINT8                                    Bus : BUS_BIT_WIDTH;
+    UINT8                                    Device : DEVICE_BIT_WIDTH;
+    UINT8                                    Function : FUNCTION_BIT_WIDTH;
+    PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL ConfigSpace;
+} PCI_EP_MINIMAL, *PPCI_EP_MINIMAL;
+
+/**
  * @brief PCI Configuration Space Header
  *
  */
@@ -94,6 +121,7 @@ typedef struct _PORTABLE_PCI_CONFIG_SPACE_HEADER
  */
 typedef struct _PCI_FUNCTION
 {
+    UINT8                            Function : FUNCTION_BIT_WIDTH;
     PORTABLE_PCI_CONFIG_SPACE_HEADER ConfigSpace;
 } PCI_FUNCTION, *PPCI_FUNCTION;
 
@@ -103,6 +131,7 @@ typedef struct _PCI_FUNCTION
  */
 typedef struct _PCI_DEVICE
 {
+    UINT8        Device : DEVICE_BIT_WIDTH;
     PCI_FUNCTION Function[FUNCTION_MAX_NUM];
 } PCI_DEVICE, *PPCI_DEVICE;
 
@@ -112,6 +141,7 @@ typedef struct _PCI_DEVICE
  */
 typedef struct _PCI_BUS
 {
+    UINT8      Bus : BUS_BIT_WIDTH;
     PCI_DEVICE Device[DEVICE_MAX_NUM];
 } PCI_BUS, *PPCI_BUS;
 

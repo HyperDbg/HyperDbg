@@ -1052,19 +1052,28 @@ StartAgain:
             if (PcitreePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
-                // TODO: Add support for domains beyond 0000
+                // Print PCI device tree
                 //
-                ShowMessages("Got packet from debuggee: (%04x:%02x:%02x:%x) VID:DID: %04x:%04x\n",
-                             0,
-                             PcitreePacket->RequestedBus,
-                             PcitreePacket->RequestedDevice,
-                             PcitreePacket->RequestedFunction,
-                             PcitreePacket->Device.Function[0].ConfigSpace.CommonHeader.VendorId,
-                             PcitreePacket->Device.Function[0].ConfigSpace.CommonHeader.DeviceId);
+                ShowMessages("%-12s | %-9s | %s\n%s\n", "DBDF", "VID:DID", "Class Code", "---------------------------------------");
+                for (UINT8 i = 0; i < (PcitreePacket->EndpointsTotalNum < EP_MAX_NUM ? PcitreePacket->EndpointsTotalNum : EP_MAX_NUM); i++)
+                {
+                    ShowMessages("%04x:%02x:%02x:%x | %04x:%04x | %04x%04x%04x\n",
+                                 0, // TODO: Add support for domains beyond 0000
+                                 PcitreePacket->Endpoints[i].Bus,
+                                 PcitreePacket->Endpoints[i].Device,
+                                 PcitreePacket->Endpoints[i].Function,
+                                 PcitreePacket->Endpoints[i].ConfigSpace.VendorId,
+                                 PcitreePacket->Endpoints[i].ConfigSpace.DeviceId,
+                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[0],
+                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[1],
+                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[2]
+
+                    );
+                }
             }
             else
             {
-                // ShowErrorMessage(PcitreePacket->KernelStatus);
+                ShowErrorMessage(PcitreePacket->KernelStatus);
             }
 
             //
