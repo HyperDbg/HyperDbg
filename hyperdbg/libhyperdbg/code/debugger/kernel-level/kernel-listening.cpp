@@ -1051,11 +1051,20 @@ StartAgain:
 
             if (PcitreePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                ShowMessages("Got packet from debuggee: (0000:00:00) VID:DID: %x:%x\n", PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId, PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId);
+                //
+                // TODO: Add support for domains beyond 0000
+                //
+                ShowMessages("Got packet from debuggee: (%04x:%02x:%02x:%x) VID:DID: %04x:%04x\n",
+                             0,
+                             PcitreePacket->RequestedBus,
+                             PcitreePacket->RequestedDevice,
+                             PcitreePacket->RequestedFunction,
+                             PcitreePacket->Device.Function[0].ConfigSpace.CommonHeader.VendorId,
+                             PcitreePacket->Device.Function[0].ConfigSpace.CommonHeader.DeviceId);
             }
             else
             {
-                ShowErrorMessage(PcitreePacket->KernelStatus);
+                // ShowErrorMessage(PcitreePacket->KernelStatus);
             }
 
             //

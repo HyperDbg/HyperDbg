@@ -45,7 +45,8 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                     Status;
     ULONG                                    ReturnedLength;
-    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket = {0};
+    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeReqPacket  = {0};
+    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeRespPacket = {0};
 
     if (CommandTokens.size() != 1)
     {
@@ -55,61 +56,76 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    //
-    // Prepare the buffer
-    //
-
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    for (UINT8 b = 0; b < BUS_MAX_NUM; b++)
     {
-        //
-        // Send the request over serial kernel debugger
-        //
-        KdSendPcitreePacketToDebuggee(&PcitreePacket);
-    }
-    else
-    {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
-
-        ShowMessages("Sending IOCTL\n");
-
-        //
-        // Send IOCTL
-        //
-        Status = DeviceIoControl(
-            g_DeviceHandle,                                  // Handle to device
-            IOCTL_PCIE_ENDPOINT_ENUM,                        // IO Control Code (IOCTL)
-            &PcitreePacket,                                  // Input Buffer to driver.
-            SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Input buffer length
-            &PcitreePacket,                                  // Output Buffer from driver.
-            SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Length of output
-                                                             // buffer in bytes.
-            &ReturnedLength,                                 // Bytes placed in buffer.
-            NULL                                             // synchronous call
-        );
-
-        ShowMessages("Done sending IOCTL\n");
-
-        if (!Status)
+        for (UINT8 d = 0; d < DEVICE_MAX_NUM; d++)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-            return;
-        }
+            for (UINT8 f = 0; f < FUNCTION_MAX_NUM; f++)
+            {
+                //
+                // Prepare buffer
+                //
+                PcitreeReqPacket.RequestedBus      = b;
+                PcitreeReqPacket.RequestedDevice   = d;
+                PcitreeReqPacket.RequestedFunction = f;
 
-        if (PcitreePacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-        {
-            //
-            // Show the results
-            //
-            ShowMessages("Result: (0000:00:00) VID:DID: %x:%x\n", PcitreePacket.PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId, PcitreePacket.PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId);
-        }
-        else
-        {
-            //
-            // An err occurred, no results
-            //
-            ShowMessages("An err occured, no results:");
+                //
+                // Send buffer
+                //
+                if (g_IsSerialConnectedToRemoteDebuggee)
+                {
+                    KdSendPcitreePacketToDebuggee(&PcitreeReqPacket);
+                }
+                else
+                {
+                    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
-            ShowErrorMessage(PcitreePacket.KernelStatus);
+                    ShowMessages("Sending IOCTL\n");
+
+                    //
+                    // Send IOCTL
+                    //
+                    Status = DeviceIoControl(
+                        g_DeviceHandle,                                  // Handle to device
+                        IOCTL_PCIE_ENDPOINT_ENUM,                        // IO Control Code (IOCTL)
+                        &PcitreeReqPacket,                               // Input Buffer to driver.
+                        SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Input buffer length
+                        &PcitreeRespPacket,                              // Output Buffer from driver.
+                        SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, // Length of output
+                                                                         // buffer in bytes.
+                        &ReturnedLength,                                 // Bytes placed in buffer.
+                        NULL                                             // synchronous call
+                    );
+
+                    ShowMessages("Done sending IOCTL\n");
+
+                    if (!Status)
+                    {
+                        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                        return;
+                    }
+
+                    if (PcitreeRespPacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+                    {
+                        ShowMessages("Result: (%04x:%2x:%2x:%x) VID:DID: %x:%x\n",
+                                     0,
+                                     PcitreeRespPacket.RequestedBus,
+                                     PcitreeRespPacket.RequestedDevice,
+                                     PcitreeRespPacket.RequestedFunction,
+                                     PcitreeRespPacket.Device.Function[0].ConfigSpace.CommonHeader.VendorId,
+                                     PcitreeRespPacket.Device.Function[0].ConfigSpace.CommonHeader.DeviceId);
+                    }
+                    else
+                    {
+                        //
+                        // An err occurred, no results
+                        //
+                        ShowMessages("An err occured, no results:");
+
+                        ShowErrorMessage(PcitreeRespPacket.KernelStatus);
+                    }
+                }
+            }
         }
     }
 }

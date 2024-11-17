@@ -641,26 +641,26 @@ ExtensionCommandIoBitmapResetAllCores()
 /**
  * @brief routines for !pcitree
  *
- * @param PcitreePacket
+ * @param PcitreeReqPacket
  * @param OperateOnVmxRoot
  * @return VOID
  */
 VOID
-ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket, BOOLEAN OperateOnVmxRoot)
+ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeReqPacket, BOOLEAN OperateOnVmxRoot)
 {
     DWORD DeviceIdVendorId = 0;
 
-    DeviceIdVendorId = (DWORD)PciReadCam(0, 0, 0, 0, sizeof(DWORD));
-    if (DeviceIdVendorId != MAXDWORD64)
+    DeviceIdVendorId = (DWORD)PciReadCam(PcitreeReqPacket->RequestedBus, PcitreeReqPacket->RequestedDevice, PcitreeReqPacket->RequestedFunction, 0, sizeof(DWORD));
+    if (DeviceIdVendorId != 0xFFFFFFFF)
     {
         LogInfo("DeviceIdVendorId: %x\n", DeviceIdVendorId);
-        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
-        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
-        PcitreePacket->KernelStatus                                                          = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        PcitreeReqPacket->Device.Function[0].ConfigSpace.CommonHeader.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
+        PcitreeReqPacket->Device.Function[0].ConfigSpace.CommonHeader.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
+        PcitreeReqPacket->KernelStatus                                         = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
     else
     {
-        PcitreePacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+        PcitreeReqPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
     }
 
     //
