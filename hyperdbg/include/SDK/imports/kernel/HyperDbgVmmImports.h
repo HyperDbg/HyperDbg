@@ -218,6 +218,9 @@ VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t C
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC);
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets);
+
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
 //////////////////////////////////////////////////

@@ -142,6 +142,7 @@
 #define APIC_EILVT3                  0x530
 
 #define APIC_BASE_MSR 0x800
+#define APIC_BASE_MSR 0x800
 
 //////////////////////////////////////////////////
 //				     I/O APIC 					//
@@ -213,6 +214,9 @@ ApicUninitialize();
 
 BOOLEAN
 ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer, PBOOLEAN IsUsingX2APIC);
+
+BOOLEAN
+ApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets);
 
 VOID
 ApicSelfIpi(UINT32 Vector);

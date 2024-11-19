@@ -142,6 +142,9 @@ VOID
 CommandGHelp();
 
 VOID
+CommandGgHelp();
+
+VOID
 CommandClsHelp();
 
 VOID
@@ -215,6 +218,9 @@ CommandCoreHelp();
 
 VOID
 CommandApicHelp();
+
+VOID
+CommandIoapicHelp();
 
 VOID
 CommandProcessHelp();

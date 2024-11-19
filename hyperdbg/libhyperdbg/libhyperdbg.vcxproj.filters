@@ -566,8 +566,16 @@
       <Filter>code\debugger\commands\hwdbg-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\pcitree.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\apic.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\extension-commands\ioapic.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\gg.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

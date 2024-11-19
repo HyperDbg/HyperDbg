@@ -22,8 +22,9 @@
 UINT32
 ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest)
 {
-    BOOLEAN     IsUsingX2APIC      = FALSE;
-    PLAPIC_PAGE BufferToStoreLApic = (LAPIC_PAGE *)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST));
+    BOOLEAN                IsUsingX2APIC       = FALSE;
+    PLAPIC_PAGE            BufferToStoreLApic  = (LAPIC_PAGE *)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST));
+    PIO_APIC_ENTRY_PACKETS BufferToStoreIoApic = (IO_APIC_ENTRY_PACKETS *)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST));
 
     if (ApicRequest->ApicType == DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC)
     {
@@ -43,6 +44,28 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
             // There was an error performing the action
             //
             ApicRequest->KernelStatus = DEBUGGER_ERROR_APIC_ACTIONS_ERROR;
+
+            return sizeof(DEBUGGER_APIC_REQUEST);
+        }
+    }
+    if (ApicRequest->ApicType == DEBUGGER_APIC_REQUEST_TYPE_READ_IO_APIC)
+    {
+        if (VmFuncApicStoreIoApicFields(BufferToStoreIoApic))
+        {
+            //
+            // The status was okay
+            //
+            ApicRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+            return sizeof(DEBUGGER_APIC_REQUEST) + sizeof(IO_APIC_ENTRY_PACKETS);
+        }
+        else
+        {
+            //
+            // There was an error performing the action
+            //
+            ApicRequest->KernelStatus = DEBUGGER_ERROR_APIC_ACTIONS_ERROR;
+
             return sizeof(DEBUGGER_APIC_REQUEST);
         }
     }

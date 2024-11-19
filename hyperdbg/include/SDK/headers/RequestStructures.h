@@ -1032,6 +1032,7 @@ typedef struct _DEBUGGEE_STEP_PACKET
 typedef enum _DEBUGGER_APIC_REQUEST_TYPE
 {
     DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC,
+    DEBUGGER_APIC_REQUEST_TYPE_READ_IO_APIC,
 
 } DEBUGGER_APIC_REQUEST_TYPE;
 
@@ -1155,6 +1156,40 @@ typedef struct _LAPIC_PAGE
     UINT32 SelfIpi;           // offset 0x3F0
     UINT8  Reserved3F4[0x0C]; // valid only for X2APIC
 } LAPIC_PAGE, *PLAPIC_PAGE;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Maximum number of I/O APIC entries
+ * @details Usually half of the 256 entries is enough
+ * We're not gonna make the packet bigger than it's needed
+ *
+ */
+#define MAX_NUMBER_OF_IO_APIC_ENTRIES 0xff / 2
+
+/**
+ * @brief The structure of I/O APIC result packet in HyperDbg
+ *
+ */
+typedef struct _IO_APIC_ENTRY_PACKETS
+{
+    UINT64 ApicBasePa;
+    UINT64 ApicBaseVa;
+    UINT32 IoIdReg;
+    UINT32 IoLl;
+    UINT32 IoArbIdReg;
+    UINT64 LlData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
+    UINT64 LhData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
+
+} IO_APIC_ENTRY_PACKETS, *PIO_APIC_ENTRY_PACKETS;
+
+/**
+ * @brief check so the IO_APIC_ENTRY_PACKETS should be smaller than packet size
+ *
+ */
+static_assert(sizeof(IO_APIC_ENTRY_PACKETS) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than IO_APIC_ENTRY_PACKETS");
 
 /* ==============================================================================================
  */

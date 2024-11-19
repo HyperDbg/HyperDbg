@@ -819,10 +819,22 @@ VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId)
  * @param LocalApicBuffer
  * @param IsUsingX2APIC
  *
- * @return VOID
+ * @return BOOLEAN
  */
 BOOLEAN
 VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC)
 {
     return ApicStoreLocalApicFields(LocalApicBuffer, IsUsingX2APIC);
+}
+
+/**
+ * @brief Store the details of I/O APIC
+ * @param IoApicPackets
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets)
+{
+    return ApicStoreIoApicFields(IoApicPackets);
 }
