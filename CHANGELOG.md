@@ -9,6 +9,7 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - Added the local APIC command (xAPIC and x2APIC modes) ([link](https://docs.hyperdbg.org/commands/extension-commands/apic))
+- Added the I/O APIC command ([link](https://docs.hyperdbg.org/commands/extension-commands/ioapic))
 
 ### Changed
 

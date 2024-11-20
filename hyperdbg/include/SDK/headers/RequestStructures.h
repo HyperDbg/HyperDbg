@@ -1162,11 +1162,12 @@ typedef struct _LAPIC_PAGE
 
 /**
  * @brief Maximum number of I/O APIC entries
- * @details Usually half of the 256 entries is enough
+ * @details Usually 256 entries are enough (but we allocate 400 for systems with more
+ * I/O APIC entries)
  * We're not gonna make the packet bigger than it's needed
  *
  */
-#define MAX_NUMBER_OF_IO_APIC_ENTRIES 0xff / 2
+#define MAX_NUMBER_OF_IO_APIC_ENTRIES 400
 
 /**
  * @brief The structure of I/O APIC result packet in HyperDbg
@@ -1179,8 +1180,7 @@ typedef struct _IO_APIC_ENTRY_PACKETS
     UINT32 IoIdReg;
     UINT32 IoLl;
     UINT32 IoArbIdReg;
-    UINT64 LlData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
-    UINT64 LhData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
+    UINT64 LlLhData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
 
 } IO_APIC_ENTRY_PACKETS, *PIO_APIC_ENTRY_PACKETS;
 

@@ -170,8 +170,17 @@ CommandIoapicShowIoApicEntries(IO_APIC_ENTRY_PACKETS * IoApicPackets)
 
     for (Index = 0; Index <= Max; Index += 2)
     {
-        ll = IoApicPackets->LlData[Index];
-        lh = IoApicPackets->LhData[Index];
+        if (Index >= MAX_NUMBER_OF_IO_APIC_ENTRIES)
+        {
+            //
+            // The buffer is now invalid
+            //
+            ShowMessages("err, there are additional entries in the I/O APIC that are not fully displayed in the results");
+            return;
+        }
+
+        ll = IoApicPackets->LlLhData[Index];
+        lh = IoApicPackets->LlLhData[Index + 1];
 
         sprintf((CHAR *)Desc, "Inti%02X.", Index / 2);
         CommandIoapicShowRedir(Desc, FALSE, FALSE, lh, ll);

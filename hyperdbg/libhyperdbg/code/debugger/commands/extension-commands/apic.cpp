@@ -108,8 +108,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             ApicRequest,                   // Input Buffer to driver.
             SIZEOF_DEBUGGER_APIC_REQUEST,  // Input buffer length
             ApicRequest,                   // Output Buffer from driver.
-            RequestSize,                   // Length of output
-                                           // buffer in bytes.
+            RequestSize,                   // Length of output buffer in bytes.
             &ReturnedLength,               // Bytes placed in buffer.
             NULL                           // synchronous call
         );

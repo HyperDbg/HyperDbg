@@ -109,11 +109,19 @@ ApicDumpIoApic(IO_APIC_ENTRY_PACKETS * IoApicPackets)
 
     for (Index = 0; Index <= Max; Index += 2)
     {
+        if (Index >= MAX_NUMBER_OF_IO_APIC_ENTRIES)
+        {
+            //
+            // To prevent overflow of the target buffer
+            //
+            return;
+        }
+
         ll = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 0);
         lh = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 1);
 
-        IoApicPackets->LlData[Index] = ll;
-        IoApicPackets->LhData[Index] = lh;
+        IoApicPackets->LlLhData[Index]     = ll;
+        IoApicPackets->LlLhData[Index + 1] = lh;
     }
 }
 
