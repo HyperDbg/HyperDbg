@@ -40,7 +40,7 @@ CommandIoapicHelp()
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgGetIoApic(PIO_APIC_ENTRY_PACKETS IoApic)
+HyperDbgGetIoApic(IO_APIC_ENTRY_PACKETS * IoApic)
 {
     BOOLEAN IsUsingX2APIC; // not used since I/O APIC is accessed through memory (not MSR)
 

@@ -48,7 +48,7 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
             return sizeof(DEBUGGER_APIC_REQUEST);
         }
     }
-    if (ApicRequest->ApicType == DEBUGGER_APIC_REQUEST_TYPE_READ_IO_APIC)
+    else if (ApicRequest->ApicType == DEBUGGER_APIC_REQUEST_TYPE_READ_IO_APIC)
     {
         if (VmFuncApicStoreIoApicFields(BufferToStoreIoApic))
         {
@@ -75,6 +75,7 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
         // Invalid request
         //
         ApicRequest->KernelStatus = DEBUGGER_ERROR_APIC_ACTIONS_ERROR;
+
         return sizeof(DEBUGGER_APIC_REQUEST);
     }
 }
