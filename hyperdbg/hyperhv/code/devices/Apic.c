@@ -293,6 +293,27 @@ ApicTriggerGenericNmi()
 }
 
 /**
+ * @brief Trigger NMI on X2APIC or APIC based on Current system
+ *
+ * @return VOID
+ */
+VOID
+ApicTriggerGenericSmi()
+{
+    LogInfo("Generating SMIs");
+    if (g_CompatibilityCheck.IsX2Apic)
+    {
+        // X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
+        X2ApicIcrWrite((2 << 8) | (1 << 14) | (3 << 18), 0);
+    }
+    else
+    {
+        //    XApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
+        XApicIcrWrite((2 << 8) | (1 << 14) | (3 << 18), 0);
+    }
+}
+
+/**
  * @brief Store the details of APIC in xAPIC and x2APIC mode
  * @param LApicBuffer
  * @param IsUsingX2APIC

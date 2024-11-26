@@ -135,6 +135,12 @@
     <Filter Include="header\components\optimizations">
       <UniqueIdentifier>{0c6f7e8d-4829-4a45-b09d-4c40cfcc5cf7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\processor">
+      <UniqueIdentifier>{36f1d8ba-6527-4c1b-8016-ae66d1bd41e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\processor">
+      <UniqueIdentifier>{8efcd014-6f76-436f-bca7-33f1cf2bd980}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -307,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="code\devices\Pci.c">
       <Filter>code\devices</Filter>
+    </ClCompile>
+    <ClCompile Include="code\processor\Idt.c">
+      <Filter>code\processor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -573,6 +582,9 @@
     </ClInclude>
     <ClInclude Include="header\devices\Pci.h">
       <Filter>header\devices</Filter>
+    </ClInclude>
+    <ClInclude Include="header\processor\Idt.h">
+      <Filter>header\processor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

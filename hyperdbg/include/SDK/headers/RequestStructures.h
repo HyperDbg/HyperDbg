@@ -1195,6 +1195,33 @@ static_assert(sizeof(IO_APIC_ENTRY_PACKETS) < PacketChunkSize,
  */
 
 /**
+ * @brief Maximum number of IDT entries
+ *
+ */
+#define MAX_NUMBER_OF_IDT_ENTRIES 256
+
+/**
+ * @brief The structure of IDT entries result packet in HyperDbg
+ *
+ */
+typedef struct _INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
+{
+    UINT32 KernelStatus;
+    UINT64 IdtEntry[MAX_NUMBER_OF_IDT_ENTRIES];
+
+} INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, *PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
+
+/**
+ * @brief check so the INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS should be smaller than packet size
+ *
+ */
+static_assert(sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS");
+
+/* ==============================================================================================
+ */
+
+/**
  * @brief The structure of .formats result packet in HyperDbg
  *
  */
