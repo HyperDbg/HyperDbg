@@ -10,8 +10,10 @@ New release of the HyperDbg Debugger.
 ### Added
 - Added the local APIC command (xAPIC and x2APIC modes) ([link](https://docs.hyperdbg.org/commands/extension-commands/apic))
 - Added the I/O APIC command ([link](https://docs.hyperdbg.org/commands/extension-commands/ioapic))
+- The new link is added to help increase the number of EPT hook breakpoints in a single page ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/number-of-ept-hooks-in-one-page))
 
 ### Changed
+- The link for changing the communication buffer size is updated ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size))
 
 ## [0.10.2.0] - 2024-10-11
 New release of the HyperDbg Debugger.
