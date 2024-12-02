@@ -282,3 +282,12 @@ HyperDbgDebugCloseRemoteDebugger();
 
 BOOLEAN
 HyperDbgGetLocalApic(PLAPIC_PAGE LocalApic, PBOOLEAN IsUsingX2APIC);
+
+BOOLEAN
+HyperDbgGetIoApic(IO_APIC_ENTRY_PACKETS * IoApic);
+
+BOOLEAN
+CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
+                       PVOID                      ApicBuffer,
+                       UINT32                     ExpectedRequestSize,
+                       PBOOLEAN                   IsUsingX2APIC);

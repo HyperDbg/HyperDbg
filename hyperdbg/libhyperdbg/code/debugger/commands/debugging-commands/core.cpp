@@ -1,5 +1,5 @@
 /**
- * @file ~.cpp
+ * @file core.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief show and change processor
  * @details

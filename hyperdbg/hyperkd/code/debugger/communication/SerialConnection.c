@@ -160,7 +160,7 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length)
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
         LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
+                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size",
                  Length + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                  MaxSerialPacketSize);
         return FALSE;
@@ -197,7 +197,7 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
     if ((Length1 + Length2 + SERIAL_END_OF_BUFFER_CHARS_COUNT) > MaxSerialPacketSize)
     {
         LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
+                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size",
                  Length1 + Length2 + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                  MaxSerialPacketSize);
         return FALSE;
@@ -252,7 +252,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     if ((Length1 + Length2 + Length3 + SERIAL_END_OF_BUFFER_CHARS_COUNT) > MaxSerialPacketSize)
     {
         LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
+                 "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size",
                  Length1 + Length2 + Length3 + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                  MaxSerialPacketSize);
         return FALSE;

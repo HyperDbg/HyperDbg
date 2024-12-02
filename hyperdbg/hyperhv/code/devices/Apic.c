@@ -69,101 +69,16 @@ IoApicWrite(volatile IO_APIC_ENT * IoApicBaseVa, UINT32 Reg, UINT64 Data)
 }
 
 /**
- * @brief Dump redirections
- *
- * @param Desc
- * @param CommandReg
- * @param DestSelf
- * @param Lh
- * @param Ll
- *
- * @return ULONG
- */
-ULONG
-ApicDumpRedir(PUCHAR    Desc,
-              BOOLEAN   CommandReg,
-              BOOLEAN   DestSelf,
-              ULONGLONG Lh,
-              ULONGLONG Ll)
-{
-    static PUCHAR DelMode[] = {
-        (PUCHAR) "FixedDel",
-        (PUCHAR) "LowestDl",
-        (PUCHAR) "res010  ",
-        (PUCHAR) "remoterd",
-        (PUCHAR) "NMI     ",
-        (PUCHAR) "RESET   ",
-        (PUCHAR) "res110  ",
-        (PUCHAR) "ExtINTA "};
-
-    static PUCHAR DesShDesc[] = {(PUCHAR) "",
-                                 (PUCHAR) "  Dest=Self",
-                                 (PUCHAR) "   Dest=ALL",
-                                 (PUCHAR) " Dest=Othrs"};
-
-    ULONG Del, Dest, Delstat, Rirr, Trig, Masked, Destsh;
-
-    Del     = (Ll >> 8) & 0x7;
-    Dest    = (Ll >> 11) & 0x1;
-    Delstat = (Ll >> 12) & 0x1;
-    Rirr    = (Ll >> 14) & 0x1;
-    Trig    = (Ll >> 15) & 0x1;
-    Masked  = (Ll >> 16) & 0x1;
-    Destsh  = (Ll >> 18) & 0x3;
-
-    if (CommandReg)
-    {
-        //
-        // command reg's don't have a mask
-        //
-        Masked = 0;
-    }
-
-    Log("%s: %016llx  Vec:%02X  %s  ",
-        Desc,
-        Ll,
-        Ll & 0xff,
-        DelMode[Del]);
-
-    if (DestSelf)
-    {
-        Log("%s", DesShDesc[1]);
-    }
-    else if (CommandReg && Destsh)
-    {
-        Log("%s", DesShDesc[Destsh]);
-    }
-    else
-    {
-        if (Dest)
-        {
-            Log("Lg:%08x", Lh);
-        }
-        else
-        {
-            Log("PhysDest:%02X", (Lh >> 56) & 0xFF);
-        }
-    }
-
-    Log("%s  %s  %s  %s\n",
-        Delstat ? "-Pend" : "     ",
-        Trig ? "level" : "edge ",
-        Rirr ? "rirr" : "    ",
-        Masked ? "masked" : "      ");
-
-    return 0;
-}
-
-/**
  * @brief Dump I/O APIC
+ * @param IoApicPackets
  *
  * @return VOID
  */
 VOID
-ApicDumpIoApic()
+ApicDumpIoApic(IO_APIC_ENTRY_PACKETS * IoApicPackets)
 {
-    UINT32 Index, Max;
-    UCHAR  Desc[40];
+    UINT32 Index = 0;
+    UINT32 Max;
     UINT64 ll, lh;
 
     UINT64 ApicBasePa = IO_APIC_DEFAULT_BASE_ADDR;
@@ -172,22 +87,41 @@ ApicDumpIoApic()
 
     Max = (ll >> 16) & 0xff;
 
-    Log("IoApic @ %08x  ID:%x (%x)  Arb:%x\n",
-        ApicBasePa,
-        IoApicRead(g_IoApicBase, IO_ID_REGISTER) >> 24,
-        ll & 0xFF,
-        IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER));
+    //   Log("IoApic @ %08x  ID:%x (%x)  Arb:%x\n",
+    //       ApicBasePa,
+    //       IoApicRead(g_IoApicBase, IO_ID_REGISTER) >> 24,
+    //       ll & 0xFF,
+    //       IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER));
+
+    //
+    // Fill the I/O APIC
+    //
+    IoApicPackets->ApicBasePa = (UINT32)ApicBasePa;
+    IoApicPackets->ApicBaseVa = (UINT64)g_IoApicBase;
+    IoApicPackets->IoIdReg    = (UINT32)IoApicRead(g_IoApicBase, IO_ID_REGISTER);
+    IoApicPackets->IoLl       = (UINT32)ll;
+    IoApicPackets->IoArbIdReg = (UINT32)IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER);
 
     //
     // Dump inti table
     //
     Max *= 2;
+
     for (Index = 0; Index <= Max; Index += 2)
     {
+        if (Index >= MAX_NUMBER_OF_IO_APIC_ENTRIES)
+        {
+            //
+            // To prevent overflow of the target buffer
+            //
+            return;
+        }
+
         ll = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 0);
         lh = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 1);
-        sprintf((CHAR *)Desc, "Inti%02X.", Index / 2);
-        ApicDumpRedir(Desc, FALSE, FALSE, lh, ll);
+
+        IoApicPackets->LlLhData[Index]     = ll;
+        IoApicPackets->LlLhData[Index + 1] = lh;
     }
 }
 
@@ -298,8 +232,6 @@ ApicStoretLocalApicInXApicMode(PLAPIC_PAGE LApicBuffer)
 BOOLEAN
 ApicStoreLocalApicInX2ApicMode(PLAPIC_PAGE LApicBuffer)
 {
-    ApicDumpIoApic();
-
     //
     // Store fields
     //
@@ -361,7 +293,28 @@ ApicTriggerGenericNmi()
 }
 
 /**
- * @brief Stire the details of APIC in xAPIC and x2APIC mode
+ * @brief Trigger NMI on X2APIC or APIC based on Current system
+ *
+ * @return VOID
+ */
+VOID
+ApicTriggerGenericSmi()
+{
+    LogInfo("Generating SMIs");
+    if (g_CompatibilityCheck.IsX2Apic)
+    {
+        // X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
+        X2ApicIcrWrite((2 << 8) | (1 << 14) | (3 << 18), 0);
+    }
+    else
+    {
+        //    XApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
+        XApicIcrWrite((2 << 8) | (1 << 14) | (3 << 18), 0);
+    }
+}
+
+/**
+ * @brief Store the details of APIC in xAPIC and x2APIC mode
  * @param LApicBuffer
  * @param IsUsingX2APIC
  *
@@ -380,6 +333,28 @@ ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer, PBOOLEAN IsUsingX2APIC)
         *IsUsingX2APIC = FALSE;
         return ApicStoretLocalApicInXApicMode(LApicBuffer);
     }
+}
+
+/**
+ * @brief Store the details of I/O APIC
+ * @param IoApicPackets
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets)
+{
+    //
+    // Dump I/O APIC Entries
+    // Note that I/O APIC is not accessed through MSRs (e.g., X2APIC)
+    // So, it's all about the physical memory
+    //
+    ApicDumpIoApic(IoApicPackets);
+
+    //
+    // There is not error defined for it at the moment
+    //
+    return TRUE;
 }
 
 /**

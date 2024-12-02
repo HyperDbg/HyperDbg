@@ -1347,6 +1347,8 @@ InitializeCommandsDictionary()
     g_CommandsList["g"]  = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
     g_CommandsList["go"] = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
+    g_CommandsList["gg"] = {&CommandGg, &CommandGgHelp, DEBUGGER_COMMAND_GG_ATTRIBUTES};
+
     g_CommandsList[".attach"] = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
     g_CommandsList["attach"]  = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
 
@@ -1448,6 +1450,8 @@ InitializeCommandsDictionary()
     g_CommandsList["!apic"]      = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
     g_CommandsList["!lapic"]     = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
     g_CommandsList["!localapic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+
+    g_CommandsList["!ioapic"] = {&CommandIoapic, &CommandIoapicHelp, DEBUGGER_COMMAND_IOAPIC_ATTRIBUTES};
 
     g_CommandsList["!monitor"] = {&CommandMonitor, &CommandMonitorHelp, DEBUGGER_COMMAND_MONITOR_ATTRIBUTES};
 

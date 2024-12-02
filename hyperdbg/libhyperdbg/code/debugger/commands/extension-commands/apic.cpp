@@ -83,6 +83,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         //
         if (!KdSendApicActionPacketsToDebuggee(ApicRequest, RequestSize))
         {
+            free(ApicRequest);
             return FALSE;
         }
         else
@@ -90,6 +91,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
             RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
+            free(ApicRequest);
             return TRUE;
         }
     }
@@ -106,8 +108,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             ApicRequest,                   // Input Buffer to driver.
             SIZEOF_DEBUGGER_APIC_REQUEST,  // Input buffer length
             ApicRequest,                   // Output Buffer from driver.
-            RequestSize,                   // Length of output
-                                           // buffer in bytes.
+            RequestSize,                   // Length of output buffer in bytes.
             &ReturnedLength,               // Bytes placed in buffer.
             NULL                           // synchronous call
         );
@@ -115,6 +116,19 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         if (!Status)
         {
             ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+
+            free(ApicRequest);
+            return FALSE;
+        }
+
+        if (ReturnedLength != RequestSize && ReturnedLength != SIZEOF_DEBUGGER_APIC_REQUEST)
+        {
+            //
+            // An err occurred
+            //
+            ShowMessages("err, apic request failed\n");
+
+            free(ApicRequest);
             return FALSE;
         }
 
@@ -126,6 +140,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
             RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
+            free(ApicRequest);
             return TRUE;
         }
         else
@@ -134,6 +149,8 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             // An err occurred, no results
             //
             ShowErrorMessage(ApicRequest->KernelStatus);
+
+            free(ApicRequest);
             return FALSE;
         }
     }

@@ -23,11 +23,6 @@
 #include <Windef.h>
 
 //
-// Definition of Intel primitives (External header)
-//
-// #include "ia32-doc/out/ia32.h"
-
-//
 // Import Configuration and Definitions
 //
 #include "Configuration.h"
