@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.11.0.0] - 2024-XX-XX
+## [0.11.0.0] - 2024-12-03
 New release of the HyperDbg Debugger.
 
 ### Added
 - Added the local APIC command (xAPIC and x2APIC modes) ([link](https://docs.hyperdbg.org/commands/extension-commands/apic))
 - Added the I/O APIC command ([link](https://docs.hyperdbg.org/commands/extension-commands/ioapic))
 - The new link is added to help increase the number of EPT hook breakpoints in a single page ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/number-of-ept-hooks-in-one-page))
+- Export SDK APIs for Local APIC and X2APIC
 
 ### Changed
 - The link for changing the communication buffer size is updated ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size))
