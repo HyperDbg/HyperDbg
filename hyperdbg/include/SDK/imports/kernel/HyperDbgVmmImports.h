@@ -215,6 +215,12 @@ VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, S
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC);
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets);
+
 //////////////////////////////////////////////////
 //            Configuration Functions 	   		//
 //////////////////////////////////////////////////
@@ -930,3 +936,10 @@ BroadcastEnableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
 BroadcastDisableEferSyscallEventsOnAllProcessors();
+
+//////////////////////////////////////////////////
+//     Device-related Functions                	//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM QWORD
+PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);

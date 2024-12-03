@@ -199,6 +199,9 @@ BOOLEAN
 KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndPa2vaPacket);
 
 BOOLEAN
+KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 ExpectedRequestSize);
+
+BOOLEAN
 KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket);
 
 BOOLEAN
@@ -275,3 +278,6 @@ KdBreakControlCheckAndContinueDebugger();
 
 VOID
 KdSetStatusAndWaitForPause();
+
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);

@@ -685,6 +685,35 @@ hyperdbg_u_stepping_step_over_for_gu(BOOLEAN last_instruction)
 }
 
 /**
+ * @brief Get Local APIC
+ * @details The system automatically detects whether to read it
+ * in the xAPIC or x2APIC mode
+ *
+ * @param local_apic
+ * @param is_using_x2apic
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_get_local_apic(PLAPIC_PAGE local_apic, BOOLEAN * is_using_x2apic)
+{
+    return HyperDbgGetLocalApic(local_apic, is_using_x2apic);
+}
+
+/**
+ * @brief Get I/O APIC
+ *
+ * @param io_apic
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_get_io_apic(IO_APIC_ENTRY_PACKETS * io_apic)
+{
+    return HyperDbgGetIoApic(io_apic);
+}
+
+/**
  * @brief Run hwdbg script
  *
  * @param script

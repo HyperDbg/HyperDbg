@@ -985,6 +985,42 @@ KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndP
 }
 
 /**
+ * @brief Send requests for APIC packet to the debuggee
+ * @param ApicPage
+ * @param ExpectedRequestSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 ExpectedRequestSize)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, ApicRequest, ExpectedRequestSize);
+
+    //
+    // Send the APIC request packets
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_ACTIONS_ON_APIC,
+            (CHAR *)ApicRequest,
+            sizeof(DEBUGGER_APIC_REQUEST) // only sending the request header
+            ))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of actions to APIC is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a breakpoint set or 'bp' command packet to the debuggee
  * @param BpPacket
  *
@@ -1593,7 +1629,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
         ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size\n",
+                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size\n",
                      Length + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                      MaxSerialPacketSize);
         return FALSE;
@@ -1763,7 +1799,7 @@ KdCommandPacketAndBufferToDebuggee(
         MaxSerialPacketSize)
     {
         ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d), "
-                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/increase-communication-buffer-size",
+                     "for more information, please visit https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size",
                      sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT,
                      MaxSerialPacketSize);
 
@@ -3361,4 +3397,33 @@ KdUninitializeConnection()
     // Is serial handle for a named pipe
     //
     g_IsDebuggerConntectedToNamedPipe = FALSE;
+}
+
+/**
+ * @brief Sends '!pcitree' command, including buffer, to the debuggee
+ * @param PcitreePacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket)
+{
+    //
+    // Send '!pcitree' packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCITREE,
+            (CHAR *)PcitreePacket,
+            sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of Pcitree packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
+
+    return TRUE;
 }

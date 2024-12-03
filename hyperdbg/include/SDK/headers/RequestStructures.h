@@ -10,6 +10,7 @@
  *
  */
 #pragma once
+#include "Pcie.h"
 
 #define SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS \
     sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)
@@ -1023,6 +1024,201 @@ typedef struct _DEBUGGEE_STEP_PACKET
 #define DEBUGGER_REMOTE_TRACKING_DEFAULT_COUNT_OF_STEPPING 0xffffffff
 
 /* ==============================================================================================
+
+/**
+ * @brief Perform actions related to APIC
+ *
+ */
+typedef enum _DEBUGGER_APIC_REQUEST_TYPE
+{
+    DEBUGGER_APIC_REQUEST_TYPE_READ_LOCAL_APIC,
+    DEBUGGER_APIC_REQUEST_TYPE_READ_IO_APIC,
+
+} DEBUGGER_APIC_REQUEST_TYPE;
+
+/**
+ * @brief The structure of actions for APIC
+ *
+ */
+typedef struct _DEBUGGER_APIC_REQUEST
+{
+    DEBUGGER_APIC_REQUEST_TYPE ApicType;
+    BOOLEAN                    IsUsingX2APIC;
+    UINT32                     KernelStatus;
+
+} DEBUGGER_APIC_REQUEST, *PDEBUGGER_APIC_REQUEST;
+
+/**
+ * @brief Debugger size of DEBUGGER_APIC_REQUEST
+ *
+ */
+#define SIZEOF_DEBUGGER_APIC_REQUEST \
+    sizeof(DEBUGGER_APIC_REQUEST)
+
+/**
+ * @brief LAPIC structure size
+ */
+#define LAPIC_SIZE 0x400
+
+#define LAPIC_LVT_FLAG_ENTRY_MASKED     (1UL << 16)
+#define LAPIC_LVT_DELIVERY_MODE_EXT_INT (7UL << 8)
+#define LAPIC_SVR_FLAG_SW_ENABLE        (1UL << 8)
+
+/**
+ * @brief LAPIC structure and offsets
+ */
+typedef struct _LAPIC_PAGE
+{
+    UINT8 Reserved000[0x10];
+    UINT8 Reserved010[0x10];
+
+    UINT32 Id; // offset 0x020
+    UINT8  Reserved024[0x0C];
+
+    UINT32 Version; // offset 0x030
+    UINT8  Reserved034[0x0C];
+
+    UINT8 Reserved040[0x40];
+
+    UINT32 TPR; // offset 0x080
+    UINT8  Reserved084[0x0C];
+
+    UINT32 ArbitrationPriority; // offset 0x090
+    UINT8  Reserved094[0x0C];
+
+    UINT32 ProcessorPriority; // offset 0x0A0
+    UINT8  Reserved0A4[0x0C];
+
+    UINT32 EOI; // offset 0x0B0
+    UINT8  Reserved0B4[0x0C];
+
+    UINT32 RemoteRead; // offset 0x0C0
+    UINT8  Reserved0C4[0x0C];
+
+    UINT32 LogicalDestination; // offset 0x0D0
+    UINT8  Reserved0D4[0x0C];
+
+    UINT32 DestinationFormat; // offset 0x0E0
+    UINT8  Reserved0E4[0x0C];
+
+    UINT32 SpuriousInterruptVector; // offset 0x0F0
+    UINT8  Reserved0F4[0x0C];
+
+    UINT32 ISR[32]; // offset 0x100
+
+    UINT32 TMR[32]; // offset 0x180
+
+    UINT32 IRR[32]; // offset 0x200
+
+    UINT32 ErrorStatus; // offset 0x280
+    UINT8  Reserved284[0x0C];
+
+    UINT8 Reserved290[0x60];
+
+    UINT32 LvtCmci; // offset 0x2F0
+    UINT8  Reserved2F4[0x0C];
+
+    UINT32 IcrLow; // offset 0x300
+    UINT8  Reserved304[0x0C];
+
+    UINT32 IcrHigh; // offset 0x310
+    UINT8  Reserved314[0x0C];
+
+    UINT32 LvtTimer; // offset 0x320
+    UINT8  Reserved324[0x0C];
+
+    UINT32 LvtThermalSensor; // offset 0x330
+    UINT8  Reserved334[0x0C];
+
+    UINT32 LvtPerfMonCounters; // offset 0x340
+    UINT8  Reserved344[0x0C];
+
+    UINT32 LvtLINT0; // offset 0x350
+    UINT8  Reserved354[0x0C];
+
+    UINT32 LvtLINT1; // offset 0x360
+    UINT8  Reserved364[0x0C];
+
+    UINT32 LvtError; // offset 0x370
+    UINT8  Reserved374[0x0C];
+
+    UINT32 InitialCount; // offset 0x380
+    UINT8  Reserved384[0x0C];
+
+    UINT32 CurrentCount; // offset 0x390
+    UINT8  Reserved394[0x0C];
+
+    UINT8 Reserved3A0[0x40]; // offset 0x3A0
+
+    UINT32 DivideConfiguration; // offset 0x3E0
+    UINT8  Reserved3E4[0x0C];
+
+    UINT32 SelfIpi;           // offset 0x3F0
+    UINT8  Reserved3F4[0x0C]; // valid only for X2APIC
+} LAPIC_PAGE, *PLAPIC_PAGE;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Maximum number of I/O APIC entries
+ * @details Usually 256 entries are enough (but we allocate 400 for systems with more
+ * I/O APIC entries)
+ * We're not gonna make the packet bigger than it's needed
+ *
+ */
+#define MAX_NUMBER_OF_IO_APIC_ENTRIES 400
+
+/**
+ * @brief The structure of I/O APIC result packet in HyperDbg
+ *
+ */
+typedef struct _IO_APIC_ENTRY_PACKETS
+{
+    UINT64 ApicBasePa;
+    UINT64 ApicBaseVa;
+    UINT32 IoIdReg;
+    UINT32 IoLl;
+    UINT32 IoArbIdReg;
+    UINT64 LlLhData[MAX_NUMBER_OF_IO_APIC_ENTRIES];
+
+} IO_APIC_ENTRY_PACKETS, *PIO_APIC_ENTRY_PACKETS;
+
+/**
+ * @brief check so the IO_APIC_ENTRY_PACKETS should be smaller than packet size
+ *
+ */
+static_assert(sizeof(IO_APIC_ENTRY_PACKETS) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than IO_APIC_ENTRY_PACKETS");
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Maximum number of IDT entries
+ *
+ */
+#define MAX_NUMBER_OF_IDT_ENTRIES 256
+
+/**
+ * @brief The structure of IDT entries result packet in HyperDbg
+ *
+ */
+typedef struct _INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
+{
+    UINT32 KernelStatus;
+    UINT64 IdtEntry[MAX_NUMBER_OF_IDT_ENTRIES];
+
+} INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, *PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
+
+/**
+ * @brief check so the INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS should be smaller than packet size
+ *
+ */
+static_assert(sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS");
+
+/* ==============================================================================================
  */
 
 /**
@@ -1174,6 +1370,23 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
     UINT32 KernelStatus;
 
 } DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET \
+    sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)
+
+/**
+ * @brief Pcitree Structure
+ *
+ */
+typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
+{
+    UINT32   KernelStatus;
+    PCI_TREE PciTree;
+
+} DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 
 /* ==============================================================================================
  */

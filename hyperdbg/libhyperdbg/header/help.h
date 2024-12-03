@@ -142,6 +142,9 @@ VOID
 CommandGHelp();
 
 VOID
+CommandGgHelp();
+
+VOID
 CommandClsHelp();
 
 VOID
@@ -214,6 +217,12 @@ VOID
 CommandCoreHelp();
 
 VOID
+CommandApicHelp();
+
+VOID
+CommandIoapicHelp();
+
+VOID
 CommandProcessHelp();
 
 VOID
@@ -284,6 +293,9 @@ CommandGuHelp();
 
 VOID
 CommandAssembleHelp();
+
+VOID
+CommandPcitreeHelp();
 
 //
 // hwdbg commands

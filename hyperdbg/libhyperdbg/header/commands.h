@@ -236,6 +236,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_G_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
+#define DEBUGGER_COMMAND_GG_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
+
 #define DEBUGGER_COMMAND_ATTACH_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_DETACH_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -321,6 +323,10 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER
 
 #define DEBUGGER_COMMAND_PTE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_APIC_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_IOAPIC_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_CORE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -450,6 +456,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_A_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_PCITREE_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -575,6 +584,9 @@ VOID
 CommandG(vector<CommandToken> CommandTokens, string Command);
 
 VOID
+CommandGg(vector<CommandToken> CommandTokens, string Command);
+
+VOID
 CommandLm(vector<CommandToken> CommandTokens, string Command);
 
 VOID
@@ -698,6 +710,12 @@ VOID
 CommandRev(vector<CommandToken> CommandTokens, string Command);
 
 VOID
+CommandApic(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandIoapic(vector<CommandToken> CommandTokens, string Command);
+
+VOID
 CommandTrack(vector<CommandToken> CommandTokens, string Command);
 
 VOID
@@ -711,6 +729,9 @@ CommandGu(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandAssemble(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandPcitree(vector<CommandToken> CommandTokens, string Command);
 
 //
 // hwdbg commands

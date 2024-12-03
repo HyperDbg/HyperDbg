@@ -2308,6 +2308,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
@@ -2321,6 +2322,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     UINT32                                              ReturnSize                   = 0;
     DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
     DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET           PcitreePacket                = {0};
 
     while (TRUE)
     {
@@ -2994,6 +2996,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 break;
 
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_ACTIONS_ON_APIC:
+
+                ApicPacket = (DEBUGGER_APIC_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Call APIC handler (size to send is computed by this function)
+                //
+                SizeToSend = ExtensionCommandPerformActionsForApicRequests(ApicPacket);
+
+                //
+                // Send the result of the APIC requests back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_APIC_REQUESTS,
+                                           (CHAR *)ApicPacket,
+                                           SizeToSend);
+
+                break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_INJECT_PAGE_FAULT:
 
                 PageinPacket = (DEBUGGER_PAGE_IN_REQUEST *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
@@ -3070,6 +3091,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // No need to wait for new commands
                 //
                 EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCITREE:
+
+                PcitreePacket = (DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Enumerate PCI tree
+                //
+                ExtensionCommandPcitree(PcitreePacket, TRUE);
+
+                //
+                // Send the result of '!pcitree' back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCITREE,
+                                           (CHAR *)PcitreePacket,
+                                           sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET));
 
                 break;
 

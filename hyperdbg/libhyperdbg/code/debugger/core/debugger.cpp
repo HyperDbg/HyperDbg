@@ -228,7 +228,9 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
         ShowMessages("err, the maximum breakpoint for a single page is hit, "
-                     "you cannot apply more breakpoints in this page (%x)\n",
+                     "you cannot apply more breakpoints in this page (%x)\n"
+                     "please refer to https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/number-of-ept-hooks-in-one-page"
+                     " for further information\n",
                      Error);
         break;
 
@@ -529,6 +531,11 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_INVALID_PHYSICAL_ADDRESS:
         ShowMessages("err, invalid physical address (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_APIC_ACTIONS_ERROR:
+        ShowMessages("err, could not perform APIC actions (%x)\n",
                      Error);
         break;
 

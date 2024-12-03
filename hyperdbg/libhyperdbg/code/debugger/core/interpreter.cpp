@@ -73,15 +73,14 @@ public:
 
                     if (c2 == '/') // start to look for comments
                     {
-
                         //
                         // to solve cases like: //"}"
                         //
                         size_t StrLitEnd = 0;
                         size_t StrLitBeg = input.find("\"", i);
-                        if (StrLitBeg != std::string::npos )
+                        if (StrLitBeg != std::string::npos)
                         {
-                            if (i) 
+                            if (i)
                             {
                                 if (input[i - 1] != '\\') // if not escaped
                                 {
@@ -101,7 +100,7 @@ public:
                                 }
                             }
                         }
-                         
+
                         //
                         // assuming " }" as the end of a line comment aka //, if we are within {}
                         //
@@ -137,7 +136,7 @@ public:
                         vector<size_t> PosVec;
                         PosVec.push_back(CloseBrktPos);
                         PosVec.push_back(NewLineSrtPos);
-                        PosVec.push_back(NewLineChrPos); 
+                        PosVec.push_back(NewLineChrPos);
 
                         auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
 
@@ -171,12 +170,12 @@ public:
                                 IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
                             }
 
-                            //if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
+                            // if (NewLineSrtPos != std::string::npos && !IsNewLineEsc) // is not escaped
                             //{
-                            //    //
-                            //    // here we could get the comment but for now we just skip
-                            //    //
-                            //    std::string comment(input.substr(i, NewLineSrtPos - i));
+                            //     //
+                            //     // here we could get the comment but for now we just skip
+                            //     //
+                            //     std::string comment(input.substr(i, NewLineSrtPos - i));
 
                             //    //
                             //    // append comments to be passed to script engine
@@ -193,7 +192,7 @@ public:
 
                             //    continue;
                             //}
-                            //else if (NewLineChrPos != std::string::npos)
+                            // else if (NewLineChrPos != std::string::npos)
                             //{
                             //    //
                             //    // here we could get the comment but for now we just skip
@@ -215,41 +214,41 @@ public:
 
                             //    continue; // go past '\n'
                             //}
-                            //else
+                            // else
                             //{
-                                //
-                                // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
-                                //
-                                std::string comment(input.substr(i, input.size()));
+                            //
+                            // no "\\n" nor '\n' found so we just mark the chars as comment till end of string
+                            //
+                            std::string comment(input.substr(i, input.size()));
 
-                                // fix the escaped newline
-                                if (IsNewLineEsc)
+                            // fix the escaped newline
+                            if (IsNewLineEsc)
+                            {
+                                size_t start_pos = 0;
+                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
                                 {
-                                    size_t start_pos = 0;
-                                    while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
-                                    {
-                                        comment.replace(start_pos, 3, "\\n");
-                                        start_pos += 2; // Handles case where 'to' is a substring of 'from'
-                                    }
-
-                                    IsNewLineEsc = false;
+                                    comment.replace(start_pos, 3, "\\n");
+                                    start_pos += 2; // Handles case where 'to' is a substring of 'from'
                                 }
 
-                                //
-                                // append comments to be passed to script engine
-                                //
-                                if (IdxBracket)
-                                {
-                                    current += comment;
-                                }
-
-                                //
-                                // forward the buffer
-                                //
-                                i = i + (input.size() - i);
-
-                                continue;
+                                IsNewLineEsc = false;
                             }
+
+                            //
+                            // append comments to be passed to script engine
+                            //
+                            if (IdxBracket)
+                            {
+                                current += comment;
+                            }
+
+                            //
+                            // forward the buffer
+                            //
+                            i = i + (input.size() - i);
+
+                            continue;
+                        }
                         //}
                     }
                     else if (c2 == '*')
@@ -288,7 +287,7 @@ public:
 
             if (InQuotes)
             {
-                if (c == '"' )
+                if (c == '"')
                 {
                     if (input[i - 1] != '\\')
                     {
@@ -319,7 +318,6 @@ public:
                         current.pop_back(); // remove last read \\ 
                         current += c;
                         continue;
-
                     }
                 }
             }
@@ -353,8 +351,7 @@ public:
                 }
             }
 
-
-            if ( (c == ' ' || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
+            if ((c == ' ' || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -393,7 +390,7 @@ public:
                     }
                 }
             }
-            else if (c == '{' && !InQuotes )
+            else if (c == '{' && !InQuotes)
             {
                 if (i) // check if this { is the first char to avoid out of range check
                 {
@@ -407,12 +404,12 @@ public:
 
                         IdxBracket++;
                         if (IdxBracket == 1) // first {
-                            continue; // don't include '{' in string
+                            continue;        // don't include '{' in string
                     }
                     else
                     {
-                        input.erase(i - 1,1);
-                        i--; //compensate for the removed char
+                        input.erase(i - 1, 1);
+                        i--;                // compensate for the removed char
                         current.pop_back(); // remove last read \\
 
                     }
@@ -421,7 +418,7 @@ public:
                 {
                     IdxBracket++;
                     if (IdxBracket == 1) // first {
-                        continue; // don't include '{' in string
+                        continue;        // don't include '{' in string
                 }
             }
 
@@ -1350,6 +1347,8 @@ InitializeCommandsDictionary()
     g_CommandsList["g"]  = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
     g_CommandsList["go"] = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
+    g_CommandsList["gg"] = {&CommandGg, &CommandGgHelp, DEBUGGER_COMMAND_GG_ATTRIBUTES};
+
     g_CommandsList[".attach"] = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
     g_CommandsList["attach"]  = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
 
@@ -1447,6 +1446,12 @@ InitializeCommandsDictionary()
 
     g_CommandsList["~"]    = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
     g_CommandsList["core"] = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
+
+    g_CommandsList["!apic"]      = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!lapic"]     = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!localapic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+
+    g_CommandsList["!ioapic"] = {&CommandIoapic, &CommandIoapicHelp, DEBUGGER_COMMAND_IOAPIC_ATTRIBUTES};
 
     g_CommandsList["!monitor"] = {&CommandMonitor, &CommandMonitorHelp, DEBUGGER_COMMAND_MONITOR_ATTRIBUTES};
 
@@ -1598,6 +1603,9 @@ InitializeCommandsDictionary()
     g_CommandsList["!asm"]      = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assemble"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assembly"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+
+    g_CommandsList["!pcitree"]  = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
+    g_CommandsList["!pcietree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
 
     //
     // hwdbg commands

@@ -39,6 +39,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
+    PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
@@ -202,6 +203,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
 
         case IOCTL_DEBUGGER_READ_OR_WRITE_MSR:
+
             //
             // First validate the parameters.
             //
@@ -1106,6 +1108,46 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
+        case IOCTL_PERFROM_ACTIONS_ON_APIC:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_APIC_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            DebuggerApicRequest = (PDEBUGGER_APIC_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the actions relating to the APIC request
+            //
+            Irp->IoStatus.Information = ExtensionCommandPerformActionsForApicRequests(DebuggerApicRequest);
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         case IOCTL_SEND_USER_DEBUGGER_COMMANDS:
 
             //
@@ -1449,6 +1491,45 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
 
         case IOCTL_DEBUGGER_BRING_PAGES_IN:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PAGE_IN_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerPageinRequest = (PDEBUGGER_PAGE_IN_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place (it's in VMI-mode)
+            //
+            DebuggerCommandBringPagein(DebuggerPageinRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PAGE_IN_REQUEST;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PCIE_ENDPOINT_ENUM:
 
             //
             // First validate the parameters.

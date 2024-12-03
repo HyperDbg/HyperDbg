@@ -26,7 +26,7 @@
 
 #define APIC_LVR            0x30
 #define APIC_LVR_MASK       0xFF00FF
-#define GET_APIC_VERSION(x) ((x)&0xFFu)
+#define GET_APIC_VERSION(x) ((x) & 0xFFu)
 #define GET_APIC_MAXLVT(x)  (((x) >> 16) & 0xFFu)
 
 #define APIC_INTEGRATED(x) (1)
@@ -142,6 +142,65 @@
 #define APIC_EILVT3                  0x530
 
 #define APIC_BASE_MSR 0x800
+#define APIC_BASE_MSR 0x800
+
+//////////////////////////////////////////////////
+//				     I/O APIC 					//
+//////////////////////////////////////////////////
+
+typedef struct _IO_APIC_ENT
+{
+    UINT32 Reg;
+    UINT32 Pad[3];
+    UINT32 Data;
+
+} IO_APIC_ENT, *PIO_APIC_ENT;
+
+#define IO_APIC_DEFAULT_BASE_ADDR 0xFEC00000 // Default physical address of IO APIC
+
+#define IOAPIC_APPEND_QWORD(hi, lo) (((UINT64)(hi) << 32) | (UINT64)(lo))
+#define IOAPIC_LOW_DWORD(x)         ((UINT32)(x))
+#define IOAPIC_HIGH_DWORD(x)        ((UINT32)((x) >> 32))
+
+#define IOAPIC_REDTBL(x)  (0x10 + (x) * 2)
+#define IOAPIC_REDTBL_MAX (24)
+
+#define LU_SIZE 0x400
+
+#define LU_ID_REGISTER     0x00000020
+#define LU_VERS_REGISTER   0x00000030
+#define LU_TPR             0x00000080
+#define LU_APR             0x00000090
+#define LU_PPR             0x000000A0
+#define LU_EOI             0x000000B0
+#define LU_REMOTE_REGISTER 0x000000C0
+
+#define LU_DEST        0x000000D0
+#define LU_DEST_FORMAT 0x000000E0
+
+#define LU_SPURIOUS_VECTOR 0x000000F0
+#define LU_FAULT_VECTOR    0x00000370
+
+#define LU_ISR_0          0x00000100
+#define LU_TMR_0          0x00000180
+#define LU_IRR_0          0x00000200
+#define LU_ERROR_STATUS   0x00000280
+#define LU_INT_CMD_LOW    0x00000300
+#define LU_INT_CMD_HIGH   0x00000310
+#define LU_TIMER_VECTOR   0x00000320
+#define LU_INT_VECTOR_0   0x00000350
+#define LU_INT_VECTOR_1   0x00000360
+#define LU_INITIAL_COUNT  0x00000380
+#define LU_CURRENT_COUNT  0x00000390
+#define LU_DIVIDER_CONFIG 0x000003E0
+
+#define IO_REGISTER_SELECT 0x00000000
+#define IO_REGISTER_WINDOW 0x00000010
+
+#define IO_ID_REGISTER     0x00000000
+#define IO_VERS_REGISTER   0x00000001
+#define IO_ARB_ID_REGISTER 0x00000002
+#define IO_REDIR_BASE      0x00000010
 
 //////////////////////////////////////////////////
 //				   Functions					//
@@ -152,6 +211,12 @@ ApicInitialize();
 
 VOID
 ApicUninitialize();
+
+BOOLEAN
+ApicStoreLocalApicFields(PLAPIC_PAGE LApicBuffer, PBOOLEAN IsUsingX2APIC);
+
+BOOLEAN
+ApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets);
 
 VOID
 ApicSelfIpi(UINT32 Vector);
