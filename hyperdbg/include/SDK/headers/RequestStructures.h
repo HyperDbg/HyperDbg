@@ -1378,13 +1378,14 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
     sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)
 
 /**
- * @brief Pcitree Structure
+ * @brief Pcitree Request-Response Packet. Represents PCI device tree.
  *
  */
 typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 {
-    UINT32   KernelStatus;
-    PCI_TREE PciTree;
+    UINT32         KernelStatus;
+    UINT8          EndpointsTotalNum;
+    PCI_EP_MINIMAL Endpoints[EP_MAX_NUM];
 
 } DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 

@@ -672,15 +672,46 @@ ExtensionCommandIoBitmapResetAllCores()
 VOID
 ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket, BOOLEAN OperateOnVmxRoot)
 {
-    DWORD DeviceIdVendorId = 0;
+    DWORD DeviceIdVendorId = 0xFFFFFFFF;
+    DWORD ClassCode        = 0xFFFFFFFF;
+    UINT8 EpNum            = 0;
 
-    DeviceIdVendorId = (DWORD)PciReadCam(0, 0, 0, 0, sizeof(DWORD));
-    if (DeviceIdVendorId != MAXDWORD64)
+    for (UINT8 b = 0; b < BUS_MAX_NUM; b++)
     {
-        LogInfo("DeviceIdVendorId: %x\n", DeviceIdVendorId);
-        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
-        PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
-        PcitreePacket->KernelStatus                                                          = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        for (UINT8 d = 0; d < DEVICE_MAX_NUM; d++)
+        {
+            for (UINT8 f = 0; f < FUNCTION_MAX_NUM; f++)
+            {
+                DeviceIdVendorId = (DWORD)PciReadCam(b, d, f, 0, sizeof(DWORD));
+
+                if (DeviceIdVendorId != 0xFFFFFFFF)
+                {
+                    PcitreePacket->Endpoints[EpNum].Bus                  = b;
+                    PcitreePacket->Endpoints[EpNum].Device               = d;
+                    PcitreePacket->Endpoints[EpNum].Function             = f;
+                    PcitreePacket->Endpoints[EpNum].ConfigSpace.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
+                    PcitreePacket->Endpoints[EpNum].ConfigSpace.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
+
+                    ClassCode                                                = (DWORD)PciReadCam(b, d, f, 0, sizeof(DWORD));
+                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[0] = (UINT8)((ClassCode >> 24) & 0xFF);
+                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[1] = (UINT8)((ClassCode >> 16) & 0xFF);
+                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[2] = (UINT8)((ClassCode >> 8) & 0xFF);
+
+                    EpNum++;
+                    if (EpNum == EP_MAX_NUM)
+                    {
+                        LogError("Reached maximum number of endpoints (%u) that can be stored in debuggee response packet.\n", EP_MAX_NUM);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    PcitreePacket->EndpointsTotalNum = EpNum;
+
+    if (PcitreePacket->EndpointsTotalNum)
+    {
+        PcitreePacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
     else
     {

@@ -16,24 +16,29 @@
 //////////////////////////////////////////////////
 
 //
+// TODO
+// - Add support for domains beyond 0000
+// - Add ECAM support
+//
 // PCIe Base Specification, Rev. 4.0, Version 1.0, Table 7-59: Link Address for Link Type 1
 // Bus: 0-255 (8 bit)
 // Device: 0-31 (5 bit)
 // Function: 0-7 (3 bit)
 //
-// TODO
-// We're limited to sending fixed buffers, so we'll have to choose some reasonable numbers here instead of assuming spec-mandated maximum numbers.
-// Ensure the following parameters do not result in exceeding MaxSerialPacketSize. Consider sending multiple packets if necessary.
-//
-#define DOMAIN_MAX_NUM   2
-#define BUS_MAX_NUM      10
-#define DEVICE_MAX_NUM   2
-#define FUNCTION_MAX_NUM 1
+#define BUS_BIT_WIDTH      8
+#define DEVICE_BIT_WIDTH   5
+#define FUNCTION_BIT_WIDTH 3
 
 //
-// TODO
-// We currently limit ourselves to PCI configuration space (i.e. CAM).
+// NOTE
+// On real-world systems, the number of endpoints will likely not exceed 255.
+// If increasing EP_MAX_NUM is necessary, ensure PCI_EP_MINIMAL[EP_MAX_NUM] does not result in exceeding MaxSerialPacketSize.
 //
+#define DOMAIN_MAX_NUM   0
+#define BUS_MAX_NUM      255
+#define DEVICE_MAX_NUM   32
+#define FUNCTION_MAX_NUM 8
+#define EP_MAX_NUM       255
 
 /**
  * @brief PCI Common Header
@@ -74,6 +79,32 @@ typedef struct _PORTABLE_PCI_DEVICE_HEADER
 } PORTABLE_PCI_DEVICE_HEADER, *PPORTABLE_PCI_DEVICE_HEADER;
 
 /**
+ * @brief PCI Configuration Space Minimal Header for !pcitree
+ *
+ */
+typedef struct _PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL
+{
+    //
+    // Common header
+    //
+    UINT16 VendorId;
+    UINT16 DeviceId;
+    UINT8  ClassCode[3];
+} PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL, *PPORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL;
+
+/**
+ * @brief PCI Endpoint Minimal Data Structure for !pcitree
+ *
+ */
+typedef struct _PCI_EP_MINIMAL
+{
+    UINT8                                    Bus : BUS_BIT_WIDTH;
+    UINT8                                    Device : DEVICE_BIT_WIDTH;
+    UINT8                                    Function : FUNCTION_BIT_WIDTH;
+    PORTABLE_PCI_CONFIG_SPACE_HEADER_MINIMAL ConfigSpace;
+} PCI_EP_MINIMAL, *PPCI_EP_MINIMAL;
+
+/**
  * @brief PCI Configuration Space Header
  *
  */
@@ -90,7 +121,8 @@ typedef struct _PORTABLE_PCI_CONFIG_SPACE_HEADER
  */
 typedef struct _PCI_FUNCTION
 {
-    UINT8 Placeholder;
+    UINT8                            Function : FUNCTION_BIT_WIDTH;
+    PORTABLE_PCI_CONFIG_SPACE_HEADER ConfigSpace;
 } PCI_FUNCTION, *PPCI_FUNCTION;
 
 /**
@@ -99,8 +131,8 @@ typedef struct _PCI_FUNCTION
  */
 typedef struct _PCI_DEVICE
 {
-    PORTABLE_PCI_CONFIG_SPACE_HEADER ConfigSpace[DEVICE_MAX_NUM];
-    PCI_FUNCTION                     Function[FUNCTION_MAX_NUM];
+    UINT8        Device : DEVICE_BIT_WIDTH;
+    PCI_FUNCTION Function[FUNCTION_MAX_NUM];
 } PCI_DEVICE, *PPCI_DEVICE;
 
 /**
@@ -109,6 +141,7 @@ typedef struct _PCI_DEVICE
  */
 typedef struct _PCI_BUS
 {
+    UINT8      Bus : BUS_BIT_WIDTH;
     PCI_DEVICE Device[DEVICE_MAX_NUM];
 } PCI_BUS, *PPCI_BUS;
 
@@ -120,12 +153,3 @@ typedef struct _PCI_DOMAIN
 {
     PCI_BUS Bus[BUS_MAX_NUM];
 } PCI_DOMAIN, *PPCI_DOMAIN;
-
-/**
- * @brief PCI Tree Data Structure
- *
- */
-typedef struct _PCI_TREE
-{
-    PCI_DOMAIN Domain[DOMAIN_MAX_NUM];
-} PCI_TREE, *PPCI_TREE;

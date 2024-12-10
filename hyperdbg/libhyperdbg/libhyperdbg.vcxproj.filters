@@ -84,6 +84,9 @@
     <Filter Include="code\export">
       <UniqueIdentifier>{cfacdcfe-8503-4a00-b7e2-75b0e906f75e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{b0ac8778-17e9-4be4-9f0f-0113a71120a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -171,6 +174,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\hwdbg-scripts.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="pci-id.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -577,10 +583,18 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\gg.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
+    <ClCompile Include="pci-id.cpp">
+      <Filter>code\debugger\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">
       <Filter>code\assembly</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\miscellaneous\constants\pciid\pci.ids">
+      <Filter>resources</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>
