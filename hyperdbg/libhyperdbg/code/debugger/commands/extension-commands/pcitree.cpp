@@ -83,8 +83,6 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
             NULL                                             // synchronous call
         );
 
-        ShowMessages("Done sending IOCTL\n");
-
         if (!Status)
         {
             ShowMessages("ioctl failed with code 0x%x\n", GetLastError());

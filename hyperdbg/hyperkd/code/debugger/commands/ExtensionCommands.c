@@ -676,8 +676,6 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
     DWORD ClassCode        = 0xFFFFFFFF;
     UINT8 EpNum            = 0;
 
-    LogInfo("Enumerating endpoints...\n");
-
     for (UINT8 b = 0; b < BUS_MAX_NUM; b++)
     {
         for (UINT8 d = 0; d < DEVICE_MAX_NUM; d++)
@@ -710,8 +708,6 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
         }
     }
     PcitreePacket->EndpointsTotalNum = EpNum;
-
-    LogInfo("Enumerated %u endpoints.\n", PcitreePacket->EndpointsTotalNum);
 
     if (PcitreePacket->EndpointsTotalNum)
     {
