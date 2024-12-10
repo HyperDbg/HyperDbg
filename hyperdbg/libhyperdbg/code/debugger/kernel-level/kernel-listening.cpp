@@ -1054,22 +1054,41 @@ StartAgain:
                 //
                 // Print PCI device tree
                 //
-                ShowMessages("%-12s | %-9s | %s\n%s\n", "DBDF", "VID:DID", "Class Code", "---------------------------------------");
+                ShowMessages("%-12s | %-9s | %-17s | %s \n%s\n", "DBDF", "VID:DID", "Vendor Name", "Device Name", "----------------------------------------------------------------------");
                 for (UINT8 i = 0; i < (PcitreePacket->EndpointsTotalNum < EP_MAX_NUM ? PcitreePacket->EndpointsTotalNum : EP_MAX_NUM); i++)
                 {
-                    ShowMessages("%04x:%02x:%02x:%x | %04x:%04x | %04x%04x%04x\n",
+                    Vendor * CurrentVendor     = GetVendorById(PcitreePacket->Endpoints[i].ConfigSpace.VendorId);
+                    char *   CurrentVendorName = (char *)"N/A";
+                    char *   CurrentDeviceName = (char *)"N/A";
+
+                    if (CurrentVendor != NULL)
+                    {
+                        CurrentVendorName      = CurrentVendor->VendorName;
+                        Device * CurrentDevice = GetDeviceFromVendor(CurrentVendor, PcitreePacket->Endpoints[i].ConfigSpace.DeviceId);
+
+                        if (CurrentDevice != NULL)
+                        {
+                            CurrentDeviceName = CurrentDevice->DeviceName;
+                        }
+                    }
+
+                    ShowMessages("%04x:%02x:%02x:%x | %04x:%04x | %-17.*s | %.*s\n",
                                  0, // TODO: Add support for domains beyond 0000
                                  PcitreePacket->Endpoints[i].Bus,
                                  PcitreePacket->Endpoints[i].Device,
                                  PcitreePacket->Endpoints[i].Function,
                                  PcitreePacket->Endpoints[i].ConfigSpace.VendorId,
                                  PcitreePacket->Endpoints[i].ConfigSpace.DeviceId,
-                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[0],
-                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[1],
-                                 PcitreePacket->Endpoints[i].ConfigSpace.ClassCode[2]
+                                 strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
+                                 CurrentVendorName,
+                                 strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
+                                 CurrentDeviceName
 
                     );
+
+                    FreeVendor(CurrentVendor);
                 }
+                FreePciIdDatabase();
             }
             else
             {

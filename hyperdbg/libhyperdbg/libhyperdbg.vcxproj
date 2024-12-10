@@ -153,6 +153,7 @@
     <ClInclude Include="header\transparency.h" />
     <ClInclude Include="header\ud.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="pci-id.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\script-eval\code\Functions.c" />
@@ -292,7 +293,15 @@
     <ClCompile Include="code\debugger\tests\tests.cpp" />
     <ClCompile Include="code\debugger\transparency\gaussian-rng.cpp" />
     <ClCompile Include="code\debugger\transparency\transparency.cpp" />
+    <ClCompile Include="pci-id.cpp" />
     <MASM Include="code\assembly\asm-vmx-checks.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\miscellaneous\constants\pciid\pci.ids">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='release|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='debug|x64'">true</DeploymentContent>
+    </CopyFileToFolders>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
