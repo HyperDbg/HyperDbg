@@ -125,6 +125,8 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
 
     while (ReadLine(Line, sizeof(Line), &PciIdDbBufPtr) != NULL)
     {
+        char FormatStr[24];
+
         // Skip comments and empty lines
         if (Line[0] == '#' || Line[0] == '\0')
         {
@@ -135,8 +137,10 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // We assume PCI ID database comprises unique entries only, i.e. we return the first matching entry
         if (Line[0] != '\t' && FoundVendorId == FALSE)
         {
-            char VendorBuf[PCI_ID_AS_STR_LENGTH + 1], VendorNameBuf[PCI_NAME_STR_LENGTH];
-            if (sscanf(Line, "%4s %[^\n]", VendorBuf, VendorNameBuf) == 2)
+            char VendorBuf[PCI_ID_AS_STR_LENGTH + 1], VendorNameBuf[PCI_NAME_STR_LENGTH + 1];
+
+            snprintf(FormatStr, sizeof(FormatStr), "%%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %PCI_NAME_STR_LENGTH[^\n]"
+            if (sscanf(Line, FormatStr, VendorBuf, VendorNameBuf) == 2)
             {
                 if (strncmp(VendorBuf, VendorId, sizeof(VendorId)) == 0)
                 {
@@ -159,8 +163,10 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // Get all devices for vendor
         else if (Line[0] == '\t' && Line[1] != '\t' && FoundVendorId == TRUE)
         {
-            char DeviceBuf[PCI_ID_AS_STR_LENGTH + 1], DeviceNameBuf[PCI_NAME_STR_LENGTH];
-            if (sscanf(Line + 1, "%4s %[^\n]", DeviceBuf, DeviceNameBuf) == 2)
+            char DeviceBuf[PCI_ID_AS_STR_LENGTH + 1], DeviceNameBuf[PCI_NAME_STR_LENGTH + 1];
+
+            snprintf(FormatStr, sizeof(FormatStr), "%%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %PCI_NAME_STR_LENGTH[^\n]"
+            if (sscanf(Line + 1, FormatStr, DeviceBuf, DeviceNameBuf) == 2)
             {
                 Device * NewDevice = (Device *)malloc(sizeof(Device));
                 if (!NewDevice)
@@ -195,8 +201,10 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // Get all subdevices for device
         else if (Line[0] == '\t' && Line[1] == '\t' && FoundVendorId == TRUE && LastDevice)
         {
-            char SubVendorBuf[PCI_ID_AS_STR_LENGTH + 1], SubDeviceBuf[PCI_ID_AS_STR_LENGTH + 1], SubsystemNameBuf[PCI_NAME_STR_LENGTH];
-            if (sscanf(Line + 2, "%4s %4s %[^\n]", SubVendorBuf, SubDeviceBuf, SubsystemNameBuf) == 3)
+            char SubVendorBuf[PCI_ID_AS_STR_LENGTH + 1], SubDeviceBuf[PCI_ID_AS_STR_LENGTH + 1], SubsystemNameBuf[PCI_NAME_STR_LENGTH + 1];
+
+            snprintf(FormatStr, sizeof(FormatStr), "%%4s %%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %4s %PCI_NAME_STR_LENGTH[^\n]"
+            if (sscanf(Line + 2, FormatStr, SubVendorBuf, SubDeviceBuf, SubsystemNameBuf) == 3)
             {
                 SubDevice * NewSubDevice = (SubDevice *)malloc(sizeof(SubDevice));
                 if (!NewSubDevice)
