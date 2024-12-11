@@ -89,7 +89,8 @@ copy "$(OutDir)libhyperdbg.dll" "$(OutDir)SDK\Libraries\libhyperdbg.dll"
 copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
 copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
 copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
-copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
+copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"
+copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)pci.ids"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -128,7 +129,8 @@ copy "$(OutDir)libhyperdbg.dll" "$(OutDir)SDK\Libraries\libhyperdbg.dll"
 copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
 copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"
 copy "$(OutDir)hyperlog.dll" "$(OutDir)SDK\Libraries\hyperlog.dll"
-copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"</Command>
+copy "$(OutDir)hyperhv.dll" "$(OutDir)SDK\Libraries\hyperhv.dll"
+copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)pci.ids"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

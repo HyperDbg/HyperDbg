@@ -296,13 +296,6 @@
     <ClCompile Include="pci-id.cpp" />
     <MASM Include="code\assembly\asm-vmx-checks.asm" />
   </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="..\miscellaneous\constants\pciid\pci.ids">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='release|x64'">true</DeploymentContent>
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='debug|x64'">true</DeploymentContent>
-    </CopyFileToFolders>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
