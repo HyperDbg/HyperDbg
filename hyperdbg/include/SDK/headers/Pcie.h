@@ -34,11 +34,12 @@
 // On real-world systems, the number of endpoints will likely not exceed 255.
 // If increasing EP_MAX_NUM is necessary, ensure PCI_EP_MINIMAL[EP_MAX_NUM] does not result in exceeding MaxSerialPacketSize.
 //
-#define DOMAIN_MAX_NUM   0
-#define BUS_MAX_NUM      255
-#define DEVICE_MAX_NUM   32
-#define FUNCTION_MAX_NUM 8
-#define EP_MAX_NUM       255
+#define DOMAIN_MAX_NUM          0
+#define BUS_MAX_NUM             255
+#define DEVICE_MAX_NUM          32
+#define FUNCTION_MAX_NUM        8
+#define EP_MAX_NUM              255
+#define CAM_CONFIG_SPACE_LENGTH 255
 
 /**
  * @brief PCI Common Header

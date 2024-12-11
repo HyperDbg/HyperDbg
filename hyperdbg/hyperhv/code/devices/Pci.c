@@ -29,7 +29,7 @@ PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width)
     //
     // Restrict Offset to CAM address space; restrict BDF to our internal limits
     //
-    if (Offset >= sizeof(PORTABLE_PCI_COMMON_HEADER) + sizeof(PORTABLE_PCI_DEVICE_HEADER) ||
+    if (Offset > CAM_CONFIG_SPACE_LENGTH ||
         Bus >= BUS_MAX_NUM ||
         Device >= DEVICE_MAX_NUM ||
         Function >= FUNCTION_MAX_NUM)
@@ -40,7 +40,7 @@ PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width)
     Target = Function + ((Device & 0x1F) << 3) + ((Bus & 0xFF) << 8);
     _outpd(CFGADR, (DWORD)(Target << 8) | 0x80000000UL | ((DWORD)Offset & ~3));
 
-    switch (Width)
+    switch ((UINT32)Width)
     {
     case sizeof(BYTE):
         return (BYTE)_inp(CFGDAT + (Offset & 0x3));
@@ -52,7 +52,7 @@ PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width)
         return _inpd(CFGDAT);
         break;
     case sizeof(QWORD):
-        return (PciReadCam(Bus, Device, Function, 4, sizeof(DWORD)) << 32) | PciReadCam(Bus, Device, Function, 0, sizeof(DWORD));
+        return (PciReadCam(Bus, Device, Function, Offset + sizeof(DWORD), sizeof(DWORD)) << 32) | PciReadCam(Bus, Device, Function, Offset + 0, sizeof(DWORD));
         break;
     default:
         return MAXDWORD64;
