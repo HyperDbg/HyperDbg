@@ -26,10 +26,10 @@ CommandPcitreeHelp()
 {
     ShowMessages("!pcitree : enumerates all PCIe endpoints on the debuggee.\n\n");
 
-    ShowMessages("syntax : \t!pcietree\n");
+    ShowMessages("syntax : \t!pcitree\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !pcietree\n");
+    ShowMessages("\t\te.g : !pcitree\n");
 }
 
 /**
@@ -66,8 +66,6 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
     {
         AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
-        ShowMessages("Sending IOCTL\n");
-
         //
         // Send IOCTL
         //
@@ -98,8 +96,8 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
             for (UINT8 i = 0; i < (PcitreePacket.EndpointsTotalNum < EP_MAX_NUM ? PcitreePacket.EndpointsTotalNum : EP_MAX_NUM); i++)
             {
                 Vendor * CurrentVendor     = GetVendorById(PcitreePacket.Endpoints[i].ConfigSpace.VendorId);
-                char *   CurrentVendorName = (char *)"N/A";
-                char *   CurrentDeviceName = (char *)"N/A";
+                CHAR *   CurrentVendorName = (CHAR *)"N/A";
+                CHAR *   CurrentDeviceName = (CHAR *)"N/A";
 
                 if (CurrentVendor != NULL)
                 {
@@ -135,8 +133,6 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
             //
             // An err occurred, no results
             //
-            ShowMessages("An err occured, no results:");
-
             ShowErrorMessage(PcitreePacket.KernelStatus);
         }
     }

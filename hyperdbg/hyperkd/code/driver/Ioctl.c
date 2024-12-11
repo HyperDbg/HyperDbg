@@ -31,6 +31,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
     PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET               PcitreeRequest;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
@@ -1534,7 +1535,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PAGE_IN_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET || Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Err, invalid parameter to IOCTL dispatcher");
@@ -1550,15 +1551,15 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 break;
             }
 
-            DebuggerPageinRequest = (PDEBUGGER_PAGE_IN_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+            PcitreeRequest = (PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)Irp->AssociatedIrp.SystemBuffer;
 
             //
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place (it's in VMI-mode)
             //
-            DebuggerCommandBringPagein(DebuggerPageinRequest);
+            ExtensionCommandPcitree(PcitreeRequest, FALSE);
 
-            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PAGE_IN_REQUEST;
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
             Status                    = STATUS_SUCCESS;
 
             //

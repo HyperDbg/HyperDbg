@@ -663,10 +663,11 @@ ExtensionCommandIoBitmapResetAllCores()
 }
 
 /**
- * @brief routines for !pcitree
+ * @brief routines for PCIe tree
  *
  * @param PcitreePacket
  * @param OperateOnVmxRoot
+ *
  * @return VOID
  */
 VOID
@@ -675,6 +676,11 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
     DWORD DeviceIdVendorId = 0xFFFFFFFF;
     DWORD ClassCode        = 0xFFFFFFFF;
     UINT8 EpNum            = 0;
+
+    //
+    // We currently don't use OperateOnVmxRoot, but we might in the future
+    //
+    UNREFERENCED_PARAMETER(OperateOnVmxRoot);
 
     for (UINT8 b = 0; b < BUS_MAX_NUM; b++)
     {
@@ -716,13 +722,5 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
     else
     {
         PcitreePacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-    }
-
-    //
-    // We currently don't use OperateOnVmxRoot, but we might in the future
-    //
-    if (OperateOnVmxRoot)
-    {
-        NOP_FUNCTION();
     }
 }

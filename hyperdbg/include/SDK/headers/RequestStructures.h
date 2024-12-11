@@ -1389,5 +1389,12 @@ typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 
 } DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 
+/**
+ * @brief check so the DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET");
+
 /* ==============================================================================================
  */

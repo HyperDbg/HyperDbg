@@ -41,7 +41,7 @@ typedef struct Vendor
 // PCI ID database courtesy of PCI ID Database (pciutils) project at
 // https://pci-ids.ucw.cz/
 //
-#define PCI_ID_DATABASE_PATH "pci.ids"
+#define PCI_ID_DATABASE_PATH "constants\\pci.ids"
 
 //////////////////////////////////////////////////
 //					  Functions                 //
