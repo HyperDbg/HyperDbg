@@ -1033,7 +1033,7 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
 
     *CurrentProcessedPositionFromStartOfFormat =
         *CurrentProcessedPositionFromStartOfFormat + (UINT32)strlen(CurrentSpecifier);
-    sprintf(TempBuffer, CurrentSpecifier, Val);
+    sprintf_s(TempBuffer, sizeof(TempBuffer), CurrentSpecifier, Val);
     TempBufferLen = (UINT32)strlen(TempBuffer);
 
     //
