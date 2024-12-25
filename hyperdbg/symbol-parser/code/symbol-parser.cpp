@@ -1686,20 +1686,22 @@ SymTagStr(ULONG Tag)
 BOOLEAN
 SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
 {
+    HRESULT           Result;
+    BOOL              Ret;
+    SYMSRV_INDEX_INFO SymInfo   = {0};
+    const char *      FormatStr = "%s/%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x/%s";
+    SymInfo.sizeofstruct        = sizeof(SYMSRV_INDEX_INFO);
+
     if (LocalFilePath == NULL && ResultPath == NULL)
     {
         return FALSE;
     }
 
-    SYMSRV_INDEX_INFO SymInfo = {0};
-    const char * FormatStr = "%s/%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x/%s";
-    SymInfo.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
-
-    BOOL Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
+    Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
 
     if (Ret)
     {
-        HRESULT hresult = StringCchPrintfA(
+        Result = StringCchPrintfA(
             ResultPath,
             ResultPathSize,
             FormatStr,
@@ -1718,7 +1720,7 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t Re
             SymInfo.age,
             SymInfo.pdbfile);
 
-        if (FAILED(hresult))
+        if (FAILED(Result))
         {
             return FALSE;
         }
