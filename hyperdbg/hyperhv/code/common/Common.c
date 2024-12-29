@@ -191,3 +191,62 @@ CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu)
         VCpu->Regs->r14,
         VCpu->Regs->r15);
 }
+
+/**
+ * @brief Check correctness of the XCR0 register value.
+ * @param XCr0 The XCR0 register value.
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommonIsXCr0Valid(XCR0 XCr0)
+{
+    CPUID_EAX_0D_ECX_00 XCr0CpuidInfo;
+    UINT64              UnsupportedXCr0Bits;
+
+    //
+    // SDM Vol.3A 2.6 EXTENDED CONTROL REGISTERS (INCLUDING XCR0) - describes the invalid
+    // states of the XCR0 register.
+    //
+
+    CommonCpuidInstruction(CPUID_EXTENDED_STATE_INFORMATION, 0, (INT32 *)&XCr0CpuidInfo);
+    UnsupportedXCr0Bits = ~(XCr0CpuidInfo.Eax.AsUInt | (UINT64)XCr0CpuidInfo.Edx.AsUInt << 32);
+
+    if ((XCr0.AsUInt & UnsupportedXCr0Bits) != 0)
+    {
+        return FALSE;
+    }
+
+    if (XCr0.X87 != 1)
+    {
+        return FALSE;
+    }
+
+    if (XCr0.Sse == 0 && XCr0.Avx == 1)
+    {
+        return FALSE;
+    }
+
+    if (XCr0.Avx == 0)
+    {
+        if ((XCr0.Opmask | XCr0.ZmmHi256 | XCr0.ZmmHi16) == 1)
+        {
+            return FALSE;
+        }
+    }
+
+    if (XCr0.Bndcsr != XCr0.Bndreg)
+    {
+        return FALSE;
+    }
+
+    if ((XCr0.Opmask | XCr0.ZmmHi256 | XCr0.ZmmHi16) == 1)
+    {
+        if ((XCr0.Opmask & XCr0.ZmmHi256 & XCr0.ZmmHi16) != 1)
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}

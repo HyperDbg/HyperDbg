@@ -318,3 +318,6 @@ CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
 
 VOID
 CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+CommonIsXCr0Valid(XCR0 XCr0);
