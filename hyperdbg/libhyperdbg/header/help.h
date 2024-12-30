@@ -297,6 +297,9 @@ CommandAssembleHelp();
 VOID
 CommandPcitreeHelp();
 
+VOID
+CommandIdtHelp();
+
 //
 // hwdbg commands
 //

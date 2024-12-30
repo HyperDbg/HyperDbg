@@ -41,6 +41,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS             DebuggerQueryIdtRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
@@ -1140,6 +1141,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Perform the actions relating to the APIC request
             //
             Irp->IoStatus.Information = ExtensionCommandPerformActionsForApicRequests(DebuggerApicRequest);
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_QUERY_IDT_ENTRY:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            DebuggerQueryIdtRequest = (PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the query of IDT entries (not from vmx-root)
+            //
+            ExtensionCommandPerformQueryIdtEntriesRequest(DebuggerQueryIdtRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
             Status                    = STATUS_SUCCESS;
 
             //

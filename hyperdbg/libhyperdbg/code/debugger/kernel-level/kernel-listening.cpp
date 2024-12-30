@@ -64,6 +64,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
     PDEBUGGER_APIC_REQUEST                      ApicRequestPacket;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtEntryRequestPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
@@ -851,6 +852,27 @@ StartAgain:
             // Signal the event relating to receiving result of performing actions into APIC
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_IDT_ENTRIES_REQUESTS:
+
+            IdtEntryRequestPacket = (INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, IdtEntryRequestPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of querying IDT entries
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 
             break;
 

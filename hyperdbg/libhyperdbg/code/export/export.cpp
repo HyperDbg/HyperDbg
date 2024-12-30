@@ -714,6 +714,19 @@ hyperdbg_u_get_io_apic(IO_APIC_ENTRY_PACKETS * io_apic)
 }
 
 /**
+ * @brief Get IDT entry
+ *
+ * @param idt_packet
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_get_idt_entry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * idt_packet)
+{
+    return HyperDbgGetIdtEntry(idt_packet);
+}
+
+/**
  * @brief Run hwdbg script
  *
  * @param script

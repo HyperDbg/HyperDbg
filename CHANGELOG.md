@@ -11,6 +11,7 @@ New release of the HyperDbg Debugger.
 - Added the PCI tree command ([link](https://docs.hyperdbg.org/commands/extension-commands/pcitree))
 - Added the proper handling for the xsetbv VM exits thanks to [@Shtan7](https://github.com/Shtan7) ([link](https://github.com/HyperDbg/HyperDbg/pull/491))
 - Added the IDT command for interpreting Interrupt Descriptor Table (IDT) ([link](https://docs.hyperdbg.org/commands/extension-commands/idt))
+- Export SDK APIs for getting Interrupt Descriptor Table (IDT) entries
 
 ### Changed
 - Fix buffer overflow in the symbols path converter thanks to [@binophism](https://github.com/binophism) ([link](https://github.com/HyperDbg/HyperDbg/pull/490))

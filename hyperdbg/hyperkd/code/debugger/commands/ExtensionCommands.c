@@ -81,6 +81,96 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
 }
 
 /**
+ * @brief Perform query for IDT entries
+ *
+ * @param IdtQueryRequest
+ *
+ * @return VOID
+ */
+#pragma pack(push, 1)
+
+typedef struct _SIDT_ENTRY
+{
+    USHORT    IdtLimit;
+    ULONG_PTR IdtBase;
+} SIDT_ENTRY, *PSIDT_ENTRY;
+
+typedef struct _KIDT_ENTRY
+{
+    ULONG LowPart : 16;
+    ULONG SegmentSelector : 16;
+    ULONG Reserved1 : 5;
+    ULONG Reserved2 : 3;
+    ULONG Type : 3;
+    ULONG Size : 1;
+    ULONG Reserved3 : 1;
+    ULONG Dpl : 2;
+    ULONG Present : 1;
+    ULONG HighPart : 16;
+#if defined _M_AMD64
+    ULONG HighestPart;
+    ULONG Reserved;
+#endif
+} KIDT_ENTRY, *PKIDT_ENTRY;
+
+#pragma pack(pop)
+
+/**
+ * @brief Perform query for IDT entries
+ *
+ * @param IdtQueryRequest
+ * @param ReadFromVmxRoot
+ *
+ * @return VOID
+ */
+VOID
+ExtensionCommandPerformQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                                              BOOLEAN                                     ReadFromVmxRoot)
+{
+    SIDT_ENTRY   IdtrReg;
+    KIDT_ENTRY * IdtEntries;
+
+    //
+    // Read IDTR register
+    //
+
+    if (!ReadFromVmxRoot)
+    {
+        //
+        // Since it's not in VMX Root, we can directly read the IDTR register
+        //
+        __sidt(&IdtrReg);
+
+        //
+        // Get the IDT base address
+        //
+        IdtEntries = (KIDT_ENTRY *)IdtrReg.IdtBase;
+    }
+    else
+    {
+        //
+        // Since it's in VMX Root, we need to read the IDTR register from the VMCS
+        //
+        IdtEntries = (KIDT_ENTRY *)GetGuestIdtr();
+    }
+
+    //
+    // Gather a list of IDT entries
+    //
+    for (UINT32 i = 0; i < MAX_NUMBER_OF_IDT_ENTRIES; i++)
+    {
+        IdtQueryRequest->IdtEntry[i] = (UINT64)((unsigned long long)IdtEntries[i].HighestPart << 32) |
+                                       ((unsigned long long)IdtEntries[i].HighPart << 16) |
+                                       (unsigned long long)IdtEntries[i].LowPart;
+    }
+
+    //
+    // Operation was successful
+    //
+    IdtQueryRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+}
+
+/**
  * @brief routines for !va2pa and !pa2va commands
  *
  * @param AddressDetails
