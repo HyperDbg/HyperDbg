@@ -28,6 +28,7 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - The link for changing the communication buffer size is updated ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size))
+- Update Microsoft's DIA SDK and symsrv
 
 ## [0.10.2.0] - 2024-10-11
 New release of the HyperDbg Debugger.
