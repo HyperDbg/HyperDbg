@@ -155,6 +155,10 @@ VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId);
 IMPORT_EXPORT_VMM VOID
 VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId);
 
+IMPORT_EXPORT_VMM VOID
+VmFuncIdtQueryEntries(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                      BOOLEAN                                     ReadFromVmxRoot);
+
 IMPORT_EXPORT_VMM UINT16
 VmFuncGetCsSelector();
 

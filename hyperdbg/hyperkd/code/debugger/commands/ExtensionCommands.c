@@ -92,42 +92,10 @@ VOID
 ExtensionCommandPerformQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
                                               BOOLEAN                                     ReadFromVmxRoot)
 {
-    SIDT_ENTRY   IdtrReg;
-    KIDT_ENTRY * IdtEntries;
-
     //
-    // Read IDTR register
+    // Perform the query
     //
-
-    if (!ReadFromVmxRoot)
-    {
-        //
-        // Since it's not in VMX Root, we can directly read the IDTR register
-        //
-        __sidt(&IdtrReg);
-
-        //
-        // Get the IDT base address
-        //
-        IdtEntries = (KIDT_ENTRY *)IdtrReg.IdtBase;
-    }
-    else
-    {
-        //
-        // Since it's in VMX Root, we need to read the IDTR register from the VMCS
-        //
-        IdtEntries = (KIDT_ENTRY *)GetGuestIdtr();
-    }
-
-    //
-    // Gather a list of IDT entries
-    //
-    for (UINT32 i = 0; i < MAX_NUMBER_OF_IDT_ENTRIES; i++)
-    {
-        IdtQueryRequest->IdtEntry[i] = (UINT64)((unsigned long long)IdtEntries[i].HighestPart << 32) |
-                                       ((unsigned long long)IdtEntries[i].HighPart << 16) |
-                                       (unsigned long long)IdtEntries[i].LowPart;
-    }
+    VmFuncIdtQueryEntries(IdtQueryRequest, ReadFromVmxRoot);
 
     //
     // Operation was successful

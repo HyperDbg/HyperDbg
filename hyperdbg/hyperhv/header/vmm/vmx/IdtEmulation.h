@@ -234,3 +234,7 @@ IdtEmulationHandleNmiWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+IdtEmulationQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                                   BOOLEAN                                     ReadFromVmxRoot);
