@@ -165,10 +165,6 @@ CommandIdt(vector<CommandToken> CommandTokens, string Command)
 
     RtlZeroMemory(IdtPacket, sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
 
-    /////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////
-
     //
     // Get the IDT buffer
     //

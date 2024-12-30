@@ -84,41 +84,6 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
  * @brief Perform query for IDT entries
  *
  * @param IdtQueryRequest
- *
- * @return VOID
- */
-#pragma pack(push, 1)
-
-typedef struct _SIDT_ENTRY
-{
-    USHORT    IdtLimit;
-    ULONG_PTR IdtBase;
-} SIDT_ENTRY, *PSIDT_ENTRY;
-
-typedef struct _KIDT_ENTRY
-{
-    ULONG LowPart : 16;
-    ULONG SegmentSelector : 16;
-    ULONG Reserved1 : 5;
-    ULONG Reserved2 : 3;
-    ULONG Type : 3;
-    ULONG Size : 1;
-    ULONG Reserved3 : 1;
-    ULONG Dpl : 2;
-    ULONG Present : 1;
-    ULONG HighPart : 16;
-#if defined _M_AMD64
-    ULONG HighestPart;
-    ULONG Reserved;
-#endif
-} KIDT_ENTRY, *PKIDT_ENTRY;
-
-#pragma pack(pop)
-
-/**
- * @brief Perform query for IDT entries
- *
- * @param IdtQueryRequest
  * @param ReadFromVmxRoot
  *
  * @return VOID
