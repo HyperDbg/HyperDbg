@@ -838,3 +838,18 @@ VmFuncApicStoreIoApicFields(IO_APIC_ENTRY_PACKETS * IoApicPackets)
 {
     return ApicStoreIoApicFields(IoApicPackets);
 }
+
+/**
+ * @brief Perform query for IDT entries
+ *
+ * @param IdtQueryRequest
+ * @param ReadFromVmxRoot
+ *
+ * @return VOID
+ */
+VOID
+VmFuncIdtQueryEntries(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                      BOOLEAN                                     ReadFromVmxRoot)
+{
+    IdtEmulationQueryIdtEntriesRequest(IdtQueryRequest, ReadFromVmxRoot);
+}

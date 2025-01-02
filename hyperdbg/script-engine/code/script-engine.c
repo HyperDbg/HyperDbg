@@ -213,12 +213,12 @@ ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
+ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
 {
     //
     // A wrapper for pdb to path converter
     //
-    return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
+    return SymConvertFileToPdbPath(LocalFilePath, ResultPath, ResultPathSize);
 }
 
 /**

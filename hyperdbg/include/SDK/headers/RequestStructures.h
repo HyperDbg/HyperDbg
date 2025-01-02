@@ -1212,6 +1212,13 @@ typedef struct _INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
 } INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, *PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
 
 /**
+ * @brief Debugger size of INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
+ *
+ */
+#define SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS \
+    sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS)
+
+/**
  * @brief check so the INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS should be smaller than packet size
  *
  */
@@ -1378,15 +1385,23 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
     sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)
 
 /**
- * @brief Pcitree Structure
+ * @brief Pcitree Request-Response Packet. Represents PCI device tree.
  *
  */
 typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 {
-    UINT32   KernelStatus;
-    PCI_TREE PciTree;
+    UINT32         KernelStatus;
+    UINT8          EndpointsTotalNum;
+    PCI_EP_MINIMAL Endpoints[EP_MAX_NUM];
 
 } DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
+
+/**
+ * @brief check so the DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET");
 
 /* ==============================================================================================
  */

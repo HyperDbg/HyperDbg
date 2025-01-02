@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0.0] - 2025-01-02
+New release of the HyperDbg Debugger.
+
+### Added
+- Added the PCI tree command ([link](https://docs.hyperdbg.org/commands/extension-commands/pcitree))
+- Added the proper handling for the xsetbv VM exits thanks to [@Shtan7](https://github.com/Shtan7) ([link](https://github.com/HyperDbg/HyperDbg/pull/491))
+- Added the IDT command for interpreting Interrupt Descriptor Table (IDT) ([link](https://docs.hyperdbg.org/commands/extension-commands/idt))
+- Export SDK APIs for getting Interrupt Descriptor Table (IDT) entries
+
+### Changed
+- Fix buffer overflow in the symbols path converter thanks to [@binophism](https://github.com/binophism) ([link](https://github.com/HyperDbg/HyperDbg/pull/490))
+- Fix script engine's "printf" function to improve safety thanks to [@Reodus](https://github.com/Reodus) ([link](https://github.com/HyperDbg/HyperDbg/pull/489))
+
 ## [0.11.0.0] - 2024-12-03
 New release of the HyperDbg Debugger.
 
@@ -15,6 +28,7 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - The link for changing the communication buffer size is updated ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size))
+- Update Microsoft's DIA SDK and symsrv
 
 ## [0.10.2.0] - 2024-10-11
 New release of the HyperDbg Debugger.

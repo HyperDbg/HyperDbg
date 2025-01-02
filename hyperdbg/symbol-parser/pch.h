@@ -29,7 +29,7 @@ using namespace std;
 #include <sstream>
 #include <vector>
 #include <algorithm>
-
+#include <strsafe.h>
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>
 

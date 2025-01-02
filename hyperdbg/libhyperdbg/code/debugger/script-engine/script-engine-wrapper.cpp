@@ -172,10 +172,10 @@ ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath)
+ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
 
 {
-    return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath);
+    return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath, ResultPathSize);
 }
 
 /**

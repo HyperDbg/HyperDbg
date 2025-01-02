@@ -64,6 +64,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
     PDEBUGGER_APIC_REQUEST                      ApicRequestPacket;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtEntryRequestPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
@@ -854,6 +855,27 @@ StartAgain:
 
             break;
 
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_IDT_ENTRIES_REQUESTS:
+
+            IdtEntryRequestPacket = (INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, IdtEntryRequestPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of querying IDT entries
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
 
             ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
@@ -1051,7 +1073,44 @@ StartAgain:
 
             if (PcitreePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                ShowMessages("Got packet from debuggee: (0000:00:00) VID:DID: %x:%x\n", PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.VendorId, PcitreePacket->PciTree.Domain[0].Bus[0].Device[0].ConfigSpace->CommonHeader.DeviceId);
+                //
+                // Print PCI device tree
+                //
+                ShowMessages("%-12s | %-9s | %-17s | %s \n%s\n", "DBDF", "VID:DID", "Vendor Name", "Device Name", "----------------------------------------------------------------------");
+                for (UINT8 i = 0; i < (PcitreePacket->EndpointsTotalNum < EP_MAX_NUM ? PcitreePacket->EndpointsTotalNum : EP_MAX_NUM); i++)
+                {
+                    Vendor * CurrentVendor     = GetVendorById(PcitreePacket->Endpoints[i].ConfigSpace.VendorId);
+                    char *   CurrentVendorName = (char *)"N/A";
+                    char *   CurrentDeviceName = (char *)"N/A";
+
+                    if (CurrentVendor != NULL)
+                    {
+                        CurrentVendorName      = CurrentVendor->VendorName;
+                        Device * CurrentDevice = GetDeviceFromVendor(CurrentVendor, PcitreePacket->Endpoints[i].ConfigSpace.DeviceId);
+
+                        if (CurrentDevice != NULL)
+                        {
+                            CurrentDeviceName = CurrentDevice->DeviceName;
+                        }
+                    }
+
+                    ShowMessages("%04x:%02x:%02x:%x | %04x:%04x | %-17.*s | %.*s\n",
+                                 0, // TODO: Add support for domains beyond 0000
+                                 PcitreePacket->Endpoints[i].Bus,
+                                 PcitreePacket->Endpoints[i].Device,
+                                 PcitreePacket->Endpoints[i].Function,
+                                 PcitreePacket->Endpoints[i].ConfigSpace.VendorId,
+                                 PcitreePacket->Endpoints[i].ConfigSpace.DeviceId,
+                                 strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
+                                 CurrentVendorName,
+                                 strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
+                                 CurrentDeviceName
+
+                    );
+
+                    FreeVendor(CurrentVendor);
+                }
+                FreePciIdDatabase();
             }
             else
             {

@@ -142,6 +142,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "SDK/imports/user/HyperDbgLibImports.h"
 
 //
+// PCI IDs
+//
+#include "pci-id.h"
+
+//
 // General
 //
 #include "header/libhyperdbg.h"

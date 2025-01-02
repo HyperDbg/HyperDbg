@@ -1,6 +1,6 @@
 /**
  * @file Pci.c
- * @author Björn Ruytenberg (bjorn@bjornweb.nl
+ * @author Björn Ruytenberg (bjorn@bjornweb.nl)
  * @brief Headers related to interacting with PCI(e) fabric
  * @details
  * @version 0.10.3

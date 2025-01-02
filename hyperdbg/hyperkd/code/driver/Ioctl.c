@@ -31,6 +31,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
     PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET               PcitreeRequest;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
@@ -40,6 +41,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS             DebuggerQueryIdtRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
@@ -1148,6 +1150,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
+        case IOCTL_QUERY_IDT_ENTRY:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            DebuggerQueryIdtRequest = (PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the query of IDT entries (not from vmx-root)
+            //
+            ExtensionCommandPerformQueryIdtEntriesRequest(DebuggerQueryIdtRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         case IOCTL_SEND_USER_DEBUGGER_COMMANDS:
 
             //
@@ -1534,7 +1579,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PAGE_IN_REQUEST || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET || Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Err, invalid parameter to IOCTL dispatcher");
@@ -1550,15 +1595,15 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 break;
             }
 
-            DebuggerPageinRequest = (PDEBUGGER_PAGE_IN_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+            PcitreeRequest = (PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)Irp->AssociatedIrp.SystemBuffer;
 
             //
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place (it's in VMI-mode)
             //
-            DebuggerCommandBringPagein(DebuggerPageinRequest);
+            ExtensionCommandPcitree(PcitreeRequest, FALSE);
 
-            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PAGE_IN_REQUEST;
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
             Status                    = STATUS_SUCCESS;
 
             //

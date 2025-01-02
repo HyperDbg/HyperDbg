@@ -10,3 +10,6 @@
 [submodule "hyperdbg/tests/script-engine-test"]
 	path = hyperdbg/tests/script-engine-test
 	url = https://github.com/HyperDbg/script-engine-test.git
+[submodule "hyperdbg/miscellaneous/constants/pciid"]
+	path = hyperdbg/miscellaneous/constants/pciid
+	url = https://github.com/HyperDbg/pciids
