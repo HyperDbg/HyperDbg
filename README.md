@@ -114,6 +114,8 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Instant events in the Debugger Mode [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events" target="_blank">link</a>]
 * Detect kernel-to-user and user-to-kernel transitions [<a href="https://docs.hyperdbg.org/commands/extension-commands/mode" target="_blank">link</a>]
 * Physical memory monitoring hooks [<a href="https://docs.hyperdbg.org/commands/extension-commands/monitor" target="_blank">link</a>]
+* Enumerating PCI/PCI-e Devices [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>]
+* Dump IDT entries, I/O APIC, and Local APIC in XAPIC and X2APIC modes [<a href="https://docs.hyperdbg.org/commands/extension-commands/idt" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/ioapic" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/apic" target="_blank">link</a>]
 
 ## How does it work?
 
