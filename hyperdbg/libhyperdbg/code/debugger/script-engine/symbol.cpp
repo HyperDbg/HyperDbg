@@ -474,10 +474,9 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
                        UINT32                  UserProcessId,
                        BOOLEAN                 SendOverSerial)
 {
-    PRTL_PROCESS_MODULES            ModuleInfo;
-    NTSTATUS                        NtStatus;
     BOOLEAN                         Status;
     ULONG                           ReturnedLength;
+    PRTL_PROCESS_MODULES            ModuleInfo                                        = NULL;
     PMODULE_SYMBOL_DETAIL           ModuleSymDetailArray                              = NULL;
     char                            SystemRoot[MAX_PATH]                              = {0};
     char                            ModuleSymbolPath[MAX_PATH]                        = {0};
@@ -485,7 +484,6 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     char                            ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
     BOOLEAN                         IsSymbolPdbDetailAvailable                        = FALSE;
     BOOLEAN                         IsFreeUsermodeModulesBuffer                       = FALSE;
-    ULONG                           SysModuleInfoBufferSize                           = 0;
     UINT32                          ModuleDetailsSize                                 = 0;
     UINT32                          ModulesCount                                      = 0;
     PUSERMODE_LOADED_MODULE_DETAILS ModuleDetailsRequest                              = NULL;
@@ -528,37 +526,9 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //              Get kernel-mode modules information
     // *****************************************************************
     //
-
-    //
-    // Get required size of "RTL_PROCESS_MODULES" buffer
-    //
-    NtStatus = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
-
-    //
-    // Allocate memory for the module list
-    //
-    ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
-        NULL,
-        SysModuleInfoBufferSize,
-        MEM_COMMIT | MEM_RESERVE,
-        PAGE_READWRITE);
-
-    if (!ModuleInfo)
+    if (SymbolCheckAndAllocateModuleInformation(ModuleInfo))
     {
-        ShowMessages("err, unable to allocate memory for module list (%x)\n",
-                     GetLastError());
-        return FALSE;
-    }
-
-    if (!NT_SUCCESS(
-            NtStatus = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
-                                                ModuleInfo,
-                                                SysModuleInfoBufferSize,
-                                                NULL)))
-    {
-        ShowMessages("err, unable to query module list (%#x)\n", NtStatus);
-
-        VirtualFree(ModuleInfo, 0, MEM_RELEASE);
+        ShowMessages("err, unable to get module information\n");
         return FALSE;
     }
 
@@ -718,6 +688,8 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         {
             free(ModuleDetailsRequest);
         }
+
+        free(ModuleInfo);
         return FALSE;
     }
 
@@ -917,7 +889,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     *BufferToStoreDetails = ModuleSymDetailArray;
     *StoredLength         = (ModuleInfo->NumberOfModules + ModulesCount) * sizeof(MODULE_SYMBOL_DETAIL);
 
-    VirtualFree(ModuleInfo, 0, MEM_RELEASE);
+    free(ModuleInfo);
 
     if (IsFreeUsermodeModulesBuffer)
     {
@@ -1020,4 +992,56 @@ SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId)
     {
         return FALSE;
     }
+}
+
+/**
+ * @brief Check and allocate module information
+ * @details The caller should free the buffer
+ * @param Modules
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES Modules)
+{
+    NTSTATUS Status                  = STATUS_UNSUCCESSFUL;
+    ULONG    SysModuleInfoBufferSize = 0;
+
+    //
+    // Enable Debug privilege to the current token
+    //
+    if (!SetDebugPrivilege())
+    {
+        ShowMessages("err, couldn't set debug privilege\n");
+        return FALSE;
+    }
+
+    //
+    // Get required size of "RTL_PROCESS_MODULES" buffer
+    //
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+
+    Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
+
+    if (!NT_SUCCESS(Status) || Modules == NULL)
+    {
+        ShowMessages("err, unable to allocate memory for module list (%x)\n",
+                     GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Get the module list
+    //
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
+
+    if (!NT_SUCCESS(Status))
+    {
+        ShowMessages("err, unable to query module list (%x)\n", Status);
+        free(Modules);
+
+        return FALSE;
+    }
+
+    return TRUE;
 }

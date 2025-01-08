@@ -557,24 +557,14 @@ ShowErrorMessage(UINT32 Error)
 UINT64
 DebuggerGetNtoskrnlBase()
 {
-    NTSTATUS             Status                  = STATUS_UNSUCCESSFUL;
-    UINT64               NtoskrnlBase            = NULL;
-    PRTL_PROCESS_MODULES Modules                 = NULL;
-    ULONG                SysModuleInfoBufferSize = 0;
+    UINT64               NtoskrnlBase = NULL;
+    PRTL_PROCESS_MODULES Modules      = NULL;
 
-    //
-    // Get required size of "RTL_PROCESS_MODULES" buffer
-    //
-    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
-
-    Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
-
-    if (Modules == NULL)
+    if (SymbolCheckAndAllocateModuleInformation(Modules) == FALSE)
     {
+        ShowMessages("err, unable to get the module list for getting ntoskrnl base address\n");
         return NULL64_ZERO;
     }
-
-    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
     for (UINT32 i = 0; i < Modules->NumberOfModules; i++)
     {
