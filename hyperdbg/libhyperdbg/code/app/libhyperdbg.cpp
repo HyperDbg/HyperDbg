@@ -32,6 +32,7 @@ extern BOOLEAN    g_OutputSourcesInitialized;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN    g_IsDebuggerModulesLoaded;
 extern BOOLEAN    g_IsReversingMachineModulesLoaded;
+extern BOOLEAN    g_PrivilegesAlreadyAdjusted;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -504,6 +505,14 @@ SetDebugPrivilege()
     HANDLE Token;
 
     //
+    // Check if we already adjusted the privilege
+    //
+    if (g_PrivilegesAlreadyAdjusted)
+    {
+        return TRUE;
+    }
+
+    //
     // Enable Debug privilege
     //
     Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &Token);
@@ -519,6 +528,11 @@ SetDebugPrivilege()
         CloseHandle(Token);
         return FALSE;
     }
+
+    //
+    // Indicate that the privilege is already adjusted
+    //
+    g_PrivilegesAlreadyAdjusted = TRUE;
 
     CloseHandle(Token);
     return TRUE;

@@ -526,7 +526,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //              Get kernel-mode modules information
     // *****************************************************************
     //
-    if (SymbolCheckAndAllocateModuleInformation(&ModuleInfo))
+    if (SymbolCheckAndAllocateModuleInformation(&ModuleInfo) == FALSE)
     {
         ShowMessages("err, unable to get module information\n");
         return FALSE;
