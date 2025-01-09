@@ -560,7 +560,7 @@ DebuggerGetNtoskrnlBase()
     UINT64               NtoskrnlBase = NULL;
     PRTL_PROCESS_MODULES Modules      = NULL;
 
-    if (SymbolCheckAndAllocateModuleInformation(Modules) == FALSE)
+    if (SymbolCheckAndAllocateModuleInformation(&Modules) == FALSE)
     {
         ShowMessages("err, unable to get the module list for getting ntoskrnl base address\n");
         return NULL64_ZERO;

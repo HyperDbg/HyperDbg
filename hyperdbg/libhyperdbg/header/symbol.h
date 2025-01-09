@@ -73,4 +73,4 @@ BOOLEAN
 SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId);
 
 BOOLEAN
-SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES Modules);
+SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules);

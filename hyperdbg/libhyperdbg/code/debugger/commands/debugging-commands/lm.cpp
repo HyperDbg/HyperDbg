@@ -276,7 +276,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
     PRTL_PROCESS_MODULES ModulesInfo = NULL;
     string               SearchModuleString;
 
-    if (SymbolCheckAndAllocateModuleInformation(ModulesInfo) == FALSE)
+    if (SymbolCheckAndAllocateModuleInformation(&ModulesInfo) == FALSE)
     {
         ShowMessages("err, unable get modules information\n");
         return FALSE;

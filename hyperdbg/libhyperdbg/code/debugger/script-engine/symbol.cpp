@@ -526,7 +526,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //              Get kernel-mode modules information
     // *****************************************************************
     //
-    if (SymbolCheckAndAllocateModuleInformation(ModuleInfo))
+    if (SymbolCheckAndAllocateModuleInformation(&ModuleInfo))
     {
         ShowMessages("err, unable to get module information\n");
         return FALSE;
@@ -1002,7 +1002,7 @@ SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId)
  * @return BOOLEAN
  */
 BOOLEAN
-SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES Modules)
+SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules)
 {
     NTSTATUS Status                  = STATUS_UNSUCCESSFUL;
     ULONG    SysModuleInfoBufferSize = 0;
@@ -1021,9 +1021,14 @@ SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES Modules)
     //
     Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
 
-    Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
+    //
+    // print the size of the buffer
+    //
+    // ShowMessages("size of the buffer : %x\n", SysModuleInfoBufferSize);
 
-    if (!NT_SUCCESS(Status) || Modules == NULL)
+    *Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
+
+    if (*Modules == NULL)
     {
         ShowMessages("err, unable to allocate memory for module list (%x)\n",
                      GetLastError());
@@ -1033,12 +1038,12 @@ SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES Modules)
     //
     // Get the module list
     //
-    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
+    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, *Modules, SysModuleInfoBufferSize, NULL);
 
     if (!NT_SUCCESS(Status))
     {
         ShowMessages("err, unable to query module list (%x)\n", Status);
-        free(Modules);
+        free(*Modules);
 
         return FALSE;
     }
