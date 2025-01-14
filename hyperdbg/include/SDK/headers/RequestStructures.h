@@ -1398,3 +1398,28 @@ static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize
 
 /* ==============================================================================================
  */
+
+#define SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET \
+    sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET)
+
+/**
+ * @brief PCI device info Request-Response Packet, used by !pcicam and future PCI-related commands. Represents a PCI device.
+ *
+ */
+typedef struct _DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET
+{
+    UINT32 KernelStatus;
+    BOOL   PrintRaw;
+    PCI_EP Endpoint;
+
+} DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET;
+
+/**
+ * @brief check so the DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET");
+
+/* ==============================================================================================
+ */

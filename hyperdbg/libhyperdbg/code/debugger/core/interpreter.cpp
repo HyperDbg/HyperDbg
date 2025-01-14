@@ -1607,6 +1607,8 @@ InitializeCommandsDictionary()
     g_CommandsList["!pcitree"]  = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
     g_CommandsList["!pcietree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
 
+    g_CommandsList["!pcicam"] = {&CommandPcicam, &CommandPcicamHelp, DEBUGGER_COMMAND_PCICAM_ATTRIBUTES};
+
     //
     // hwdbg commands
     //

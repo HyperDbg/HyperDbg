@@ -10,6 +10,7 @@
  *
  */
 #pragma once
+#pragma pack(1)
 
 //////////////////////////////////////////////////
 //		        	  Headers                   //
@@ -113,44 +114,19 @@ typedef struct _PORTABLE_PCI_CONFIG_SPACE_HEADER
 {
     PORTABLE_PCI_COMMON_HEADER CommonHeader;
     PORTABLE_PCI_DEVICE_HEADER DeviceHeader;
-    // TODO: Add Device Private, Capabilities, Enhanced Capabilities
 } PORTABLE_PCI_CONFIG_SPACE_HEADER, *PPORTABLE_PCI_CONFIG_SPACE_HEADER;
 
 /**
- * @brief PCI Function Data Structure
+ * @brief PCI Endpoint Data Structure
  *
  */
-typedef struct _PCI_FUNCTION
+typedef struct _PCI_EP
 {
+    UINT8                            Bus : BUS_BIT_WIDTH;
+    UINT8                            Device : DEVICE_BIT_WIDTH;
     UINT8                            Function : FUNCTION_BIT_WIDTH;
     PORTABLE_PCI_CONFIG_SPACE_HEADER ConfigSpace;
-} PCI_FUNCTION, *PPCI_FUNCTION;
+    BYTE                             ConfigSpaceAdditional[CAM_CONFIG_SPACE_LENGTH - sizeof(PORTABLE_PCI_CONFIG_SPACE_HEADER)];
+} PCI_EP, *PPCI_EP;
 
-/**
- * @brief PCI Device Data Structure
- *
- */
-typedef struct _PCI_DEVICE
-{
-    UINT8        Device : DEVICE_BIT_WIDTH;
-    PCI_FUNCTION Function[FUNCTION_MAX_NUM];
-} PCI_DEVICE, *PPCI_DEVICE;
-
-/**
- * @brief PCI Bus Data Structure
- *
- */
-typedef struct _PCI_BUS
-{
-    UINT8      Bus : BUS_BIT_WIDTH;
-    PCI_DEVICE Device[DEVICE_MAX_NUM];
-} PCI_BUS, *PPCI_BUS;
-
-/**
- * @brief PCI Domain Data Structure
- *
- */
-typedef struct _PCI_DOMAIN
-{
-    PCI_BUS Bus[BUS_MAX_NUM];
-} PCI_DOMAIN, *PPCI_DOMAIN;
+#pragma pack()

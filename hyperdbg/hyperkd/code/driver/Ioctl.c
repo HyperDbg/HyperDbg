@@ -1569,6 +1569,45 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
+        case IOCTL_PCIDEVINFO_ENUM:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            PcitreeRequest = (PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place (it's in VMI-mode)
+            //
+            ExtensionCommandPcitree(PcitreeRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         default:
             LogError("Err, unknown IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;

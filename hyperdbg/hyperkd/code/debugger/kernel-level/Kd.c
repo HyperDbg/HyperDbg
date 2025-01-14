@@ -2323,6 +2323,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult           = {0};
     DEBUGGER_EVENT_AND_ACTION_RESULT                    DebuggerEventAndActionResult = {0};
     PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET           PcitreePacket                = {0};
+    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET        PcidevinfoPacket             = {0};
 
     while (TRUE)
     {
@@ -3110,6 +3111,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCITREE,
                                            (CHAR *)PcitreePacket,
                                            sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCIDEVINFO:
+
+                PcidevinfoPacket = (DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Retrieve PCI device info (CAM)
+                //
+                ExtensionCommandPcidevinfo(PcidevinfoPacket, TRUE);
+
+                //
+                // Send the result back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCIDEVINFO,
+                                           (CHAR *)PcidevinfoPacket,
+                                           sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET));
 
                 break;
 

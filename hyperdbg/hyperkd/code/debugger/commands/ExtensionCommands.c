@@ -724,3 +724,41 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
         PcitreePacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
     }
 }
+
+/**
+ * @brief Request PCI device info.
+ *
+ * @param PcidevinfoPacket
+ * @param OperateOnVmxRoot
+ *
+ * @return VOID
+ */
+VOID
+ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket, BOOLEAN OperateOnVmxRoot)
+{
+    DWORD DeviceIdVendorId = 0xFFFFFFFF;
+
+    //
+    // We currently don't use OperateOnVmxRoot, but we might in the future
+    //
+    UNREFERENCED_PARAMETER(OperateOnVmxRoot);
+
+    DeviceIdVendorId = (DWORD)PciReadCam(PcidevinfoPacket->Endpoint.Bus, PcidevinfoPacket->Endpoint.Device, PcidevinfoPacket->Endpoint.Function, 0, 4);
+    if (DeviceIdVendorId != 0xFFFFFFFF)
+    {
+        DWORD * cs = (DWORD *)&PcidevinfoPacket->Endpoint.ConfigSpace; // Overflows into .ConfigSpaceAdditional - no padding due to pack(0)
+        for (UINT16 i = 0; i < CAM_CONFIG_SPACE_LENGTH; i += 4)
+        {
+            *cs = (DWORD)PciReadCam(PcidevinfoPacket->Endpoint.Bus, PcidevinfoPacket->Endpoint.Device, PcidevinfoPacket->Endpoint.Function, (BYTE)i, 4);
+            cs++;
+        }
+
+        PcidevinfoPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.DeviceId = 0xFFFF;
+        PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.VendorId = 0xFFFF;
+        PcidevinfoPacket->KernelStatus                               = DEBUGGER_ERROR_INVALID_ADDRESS;
+    }
+}

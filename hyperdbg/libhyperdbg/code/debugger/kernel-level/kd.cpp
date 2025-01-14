@@ -3427,3 +3427,32 @@ KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeP
 
     return TRUE;
 }
+
+/**
+ * @brief Request PCI device info (CAM). Current consumers include '!pcicam'.
+ * @param PciepinfoPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PciepinfoPacket)
+{
+    //
+    // Send Pciepinfo packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PCIDEVINFO,
+            (CHAR *)PciepinfoPacket,
+            sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of Pcitree packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
+
+    return TRUE;
+}

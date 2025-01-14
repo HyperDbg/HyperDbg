@@ -43,39 +43,40 @@ extern UINT64                           g_KernelBaseAddress;
 BOOLEAN
 ListeningSerialPortInDebugger()
 {
-    PDEBUGGER_PREPARE_DEBUGGEE                  InitPacket;
-    PDEBUGGER_REMOTE_PACKET                     TheActualPacket;
-    PDEBUGGEE_KD_PAUSED_PACKET                  PausePacket;
-    PDEBUGGEE_MESSAGE_PACKET                    MessagePacket;
-    PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
-    PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
-    PDEBUGGEE_FORMATS_PACKET                    FormatsPacket;
-    PDEBUGGER_EVENT_AND_ACTION_RESULT           EventAndActionPacket;
-    PDEBUGGER_UPDATE_SYMBOL_TABLE               SymbolUpdatePacket;
-    PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
-    PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
-    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
-    PDEBUGGEE_RESULT_OF_SEARCH_PACKET           SearchResultsPacket;
-    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
-    PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
-    PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
-    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
-    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
-    PDEBUGGER_APIC_REQUEST                      ApicRequestPacket;
-    PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
-    PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
-    PDEBUGGEE_BP_PACKET                         BpPacket;
-    PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
-    PDEBUGGER_PAGE_IN_REQUEST                   PageinPacket;
-    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
-    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
-    BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
-    PVOID                                       CallerAddress                 = NULL;
-    UINT32                                      CallerSize                    = NULL_ZERO;
-    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET   PcitreePacket;
+    PDEBUGGER_PREPARE_DEBUGGEE                   InitPacket;
+    PDEBUGGER_REMOTE_PACKET                      TheActualPacket;
+    PDEBUGGEE_KD_PAUSED_PACKET                   PausePacket;
+    PDEBUGGEE_MESSAGE_PACKET                     MessagePacket;
+    PDEBUGGEE_CHANGE_CORE_PACKET                 ChangeCorePacket;
+    PDEBUGGEE_SCRIPT_PACKET                      ScriptPacket;
+    PDEBUGGEE_FORMATS_PACKET                     FormatsPacket;
+    PDEBUGGER_EVENT_AND_ACTION_RESULT            EventAndActionPacket;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE                SymbolUpdatePacket;
+    PDEBUGGER_MODIFY_EVENTS                      EventModifyAndQueryPacket;
+    PDEBUGGEE_SYMBOL_UPDATE_RESULT               SymbolReloadFinishedPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET  ChangeProcessPacket;
+    PDEBUGGEE_RESULT_OF_SEARCH_PACKET            SearchResultsPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET   ChangeThreadPacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS              FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                  CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME             CallstackFramePacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER         TestQueryPacket;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION          ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION         WriteRegisterPacket;
+    PDEBUGGER_APIC_REQUEST                       ApicRequestPacket;
+    PDEBUGGER_READ_MEMORY                        ReadMemoryPacket;
+    PDEBUGGER_EDIT_MEMORY                        EditMemoryPacket;
+    PDEBUGGEE_BP_PACKET                          BpPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT             ShortCircuitingPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    PtePacket;
+    PDEBUGGER_PAGE_IN_REQUEST                    PageinPacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           Va2paPa2vaPacket;
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET           ListOrModifyBreakpointPacket;
+    BOOLEAN                                      ShowSignatureWhenDisconnected = FALSE;
+    PVOID                                        CallerAddress                 = NULL;
+    UINT32                                       CallerSize                    = NULL_ZERO;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET    PcitreePacket;
+    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket;
 
 StartAgain:
 
@@ -1099,6 +1100,100 @@ StartAgain:
             // Signal the event relating to receiving result of pcitree query
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PCIDEVINFO:
+
+            PcidevinfoPacket = (DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (PcidevinfoPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                ShowMessages("PCI configuration space (CAM) for device %04x:%02x:%02x:%x\n",
+                             0, // TODO: Add support for domains beyond 0000
+                             PcidevinfoPacket->Endpoint.Bus,
+                             PcidevinfoPacket->Endpoint.Device,
+                             PcidevinfoPacket->Endpoint.Function);
+
+                if (!PcidevinfoPacket->PrintRaw)
+                {
+                    Vendor * CurrentVendor     = GetVendorById(PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.VendorId);
+                    CHAR *   CurrentVendorName = (CHAR *)"N/A";
+                    CHAR *   CurrentDeviceName = (CHAR *)"N/A";
+
+                    if (CurrentVendor != NULL)
+                    {
+                        CurrentVendorName      = CurrentVendor->VendorName;
+                        Device * CurrentDevice = GetDeviceFromVendor(CurrentVendor, PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.DeviceId);
+
+                        if (CurrentDevice != NULL)
+                        {
+                            CurrentDeviceName = CurrentDevice->DeviceName;
+                        }
+                    }
+
+                    ShowMessages("Configuration Space\nVID:DID: %04x:%04x\nVendor Name: %-17.*s\nDevice Name: %.*s\n",
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.VendorId,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.DeviceId,
+                                 strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
+                                 CurrentVendorName,
+                                 strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
+                                 CurrentDeviceName);
+
+                    ShowMessages("Command: %04x\nStatus: %04x\nRevision ID: %02x\nClass Code: %06x\nCacheLineSize: %02x\nPrimaryLatencyTimer: %02x\nHeaderType: %02x\nBist: %02x\n",
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.Command,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.Status,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.RevisionId,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.ClassCode,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.CacheLineSize,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.PrimaryLatencyTimer,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.HeaderType,
+                                 PcidevinfoPacket->Endpoint.ConfigSpace.CommonHeader.Bist);
+                    FreeVendor(CurrentVendor);
+                    FreePciIdDatabase();
+                }
+                else
+                {
+                    DWORD * cs = (DWORD *)&PcidevinfoPacket->Endpoint.ConfigSpace; // Overflows into .ConfigSpaceAdditional - no padding due to pack(0)
+
+                    ShowMessages("    00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
+
+                    for (UINT16 i = 0; i < CAM_CONFIG_SPACE_LENGTH; i += 16)
+                    {
+                        ShowMessages("%02x: ", i);
+                        for (UINT8 j = 0; j < 16; j++)
+                        {
+                            ShowMessages("%02x ", *(((BYTE *)cs) + j));
+                        }
+
+                        // Print ASCII representation
+                        // Replace non-printable characters with "."
+                        for (UINT8 j = 0; j < 16; j++)
+                        {
+                            char c = (char)*(cs + j);
+                            if (c >= 32 && c <= 126)
+                            {
+                                ShowMessages("%c", c);
+                            }
+                            else
+                            {
+                                ShowMessages(".");
+                            }
+                        }
+                        ShowMessages("\n");
+                        cs += 4;
+                    }
+                }
+            }
+            else
+            {
+                ShowErrorMessage(PcidevinfoPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of pcitree query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
 
             break;
 
