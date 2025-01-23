@@ -1458,3 +1458,98 @@ HvPreventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     VCpu->EnableExternalInterruptsOnContinueMtf = TRUE;
 }
+
+/**
+ * @brief Get the guest state of pending debug exceptions
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetPendingDebugExceptions()
+{
+    UINT64 Value;
+    VmxVmread64P(VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS, &Value);
+    
+    return Value;
+}
+
+/**
+ * @brief Set the guest state of pending debug exceptions
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetPendingDebugExceptions(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS, Value);
+}
+
+/**
+ * @brief Get the guest state of IA32_DEBUGCTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetDebugctl()
+{
+    UINT32 LowPart;
+    UINT32 HighPart;
+
+    VmxVmread32P(VMCS_GUEST_DEBUGCTL, &LowPart);
+    VmxVmread32P(VMCS_GUEST_DEBUGCTL_HIGH, &HighPart);
+
+    return (UINT64)HighPart << 32 | LowPart;
+}
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugctl(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+}
+
+/**
+ * @brief Handle the case when the trap flag is set, and
+ * we need to inject the single-step exception right
+ * after vm-entry
+ *
+ * @return VOID
+ */
+VOID
+HvHandleTrapFlag()
+{
+    IA32_DEBUGCTL_REGISTER       Debugctl    = {.AsUInt = HvGetDebugctl()};
+    RFLAGS                       GuestRFlags = {.AsUInt = GetGuestRFlags()};
+    VMX_PENDING_DEBUG_EXCEPTIONS PendingDebugExceptions;
+    VMX_INTERRUPTIBILITY_STATE   InterruptibilityState;
+
+    //
+    // The btf flag means that the trap flag generates the single-step exception
+    // only for branch instructions
+    //
+    if (GuestRFlags.TrapFlag && !Debugctl.Btf)
+    {
+        PendingDebugExceptions.AsUInt = HvGetPendingDebugExceptions();
+        PendingDebugExceptions.Bs     = 1;
+        HvSetPendingDebugExceptions(PendingDebugExceptions.AsUInt);
+
+        InterruptibilityState.AsUInt = (UINT32)HvGetInterruptibilityState();
+
+        //
+        // We also must clear this flag in case of instruction emulation to achieve
+        // correctness of the single-step exception
+        //
+        if (InterruptibilityState.BlockingByMovSs)
+        {
+            InterruptibilityState.BlockingByMovSs = 0;
+            HvSetInterruptibilityState(InterruptibilityState.AsUInt);
+        }
+    }
+}
