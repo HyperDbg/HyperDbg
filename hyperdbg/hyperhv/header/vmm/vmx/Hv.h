@@ -430,3 +430,47 @@ HvEnableMtfAndChangeExternalInterruptState(VIRTUAL_MACHINE_STATE * VCpu);
  */
 VOID
 HvPreventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
+ * @brief Get the guest state of pending debug exceptions
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetPendingDebugExceptions();
+
+/**
+ * @brief Set the guest state of pending debug exceptions
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetPendingDebugExceptions(UINT64 Value);
+
+/**
+ * @brief Get the guest state of IA32_DEBUGCTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetDebugctl();
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugctl(UINT64 Value);
+
+/**
+ * @brief Handle the case when the trap flag is set, and
+ * we need to inject the single-step exception right
+ * after vm-entry
+ *
+ * @return VOID
+ */
+VOID
+HvHandleTrapFlag();

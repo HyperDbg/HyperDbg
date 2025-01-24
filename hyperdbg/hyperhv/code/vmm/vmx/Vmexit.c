@@ -337,6 +337,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     if (!VCpu->VmxoffState.IsVmxoffExecuted && VCpu->IncrementRip)
     {
+        //
+        // If RIP is incremented, then we emulate an instruction, and then
+        // we need to handle the trap flag if it is set in a guest
+        //
+        HvHandleTrapFlag();
         HvResumeToNextInstruction();
     }
 
