@@ -1647,18 +1647,18 @@ DebuggerPerformRunScript(PROCESSOR_DEBUGGING_STATE *        DbgState,
                                 &i,
                                 &ErrorSymbol) == TRUE)
         {
-            LogInfo("err, ScriptEngineExecute, function = % s\n ",
+            LogInfo("Err, ScriptEngineExecute, function = % s\n ",
                     FunctionNames[ErrorSymbol.Value]);
             break;
         }
         else if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
         {
-            LogInfo("err, stack buffer overflow\n");
+            LogInfo("Err, stack buffer overflow (more information: https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations)\n");
             break;
         }
         else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
         {
-            LogInfo("err, exceeding the max execution count\n");
+            LogInfo("Err, exceeding the max execution count (more information: https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations)\n");
             break;
         }
 

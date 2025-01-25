@@ -259,7 +259,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Check whether we are allowed to change the registers
         // and emulate rdtsc or not
-        // Note : Using !tsc command in transparent-mode is not allowed
         //
         DispatchEventTsc(VCpu, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
 

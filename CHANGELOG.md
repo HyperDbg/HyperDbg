@@ -8,12 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- Add mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
-- Export the SDK functions for enabling and disabling transparent mode
+- Added mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
+- Export the SDK functions for enabling and disabling transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide#sdk))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide#sdk))
+- New description of changing script engine constants ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations))
 
 ### Changed
-- Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Win 11 24h2
-- Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
+- Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Windows 11 24h2 ([link](https://docs.hyperdbg.org/commands/debugging-commands/lm))
+- Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/measure))
+- Changed the parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
+- Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
 
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.

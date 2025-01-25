@@ -563,8 +563,14 @@ const unsigned char BuildSignature[] = {
 #    define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 #endif // !HIBYTE
 
+/**
+ * @brief Maximum number of stack buffer count in the script engine
+ */
 #define MAX_STACK_BUFFER_COUNT 256
 
+/**
+ * @brief Maximum number of variables that can be used in the script engine
+ */
 #define MAX_EXECUTION_COUNT 1000000
 
 // TODO: Extract number of variables from input of ScriptEngine
