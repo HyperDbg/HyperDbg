@@ -405,16 +405,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerHideAndUnhideRequest = (PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Here we should validate whether the input parameter is
-            // valid or in other words whether we received enough space or not
-            //
-            if (DebuggerHideAndUnhideRequest->TrueIfProcessIdAndFalseIfProcessName == FALSE && IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE + DebuggerHideAndUnhideRequest->LengthOfProcessName)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            //
             // check if it's a !hide or !unhide command
             //
             if (DebuggerHideAndUnhideRequest->IsHide == TRUE)
@@ -422,42 +412,21 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // It's a hide request
                 //
-                Status = TransparentHideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentHideDebugger(DebuggerHideAndUnhideRequest);
             }
             else
             {
                 //
                 // It's a unhide request
                 //
-                Status = TransparentUnhideDebugger();
-            }
-
-            if (Status == STATUS_SUCCESS)
-            {
-                //
-                // Set the status
-                //
-                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-            }
-            else
-            {
-                //
-                // Set the status
-                //
-                if (DebuggerHideAndUnhideRequest->IsHide)
-                {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-                }
-                else
-                {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE;
-                }
+                TransparentUnhideDebugger(DebuggerHideAndUnhideRequest);
             }
 
             //
             // Set size
             //
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
+            Status                    = STATUS_SUCCESS;
 
             //
             // Avoid zeroing it

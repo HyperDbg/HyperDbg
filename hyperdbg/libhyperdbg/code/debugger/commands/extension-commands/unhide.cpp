@@ -19,7 +19,7 @@
 VOID
 CommandUnhideHelp()
 {
-    ShowMessages("!unhide : reverts the transparency measures of the '!hide' command.\n\n");
+    ShowMessages("!unhide : reverts the transparency measures of the '!hide' command and exits the transparent mode.\n\n");
 
     ShowMessages("syntax : \t!unhide\n");
 
@@ -87,13 +87,8 @@ CommandUnhide(vector<CommandToken> CommandTokens, string Command)
     {
         ShowMessages("transparent debugging successfully disabled :)\n");
     }
-    else if (UnhideRequest.KernelStatus ==
-             DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE)
-    {
-        ShowMessages("debugger is not in transparent-mode\n");
-    }
     else
     {
-        ShowMessages("unknown error occurred :(\n");
+        ShowErrorMessage(UnhideRequest.KernelStatus);
     }
 }

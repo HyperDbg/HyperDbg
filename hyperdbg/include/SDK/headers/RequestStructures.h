@@ -550,20 +550,19 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
 {
     BOOLEAN IsHide;
 
-    UINT64 CpuidAverage;
-    UINT64 CpuidStandardDeviation;
-    UINT64 CpuidMedian;
+    // UINT64 CpuidAverage;
+    // UINT64 CpuidStandardDeviation;
+    // UINT64 CpuidMedian;
 
-    UINT64 RdtscAverage;
-    UINT64 RdtscStandardDeviation;
-    UINT64 RdtscMedian;
+    // UINT64 RdtscAverage;
+    // UINT64 RdtscStandardDeviation;
+    // UINT64 RdtscMedian;
 
-    BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
-    UINT32  ProcId;
-    UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
-                                 // shows the length of xxx
+    // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
+    // UINT32  ProcId;
+    // UINT32  LengthOfProcessName;
 
-    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
+    UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
