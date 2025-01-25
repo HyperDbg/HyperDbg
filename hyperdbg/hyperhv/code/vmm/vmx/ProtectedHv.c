@@ -304,17 +304,6 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
         {
             return;
         }
-
-        //
-        // Check if transparent mode is enabled
-        //
-        if (g_TransparentMode)
-        {
-            //
-            // We should ignore it as we want this bit on transparent mode
-            //
-            return;
-        }
     }
 
     //

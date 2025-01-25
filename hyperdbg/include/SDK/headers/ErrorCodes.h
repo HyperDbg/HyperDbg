@@ -90,7 +90,7 @@
  * @brief error, the debugger is already in transparent-mode
  *
  */
-#define DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE 0xc000000a
+#define DEBUGGER_ERROR_DEBUGGER_ALREADY_HIDE 0xc000000a
 
 /**
  * @brief error, invalid parameters in !e* e* commands
@@ -544,6 +544,12 @@
  *
  */
 #define DEBUGGER_ERROR_APIC_ACTIONS_ERROR 0xc0000053
+
+/**
+ * @brief error, debugger is already not in the transparent-mode
+ *
+ */
+#define DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE 0xc0000054
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

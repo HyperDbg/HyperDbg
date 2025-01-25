@@ -761,3 +761,25 @@ hwdbg_script_engine_wrapper_test_parser(const char * Expr)
     std::string StrExpr = Expr; // Convert const char* to std::string
     ScriptEngineWrapperTestParserForHwdbg(StrExpr);
 }
+
+/**
+ * @brief Enable transparent mode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_enable_transparent_mode()
+{
+    return HyperDbgEnableTransparentMode();
+}
+
+/**
+ * @brief Disable transparent mode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_disable_transparent_mode()
+{
+    return HyperDbgDisableTransparentMode();
+}

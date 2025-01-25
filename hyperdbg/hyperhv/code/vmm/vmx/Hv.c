@@ -473,7 +473,6 @@ HvRestoreRegisters()
     UINT16 SsSelector;
     UINT16 FsSelector;
 
-
     //
     // Restore FS Base
     //
@@ -1469,7 +1468,7 @@ HvGetPendingDebugExceptions()
 {
     UINT64 Value;
     VmxVmread64P(VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS, &Value);
-    
+
     return Value;
 }
 

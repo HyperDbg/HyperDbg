@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- 
+- Add mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
+- Export the SDK functions for enabling and disabling transparent mode
 
 ### Changed
 - Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Win 11 24h2
+- Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
 
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.

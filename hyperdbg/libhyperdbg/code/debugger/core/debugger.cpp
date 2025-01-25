@@ -88,12 +88,12 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
-        ShowMessages("err, unable to hide or unhide debugger (%x)\n",
+        ShowMessages("err, unable to hide or unhide debugger and entr the transparent mode (%x)\n",
                      Error);
         break;
 
-    case DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE:
-        ShowMessages("err, debugger already unhide (%x)\n",
+    case DEBUGGER_ERROR_DEBUGGER_ALREADY_HIDE:
+        ShowMessages("err, debugger already hidden in the transparent mode (%x)\n",
                      Error);
         break;
 
@@ -536,6 +536,11 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_APIC_ACTIONS_ERROR:
         ShowMessages("err, could not perform APIC actions (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE:
+        ShowMessages("err, debugger was not in the hidden transparent-mode (%x)\n",
                      Error);
         break;
 
