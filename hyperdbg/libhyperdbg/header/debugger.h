@@ -299,3 +299,9 @@ HyperDbgGetIoApic(IO_APIC_ENTRY_PACKETS * IoApic);
 
 BOOLEAN
 HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket);
+
+BOOLEAN
+HyperDbgEnableTransparentMode();
+
+BOOLEAN
+HyperDbgDisableTransparentMode();
