@@ -350,21 +350,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
 
     //
-    // Restore the previous time
-    //
-    if (g_TransparentMode)
-    {
-        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID)
-        {
-            //
-            // We not wanna change the global timer while RDTSC and RDTSCP
-            // was the reason of vm-exit
-            //
-            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
-        }
-    }
-
-    //
     // Set indicator of Vmx non root mode to false
     //
     VCpu->IsOnVmxRootMode = FALSE;
