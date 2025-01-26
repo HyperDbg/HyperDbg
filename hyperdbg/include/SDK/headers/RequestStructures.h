@@ -1383,9 +1383,9 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
  */
 typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 {
-    UINT32         KernelStatus;
-    UINT8          EndpointsTotalNum;
-    PCI_EP_MINIMAL Endpoints[EP_MAX_NUM];
+    UINT32          KernelStatus;
+    UINT8           DeviceInfoListNum;
+    PCI_DEV_MINIMAL DeviceInfoList[DEV_MAX_NUM];
 
 } DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 
@@ -1408,9 +1408,9 @@ static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize
  */
 typedef struct _DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET
 {
-    UINT32 KernelStatus;
-    BOOL   PrintRaw;
-    PCI_EP Endpoint;
+    UINT32  KernelStatus;
+    BOOL    PrintRaw;
+    PCI_DEV DeviceInfo;
 
 } DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET;
 

@@ -943,3 +943,6 @@ BroadcastDisableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM QWORD
 PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);
+
+IMPORT_EXPORT_VMM BOOLEAN
+PciWriteCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width, QWORD Value);

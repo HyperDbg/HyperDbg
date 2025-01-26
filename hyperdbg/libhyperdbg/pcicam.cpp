@@ -51,6 +51,8 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
     UINT32                                      TargetDevice     = 0;
     UINT32                                      TargetFunction   = 0;
 
+    const char * PciHeaderTypes[] = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+
     if (CommandTokens.size() < 4 || CommandTokens.size() > 5)
     {
         ShowMessages("Incorrect use of '%s'\n\n",
@@ -68,7 +70,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
             CommandPcicamHelp();
             return;
         }
-        PcidevinfoPacket.Endpoint.Bus = (UINT8)TargetBus;
+        PcidevinfoPacket.DeviceInfo.Bus = (UINT8)TargetBus;
     }
 
     if (ConvertTokenToUInt32(CommandTokens.at(2), &TargetDevice))
@@ -80,7 +82,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
             CommandPcicamHelp();
             return;
         }
-        PcidevinfoPacket.Endpoint.Device = (UINT8)TargetDevice;
+        PcidevinfoPacket.DeviceInfo.Device = (UINT8)TargetDevice;
     }
 
     if (ConvertTokenToUInt32(CommandTokens.at(3), &TargetFunction))
@@ -92,7 +94,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
             CommandPcicamHelp();
             return;
         }
-        PcidevinfoPacket.Endpoint.Function = (UINT8)TargetFunction;
+        PcidevinfoPacket.DeviceInfo.Function = (UINT8)TargetFunction;
     }
 
     if (CommandTokens.size() == 5)
@@ -144,22 +146,30 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 
         if (PcidevinfoPacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
+            // For some reason, MSVC refuses to initialize these at top of case
+            const char * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+            const char * PciMmioBarTypeAsString[] = {"32-bit Wide",
+                                                     "Reserved",
+                                                     "64-bit Wide",
+                                                     "Reserved"};
+            UINT8        BarNumOffset             = 0;
+
             ShowMessages("PCI configuration space (CAM) for device %04x:%02x:%02x:%x\n",
                          0, // TODO: Add support for domains beyond 0000
-                         PcidevinfoPacket.Endpoint.Bus,
-                         PcidevinfoPacket.Endpoint.Device,
-                         PcidevinfoPacket.Endpoint.Function);
+                         PcidevinfoPacket.DeviceInfo.Bus,
+                         PcidevinfoPacket.DeviceInfo.Device,
+                         PcidevinfoPacket.DeviceInfo.Function);
 
             if (!PcidevinfoPacket.PrintRaw)
             {
-                Vendor * CurrentVendor     = GetVendorById(PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.VendorId);
+                Vendor * CurrentVendor     = GetVendorById(PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.VendorId);
                 CHAR *   CurrentVendorName = (CHAR *)"N/A";
                 CHAR *   CurrentDeviceName = (CHAR *)"N/A";
 
                 if (CurrentVendor != NULL)
                 {
                     CurrentVendorName      = CurrentVendor->VendorName;
-                    Device * CurrentDevice = GetDeviceFromVendor(CurrentVendor, PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.DeviceId);
+                    Device * CurrentDevice = GetDeviceFromVendor(CurrentVendor, PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.DeviceId);
 
                     if (CurrentDevice != NULL)
                     {
@@ -167,29 +177,148 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                     }
                 }
 
-                ShowMessages("Configuration Space\nVID:DID: %04x:%04x\nVendor Name: %-17.*s\nDevice Name: %.*s\n",
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.VendorId,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.DeviceId,
+                ShowMessages("\nCommon Header:\nVID:DID: %04x:%04x\nVendor Name: %-17.*s\nDevice Name: %.*s\nCommand: %04x\n",
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.VendorId,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.DeviceId,
                              strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
                              CurrentVendorName,
                              strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
-                             CurrentDeviceName);
+                             CurrentDeviceName,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command);
 
-                ShowMessages("Command: %04x\nStatus: %04x\nRevision ID: %02x\nClass Code: %06x\nCacheLineSize: %02x\nPrimaryLatencyTimer: %02x\nHeaderType: %02x\nBist: %02x\n",
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.Command,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.Status,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.RevisionId,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.ClassCode,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.CacheLineSize,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.PrimaryLatencyTimer,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.HeaderType,
-                             PcidevinfoPacket.Endpoint.ConfigSpace.CommonHeader.Bist);
+                if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x01) << 7 == 0) // Only applicable to endpoints
+                {
+                    ShowMessages("  Memory Space: %u\n  I/O Space: %u\n",
+                                 (PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command & 0x2) >> 1,
+                                 (PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command & 0x1));
+                }
+
+                ShowMessages("Status: %04x\nRevision ID: %02x\nClass Code: %06x\nCacheLineSize: %02x\nPrimaryLatencyTimer: %02x\nHeaderType: %s (%02x)\n  Multi-function Device: %s\nBist: %02x\n",
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Status,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.RevisionId,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.ClassCode,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.CacheLineSize,
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.PrimaryLatencyTimer,
+                             (PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x3f) < 2 ? PciHeaderTypeAsString[(PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x1)] : "Unknown",
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType,
+                             (PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x1) ? "True" : "False",
+                             PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Bist);
                 FreeVendor(CurrentVendor);
                 FreePciIdDatabase();
+
+                ShowMessages("\nDevice Header:\n");
+
+                if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x01) << 7 == 0) // Endpoint
+                {
+                    for (UINT8 i = 0; i < 5; i++)
+                    {
+                        // Memory I/O
+                        if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x1) == 0)
+                        {
+                            // 64-bit BAR
+                            if (((PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1) == 2)
+                            {
+                                UINT64 BarMsb    = PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i + 1];
+                                UINT64 BarLsb    = PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i];
+                                UINT64 ActualBar = ((BarMsb & 0xFFFFFFFF) << 32) + (BarLsb & 0xFFFFFFF0);
+
+                                ShowMessages("BAR%u %s\n BAR Type: MMIO\n MMIO BAR Type: %s (%02x)\n BAR MSB: %08x\n BAR LSB: %08x\n BAR (actual): %016llx\n Prefetchable: %s\n",
+                                             i - BarNumOffset,
+                                             ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command & 0x2) >> 1 == 0) || !PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].IsEnabled ? "[disabled]" : "",
+                                             PciMmioBarTypeAsString[(PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1],
+                                             (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1,
+                                             BarMsb,
+                                             BarLsb,
+                                             ActualBar,
+                                             (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x8 >> 3) ? "True" : "False");
+
+                                ShowMessages(" Addressable range: 0-%016llx\n Size: %u\n", PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarSize);
+
+                                i++;
+                                BarNumOffset++;
+                            }
+                            // 32-bit BAR
+                            else
+                            {
+                                UINT32 ActualBar = (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFF0);
+
+                                ShowMessages("BAR%u %s\n BAR Type: MMIO\n BAR: %08x\n BAR (actual): %08x\n Prefetchable: %s\n",
+                                             i - BarNumOffset,
+                                             ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command & 0x2) >> 1 == 0) || !PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].IsEnabled ? "[disabled]" : "",
+                                             PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i],
+                                             ActualBar,
+                                             (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x8 >> 3) ? "True" : "False");
+
+                                ShowMessages(" Addressable range: 0-%08x\n Size: %u\n", PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarSize);
+                            }
+                        }
+                        // Port I/O
+                        else
+                        {
+                            // 32-bit BAR is the only flavor we have here
+                            UINT32 ActualBar32 = PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFFC;
+
+                            ShowMessages("BAR%u %s\n BAR Type: Port IO\n BAR: %08x\n BAR (actual): %08x\n Reserved: %u\n",
+                                         i - BarNumOffset,
+                                         ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.Command & 0x1) == 0) ? "[disabled]" : "",
+                                         PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i],
+                                         ActualBar32,
+                                         (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x2) >> 1);
+                        }
+                    }
+
+                    ShowMessages("Cardbus CIS Pointer: %08x\nSubsystem Vendor ID: %04x\nSubsystem ID: %04x\nROM BAR: %08x\nCapabilities Pointer: %02x\nReserved (0xD): %06x\nReserved (0xE): %08x\nInterrupt Line: %02x\nInterrupt Pin: %02x\nMin Grant: %02x\nMax latency: %02x\n",
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.CardBusCISPtr,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.SubVendorId,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.SubSystemId,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.ROMBar,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.CapabilitiesPtr,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Reserved,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Reserved1,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.InterruptLine,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.InterruptPin,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.MinGnt,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.MaxLat);
+                }
+                else if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x3f) == 1) // PCI-to-PCI Bridge
+                {
+                    ShowMessages("BAR0: %08x\nBAR1: %08x\n", PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.Bar[0], PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.Bar[1]);
+
+                    ShowMessages("Primary Bus Number: %02x\nSecondary Bus Number: %02x\nSubordinate Bus Number: %02x\nSecondary Latency Timer: %02x\nI/O Base: %02x\nI/O Limit: %02x\nSecondary Status: %04x\nMemory Base: %04x\nMemory Limit: %04x\nPrefetchable Memory Base: %04x\nPrefetchable Memory Limit: %04x\nPrefetchable Base Upper 32 Bits: %08x\nPrefetchable Limit Upper 32 Bits: %08x\nI/O Base Upper 16 Bits: %04x\nI/O Limit Upper 16 Bits: %04x\nCapability Pointer: %02x\nReserved: %06x\nROM BAR: %08x\nInterrupt Line: %02x\nInterrupt Pin: %02x\nBridge Control: %04x\n",
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.PrimaryBusNumber,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.SecondaryBusNumber,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.SubordinateBusNumber,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.SecondaryLatencyTimer,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.IoBase,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.IoLimit,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.SecondaryStatus,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.MemoryBase,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.MemoryLimit,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.PrefetchableMemoryBase,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.PrefetchableMemoryLimit,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.PrefetchableBaseUpper32b,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.PrefetchableLimitUpper32b,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.IoLimitUpper16b,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.IoBaseUpper16b,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.CapabilityPtr,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.Reserved,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.ROMBar,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.InterruptLine,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.InterruptPin,
+                                 PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpacePtpBridge.BridgeControl);
+                }
+                else if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x3f) == 2) // PCI-to-CardBus Bridge
+                {
+                    ShowMessages("Parsing header type %s (%02x) currently unsupported\n", PciHeaderTypeAsString[PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x01], PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x01);
+                }
+                else
+                {
+                    ShowMessages("\nDevice Header:\nUnknown header type %02x\n", (PcidevinfoPacket.DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x3f));
+                }
             }
             else
             {
-                DWORD * cs = (DWORD *)&PcidevinfoPacket.Endpoint.ConfigSpace; // Overflows into .ConfigSpaceAdditional - no padding due to pack(0)
+                UINT32 * cs = (UINT32 *)&PcidevinfoPacket.DeviceInfo.ConfigSpace; // Overflows into .ConfigSpaceAdditional - no padding due to pack(0)
 
                 ShowMessages("    00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
 
