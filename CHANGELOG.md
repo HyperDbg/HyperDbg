@@ -17,6 +17,7 @@ New release of the HyperDbg Debugger.
 - Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/measure))
 - Changed the parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
 - Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
+- Fix containing backslash escape character in script strings ([link](https://github.com/HyperDbg/HyperDbg/pull/499))
 
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.
