@@ -146,7 +146,9 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 
         if (PcidevinfoPacket.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
+            //
             // For some reason, MSVC refuses to initialize these at top of case
+            //
             const char * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
             const char * PciMmioBarTypeAsString[] = {"32-bit Wide",
                                                      "Reserved",
@@ -212,10 +214,14 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                 {
                     for (UINT8 i = 0; i < 5; i++)
                     {
+                        //
                         // Memory I/O
+                        //
                         if ((PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x1) == 0)
                         {
+                            //
                             // 64-bit BAR
+                            //
                             if (((PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1) == 2)
                             {
                                 UINT64 BarMsb    = PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i + 1];
@@ -237,7 +243,9 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                                 i++;
                                 BarNumOffset++;
                             }
+                            //
                             // 32-bit BAR
+                            //
                             else
                             {
                                 UINT32 ActualBar = (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFF0);
@@ -252,10 +260,14 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                                 ShowMessages(" Addressable range: 0-%08x\n Size: %u\n", PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarSize);
                             }
                         }
+                        //
                         // Port I/O
+                        //
                         else
                         {
+                            //
                             // 32-bit BAR is the only flavor we have here
+                            //
                             UINT32 ActualBar32 = PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFFC;
 
                             ShowMessages("BAR%u %s\n BAR Type: Port IO\n BAR: %08x\n BAR (actual): %08x\n Reserved: %u\n",
@@ -330,8 +342,10 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                         ShowMessages("%02x ", *(((BYTE *)cs) + j));
                     }
 
+                    //
                     // Print ASCII representation
                     // Replace non-printable characters with "."
+                    //
                     for (UINT8 j = 0; j < 16; j++)
                     {
                         char c = (char)*(cs + j);
