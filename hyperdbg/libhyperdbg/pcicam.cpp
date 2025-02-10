@@ -29,8 +29,8 @@ CommandPcicamHelp()
     ShowMessages("syntax : \t!pcicam [Bus (hex)] [Device (hex)] [Function] [Verbose]\n");
 
     ShowMessages("\n");
-    ShowMessages("\t\te.g : !pciecam 0 2 0\n");
-    ShowMessages("\t\te.g : !pciecam 3 0 0 v\n");
+    ShowMessages("\t\te.g : !pcicam 0 2 0\n");
+    ShowMessages("\t\te.g : !pcicam 3 0 0 v\n");
 }
 
 /**
