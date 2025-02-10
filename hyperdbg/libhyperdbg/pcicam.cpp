@@ -26,11 +26,11 @@ CommandPcicamHelp()
 {
     ShowMessages("!pcicam : dumps the PCI configuration space (CAM) for a given device.\n\n");
 
-    ShowMessages("syntax : \t!pcicam [Bus (hex)] [Device (hex)] [Function] [Verbose]\n");
+    ShowMessages("syntax : \t!pcicam [Bus (hex)] [Device (hex)] [Function] [Hexadecimal Dump]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !pcicam 0 2 0\n");
-    ShowMessages("\t\te.g : !pcicam 3 0 0 v\n");
+    ShowMessages("\t\te.g : !pcicam 3 0 0 x\n");
 }
 
 /**
@@ -99,7 +99,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 
     if (CommandTokens.size() == 5)
     {
-        if (strncmp(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), "v", 1) == 0)
+        if (strncmp(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(4)).c_str(), "x", 1) == 0)
         {
             PcidevinfoPacket.PrintRaw = TRUE;
         }
