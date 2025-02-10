@@ -779,7 +779,7 @@ ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pcidevin
                         if (Bar64 == 0)
                         {
                             PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = FALSE;
-                            break;
+                            continue;
                         }
 
                         LogInfo("BAR%u:", i);
@@ -836,7 +836,7 @@ ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pcidevin
                         if (Bar32 == 0)
                         {
                             PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = FALSE;
-                            break;
+                            continue;
                         }
 
                         LogInfo("BAR%u:", i);
