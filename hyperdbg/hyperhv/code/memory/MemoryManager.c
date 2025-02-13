@@ -177,23 +177,16 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
                     // If the memory is not readable, it might be an MMIO address
                     // Try again with another method
                     //
-                    LogInfo("reading using MMIO Map IO Space using VMCALL");
 
-                    //
-                    // Restore to normal EPTP from vmx-root
-                    //
+                    // LogInfo("reading using MMIO Map IO Space using VMCALL");
 
-                    if (AsmVmxVmcall(VMCALL_BYPASS_EPT_CACHING_POLICIES, (UINT64)Address, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
+                    if (AsmVmxVmcall(VMCALL_READ_PHYSICAL_MEMORY, (UINT64)Address, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
                     {
-                        LogInfo("success");
-
                         *ReturnSize = Size;
                         return TRUE;
                     }
                     else
                     {
-                        LogInfo("no success");
-
                         //
                         // unknown error
                         //
@@ -221,5 +214,31 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
         {
             return FALSE;
         }
+    }
+}
+
+/**
+ * @brief Write process memory
+ *
+ * @details This function should not be called from vmx-root mode
+ *
+ * @param TargetAddress Target Address
+ * @param UserBuffer Buffer to write to the memory
+ * @param Size Size of the buffer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+MemoryManagerWritePhysicalMemoryNormal(PVOID  TargetAddress,
+                                       PVOID  UserBuffer,
+                                       SIZE_T Size)
+{
+    if (AsmVmxVmcall(VMCALL_WRITE_PHYSICAL_MEMORY, (UINT64)TargetAddress, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
     }
 }

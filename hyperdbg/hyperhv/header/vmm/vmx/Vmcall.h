@@ -298,10 +298,28 @@
 #define VMCALL_DISABLE_OR_ENABLE_MBEC 0x0000002d
 
 /**
- * @brief VMCALL to bypass EPT caching policies to read MMIO
+ * @brief VMCALL to bypass caching policies to read MMIO
  *
  */
-#define VMCALL_BYPASS_EPT_CACHING_POLICIES 0x0000002e
+#define VMCALL_READ_PHYSICAL_MEM_BYPASS_CACHING_POLICIES 0x0000002e // not used
+
+/**
+ * @brief VMCALL to bypass caching policies to write MMIO
+ *
+ */
+#define VMCALL_WRITE_PHYSICAL_MEM_BYPASS_CACHING_POLICIES 0x0000002f // not used
+
+/**
+ * @brief VMCALL to read physical memory
+ *
+ */
+#define VMCALL_READ_PHYSICAL_MEMORY 0x00000030
+
+/**
+ * @brief VMCALL to write physical memory
+ *
+ */
+#define VMCALL_WRITE_PHYSICAL_MEMORY 0x00000031
 
 //////////////////////////////////////////////////
 //				    Functions					//

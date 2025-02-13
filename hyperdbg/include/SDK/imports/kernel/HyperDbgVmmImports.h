@@ -649,6 +649,9 @@ IMPORT_EXPORT_VMM BOOLEAN
 MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
 
 IMPORT_EXPORT_VMM BOOLEAN
+MemoryManagerWritePhysicalMemoryNormal(PVOID TargetAddress, PVOID UserBuffer, SIZE_T Size);
+
+IMPORT_EXPORT_VMM BOOLEAN
 ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize);
 
 IMPORT_EXPORT_VMM BOOLEAN
