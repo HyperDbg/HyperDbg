@@ -25,3 +25,5 @@
 
 QWORD
 PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);
+BOOLEAN
+PciWriteCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width, QWORD Value);

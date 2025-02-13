@@ -502,6 +502,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
             // It is because the target page might be read-only so we can make it writable
             //
+
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
             MemoryMapperWriteMemoryUnsafe((UINT64)DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
         }
@@ -525,7 +526,14 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
             SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
+            // MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)DestinationAddress, (UINT64)SourceAddress, LengthOfEachChunk);
+            // WritePhysicalMemoryUsingMapIoSpace((PVOID)SourceAddress, (PVOID)DestinationAddress, LengthOfEachChunk);
+
+            if (MemoryManagerWritePhysicalMemoryNormal((PVOID)DestinationAddress, (PVOID)SourceAddress, (SIZE_T)LengthOfEachChunk) == FALSE)
+            {
+                EditMemRequest->Result = DEBUGGER_ERROR_INVALID_ADDRESS;
+                return STATUS_UNSUCCESSFUL;
+            }
         }
     }
     else

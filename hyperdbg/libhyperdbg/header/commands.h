@@ -459,6 +459,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_PCITREE_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_PCICAM_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_IDT_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
@@ -735,6 +738,9 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPcitree(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandPcicam(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandIdt(vector<CommandToken> CommandTokens, string Command);

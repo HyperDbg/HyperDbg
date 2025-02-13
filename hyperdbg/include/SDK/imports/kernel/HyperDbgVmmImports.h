@@ -652,6 +652,15 @@ MemoryMapperCheckIfPdeIsLargePageOnTargetProcess(_In_ PVOID Va);
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
 
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryManagerWritePhysicalMemoryNormal(PVOID TargetAddress, PVOID UserBuffer, SIZE_T Size);
+
+IMPORT_EXPORT_VMM BOOLEAN
+ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize);
+
+IMPORT_EXPORT_VMM BOOLEAN
+WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize);
+
 //////////////////////////////////////////////////
 //                 Pool Manager     	   		//
 //////////////////////////////////////////////////
@@ -947,3 +956,6 @@ BroadcastDisableEferSyscallEventsOnAllProcessors();
 
 IMPORT_EXPORT_VMM QWORD
 PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);
+
+IMPORT_EXPORT_VMM BOOLEAN
+PciWriteCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width, QWORD Value);
