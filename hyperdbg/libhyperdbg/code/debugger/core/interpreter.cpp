@@ -314,14 +314,14 @@ public:
                     else
                     {
                         input.erase(i - 1, 1);
-                        i--;                // compensate for the removed char
+                        i--; // compensate for the removed char
 
                         //
                         // remove last read "\\" if we are not within a {}
                         //
                         if (!IdxBracket)
                         {
-                            current.pop_back(); 
+                            current.pop_back();
                         }
                         current += c;
                         continue;

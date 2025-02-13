@@ -4,13 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.1.0] - 2025-XX-XX
+## [0.13.0.0] - 2025-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
 - Added mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
 - Export the SDK functions for enabling and disabling transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide#sdk))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide#sdk))
 - New description of changing script engine constants ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations))
+- Added the command for interpreting PCI CAM (PCI configuration space) fields ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
+- Added the command for dumping PCI CAM (PCI configuration space) memory ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
 
 ### Changed
 - Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Windows 11 24h2 ([link](https://docs.hyperdbg.org/commands/debugging-commands/lm))
@@ -18,6 +20,7 @@ New release of the HyperDbg Debugger.
 - Changed the parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
 - Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
 - Fix containing backslash escape character in script strings ([link](https://github.com/HyperDbg/HyperDbg/pull/499))
+- Fix reading/writing into devices' physical memory (MMIO region) in VMI Mode ([link](https://github.com/HyperDbg/HyperDbg/pull/500))
 
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.
