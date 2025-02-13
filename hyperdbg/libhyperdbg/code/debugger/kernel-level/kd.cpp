@@ -1021,6 +1021,40 @@ KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 Exp
 }
 
 /**
+ * @brief Send requests for IDT packet to the debuggee
+ * @param IdtRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtRequest)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES,
+                          IdtRequest,
+                          sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
+
+    //
+    // Send the IDT request packets
+    //
+    if (!KdCommandPacketToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_IDT_ENTRIES))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of actions to IDT is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a breakpoint set or 'bp' command packet to the debuggee
  * @param BpPacket
  *

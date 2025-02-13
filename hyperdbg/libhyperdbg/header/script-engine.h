@@ -42,7 +42,7 @@ BOOLEAN
 ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);
 
 BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath);
+ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
 
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,

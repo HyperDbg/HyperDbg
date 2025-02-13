@@ -202,6 +202,9 @@ BOOLEAN
 KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 ExpectedRequestSize);
 
 BOOLEAN
+KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtRequest);
+
+BOOLEAN
 KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket);
 
 BOOLEAN

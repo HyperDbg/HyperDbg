@@ -21,10 +21,9 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    UINT32                  ExitReason          = 0;
-    BOOLEAN                 Result              = FALSE;
-    BOOLEAN                 ShouldEmulateRdtscp = TRUE;
-    VIRTUAL_MACHINE_STATE * VCpu                = NULL;
+    UINT32                  ExitReason = 0;
+    BOOLEAN                 Result     = FALSE;
+    VIRTUAL_MACHINE_STATE * VCpu       = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
@@ -46,15 +45,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     VmxVmread32P(VMCS_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
-
-    //
-    // Check if we're operating in transparent-mode or not
-    // If yes then we start operating in transparent-mode
-    //
-    if (g_TransparentMode)
-    {
-        ShouldEmulateRdtscp = TransparentModeStart(VCpu, ExitReason);
-    }
 
     //
     // Increase the RIP by default
@@ -269,12 +259,8 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Check whether we are allowed to change the registers
         // and emulate rdtsc or not
-        // Note : Using !tsc command in transparent-mode is not allowed
         //
-        if (ShouldEmulateRdtscp)
-        {
-            DispatchEventTsc(VCpu, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
-        }
+        DispatchEventTsc(VCpu, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
 
         break;
     }
@@ -337,6 +323,20 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     if (!VCpu->VmxoffState.IsVmxoffExecuted && VCpu->IncrementRip)
     {
+        //
+        // If we are in transparent-mode, then we need to handle the trap flag as the result
+        // of an anti-hypervisor technique of using the trap flag after a VM-exit
+        // to detect the hypervisor
+        //
+        if (g_TransparentMode)
+        {
+            //
+            // If RIP is incremented, then we emulate an instruction, and then
+            // we need to handle the trap flag if it is set in a guest
+            //
+            HvHandleTrapFlag();
+        }
+
         HvResumeToNextInstruction();
     }
 
@@ -346,21 +346,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     if (VCpu->VmxoffState.IsVmxoffExecuted)
     {
         Result = TRUE;
-    }
-
-    //
-    // Restore the previous time
-    //
-    if (g_TransparentMode)
-    {
-        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID)
-        {
-            //
-            // We not wanna change the global timer while RDTSC and RDTSCP
-            // was the reason of vm-exit
-            //
-            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
-        }
     }
 
     //

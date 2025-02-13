@@ -43,40 +43,41 @@ extern UINT64                           g_KernelBaseAddress;
 BOOLEAN
 ListeningSerialPortInDebugger()
 {
-    PDEBUGGER_PREPARE_DEBUGGEE                   InitPacket;
-    PDEBUGGER_REMOTE_PACKET                      TheActualPacket;
-    PDEBUGGEE_KD_PAUSED_PACKET                   PausePacket;
-    PDEBUGGEE_MESSAGE_PACKET                     MessagePacket;
-    PDEBUGGEE_CHANGE_CORE_PACKET                 ChangeCorePacket;
-    PDEBUGGEE_SCRIPT_PACKET                      ScriptPacket;
-    PDEBUGGEE_FORMATS_PACKET                     FormatsPacket;
-    PDEBUGGER_EVENT_AND_ACTION_RESULT            EventAndActionPacket;
-    PDEBUGGER_UPDATE_SYMBOL_TABLE                SymbolUpdatePacket;
-    PDEBUGGER_MODIFY_EVENTS                      EventModifyAndQueryPacket;
-    PDEBUGGEE_SYMBOL_UPDATE_RESULT               SymbolReloadFinishedPacket;
-    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET  ChangeProcessPacket;
-    PDEBUGGEE_RESULT_OF_SEARCH_PACKET            SearchResultsPacket;
-    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET   ChangeThreadPacket;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS              FlushPacket;
-    PDEBUGGER_CALLSTACK_REQUEST                  CallstackPacket;
-    PDEBUGGER_SINGLE_CALLSTACK_FRAME             CallstackFramePacket;
-    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER         TestQueryPacket;
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION          ReadRegisterPacket;
-    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION         WriteRegisterPacket;
-    PDEBUGGER_APIC_REQUEST                       ApicRequestPacket;
-    PDEBUGGER_READ_MEMORY                        ReadMemoryPacket;
-    PDEBUGGER_EDIT_MEMORY                        EditMemoryPacket;
-    PDEBUGGEE_BP_PACKET                          BpPacket;
-    PDEBUGGER_SHORT_CIRCUITING_EVENT             ShortCircuitingPacket;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    PtePacket;
-    PDEBUGGER_PAGE_IN_REQUEST                    PageinPacket;
-    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           Va2paPa2vaPacket;
-    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET           ListOrModifyBreakpointPacket;
-    BOOLEAN                                      ShowSignatureWhenDisconnected = FALSE;
-    PVOID                                        CallerAddress                 = NULL;
-    UINT32                                       CallerSize                    = NULL_ZERO;
-    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET    PcitreePacket;
-    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket;
+    PDEBUGGER_PREPARE_DEBUGGEE                  InitPacket;
+    PDEBUGGER_REMOTE_PACKET                     TheActualPacket;
+    PDEBUGGEE_KD_PAUSED_PACKET                  PausePacket;
+    PDEBUGGEE_MESSAGE_PACKET                    MessagePacket;
+    PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
+    PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
+    PDEBUGGEE_FORMATS_PACKET                    FormatsPacket;
+    PDEBUGGER_EVENT_AND_ACTION_RESULT           EventAndActionPacket;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE               SymbolUpdatePacket;
+    PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
+    PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_RESULT_OF_SEARCH_PACKET           SearchResultsPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
+    PDEBUGGEE_REGISTER_WRITE_DESCRIPTION        WriteRegisterPacket;
+    PDEBUGGER_APIC_REQUEST                      ApicRequestPacket;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtEntryRequestPacket;
+    PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
+    PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
+    PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
+    PDEBUGGER_PAGE_IN_REQUEST                   PageinPacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
+    BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
+    PVOID                                       CallerAddress                 = NULL;
+    UINT32                                      CallerSize                    = NULL_ZERO;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET   PcitreePacket;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtEntryRequestPacket;
 
 StartAgain:
 
@@ -852,6 +853,27 @@ StartAgain:
             // Signal the event relating to receiving result of performing actions into APIC
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_IDT_ENTRIES_REQUESTS:
+
+            IdtEntryRequestPacket = (INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, IdtEntryRequestPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of querying IDT entries
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 
             break;
 

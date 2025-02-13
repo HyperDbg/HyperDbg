@@ -273,41 +273,12 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
 BOOLEAN
 CommandLmShowKernelModeModule(const char * SearchModule)
 {
-    NTSTATUS             Status = STATUS_UNSUCCESSFUL;
-    PRTL_PROCESS_MODULES ModulesInfo;
-    ULONG                SysModuleInfoBufferSize = 0;
+    PRTL_PROCESS_MODULES ModulesInfo = NULL;
     string               SearchModuleString;
 
-    //
-    // Get required size of "RTL_PROCESS_MODULES" buffer
-    //
-    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
-
-    //
-    // Allocate memory for the module list
-    //
-    ModulesInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
-        NULL,
-        SysModuleInfoBufferSize,
-        MEM_COMMIT | MEM_RESERVE,
-        PAGE_READWRITE);
-
-    if (!ModulesInfo)
+    if (SymbolCheckAndAllocateModuleInformation(&ModulesInfo) == FALSE)
     {
-        ShowMessages("err, unable to allocate memory for module list (%x)\n",
-                     GetLastError());
-        return FALSE;
-    }
-
-    Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
-                                      ModulesInfo,
-                                      SysModuleInfoBufferSize,
-                                      NULL);
-    if (!NT_SUCCESS(Status))
-    {
-        ShowMessages("err, unable to query module list (%x)\n", Status);
-
-        VirtualFree(ModulesInfo, 0, MEM_RELEASE);
+        ShowMessages("err, unable get modules information\n");
         return FALSE;
     }
 
@@ -369,7 +340,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
         ShowMessages("%s\n", CurrentModule->FullPathName);
     }
 
-    VirtualFree(ModulesInfo, 0, MEM_RELEASE);
+    free(ModulesInfo);
 
     return TRUE;
 }

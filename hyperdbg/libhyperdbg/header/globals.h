@@ -559,6 +559,11 @@ BOOLEAN g_IsInstrumentingInstructions = FALSE;
  */
 UINT64 g_KernelBaseAddress;
 
+/**
+ * @brief Is privileges already adjusted
+ */
+BOOLEAN g_PrivilegesAlreadyAdjusted = FALSE;
+
 //////////////////////////////////////////////////
 //			     	 Settings			        //
 //////////////////////////////////////////////////

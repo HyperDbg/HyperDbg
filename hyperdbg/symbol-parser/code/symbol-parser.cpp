@@ -1684,33 +1684,46 @@ SymTagStr(ULONG Tag)
  * @return BOOLEAN
  */
 BOOLEAN
-SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
+SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
 {
-    SYMSRV_INDEX_INFO SymInfo = {0};
-    const char *      FormatStr =
-        "%s/%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x/%s";
-    SymInfo.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
+    HRESULT           Result;
+    BOOL              Ret;
+    SYMSRV_INDEX_INFO SymInfo   = {0};
+    const char *      FormatStr = "%s/%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x/%s";
+    SymInfo.sizeofstruct        = sizeof(SYMSRV_INDEX_INFO);
 
-    BOOL Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
+    if (LocalFilePath == NULL && ResultPath == NULL)
+    {
+        return FALSE;
+    }
+
+    Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
 
     if (Ret)
     {
-        wsprintfA(ResultPath,
-                  FormatStr,
-                  SymInfo.pdbfile,
-                  SymInfo.guid.Data1,
-                  SymInfo.guid.Data2,
-                  SymInfo.guid.Data3,
-                  SymInfo.guid.Data4[0],
-                  SymInfo.guid.Data4[1],
-                  SymInfo.guid.Data4[2],
-                  SymInfo.guid.Data4[3],
-                  SymInfo.guid.Data4[4],
-                  SymInfo.guid.Data4[5],
-                  SymInfo.guid.Data4[6],
-                  SymInfo.guid.Data4[7],
-                  SymInfo.age,
-                  SymInfo.pdbfile);
+        Result = StringCchPrintfA(
+            ResultPath,
+            ResultPathSize,
+            FormatStr,
+            SymInfo.pdbfile,
+            SymInfo.guid.Data1,
+            SymInfo.guid.Data2,
+            SymInfo.guid.Data3,
+            SymInfo.guid.Data4[0],
+            SymInfo.guid.Data4[1],
+            SymInfo.guid.Data4[2],
+            SymInfo.guid.Data4[3],
+            SymInfo.guid.Data4[4],
+            SymInfo.guid.Data4[5],
+            SymInfo.guid.Data4[6],
+            SymInfo.guid.Data4[7],
+            SymInfo.age,
+            SymInfo.pdbfile);
+
+        if (FAILED(Result))
+        {
+            return FALSE;
+        }
 
         return TRUE;
     }

@@ -71,3 +71,6 @@ SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId);
 
 BOOLEAN
 SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId);
+
+BOOLEAN
+SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules);

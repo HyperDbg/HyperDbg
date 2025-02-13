@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1.0] - 2025-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- Added mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
+- Export the SDK functions for enabling and disabling transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide#sdk))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide#sdk))
+- New description of changing script engine constants ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations))
+
+### Changed
+- Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Windows 11 24h2 ([link](https://docs.hyperdbg.org/commands/debugging-commands/lm))
+- Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/measure))
+- Changed the parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
+- Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
+- Fix containing backslash escape character in script strings ([link](https://github.com/HyperDbg/HyperDbg/pull/499))
+
+## [0.12.0.0] - 2025-01-02
+New release of the HyperDbg Debugger.
+
+### Added
+- Added the PCI tree command ([link](https://docs.hyperdbg.org/commands/extension-commands/pcitree))
+- Added the proper handling for the xsetbv VM exits thanks to [@Shtan7](https://github.com/Shtan7) ([link](https://github.com/HyperDbg/HyperDbg/pull/491))
+- Added the IDT command for interpreting Interrupt Descriptor Table (IDT) ([link](https://docs.hyperdbg.org/commands/extension-commands/idt))
+- Export SDK APIs for getting Interrupt Descriptor Table (IDT) entries
+
+### Changed
+- Fix buffer overflow in the symbols path converter thanks to [@binophism](https://github.com/binophism) ([link](https://github.com/HyperDbg/HyperDbg/pull/490))
+- Fix script engine's "printf" function to improve safety thanks to [@Reodus](https://github.com/Reodus) ([link](https://github.com/HyperDbg/HyperDbg/pull/489))
+
 ## [0.11.0.0] - 2024-12-03
 New release of the HyperDbg Debugger.
 
@@ -15,6 +43,7 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - The link for changing the communication buffer size is updated ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/increase-communication-buffer-size))
+- Update Microsoft's DIA SDK and symsrv
 
 ## [0.10.2.0] - 2024-10-11
 New release of the HyperDbg Debugger.

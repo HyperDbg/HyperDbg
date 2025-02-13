@@ -22,6 +22,9 @@ UINT32
 ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest);
 
 VOID
+ExtensionCommandPerformQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest, BOOLEAN ReadFromVmxRoot);
+
+VOID
 ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails, BOOLEAN OperateOnVmxRoot);
 
 VOID

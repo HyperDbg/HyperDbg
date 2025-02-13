@@ -98,7 +98,7 @@ IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
+ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);

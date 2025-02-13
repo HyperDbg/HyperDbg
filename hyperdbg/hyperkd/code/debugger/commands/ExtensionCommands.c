@@ -81,6 +81,29 @@ ExtensionCommandPerformActionsForApicRequests(PDEBUGGER_APIC_REQUEST ApicRequest
 }
 
 /**
+ * @brief Perform query for IDT entries
+ *
+ * @param IdtQueryRequest
+ * @param ReadFromVmxRoot
+ *
+ * @return VOID
+ */
+VOID
+ExtensionCommandPerformQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                                              BOOLEAN                                     ReadFromVmxRoot)
+{
+    //
+    // Perform the query
+    //
+    VmFuncIdtQueryEntries(IdtQueryRequest, ReadFromVmxRoot);
+
+    //
+    // Operation was successful
+    //
+    IdtQueryRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+}
+
+/**
  * @brief routines for !va2pa and !pa2va commands
  *
  * @param AddressDetails

@@ -2309,6 +2309,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
     PDEBUGGER_APIC_REQUEST                              ApicPacket;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS         IdtEntryPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
@@ -3013,6 +3014,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_APIC_REQUESTS,
                                            (CHAR *)ApicPacket,
                                            SizeToSend);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_IDT_ENTRIES:
+
+                IdtEntryPacket = (INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Call IDT query handler (read from VMX root-mode)
+                //
+                ExtensionCommandPerformQueryIdtEntriesRequest(IdtEntryPacket, TRUE);
+
+                //
+                // Send the result of the IDT entries requests to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_IDT_ENTRIES_REQUESTS,
+                                           (CHAR *)IdtEntryPacket,
+                                           SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS);
 
                 break;
 

@@ -315,7 +315,14 @@ public:
                     {
                         input.erase(i - 1, 1);
                         i--;                // compensate for the removed char
-                        current.pop_back(); // remove last read \\ 
+
+                        //
+                        // remove last read "\\" if we are not within a {}
+                        //
+                        if (!IdxBracket)
+                        {
+                            current.pop_back(); 
+                        }
                         current += c;
                         continue;
                     }
@@ -1608,6 +1615,8 @@ InitializeCommandsDictionary()
     g_CommandsList["!pcietree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
 
     g_CommandsList["!pcicam"] = {&CommandPcicam, &CommandPcicamHelp, DEBUGGER_COMMAND_PCICAM_ATTRIBUTES};
+
+    g_CommandsList["!idt"] = {&CommandIdt, &CommandIdtHelp, DEBUGGER_COMMAND_IDT_ATTRIBUTES};
 
     //
     // hwdbg commands

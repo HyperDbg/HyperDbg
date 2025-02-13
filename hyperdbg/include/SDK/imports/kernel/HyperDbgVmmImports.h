@@ -155,6 +155,10 @@ VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId);
 IMPORT_EXPORT_VMM VOID
 VmFuncEnableAndCheckForPreviousExternalInterrupts(UINT32 CoreId);
 
+IMPORT_EXPORT_VMM VOID
+VmFuncIdtQueryEntries(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
+                      BOOLEAN                                     ReadFromVmxRoot);
+
 IMPORT_EXPORT_VMM UINT16
 VmFuncGetCsSelector();
 
@@ -846,11 +850,11 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
 //              Transparent Mode        		//
 //////////////////////////////////////////////////
 
-IMPORT_EXPORT_VMM NTSTATUS
-TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements);
+IMPORT_EXPORT_VMM BOOLEAN
+TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest);
 
-IMPORT_EXPORT_VMM NTSTATUS
-TransparentUnhideDebugger();
+IMPORT_EXPORT_VMM BOOLEAN
+TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest);
 
 //////////////////////////////////////////////////
 //     Non-internal Broadcasting Functions    	//

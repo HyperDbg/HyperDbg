@@ -59,6 +59,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT                      0x1b
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS                        0x1c
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT                   0x1d
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES                         0x1e
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -251,7 +252,17 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
                     UINT32                    NumberOfBytes);
 
 //////////////////////////////////////////////////
-//				    Registers                   //
+//				      Misc                      //
+//////////////////////////////////////////////////
+
+BOOLEAN
+CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
+                       PVOID                      ApicBuffer,
+                       UINT32                     ExpectedRequestSize,
+                       PBOOLEAN                   IsUsingX2APIC);
+
+//////////////////////////////////////////////////
+//	         SDK Servicing Routines             //
 //////////////////////////////////////////////////
 
 BOOLEAN
@@ -288,7 +299,10 @@ BOOLEAN
 HyperDbgGetIoApic(IO_APIC_ENTRY_PACKETS * IoApic);
 
 BOOLEAN
-CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
-                       PVOID                      ApicBuffer,
-                       UINT32                     ExpectedRequestSize,
-                       PBOOLEAN                   IsUsingX2APIC);
+HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket);
+
+BOOLEAN
+HyperDbgEnableTransparentMode();
+
+BOOLEAN
+HyperDbgDisableTransparentMode();

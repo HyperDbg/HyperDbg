@@ -550,20 +550,19 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
 {
     BOOLEAN IsHide;
 
-    UINT64 CpuidAverage;
-    UINT64 CpuidStandardDeviation;
-    UINT64 CpuidMedian;
+    // UINT64 CpuidAverage;
+    // UINT64 CpuidStandardDeviation;
+    // UINT64 CpuidMedian;
 
-    UINT64 RdtscAverage;
-    UINT64 RdtscStandardDeviation;
-    UINT64 RdtscMedian;
+    // UINT64 RdtscAverage;
+    // UINT64 RdtscStandardDeviation;
+    // UINT64 RdtscMedian;
 
-    BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
-    UINT32  ProcId;
-    UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
-                                 // shows the length of xxx
+    // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
+    // UINT32  ProcId;
+    // UINT32  LengthOfProcessName;
 
-    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
+    UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
@@ -1210,6 +1209,13 @@ typedef struct _INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
     UINT64 IdtEntry[MAX_NUMBER_OF_IDT_ENTRIES];
 
 } INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, *PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
+
+/**
+ * @brief Debugger size of INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
+ *
+ */
+#define SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS \
+    sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS)
 
 /**
  * @brief check so the INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS should be smaller than packet size

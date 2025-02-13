@@ -300,6 +300,9 @@ CommandPcitreeHelp();
 VOID
 CommandPcicamHelp();
 
+VOID
+CommandIdtHelp();
+
 //
 // hwdbg commands
 //

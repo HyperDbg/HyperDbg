@@ -172,10 +172,10 @@ ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath)
+ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
 
 {
-    return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath);
+    return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath, ResultPathSize);
 }
 
 /**
@@ -429,14 +429,14 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             }
             else if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
             {
-                ShowMessages("err, stack buffer overflow\n");
+                ShowMessages("err, stack buffer overflow (more information: https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations)\n");
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
                 break;
             }
             else if (EXECUTENUMBER >= MAX_EXECUTION_COUNT)
             {
-                ShowMessages("err, exceeding the max execution count\n");
+                ShowMessages("err, exceeding the max execution count (more information: https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations)\n");
                 g_CurrentExprEvalResultHasError = TRUE;
                 g_CurrentExprEvalResult         = NULL;
                 break;

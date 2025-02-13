@@ -55,7 +55,7 @@ IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymCreateSymbolTableForDisassembler(void * CallbackFunction);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
+SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,

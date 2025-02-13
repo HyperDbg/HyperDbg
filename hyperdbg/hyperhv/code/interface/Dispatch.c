@@ -199,7 +199,6 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     //
     // As the context to event trigger, we send the false which means
     // it's an rdtsc (for rdtscp we set Context to true)
-    // Note : Using !tsc command in transparent-mode is not allowed
     //
     EventTriggerResult = VmmCallbackTriggerEvents(TSC_INSTRUCTION_EXECUTION,
                                                   VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,

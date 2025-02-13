@@ -32,6 +32,7 @@ extern BOOLEAN    g_OutputSourcesInitialized;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN    g_IsDebuggerModulesLoaded;
 extern BOOLEAN    g_IsReversingMachineModulesLoaded;
+extern BOOLEAN    g_PrivilegesAlreadyAdjusted;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -493,6 +494,51 @@ IrpBasedBufferThread(void * data)
 }
 
 /**
+ * @brief Adjust kernel debug privilege
+ *
+ * @return BOOLEAN return TRUE if it was successful or FALSE if there
+ */
+BOOLEAN
+SetDebugPrivilege()
+{
+    BOOL   Status;
+    HANDLE Token;
+
+    //
+    // Check if we already adjusted the privilege
+    //
+    if (g_PrivilegesAlreadyAdjusted)
+    {
+        return TRUE;
+    }
+
+    //
+    // Enable Debug privilege
+    //
+    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &Token);
+    if (!Status)
+    {
+        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
+        return FALSE;
+    }
+
+    Status = SetPrivilege(Token, SE_DEBUG_NAME, TRUE);
+    if (!Status)
+    {
+        CloseHandle(Token);
+        return FALSE;
+    }
+
+    //
+    // Indicate that the privilege is already adjusted
+    //
+    g_PrivilegesAlreadyAdjusted = TRUE;
+
+    CloseHandle(Token);
+    return TRUE;
+}
+
+/**
  * @brief Install VMM driver
  *
  * @return INT return zero if it was successful or non-zero if there
@@ -797,24 +843,14 @@ HyperDbgUnloadVmm()
 INT
 HyperDbgLoadVmmModule()
 {
-    BOOL   Status;
-    HANDLE hToken;
-    char   CpuId[13] = {0};
+    char CpuId[13] = {0};
 
     //
-    // Enable Debug privilege
+    // Enable Debug privilege to the current token
     //
-    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
-    if (!Status)
+    if (!SetDebugPrivilege())
     {
-        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
-        return 1;
-    }
-
-    Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    if (!Status)
-    {
-        CloseHandle(hToken);
+        ShowMessages("err, couldn't set debug privilege\n");
         return 1;
     }
 
