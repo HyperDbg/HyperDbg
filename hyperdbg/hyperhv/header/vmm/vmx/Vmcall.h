@@ -297,6 +297,12 @@
  */
 #define VMCALL_DISABLE_OR_ENABLE_MBEC 0x0000002d
 
+/**
+ * @brief VMCALL to bypass EPT caching policies to read MMIO
+ *
+ */
+#define VMCALL_BYPASS_EPT_CACHING_POLICIES 0x0000002e
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

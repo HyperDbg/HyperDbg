@@ -458,6 +458,19 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_BYPASS_EPT_CACHING_POLICIES:
+    {
+        if (ReadPhysicalMemoryUsingMapIoSpace((PVOID)OptionalParam1, (PVOID)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");
