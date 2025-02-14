@@ -229,7 +229,11 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         PageFaultCr2 = __readcr2();
 
-        LogInfo("Page-fault received, CR2: %llx", PageFaultCr2);
+        LogInfo("Page-fault received, rip: %llx, rsp: %llx, error: %llx, CR2: %llx",
+                IntrTrapFrame->rip,
+                IntrTrapFrame->rsp,
+                IntrTrapFrame->error,
+                PageFaultCr2);
 
         break;
 
@@ -238,9 +242,10 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         // host exceptions
         //
-        LogInfo("Host exception, RIP=%llx, RSP=%llx, Vector=%x",
+        LogInfo("Host exception, rip: %llx, rsp: %llx, error: %llx, vector: %x",
                 IntrTrapFrame->rip,
                 IntrTrapFrame->rsp,
+                IntrTrapFrame->error,
                 IntrTrapFrame->vector);
 
         break;

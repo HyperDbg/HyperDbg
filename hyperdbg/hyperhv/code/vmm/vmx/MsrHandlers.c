@@ -50,7 +50,7 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // results.
     //
 
-    // LogInfo("MSR read (RDMSR) VM-exit, MSR: %llx, from: %llx",
+    // LogInfo("MSR read (RDMSR) VM-exit, MSR: %x, from: %llx",
     //         TargetMsr,
     //         VCpu->LastVmexitRip);
 
@@ -190,7 +190,7 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     Msr.Fields.Low  = (ULONG)GuestRegs->rax;
     Msr.Fields.High = (ULONG)GuestRegs->rdx;
 
-    // LogInfo("MSR write (WRMSR) VM-exit, MSR: %llx, rax: %llx, rdx: %llx, from: %llx",
+    // LogInfo("MSR write (WRMSR) VM-exit, MSR: %x, rax: %llx, rdx: %llx, from: %llx",
     //         TargetMsr,
     //         GuestRegs->rax,
     //         GuestRegs->rdx,
