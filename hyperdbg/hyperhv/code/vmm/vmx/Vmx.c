@@ -1034,7 +1034,10 @@ VmxVmresume()
     // It's such a bad error because we don't where to go !
     // prefer to break
     //
-    LogError("Err,  in executing VMRESUME , status : 0x%llx", ErrorCode);
+
+    LogError("Err,  in executing VMRESUME , status : 0x%llx, last VM-exit reason: 0x%x",
+             ErrorCode,
+             g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].ExitReason);
 }
 
 /**

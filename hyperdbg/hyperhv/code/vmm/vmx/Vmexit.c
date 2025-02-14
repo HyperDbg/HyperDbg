@@ -47,6 +47,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     ExitReason &= 0xffff;
 
     //
+    // Save the exit reason
+    //
+    VCpu->ExitReason = ExitReason;
+
+    //
     // Increase the RIP by default
     //
     VCpu->IncrementRip = TRUE;

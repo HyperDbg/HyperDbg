@@ -517,7 +517,7 @@ DispatchEventRdmsr(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle vm-exit and perform changes
         //
-        MsrHandleRdmsrVmexit(VCpu->Regs);
+        MsrHandleRdmsrVmexit(VCpu);
     }
 
     //
@@ -562,7 +562,7 @@ DispatchEventWrmsr(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Handle vm-exit and perform changes
         //
-        MsrHandleWrmsrVmexit(VCpu->Regs);
+        MsrHandleWrmsrVmexit(VCpu);
     }
 
     //
