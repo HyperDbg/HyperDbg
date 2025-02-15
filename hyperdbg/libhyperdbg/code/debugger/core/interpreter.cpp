@@ -46,11 +46,11 @@ public:
      *
      * @return std::vector<CommandToken>
      */
-    std::vector<CommandToken> Parse(const std::string& ConstInput)
+    std::vector<CommandToken> Parse(const std::string & ConstInput)
     {
         std::vector<CommandToken> tokens;
         std::string               current;
-        bool                      InQuotes = FALSE;
+        bool                      InQuotes   = FALSE;
         int                       IdxBracket = 0;
 
         //
@@ -68,7 +68,7 @@ public:
                 //
                 if (!InQuotes)
                 {
-                    size_t j = i;
+                    size_t j  = i;
                     char   c2 = input[++j];
 
                     if (c2 == '/') // start to look for comments
@@ -104,14 +104,14 @@ public:
                         //
                         // assuming " }" as the end of a line comment aka //, if we are within {}
                         //
-                        bool   CmntEndBrkt = false;
+                        bool   CmntEndBrkt  = false;
                         size_t CloseBrktPos = 0;
                         if (IdxBracket)
                         {
                             //
                             // loop for escaped }
                             //
-                            auto pos = ( StrLitEnd > i ) ? StrLitEnd : i;
+                            auto pos = (StrLitEnd > i) ? StrLitEnd : i;
                             for (CloseBrktPos = input.find("}", pos); CloseBrktPos != std::string::npos;)
                             {
                                 CloseBrktPos = input.find("}", CloseBrktPos);
@@ -131,7 +131,7 @@ public:
                             CloseBrktPos = std::string::npos;
                         }
 
-                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
+                        size_t NewLineSrtPos = input.find("\\n", i);                               // "\\n" entered by user
                         if (StrLitBeg && StrLitBeg <= NewLineSrtPos && NewLineSrtPos <= StrLitEnd) // is it within the string literal?
                         {
                             NewLineSrtPos = std::string::npos;
@@ -140,7 +140,7 @@ public:
 
                         std::vector<size_t> PosVec = {CloseBrktPos, NewLineSrtPos, NewLineChrPos};
 
-                        auto min = *( min_element(PosVec.begin(), PosVec.end()) ); // see which one occures first
+                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
 
                         if (min != std::string::npos && input[min - 1] != '\\')
                         {
@@ -160,8 +160,8 @@ public:
                             //
                             // forward the buffer
                             //
-                            auto diff = ( min > i ) ? ( min - i ) : ( i - min );
-                            i = i + diff - 1;
+                            auto diff = (min > i) ? (min - i) : (i - min);
+                            i         = i + diff - 1;
 
                             continue;
                         }
@@ -228,7 +228,7 @@ public:
                             if (IsNewLineEsc)
                             {
                                 size_t start_pos = 0;
-                                while (( start_pos = comment.find("\\\\n", start_pos) ) != std::string::npos)
+                                while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
                                 {
                                     comment.replace(start_pos, 3, "\\n");
                                     start_pos += 2; // Handles case where 'to' is a substring of 'from'
@@ -248,7 +248,7 @@ public:
                             //
                             // forward the buffer
                             //
-                            i = i + ( input.size() - i );
+                            i = i + (input.size() - i);
 
                             continue;
                         }
@@ -276,7 +276,7 @@ public:
                             //
                             // forward the buffer
                             //
-                            i = ( i + ( EndPose - i ) ) + 1; // +1 for /
+                            i = (i + (EndPose - i)) + 1; // +1 for /
 
                             continue;
                         }
@@ -317,7 +317,7 @@ public:
                     else
                     {
                         input.erase(i - 1, 1);
-                        i--;                // compensate for the removed char
+                        i--; // compensate for the removed char
 
                         //
                         // remove last read "\\" if we are not within a {}
@@ -361,7 +361,7 @@ public:
                 }
             }
 
-            if (( ( c == ' ' && !InQuotes ) || c == '    ' ) && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
+            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -498,17 +498,17 @@ public:
      *
      * @return VOID
      */
-    VOID PrintTokens(const std::vector<CommandToken>& Tokens)
+    VOID PrintTokens(const std::vector<CommandToken> & Tokens)
     {
         //
         // get len of longest string
         //
-        const int sz = 200; // size
+        const int sz      = 200; // size
         int       g_s1Len = 0, g_s2Len = 0, g_s3Len = 0;
         int       s1 = 0, s2 = 0, s3 = 0;
         char      LineToPrint1[sz], LineToPrint2[sz], LineToPrint3[sz];
 
-        for (const auto& Token : Tokens)
+        for (const auto & Token : Tokens)
         {
             s1 = snprintf(LineToPrint1, sz, "CommandParsingTokenType: %s ", TokenTypeToString(std::get<0>(Token)).c_str());
             s2 = snprintf(LineToPrint2, sz, ", Value 1: '%s'", std::get<1>(Token).c_str());
@@ -524,10 +524,10 @@ public:
                 g_s3Len = s3;
         }
 
-        for (const auto& Token : Tokens)
+        for (const auto & Token : Tokens)
         {
             auto CaseSensitiveText = std::get<1>(Token);
-            auto LowerCaseText = std::get<2>(Token);
+            auto LowerCaseText     = std::get<2>(Token);
 
             if (std::get<0>(Token) == CommandParsingTokenType::BracketString ||
                 std::get<0>(Token) == CommandParsingTokenType::String ||
@@ -541,7 +541,7 @@ public:
                 // Search for \n and replace with \\n
                 //
                 std::string::size_type pos = 0;
-                while (( pos = CaseSensitiveText.find("\n", pos) ) != std::string::npos)
+                while ((pos = CaseSensitiveText.find("\n", pos)) != std::string::npos)
                 {
                     CaseSensitiveText.replace(pos, 1, "\\n");
                     pos += 2; // Move past the newly added characters
@@ -551,7 +551,7 @@ public:
                 // Do the same for lower case text
                 //
                 pos = 0;
-                while (( pos = LowerCaseText.find("\n", pos) ) != std::string::npos)
+                while ((pos = LowerCaseText.find("\n", pos)) != std::string::npos)
                 {
                     LowerCaseText.replace(pos, 1, "\\n");
                     pos += 2; // Move past the newly added characters
@@ -584,7 +584,7 @@ private:
      *
      * @return std::string
      */
-    std::string ToLower(const std::string& str) const
+    std::string ToLower(const std::string & str) const
     {
         std::string result = str;
         std::transform(result.begin(), result.end(), result.begin(), ::tolower);
@@ -599,9 +599,9 @@ private:
      *
      * @return VOID
      */
-    VOID AddToken(std::vector<CommandToken>& tokens, std::string& str)
+    VOID AddToken(std::vector<CommandToken> & tokens, std::string & str)
     {
-        auto   tmp = str;
+        auto   tmp    = str;
         UINT64 tmpNum = 0;
 
         //
@@ -626,7 +626,7 @@ private:
      *
      * @return VOID
      */
-    VOID AddStringToken(std::vector<CommandToken>& tokens, std::string& str, BOOL isLiteral = FALSE)
+    VOID AddStringToken(std::vector<CommandToken> & tokens, std::string & str, BOOL isLiteral = FALSE)
     {
         auto tmp = str;
 
@@ -658,7 +658,7 @@ private:
      *
      * @return VOID
      */
-    VOID AddBracketStringToken(std::vector<CommandToken>& tokens, const std::string& str)
+    VOID AddBracketStringToken(std::vector<CommandToken> & tokens, const std::string & str)
     {
         tokens.emplace_back(CommandParsingTokenType::BracketString, str, ToLower(str));
     }
@@ -672,7 +672,7 @@ private:
  * @return The position of the first difference, or -1 if the strings are equal
  */
 int
-FindDifferencePosition(const char* prsTok, const char* fileTok)
+FindDifferencePosition(const char * prsTok, const char * fileTok)
 {
     int i = 0;
 
@@ -714,11 +714,11 @@ FindDifferencePosition(const char* prsTok, const char* fileTok)
  * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
  */
 BOOLEAN
-HyperDbgTestCommandParser(CHAR* Command,
+HyperDbgTestCommandParser(CHAR *   Command,
                           UINT32   NumberOfTokens,
-                          CHAR** TokensList,
-                          UINT32* FailedTokenNum,
-                          UINT32* FailedTokenPosition)
+                          CHAR **  TokensList,
+                          UINT32 * FailedTokenNum,
+                          UINT32 * FailedTokenPosition)
 {
     CommandParser Parser;
 
@@ -755,7 +755,7 @@ HyperDbgTestCommandParser(CHAR* Command,
             //
             // Set the failed token number
             //
-            *FailedTokenNum = i;
+            *FailedTokenNum      = i;
             *FailedTokenPosition = FindDifferencePosition(CaseSensitiveText.c_str(), TokensList[i]);
 
             ShowMessages("err, the token is not correct\n");
@@ -777,7 +777,7 @@ HyperDbgTestCommandParser(CHAR* Command,
  * @return VOID
  */
 VOID
-HyperDbgTestCommandParserShowTokens(CHAR* Command)
+HyperDbgTestCommandParserShowTokens(CHAR * Command)
 {
     CommandParser Parser;
 
@@ -802,9 +802,9 @@ HyperDbgTestCommandParserShowTokens(CHAR* Command)
  * error
  */
 INT
-HyperDbgInterpreter(CHAR* Command)
+HyperDbgInterpreter(CHAR * Command)
 {
-    BOOLEAN               HelpCommand = FALSE;
+    BOOLEAN               HelpCommand       = FALSE;
     UINT64                CommandAttributes = NULL;
     CommandType::iterator Iterator;
     CommandParser         Parser;
@@ -885,7 +885,7 @@ HyperDbgInterpreter(CHAR* Command)
     // still some of the commands should be handled in the local HyperDbg
     //
     if (g_IsConnectedToRemoteDebuggee &&
-        !( CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION ))
+        !(CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION))
     {
         //
         // Check it here because generally, we use this variable in host
@@ -911,8 +911,8 @@ HyperDbgInterpreter(CHAR* Command)
         return 2;
     }
     else if (g_IsSerialConnectedToRemoteDebuggee &&
-             !( CommandAttributes &
-             DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE ))
+             !(CommandAttributes &
+               DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE))
     {
         //
         // It's a connection over serial (Debugger-Mode)
@@ -954,7 +954,7 @@ HyperDbgInterpreter(CHAR* Command)
             //
             // Show that it's a help command
             //
-            HelpCommand = TRUE;
+            HelpCommand  = TRUE;
             FirstCommand = GetLowerStringFromCommandToken(Tokens.at(1));
         }
         else
@@ -1022,12 +1022,12 @@ HyperDbgInterpreter(CHAR* Command)
  * @return VOID
  */
 VOID
-InterpreterRemoveComments(char* CommandText)
+InterpreterRemoveComments(char * CommandText)
 {
-    BOOLEAN IsComment = FALSE;
+    BOOLEAN IsComment         = FALSE;
     BOOLEAN IsOnBracketString = FALSE;
-    BOOLEAN IsOnString = FALSE;
-    UINT32  LengthOfCommand = (UINT32)strlen(CommandText);
+    BOOLEAN IsOnString        = FALSE;
+    UINT32  LengthOfCommand   = (UINT32)strlen(CommandText);
 
     for (size_t i = 0; i < LengthOfCommand; i++)
     {
@@ -1041,7 +1041,7 @@ InterpreterRemoveComments(char* CommandText)
             {
                 if (CommandText[i] != '\0')
                 {
-                    memmove((void*)&CommandText[i], (const void*)&CommandText[i + 1], strlen(CommandText) - i);
+                    memmove((void *)&CommandText[i], (const void *)&CommandText[i + 1], strlen(CommandText) - i);
                     i--;
                 }
             }
@@ -1133,16 +1133,16 @@ HyperDbgShowSignature()
  * return FALSE
  */
 BOOLEAN
-CheckMultilineCommand(CHAR* CurrentCommand, BOOLEAN Reset)
+CheckMultilineCommand(CHAR * CurrentCommand, BOOLEAN Reset)
 {
     UINT32      CurrentCommandLen = 0;
     std::string CurrentCommandStr(CurrentCommand);
 
     if (Reset)
     {
-        g_IsInterpreterOnString = FALSE;
+        g_IsInterpreterOnString                    = FALSE;
         g_IsInterpreterPreviousCharacterABackSlash = FALSE;
-        g_InterpreterCountOfOpenCurlyBrackets = 0;
+        g_InterpreterCountOfOpenCurlyBrackets      = 0;
     }
 
     CurrentCommandLen = (UINT32)CurrentCommandStr.length();
@@ -1256,7 +1256,7 @@ ContinuePreviousCommand()
  * @return BOOLEAN Mask of the command's attributes
  */
 UINT64
-GetCommandAttributes(const string& FirstCommand)
+GetCommandAttributes(const string & FirstCommand)
 {
     CommandType::iterator Iterator;
 
@@ -1342,93 +1342,93 @@ VOID
 InitializeCommandsDictionary()
 {
     g_CommandsList[".help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
-    g_CommandsList[".hh"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
-    g_CommandsList["help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+    g_CommandsList[".hh"]   = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+    g_CommandsList["help"]  = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
     g_CommandsList["clear"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList[".cls"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
-    g_CommandsList["cls"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList[".cls"]  = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
+    g_CommandsList["cls"]   = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
 
     g_CommandsList[".connect"] = {&CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
-    g_CommandsList["connect"] = {&CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
+    g_CommandsList["connect"]  = {&CommandConnect, &CommandConnectHelp, DEBUGGER_COMMAND_CONNECT_ATTRIBUTES};
 
     g_CommandsList[".listen"] = {&CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
-    g_CommandsList["listen"] = {&CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
+    g_CommandsList["listen"]  = {&CommandListen, &CommandListenHelp, DEBUGGER_COMMAND_LISTEN_ATTRIBUTES};
 
-    g_CommandsList["g"] = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
+    g_CommandsList["g"]  = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
     g_CommandsList["go"] = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
     g_CommandsList["gg"] = {&CommandGg, &CommandGgHelp, DEBUGGER_COMMAND_GG_ATTRIBUTES};
 
     g_CommandsList[".attach"] = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
-    g_CommandsList["attach"] = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
+    g_CommandsList["attach"]  = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};
 
     g_CommandsList[".detach"] = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
-    g_CommandsList["detach"] = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
+    g_CommandsList["detach"]  = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
 
     g_CommandsList[".start"] = {&CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
-    g_CommandsList["start"] = {&CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
+    g_CommandsList["start"]  = {&CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
 
     g_CommandsList[".restart"] = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
-    g_CommandsList["restart"] = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+    g_CommandsList["restart"]  = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
 
     g_CommandsList[".switch"] = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
-    g_CommandsList["switch"] = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+    g_CommandsList["switch"]  = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
 
     g_CommandsList[".kill"] = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
-    g_CommandsList["kill"] = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
+    g_CommandsList["kill"]  = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
 
-    g_CommandsList[".process"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList[".process"]  = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
     g_CommandsList[".process2"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
-    g_CommandsList["process"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
-    g_CommandsList["process2"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList["process"]   = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList["process2"]  = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
 
-    g_CommandsList[".thread"] = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList[".thread"]  = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
     g_CommandsList[".thread2"] = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
-    g_CommandsList["thread"] = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
-    g_CommandsList["thread2"] = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList["thread"]   = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList["thread2"]  = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
 
     g_CommandsList["sleep"] = {&CommandSleep, &CommandSleepHelp, DEBUGGER_COMMAND_SLEEP_ATTRIBUTES};
 
-    g_CommandsList["event"] = {&CommandEvents, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
+    g_CommandsList["event"]  = {&CommandEvents, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
     g_CommandsList["events"] = {&CommandEvents, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
 
-    g_CommandsList["setting"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList["settings"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList[".setting"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["setting"]   = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["settings"]  = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList[".setting"]  = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
     g_CommandsList[".settings"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
 
     g_CommandsList[".disconnect"] = {&CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
-    g_CommandsList["disconnect"] = {&CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
+    g_CommandsList["disconnect"]  = {&CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
 
     g_CommandsList[".debug"] = {&CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
-    g_CommandsList["debug"] = {&CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
+    g_CommandsList["debug"]  = {&CommandDebug, &CommandDebugHelp, DEBUGGER_COMMAND_DEBUG_ATTRIBUTES};
 
     g_CommandsList[".status"] = {&CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_DOT_STATUS_ATTRIBUTES};
-    g_CommandsList["status"] = {&CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
+    g_CommandsList["status"]  = {&CommandStatus, &CommandStatusHelp, DEBUGGER_COMMAND_STATUS_ATTRIBUTES};
 
-    g_CommandsList["load"] = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
+    g_CommandsList["load"]  = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
     g_CommandsList[".load"] = {&CommandLoad, &CommandLoadHelp, DEBUGGER_COMMAND_LOAD_ATTRIBUTES};
 
-    g_CommandsList["exit"] = {&CommandExit, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
+    g_CommandsList["exit"]  = {&CommandExit, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
     g_CommandsList[".exit"] = {&CommandExit, &CommandExitHelp, DEBUGGER_COMMAND_EXIT_ATTRIBUTES};
 
     g_CommandsList["flush"] = {&CommandFlush, &CommandFlushHelp, DEBUGGER_COMMAND_FLUSH_ATTRIBUTES};
 
-    g_CommandsList["pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
+    g_CommandsList["pause"]  = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
     g_CommandsList[".pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
 
     g_CommandsList["unload"] = {&CommandUnload, &CommandUnloadHelp, DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES};
 
     g_CommandsList[".script"] = {&CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
-    g_CommandsList["script"] = {&CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
+    g_CommandsList["script"]  = {&CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
 
     g_CommandsList["output"] = {&CommandOutput, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
 
     g_CommandsList["print"] = {&CommandPrint, &CommandPrintHelp, DEBUGGER_COMMAND_PRINT_ATTRIBUTES};
 
-    g_CommandsList["?"] = {&CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
-    g_CommandsList["eval"] = {&CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
+    g_CommandsList["?"]        = {&CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
+    g_CommandsList["eval"]     = {&CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
     g_CommandsList["evaluate"] = {&CommandEval, &CommandEvalHelp, DEBUGGER_COMMAND_EVAL_ATTRIBUTES};
 
     g_CommandsList[".logopen"] = {&CommandLogopen, &CommandLogopenHelp, DEBUGGER_COMMAND_LOGOPEN_ATTRIBUTES};
@@ -1436,7 +1436,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".logclose"] = {&CommandLogclose, &CommandLogcloseHelp, DEBUGGER_COMMAND_LOGCLOSE_ATTRIBUTES};
 
     g_CommandsList[".pagein"] = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
-    g_CommandsList["pagein"] = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
+    g_CommandsList["pagein"]  = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
 
     g_CommandsList["test"] = {&CommandTest, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
 
@@ -1451,15 +1451,15 @@ InitializeCommandsDictionary()
     g_CommandsList["!pa2va"] = {&CommandPa2va, &CommandPa2vaHelp, DEBUGGER_COMMAND_PA2VA_ATTRIBUTES};
 
     g_CommandsList[".formats"] = {&CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
-    g_CommandsList[".format"] = {&CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
+    g_CommandsList[".format"]  = {&CommandFormats, &CommandFormatsHelp, DEBUGGER_COMMAND_FORMATS_ATTRIBUTES};
 
     g_CommandsList["!pte"] = {&CommandPte, &CommandPteHelp, DEBUGGER_COMMAND_PTE_ATTRIBUTES};
 
-    g_CommandsList["~"] = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
+    g_CommandsList["~"]    = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
     g_CommandsList["core"] = {&CommandCore, &CommandCoreHelp, DEBUGGER_COMMAND_CORE_ATTRIBUTES};
 
-    g_CommandsList["!apic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
-    g_CommandsList["!lapic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!apic"]      = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
+    g_CommandsList["!lapic"]     = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
     g_CommandsList["!localapic"] = {&CommandApic, &CommandApicHelp, DEBUGGER_COMMAND_APIC_ATTRIBUTES};
 
     g_CommandsList["!ioapic"] = {&CommandIoapic, &CommandIoapicHelp, DEBUGGER_COMMAND_IOAPIC_ATTRIBUTES};
@@ -1485,7 +1485,7 @@ InitializeCommandsDictionary()
     g_CommandsList["!cpuid"] = {&CommandCpuid, &CommandCpuidHelp, DEBUGGER_COMMAND_CPUID_ATTRIBUTES};
 
     g_CommandsList["!msrread"] = {&CommandMsrread, &CommandMsrreadHelp, DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES};
-    g_CommandsList["!msread"] = {&CommandMsrread, &CommandMsrreadHelp, DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES};
+    g_CommandsList["!msread"]  = {&CommandMsrread, &CommandMsrreadHelp, DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES};
 
     g_CommandsList["!msrwrite"] = {&CommandMsrwrite, &CommandMsrwriteHelp, DEBUGGER_COMMAND_MSRWRITE_ATTRIBUTES};
 
@@ -1500,16 +1500,16 @@ InitializeCommandsDictionary()
     g_CommandsList["!ioin"] = {&CommandIoin, &CommandIoinHelp, DEBUGGER_COMMAND_IOIN_ATTRIBUTES};
 
     g_CommandsList["!ioout"] = {&CommandIoout, &CommandIooutHelp, DEBUGGER_COMMAND_IOOUT_ATTRIBUTES};
-    g_CommandsList["!iout"] = {&CommandIoout, &CommandIooutHelp, DEBUGGER_COMMAND_IOOUT_ATTRIBUTES};
+    g_CommandsList["!iout"]  = {&CommandIoout, &CommandIooutHelp, DEBUGGER_COMMAND_IOOUT_ATTRIBUTES};
 
     g_CommandsList["!exception"] = {&CommandException, &CommandExceptionHelp, DEBUGGER_COMMAND_EXCEPTION_ATTRIBUTES};
 
     g_CommandsList["!interrupt"] = {&CommandInterrupt, &CommandInterruptHelp, DEBUGGER_COMMAND_INTERRUPT_ATTRIBUTES};
 
-    g_CommandsList["!syscall"] = {&CommandSyscallAndSysret, &CommandSyscallHelp, DEBUGGER_COMMAND_SYSCALL_ATTRIBUTES};
+    g_CommandsList["!syscall"]  = {&CommandSyscallAndSysret, &CommandSyscallHelp, DEBUGGER_COMMAND_SYSCALL_ATTRIBUTES};
     g_CommandsList["!syscall2"] = {&CommandSyscallAndSysret, &CommandSyscallHelp, DEBUGGER_COMMAND_SYSCALL_ATTRIBUTES};
 
-    g_CommandsList["!sysret"] = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
+    g_CommandsList["!sysret"]  = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
     g_CommandsList["!sysret2"] = {&CommandSyscallAndSysret, &CommandSysretHelp, DEBUGGER_COMMAND_SYSRET_ATTRIBUTES};
 
     g_CommandsList["!mode"] = {&CommandMode, &CommandModeHelp, DEBUGGER_COMMAND_MODE_ATTRIBUTES};
@@ -1524,44 +1524,44 @@ InitializeCommandsDictionary()
 
     g_CommandsList["lm"] = {&CommandLm, &CommandLmHelp, DEBUGGER_COMMAND_LM_ATTRIBUTES};
 
-    g_CommandsList["p"] = {&CommandP, &CommandPHelp, DEBUGGER_COMMAND_P_ATTRIBUTES};
+    g_CommandsList["p"]  = {&CommandP, &CommandPHelp, DEBUGGER_COMMAND_P_ATTRIBUTES};
     g_CommandsList["pr"] = {&CommandP, &CommandPHelp, DEBUGGER_COMMAND_P_ATTRIBUTES};
 
-    g_CommandsList["t"] = {&CommandT, &CommandTHelp, DEBUGGER_COMMAND_T_ATTRIBUTES};
+    g_CommandsList["t"]  = {&CommandT, &CommandTHelp, DEBUGGER_COMMAND_T_ATTRIBUTES};
     g_CommandsList["tr"] = {&CommandT, &CommandTHelp, DEBUGGER_COMMAND_T_ATTRIBUTES};
 
-    g_CommandsList["i"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
+    g_CommandsList["i"]  = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
     g_CommandsList["gu"] = {&CommandGu, &CommandGuHelp, DEBUGGER_COMMAND_GU_ATTRIBUTES};
 
-    g_CommandsList["db"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dc"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dd"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["dq"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!db"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dc"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dd"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!dq"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["db"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dc"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dd"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["dq"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!db"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dc"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dd"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!dq"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u"]    = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["!u64"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u64"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["!u2"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u2"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u64"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["!u2"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u2"]   = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["!u32"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
-    g_CommandsList["u32"] = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+    g_CommandsList["u32"]  = {&CommandReadMemoryAndDisassembler, &CommandReadMemoryAndDisassemblerHelp, DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
 
-    g_CommandsList["eb"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
-    g_CommandsList["ed"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
-    g_CommandsList["eq"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
+    g_CommandsList["eb"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
+    g_CommandsList["ed"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
+    g_CommandsList["eq"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["!eb"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["!ed"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["!eq"] = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
 
-    g_CommandsList["sb"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["sd"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
-    g_CommandsList["sq"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sb"]  = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sd"]  = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
+    g_CommandsList["sq"]  = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
     g_CommandsList["!sb"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
     g_CommandsList["!sd"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
     g_CommandsList["!sq"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, DEBUGGER_COMMAND_S_ATTRIBUTES};
@@ -1569,53 +1569,53 @@ InitializeCommandsDictionary()
     g_CommandsList["r"] = {&CommandR, &CommandRHelp, DEBUGGER_COMMAND_R_ATTRIBUTES};
 
     g_CommandsList[".sympath"] = {&CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
-    g_CommandsList["sympath"] = {&CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
+    g_CommandsList["sympath"]  = {&CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
 
     g_CommandsList[".sym"] = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
-    g_CommandsList["sym"] = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
+    g_CommandsList["sym"]  = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
 
     g_CommandsList["x"] = {&CommandX, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
 
-    g_CommandsList["prealloc"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
-    g_CommandsList["preallocate"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["prealloc"]      = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocate"]   = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
     g_CommandsList["preallocation"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
 
-    g_CommandsList["preactivate"] = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
-    g_CommandsList["preactive"] = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactivate"]   = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
+    g_CommandsList["preactive"]     = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
     g_CommandsList["preactivation"] = {&CommandPreactivate, &CommandPreactivateHelp, DEBUGGER_COMMAND_PREACTIVATE_ATTRIBUTES};
 
-    g_CommandsList["k"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
+    g_CommandsList["k"]  = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
     g_CommandsList["kd"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
     g_CommandsList["kq"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
 
-    g_CommandsList["dt"] = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
+    g_CommandsList["dt"]  = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
     g_CommandsList["!dt"] = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
 
-    g_CommandsList["struct"] = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
+    g_CommandsList["struct"]    = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
     g_CommandsList["structure"] = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
 
     g_CommandsList[".pe"] = {&CommandPe, &CommandPeHelp, DEBUGGER_COMMAND_PE_ATTRIBUTES};
 
     g_CommandsList["!rev"] = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
-    g_CommandsList["rev"] = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
+    g_CommandsList["rev"]  = {&CommandRev, &CommandRevHelp, DEBUGGER_COMMAND_REV_ATTRIBUTES};
 
     g_CommandsList["!track"] = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
-    g_CommandsList["track"] = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
+    g_CommandsList["track"]  = {&CommandTrack, &CommandTrackHelp, DEBUGGER_COMMAND_TRACK_ATTRIBUTES};
 
     g_CommandsList[".dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
-    g_CommandsList["dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
+    g_CommandsList["dump"]  = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
     g_CommandsList["!dump"] = {&CommandDump, &CommandDumpHelp, DEBUGGER_COMMAND_DUMP_ATTRIBUTES};
 
-    g_CommandsList["a"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["asm"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["assemble"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["assembly"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!a"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
-    g_CommandsList["!asm"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["a"]         = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["asm"]       = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assemble"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["assembly"]  = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!a"]        = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
+    g_CommandsList["!asm"]      = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assemble"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
     g_CommandsList["!assembly"] = {&CommandAssemble, &CommandAssembleHelp, DEBUGGER_COMMAND_A_ATTRIBUTES};
 
-    g_CommandsList["!pcitree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
+    g_CommandsList["!pcitree"]  = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
     g_CommandsList["!pcietree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
 
     g_CommandsList["!idt"] = {&CommandIdt, &CommandIdtHelp, DEBUGGER_COMMAND_IDT_ATTRIBUTES};
@@ -1623,8 +1623,8 @@ InitializeCommandsDictionary()
     //
     // hwdbg commands
     //
-    g_CommandsList["!hw_clk"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
-    g_CommandsList["!hw_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hw_clk"]      = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
+    g_CommandsList["!hw_clock"]    = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 
