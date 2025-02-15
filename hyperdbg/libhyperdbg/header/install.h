@@ -35,6 +35,22 @@
 #define DRIVER_FUNC_STOP    0x02
 #define DRIVER_FUNC_REMOVE  0x03
 
+//////////////////////////////////////////////////
+//					Functions                   //
+//////////////////////////////////////////////////
+
+BOOLEAN
+InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe);
+
+BOOLEAN
+RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
+
+BOOLEAN
+StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
+
+BOOLEAN
+StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
+
 BOOLEAN
 ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Function);
 
