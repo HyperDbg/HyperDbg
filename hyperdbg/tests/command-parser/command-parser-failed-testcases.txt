@@ -1,7 +1,0 @@
-_____________________________________________________________
-.sympath SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
-----------------------------------
-.sympath
-----------------------------------
-SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
-_____________________________________________________________

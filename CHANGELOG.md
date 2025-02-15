@@ -22,6 +22,7 @@ New release of the HyperDbg Debugger.
 - Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
 - Fix containing backslash escape character in script strings ([link](https://github.com/HyperDbg/HyperDbg/pull/499))
 - Fix reading/writing into devices' physical memory (MMIO region) in VMI Mode ([link](https://github.com/HyperDbg/HyperDbg/pull/500))
+- All test cases for command parsing are now passed ([link](https://github.com/HyperDbg/HyperDbg/pull/504))
 
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.

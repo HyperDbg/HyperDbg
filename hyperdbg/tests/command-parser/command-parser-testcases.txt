@@ -5465,3 +5465,9 @@ script
   printf("{ \"rip\": 0x%llx, \"context\": 0x%llx, \"buffer1\": \"%llx\", \"buffer2\": \"%llx\", \"inst_len\": 0x%x }\n", @rip, $context, dq(@rip), dq(@rip+8), disassemble_len(@rip));
 
 _____________________________________________________________
+.sympath SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
+----------------------------------
+.sympath
+----------------------------------
+SRV*c:\Symbols*https://msdl.microsoft.com/download/symbols
+_____________________________________________________________
