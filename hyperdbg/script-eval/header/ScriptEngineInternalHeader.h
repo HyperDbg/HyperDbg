@@ -136,6 +136,15 @@ BOOLEAN
 ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError);
 
 BOOLEAN
+ScriptEngineFunctionEqPa(UINT64 Address, QWORD Value, BOOL * HasError);
+
+BOOLEAN
+ScriptEngineFunctionEdPa(UINT64 Address, DWORD Value, BOOL * HasError);
+
+BOOLEAN
+ScriptEngineFunctionEbPa(UINT64 Address, BYTE Value, BOOL * HasError);
+
+BOOLEAN
 ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length);
 
 VOID
