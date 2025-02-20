@@ -303,6 +303,108 @@ ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL *
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+/**
+ * @brief A VMX-compatible equivalent of memcpy function in C for physical memory
+ *
+ * @param Destination
+ * @param Source
+ * @param Num
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionMemcpyPa(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError)
+{
+    UINT64 PrevReadLen                                              = 0;
+    BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    //
+    // Show an error message in user-mode
+    //
+    ShowMessages("err, using physical address functions (memcpy_pa) is not possible in user-mode\n");
+    return;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Check the destination address (physical)
+    //
+    if (!CheckAddressPhysical(Destination))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Check the source address (physical)
+    //
+    if (!CheckAddressPhysical(Source))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Address is valid, perform the memcpy in kernel-mode (VMX-root mode)
+    //
+    while (Num > 0)
+    {
+        //
+        // Check the target buffer size
+        //
+        if (Num > DebuggerScriptEngineMemcpyMovingBufferSize)
+        {
+            //
+            // *** The size of read buffer is greater to maximum the moving buffer size ***
+            //
+
+            //
+            // Read memory into the buffer
+            //
+            MemoryMapperReadMemorySafeByPhysicalAddress(Source + PrevReadLen, (UINT64)MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
+
+            //
+            // Write the moving buffer into the target buffer
+            //
+            MemoryMapperWriteMemorySafeByPhysicalAddress(Destination + PrevReadLen, (UINT64)MovingBuffer, DebuggerScriptEngineMemcpyMovingBufferSize);
+
+            //
+            // Computing the bytes that we read
+            //
+            PrevReadLen += DebuggerScriptEngineMemcpyMovingBufferSize;
+            Num -= DebuggerScriptEngineMemcpyMovingBufferSize;
+        }
+        else
+        {
+            //
+            // *** The size of read buffer is lower than or equal to the moving buffer size ***
+            //
+
+            //
+            // Read memory into the buffer
+            //
+            MemoryMapperReadMemorySafeByPhysicalAddress(Source + PrevReadLen, (UINT64)MovingBuffer, Num);
+
+            //
+            // Write the moving buffer into the target buffer
+            //
+            MemoryMapperWriteMemorySafeByPhysicalAddress(Destination + PrevReadLen, (UINT64)MovingBuffer, Num);
+
+            //
+            // Computing the bytes that we gonna read
+            //
+            PrevReadLen += Num;
+            Num = 0; // or Num -= Num;
+        }
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 //
 // Convert virtual address to physical address
 //

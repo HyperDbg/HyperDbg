@@ -291,7 +291,7 @@ ScriptEngineKeywordPoiPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (poi_pa) is not possible in user-mode\n");
     return (UINT64)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -328,7 +328,7 @@ ScriptEngineKeywordHiPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (hi_pa) is not possible in user-mode\n");
     return (WORD)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -365,7 +365,7 @@ ScriptEngineKeywordLowPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (low_pa) is not possible in user-mode\n");
     return (WORD)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -402,7 +402,7 @@ ScriptEngineKeywordDbPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (db_pa) is not possible in user-mode\n");
     return (BYTE)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -439,7 +439,7 @@ ScriptEngineKeywordDdPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (dd_pa) is not possible in user-mode\n");
     return (DWORD)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -476,7 +476,7 @@ ScriptEngineKeywordDwPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (dw_pa) is not possible in user-mode\n");
     return (WORD)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -513,7 +513,7 @@ ScriptEngineKeywordDqPa(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    ShowMessages("err, using physical address keywords (dq_pa) is not possible in user-mode\n");
     return (QWORD)NULL;
 
 #endif // SCRIPT_ENGINE_USER_MODE

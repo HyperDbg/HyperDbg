@@ -141,11 +141,8 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length);
 VOID
 ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
-UINT64
-ScriptEngineFunctionVirtualToPhysical(UINT64 Address);
-
-UINT64
-ScriptEngineFunctionPhysicalToVirtual(UINT64 Address);
+VOID
+ScriptEngineFunctionMemcpyPa(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
 VOID
 ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
@@ -161,6 +158,12 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError);
 
 VOID
 ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait, BOOL * HasError);
+
+UINT64
+ScriptEngineFunctionVirtualToPhysical(UINT64 Address);
+
+UINT64
+ScriptEngineFunctionPhysicalToVirtual(UINT64 Address);
 
 UINT64
 ScriptEngineFunctionStrlen(const char * Address);
