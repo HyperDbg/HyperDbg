@@ -14,6 +14,9 @@ New release of the HyperDbg Debugger.
 - Added the command for interpreting PCI CAM (PCI configuration space) fields ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
 - Added the command for dumping PCI CAM (PCI configuration space) memory ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
 - Checking for and unloading the older version of the driver (if it exists) ([link](https://github.com/HyperDbg/HyperDbg/pull/503))
+- **memcpy_pa()** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcpy_pa))
+- **poi_pa**, **hi_pa**, **low_pa**, **db_pa**, **dd_pa**, **dw_pa**, and **dq_pa** keywords in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
+- **eb_pa**, **ed_pa**, and **eq_pa** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/eb_pa-ed_pa-eq_pa))
 
 ### Changed
 - Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Windows 11 24h2 ([link](https://docs.hyperdbg.org/commands/debugging-commands/lm))
