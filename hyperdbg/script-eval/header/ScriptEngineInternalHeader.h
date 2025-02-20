@@ -72,6 +72,10 @@ ScriptEnginePseudoRegGetDate();
 //			         Keywords                   //
 //////////////////////////////////////////////////
 
+//
+// For Virtual Memory
+//
+
 UINT64
 ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError);
 
@@ -92,6 +96,31 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError);
 
 QWORD
 ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError);
+
+//
+// For Physical Memory
+//
+
+UINT64
+ScriptEngineKeywordPoiPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordHiPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordLowPa(PUINT64 Address, BOOL * HasError);
+
+BYTE
+ScriptEngineKeywordDbPa(PUINT64 Address, BOOL * HasError);
+
+DWORD
+ScriptEngineKeywordDdPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordDwPa(PUINT64 Address, BOOL * HasError);
+
+QWORD
+ScriptEngineKeywordDqPa(PUINT64 Address, BOOL * HasError);
 
 //////////////////////////////////////////////////
 //			        Functions                   //

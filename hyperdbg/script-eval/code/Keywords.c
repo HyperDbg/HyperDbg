@@ -16,6 +16,12 @@
 // *** Keywords ***
 //
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                             //
+//                                          For Virtual Memory                                                 //
+//                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @brief Implementation of poi keyword
  *
@@ -249,6 +255,271 @@ ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Address, &Result, sizeof(QWORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                             //
+//                                         For Physical Memory                                                 //
+//                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Implementation of poi_pa keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return UINT64
+ */
+UINT64
+ScriptEngineKeywordPoiPa(PUINT64 Address, BOOL * HasError)
+{
+    UINT64 Result = (UINT64)NULL;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return (UINT64)NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (UINT64)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(UINT64));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of hi keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
+ */
+WORD
+ScriptEngineKeywordHiPa(PUINT64 Address, BOOL * HasError)
+{
+    QWORD Result = NULL64_ZERO;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return NULL64_ZERO;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (WORD)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(UINT64));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return HIWORD(Result);
+}
+
+/**
+ * @brief Implementation of low keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
+ */
+WORD
+ScriptEngineKeywordLowPa(PUINT64 Address, BOOL * HasError)
+{
+    QWORD Result = NULL64_ZERO;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return NULL64_ZERO;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (WORD)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(UINT64));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return LOWORD(Result);
+}
+
+/**
+ * @brief Implementation of db keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return BYTE
+ */
+BYTE
+ScriptEngineKeywordDbPa(PUINT64 Address, BOOL * HasError)
+{
+    BYTE Result = NULL_ZERO;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return NULL_ZERO;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (BYTE)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(BYTE));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of dd keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return DWORD
+ */
+DWORD
+ScriptEngineKeywordDdPa(PUINT64 Address, BOOL * HasError)
+{
+    DWORD Result = NULL_ZERO;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return NULL_ZERO;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (DWORD)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(DWORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of dw keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return WORD
+ */
+WORD
+ScriptEngineKeywordDwPa(PUINT64 Address, BOOL * HasError)
+{
+    WORD Result = NULL_ZERO;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return NULL_ZERO;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (WORD)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(WORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return Result;
+}
+
+/**
+ * @brief Implementation of dq keyword
+ *
+ * @param Address
+ * @param HasError
+ * @return QWORD
+ */
+QWORD
+ScriptEngineKeywordDqPa(PUINT64 Address, BOOL * HasError)
+{
+    QWORD Result = (QWORD)NULL;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckAddressPhysical((UINT64)Address))
+    {
+        *HasError = TRUE;
+
+        return (QWORD)NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    ShowMessages("err, using physical address functions is not possible in user-mode\n");
+    return (QWORD)NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)Address, (UINT64)&Result, sizeof(QWORD));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     return Result;

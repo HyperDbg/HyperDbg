@@ -1208,6 +1208,106 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         break;
 
+    case FUNC_POI_PA:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineKeywordPoiPa((PUINT64)GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE),
+                                          &HasError);
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_DB_PA:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineKeywordDbPa((PUINT64)GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE),
+                                         &HasError);
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_DD_PA:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineKeywordDdPa((PUINT64)GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE),
+                                         &HasError);
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_DW_PA:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineKeywordDwPa((PUINT64)GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE),
+                                         &HasError);
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_DQ_PA:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineKeywordDqPa((PUINT64)GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE),
+                                         &HasError);
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
     case FUNC_NOT:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
