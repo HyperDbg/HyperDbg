@@ -243,6 +243,27 @@ ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName)
     case FUNC_LOW:
         memcpy(BufferForName, "low", 3);
         break;
+    case FUNC_POI_PA:
+        memcpy(BufferForName, "poi_pa", 6);
+        break;
+    case FUNC_DB_PA:
+        memcpy(BufferForName, "db_pa", 5);
+        break;
+    case FUNC_DD_PA:
+        memcpy(BufferForName, "dd_pa", 5);
+        break;
+    case FUNC_DW_PA:
+        memcpy(BufferForName, "dw_pa", 5);
+        break;
+    case FUNC_DQ_PA:
+        memcpy(BufferForName, "dq_pa", 5);
+        break;
+    case FUNC_HI_PA:
+        memcpy(BufferForName, "hi_pa", 5);
+        break;
+    case FUNC_LOW_PA:
+        memcpy(BufferForName, "low_pa", 6);
+        break;
     default:
         memcpy(BufferForName, "error", 5);
         break;
