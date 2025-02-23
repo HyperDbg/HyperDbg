@@ -239,8 +239,6 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                                              ActualBar,
                                              (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x8 >> 3) ? "True" : "False");
 
-                                ShowMessages(" Addressable range: 0-%016llx\n Size: %u\n", PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarSize);
-
                                 i++;
                                 BarNumOffset++;
                             }
@@ -257,8 +255,6 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                                              PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i],
                                              ActualBar,
                                              (PcidevinfoPacket.DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x8 >> 3) ? "True" : "False");
-
-                                ShowMessages(" Addressable range: 0-%08x\n Size: %u\n", PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket.DeviceInfo.MmioBarInfo[i].BarSize);
                             }
                         }
                         //

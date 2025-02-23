@@ -789,14 +789,9 @@ ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pcidevin
                 {
                     if (((PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1) == 2) // 64-bit BAR
                     {
-                        UINT64 BarMsb             = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i + 1];
-                        UINT64 BarLsb             = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i];
-                        UINT64 Bar64              = ((BarMsb & 0xFFFFFFFF) << 32) + (BarLsb & 0xFFFFFFF0);
-                        UINT64 BarPrevVal         = 0;
-                        UINT64 BarIntermediateVal = 0;
-                        UINT64 BarSizeQuery       = 0xFFFFFFFFFFFFFFFF;
-                        UINT16 CmdOriginalVal     = 0;
-                        UINT16 CmdCurrentVal      = 0;
+                        UINT64 BarMsb = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i + 1];
+                        UINT64 BarLsb = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i];
+                        UINT64 Bar64  = ((BarMsb & 0xFFFFFFFF) << 32) + (BarLsb & 0xFFFFFFF0);
 
                         PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit = TRUE;
                         if (Bar64 == 0)
@@ -805,55 +800,14 @@ ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pcidevin
                             continue;
                         }
 
-                        LogInfo("BAR%u:", i);
-                        // Save current Command value
-                        CmdOriginalVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdOriginalVal = %04x", CmdOriginalVal);
-                        LogInfo("Writing %04x to Command", (CmdOriginalVal & ~(0x1 | 0x2)));
-
-                        // Temporarily disable both I/O and memory decoding
-                        PciWriteCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2, (CmdOriginalVal & ~(0x1 | 0x2)));
-                        CmdCurrentVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdCurrentVal = %04x", CmdCurrentVal);
-
-                        // Save current BAR value
-                        MemoryMapperReadMemorySafeByPhysicalAddress(Bar64, (UINT64)&BarPrevVal, sizeof(UINT64));
-                        LogInfo("Bar64 (%016llx) = %016llx", Bar64, BarPrevVal);
-
-                        // Query BAR
-                        LogInfo("Writing BarSizeQuery=%016llx to Bar64 (%016llx)", BarSizeQuery, Bar64);
-                        MemoryMapperWriteMemorySafeByPhysicalAddress(Bar64, (UINT64)&BarSizeQuery, sizeof(UINT64));
-
-                        // Save intermediate value - derive size, ending offset
-                        MemoryMapperReadMemorySafeByPhysicalAddress(Bar64, (UINT64)&BarIntermediateVal, sizeof(UINT64));
-                        LogInfo("BarIntermediateVal = %016llx", BarIntermediateVal);
-
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit      = TRUE;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled    = TRUE;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd = 0xFFFFFFFFFFFFFFFF - BarIntermediateVal;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarSize      = (~PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd) + 1;
-                        LogInfo("BarOffsetEnd = %016llx, BarSize = %016llx", PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarSize);
-
-                        // Restore previous BAR value
-                        LogInfo("Writing BarPrevVal=%016llx to Bar64 (%016llx)", BarPrevVal, Bar64);
-                        MemoryMapperWriteMemorySafeByPhysicalAddress(Bar64, (UINT64)&BarPrevVal, sizeof(UINT64));
-
-                        // Restore previous decoding state
-                        LogInfo("Writing %04x to Command", CmdOriginalVal);
-                        PciWriteCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2, CmdOriginalVal);
-                        CmdCurrentVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdCurrentVal = %04x\n", CmdCurrentVal);
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit   = TRUE;
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = TRUE;
 
                         i++;
                     }
                     else // 32-bit BAR
                     {
-                        UINT32 Bar32              = (PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFF0);
-                        UINT32 BarPrevVal         = 0;
-                        UINT32 BarIntermediateVal = 0;
-                        UINT32 BarSizeQuery       = 0xFFFFFFFF;
-                        UINT16 CmdOriginalVal     = 0;
-                        UINT16 CmdCurrentVal      = 0;
+                        UINT32 Bar32 = (PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFF0);
 
                         PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit = FALSE;
                         if (Bar32 == 0)
@@ -862,44 +816,8 @@ ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pcidevin
                             continue;
                         }
 
-                        LogInfo("BAR%u:", i);
-                        // Save current Command value
-                        CmdOriginalVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdOriginalVal = %04x", CmdOriginalVal);
-
-                        // Temporarily disable both I/O and memory decoding
-                        LogInfo("Writing %04x to Command", (CmdOriginalVal & ~(0x1 | 0x2)));
-                        PciWriteCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2, (CmdOriginalVal & ~(0x1 | 0x2)));
-                        CmdCurrentVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdCurrentVal = %04x", CmdCurrentVal);
-
-                        // Save current BAR value
-                        MemoryMapperReadMemorySafeByPhysicalAddress(Bar32, (UINT64)&BarPrevVal, sizeof(UINT64));
-                        LogInfo("Bar32 (%08x) = %08x", Bar32, BarPrevVal);
-
-                        // Query BAR
-                        LogInfo("Writing BarSizeQuery=%08x to Bar32 (%08x)", BarSizeQuery, Bar32);
-                        MemoryMapperWriteMemorySafeByPhysicalAddress(Bar32, (UINT64)&BarSizeQuery, sizeof(UINT64));
-
-                        // Save intermediate value - derive size, ending offset
-                        MemoryMapperReadMemorySafeByPhysicalAddress(Bar32, (UINT64)&BarIntermediateVal, sizeof(UINT64));
-                        LogInfo("BarIntermediateVal = %08x", BarIntermediateVal);
-
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit      = FALSE;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled    = TRUE;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd = 0xFFFFFFFF - BarIntermediateVal;
-                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarSize      = (~PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd) + 1;
-                        LogInfo("BarOffsetEnd = %08x, BarSize = %08x", PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarOffsetEnd, PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].BarSize);
-
-                        // Restore previous BAR value
-                        LogInfo("Writing BarPrevVal=%08x to Bar32 (%08x)", BarPrevVal, Bar32);
-                        MemoryMapperWriteMemorySafeByPhysicalAddress(Bar32, (UINT64)&BarPrevVal, sizeof(UINT64));
-
-                        // Restore previous decoding state
-                        LogInfo("Writing %04x to Command", CmdOriginalVal);
-                        PciWriteCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2, PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.Command);
-                        CmdCurrentVal = (UINT16)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0x4, 2);
-                        LogInfo("CmdCurrentVal = %04x\n", CmdCurrentVal);
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit   = FALSE;
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = TRUE;
                     }
                 }
             }
