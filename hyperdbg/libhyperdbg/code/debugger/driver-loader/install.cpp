@@ -437,7 +437,9 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("warning, stopping the driver was not successful, the driver might not be running (%x)\n", GetLastError());
+        ShowMessages("warning, failed to stop the driver. Possible reasons include the driver not currently running or an unsuccessful unload from a previous run. "
+                     "This is not an error, HyperDbg tries to remove the previous driver and load it again (%x)\n",
+                     GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle
