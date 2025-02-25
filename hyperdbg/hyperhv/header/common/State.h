@@ -235,6 +235,11 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsHiddenBreakpoint;
 
     /**
+     * @brief This field shows whether the hook is for MMIO shadowing or not
+     */
+    BOOLEAN IsMmioShadowing;
+
+    /**
      * @brief Temporary context for the post event monitors
      * It shows the context of the last address that triggered the hook
      * Note: Only used for read/write trigger events

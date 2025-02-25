@@ -163,6 +163,7 @@
     <ClCompile Include="code\memory\PoolManager.c" />
     <ClCompile Include="code\memory\Segmentation.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
+    <ClCompile Include="code\mmio\MmioShadowing.c" />
     <ClCompile Include="code\processor\Idt.c" />
     <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
@@ -265,6 +266,7 @@
     <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\memory\Segmentation.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
+    <ClInclude Include="header\mmio\MmioShadowing.h" />
     <ClInclude Include="header\processor\Idt.h" />
     <ClInclude Include="header\transparency\Transparency.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
