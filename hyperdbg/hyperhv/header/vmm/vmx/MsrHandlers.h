@@ -16,10 +16,10 @@
 //////////////////////////////////////////////////
 
 VOID
-MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs);
+MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs);
+MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDetection, BOOLEAN WriteDetection);

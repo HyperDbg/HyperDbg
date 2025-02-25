@@ -33,6 +33,8 @@ VOID
 CommandMeasureHelp()
 {
     ShowMessages(
+        "This command is deprecated, you should not use it anymore!\n\n");
+    ShowMessages(
         "!measure : measures the arguments needs for the '!hide' command.\n\n");
 
     ShowMessages("syntax : \t!measure [default]\n");
@@ -54,6 +56,9 @@ VOID
 CommandMeasure(vector<CommandToken> CommandTokens, string Command)
 {
     BOOLEAN DefaultMode = FALSE;
+
+    ShowMessages("This command is deprecated, you should not use it anymore!\n");
+    return;
 
     if (CommandTokens.size() >= 3)
     {

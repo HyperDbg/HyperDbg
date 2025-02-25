@@ -32,6 +32,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
     PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
     PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET               PcitreeRequest;
+    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET            PcidevinfoRequest;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
     PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
@@ -405,16 +406,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerHideAndUnhideRequest = (PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Here we should validate whether the input parameter is
-            // valid or in other words whether we received enough space or not
-            //
-            if (DebuggerHideAndUnhideRequest->TrueIfProcessIdAndFalseIfProcessName == FALSE && IrpStack->Parameters.DeviceIoControl.InputBufferLength != SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE + DebuggerHideAndUnhideRequest->LengthOfProcessName)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            //
             // check if it's a !hide or !unhide command
             //
             if (DebuggerHideAndUnhideRequest->IsHide == TRUE)
@@ -422,42 +413,21 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // It's a hide request
                 //
-                Status = TransparentHideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentHideDebugger(DebuggerHideAndUnhideRequest);
             }
             else
             {
                 //
                 // It's a unhide request
                 //
-                Status = TransparentUnhideDebugger();
-            }
-
-            if (Status == STATUS_SUCCESS)
-            {
-                //
-                // Set the status
-                //
-                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-            }
-            else
-            {
-                //
-                // Set the status
-                //
-                if (DebuggerHideAndUnhideRequest->IsHide)
-                {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-                }
-                else
-                {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE;
-                }
+                TransparentUnhideDebugger(DebuggerHideAndUnhideRequest);
             }
 
             //
             // Set size
             //
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
+            Status                    = STATUS_SUCCESS;
 
             //
             // Avoid zeroing it
@@ -1604,6 +1574,45 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             ExtensionCommandPcitree(PcitreeRequest, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PCIDEVINFO_ENUM:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            PcidevinfoRequest = (PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place (it's in VMI-mode)
+            //
+            ExtensionCommandPcidevinfo(PcidevinfoRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET;
             Status                    = STATUS_SUCCESS;
 
             //

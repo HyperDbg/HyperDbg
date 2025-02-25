@@ -111,7 +111,8 @@ public:
                             //
                             // loop for escaped }
                             //
-                            for (CloseBrktPos = input.find("}", StrLitEnd); CloseBrktPos != std::string::npos;)
+                            auto pos = (StrLitEnd > i) ? StrLitEnd : i;
+                            for (CloseBrktPos = input.find("}", pos); CloseBrktPos != std::string::npos;)
                             {
                                 CloseBrktPos = input.find("}", CloseBrktPos);
                                 if (input[CloseBrktPos - 1] == '\\')
@@ -130,13 +131,14 @@ public:
                             CloseBrktPos = std::string::npos;
                         }
 
-                        size_t NewLineSrtPos = input.find("\\n", i); // "\\n" entered by user
+                        size_t NewLineSrtPos = input.find("\\n", i);                               // "\\n" entered by user
+                        if (StrLitBeg && StrLitBeg <= NewLineSrtPos && NewLineSrtPos <= StrLitEnd) // is it within the string literal?
+                        {
+                            NewLineSrtPos = std::string::npos;
+                        }
                         size_t NewLineChrPos = input.find('\n', i);
 
-                        vector<size_t> PosVec;
-                        PosVec.push_back(CloseBrktPos);
-                        PosVec.push_back(NewLineSrtPos);
-                        PosVec.push_back(NewLineChrPos);
+                        std::vector<size_t> PosVec = {CloseBrktPos, NewLineSrtPos, NewLineChrPos};
 
                         auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
 
@@ -158,7 +160,8 @@ public:
                             //
                             // forward the buffer
                             //
-                            i = i + (min - i) - 1;
+                            auto diff = (min > i) ? (min - i) : (i - min);
+                            i         = i + diff - 1;
 
                             continue;
                         }
@@ -314,8 +317,15 @@ public:
                     else
                     {
                         input.erase(i - 1, 1);
-                        i--;                // compensate for the removed char
-                        current.pop_back(); // remove last read \\ 
+                        i--; // compensate for the removed char
+
+                        //
+                        // remove last read "\\" if we are not within a {}
+                        //
+                        if (!IdxBracket)
+                        {
+                            current.pop_back();
+                        }
                         current += c;
                         continue;
                     }
@@ -328,7 +338,7 @@ public:
                 {
                     if (IdxBracket)
                     {
-                        if (!InQuotes) // not closing }
+                        if (!InQuotes) // not closing "
                         {
                             IdxBracket--;
                         }
@@ -342,7 +352,7 @@ public:
                         }
                     }
                 }
-                else
+                else if (!InQuotes)
                 {
                     input.erase(i - 1, 1);
                     i--;                // compensate for the removed char
@@ -351,7 +361,7 @@ public:
                 }
             }
 
-            if ((c == ' ' || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
+            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -362,7 +372,7 @@ public:
                 }
                 continue; // avoid adding extra space char
             }
-            else if (c == '"') //&& !IdxBracket)
+            else if (c == '"') // string literal is adjacent to previous command
             {
                 if (i) // check if this " is the first char to avoid out of range check
                 {
@@ -623,7 +633,8 @@ private:
         //
         // Trim the string
         //
-        Trim(tmp);
+        if (!isLiteral)
+            Trim(tmp);
 
         //
         // If the string is empty, we don't need to add it
@@ -655,22 +666,22 @@ private:
 
 /**
  * @brief Find the position of the first difference between two strings
- * @param Str1 The first string
- * @param Str2 The second string
+ * @param prsTok The first string
+ * @param fileTok The second string
  *
  * @return The position of the first difference, or -1 if the strings are equal
  */
 int
-FindDifferencePosition(const char * Str1, const char * Str2)
+FindDifferencePosition(const char * prsTok, const char * fileTok)
 {
     int i = 0;
 
     //
     // Loop until a difference is found or until the end of any string is reached
     //
-    while (Str1[i] != '\0' && Str2[i] != '\0')
+    while (prsTok[i] != '\0' && fileTok[i] != '\0')
     {
-        if (Str1[i] != Str2[i])
+        if (prsTok[i] != fileTok[i])
         {
             return i; // Return the position of the first mismatch
         }
@@ -680,7 +691,7 @@ FindDifferencePosition(const char * Str1, const char * Str2)
     //
     // If one string ends before the other
     //
-    if (Str1[i] != Str2[i])
+    if (prsTok[i] != fileTok[i])
     {
         return i;
     }
@@ -1427,7 +1438,8 @@ InitializeCommandsDictionary()
     g_CommandsList[".pagein"] = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
     g_CommandsList["pagein"]  = {&CommandPagein, &CommandPageinHelp, DEBUGGER_COMMAND_PAGEIN_ATTRIBUTES};
 
-    g_CommandsList["test"] = {&CommandTest, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
+    g_CommandsList["test"]  = {&CommandTest, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
+    g_CommandsList[".test"] = {&CommandTest, &CommandTestHelp, DEBUGGER_COMMAND_TEST_ATTRIBUTES};
 
     g_CommandsList["cpu"] = {&CommandCpu, &CommandCpuHelp, DEBUGGER_COMMAND_CPU_ATTRIBUTES};
 
@@ -1606,6 +1618,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pcitree"]  = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
     g_CommandsList["!pcietree"] = {&CommandPcitree, &CommandPcitreeHelp, DEBUGGER_COMMAND_PCITREE_ATTRIBUTES};
+
+    g_CommandsList["!pcicam"] = {&CommandPcicam, &CommandPcicamHelp, DEBUGGER_COMMAND_PCICAM_ATTRIBUTES};
 
     g_CommandsList["!idt"] = {&CommandIdt, &CommandIdtHelp, DEBUGGER_COMMAND_IDT_ATTRIBUTES};
 

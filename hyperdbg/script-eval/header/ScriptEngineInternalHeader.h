@@ -72,6 +72,10 @@ ScriptEnginePseudoRegGetDate();
 //			         Keywords                   //
 //////////////////////////////////////////////////
 
+//
+// For Virtual Memory
+//
+
 UINT64
 ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError);
 
@@ -93,6 +97,31 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError);
 QWORD
 ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError);
 
+//
+// For Physical Memory
+//
+
+UINT64
+ScriptEngineKeywordPoiPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordHiPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordLowPa(PUINT64 Address, BOOL * HasError);
+
+BYTE
+ScriptEngineKeywordDbPa(PUINT64 Address, BOOL * HasError);
+
+DWORD
+ScriptEngineKeywordDdPa(PUINT64 Address, BOOL * HasError);
+
+WORD
+ScriptEngineKeywordDwPa(PUINT64 Address, BOOL * HasError);
+
+QWORD
+ScriptEngineKeywordDqPa(PUINT64 Address, BOOL * HasError);
+
 //////////////////////////////////////////////////
 //			        Functions                   //
 //////////////////////////////////////////////////
@@ -107,16 +136,22 @@ BOOLEAN
 ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError);
 
 BOOLEAN
+ScriptEngineFunctionEqPa(UINT64 Address, QWORD Value, BOOL * HasError);
+
+BOOLEAN
+ScriptEngineFunctionEdPa(UINT64 Address, DWORD Value, BOOL * HasError);
+
+BOOLEAN
+ScriptEngineFunctionEbPa(UINT64 Address, BYTE Value, BOOL * HasError);
+
+BOOLEAN
 ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length);
 
 VOID
 ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
-UINT64
-ScriptEngineFunctionVirtualToPhysical(UINT64 Address);
-
-UINT64
-ScriptEngineFunctionPhysicalToVirtual(UINT64 Address);
+VOID
+ScriptEngineFunctionMemcpyPa(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
 VOID
 ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
@@ -132,6 +167,12 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError);
 
 VOID
 ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait, BOOL * HasError);
+
+UINT64
+ScriptEngineFunctionVirtualToPhysical(UINT64 Address);
+
+UINT64
+ScriptEngineFunctionPhysicalToVirtual(UINT64 Address);
 
 UINT64
 ScriptEngineFunctionStrlen(const char * Address);

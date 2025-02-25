@@ -141,6 +141,12 @@
     <Filter Include="header\processor">
       <UniqueIdentifier>{8efcd014-6f76-436f-bca7-33f1cf2bd980}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\mmio">
+      <UniqueIdentifier>{6136b867-021b-4f61-aa79-c1b6ccafe670}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\mmio">
+      <UniqueIdentifier>{c310c4a9-c337-454d-94ca-4c6b1216cf41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -316,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="code\processor\Idt.c">
       <Filter>code\processor</Filter>
+    </ClCompile>
+    <ClCompile Include="code\mmio\MmioShadowing.c">
+      <Filter>code\mmio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -585,6 +594,9 @@
     </ClInclude>
     <ClInclude Include="header\processor\Idt.h">
       <Filter>header\processor</Filter>
+    </ClInclude>
+    <ClInclude Include="header\mmio\MmioShadowing.h">
+      <Filter>header\mmio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

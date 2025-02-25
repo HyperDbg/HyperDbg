@@ -14,14 +14,16 @@
 /**
  * @brief Handles in the cases when RDMSR causes a vm-exit
  *
- * @param GuestRegs Guest's gp registers
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID
-MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
+MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    MSR    Msr = {0};
-    UINT32 TargetMsr;
+    UINT32      TargetMsr;
+    MSR         Msr       = {0};
+    PGUEST_REGS GuestRegs = VCpu->Regs;
 
     //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
@@ -47,6 +49,10 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
     // to installation of a hypervisor and the hypervisor can emulate the
     // results.
     //
+
+    // LogInfo("MSR read (RDMSR) VM-exit, MSR: %x, from: %llx",
+    //         TargetMsr,
+    //         VCpu->LastVmexitRip);
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -155,15 +161,17 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
 /**
  * @brief Handles in the cases when RDMSR causes a vm-exit
  *
- * @param GuestRegs Guest's gp registers
+ * @param VCpu The virtual processor's state
+ *
  * @return VOID
  */
 VOID
-MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
+MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    MSR     Msr = {0};
-    UINT32  TargetMsr;
-    BOOLEAN UnusedIsKernel;
+    UINT32      TargetMsr;
+    BOOLEAN     UnusedIsKernel;
+    MSR         Msr       = {0};
+    PGUEST_REGS GuestRegs = VCpu->Regs;
 
     //
     // Execute WRMSR or RDMSR on behalf of the guest. Important that this
@@ -181,6 +189,12 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
 
     Msr.Fields.Low  = (ULONG)GuestRegs->rax;
     Msr.Fields.High = (ULONG)GuestRegs->rdx;
+
+    // LogInfo("MSR write (WRMSR) VM-exit, MSR: %x, rax: %llx, rdx: %llx, from: %llx",
+    //         TargetMsr,
+    //         GuestRegs->rax,
+    //         GuestRegs->rdx,
+    //         VCpu->LastVmexitRip);
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR

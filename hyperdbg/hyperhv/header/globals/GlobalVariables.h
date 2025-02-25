@@ -50,12 +50,6 @@ MEMORY_MAPPER_ADDRESSES * g_MemoryMapper;
 EPT_STATE * g_EptState;
 
 /**
- * @brief holds the measurements from the user-mode and kernel-mode
- *
- */
-TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
-
-/**
  * @brief List header of hidden hooks detour
  *
  */

@@ -698,7 +698,7 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
 {
     DWORD DeviceIdVendorId = 0xFFFFFFFF;
     DWORD ClassCode        = 0xFFFFFFFF;
-    UINT8 EpNum            = 0;
+    UINT8 DevNum           = 0;
 
     //
     // We currently don't use OperateOnVmxRoot, but we might in the future
@@ -715,35 +715,120 @@ ExtensionCommandPcitree(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket,
 
                 if (DeviceIdVendorId != 0xFFFFFFFF)
                 {
-                    PcitreePacket->Endpoints[EpNum].Bus                  = b;
-                    PcitreePacket->Endpoints[EpNum].Device               = d;
-                    PcitreePacket->Endpoints[EpNum].Function             = f;
-                    PcitreePacket->Endpoints[EpNum].ConfigSpace.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
-                    PcitreePacket->Endpoints[EpNum].ConfigSpace.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
+                    PcitreePacket->DeviceInfoList[DevNum].Bus                  = b;
+                    PcitreePacket->DeviceInfoList[DevNum].Device               = d;
+                    PcitreePacket->DeviceInfoList[DevNum].Function             = f;
+                    PcitreePacket->DeviceInfoList[DevNum].ConfigSpace.VendorId = (UINT16)(DeviceIdVendorId & 0xFFFF);
+                    PcitreePacket->DeviceInfoList[DevNum].ConfigSpace.DeviceId = (UINT16)(DeviceIdVendorId >> 16);
 
-                    ClassCode                                                = (DWORD)PciReadCam(b, d, f, 0, sizeof(DWORD));
-                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[0] = (UINT8)((ClassCode >> 24) & 0xFF);
-                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[1] = (UINT8)((ClassCode >> 16) & 0xFF);
-                    PcitreePacket->Endpoints[EpNum].ConfigSpace.ClassCode[2] = (UINT8)((ClassCode >> 8) & 0xFF);
+                    ClassCode                                                      = (DWORD)PciReadCam(b, d, f, 0, sizeof(DWORD));
+                    PcitreePacket->DeviceInfoList[DevNum].ConfigSpace.ClassCode[0] = (UINT8)((ClassCode >> 24) & 0xFF);
+                    PcitreePacket->DeviceInfoList[DevNum].ConfigSpace.ClassCode[1] = (UINT8)((ClassCode >> 16) & 0xFF);
+                    PcitreePacket->DeviceInfoList[DevNum].ConfigSpace.ClassCode[2] = (UINT8)((ClassCode >> 8) & 0xFF);
 
-                    EpNum++;
-                    if (EpNum == EP_MAX_NUM)
+                    DevNum++;
+                    if (DevNum == DEV_MAX_NUM)
                     {
-                        LogError("Reached maximum number of endpoints (%u) that can be stored in debuggee response packet.\n", EP_MAX_NUM);
+                        LogError("Reached maximum number of devices (%u) that can be stored in debuggee response packet.\n", DEV_MAX_NUM);
                         break;
                     }
                 }
             }
         }
     }
-    PcitreePacket->EndpointsTotalNum = EpNum;
+    PcitreePacket->DeviceInfoListNum = DevNum;
 
-    if (PcitreePacket->EndpointsTotalNum)
+    if (PcitreePacket->DeviceInfoListNum)
     {
         PcitreePacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
     else
     {
         PcitreePacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+    }
+}
+
+/**
+ * @brief Request PCI device info.
+ *
+ * @param PcidevinfoPacket
+ * @param OperateOnVmxRoot
+ *
+ * @return VOID
+ */
+VOID
+ExtensionCommandPcidevinfo(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket, BOOLEAN OperateOnVmxRoot)
+{
+    DWORD DeviceIdVendorId = 0xFFFFFFFF;
+
+    //
+    // We currently don't use OperateOnVmxRoot, but we might in the future
+    //
+    UNREFERENCED_PARAMETER(OperateOnVmxRoot);
+
+    DeviceIdVendorId = (DWORD)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, 0, 4);
+    if (DeviceIdVendorId != 0xFFFFFFFF)
+    {
+        DWORD * cs = (DWORD *)&PcidevinfoPacket->DeviceInfo.ConfigSpace; // Overflows into .ConfigSpaceAdditional - no padding due to pack(0)
+        for (UINT16 i = 0; i < CAM_CONFIG_SPACE_LENGTH; i += 4)
+        {
+            *cs = (DWORD)PciReadCam(PcidevinfoPacket->DeviceInfo.Bus, PcidevinfoPacket->DeviceInfo.Device, PcidevinfoPacket->DeviceInfo.Function, (BYTE)i, 4);
+            cs++;
+        }
+
+        //
+        // For endpoints, determine MMIO BAR addressable range and size (if any).
+        // Do not determine BAR size if user has requested raw dump.
+        //
+        if ((PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.HeaderType & 0x01) << 7 == 0 // Endpoint
+            && !PcidevinfoPacket->PrintRaw)
+        {
+            for (UINT8 i = 0; i < 5; i++)
+            {
+                if ((PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x1) == 0) // Memory I/O
+                {
+                    if (((PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0x6) >> 1) == 2) // 64-bit BAR
+                    {
+                        UINT64 BarMsb = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i + 1];
+                        UINT64 BarLsb = PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i];
+                        UINT64 Bar64  = ((BarMsb & 0xFFFFFFFF) << 32) + (BarLsb & 0xFFFFFFF0);
+
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit = TRUE;
+                        if (Bar64 == 0)
+                        {
+                            PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = FALSE;
+                            continue;
+                        }
+
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit   = TRUE;
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = TRUE;
+
+                        i++;
+                    }
+                    else // 32-bit BAR
+                    {
+                        UINT32 Bar32 = (PcidevinfoPacket->DeviceInfo.ConfigSpace.DeviceHeader.ConfigSpaceEp.Bar[i] & 0xFFFFFFF0);
+
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit = FALSE;
+                        if (Bar32 == 0)
+                        {
+                            PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = FALSE;
+                            continue;
+                        }
+
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].Is64Bit   = FALSE;
+                        PcidevinfoPacket->DeviceInfo.MmioBarInfo[i].IsEnabled = TRUE;
+                    }
+                }
+            }
+        }
+
+        PcidevinfoPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.DeviceId = 0xFFFF;
+        PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.VendorId = 0xFFFF;
+        PcidevinfoPacket->KernelStatus                                 = DEBUGGER_ERROR_INVALID_ADDRESS;
     }
 }

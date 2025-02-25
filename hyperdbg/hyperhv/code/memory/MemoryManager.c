@@ -12,6 +12,63 @@
 #include "pch.h"
 
 /**
+ * @brief Read physical memory from the physical address (used in VMI mode)
+ *
+ * @param PhysicalAddress Physical Address
+ * @param Buffer Buffer to save the memory
+ * @param BufferSize Size of the buffer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize)
+{
+    PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
+    PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
+
+    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
+
+    if (VirtualAddress == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlCopyMemory(Buffer, VirtualAddress, BufferSize);
+
+    MmUnmapIoSpace(VirtualAddress, BufferSize);
+
+    return TRUE;
+}
+
+/**
+ * @brief Write physical memory to the physical address (used in VMI mode)
+ *
+ * @param PhysicalAddress Physical Address
+ * @param Buffer Buffer to write to the memory
+ * @param BufferSize Size of the buffer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize)
+{
+    PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
+    PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
+
+    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
+    if (VirtualAddress == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlCopyMemory(VirtualAddress, Buffer, BufferSize);
+
+    MmUnmapIoSpace(VirtualAddress, BufferSize);
+
+    return TRUE;
+}
+
+/**
  * @brief Read process memory
  *
  * @details This function should not be called from vmx-root mode
@@ -113,7 +170,30 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
                 }
 
                 CopyAddress.PhysicalAddress.QuadPart = (LONGLONG)Address;
-                MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize);
+
+                if (MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize) != STATUS_SUCCESS && *ReturnSize == 0)
+                {
+                    //
+                    // If the memory is not readable, it might be an MMIO address
+                    // Try again with another method
+                    //
+
+                    // LogInfo("reading using MMIO Map IO Space using VMCALL");
+
+                    if (AsmVmxVmcall(VMCALL_READ_PHYSICAL_MEMORY, (UINT64)Address, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
+                    {
+                        *ReturnSize = Size;
+                        return TRUE;
+                    }
+                    else
+                    {
+                        //
+                        // unknown error
+                        //
+                        *ReturnSize = 0;
+                        return FALSE;
+                    }
+                }
             }
             else
             {
@@ -134,5 +214,31 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
         {
             return FALSE;
         }
+    }
+}
+
+/**
+ * @brief Write process memory
+ *
+ * @details This function should not be called from vmx-root mode
+ *
+ * @param TargetAddress Target Address
+ * @param UserBuffer Buffer to write to the memory
+ * @param Size Size of the buffer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+MemoryManagerWritePhysicalMemoryNormal(PVOID  TargetAddress,
+                                       PVOID  UserBuffer,
+                                       SIZE_T Size)
+{
+    if (AsmVmxVmcall(VMCALL_WRITE_PHYSICAL_MEMORY, (UINT64)TargetAddress, (UINT64)UserBuffer, (UINT64)Size) == STATUS_SUCCESS)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
     }
 }

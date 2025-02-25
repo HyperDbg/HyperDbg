@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0.0] - 2025-02-26
+New release of the HyperDbg Debugger.
+
+### Added
+- Added mitigation for the anti-hypervisor method in handling the trap flag for emulated instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/497))
+- Export the SDK functions for enabling and disabling transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/hide#sdk))([link](https://docs.hyperdbg.org/commands/extension-commands/unhide#sdk))
+- New description of changing script engine constants ([link](https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations))
+- Added the command for interpreting PCI CAM (PCI configuration space) fields ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
+- Added the command for dumping PCI CAM (PCI configuration space) memory ([link](https://docs.hyperdbg.org/commands/extension-commands/pcicam))
+- Checking for and unloading the older version of the driver (if it exists) ([link](https://github.com/HyperDbg/HyperDbg/pull/503))
+- **memcpy_pa()** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcpy_pa))
+- **poi_pa**, **hi_pa**, **low_pa**, **db_pa**, **dd_pa**, **dw_pa**, and **dq_pa** keywords in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))
+- **eb_pa**, **ed_pa**, and **eq_pa** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/eb_pa-ed_pa-eq_pa))
+
+### Changed
+- Fix the 'lm' command issue of not showing kernel module addresses (KASLR leak mitigation) introduced in Windows 11 24h2 ([link](https://docs.hyperdbg.org/commands/debugging-commands/lm))
+- Deprecated TSC mitigation for the transparent mode ([link](https://docs.hyperdbg.org/commands/extension-commands/measure))
+- Changed the parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
+- Changed the parameters of the '!unhide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/unhide))
+- Fix containing backslash escape character in script strings ([link](https://github.com/HyperDbg/HyperDbg/pull/499))
+- Fix reading/writing into devices' physical memory (MMIO region) in VMI Mode ([link](https://github.com/HyperDbg/HyperDbg/pull/500))
+- All test cases for command parsing are now passed ([link](https://github.com/HyperDbg/HyperDbg/pull/504))
+- The '.sympath' command now requires the symbol server path to be within quotes, although it is not mandatory ([link](https://docs.hyperdbg.org/commands/meta-commands/.sympath))
+
 ## [0.12.0.0] - 2025-01-02
 New release of the HyperDbg Debugger.
 

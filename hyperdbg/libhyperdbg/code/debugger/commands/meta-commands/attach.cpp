@@ -87,8 +87,9 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    for (auto Section : CommandTokens)
+    for (auto Section = CommandTokens.begin() + 1; Section != CommandTokens.end(); Section++)
     {
+        
         //
         // Find out whether the user enters pid or not
         //
@@ -96,14 +97,14 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
         {
             NextIsPid = FALSE;
 
-            if (!ConvertTokenToUInt32(Section, &TargetPid))
+            if (!ConvertTokenToUInt32(*Section, &TargetPid))
             {
                 ShowMessages("please specify a correct hex value for process id\n\n");
                 CommandAttachHelp();
                 return;
             }
         }
-        else if (CompareLowerCaseStrings(Section, "pid"))
+        else if (CompareLowerCaseStrings(*Section, "pid"))
         {
             //
             // next item is a pid for the process
@@ -113,7 +114,7 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
         else
         {
             ShowMessages("unknown parameter at '%s'\n\n",
-                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
+                         GetCaseSensitiveStringFromCommandToken(*Section).c_str());
             CommandAttachHelp();
             return;
         }
@@ -132,5 +133,6 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
     //
     // Perform attach to target process
     //
+    ShowMessages("Attaching to process %lld\n\n", TargetPid);
     UdAttachToProcess(TargetPid, NULL, NULL, FALSE);
 }

@@ -550,20 +550,19 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
 {
     BOOLEAN IsHide;
 
-    UINT64 CpuidAverage;
-    UINT64 CpuidStandardDeviation;
-    UINT64 CpuidMedian;
+    // UINT64 CpuidAverage;
+    // UINT64 CpuidStandardDeviation;
+    // UINT64 CpuidMedian;
 
-    UINT64 RdtscAverage;
-    UINT64 RdtscStandardDeviation;
-    UINT64 RdtscMedian;
+    // UINT64 RdtscAverage;
+    // UINT64 RdtscStandardDeviation;
+    // UINT64 RdtscMedian;
 
-    BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
-    UINT32  ProcId;
-    UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
-                                 // shows the length of xxx
+    // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
+    // UINT32  ProcId;
+    // UINT32  LengthOfProcessName;
 
-    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
+    UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
@@ -1390,9 +1389,9 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
  */
 typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 {
-    UINT32         KernelStatus;
-    UINT8          EndpointsTotalNum;
-    PCI_EP_MINIMAL Endpoints[EP_MAX_NUM];
+    UINT32          KernelStatus;
+    UINT8           DeviceInfoListNum;
+    PCI_DEV_MINIMAL DeviceInfoList[DEV_MAX_NUM];
 
 } DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET;
 
@@ -1402,6 +1401,31 @@ typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
  */
 static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET");
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET \
+    sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET)
+
+/**
+ * @brief PCI device info Request-Response Packet, used by !pcicam and future PCI-related commands. Represents a PCI device.
+ *
+ */
+typedef struct _DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET
+{
+    UINT32  KernelStatus;
+    BOOL    PrintRaw;
+    PCI_DEV DeviceInfo;
+
+} DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET, *PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET;
+
+/**
+ * @brief check so the DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET");
 
 /* ==============================================================================================
  */

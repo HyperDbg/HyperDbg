@@ -122,6 +122,7 @@
 #include "interface/Callback.h"
 #include "features/DirtyLogging.h"
 #include "features/CompatibilityChecks.h"
+#include "mmio/MmioShadowing.h"
 
 //
 // Disassembler Header

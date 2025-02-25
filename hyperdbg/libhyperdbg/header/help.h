@@ -298,6 +298,9 @@ VOID
 CommandPcitreeHelp();
 
 VOID
+CommandPcicamHelp();
+
+VOID
 CommandIdtHelp();
 
 //

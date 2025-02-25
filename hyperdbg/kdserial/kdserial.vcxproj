@@ -94,6 +94,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(SolutionDir)libraries\kdserial\$(PlatformTarget)</AdditionalLibraryDirectories>
@@ -116,6 +117,7 @@
       <ForcedIncludeFiles />
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(SolutionDir)libraries\kdserial\$(PlatformTarget)</AdditionalLibraryDirectories>

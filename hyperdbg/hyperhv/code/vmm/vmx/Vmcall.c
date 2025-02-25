@@ -458,6 +458,82 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_READ_PHYSICAL_MEM_BYPASS_CACHING_POLICIES:
+    {
+        if (ReadPhysicalMemoryUsingMapIoSpace((PVOID)OptionalParam1, (PVOID)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
+    case VMCALL_WRITE_PHYSICAL_MEM_BYPASS_CACHING_POLICIES:
+    {
+        if (WritePhysicalMemoryUsingMapIoSpace((PVOID)OptionalParam1, (PVOID)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
+    case VMCALL_READ_PHYSICAL_MEMORY:
+    {
+        //
+        // Check whether the physical memory is valid or not
+        //
+        if (!CheckAddressPhysical(OptionalParam1))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+            break;
+        }
+
+        //
+        // Perform the read operation
+        //
+        if (MemoryMapperReadMemorySafeByPhysicalAddress((UINT64)OptionalParam1, (UINT64)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
+    case VMCALL_WRITE_PHYSICAL_MEMORY:
+    {
+        //
+        // Check whether the physical memory is valid or not
+        //
+        if (!CheckAddressPhysical(OptionalParam1))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+            break;
+        }
+
+        //
+        // Perform the write operation
+        //
+        if (MemoryMapperWriteMemorySafeByPhysicalAddress((UINT64)OptionalParam1, (UINT64)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");

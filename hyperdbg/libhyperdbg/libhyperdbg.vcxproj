@@ -72,6 +72,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,6 +105,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -295,6 +297,7 @@
     <ClCompile Include="code\debugger\transparency\gaussian-rng.cpp" />
     <ClCompile Include="code\debugger\transparency\transparency.cpp" />
     <ClCompile Include="pci-id.cpp" />
+    <ClCompile Include="pcicam.cpp" />
     <MASM Include="code\assembly\asm-vmx-checks.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

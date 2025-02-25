@@ -11,18 +11,6 @@
  */
 #include "pch.h"
 
-BOOLEAN
-InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe);
-
-BOOLEAN
-RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
-
-BOOLEAN
-StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
-
-BOOLEAN
-StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
-
 /**
  * @brief Install driver
  *
@@ -70,9 +58,50 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
         if (LastError == ERROR_SERVICE_EXISTS)
         {
             //
-            // Ignore this error
+            // The service is already been created
+            // means that, the driver is previosuly installed
             //
-            return TRUE;
+            ShowMessages("the service (driver) already exists\n");
+
+            //
+            // We need to remove the old instance of the driver first
+            // Because the version of the driver might be different from the
+            // user-mode application
+            //
+            ShowMessages("trying to remove the old instance of the driver first\n");
+
+            //
+            // Stop the driver
+            //
+            ManageDriver(DriverName, NULL, DRIVER_FUNC_STOP);
+
+            //
+            // Remove the driver
+            //
+            if (ManageDriver(DriverName, NULL, DRIVER_FUNC_REMOVE))
+            {
+                ShowMessages("the old instance of the driver is removed successfully\n");
+            }
+            else
+            {
+                ShowMessages("err, failed to remove the old instance of the driver\n");
+                return FALSE;
+            }
+
+            //
+            // Try to install the driver again
+            //
+            ShowMessages("installing the driver again\n");
+
+            if (InstallDriver(SchSCManager, DriverName, ServiceExe))
+            {
+                return TRUE;
+            }
+            else
+            {
+                ShowMessages("err, failed to install the driver after removing the old instance\n");
+                return FALSE;
+            }
         }
         else if (LastError == ERROR_SERVICE_MARKED_FOR_DELETE)
         {
@@ -120,13 +149,13 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
 BOOLEAN
 ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
 {
-    SC_HANDLE schSCManager;
+    SC_HANDLE SchSCManager;
     BOOLEAN   Res = TRUE;
 
     //
     // Insure (somewhat) that the driver and service names are valid
     //
-    if (!DriverName || !ServiceName)
+    if (!DriverName || (Function == DRIVER_FUNC_INSTALL && !ServiceName))
     {
         ShowMessages("invalid Driver or Service provided to ManageDriver() \n");
 
@@ -136,12 +165,12 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
     //
     // Connect to the Service Control Manager and open the Services database
     //
-    schSCManager = OpenSCManager(NULL,                 // local machine
+    SchSCManager = OpenSCManager(NULL,                 // local machine
                                  NULL,                 // local database
                                  SC_MANAGER_ALL_ACCESS // access required
     );
 
-    if (!schSCManager)
+    if (!SchSCManager)
     {
         ShowMessages("err, OpenSCManager failed (%x)\n", GetLastError());
 
@@ -159,12 +188,12 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
         // Install the driver service
         //
 
-        if (InstallDriver(schSCManager, DriverName, ServiceName))
+        if (InstallDriver(SchSCManager, DriverName, ServiceName))
         {
             //
             // Start the driver service (i.e. start the driver)
             //
-            Res = StartDriver(schSCManager, DriverName);
+            Res = StartDriver(SchSCManager, DriverName);
         }
         else
         {
@@ -181,7 +210,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
         //
         // Stop the driver
         //
-        Res = StopDriver(schSCManager, DriverName);
+        Res = StopDriver(SchSCManager, DriverName);
 
         break;
 
@@ -190,7 +219,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
         //
         // Remove the driver service
         //
-        Res = RemoveDriver(schSCManager, DriverName);
+        Res = RemoveDriver(SchSCManager, DriverName);
 
         break;
 
@@ -206,9 +235,9 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
     //
     // Close handle to service control manager
     //
-    if (schSCManager)
+    if (SchSCManager)
     {
-        CloseServiceHandle(schSCManager);
+        CloseServiceHandle(SchSCManager);
     }
 
     return Res;
@@ -325,7 +354,8 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
             //
             ShowMessages("err, path to the driver not found, or the access to the driver file is limited\n");
 
-            ShowMessages("most of the time, it's because anti-virus software is not finished scanning the drivers, so, if you try to load the driver again (re-enter the previous command), the problem will be solved\n");
+            ShowMessages("most of the time, it's because anti-virus software is not finished scanning the drivers, "
+                         "so, if you try to load the driver again (re-enter the previous command), the problem will be solved\n");
 
             //
             // Indicate failure
@@ -407,7 +437,9 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("err, ControlService failed (%x)\n", GetLastError());
+        ShowMessages("warning, failed to stop the driver. Possible reasons include the driver not currently running or an unsuccessful unload from a previous run. "
+                     "This is not an error, HyperDbg tries to remove the previous driver and load it again (%x)\n",
+                     GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle

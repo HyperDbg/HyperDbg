@@ -30,7 +30,7 @@ CommandSympathHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .sympath\n");
-    ShowMessages("\t\te.g : .sympath SRV*c:\\Symbols*https://msdl.microsoft.com/download/symbols \n");
+    ShowMessages("\t\te.g : .sympath \"SRV*c:\\Symbols*https://msdl.microsoft.com/download/symbols\" \n");
 }
 
 /**
@@ -68,6 +68,13 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
         //
 
         //
+        // Because technically, the "https://" is containing characters that resemble the command token,
+        // it's better to use the symbol server in quotes, but due to the fact that for compatibility reasons,
+        // with the previous versions, we should support the old syntax, we should check if the symbol server
+        // is in quotes or not to support both syntaxes
+        //
+
+        //
         // Trim the command
         //
         Trim(Command);
@@ -81,6 +88,17 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
         // Trim it again
         //
         Trim(Command);
+
+        //
+        // Check if the symbol server starts with quotes
+        //
+        if (Command.at(0) == '\"')
+        {
+            //
+            // Means that the symbol server is in quotes
+            //
+            Command = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(1));
+        }
 
         //
         // *** validate the symbols ***

@@ -19,7 +19,7 @@
 VOID
 CommandUnhideHelp()
 {
-    ShowMessages("!unhide : reverts the transparency measures of the '!hide' command.\n\n");
+    ShowMessages("!unhide : reverts the transparency measures of the '!hide' command and exits the transparent mode.\n\n");
 
     ShowMessages("syntax : \t!unhide\n");
 
@@ -28,33 +28,21 @@ CommandUnhideHelp()
 }
 
 /**
- * @brief !unhide command handler
+ * @brief Disable transparent mode
  *
- * @param CommandTokens
- * @param Command
- *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-CommandUnhide(vector<CommandToken> CommandTokens, string Command)
+BOOLEAN
+HyperDbgDisableTransparentMode()
 {
     BOOLEAN                                     Status;
     ULONG                                       ReturnedLength;
     DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE UnhideRequest = {0};
 
-    if (CommandTokens.size() >= 2)
-    {
-        ShowMessages("incorrect use of the '%s'\n\n",
-                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-
-        CommandUnhideHelp();
-        return;
-    }
-
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We don't wanna hide the debugger and make transparent vm-exits
@@ -80,20 +68,43 @@ CommandUnhide(vector<CommandToken> CommandTokens, string Command)
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
+        return FALSE;
     }
 
     if (UnhideRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ShowMessages("transparent debugging successfully disabled :)\n");
-    }
-    else if (UnhideRequest.KernelStatus ==
-             DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE)
-    {
-        ShowMessages("debugger is not in transparent-mode\n");
+        return TRUE;
     }
     else
     {
-        ShowMessages("unknown error occurred :(\n");
+        ShowErrorMessage(UnhideRequest.KernelStatus);
+        return FALSE;
     }
+}
+
+/**
+ * @brief !unhide command handler
+ *
+ * @param CommandTokens
+ * @param Command
+ *
+ * @return VOID
+ */
+VOID
+CommandUnhide(vector<CommandToken> CommandTokens, string Command)
+{
+    if (CommandTokens.size() >= 2)
+    {
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+
+        CommandUnhideHelp();
+        return;
+    }
+
+    //
+    // Disable transparent mode
+    //
+    HyperDbgDisableTransparentMode();
 }

@@ -60,3 +60,6 @@ SetTextMessageCallbackUsingSharedBuffer(PVOID Handler);
 
 VOID
 UnsetTextMessageCallback();
+
+BOOLEAN
+SetDebugPrivilege();
