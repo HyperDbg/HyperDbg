@@ -1009,18 +1009,18 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification))
+    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification)) // Handle EPT violation for execution (user-mode/kernel-mode) trap
     {
         return TRUE;
     }
-    else if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
+    else if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr)) // Handle EPT violation RWX monitoring hooks
     {
         //
         // Handled by page hook code
         //
         return TRUE;
     }
-    else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr))
+    else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr)) // For miscellaneous EPT violations
     {
         //
         // Check whether this violation is meaningful for the application or not

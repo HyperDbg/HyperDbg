@@ -1099,6 +1099,11 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     HookedPage->PhysicalBaseAddress = PhysicalBaseAddress;
 
     //
+    // Save if it is a MMIO shadow hooking
+    //
+    HookedPage->IsMmioShadowPagingHook = EptMmioHook;
+
+    //
     // If it's a monitor hook, then we need to hold the address of the start
     // physical address as well as the end physical address, plus tagging information
     //
