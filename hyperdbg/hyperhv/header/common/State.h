@@ -159,7 +159,7 @@ typedef struct _VMX_VMXOFF_STATE
  * @brief Structure to save the state of each hooked pages
  *
  */
-typedef struct _EPT_HOOKED_PAGE_DETAIL
+typedef struct _EPT_MODIFIED_PAGE_DETAILS
 {
     DECLSPEC_ALIGN(PAGE_SIZE)
     CHAR FakePageContents[PAGE_SIZE];
@@ -275,7 +275,7 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      */
     UINT64 CountOfBreakpoints;
 
-} EPT_HOOKED_PAGE_DETAIL, *PEPT_HOOKED_PAGE_DETAIL;
+} EPT_MODIFIED_PAGE_DETAILS, *PEPT_MODIFIED_PAGE_DETAILS;
 
 /**
  * @brief The status of NMI broadcasting in VMX
@@ -333,7 +333,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VMX_VMXOFF_STATE        VmxoffState;                                        // Shows the vmxoff state of the guest
     NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    PEPT_MODIFIED_PAGE_DETAILS MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
     UINT8                   LastExceptionOccuredInHost;                         // The vector of last exception occured in host
     UINT64                  HostIdt;                                            // host Interrupt Descriptor Table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64*)
     UINT64                  HostGdt;                                            // host Global Descriptor Table (actual type is SEGMENT_DESCRIPTOR_32* or SEGMENT_DESCRIPTOR_64*)

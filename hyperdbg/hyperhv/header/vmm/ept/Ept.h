@@ -115,9 +115,9 @@ typedef union _IA32_MTRR_FIXED_RANGE_TYPE
  */
 typedef struct _EPT_STATE
 {
-    LIST_ENTRY            HookedPagesList;                     // A list of the details about hooked pages
+    LIST_ENTRY            EptModifiedPagesList;                     // A list of the details about EPT modified pages
     MTRR_RANGE_DESCRIPTOR MemoryRanges[NUM_MTRR_ENTRIES];      // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
-    UINT32                 NumberOfEnabledMemoryRanges;         // Number of memory ranges specified in MemoryRanges
+    UINT32                NumberOfEnabledMemoryRanges;         // Number of memory ranges specified in MemoryRanges
     PVMM_EPT_PAGE_TABLE   EptPageTable;                        // Page table entries for EPT operation
     PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;   // Page table entries for hooks based on user-mode disabled mode-based execution control bits
     PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable; // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
@@ -274,7 +274,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
  * @return VOID
  */
 VOID
-EptHandleMisconfiguration(VOID);
+    EptHandleMisconfiguration(VOID);
 
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then

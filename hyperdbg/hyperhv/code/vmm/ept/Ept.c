@@ -853,7 +853,7 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
     BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
     BOOLEAN IsExecViolation         = FALSE;
 
-    LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
+    LIST_FOR_EACH_LINK(g_EptState->EptModifiedPagesList, EPT_MODIFIED_PAGE_DETAILS, PageHookList, HookedEntry)
     {
         if (HookedEntry->PhysicalBaseAddress == (SIZE_T)PAGE_ALIGN(GuestPhysicalAddr))
         {
@@ -1121,12 +1121,12 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
     //
     // Check whether the breakpoint was due to a !epthook command or not
     //
-    TempList = &g_EptState->HookedPagesList;
+    TempList = &g_EptState->EptModifiedPagesList;
 
-    while (&g_EptState->HookedPagesList != TempList->Flink)
+    while (&g_EptState->EptModifiedPagesList != TempList->Flink)
     {
-        TempList                            = TempList->Flink;
-        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+        TempList                               = TempList->Flink;
+        PEPT_MODIFIED_PAGE_DETAILS HookedEntry = CONTAINING_RECORD(TempList, EPT_MODIFIED_PAGE_DETAILS, PageHookList);
 
         if (HookedEntry->IsExecutionHook)
         {

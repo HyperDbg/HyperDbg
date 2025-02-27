@@ -434,7 +434,7 @@ VmxPerformVirtualizationOnAllCores()
     //
     // Initialize the list of hooked pages detail
     //
-    InitializeListHead(&g_EptState->HookedPagesList);
+    InitializeListHead(&g_EptState->EptModifiedPagesList);
 
     //
     // Check whether EPT is supported or not

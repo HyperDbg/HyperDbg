@@ -1471,6 +1471,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!epthook"] = {&CommandEptHook, &CommandEptHookHelp, DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
 
+    g_CommandsList["!mmio"] = {&CommandMmio, &CommandMmioHelp, DEBUGGER_COMMAND_MONITOR_ATTRIBUTES};
+
     g_CommandsList["bp"] = {&CommandBp, &CommandBpHelp, DEBUGGER_COMMAND_BP_ATTRIBUTES};
 
     g_CommandsList["bl"] = {&CommandBl, &CommandBlHelp, DEBUGGER_COMMAND_BD_ATTRIBUTES};

@@ -295,7 +295,7 @@ EptHookMonitorFromVmxRoot(VIRTUAL_MACHINE_STATE *                        VCpu,
  */
 BOOLEAN
 EptHookHandleHookedPage(VIRTUAL_MACHINE_STATE *              VCpu,
-                        EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
+                        EPT_MODIFIED_PAGE_DETAILS *          HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
                         EPT_HOOKS_CONTEXT *                  LastContext,
