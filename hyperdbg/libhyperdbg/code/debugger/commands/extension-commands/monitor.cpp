@@ -21,14 +21,14 @@ CommandMonitorHelp()
 {
     ShowMessages("!monitor : monitors address range for read and writes.\n\n");
 
-    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [FromAddress (hex)] "
-                 "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [MemoryMappedIO (mmio)] "
+                 "[FromAddress (hex)] [ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
                  "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
-    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [FromAddress (hex)] "
-                 "[l Length (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+    ShowMessages("syntax : \t!monitor [MemoryType (vapa)] [Attribute (string)] [MemoryMappedIO (mmio)] "
+                 "[FromAddress (hex)] [l Length (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
                  "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
                  "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
@@ -37,6 +37,7 @@ CommandMonitorHelp()
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000\n");
     ShowMessages("\t\te.g : !monitor pa rw c01000 l 1000\n");
+    ShowMessages("\t\te.g : !monitor mmio pa rw ab04000 l 1000\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 l 230d0\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
@@ -45,6 +46,7 @@ CommandMonitorHelp()
     ShowMessages("\t\te.g : !monitor w c01000 c01000+2500 core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor x fffff801deadb000 l 500 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !monitor mmio fffff801ac100000 l 1000\n");
     ShowMessages("\t\te.g : !monitor wx fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000 script { printf(\"read/write occurred at the virtual address: %%llx\\n\", $context); }\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 l 1000 asm code { nop; nop; nop }\n");
@@ -78,6 +80,7 @@ CommandMonitor(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN                            LengthAlreadySet            = FALSE;
     BOOLEAN                            SetAttributes               = FALSE;
     BOOLEAN                            HookMemoryTypeSet           = FALSE;
+    BOOLEAN                            HookMmioTypeSet             = FALSE;
     DEBUGGER_HOOK_MEMORY_TYPE          HookMemoryType              = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS; // by default virtual address
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
@@ -194,6 +197,11 @@ CommandMonitor(vector<CommandToken> CommandTokens, string Command)
             HookMemoryTypeSet = TRUE;
             continue;
         }
+        else if (CompareLowerCaseStrings(Section, "mmio") && !HookMmioTypeSet)
+        {
+            HookMmioTypeSet = TRUE;
+            continue;
+        }
         else
         {
             //
@@ -296,6 +304,21 @@ CommandMonitor(vector<CommandToken> CommandTokens, string Command)
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
+    }
+
+    //
+    // Check and reconfigure the memory type if it's MMIO
+    //
+    if (HookMmioTypeSet)
+    {
+        if (HookMemoryType == DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS)
+        {
+            HookMemoryType = DEBUGGER_MEMORY_HOOK_VIRTUAL_MMIO_ADDRESS;
+        }
+        else if (HookMemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+        {
+            HookMemoryType = DEBUGGER_MEMORY_HOOK_PHYSICAL_MMIO_ADDRESS;
+        }
     }
 
     //

@@ -229,6 +229,11 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsExecutionHook;
 
     /**
+     * @brief This field shows whether the hook is used for shadow paging (MMIO hooking) or not
+     */
+    BOOLEAN IsShadowPagingHook;
+
+    /**
      * @brief If TRUE shows that this is the information about
      * a hidden breakpoint command (not a monitor or hidden detours)
      */

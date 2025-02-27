@@ -175,13 +175,27 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         HookingAddresses.StartAddress = TempStartAddress;
         HookingAddresses.EndAddress   = TempEndAddress;
 
-        if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->InitOptions.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+        if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->InitOptions.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS ||
+            (DEBUGGER_HOOK_MEMORY_TYPE)Event->InitOptions.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_MMIO_ADDRESS)
         {
             HookingAddresses.MemoryType = DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS;
         }
         else
         {
             HookingAddresses.MemoryType = DEBUGGER_MEMORY_HOOK_VIRTUAL_ADDRESS;
+        }
+
+        //
+        // Adjust if the hook is for a regular memory or MMIO
+        //
+        if (HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_PHYSICAL_MMIO_ADDRESS ||
+            HookingAddresses.MemoryType == DEBUGGER_MEMORY_HOOK_VIRTUAL_MMIO_ADDRESS)
+        {
+            HookingAddresses.SetHookForMmio = TRUE;
+        }
+        else
+        {
+            HookingAddresses.SetHookForMmio = FALSE;
         }
 
         //
@@ -255,7 +269,8 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
     //
     // Check if address is virtual or physical
     //
-    if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+    if ((DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS ||
+        (DEBUGGER_HOOK_MEMORY_TYPE)Event->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_MMIO_ADDRESS)
     {
         //
         // It's a physical address so we just save the addresses without conversion

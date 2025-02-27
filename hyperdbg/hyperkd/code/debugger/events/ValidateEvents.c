@@ -55,7 +55,8 @@ ValidateEventMonitor(PDEBUGGER_GENERAL_EVENT_DETAIL    EventDetails,
     // Check whether address is valid or not based on whether the event needs
     // to be applied directly from VMX-root mode or not
     //
-    if ((DEBUGGER_HOOK_MEMORY_TYPE)EventDetails->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS)
+    if ((DEBUGGER_HOOK_MEMORY_TYPE)EventDetails->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_ADDRESS ||
+        (DEBUGGER_HOOK_MEMORY_TYPE)EventDetails->Options.OptionalParam3 == DEBUGGER_MEMORY_HOOK_PHYSICAL_MMIO_ADDRESS)
     {
         //
         // Validation of a physical address

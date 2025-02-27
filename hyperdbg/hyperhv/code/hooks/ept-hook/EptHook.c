@@ -998,12 +998,14 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     BOOLEAN                 UnsetExecute  = FALSE;
     BOOLEAN                 UnsetRead     = FALSE;
     BOOLEAN                 UnsetWrite    = FALSE;
+    BOOLEAN                 EptMmioHook   = FALSE;
     BOOLEAN                 EptHiddenHook = FALSE;
 
     UnsetRead     = (PageHookMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
     UnsetWrite    = (PageHookMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
     UnsetExecute  = (PageHookMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
     EptHiddenHook = (PageHookMask & PAGE_ATTRIB_EXEC_HIDDEN_HOOK) ? TRUE : FALSE;
+    EptMmioHook   = (PageHookMask & PAGE_ATTRIB_MMIO_HOOK) ? TRUE : FALSE;
 
     //
     // Get number of processors
@@ -1414,6 +1416,10 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
         if (MemoryAddressDetails->SetHookForExec)
         {
             PageHookMask |= PAGE_ATTRIB_EXEC;
+        }
+        if (MemoryAddressDetails->SetHookForMmio)
+        {
+            PageHookMask |= PAGE_ATTRIB_MMIO_HOOK;
         }
     }
     else if (EptHook2AddressDetails != NULL)
