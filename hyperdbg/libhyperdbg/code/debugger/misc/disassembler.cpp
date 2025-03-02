@@ -197,6 +197,9 @@ DisassembleBuffer(ZydisDecoder * decoder,
             ZyanU8 MemoryContent = data[i];
             ShowMessages(" %02X", MemoryContent);
         }
+
+        ShowMessages("\n\ninstruction.operand_width: %d\n\n", instruction.operand_width);
+
         //
         // Add padding (we assume that each instruction should be at least 10 bytes)
         //

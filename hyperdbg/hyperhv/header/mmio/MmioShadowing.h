@@ -14,3 +14,7 @@
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
+
+VOID
+MmioShadowingApplyPageModification(VIRTUAL_MACHINE_STATE * VCpu,
+                                   PEPT_HOOKED_PAGE_DETAIL HookedPage);

@@ -592,7 +592,13 @@ IMPORT_EXPORT_VMM UINT32
 DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
 
 IMPORT_EXPORT_VMM UINT32
+DisassemblerOperandWidth(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
 DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerOperandWidthInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions

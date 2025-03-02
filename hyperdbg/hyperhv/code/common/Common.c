@@ -128,6 +128,13 @@ CommonIsGuestOnUsermode32Bit()
         //
         return TRUE;
     }
+    else if ((CsSel & ~3) == KGDT64_R0_CMCODE)
+    {
+        //
+        // 32-bit kernel-mode
+        //
+        return TRUE;
+    }
     else
     {
         LogError("Err, unknown value for cs, cannot determine wow64 mode");

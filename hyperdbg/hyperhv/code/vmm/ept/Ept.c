@@ -845,13 +845,14 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    PVOID   TargetPage;
-    UINT64  CurrentRip;
-    UINT32  CurrentInstructionLength;
-    BOOLEAN IsHandled               = FALSE;
-    BOOLEAN ResultOfHandlingHook    = FALSE;
-    BOOLEAN IgnoreReadOrWriteOrExec = FALSE;
-    BOOLEAN IsExecViolation         = FALSE;
+    EPT_PML1_ENTRY OriginalEntry;
+    PVOID          TargetPage;
+    UINT64         CurrentRip;
+    UINT32         CurrentInstructionLength;
+    BOOLEAN        IsHandled               = FALSE;
+    BOOLEAN        ResultOfHandlingHook    = FALSE;
+    BOOLEAN        IgnoreReadOrWriteOrExec = FALSE;
+    BOOLEAN        IsExecViolation         = FALSE;
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -910,11 +911,38 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
 
                     //
+                    // Check if redirection to another page is needed
+                    //
+                    if (HookedEntry->IsMmioShadowPagingHook)
+                    {
+                        //
+                        // Set the original entry (it's a redirection entry)
+                        //
+                        OriginalEntry = HookedEntry->RedirectionEntry;
+
+                        //
+                        // In case of MMIO hooks, we need to read the operand width to know how many
+                        // bytes we need to read later
+                        //
+                        HookedEntry->LastContextState.MmioOperandWidth = DisassemblerOperandWidthInVmxRootOnTargetProcess((PVOID)VCpu->LastVmexitRip,
+                                                                                                                          CommonIsGuestOnUsermode32Bit() // check guest state (whether 32-bit or 32-bit)
+                                                                                                                          ) /
+                                                                         8; // Operand size is in bit format, we'll convert it to byte format by dividing it by 8
+                    }
+                    else
+                    {
+                        //
+                        // Set the original entry (it's not redirection entry)
+                        //
+                        OriginalEntry = HookedEntry->OriginalEntry;
+                    }
+
+                    //
                     // Restore to its original entry for one instruction
                     //
                     EptSetPML1AndInvalidateTLB(VCpu,
                                                TargetPage,
-                                               HookedEntry->OriginalEntry,
+                                               OriginalEntry,
                                                InveptSingleContext);
 
                     //

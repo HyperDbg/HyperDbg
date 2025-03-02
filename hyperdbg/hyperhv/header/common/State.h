@@ -214,7 +214,12 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     EPT_PML1_ENTRY OriginalEntry;
 
     /**
-     * @brief The original page entry. Will be copied back when the hook is remove from the page.
+     * @brief The redirection page entry. Will be used in case of page redirection.
+     */
+    EPT_PML1_ENTRY RedirectionEntry;
+
+    /**
+     * @brief The original page entry.
      */
     EPT_PML1_ENTRY ChangedEntry;
 

@@ -324,6 +324,8 @@ typedef struct _EPT_HOOKS_CONTEXT
     UINT64 HookingTag; // This is same as the event tag
     UINT64 PhysicalAddress;
     UINT64 VirtualAddress;
+    UINT32 MmioOperandWidth; // only filled when MMIO shadowing is enabled
+
 } EPT_HOOKS_CONTEXT, *PEPT_HOOKS_CONTEXT;
 
 /**

@@ -1332,6 +1332,19 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         if (i == 0)
         {
             //
+            // If it's a shadow MMIO hook, we need to adjust page redirection
+            //
+            if (EptMmioHook)
+            {
+                //
+                // Here we first read the original entry (all RWX bits are set), then
+                // we change the PFN to point to the redirected entry
+                //
+                HookedPage->RedirectionEntry                 = HookedPage->OriginalEntry;
+                HookedPage->RedirectionEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
+            }
+
+            //
             // Save the modified entry
             //
             HookedPage->ChangedEntry = ChangedEntry;
@@ -1974,6 +1987,15 @@ VOID
 EptHookHandleMonitorTrapFlag(VIRTUAL_MACHINE_STATE * VCpu)
 {
     PVOID TargetPage;
+
+    //
+    // Check for EPT redirection (shadow) entry
+    //
+    if (VCpu->MtfEptHookRestorePoint->IsMmioShadowPagingHook)
+    {
+        MmioShadowingApplyPageModification(VCpu, VCpu->MtfEptHookRestorePoint);
+    }
+
     //
     // Pointer to the page entry in the page table
     //
