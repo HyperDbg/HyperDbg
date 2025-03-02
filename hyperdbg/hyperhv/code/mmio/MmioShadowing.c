@@ -50,10 +50,37 @@ MmioShadowingApplyPageModification(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Create a log from modified (redirected) page
     //
-    LogInfo("Original MMIO Base PA: %llx, accessed PA : %llx, accessed VA: %llx, redirected size: %x, written value: %llx",
-            HookedPage->PhysicalBaseAddress,
-            HookedPage->LastContextState.PhysicalAddress,
-            HookedPage->LastContextState.VirtualAddress,
-            HookedPage->LastContextState.MmioOperandWidth,
-            WrittenValue);
+
+    // LogInfo("Original MMIO Base PA: %llx, accessed PA : %llx, accessed VA: %llx, redirected size: %x, written value: %llx",
+    //         HookedPage->PhysicalBaseAddress,
+    //         HookedPage->LastContextState.PhysicalAddress,
+    //         HookedPage->LastContextState.VirtualAddress,
+    //         HookedPage->LastContextState.MmioOperandWidth,
+    //         WrittenValue);
+
+    //
+    // Apply the written value to the target device
+    //
+    switch (HookedPage->LastContextState.MmioOperandWidth)
+    {
+    case sizeof(BYTE):
+        // WriteByte(HookedPage->LastContextState.PhysicalAddress, (UINT8)WrittenValue);
+        break;
+
+    case sizeof(WORD):
+        // WriteWord(HookedPage->LastContextState.PhysicalAddress, (UINT16)WrittenValue);
+        break;
+
+    case sizeof(DWORD):
+        // WriteDword(HookedPage->LastContextState.PhysicalAddress, (UINT32)WrittenValue);
+        break;
+
+    case sizeof(QWORD):
+        // WriteQword(HookedPage->LastContextState.PhysicalAddress, (UINT64)WrittenValue);
+        break;
+
+    default:
+        LogInfo("Err, Not supported MMIO operand width");
+        break;
+    }
 }
