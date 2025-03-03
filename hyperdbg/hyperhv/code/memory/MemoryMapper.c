@@ -601,9 +601,9 @@ MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
  */
 _Use_decl_annotations_
 PVOID
-MemoryMapperGetPte(PVOID VirtualAddress)
+MemoryMapperGetPte(UINT64 VirtualAddress)
 {
-    return MemoryMapperGetPteVa(VirtualAddress, PagingLevelPageTable);
+    return MemoryMapperGetPteVa((PVOID)VirtualAddress, PagingLevelPageTable);
 }
 
 /**
@@ -622,30 +622,22 @@ MemoryMapperGetPteByCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 }
 
 /**
- * @brief This function MAPs one resreved page (4096) and returns
- * its virtual adrresss and also PTE virtual address in PteAddress
+ * @brief This function MAPs resreved pages (4096) and returns its virtual adrresss
  *
- * @param PteAddress Address of Page Table Entry
+ * @param ReserveSize Size of the reserved page
+ *
  * @return virtual address of mapped (not physically) address
  */
 _Use_decl_annotations_
 PVOID
-MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
+MemoryMapperMapPageAndGetPte(UINT32 ReserveSize)
 {
-    PVOID  Va;
-    UINT64 Pte;
+    PVOID Va;
 
     //
     // Reserve the page from system va space
     //
-    Va = MemoryMapperMapReservedPageRange(PAGE_SIZE);
-
-    //
-    // Get the page's Page Table Entry
-    //
-    Pte = (UINT64)MemoryMapperGetPte(Va);
-
-    *PteAddress = Pte;
+    Va = MemoryMapperMapReservedPageRange(ReserveSize);
 
     return Va;
 }
@@ -660,8 +652,7 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
 VOID
 MemoryMapperInitialize()
 {
-    UINT64 TempPte;
-    ULONG  ProcessorsCount;
+    ULONG ProcessorsCount;
 
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
@@ -694,14 +685,27 @@ MemoryMapperInitialize()
         //
         // Initial and reserve for read operations
         //
-        g_MemoryMapper[i].VirualAddressForRead     = (UINT64)MemoryMapperMapPageAndGetPte(&TempPte);
-        g_MemoryMapper[i].PteVirtualAddressForRead = TempPte;
+        g_MemoryMapper[i].VirtualAddressForRead    = (UINT64)MemoryMapperMapPageAndGetPte(PAGE_SIZE);
+        g_MemoryMapper[i].PteVirtualAddressForRead = (UINT64)MemoryMapperGetPte(g_MemoryMapper[i].VirtualAddressForRead);
 
         //
         // Initial and reserve for write operations
         //
-        g_MemoryMapper[i].VirualAddressForWrite     = (UINT64)MemoryMapperMapPageAndGetPte(&TempPte);
-        g_MemoryMapper[i].PteVirtualAddressForWrite = TempPte;
+        g_MemoryMapper[i].VirtualAddressForWrite    = (UINT64)MemoryMapperMapPageAndGetPte(PAGE_SIZE);
+        g_MemoryMapper[i].PteVirtualAddressForWrite = (UINT64)MemoryMapperGetPte(g_MemoryMapper[i].PteVirtualAddressForWrite);
+
+        //
+        // Initial and reserve for MMIO operations
+        //
+        g_MemoryMapper[i].VirtualAddressForMmioAccess     = (UINT64)MemoryMapperMapPageAndGetPte(PAGE_SIZE * 2);
+        g_MemoryMapper[i].PteVirtualAddressForMmioAccess1 = (UINT64)MemoryMapperGetPte(g_MemoryMapper[i].VirtualAddressForMmioAccess);
+        g_MemoryMapper[i].PteVirtualAddressForMmioAccess2 = (UINT64)MemoryMapperGetPte((UINT64)g_MemoryMapper[i].VirtualAddressForMmioAccess + PAGE_SIZE);
+
+        // LogInfo("MMIO Address for core %d: %llx, PTE1: %llx, PTE2: %llx",
+        //         i,
+        //         g_MemoryMapper[i].VirtualAddressForMmioAccess,
+        //         g_MemoryMapper[i].PteVirtualAddressForMmioAccess1,
+        //         g_MemoryMapper[i].PteVirtualAddressForMmioAccess2);
     }
 }
 
@@ -722,21 +726,30 @@ MemoryMapperUninitialize()
         //
         // Unmap and free the reserved buffer
         //
-        if (g_MemoryMapper[i].VirualAddressForRead != NULL64_ZERO)
+        if (g_MemoryMapper[i].VirtualAddressForRead != NULL64_ZERO)
         {
-            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForRead);
+            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirtualAddressForRead);
         }
 
-        if (g_MemoryMapper[i].VirualAddressForWrite != NULL64_ZERO)
+        if (g_MemoryMapper[i].VirtualAddressForWrite != NULL64_ZERO)
         {
-            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirualAddressForWrite);
+            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirtualAddressForWrite);
         }
 
-        g_MemoryMapper[i].VirualAddressForRead     = NULL64_ZERO;
+        if (g_MemoryMapper[i].VirtualAddressForMmioAccess != NULL64_ZERO)
+        {
+            MemoryMapperUnmapReservedPageRange((PVOID)g_MemoryMapper[i].VirtualAddressForMmioAccess);
+        }
+
+        g_MemoryMapper[i].VirtualAddressForRead    = NULL64_ZERO;
         g_MemoryMapper[i].PteVirtualAddressForRead = NULL64_ZERO;
 
-        g_MemoryMapper[i].VirualAddressForWrite     = NULL64_ZERO;
+        g_MemoryMapper[i].VirtualAddressForWrite    = NULL64_ZERO;
         g_MemoryMapper[i].PteVirtualAddressForWrite = NULL64_ZERO;
+
+        g_MemoryMapper[i].PteVirtualAddressForMmioAccess1 = NULL64_ZERO;
+        g_MemoryMapper[i].PteVirtualAddressForMmioAccess2 = NULL64_ZERO;
+        g_MemoryMapper[i].VirtualAddressForMmioAccess     = NULL64_ZERO;
     }
 
     //
@@ -981,7 +994,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_MemoryMapper[CurrentCore].VirualAddressForRead == NULL64_ZERO ||
+    if (g_MemoryMapper[CurrentCore].VirtualAddressForRead == NULL64_ZERO ||
         g_MemoryMapper[CurrentCore].PteVirtualAddressForRead == NULL64_ZERO)
     {
         //
@@ -1029,7 +1042,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                     (PVOID)BufferToSaveMemory,
                     ReadSize,
                     g_MemoryMapper[CurrentCore].PteVirtualAddressForRead,
-                    g_MemoryMapper[CurrentCore].VirualAddressForRead,
+                    g_MemoryMapper[CurrentCore].VirtualAddressForRead,
                     FALSE))
             {
                 return FALSE;
@@ -1058,7 +1071,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             (PVOID)BufferToSaveMemory,
             SizeToRead,
             g_MemoryMapper[CurrentCore].PteVirtualAddressForRead,
-            g_MemoryMapper[CurrentCore].VirualAddressForRead,
+            g_MemoryMapper[CurrentCore].VirtualAddressForRead,
             FALSE);
     }
 }
@@ -1287,7 +1300,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_MemoryMapper[CurrentCore].VirualAddressForWrite == NULL64_ZERO ||
+    if (g_MemoryMapper[CurrentCore].VirtualAddressForWrite == NULL64_ZERO ||
         g_MemoryMapper[CurrentCore].PteVirtualAddressForWrite == NULL64_ZERO)
     {
         //
@@ -1335,7 +1348,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                     PhysicalAddress,
                     WriteSize,
                     g_MemoryMapper[CurrentCore].PteVirtualAddressForWrite,
-                    g_MemoryMapper[CurrentCore].VirualAddressForWrite,
+                    g_MemoryMapper[CurrentCore].VirtualAddressForWrite,
                     FALSE))
             {
                 return FALSE;
@@ -1362,7 +1375,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
             PhysicalAddress,
             SizeToWrite,
             g_MemoryMapper[CurrentCore].PteVirtualAddressForWrite,
-            g_MemoryMapper[CurrentCore].VirualAddressForWrite,
+            g_MemoryMapper[CurrentCore].VirtualAddressForWrite,
             FALSE);
     }
 }

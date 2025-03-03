@@ -102,10 +102,18 @@ typedef struct _PAGE_ENTRY
 typedef struct _MEMORY_MAPPER_ADDRESSES
 {
     UINT64 PteVirtualAddressForRead; // The virtual address of PTE for read operations
-    UINT64 VirualAddressForRead;     // The actual kernel virtual address to read
+    UINT64 VirtualAddressForRead;    // The actual kernel virtual address to read
 
     UINT64 PteVirtualAddressForWrite; // The virtual address of PTE for write operations
-    UINT64 VirualAddressForWrite;     // The actual kernel virtual address to write
+    UINT64 VirtualAddressForWrite;    // The actual kernel virtual address to write
+
+    /* we need two PTEs for MMIO operations, because we need to map two PTEs as there might be
+       accesses in the page boundary so two pages might be involved in a single MMIO operation
+    */
+    UINT64 PteVirtualAddressForMmioAccess1; // The first virtual address of PTE for MMIO operations
+    UINT64 PteVirtualAddressForMmioAccess2; // The second virtual address of PTE for MMIO operations
+    UINT64 VirtualAddressForMmioAccess;     // The actual kernel virtual address to MMIO accesses
+
 } MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
 
 //////////////////////////////////////////////////
@@ -135,14 +143,14 @@ static VOID
 MemoryMapperUnmapReservedPageRange(_In_ PVOID VirtualAddress);
 
 static PVOID
-MemoryMapperGetPte(_In_ PVOID VirtualAddress);
+MemoryMapperGetPte(_In_ UINT64 VirtualAddress);
 
 static PVOID
 MemoryMapperGetPteByCr3(_In_ PVOID    VirtualAddress,
                         _In_ CR3_TYPE TargetCr3);
 
 static PVOID
-MemoryMapperMapPageAndGetPte(_Out_ PUINT64 PteAddress);
+MemoryMapperMapPageAndGetPte(_In_ UINT32 ReserveSize);
 
 static BOOLEAN
 MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,

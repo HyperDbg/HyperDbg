@@ -50,13 +50,12 @@ MmioShadowingApplyPageModification(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Create a log from modified (redirected) page
     //
-
-    // LogInfo("Original MMIO Base PA: %llx, accessed PA : %llx, accessed VA: %llx, redirected size: %x, written value: %llx",
-    //         HookedPage->PhysicalBaseAddress,
-    //         HookedPage->LastContextState.PhysicalAddress,
-    //         HookedPage->LastContextState.VirtualAddress,
-    //         HookedPage->LastContextState.MmioOperandWidth,
-    //         WrittenValue);
+    LogInfo("Original MMIO Base PA: %llx, accessed PA : %llx, accessed VA: %llx, redirected size: %x, written value: %llx",
+            HookedPage->PhysicalBaseAddress,
+            HookedPage->LastContextState.PhysicalAddress,
+            HookedPage->LastContextState.VirtualAddress,
+            HookedPage->LastContextState.MmioOperandWidth,
+            WrittenValue);
 
     //
     // Apply the written value to the target device
