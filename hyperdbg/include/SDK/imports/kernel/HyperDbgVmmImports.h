@@ -585,20 +585,10 @@ MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
                                           _Inout_ PVOID BufferToSaveMemory,
                                           _In_ SIZE_T   SizeToRead);
 
-// ----------------------------------------------------------------------------
-// Disassembler Functions
-//
-IMPORT_EXPORT_VMM UINT32
-DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
-
-IMPORT_EXPORT_VMM UINT32
-DisassemblerOperandWidth(PVOID Address, BOOLEAN Is32Bit);
-
-IMPORT_EXPORT_VMM UINT32
-DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
-
-IMPORT_EXPORT_VMM UINT32
-DisassemblerOperandWidthInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
+IMPORT_EXPORT_VMM UINT64
+MemoryMapperReadMmioMemory(_Inout_ UINT64         PaAddressToRead,
+                           _In_ PAGE_CACHE_POLICY PageCachePolicy,
+                           _In_ MMIO_ACCESS_SIZE  SizeToRead);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions
@@ -625,6 +615,12 @@ MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
                               _In_ SIZE_T    SizeToWrite,
                               _In_ UINT32    TargetProcessId);
 
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperWriteMmioMemory(_Inout_ UINT64         PaAddressToWrite,
+                            _In_ UINT64            ValueToWrite,
+                            _In_ PAGE_CACHE_POLICY PageCachePolicy,
+                            _In_ MMIO_ACCESS_SIZE  SizeToWrite);
+
 // ----------------------------------------------------------------------------
 // Reserving Memory Functions
 //
@@ -635,6 +631,21 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(_In_ UINT32  ProcessId,
 IMPORT_EXPORT_VMM BOOLEAN
 MemoryMapperFreeMemoryOnTargetProcess(_In_ UINT32   ProcessId,
                                       _Inout_ PVOID BaseAddress);
+
+// ----------------------------------------------------------------------------
+// Disassembler Functions
+//
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerOperandWidth(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerOperandWidthInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
 
 // ----------------------------------------------------------------------------
 // Miscellaneous Memory Functions

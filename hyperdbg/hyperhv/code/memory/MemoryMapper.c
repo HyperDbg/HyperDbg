@@ -846,6 +846,472 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
 }
 
 /**
+ * @brief Read memory one single chunk (instruction) of memory by mapping the buffer using PTE
+ * @details This function is to access MMIO regions by specific instruction size (1, 2, 4, 8 bytes)
+ *
+ * @param PaAddressToRead Physical address to read
+ * @param PageCachePolicy Page cache policy
+ * @param SizeToRead Size
+ * @param PteVaAddress1 Virtual Address of PTE1
+ * @param PteVaAddress2 Virtual Address of PTE2
+ * @param MappingVa Mapping virtual address
+ * @param InvalidateVpids whether invalidate based on VPIDs or not
+ *
+ * @return UINT64 returns the value that was read
+ */
+_Use_decl_annotations_
+UINT64
+MemoryMapperReadMmioMemoryByPte(PHYSICAL_ADDRESS  PaAddressToRead,
+                                PAGE_CACHE_POLICY PageCachePolicy,
+                                MMIO_ACCESS_SIZE  SizeToRead,
+                                UINT64            PteVaAddress1,
+                                UINT64            PteVaAddress2,
+                                UINT64            MappingVa,
+                                BOOLEAN           InvalidateVpids)
+{
+    PVOID       NewAddress;
+    PAGE_ENTRY  PageEntry1;
+    PAGE_ENTRY  PageEntry2;
+    UINT64      ValueToRead = NULL64_ZERO;
+    PPAGE_ENTRY Pte1        = (PAGE_ENTRY *)PteVaAddress1;
+    PPAGE_ENTRY Pte2        = (PAGE_ENTRY *)PteVaAddress2;
+    PVOID       Va          = (PVOID)MappingVa;
+
+    //
+    // Copy the previous entries into the new entries
+    //
+    PageEntry1.Flags = Pte1->Flags;
+    PageEntry2.Flags = Pte2->Flags;
+
+    PageEntry1.Fields.Present = 1;
+    PageEntry2.Fields.Present = 1;
+
+    //
+    // Generally we want each page to be writable
+    //
+    PageEntry1.Fields.Write = 1;
+    PageEntry2.Fields.Write = 1;
+
+    //
+    // Do not flush this page from the TLB on CR3 switch, by setting the
+    // global bit in the PTE
+    //
+    PageEntry1.Fields.Global = 1;
+    PageEntry2.Fields.Global = 1;
+
+    /*
+     * Caching Policy Table:
+     * -------------------------------------------------------------------------
+     * | Caching Policy          | PWT | PCD | Description                     |
+     * |-------------------------|-----|-----|---------------------------------|
+     * | Write-Back (WB)         |  0  |  0  | Default, efficient caching      |
+     * | Write-Through (WT)      |  1  |  0  | Writes go to memory immediately |
+     * | Uncacheable (UC)        |  0  |  1  | No caching, used for MMIO       |
+     * | Uncacheable Minus (UC-) | 1   |  1  | UC with some optimizations      |
+     * -------------------------------------------------------------------------
+     */
+
+    //
+    // Set cache policy
+    //
+    switch (PageCachePolicy)
+    {
+    case PAGE_CACHE_POLICY_UC:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 0;
+        PageEntry1.Fields.PageLevelCacheDisable = 1;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 0;
+        PageEntry2.Fields.PageLevelCacheDisable = 1;
+
+        break;
+
+    case PAGE_CACHE_POLICY_UC_MINUS:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 1;
+        PageEntry1.Fields.PageLevelCacheDisable = 1;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 1;
+        PageEntry2.Fields.PageLevelCacheDisable = 1;
+
+        break;
+
+    case PAGE_CACHE_POLICY_WT:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 1;
+        PageEntry1.Fields.PageLevelCacheDisable = 0;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 1;
+        PageEntry2.Fields.PageLevelCacheDisable = 0;
+
+        break;
+
+    case PAGE_CACHE_POLICY_WB:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 0;
+        PageEntry1.Fields.PageLevelCacheDisable = 0;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 0;
+        PageEntry2.Fields.PageLevelCacheDisable = 0;
+
+        break;
+
+    default:
+        LogInfo("Err, Invalid MMIO Page Cache Policy");
+        break;
+    }
+
+    //
+    // Set the PFN of this PTE to that of the provided physical address
+    // We should set the PFN of the first page and the second page
+    // because we're going to read a single instruction and the instruction
+    // might be in two pages
+    //
+    PageEntry1.Fields.PageFrameNumber = PaAddressToRead.QuadPart >> 12;
+    PageEntry2.Fields.PageFrameNumber = (PaAddressToRead.QuadPart + PAGE_SIZE) >> 12;
+
+    //
+    // Apply the page entries in a single instruction
+    //
+    Pte1->Flags = PageEntry1.Flags;
+
+    //
+    // Finally, invalidate the caches for the virtual address
+    // It's not mandatory to invalidate the address in the VM nested-virtualization
+    // because it will be automatically invalidated by the top hypervisor, however,
+    // we should use invlpg in physical computers as it won't invalidate it automatically
+    //
+    __invlpg(Va);
+    __invlpg((PVOID)((UINT64)Va + PAGE_SIZE));
+
+    //
+    // Also invalidate it from vpids if we're in vmx root
+    //
+    if (InvalidateVpids)
+    {
+        // __invvpid_addr(VPID_TAG, Va);
+    }
+
+    //
+    // Compute the address
+    //
+    NewAddress = (PVOID)((UINT64)Va + (PAGE_4KB_OFFSET & (PaAddressToRead.QuadPart)));
+
+    //
+    // Move the address into the virtual address in one single instruction
+    //
+    switch (SizeToRead)
+    {
+    case MMIO_ACCESS_SIZE_1_BYTE:
+        *(UINT8 *)(&ValueToRead) = *(UINT8 *)NewAddress;
+        break;
+    case MMIO_ACCESS_SIZE_2_BYTES:
+        *(UINT16 *)(&ValueToRead) = *(UINT16 *)NewAddress;
+        break;
+    case MMIO_ACCESS_SIZE_4_BYTES:
+        *(UINT32 *)(&ValueToRead) = *(UINT32 *)NewAddress;
+        break;
+    case MMIO_ACCESS_SIZE_8_BYTES:
+        *(UINT64 *)(&ValueToRead) = *(UINT64 *)NewAddress;
+        break;
+    default:
+        LogInfo("Err, Invalid MMIO size to read");
+        break;
+    }
+
+    // LogInfo("Reading from address (VA): %llx, Address (PA): %llx, Size: %d, Value: %llx", NewAddress, PaAddressToRead.QuadPart, SizeToRead, ValueToRead);
+
+    //
+    // Unmap Addresses
+    //
+    Pte1->Flags = NULL64_ZERO;
+    Pte2->Flags = NULL64_ZERO;
+
+    return ValueToRead;
+}
+
+/**
+ * @brief Read memory one single chunk (instruction) of memory by mapping the buffer using PTE (wrapper)
+ * @details This function is to access MMIO regions by specific instruction size (1, 2, 4, 8 bytes)
+ *
+ * @param PaAddressToRead Physical address to read
+ * @param PageCachePolicy Page cache policy
+ * @param SizeToRead Size
+ *
+ * @return UINT64 returns the value that was read
+ */
+_Use_decl_annotations_
+UINT64
+MemoryMapperReadMmioMemory(UINT64            PaAddressToRead,
+                           PAGE_CACHE_POLICY PageCachePolicy,
+                           MMIO_ACCESS_SIZE  SizeToRead)
+{
+    ULONG            CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_MemoryMapper[CurrentCore].VirtualAddressForMmioAccess == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess1 == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess2 == NULL64_ZERO)
+    {
+        //
+        // Not initialized
+        //
+        return NULL64_ZERO;
+    }
+
+    //
+    // Put the physical address into the physical address structure
+    //
+    PhysicalAddress.QuadPart = PaAddressToRead;
+
+    return MemoryMapperReadMmioMemoryByPte(PhysicalAddress,
+                                           PageCachePolicy,
+                                           SizeToRead,
+                                           g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess1,
+                                           g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess2,
+                                           g_MemoryMapper[CurrentCore].VirtualAddressForMmioAccess,
+                                           FALSE);
+}
+
+/**
+ * @brief Write memory one single chunk (instruction) of memory by mapping the buffer using PTE
+ * @details This function is to access MMIO regions by specific instruction size (1, 2, 4, 8 bytes)
+ *
+ * @param PaAddressToWrite Physical address to write
+ * @param ValueToWrite Value to write
+ * @param PageCachePolicy Page cache policy
+ * @param SizeToWrite Size
+ * @param PteVaAddress1 Virtual Address of PTE1
+ * @param PteVaAddress2 Virtual Address of PTE2
+ * @param MappingVa Mapping virtual address
+ * @param InvalidateVpids whether invalidate based on VPIDs or not
+ *
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
+ */
+_Use_decl_annotations_
+BOOLEAN
+MemoryMapperWriteMmioMemoryByPte(PHYSICAL_ADDRESS  PaAddressToWrite,
+                                 UINT64            ValueToWrite,
+                                 PAGE_CACHE_POLICY PageCachePolicy,
+                                 MMIO_ACCESS_SIZE  SizeToWrite,
+                                 UINT64            PteVaAddress1,
+                                 UINT64            PteVaAddress2,
+                                 UINT64            MappingVa,
+                                 BOOLEAN           InvalidateVpids)
+{
+    PVOID       NewAddress;
+    PAGE_ENTRY  PageEntry1;
+    PAGE_ENTRY  PageEntry2;
+    PPAGE_ENTRY Pte1 = (PAGE_ENTRY *)PteVaAddress1;
+    PPAGE_ENTRY Pte2 = (PAGE_ENTRY *)PteVaAddress2;
+    PVOID       Va   = (PVOID)MappingVa;
+
+    //
+    // Copy the previous entries into the new entries
+    //
+    PageEntry1.Flags = Pte1->Flags;
+    PageEntry2.Flags = Pte2->Flags;
+
+    PageEntry1.Fields.Present = 1;
+    PageEntry2.Fields.Present = 1;
+
+    //
+    // Generally we want each page to be writable
+    //
+    PageEntry1.Fields.Write = 1;
+    PageEntry2.Fields.Write = 1;
+
+    //
+    // Do not flush this page from the TLB on CR3 switch, by setting the
+    // global bit in the PTE
+    //
+    PageEntry1.Fields.Global = 1;
+    PageEntry2.Fields.Global = 1;
+
+    /*
+     * Caching Policy Table:
+     * -------------------------------------------------------------------------
+     * | Caching Policy          | PWT | PCD | Description                     |
+     * |-------------------------|-----|-----|---------------------------------|
+     * | Write-Back (WB)         |  0  |  0  | Default, efficient caching      |
+     * | Write-Through (WT)      |  1  |  0  | Writes go to memory immediately |
+     * | Uncacheable (UC)        |  0  |  1  | No caching, used for MMIO       |
+     * | Uncacheable Minus (UC-) | 1   |  1  | UC with some optimizations      |
+     * -------------------------------------------------------------------------
+     */
+
+    //
+    // Set cache policy
+    //
+    switch (PageCachePolicy)
+    {
+    case PAGE_CACHE_POLICY_UC:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 0;
+        PageEntry1.Fields.PageLevelCacheDisable = 1;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 0;
+        PageEntry2.Fields.PageLevelCacheDisable = 1;
+
+        break;
+
+    case PAGE_CACHE_POLICY_UC_MINUS:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 1;
+        PageEntry1.Fields.PageLevelCacheDisable = 1;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 1;
+        PageEntry2.Fields.PageLevelCacheDisable = 1;
+
+        break;
+
+    case PAGE_CACHE_POLICY_WT:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 1;
+        PageEntry1.Fields.PageLevelCacheDisable = 0;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 1;
+        PageEntry2.Fields.PageLevelCacheDisable = 0;
+
+        break;
+
+    case PAGE_CACHE_POLICY_WB:
+
+        PageEntry1.Fields.PageLevelWriteThrough = 0;
+        PageEntry1.Fields.PageLevelCacheDisable = 0;
+
+        PageEntry2.Fields.PageLevelWriteThrough = 0;
+        PageEntry2.Fields.PageLevelCacheDisable = 0;
+
+        break;
+
+    default:
+        LogInfo("Err, Invalid MMIO Page Cache Policy");
+        break;
+    }
+
+    //
+    // Set the PFN of this PTE to that of the provided physical address
+    // We should set the PFN of the first page and the second page
+    // because we're going to write a single instruction and the instruction
+    // might be in two pages
+    //
+    PageEntry1.Fields.PageFrameNumber = PaAddressToWrite.QuadPart >> 12;
+    PageEntry2.Fields.PageFrameNumber = (PaAddressToWrite.QuadPart + PAGE_SIZE) >> 12;
+
+    //
+    // Apply the page entries in a single instruction
+    //
+    Pte1->Flags = PageEntry1.Flags;
+
+    //
+    // Finally, invalidate the caches for the virtual address
+    // It's not mandatory to invalidate the address in the VM nested-virtualization
+    // because it will be automatically invalidated by the top hypervisor, however,
+    // we should use invlpg in physical computers as it won't invalidate it automatically
+    //
+    __invlpg(Va);
+    __invlpg((PVOID)((UINT64)Va + PAGE_SIZE));
+
+    //
+    // Also invalidate it from vpids if we're in vmx root
+    //
+    if (InvalidateVpids)
+    {
+        // __invvpid_addr(VPID_TAG, Va);
+    }
+
+    //
+    // Compute the address
+    //
+    NewAddress = (PVOID)((UINT64)Va + (PAGE_4KB_OFFSET & (PaAddressToWrite.QuadPart)));
+
+    LogInfo("Writing to address (VA): %llx, address (PA): %llx, Size: %d, Value: %llx", NewAddress, PaAddressToWrite.QuadPart, SizeToWrite, ValueToWrite);
+
+    //
+    // Move the address into the virtual address in one single instruction
+    //
+    switch (SizeToWrite)
+    {
+    case MMIO_ACCESS_SIZE_1_BYTE:
+        *(UINT8 *)(&NewAddress) = (UINT8)ValueToWrite;
+        break;
+    case MMIO_ACCESS_SIZE_2_BYTES:
+        *(UINT16 *)(&NewAddress) = (UINT16)ValueToWrite;
+        break;
+    case MMIO_ACCESS_SIZE_4_BYTES:
+        *(UINT32 *)(&NewAddress) = (UINT32)ValueToWrite;
+        break;
+    case MMIO_ACCESS_SIZE_8_BYTES:
+        *(UINT64 *)(&NewAddress) = (UINT64)ValueToWrite;
+        break;
+    default:
+        LogInfo("Err, Invalid MMIO size to write");
+        break;
+    }
+
+    //
+    // Unmap Addresses
+    //
+    Pte1->Flags = NULL64_ZERO;
+    Pte2->Flags = NULL64_ZERO;
+
+    return TRUE;
+}
+
+/**
+ * @brief Write memory one single chunk (instruction) of memory by mapping the buffer using PTE (wrapper)
+ * @details This function is to access MMIO regions by specific instruction size (1, 2, 4, 8 bytes)
+ *
+ * @param PaAddressToWrite Physical address to write
+ * @param ValueToWrite Value to write
+ * @param PageCachePolicy Page cache policy
+ * @param SizeToWrite Size
+ *
+ * @return BOOLEAN returns TRUE if it was successful and FALSE if there was error
+ */
+_Use_decl_annotations_
+BOOLEAN
+MemoryMapperWriteMmioMemory(UINT64            PaAddressToWrite,
+                            UINT64            ValueToWrite,
+                            PAGE_CACHE_POLICY PageCachePolicy,
+                            MMIO_ACCESS_SIZE  SizeToWrite)
+{
+    ULONG            CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_MemoryMapper[CurrentCore].VirtualAddressForMmioAccess == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess1 == NULL64_ZERO ||
+        g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess2 == NULL64_ZERO)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    //
+    // Put the physical address into the physical address structure
+    //
+    PhysicalAddress.QuadPart = PaAddressToWrite;
+
+    return MemoryMapperWriteMmioMemoryByPte(PhysicalAddress,
+                                            ValueToWrite,
+                                            PageCachePolicy,
+                                            SizeToWrite,
+                                            g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess1,
+                                            g_MemoryMapper[CurrentCore].PteVirtualAddressForMmioAccess2,
+                                            g_MemoryMapper[CurrentCore].VirtualAddressForMmioAccess,
+                                            FALSE);
+}
+
+/**
  * @brief Write memory safely by mapping the buffer using PTE
  *
  * @param SourceVA Source virtual address

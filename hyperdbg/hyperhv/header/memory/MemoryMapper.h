@@ -169,6 +169,25 @@ MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
                                  _In_ BOOLEAN          InvalidateVpids);
 
 static UINT64
+MemoryMapperReadMmioMemoryByPte(_In_ PHYSICAL_ADDRESS  PaAddressToRead,
+                                _In_ PAGE_CACHE_POLICY PageCachePolicy,
+                                _In_ MMIO_ACCESS_SIZE  SizeToRead,
+                                _Inout_ UINT64         PteVaAddress1,
+                                _Inout_ UINT64         PteVaAddress2,
+                                _Inout_ UINT64         MappingVa,
+                                _In_ BOOLEAN           InvalidateVpids);
+
+static BOOLEAN
+MemoryMapperWriteMmioMemoryByPte(_In_ PHYSICAL_ADDRESS  PaAddressToWrite,
+                                 _In_ UINT64            ValueToWrite,
+                                 _In_ PAGE_CACHE_POLICY PageCachePolicy,
+                                 _In_ MMIO_ACCESS_SIZE  SizeToWrite,
+                                 _Inout_ UINT64         PteVaAddress1,
+                                 _Inout_ UINT64         PteVaAddress2,
+                                 _Inout_ UINT64         MappingVa,
+                                 _In_ BOOLEAN           InvalidateVpids);
+
+static UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
     _In_ UINT64                                AddressToRead);

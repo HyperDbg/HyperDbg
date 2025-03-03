@@ -63,19 +63,19 @@ MmioShadowingApplyPageModification(VIRTUAL_MACHINE_STATE * VCpu,
     switch (HookedPage->LastContextState.MmioOperandWidth)
     {
     case sizeof(BYTE):
-        // WriteByte(HookedPage->LastContextState.PhysicalAddress, (UINT8)WrittenValue);
+        MemoryMapperWriteMmioMemory(HookedPage->LastContextState.PhysicalAddress, (UINT8)WrittenValue, PAGE_CACHE_POLICY_UC, MMIO_ACCESS_SIZE_1_BYTE);
         break;
 
     case sizeof(WORD):
-        // WriteWord(HookedPage->LastContextState.PhysicalAddress, (UINT16)WrittenValue);
+        MemoryMapperWriteMmioMemory(HookedPage->LastContextState.PhysicalAddress, (UINT16)WrittenValue, PAGE_CACHE_POLICY_UC, MMIO_ACCESS_SIZE_2_BYTES);
         break;
 
     case sizeof(DWORD):
-        // WriteDword(HookedPage->LastContextState.PhysicalAddress, (UINT32)WrittenValue);
+        MemoryMapperWriteMmioMemory(HookedPage->LastContextState.PhysicalAddress, (UINT32)WrittenValue, PAGE_CACHE_POLICY_UC, MMIO_ACCESS_SIZE_4_BYTES);
         break;
 
     case sizeof(QWORD):
-        // WriteQword(HookedPage->LastContextState.PhysicalAddress, (UINT64)WrittenValue);
+        MemoryMapperWriteMmioMemory(HookedPage->LastContextState.PhysicalAddress, (UINT64)WrittenValue, PAGE_CACHE_POLICY_UC, MMIO_ACCESS_SIZE_8_BYTES);
         break;
 
     default:

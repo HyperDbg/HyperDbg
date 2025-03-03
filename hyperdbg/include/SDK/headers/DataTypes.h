@@ -370,6 +370,34 @@ typedef struct _EPT_SINGLE_HOOK_UNHOOKING_DETAILS
 } EPT_SINGLE_HOOK_UNHOOKING_DETAILS, *PEPT_SINGLE_HOOK_UNHOOKING_DETAILS;
 
 //////////////////////////////////////////////////
+//            Memory and MMIO Types             //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Page cache policy
+ *
+ */
+typedef enum _PAGE_CACHE_POLICY
+{
+    PAGE_CACHE_POLICY_WB = 0,  // Write-Back (default)
+    PAGE_CACHE_POLICY_WT,      // Write-Through
+    PAGE_CACHE_POLICY_UC,      // Uncacheable
+    PAGE_CACHE_POLICY_UC_MINUS // Uncacheable Minus (UC-)
+
+} PAGE_CACHE_POLICY;
+
+/**
+ * @brief MMIO Access Type (byte size)
+ */
+typedef enum _MMIO_ACCESS_SIZE
+{
+    MMIO_ACCESS_SIZE_1_BYTE  = 1,
+    MMIO_ACCESS_SIZE_2_BYTES = 2,
+    MMIO_ACCESS_SIZE_4_BYTES = 4,
+    MMIO_ACCESS_SIZE_8_BYTES = 8
+} MMIO_ACCESS_SIZE;
+
+//////////////////////////////////////////////////
 //                 Segment Types                //
 //////////////////////////////////////////////////
 
