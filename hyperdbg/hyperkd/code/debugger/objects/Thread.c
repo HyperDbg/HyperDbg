@@ -280,9 +280,9 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
             SavingEntries[EnumerationCount - 1].ThreadId  = HANDLE_TO_UINT32(ThreadCid.UniqueThread);
             SavingEntries[EnumerationCount - 1].Ethread   = Thread;
 
-            RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
-                          CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process),
-                          15);
+            MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock((PEPROCESS)ThreadListSymbolInfo->Process),
+                                       &SavingEntries[EnumerationCount - 1].ImageFileName,
+                                       15);
 
             break;
 
