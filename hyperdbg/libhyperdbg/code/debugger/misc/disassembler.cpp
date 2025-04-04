@@ -30,11 +30,21 @@ all
 #include "pch.h"
 
 #include "Zycore/Format.h"
+//#include "../../../../dependencies/zydis/dependencies/zycore/include/Zycore/Format.h"
 #include "Zycore/LibC.h"
 #include "Zydis/Zydis.h"
 
 #pragma comment(lib, "Zydis.lib")
 #pragma comment(lib, "Zycore.lib")
+
+//ZYAN_PRINTF_ATTR(2, 3)
+//ZYCORE_EXPORT ZYAN_REQUIRES_LIBC ZyanStatus ZyanStringAppendFormat(
+//    ZyanString* string, const char* format, ...);
+
+
+#define ZYAN_STDIN      stdin
+#define ZYAN_STDOUT     stdout
+#define ZYAN_STDERR     stderr
 
 //
 // Global Variables
@@ -93,10 +103,10 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
             ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
             ZyanString * string;
             ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
-            return ZyanStringAppendFormat(string,
-                                          "<%s (%s)>",
-                                          Iterate->second.ObjectName.c_str(),
-                                          SeparateTo64BitValue(Iterate->first).c_str());
+//            return ZyanStringAppendFormat(string,//todo bug
+//                                          "<%s (%s)>",
+//                                          Iterate->second.ObjectName.c_str(),
+//                                          SeparateTo64BitValue(Iterate->first).c_str());
         }
     }
 
@@ -953,10 +963,10 @@ ZydisFormatterPrintAddressAbsoluteForTrackingInstructions(const ZydisFormatter *
             //
             CommandTrackHandleReceivedCallInstructions(Iterate->second.ObjectName.c_str(), Iterate->first);
 
-            return ZyanStringAppendFormat(string,
-                                          "<%s (%s)>",
-                                          Iterate->second.ObjectName.c_str(),
-                                          SeparateTo64BitValue(Iterate->first).c_str());
+//            return ZyanStringAppendFormat(string,//todo bug
+//                                          "<%s (%s)>",
+//                                          Iterate->second.ObjectName.c_str(),
+//                                          SeparateTo64BitValue(Iterate->first).c_str());
         }
     }
 

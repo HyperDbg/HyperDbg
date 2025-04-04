@@ -414,20 +414,21 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             //
             // If has error, show error message and abort
             //
-            if (ScriptEngineExecute(GuestRegs,
-                                    &ActionBuffer,
-                                    &ScriptGeneralRegisters,
-                                    CodeBuffer,
-                                    &i,
-                                    &ErrorSymbol) == TRUE)
-            {
-                ShowMessages("err, ScriptEngineExecute, function = %s\n",
-                             FunctionNames[ErrorSymbol.Value]);
-                g_CurrentExprEvalResultHasError = TRUE;
-                g_CurrentExprEvalResult         = NULL;
-                break;
-            }
-            else if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
+//            if (ScriptEngineExecute(GuestRegs,//todo
+//                                    &ActionBuffer,
+//                                    &ScriptGeneralRegisters,
+//                                    CodeBuffer,
+//                                    &i,
+//                                    &ErrorSymbol) == TRUE)
+//            {
+//                ShowMessages("err, ScriptEngineExecute, function = %s\n",
+//                             FunctionNames[ErrorSymbol.Value]);
+//                g_CurrentExprEvalResultHasError = TRUE;
+//                g_CurrentExprEvalResult         = NULL;
+//                break;
+//            }
+//            else
+                if (ScriptGeneralRegisters.StackIndx >= MAX_STACK_BUFFER_COUNT)
             {
                 ShowMessages("err, stack buffer overflow (more information: https://docs.hyperdbg.org/tips-and-tricks/misc/customize-build/change-script-engine-limitations)\n");
                 g_CurrentExprEvalResultHasError = TRUE;

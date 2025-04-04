@@ -41,6 +41,7 @@ target_link_libraries(kdserial kdserialtransport kdhv kdtelemetry)
 
 add_subdirectory(hyperlog)
 link_directories(libraries/zydis/kernel)
+
 add_subdirectory(hyperhv)
 target_link_libraries(hyperhv Zycore Zydis)
 
@@ -52,31 +53,33 @@ target_link_libraries(hyperkd hyperlog hyperhv kdserial)
 add_subdirectory(dependencies/pdbex/Source)
 
 add_subdirectory(symbol-parser)
-target_link_libraries(symbol-parser pdbex)
+target_link_libraries(symbol_parser pdbex)
 
 
 add_subdirectory(script-engine)
-target_link_libraries(script-engine symbol-parser)
+target_link_libraries(script_engine symbol_parser)
 
 link_directories(libraries/zydis/user libraries/keystone/release-lib)
 add_subdirectory(libhyperdbg)
-target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone)
+target_link_libraries(libhyperdbg Zycore Zydis script_engine keystone)
 
 
 add_subdirectory(hyperdbg-test)
+target_link_libraries(hyperdbg_test libhyperdbg)
+
 
 add_subdirectory(hyperdbg-cli)
-target_link_libraries(hyperdbg-cli libhyperdbg)
+target_link_libraries(hyperdbg_cli libhyperdbg)
 
 
 
-#set(save_src_dir ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-#execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../examples ${save_src_dir})
-#
+set(save_src_dir ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../examples ${save_src_dir})
+	
 #add_subdirectory(examples/kernel/hyperdbg_driver)
 #target_link_libraries(hyperdbg_driver hyperlog hyperhv)
-#
-#
+
+
 #add_subdirectory(examples/user/hyperdbg_app)
 #target_link_libraries(hyperdbg_app libhyperdbg)
 

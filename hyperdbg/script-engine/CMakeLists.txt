@@ -3,18 +3,20 @@ set(SourceFiles
     "../include/platform/user/header/Environment.h"
     "header/common.h"
     "header/globals.h"
+    "header/hardware.h"
     "header/parse-table.h"
+    "header/pch.h"
     "header/scanner.h"
     "header/script-engine.h"
     "header/type.h"
-    "pch.h"
     "code/common.c"
     "code/globals.c"
+    "code/hardware.c"
     "code/parse-table.c"
+    "code/pch.c"
     "code/scanner.c"
     "code/script-engine.c"
     "code/type.c"
-    "pch.c"
 )
 include_directories(
     "header"
@@ -22,4 +24,4 @@ include_directories(
     "."
     "../script-eval"
 )
-add_library(script-engine SHARED ${SourceFiles})
+add_library(script_engine SHARED ${SourceFiles})

@@ -12,6 +12,7 @@ set(SourceFiles
     "header/globals.h"
     "header/help.h"
     "header/hwdbg-interpreter.h"
+    "header/hwdbg-scripts.h"
     "header/inipp.h"
     "header/install.h"
     "header/kd.h"
@@ -22,11 +23,13 @@ set(SourceFiles
     "header/pe-parser.h"
     "header/rev-ctrl.h"
     "header/script-engine.h"
+    "header/steppings.h"
     "header/symbol.h"
     "header/tests.h"
     "header/transparency.h"
     "header/ud.h"
     "pch.h"
+    "pci-id.h"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
     "../script-eval/code/PseudoRegisters.c"
@@ -36,15 +39,21 @@ set(SourceFiles
     "code/debugger/commands/debugging-commands/a.cpp"
     "code/debugger/commands/debugging-commands/core.cpp"
     "code/debugger/commands/debugging-commands/dt-struct.cpp"
+    "code/debugger/commands/debugging-commands/gg.cpp"
     "code/debugger/commands/debugging-commands/gu.cpp"
     "code/debugger/commands/debugging-commands/k.cpp"
     "code/debugger/commands/debugging-commands/preactivate.cpp"
     "code/debugger/commands/debugging-commands/prealloc.cpp"
+    "code/debugger/commands/extension-commands/apic.cpp"
     "code/debugger/commands/extension-commands/crwrite.cpp"
+    "code/debugger/commands/extension-commands/idt.cpp"
+    "code/debugger/commands/extension-commands/ioapic.cpp"
+    "code/debugger/commands/extension-commands/pcitree.cpp"
     "code/debugger/commands/extension-commands/rev.cpp"
     "code/debugger/commands/extension-commands/trace.cpp"
     "code/debugger/commands/extension-commands/track.cpp"
     "code/debugger/commands/extension-commands/mode.cpp"
+    "code/debugger/commands/hwdbg-commands/hw.cpp"
     "code/debugger/commands/hwdbg-commands/hw_clk.cpp"
     "code/debugger/commands/meta-commands/dump.cpp"
     "code/debugger/commands/meta-commands/kill.cpp"
@@ -57,6 +66,7 @@ set(SourceFiles
     "code/debugger/core/break-control.cpp"
     "code/debugger/core/debugger.cpp"
     "code/debugger/core/interpreter.cpp"
+    "code/debugger/core/steppings.cpp"
     "code/debugger/kernel-level/kd.cpp"
     "code/debugger/kernel-level/kernel-listening.cpp"
     "code/debugger/misc/assembler.cpp"
@@ -71,6 +81,7 @@ set(SourceFiles
     "code/debugger/user-level/user-listening.cpp"
     "code/export/export.cpp"
     "code/hwdbg/hwdbg-interpreter.cpp"
+    "code/hwdbg/hwdbg-scripts.cpp"
     "code/objects/objects.cpp"
     "code/rev/rev-ctrl.cpp"
     "pch.cpp"
@@ -154,6 +165,8 @@ set(SourceFiles
     "code/debugger/tests/tests.cpp"
     "code/debugger/transparency/gaussian-rng.cpp"
     "code/debugger/transparency/transparency.cpp"
+    "pci-id.cpp"
+    "pcicam.cpp"
     "code/assembly/asm-vmx-checks.asm"
 )
 include_directories(
@@ -166,4 +179,9 @@ include_directories(
     "../script-eval"
     "../dependencies/keystone/include"
 )
+# 设置为使用多线程动态链接的调试库
+#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL")
+# 或者设置为使用多线程静态链接的发布库
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
 add_library(libhyperdbg SHARED ${SourceFiles})

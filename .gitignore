@@ -400,3 +400,5 @@ StructLayoutSettings.json
 .idea
 cmake-build-debug
 /hyperdbg/hyperhv/zydis/
+/hyperdbg/cmake-build-debug/
+/hyperdbg/cmake-build-release/

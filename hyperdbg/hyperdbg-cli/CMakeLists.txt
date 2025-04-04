@@ -7,4 +7,4 @@ include_directories(
     "../include"
     "../dependencies"
 )
-add_executable(hyperdbg-cli ${SourceFiles})
+add_executable(hyperdbg_cli ${SourceFiles})

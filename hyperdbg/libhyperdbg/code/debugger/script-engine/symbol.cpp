@@ -10,7 +10,10 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+
+#define _WINTERNL_
 #include "pch.h"
+#include "winternl.h"
 
 //
 // Global Variables
@@ -1001,6 +1004,7 @@ SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId)
  *
  * @return BOOLEAN
  */
+
 BOOLEAN
 SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules)
 {
