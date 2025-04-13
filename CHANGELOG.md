@@ -4,12 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.13.1.0] - 2025-XX-XX
+## [0.13.1.0] - 2025-04-14
 New release of the HyperDbg Debugger.
 
 ### Added
+- Added new transparency methods for hiding nested virtualization environments thanks to [@CokeTree3](https://github.com/CokeTree3) ([link](https://github.com/HyperDbg/HyperDbg/pull/515))
 
 ### Changed
+- Fix '.thread' command crash ([link](https://github.com/HyperDbg/HyperDbg/pull/510))
+- Update .clang-format format file based on the new version of LLVM
+- Update the list of required contributions
 
 ## [0.13.0.0] - 2025-02-25
 New release of the HyperDbg Debugger.
