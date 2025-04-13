@@ -29,6 +29,21 @@ The **hwdbg** debugger chip generator is a gate-level debugging tool designed to
                                     ┃     |、 ˜〵
             ┗━━━━━━━━━━━━━━━━━━━━━━━┛     じしˍ,)ノ
 ```
+## Publications
+
+In case you use **hwdbg** in your work, please consider citing our paper.
+
+**[hwdbg: Debugging Hardware Like Software (EuroSec'25)](https://dl.acm.org/doi/abs/10.1145/3722041.3723101)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3722041.3723101)]
+
+```
+@inproceedings{karvandi2025hwdbg,
+  title={hwdbg: Debugging Hardware Like Software},
+  author={Karvandi, Mohammad Sina and Meghdadizanjani, Soroush and Monfared, Saleh Khalaj and van der Kouwe, Erik and Slowinska, Asia},
+  booktitle={Proceedings of the 18th European Workshop on Systems Security},
+  pages={56--62},
+  year={2025}
+}
+```
 
 ## Deployment Board 
 

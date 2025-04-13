@@ -58,6 +58,10 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
   year={2022}
 }
 ```
+<details>
+
+<summary><b>Other paper built upon HyperDbg...</b></summary>
+
 
 **2. [The Reversing Machine: Reconstructing Memory Assumptions](https://arxiv.org/pdf/2405.00298)** [[arXiv](https://arxiv.org/abs/2405.00298)]
 
@@ -69,8 +73,9 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
   year={2024}
 }
 ```
+</details>
 
-You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/debugger/transparency.html) about our efforts on vm-exit transparency, and [this article](https://research.hyperdbg.org/debugger/chasing-bugs.html) about chasing bugs within hypervisors. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
+You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design/) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/vmm/transparency/) about our efforts on vm-exit transparency, [this article](https://research.hyperdbg.org/debugger/chasing-bugs/) about chasing bugs within hypervisors, and [this article](https://research.hyperdbg.org/debugger/gaining-insights/) about new reverse engineering techniques introduced in HyperDbg. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
 
 ## Unique Features
 * Advanced Hypervisor-based Kernel Mode Debugger [<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/debug" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/local-debugging" target="_blank">link</a>]
