@@ -15,6 +15,7 @@
  * @brief Walkthrough the stack
  *
  * @param AddressToSaveFrames
+ * @param FrameCount
  * @param StackBaseAddress
  * @param Size
  * @param Is32Bit
@@ -23,6 +24,7 @@
  */
 BOOLEAN
 CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
+                          UINT32 *                         FrameCount,
                           UINT64                           StackBaseAddress,
                           UINT32                           Size,
                           BOOLEAN                          Is32Bit)
@@ -63,6 +65,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
         // Compute the current stack position address
         //
         CurrentStackAddress = StackBaseAddress + (i * AddressMode);
+        *FrameCount         = FrameIndex;
 
         if (!CheckAccessValidityAndSafety(CurrentStackAddress, AddressMode))
         {
@@ -71,7 +74,20 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
             //
             // Stack is no longer valid or available to access from here
             //
-            return FALSE;
+            if (FrameIndex == 0)
+            {
+                //
+                // Stack is invalid
+                //
+                return FALSE;
+            }
+            else
+            {
+                //
+                // Stack is invalid, but there are frames that are still valid
+                //
+                return TRUE;
+            }
         }
 
         //

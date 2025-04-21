@@ -55,8 +55,8 @@ CommandKHelp()
 VOID
 CommandK(vector<CommandToken> CommandTokens, string Command)
 {
-    UINT64  BaseAddress    = NULL;  // Null base address means current RSP register
-    UINT32  Length         = 0x100; // Default length
+    UINT64  BaseAddress    = NULL;      // Null base address means current RSP register
+    UINT32  Length         = PAGE_SIZE; // Default length
     BOOLEAN IsFirstCommand = TRUE;
     BOOLEAN IsNextBase     = FALSE;
     BOOLEAN IsNextLength   = FALSE;
@@ -81,11 +81,11 @@ CommandK(vector<CommandToken> CommandTokens, string Command)
     //
     if (g_IsRunningInstruction32Bit)
     {
-        Length = 0x100;
+        Length = PAGE_SIZE;
     }
     else
     {
-        Length = 0x200;
+        Length = PAGE_SIZE * 2;
     }
 
     for (auto Section : CommandTokens)
