@@ -53,7 +53,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     //
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        //   AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
     }
 
     //
@@ -119,9 +119,9 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
 
         if (!Status)
         {
-            //  ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
             std::free(MemReadRequest);
-            //  return FALSE;
+            return FALSE;
         }
     }
 
@@ -352,11 +352,10 @@ HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         if (ReturnedLength != 0)
         {
-            UCHAR * Buffer2 = (UCHAR *)"\x48\x3d\x48\x40\x40\x00";
             HyperDbgDisassembler64(
                 Buffer,
                 Address,
-                6,
+                ReturnedLength,
                 0,
                 FALSE,
                 NULL);
