@@ -139,6 +139,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_RDMSR:
     {
+        //
+        // Handle vm-exit, events, dispatches and perform MSR read
+        //
+        DispatchEventRdmsr(VCpu);
+
         break;
     }
     case VMX_EXIT_REASON_IO_SMI:
