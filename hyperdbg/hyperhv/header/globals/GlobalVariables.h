@@ -72,7 +72,7 @@ BOOLEAN g_TransparentMode;
  * @brief State of transparent-mode trap-flags
  *
  */
-TRANSPARENT_MODE_TRAP_FLAG_STATE g_TransparentModeTrapFlagState;
+TRANSPARENT_MODE_TRAP_FLAG_STATE * g_TransparentModeTrapFlagState;
 
 /**
  * @brief Local APIC Base

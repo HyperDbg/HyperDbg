@@ -385,8 +385,10 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // check whether the this trap flag is set because of intercepting
         // the result of a system-call or not
         //
-        if (/*g_TransparentMode &&*/
-            TransparentCheckAndHandleAfterSyscallTrapFlags(VCpu, HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+        if (g_TransparentMode &&
+            TransparentCheckAndHandleAfterSyscallTrapFlags(VCpu,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId())))
         {
             //
             // Being here means that this #DB was caused by a trap flag of

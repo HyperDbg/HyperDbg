@@ -30,12 +30,12 @@ OptimizationExampleInsertionSortAndBinarySearch()
     UINT32 NumberOfItems         = 0;
     UINT32 Index;
 
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 12);
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 11);
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 13);
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 5);
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 6);
-    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, 8);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 12);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 11);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 13);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 5);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 6);
+    InsertionSortInsertItem(Arr, &NumberOfItems, MAX_NUM_OF_ARRAY, &Index, 8);
 
     //
     // Search for item equal to 15

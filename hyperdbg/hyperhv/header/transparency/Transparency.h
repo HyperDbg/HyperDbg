@@ -21,7 +21,8 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs);
 BOOLEAN
 TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
                                    UINT32                  ProcessId,
-                                   UINT32                  ThreadId);
+                                   UINT32                  ThreadId,
+                                   UINT64                  Context);
 
 BOOLEAN
 TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
@@ -31,7 +32,8 @@ TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
 VOID
 TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
                                       UINT32                  ProcessId,
-                                      UINT32                  ThreadId);
+                                      UINT32                  ThreadId,
+                                      UINT64                  Context);
 
 //////////////////////////////////////////////////
 //				      Locks 	    			//
@@ -64,7 +66,7 @@ volatile LONG TransparentModeTrapListLock;
  * of the trap flag
  *
  */
-#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS 200
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS 500
 
 //////////////////////////////////////////////////
 //				   Structures					//
@@ -131,5 +133,6 @@ typedef struct _TRANSPARENT_MODE_TRAP_FLAG_STATE
 {
     UINT32                                      NumberOfItems;
     TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ThreadInformation[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
+    UINT64                                      Context[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
 
 } TRANSPARENT_MODE_TRAP_FLAG_STATE, *PTRANSPARENT_MODE_TRAP_FLAG_STATE;
