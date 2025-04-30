@@ -26,6 +26,16 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
     if (!g_TransparentMode)
     {
         //
+        // Allocate buffer for the transparent-mode trap flag state
+        //
+        g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
+
+        //
+        // Intercept trap flags #DBs and #BPs for the transparent-mode
+        //
+        BroadcastEnableDbAndBpExitingAllCores();
+
+        //
         // Enable the transparent-mode
         //
         g_TransparentMode                    = TRUE;
@@ -58,6 +68,16 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         // Disable the transparent-mode
         //
         g_TransparentMode = FALSE;
+
+        //
+        // Unset the trap flags #DBs and #BPs for the transparent-mode
+        //
+        BroadcastDisableDbAndBpExitingAllCores();
+
+        //
+        // Free the buffer for the transparent-mode trap flag state
+        //
+        PlatformMemFreePool(g_TransparentModeTrapFlagState);
 
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
@@ -94,6 +114,270 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
         //
         CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
     }
+}
+
+/**
+ * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
+ * on the target process/thread
+ * @param ProcessId
+ * @param ThreadId
+ * @param Context
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentStoreProcessInformation(UINT32 ProcessId, UINT32 ThreadId, UINT64 Context)
+{
+    UINT32                                      Index;
+    BOOLEAN                                     Result;
+    BOOLEAN                                     SuccessfullyStored;
+    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+
+    //
+    // Form the process id and thread id into a 64-bit value
+    //
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&TransparentModeTrapListLock);
+
+    //
+    // *** Search the list of processes/threads for the current process's trap flag state ***
+    //
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
+                                           g_TransparentModeTrapFlagState->NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
+
+    if (Result)
+    {
+        //
+        // It means that we already find this entry in the stored list
+        // so, just imply that the addition was successful (no need for extra addition)
+        //
+        SuccessfullyStored = TRUE;
+        goto Return;
+    }
+    else
+    {
+        //
+        // Insert the thread into the list as the item is not already present
+        //
+        SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
+                                                     &g_TransparentModeTrapFlagState->NumberOfItems,
+                                                     MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS,
+                                                     &Index,
+                                                     ProcThrdInfo.asUInt);
+
+        if (SuccessfullyStored)
+        {
+            //
+            // Successfully inserted the thread/process into the list
+            // Now let's store the context of the caller
+            //
+            g_TransparentModeTrapFlagState->Context[Index] = Context;
+        }
+
+        goto Return;
+    }
+
+Return:
+    //
+    // Unlock the list modification lock
+    //
+    SpinlockUnlock(&TransparentModeTrapListLock);
+
+    return SuccessfullyStored;
+}
+
+/**
+ * @brief Set the trap flag in the guest after a syscall
+ *
+ * @param VCpu The virtual processor's state
+ * @param ProcessId The process id of the thread
+ * @param ThreadId The thread id of the thread
+ * @param Context The context of the caller
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
+                                   UINT32                  ProcessId,
+                                   UINT32                  ThreadId,
+                                   UINT64                  Context)
+{
+    //
+    // Do not add anything to the list if the transparent-mode is not enabled (or disabled by the user)
+    //
+    if (!g_TransparentMode)
+    {
+        //
+        // Transparent-mode is not enabled
+        //
+        return FALSE;
+    }
+
+    //
+    // Insert the thread/process into the list of processes/threads
+    //
+    if (!TransparentStoreProcessInformation(ProcessId, ThreadId, Context))
+    {
+        //
+        // Failed to store the process/thread information
+        //
+        return FALSE;
+    }
+
+    //
+    // *** Successfully stored the process/thread information ***
+    //
+
+    //
+    // Set the trap flag to TRUE because we want to intercept the thread again
+    // once it returns to the user-mode (SYSRET) instruction
+    //
+    // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
+    //
+    VCpu->Regs->r11 |= X86_FLAGS_TF;
+
+    //
+    // Create log message for the syscall
+    //
+    // LogInfo("Transparent set trap flag for process: %x, thread: %x\n", ProcessId, ThreadId);
+
+    return TRUE;
+}
+
+/**
+ * @brief Handle the trap flags as the result of interception of the return of the
+ * system-call
+ *
+ * @param VCpu The virtual processor's state
+ * @param ProcessId The process id of the thread
+ * @param ThreadId The thread id of the thread
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
+                                               UINT32                  ProcessId,
+                                               UINT32                  ThreadId)
+{
+    RFLAGS                                      Rflags = {0};
+    UINT32                                      Index;
+    UINT64                                      Context      = NULL64_ZERO;
+    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+    BOOLEAN                                     Result;
+    BOOLEAN                                     ResultToReturn;
+
+    //
+    // Form the process id and thread id into a 64-bit value
+    //
+    ProcThrdInfo.Fields.ProcessId = ProcessId;
+    ProcThrdInfo.Fields.ThreadId  = ThreadId;
+
+    //
+    // Read the trap flag
+    //
+    Rflags.AsUInt = HvGetRflags();
+
+    //
+    // Make sure, nobody is in the middle of modifying the list
+    //
+    SpinlockLock(&TransparentModeTrapListLock);
+
+    //
+    // *** Search the list of processes/threads for the current process's trap flag state ***
+    //
+    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
+                                           g_TransparentModeTrapFlagState->NumberOfItems,
+                                           &Index,
+                                           ProcThrdInfo.asUInt);
+
+    //
+    // Check whether the trap flag is set or not and the thread is expected to have trap flag
+    // by the transparent-mode or not
+    //
+    if (Rflags.TrapFlag && Result)
+    {
+        //
+        // Read the context of the caller
+        //
+        Context = g_TransparentModeTrapFlagState->Context[Index];
+
+        //
+        // Clear the trap flag from the RFLAGS register
+        //
+        HvSetRflagTrapFlag(FALSE);
+
+        //
+        // Remove the thread/process from the list of processes/threads
+        //
+        InsertionSortDeleteItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
+                                &g_TransparentModeTrapFlagState->NumberOfItems,
+                                Index);
+
+        //
+        // Handled by the transparent-mode
+        //
+        ResultToReturn = TRUE;
+
+        goto ReturnResult;
+    }
+    else
+    {
+        //
+        // Not related to the transparent-mode
+        //
+        ResultToReturn = FALSE;
+
+        goto ReturnResult;
+    }
+
+ReturnResult:
+
+    //
+    // Unlock the list modification lock
+    //
+    SpinlockUnlock(&TransparentModeTrapListLock);
+
+    //
+    // Call the callback function to handle the trap flag if its needed
+    // Note that we call it here so we already unlocked the list lock
+    // to optimize the performance (avoid holding the lock for a long time)
+    //
+    if (ResultToReturn)
+    {
+        TransparentCallbackHandleAfterSyscall(VCpu, ProcessId, ThreadId, Context);
+    }
+
+    return ResultToReturn;
+}
+
+/**
+ * @brief Callback function to handle returns from the syscall
+ *
+ * @param VCpu The virtual processor's state
+ * @param ProcessId The process id of the thread
+ * @param ThreadId The thread id of the thread
+ * @param Context The context of the caller
+ *
+ * @return VOID
+ */
+VOID
+TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
+                                      UINT32                  ProcessId,
+                                      UINT32                  ThreadId,
+                                      UINT64                  Context)
+{
+    LogInfo("Transparent callback handle the trap flag for process: %x, thread: %x, rip: %llx, context: %llx\n",
+            ProcessId,
+            ThreadId,
+            VCpu->LastVmexitRip,
+            Context);
 }
 
 //

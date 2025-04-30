@@ -893,9 +893,12 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 {
+    UINT32 Index; // not used
+
     return InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
                                    &g_ExecTrapState.NumberOfItems,
                                    MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
+                                   &Index,
                                    (UINT64)ProcessId);
 }
 

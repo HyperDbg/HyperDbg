@@ -58,6 +58,15 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
+    // Check for transparent-mode (masking #DBs and #BPs)
+    //
+    if (g_TransparentMode)
+    {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+        CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
+    }
+
+    //
     // Write the final value
     //
     HvWriteExceptionBitmap(CurrentMask);

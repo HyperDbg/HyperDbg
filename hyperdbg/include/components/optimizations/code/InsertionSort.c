@@ -16,12 +16,14 @@
  *
  * @param ArrayPtr
  * @param NumberOfItems
+ * @param MaxNumOfItems
+ * @param Index
  * @param Key
  *
  * @return BOOLEAN
  */
 BOOLEAN
-InsertionSortInsertItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 MaxNumOfItems, UINT64 Key)
+InsertionSortInsertItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 MaxNumOfItems, UINT32 * Index, UINT64 Key)
 {
     UINT32 Idx;
 
@@ -45,6 +47,7 @@ InsertionSortInsertItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 MaxNum
         Idx           = Idx - 1;
     }
     ArrayPtr[Idx] = Key;
+    *Index        = Idx;
     (*NumberOfItems)++;
 
     //

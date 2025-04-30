@@ -214,6 +214,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
         SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                                      &g_TrapFlagState.NumberOfItems,
                                                      MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
+                                                     &Index, // not used
                                                      ProcThrdInfo.asUInt);
         goto Return;
     }
@@ -282,7 +283,6 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             // stepping routines to work, even if the debugger masks the
             // traps by using 'test trap off', so stepping still works
             //
-
 
             //
             // Handle debug events (breakpoint, traps, hardware debug register when kernel
