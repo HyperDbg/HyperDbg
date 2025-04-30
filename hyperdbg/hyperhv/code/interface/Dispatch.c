@@ -960,6 +960,16 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
 {
     BOOLEAN PostEventTriggerReq = FALSE;
 
+    if ((UINT64)Context == 0xfffff803a648c043)
+    {
+        if (VCpu->Regs->rax == 0x55)
+        {
+            TransparentSetTrapFlagAfterSyscall(VCpu,
+                                               HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                               HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+        }
+    }
+
     //
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)

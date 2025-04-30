@@ -334,6 +334,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
             __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
             MemoryMapperReadMemorySafe(GuestRip, &TargetMem, sizeof(BYTE));
+
             if (!EptCheckAndHandleBreakpoint(VCpu) || TargetMem == 0xcc)
             {
                 if (!DebuggingCallbackHandleBreakpointException(VCpu->CoreId))
@@ -379,7 +380,21 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
-        if (!DebuggingCallbackHandleDebugBreakpointException(VCpu->CoreId))
+        //
+        // Check if transparent mode is enabled and if so, then we need to
+        // check whether the this trap flag is set because of intercepting
+        // the result of a system-call or not
+        //
+        if (/*g_TransparentMode &&*/
+            TransparentCheckAndHandleAfterSyscallTrapFlags(VCpu, HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+        {
+            //
+            // Being here means that this #DB was caused by a trap flag of
+            // the system-call in the transparent-mode, so no need to further handle
+            // it (nothing to do)
+            //
+        }
+        else if (!DebuggingCallbackHandleDebugBreakpointException(VCpu->CoreId))
         {
             //
             // It's not because of thread change detection, so re-inject it

@@ -18,6 +18,31 @@
 VOID
 TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs);
 
+BOOLEAN
+TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
+                                   UINT32                  ProcessId,
+                                   UINT32                  ThreadId);
+
+BOOLEAN
+TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
+                                               UINT32                  ProcessId,
+                                               UINT32                  ThreadId);
+
+VOID
+TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
+                                      UINT32                  ProcessId,
+                                      UINT32                  ThreadId);
+
+//////////////////////////////////////////////////
+//				      Locks 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief The lock for modifying list of process/thread for transparent-mode trap flags
+ *
+ */
+volatile LONG TransparentModeTrapListLock;
+
 //////////////////////////////////////////////////
 //				   Definitions					//
 //////////////////////////////////////////////////
@@ -33,6 +58,13 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs);
  *
  */
 #define RAND_MAX 0x7fff
+
+/**
+ * @brief maximum number of thread/process ids to be allocated for keeping track of
+ * of the trap flag
+ *
+ */
+#define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS 200
 
 //////////////////////////////////////////////////
 //				   Structures					//
@@ -69,3 +101,35 @@ typedef struct _TRANSPARENCY_PROCESS
     LIST_ENTRY OtherProcesses;
 
 } TRANSPARENCY_PROCESS, *PTRANSPARENCY_PROCESS;
+
+/**
+ * @brief The thread/process information
+ *
+ */
+typedef struct _TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION
+{
+    union
+    {
+        UINT64 asUInt;
+
+        struct
+        {
+            UINT32 ProcessId;
+            UINT32 ThreadId;
+        } Fields;
+    };
+
+} TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION, *PTRANSPARENT_MODE_PROCESS_THREAD_INFORMATION;
+
+/**
+ * @brief The threads that we expect to get the trap flag
+ *
+ * @details Used for keeping track of the threads that we expect to get the trap flag
+ *
+ */
+typedef struct _TRANSPARENT_MODE_TRAP_FLAG_STATE
+{
+    UINT32                                      NumberOfItems;
+    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ThreadInformation[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
+
+} TRANSPARENT_MODE_TRAP_FLAG_STATE, *PTRANSPARENT_MODE_TRAP_FLAG_STATE;
