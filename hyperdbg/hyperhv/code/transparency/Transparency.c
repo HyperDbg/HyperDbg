@@ -122,11 +122,15 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
  * @param ProcessId
  * @param ThreadId
  * @param Context
+ * @param Params
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentStoreProcessInformation(UINT32 ProcessId, UINT32 ThreadId, UINT64 Context)
+TransparentStoreProcessInformation(UINT32                            ProcessId,
+                                   UINT32                            ThreadId,
+                                   UINT64                            Context,
+                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
     UINT32                                      Index;
     BOOLEAN                                     Result;
@@ -176,9 +180,10 @@ TransparentStoreProcessInformation(UINT32 ProcessId, UINT32 ThreadId, UINT64 Con
         {
             //
             // Successfully inserted the thread/process into the list
-            // Now let's store the context of the caller
+            // Now let's store the context of the caller along with parameters
             //
             g_TransparentModeTrapFlagState->Context[Index] = Context;
+            memcpy(&g_TransparentModeTrapFlagState->Params[Index], Params, sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
         }
 
         goto Return;
@@ -200,14 +205,16 @@ Return:
  * @param ProcessId The process id of the thread
  * @param ThreadId The thread id of the thread
  * @param Context The context of the caller
+ * @param Params The (optional) parameters of the caller
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
-                                   UINT32                  ProcessId,
-                                   UINT32                  ThreadId,
-                                   UINT64                  Context)
+TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+                                   UINT32                            ProcessId,
+                                   UINT32                            ThreadId,
+                                   UINT64                            Context,
+                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
     //
     // Do not add anything to the list if the transparent-mode is not enabled (or disabled by the user)
@@ -223,7 +230,7 @@ TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Insert the thread/process into the list of processes/threads
     //
-    if (!TransparentStoreProcessInformation(ProcessId, ThreadId, Context))
+    if (!TransparentStoreProcessInformation(ProcessId, ThreadId, Context, Params))
     {
         //
         // Failed to store the process/thread information
@@ -268,21 +275,30 @@ TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
 {
     RFLAGS                                      Rflags = {0};
     UINT32                                      Index;
-    UINT64                                      Context      = NULL64_ZERO;
+    UINT64                                      Context = NULL64_ZERO;
+    TRANSPARENT_MODE_CONTEXT_PARAMS             Params;
     TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
     BOOLEAN                                     Result;
     BOOLEAN                                     ResultToReturn;
+
+    //
+    // Read the trap flag
+    //
+    Rflags.AsUInt = HvGetRflags();
+
+    if (!Rflags.TrapFlag)
+    {
+        //
+        // The trap flag is not set, so we don't need to do anything
+        //
+        return FALSE;
+    }
 
     //
     // Form the process id and thread id into a 64-bit value
     //
     ProcThrdInfo.Fields.ProcessId = ProcessId;
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
-
-    //
-    // Read the trap flag
-    //
-    Rflags.AsUInt = HvGetRflags();
 
     //
     // Make sure, nobody is in the middle of modifying the list
@@ -298,15 +314,20 @@ TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
                                            ProcThrdInfo.asUInt);
 
     //
-    // Check whether the trap flag is set or not and the thread is expected to have trap flag
+    // Check whether this thread is expected to have trap flag
     // by the transparent-mode or not
     //
-    if (Rflags.TrapFlag && Result)
+    if (Result)
     {
         //
         // Read the context of the caller
         //
         Context = g_TransparentModeTrapFlagState->Context[Index];
+
+        //
+        // Read the (optional) parameters of the caller
+        //
+        memcpy(&Params, &g_TransparentModeTrapFlagState->Params[Index], sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
 
         //
         // Clear the trap flag from the RFLAGS register
@@ -351,7 +372,7 @@ ReturnResult:
     //
     if (ResultToReturn)
     {
-        TransparentCallbackHandleAfterSyscall(VCpu, ProcessId, ThreadId, Context);
+        TransparentCallbackHandleAfterSyscall(VCpu, ProcessId, ThreadId, Context, &Params);
     }
 
     return ResultToReturn;
@@ -364,20 +385,26 @@ ReturnResult:
  * @param ProcessId The process id of the thread
  * @param ThreadId The thread id of the thread
  * @param Context The context of the caller
+ * @param Params The (optional) parameters of the caller
  *
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
-                                      UINT32                  ProcessId,
-                                      UINT32                  ThreadId,
-                                      UINT64                  Context)
+TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+                                      UINT32                            ProcessId,
+                                      UINT32                            ThreadId,
+                                      UINT64                            Context,
+                                      TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
-    LogInfo("Transparent callback handle the trap flag for process: %x, thread: %x, rip: %llx, context: %llx\n",
+    LogInfo("Transparent callback handle the trap flag for process: %x, thread: %x, rip: %llx, context: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx)\n",
             ProcessId,
             ThreadId,
             VCpu->LastVmexitRip,
-            Context);
+            Context,
+            Params->OptionalParam1,
+            Params->OptionalParam2,
+            Params->OptionalParam3,
+            Params->OptionalParam4);
 }
 
 //
