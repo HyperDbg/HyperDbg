@@ -24,28 +24,45 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
     // Check whether the transparent-mode was already initialized or not
     //
     if (!g_TransparentMode)
-    {
-        //
-        // Allocate buffer for the transparent-mode trap flag state
-        //
-        g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
+{
 
-        //
-        // Intercept trap flags #DBs and #BPs for the transparent-mode
-        //
-        BroadcastEnableDbAndBpExitingAllCores();
+    //
+    // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
+    //
+    MSR Msr = {0};
+    Msr.Flags = __readmsr(IA32_LSTAR);
 
-        //
-        // Enable the transparent-mode
-        //
-        g_TransparentMode                    = TRUE;
-        TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-        //
-        // Successfully enabled the transparent-mode
-        //
-        return TRUE;
+    if (!EptHook((PVOID)(Msr.Flags + 3), (UINT32)(ULONG_PTR)PsGetCurrentProcessId())) {
+        LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
+        
+        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        return FALSE;
     }
+    else {
+        LogInfo("EPT page hook inserted");
+    }
+
+    //
+    // Allocate buffer for the transparent-mode trap flag state
+    //
+    g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
+
+    //
+    // Intercept trap flags #DBs and #BPs for the transparent-mode
+    //
+    BroadcastEnableDbAndBpExitingAllCores();
+
+    //
+    // Enable the transparent-mode
+    //
+    g_TransparentMode                    = TRUE;
+    TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    
+    //
+    // Successfully enabled the transparent-mode
+    //
+    return TRUE;
+}
     else
     {
         TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_HIDE;
@@ -68,17 +85,29 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         // Disable the transparent-mode
         //
         g_TransparentMode = FALSE;
-
+    
         //
         // Unset the trap flags #DBs and #BPs for the transparent-mode
         //
         BroadcastDisableDbAndBpExitingAllCores();
-
+    
         //
         // Free the buffer for the transparent-mode trap flag state
         //
         PlatformMemFreePool(g_TransparentModeTrapFlagState);
-
+    
+    
+        MSR Msr = {0};
+        Msr.Flags = __readmsr(IA32_LSTAR);
+    
+        
+        if (!EptHookUnHookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId())) {
+            LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p+3", Msr.Flags);
+    
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            return FALSE;
+        }
+    
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
@@ -113,6 +142,111 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
         // When transparent, all CPUID leaves in the 0x40000000+ range should contain no usable data
         //
         CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
+    }
+}
+
+VOID
+TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
+{
+
+    switch(VCpu->Regs->rax)
+    {
+    case NtQuerySystemInformation:
+    case NtQuerySystemInformationEx:
+    {
+        //
+        // Handle the NtQuerySystemInformation System call
+        //
+
+        //TransparentHandleNtQuerySystemInformationSyscall(VCpu);
+        
+        break;
+    }
+    case SysNtQueryVolumeInformationFile:
+    {
+        //
+        // Handle the NtQueryVolumeInformationFile System call
+        //
+        //TransparentHandleNtQueryVolumeInformationFileSyscall(VCpu);
+
+        break;
+    }
+    case SysNtSystemDebugControl:
+    {
+        //
+        // Handle the NtSystemDebugControl System call
+        //
+        //TransparentHandleNtSystemDebugControlSyscall(VCpu);
+
+        break;
+    }
+    case SysNtQueryAttributesFile:
+    {
+        //
+        // Handle the NtQueryAttributesFile System call
+        //
+        //TransparentHandleNtQueryAttributesFileSyscall(VCpu);
+
+        break;
+    }
+    case SysNtOpenDirectoryObject:
+    {
+        //
+        // Handle the NtOpenDirectoryObject System call
+        //
+        //TransparentHandleNtOpenDirectoryObjectSyscall(VCpu);
+
+        break;
+    }
+    case SysNtQueryDirectoryObject:
+    {
+        //
+        // Handle the NtQueryDirectoryObject System call
+        //
+        //TransparentHandleNtQueryDirectoryObjectSyscall(VCpu);
+
+        break;
+    }
+    case SysNtQueryInformationProcess:
+    {
+        //
+        // Handle the NtQueryInformationProcess System call
+        //
+        //TransparentHandleNtQueryInformationProcessSyscall(VCpu);
+
+        break;
+    }
+    case SysNtSetInformationProcess:
+    {
+        //
+        // Handle the NtSetInformationProcess System call
+        //
+        //TransparentHandleNtSetInformationProcessSyscall(VCpu);
+
+        break;
+    }
+    case SysNtQueryInformationThread:
+    {
+        //
+        // Handle the NtQueryInformationThread System call
+        //
+        //TransparentHandleNtQueryInformationThreadSyscall(VCpu);
+
+        break;
+    }
+    case SysNtSetInformationThread:
+    {
+        //
+        // Handle the NtSetInformationThread System call
+        //
+        //TransparentHandleNtSetInformationThreadSyscall(VCpu);
+
+        break;
+    }
+    default:
+    {
+        return;
+    }
     }
 }
 

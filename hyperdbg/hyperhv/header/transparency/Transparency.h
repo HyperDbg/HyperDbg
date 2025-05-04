@@ -152,3 +152,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
                                       UINT32                            ThreadId,
                                       UINT64                            Context,
                                       TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
+
+VOID
+TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu);
