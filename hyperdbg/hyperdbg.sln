@@ -214,6 +214,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "..\examples
 		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperevade", "hyperevade\hyperevade.vcxproj", "{B226530A-14B1-40AC-B82E-D9057400E7EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -263,6 +265,12 @@ Global
 		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5}.release|x64.ActiveCfg = release|x64
 		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.debug|x64.ActiveCfg = debug|x64
 		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4}.release|x64.ActiveCfg = release|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.debug|x64.ActiveCfg = debug|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.debug|x64.Build.0 = debug|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.debug|x64.Deploy.0 = debug|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.ActiveCfg = release|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.Build.0 = release|x64
+		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.Deploy.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
