@@ -124,6 +124,22 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             }
 
             //
+            // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
+            // when the guest operating system is Windows to indicate the OS identifier
+            //
+            if(g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
+            {
+
+                LogInfo("RDMSR attempts to read from a reserved MSR range. MSR: %x, from: %llx", 
+                    TargetMsr, 
+                    VCpu->LastVmexitRip);
+            
+                EventInjectGeneralProtection();
+
+                return;
+            }
+
+            //
             // Msr is valid
             //
             Msr.Flags = __readmsr(TargetMsr);
@@ -258,6 +274,25 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             break;
 
         default:
+
+            if(g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
+            {
+
+            //
+            // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
+            // when the guest operating system is Windows to indicate the OS identifier
+            //
+        
+            LogInfo("WRMSR attempts to write to a reserved MSR range. MSR: %x, rax: %llx, rdx: %llx, from: %llx", 
+                TargetMsr,
+                GuestRegs->rax,
+                GuestRegs->rdx,
+                VCpu->LastVmexitRip);
+        
+            EventInjectGeneralProtection();
+            
+            return;
+        }
 
             //
             // Perform the WRMSR
