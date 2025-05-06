@@ -145,6 +145,13 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
     }
 }
 
+/**
+ * @brief Handle The triggered hook on KiSystemCall64 system call handler
+ * when the Transparency mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
 VOID
 TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
 {
@@ -157,8 +164,7 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Handle the NtQuerySystemInformation System call
         //
-
-        //TransparentHandleNtQuerySystemInformationSyscall(VCpu);
+        TransparentHandleNtQuerySystemInformationSyscall(VCpu);
         
         break;
     }
@@ -241,6 +247,86 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         //TransparentHandleNtSetInformationThreadSyscall(VCpu);
 
+        break;
+    }
+    default:
+    {
+        return;
+    }
+    }
+}
+
+/**
+ * @brief Handle The NtQuerySystemInformation system call 
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+
+    switch (VCpu->Regs->r10) 
+    {
+    case SystemProcessInformation:
+    case SystemExtendedProcessInformation:
+    {
+
+        ContextParams.OptionalParam1                  = SystemProcessInformation;
+        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
+        ContextParams.OptionalParam3                  = VCpu->Regs->r8 - 0x400;
+
+        TransparentSetTrapFlagAfterSyscall(VCpu,
+                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                           VCpu->Regs->rax,
+                                           &ContextParams);
+
+        break;
+    }
+    case SystemModuleInformation:
+    {
+
+        ContextParams.OptionalParam1                  = SystemModuleInformation;
+        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
+        ContextParams.OptionalParam3                  = VCpu->Regs->r8;
+
+        TransparentSetTrapFlagAfterSyscall(VCpu,
+                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                           VCpu->Regs->rax,
+                                           &ContextParams);
+
+        break;
+    }
+    case SystemKernelDebuggerInformation:
+    {
+
+        ContextParams.OptionalParam1                  = SystemKernelDebuggerInformation;
+        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
+        ContextParams.OptionalParam3                  = VCpu->Regs->r8;
+
+        TransparentSetTrapFlagAfterSyscall(VCpu,
+                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                           VCpu->Regs->rax,
+                                           &ContextParams);
+        break;
+    }
+    case SystemCodeIntegrityInformation:
+    {
+
+        ContextParams.OptionalParam1                  = SystemCodeIntegrityInformation;
+        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
+        ContextParams.OptionalParam3                  = 0x8;
+
+        TransparentSetTrapFlagAfterSyscall(VCpu,
+                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                           VCpu->Regs->rax,
+                                           &ContextParams);
         break;
     }
     default:
@@ -513,6 +599,161 @@ ReturnResult:
 }
 
 /**
+ * @brief Handle the request for SystemModuleInformation
+ * 
+ * @details This function removes entries from a list of system drivers that could reveal the presence of hypervisors
+ *          This depends on an incomplete list HV_DRIVER, of known hypervisor drivers
+ *          The revealing list entries are removed and overwritten, but the memory buffer is not reallocated, so
+ *          it is possible to still detect that some tampering was done from the user space
+ *
+ * @param ptr The pointer to a valid read/writable SYSTEM_MODULE_INFORMATION memory buffer 
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32 bufferSize)
+{
+    PSYSTEM_MODULE_INFORMATION p = (PSYSTEM_MODULE_INFORMATION)ptr;
+    PSYSTEM_MODULE_ENTRY moduleList = p->Module;
+
+    //
+    // Traverse the list of system modules and remove the system drivers
+    // matching a known list of hypervisor drivers based on their filename
+    //
+    for (UINT16 i = 0; i < p->Count; i++) {
+        PCHAR path = (PCHAR)moduleList[i].FullPathName;
+
+        for (UINT16 j = 0; j < (sizeof(HV_DRIVER) / sizeof(HV_DRIVER[0])); j++)
+        {
+            if (strstr(path, HV_DRIVER[j]))
+            {
+                //
+                // If a module file name matches, remove the entry from the list by shifting it forward by one entry
+                //
+                for (UINT16 k = i; k < p->Count - 1; k++)
+                {
+                    moduleList[k] = moduleList[k + 1];
+                }
+
+                //
+                // Decrement the list size as one entry has been removed
+                //
+                i--;
+                p->Count--;
+
+                break;
+            }
+        }
+
+    }
+
+    if(!MemoryMapperWriteMemorySafeOnTargetProcess(virtualAddress, ptr, bufferSize))
+    { 
+        return FALSE;
+    }
+    
+    return TRUE;
+}
+
+
+/**
+ * @brief Handle the request for SystemProcessInformation
+ * 
+ * @details This function removes entries from a list of active system processes that could reveal the presence of hypervisors
+ *          Currently, the revealing system processes only have their Image Name renamed and some detectable trails are still left
+ *
+ * @param ptr The pointer to a valid read/writable SYSTEM_PROCESS_INFORMATION memory buffer 
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentHandleProcessInformationQuery(PVOID ptr) 
+{
+
+    PSYSTEM_PROCESS_INFORMATION p = (PSYSTEM_PROCESS_INFORMATION)ptr;
+
+    //
+    // Loop through all the entries and filter out the offending ones
+    //
+    do 
+    {
+        if(p->ImageName.Length != 0)
+        {
+
+            //
+            // We need to modify the Image name of the process which requires extra allocation
+            //
+            PVOID buf = PlatformMemAllocateZeroedNonPagedPool(p->ImageName.Length + sizeof(WCHAR));
+
+            if (buf == NULL)
+            {
+                LogInfo("Error allocating ImageName memory buffer");
+
+                return FALSE;
+            }
+
+            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length + sizeof(WCHAR)))
+            {
+                PlatformMemFreePool(buf);
+
+                return FALSE;
+            }
+            
+            PWCH imageName = (PWCH)buf;
+
+            if (imageName == NULL)
+            {
+                PlatformMemFreePool(buf);
+
+                return FALSE;
+            }
+
+            //
+            // Loop through the known list of identifiable hypervisor related processes
+            //
+            for (UINT16 i = 0; i < (sizeof(HV_Processes) / sizeof(HV_Processes[0])); i++) 
+            {
+                if (!_wcsnicmp(imageName, HV_Processes[i], p->ImageName.Length)) 
+                {
+                    //
+                    // If the name matches, randomize it
+                    //
+                    for (UINT16 j = 0; j < (p->ImageName.Length / sizeof(WCHAR) - 4); j++)
+                    {
+                        UINT32 r = (TransparentGetRand() % 26) + 97;
+                        imageName[j] = (WCHAR)r;
+                    }
+
+                    break;
+                }
+            }
+
+            //
+            // Write the modified name back to the usermode buffer
+            //
+            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length);
+
+            PlatformMemFreePool(buf);
+        }
+
+        //
+        // Move to the next process entry
+        //
+        p = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)p + p->NextEntryOffset);
+
+        //
+        // Some internal Windows calls to this system call use different offsetting/entry structure layout and causes errors 
+        //
+        if (!CheckAccessValidityAndSafety((UINT64)p, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        {
+            return FALSE;
+        }
+    } while (p->NextEntryOffset != 0);
+
+    return TRUE;
+}
+
+/**
  * @brief Callback function to handle returns from the syscall
  *
  * @param VCpu The virtual processor's state
@@ -524,23 +765,160 @@ ReturnResult:
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
-                                      UINT32                            ProcessId,
-                                      UINT32                            ThreadId,
-                                      UINT64                            Context,
+TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
+                                      UINT32                  ProcessId,
+                                      UINT32                  ThreadId,
+                                      UINT64                  Context,
                                       TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
-    LogInfo("Transparent callback handle the trap flag for process: %x, thread: %x, rip: %llx, context: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx)\n",
-            ProcessId,
-            ThreadId,
-            VCpu->LastVmexitRip,
-            Context,
-            Params->OptionalParam1,
-            Params->OptionalParam2,
-            Params->OptionalParam3,
-            Params->OptionalParam4);
+    
+    switch (Context)
+    {
+    case NtQuerySystemInformation:
+    {
+
+        switch (Params->OptionalParam1)
+        {
+        case SystemCodeIntegrityInformation:
+        {
+            //
+            // Check if the obtained buffer pointer is valid
+            //
+            if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3)) {
+
+                SYSTEM_CODEINTEGRITY_INFORMATION temp = { 0 };
+
+                //
+                // Read data from the saved pointer of the now filled information buffer
+                //
+                MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, Params->OptionalParam3);
+
+                //
+                // Modify the data and write it back to the information buffer to be passed to user mode
+                //
+                temp.CodeIntegrityOptions = 0x01;
+                MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, Params->OptionalParam3);
+
+            }
+            else
+            {
+                LogInfo("A call for the NtQuerySystemInformation system call requesting SystemCodeIntegrityInformation structure was made, but the usermode buffer was not captured");
+            }
+
+            break;
+        }
+        case SystemProcessInformation:
+        case SystemModuleInformation:
+        {
+            //
+            // Check if the obtained buffer pointer is valid
+            //
+            if (Params->OptionalParam2 != 0x0 &&
+                Params->OptionalParam3 != 0x0 &&
+                CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3)) {
+
+                //
+                // Allocate a buffer to copy user buffer data to for modification
+                //
+                PVOID buf = PlatformMemAllocateZeroedNonPagedPool(Params->OptionalParam3);
+                if (buf == NULL)
+                {
+                    LogError("Err, insufficient memory");
+                    break;
+                }
+
+                //
+                // Copy over the data and perform the modifications
+                //
+                if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, buf, Params->OptionalParam3)) {
+                    LogInfo("Error reading memory buffer given by the usermode call");
+                }
+                else
+                {
+                    if ((Params->OptionalParam1 == SystemProcessInformation && !TransparentHandleProcessInformationQuery(buf)) ||
+                        (Params->OptionalParam1 == SystemModuleInformation && !TransparentHandleModuleInformationQuery(buf, Params->OptionalParam2, (UINT32)Params->OptionalParam3)))
+                    {
+                        LogInfo("Error while modifying the buffer for data query 0x02x", Params->OptionalParam1);
+                    }
+                }
+
+                PlatformMemFreePool(buf);
+
+            }
+            break;
+        }
+        case SystemKernelDebuggerInformation:
+        {
+            //
+            // Check if the obtained buffer pointer is valid
+            //
+            if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3)) {
+
+                //
+                // Write to the output buffer 0x0001 for "Debugger not present"
+                //
+                WORD temp = 0x0100;
+                MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, 2);
+            }
+        }
+
+        default:
+            break;
+        }
+
+        break;
+    }
+    case SysNtQueryAttributesFile:
+    {
+        
+        break;
+    }
+    case SysNtOpenDirectoryObject:
+    {
+        
+        break;
+    }
+    case SysNtQueryInformationProcess:
+    {
+
+        break;
+    }
+    default:
+
+        //
+        // A SYSRET trap flag was inserted for a System call that does not have a transparency handler implemented
+        //
+        LogInfo("Transparent callback  for an unimplemented system call handle with the trap flag for process: %x, thread: %x, rip: %llx, context: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx) \n",
+                        ProcessId,
+                        ThreadId,
+                        VCpu->LastVmexitRip,
+                        Context,
+                        Params->OptionalParam1,
+                        Params->OptionalParam2,
+                        Params->OptionalParam3,
+                        Params->OptionalParam4);
+        break;
+    }
+
 }
 
+/**
+ * @brief Generate a random number by utilizing RDTSC instruction.
+ *
+ * Masking 16 LSB of the measured clock time.
+ * @return UINT32
+ */
+UINT32
+TransparentGetRand()
+{
+    UINT64 Tsc;
+    UINT32 Rand;
+
+    Tsc  = __rdtsc();
+    Rand = Tsc & 0xffff;
+
+    return Rand;
+}
 //
 // /**
 //  * @brief maximum random value
@@ -655,23 +1033,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //         460,
 //         461};
 //
-// /**
-//  * @brief Generate a random number by utilizing RDTSC instruction.
-//  *
-//  * Masking 16 LSB of the measured clock time.
-//  * @return UINT32
-//  */
-// UINT32
-// TransparentGetRand()
-// {
-//     UINT64 Tsc;
-//     UINT32 Rand;
-//
-//     Tsc  = __rdtsc();
-//     Rand = Tsc & 0xffff;
-//
-//     return Rand;
-// }
 //
 // /**
 //  * @brief Integer power function definition.

@@ -60,9 +60,9 @@ SyscallHookGetKernelBase(PULONG ImageSize)
 
     if (NT_SUCCESS(Status))
     {
-        ModuleBase = SystemInfoBuffer->Module.ImageBase;
+        ModuleBase = SystemInfoBuffer->Module[1].ImageBase;
         if (ImageSize)
-            *ImageSize = SystemInfoBuffer->Module.ImageSize;
+            *ImageSize = SystemInfoBuffer->Module[1].ImageSize;
     }
     else
     {

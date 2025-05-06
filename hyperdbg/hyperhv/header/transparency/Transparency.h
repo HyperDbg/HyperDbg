@@ -127,6 +127,272 @@ typedef struct _TRANSPARENT_MODE_TRAP_FLAG_STATE
 
 } TRANSPARENT_MODE_TRAP_FLAG_STATE, *PTRANSPARENT_MODE_TRAP_FLAG_STATE;
 
+/**
+ * @brief System Information for Code Integrity
+ *
+ */
+typedef struct _SYSTEM_CODEINTEGRITY_INFORMATION
+{
+    ULONG Length;
+    ULONG CodeIntegrityOptions;
+
+} SYSTEM_CODEINTEGRITY_INFORMATION, *PSYSTEM_CODEINTEGRITY_INFORMATION;
+
+/**
+ * @brief System Information for running processes
+ *
+ */
+typedef struct _SYSTEM_PROCESS_INFORMATION {
+    ULONG NextEntryOffset;
+    ULONG NumberOfThreads;
+    BYTE Reserved1[48];
+    UNICODE_STRING ImageName;
+    KPRIORITY BasePriority;
+    HANDLE UniqueProcessId;
+    PVOID Reserved2;
+    ULONG HandleCount;
+    ULONG SessionId;
+    PVOID Reserved3;
+    SIZE_T PeakVirtualSize;
+    SIZE_T VirtualSize;
+    ULONG Reserved4;
+    SIZE_T PeakWorkingSetSize;
+    SIZE_T WorkingSetSize;
+    PVOID Reserved5;
+    SIZE_T QuotaPagedPoolUsage;
+    PVOID Reserved6;
+    SIZE_T QuotaNonPagedPoolUsage;
+    SIZE_T PagefileUsage;
+    SIZE_T PeakPagefileUsage;
+    SIZE_T PrivatePageCount;
+    LARGE_INTEGER Reserved7[6];
+} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+
+/**
+ * @brief A list of common Hypervisor specific process executables
+ *
+ */
+static const PWCH HV_Processes[] = {
+    L"hyperdbg-cli.exe",
+    L"vboxservice.exe",
+    L"vmsrvc.exe",
+    L"xenservice.exe",
+    L"vm3dservice.exe",
+    L"VGAuthService.exe",
+    L"vmtoolsd.exe",
+    L"vdagent.exe",
+    L"vdservice.exe",
+    L"qemuwmi.exe",
+    L"vboxtray.exe",
+    L"VBoxControl.exe",
+    L"VGAuthService.exe",
+
+    //
+    // Common Debugging Tools
+    //
+    L"ollydbg.exe",
+    L"ollyice.exe",
+    L"ProcessHacker.exe",
+    L"tcpview.exe",
+    L"autoruns.exe",
+    L"autorunsc.exe",
+    L"filemon.exe",
+    L"procmon.exe",
+    L"regmon.exe",
+    L"procexp.exe",
+    L"idaq.exe",
+    L"idaq64.exe",
+    L"ImmunityDebugger.exe",
+    L"Wireshark.exe",
+    L"dumpcap.exe",
+    L"HookExplorer.exe",
+    L"ImportREC.exe",
+    L"PETools.exe",
+    L"LordPE.exe",
+    L"SysInspector.exe",
+    L"proc_analyzer.exe",
+    L"sysAnalyzer.exe",
+    L"sniff_hit.exe",
+    L"windbg.exe",
+    L"joeboxcontrol.exe",
+    L"joeboxserver.exe",
+    L"ResourceHacker.exe",
+    L"x32dbg.exe",
+    L"x64dbg.exe",
+    L"Fiddler.exe",
+    L"httpdebugger.exe",
+    L"cheatengine-i386.exe",
+    L"cheatengine-x86_64.exe",
+    L"cheatengine-x86_64-SSE4-AVX2.exe",
+    L"frida-helper-32.exe",
+    L"frida-helper-64.exe"
+
+};
+
+/**
+ * @brief A list of common Hypervisor specific drivers
+ *
+ */
+static const PCHAR HV_DRIVER[] = {
+    "hyperkd",
+
+    //
+    // Drivers from VBox
+    //
+
+    "VBoxGuest",
+    "VBoxMouse",
+    "VBoxSF",
+
+    //
+    // Drivers from VMWare Tools
+    //
+
+    "vmrawdsk",
+    "giappdef",
+    "glxgi",
+    "vm3dmp",
+    "vm3dmp_loader",
+    "vm3dmp-debug",
+    "vm3dmp-stats",
+    "vmxnet3",
+    "vmxnet",
+    "vnetWFP",
+    "vnetflt",
+    "vsepflt",
+    "pvscsi",
+    "vmmemctl",
+    "vmhgfs",
+    "vmusbmouse",
+    "vmmouse",
+    "vmaudio",
+    "vmci",
+    "vsock",
+
+    //
+    // Hyper-V Drivers
+    //
+
+    "VMBusHID",
+    "vmbus",
+    "vmgid",
+    "IndirectKmd",
+    "HyperVideo",
+    "hyperkbd",
+
+};
+
+/**
+ * @brief A list of common Hypervisor specific files
+ *
+ */
+static const PWCH HV_FILES[] = {
+        //
+        // Hyperdbg Files
+        //
+        L"hyperhv",
+        L"hyperkd"
+        L"hyperlog",
+        L"libhyperdbg",
+
+
+
+        //
+        // VMWare Files
+        //
+        L"vmmouse.sys",
+        L"vmusbmouse.sys",
+        L"vm3dgl.dll",
+        L"vmdum.dll",
+        L"VmGuestLibJava.dll",
+        L"vm3dver.dll",
+        L"vmtray.dll",
+        L"VMToolsHook.dll",
+        L"vmGuestLib.dll",
+        L"vmhgfs.dll",
+        L"vmhgfs.sys",
+        L"vm3dum64_loader.dll",
+        L"vm3dum64_10.dll",
+        L"vmnet.sys",
+        L"vmusb.sys",
+        L"vm3dmp.sys",
+        L"vmci.sys",
+        L"vmmemctl.sys",
+        L"vmx86.sys",
+        L"vmrawdsk.sys",
+        L"vmkdb.sys",
+        L"vmnetuserif.sys",
+        L"vmnetadapter.sys",
+        L"VMware Tools",
+        L"VMWare",
+
+
+
+        //
+        // VirtualBox Files
+        //
+        L"VBoxMouse.sys",
+        L"VBoxGuest.sys",
+        L"VBoxSF.sys",
+        L"VBoxVideo.sys",
+        L"vboxoglpackspu.dll",
+        L"vboxoglpassthroughspu.dll",
+        L"vboxservice.exe",
+        L"vboxoglcrutil.dll",
+        L"vboxdisp.dll",
+        L"vboxhook.dll",
+        L"vboxmrxnp.dll",
+        L"vboxogl.dll",
+        L"vboxtray.exe",
+        L"VBoxControl.exe",
+        L"vboxoglerrorspu.dll",
+        L"vboxoglfeedbackspu.dll",
+        L"vboxoglarrayspu.dll",
+        L"vboxmrxnp.dll",
+        L"virtualbox guest additions",
+
+        //
+        // KVM files
+        //
+        L"balloon.sys",
+        L"netkvm.sys",
+        L"pvpanic.sys",
+        L"viofs.sys",
+        L"viogpudo.sys",
+        L"vioinput.sys",
+        L"viorng.sys",
+        L"vioscsi.sys",
+        L"vioser.sys",
+        L"viostor.sys",
+
+        //
+        // VPC files
+        //
+        L"vmsrvc.sys",
+        L"vmusrvc.sys",
+        L"vmsrvc.exe",
+        L"vmusrvc.exe",
+        L"vpc-s3.sys",
+        L"Virtio-Win",
+        
+        L"qemu-ga",
+        L"SPICE Guest Tools",
+};
+
+/**
+ * @brief A list of common Hypervisor specific directories
+ *
+ */
+static const PWCH HV_DIRS[] = {
+    L"hyperhv",
+    L"VMware Tools",
+    L"Virtio-Win",
+    L"qemu-ga",
+    L"SPICE Guest Tools",
+    L"VMWare",
+    L"virtualbox guest additions",
+};
+
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
@@ -155,3 +421,9 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 
 VOID
 TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+UINT32
+TransparentGetRand();
