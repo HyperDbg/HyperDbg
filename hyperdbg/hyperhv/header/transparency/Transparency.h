@@ -425,5 +425,11 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu);
 VOID
 TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
+VOID
+TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
 UINT32
 TransparentGetRand();

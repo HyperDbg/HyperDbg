@@ -191,7 +191,7 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Handle the NtQueryAttributesFile System call
         //
-        //TransparentHandleNtQueryAttributesFileSyscall(VCpu);
+        TransparentHandleNtQueryAttributesFileSyscall(VCpu);
 
         break;
     }
@@ -200,7 +200,7 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Handle the NtOpenDirectoryObject System call
         //
-        //TransparentHandleNtOpenDirectoryObjectSyscall(VCpu);
+        TransparentHandleNtOpenDirectoryObjectSyscall(VCpu);
 
         break;
     }
@@ -334,6 +334,199 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
         return;
     }
     }
+}
+
+/**
+ * @brief Obtain a copy of the PWCHAR wide character string from a OBJECT_ATTRIBUTES structure at a guest virtual address
+ * 
+ * @details Returns an allocated tagged memory pointer which needs to be freed with PlatformMemFreePool()
+ *
+ * @param virtPtr A pointer to a guest virutal memory address, containing a OBJECT_ATTRIBUTES structure
+ * @return PVOID Pointer to an allocated tagged memory pool, which needs to be freed with PlatformMemFreePool()
+ */
+PVOID
+TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr) 
+{
+    PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(OBJECT_ATTRIBUTES));
+
+    if (buf == NULL)
+    {
+        LogError("Err, insufficient memory");
+        return NULL;
+    }
+    
+    //
+    // Read the OBJECT_ATTRIBUTES structure from the virtual address pointer
+    //
+    if (MemoryMapperReadMemorySafeOnTargetProcess(virtPtr, buf, sizeof(OBJECT_ATTRIBUTES))) {
+
+        PVOID Namebuf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
+
+        if (Namebuf == NULL)
+        {
+            LogInfo("Error allocating ImageName memory buffer");
+            PlatformMemFreePool(buf);
+
+            return NULL;
+        }
+        //
+        // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName struct entry
+        //
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)((PCOBJECT_ATTRIBUTES)buf)->ObjectName, Namebuf, sizeof(UNICODE_STRING)))
+        {
+            LogInfo("BadRead");
+            PlatformMemFreePool(Namebuf);
+            PlatformMemFreePool(buf);
+
+            return NULL;
+        }
+
+        PlatformMemFreePool(buf);
+
+        //
+        // The OBJECT_ATTRIBUTES structure contains a PUNICODE_STRING pointer to a guest virtual address which contains this UNICODE_STRING
+        // This in turn will contain another pointer, this time a PWCHAR, to another virtual address, which will contain the wide char string we need
+        //
+        PUNICODE_STRING unicodeName = (PUNICODE_STRING)Namebuf;
+        PVOID ObjectNameBuf = PlatformMemAllocateZeroedNonPagedPool(unicodeName->Length + sizeof(WCHAR));
+
+        if (ObjectNameBuf == NULL)
+        {
+            LogInfo("Error allocating ImageName memory buffer");
+            PlatformMemFreePool(Namebuf);
+
+            return NULL;
+        }
+
+        //
+        // Read the PWCHAR string from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName.Buffer struct entry
+        //
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)unicodeName->Buffer, ObjectNameBuf, unicodeName->Length + sizeof(WCHAR)))
+        {
+            LogInfo("BadRead");
+            PlatformMemFreePool(ObjectNameBuf);
+            PlatformMemFreePool(Namebuf);
+
+            return NULL;
+        }
+
+        PlatformMemFreePool(Namebuf);
+
+        //
+        // The caller is responsible for freeing the memory buffer, using PlatformMemFreePool()
+        //
+        return ObjectNameBuf;
+    }
+    return NULL;
+}
+
+/**
+ * @brief Handle The NtQueryAttributesFile system call 
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
+{
+
+    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    ContextParams.OptionalParam1 = VCpu->Regs->rdx;
+
+    //
+    // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
+    //
+    if (CheckAccessValidityAndSafety(VCpu->Regs->r10, sizeof(OBJECT_ATTRIBUTES))) 
+    {
+        //
+        // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested file path
+        //   
+        PVOID pathBuf = (PWCH)TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r10);
+        PWCH filePath = (PWCH)pathBuf;
+                
+        //
+        // If the file Attributes request is for a listed file, insert the SYSCALL trap flag and continue execution
+        //
+        for (UINT16 j = 0; j < (sizeof(HV_FILES) / sizeof(HV_FILES[0])); j++)
+        {
+
+            if (wcsstr(filePath, HV_FILES[j]))
+            {
+
+                TransparentSetTrapFlagAfterSyscall(VCpu,
+                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                    VCpu->Regs->rax,
+                                                    &ContextParams);
+
+                break;
+            }
+        }
+
+        //
+        // Free the allocated copy of the directory path, obtained from TransparentGetObjectNameFromAttributesVirtualPointer()
+        // 
+        PlatformMemFreePool(pathBuf);
+            
+    }   
+}
+
+/**
+ * @brief Handle The NtOpenDirectoryObject system call 
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Set up the context data for the callback after SYSRET
+    //
+    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    ContextParams.OptionalParam1 = VCpu->Regs->r10;
+
+    //
+    // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
+    //
+    if (CheckAccessValidityAndSafety(VCpu->Regs->r8, sizeof(OBJECT_ATTRIBUTES))) 
+    {
+
+        //
+        // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested directory path
+        //
+        PVOID pathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PWCH dirPath = (PWCH)pathBuf;
+
+        if (dirPath == NULL)
+        {
+            return;
+        }
+
+        //
+        // If the directory object request is for a listed directory, insert the SYSCALL trap flag and continue execution
+        //
+        for (UINT16 j = 0; j < (sizeof(HV_DIRS) / sizeof(HV_DIRS[0])); j++)
+        {
+            if (wcsstr(dirPath, HV_DIRS[j]))
+            {
+                TransparentSetTrapFlagAfterSyscall(VCpu,
+                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                    VCpu->Regs->rax,
+                                    &ContextParams);
+
+                break;
+            }
+        }
+
+        //
+        // Free the allocated copy of the directory path, obtained from TransparentGetObjectNameFromAttributesVirtualPointer()
+        // 
+        PlatformMemFreePool(pathBuf);
+    }   
 }
 
 /**
@@ -713,8 +906,8 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
             //
             for (UINT16 i = 0; i < (sizeof(HV_Processes) / sizeof(HV_Processes[0])); i++) 
             {
-                if (!_wcsnicmp(imageName, HV_Processes[i], p->ImageName.Length)) 
-                {
+                if (!_wcsnicmp(imageName, HV_Processes[i], (p->ImageName.Length) / 2)) 
+                {   
                     //
                     // If the name matches, randomize it
                     //
@@ -731,7 +924,7 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
             //
             // Write the modified name back to the usermode buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length);
+            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length + sizeof(WCHAR));
 
             PlatformMemFreePool(buf);
         }
@@ -870,12 +1063,52 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case SysNtQueryAttributesFile:
     {
-        
+        //
+        // Check if the obtained buffer pointer is valid
+        //
+        if (CheckAccessValidityAndSafety(Params->OptionalParam1, sizeof(FILE_BASIC_INFORMATION))) 
+        {
+            PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(FILE_BASIC_INFORMATION));
+            if (buf == NULL)
+            {
+                LogError("Err, insufficient memory");
+                break;
+            }
+            //
+            // Copy over the data from the output buffer pointer
+            //
+            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam1, buf, sizeof(FILE_BASIC_INFORMATION)))
+            {
+                LogError("Err, Virtual memory read failed");
+                PlatformMemFreePool(buf);
+                break;
+            }
+
+            //
+            // Modify the file attribute to INVALID_FILE_ATTRIBUTES and write it back to the pointer
+            //
+            ((PFILE_BASIC_INFORMATION)buf)->FileAttributes = ((DWORD)-1);
+
+            if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam1, buf, sizeof(FILE_BASIC_INFORMATION)))
+            {
+                LogError("Err, Virtual memory write failed");
+            }
+
+            PlatformMemFreePool(buf);
+        }
+        else {
+            LogInfo("A call for the NtQueryAttributeFile system call for a marked file was made, but the output buffer was not captured");
+        }
         break;
     }
     case SysNtOpenDirectoryObject:
     {
-        
+        LogInfo("A NtOpenDirectoryObject system call was made for a known directory that reveals hypervisor presence. process: %x, thread: %x, rip: %llx \n",
+               ProcessId,
+               ThreadId,
+               VCpu->LastVmexitRip);
+        LogInfo("No action to mitigate this was made as a handler for NtOpenDirectoryObject has not been implemented");
+
         break;
     }
     case SysNtQueryInformationProcess:
