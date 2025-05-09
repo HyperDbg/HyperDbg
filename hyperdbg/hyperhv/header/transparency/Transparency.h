@@ -301,7 +301,9 @@ static const PWCH HV_FILES[] = {
         // VMWare Files
         //
         L"vmmouse.sys",
+        L"Vmmouse.sys",
         L"vmusbmouse.sys",
+        L"Vmusbmouse.sys",
         L"vm3dgl.dll",
         L"vmdum.dll",
         L"VmGuestLibJava.dll",
@@ -393,6 +395,68 @@ static const PWCH HV_DIRS[] = {
     L"virtualbox guest additions",
 };
 
+/**
+ * @brief A list of common Hypervisor firmware entries
+ * 
+ * @details The list contains both a normal and uppercase versions of the entries, for better compatibility
+ *
+ */
+static const PWCH HV_FIRM_NAMES[] = {
+    "VMWARE",
+    "VMware",
+    "VS2005R2",
+    "VirtualBox",
+    "VIRTUALBOX",
+    "Oracle",
+    "ORACLE",
+    "Innotek",
+    "INNOTEK",
+};
+
+/**
+ * @brief A list of Registry keys that might contain indetifiable hypervisor vendor data
+ * 
+ * @details The keys are spread out in the registry with different paths, where only the final key name is matched
+ *
+ */
+static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
+    L"Identifier",
+    L"SystemBiosVersion",
+    L"VideoBiosVersion",
+    L"ProductID",
+    L"SystemManufacturer",
+    L"AcpiData",
+    L"SMBiosData",
+    L"SystemProductName",
+    L"DeviceDesc",
+    L"FriendlyName",
+    L"DisplayName",
+    L"ProviderName",
+    L"Device Description",
+
+};
+
+/**
+ * @brief A list of Registry keys speciffic indetifiable hypervisor vendors
+ * 
+ *
+ */
+static const PWCH HV_REGKEYS[] = {
+    L"VMware Tools",
+    L"qemu-ga",
+    L"SPICE Guest Tools",
+    L"VMware",
+    L"VMWARE",
+    L"VEN_15A",
+    L"VMware, Inc.",
+    L"INNOTEK GMBH",
+    L"VIRTUALBOX",
+    L"SUN MICROSYSTEMS",
+    L"VBOXVER",
+    L"VIRTUAL MACHINE",
+    L"GOOGLE COMPUTE ENGINE",
+    L"VBOXAPIC",
+};
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
@@ -430,6 +494,12 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 VOID
 TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 UINT32
 TransparentGetRand();

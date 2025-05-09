@@ -119,6 +119,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemModuleInformation             = 0x0B,
     SystemKernelDebuggerInformation     = 0x23,
     SystemCodeIntegrityInformation      = 0x67,
+    SystemFirmwareTableInformation      = 0x4C,
 } SYSTEM_INFORMATION_CLASS,
     *PSYSTEM_INFORMATION_CLASS;
 
@@ -161,7 +162,11 @@ enum _WIN_SYSTEM_CALLS
     SysNtSetInformationProcess      = 0x001c,
     SysNtQueryInformationThread     = 0x0025,
     SysNtSetInformationThread       = 0x000d,
-    SysNtOpenFile                   = 0x0033
+    SysNtOpenFile                   = 0x0033,
+    SysNtOpenKey                    = 0x0012,
+    SysNtOpenKeyEx                  = 0x0121,
+    SysNtQueryValueKey              = 0x0017,
+    SysNtOpenKeyTransacted          = 0x0122, // On 22H2, changes on each windows version
 
 };
 //////////////////////////////////////////////////
