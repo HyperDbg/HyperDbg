@@ -249,7 +249,7 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Handle the NtOpenKey System call
         //
-        //TransparentHandleNtOpenKeySyscall(VCpu);
+        TransparentHandleNtOpenKeySyscall(VCpu);
         break;
     }
     case SysNtQueryValueKey:
@@ -257,7 +257,7 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Handle the NtQueryValueKey System call
         //
-        //TransparentHandleNtQueryValueKeySyscall(VCpu);
+        TransparentHandleNtQueryValueKeySyscall(VCpu);
         break;
     }
     default:
@@ -662,6 +662,179 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         PlatformMemFreePool((PVOID)name);
     }   
+}
+
+/**
+ * @brief Handle The NtOpenKey system call 
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Check if the user-mode pointer in R8 to a OBJECT_ATTRIBUTES struct is valid
+    //
+    if (CheckAccessValidityAndSafety(VCpu->Regs->r8, sizeof(OBJECT_ATTRIBUTES))) 
+    {
+
+        //
+        // From the OBJECT_ATTRIBUTES struct pointer extract the registry key path for which this syscall is called
+        //
+        PWCH name = (PWCH)TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+
+        if (name == NULL)
+        {
+            LogInfo("BADRET");
+            return;
+        }
+
+        //
+        // Check if the requested registry entry path includes any hypervisor specific strings
+        //
+        for (UINT16 j = 0; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
+        {
+            if (wcsstr(name, HV_REGKEYS[j]) > 0)
+            {
+                //
+                // If a match was found, corrupt the user-mode pointer in CPU registers, so that, when the kernel-mode execution continues, it would fail.
+                //
+                VCpu->Regs->r8 = 0x0;
+
+                //
+                // Set the trap flag to intercept the SYSRET instruction
+                //
+                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+                TransparentSetTrapFlagAfterSyscall(VCpu,
+                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       VCpu->Regs->rax,
+                                                       &ContextParams);
+
+                break;
+            }
+        }
+
+        //
+        //Clean up the allocated memory
+        //
+        PlatformMemFreePool((PVOID)name);
+    }   
+}
+
+/**
+ * @brief Handle The NtQueryValueKey system call 
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Check if the user-mode pointer in RDX to a UNICODE_STRING struct is valid
+    //
+    if (CheckAccessValidityAndSafety(VCpu->Regs->rdx, sizeof(UNICODE_STRING))) 
+    {
+        PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
+        if (buf == NULL)
+        {
+            return;
+        }
+
+        //
+        // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by RDX struct entry
+        //
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(VCpu->Regs->rdx, buf, sizeof(UNICODE_STRING)))
+        {
+            PlatformMemFreePool(buf);
+            return;
+        }
+
+        PCUNICODE_STRING nameUString = (PCUNICODE_STRING)buf;
+        
+        //
+        // Read the PWCH wide char string from the address pointer in the UNICODE_STRING
+        //
+        PVOID nameBuf = PlatformMemAllocateZeroedNonPagedPool(nameUString->Length + sizeof(WCHAR));
+        if (nameBuf == NULL)
+        {
+            return;
+        }
+
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)nameUString->Buffer, nameBuf, nameUString->Length + sizeof(WCHAR)))
+        {
+            PlatformMemFreePool(buf);
+            return;
+        }
+    
+        PlatformMemFreePool(buf);
+        PWCH name = (PWCH)nameBuf;
+
+        //
+        // If the registry key request was for kay that could contain hypervisor specific information in its data, 
+        // the return buffer(%R9) needs to be modified, but the buffer length is in the user mode stack
+        //
+        for (ULONG i = 0; i < (sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS) / sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS[0])); i++)
+        {
+            if (wcsstr(name, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
+            {
+                //
+                // If a match is found, set up the context values and set the trap flag for the SYSRET callback
+                //
+                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+                ContextParams.OptionalParam1 = 1;                   // 1 for bufffer modification
+                ContextParams.OptionalParam2 = VCpu->Regs->r9;
+
+                TransparentSetTrapFlagAfterSyscall(VCpu,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           VCpu->Regs->rax,
+                                                           &ContextParams);
+
+                //
+                // Clean-up and return to guest exection
+                //
+                PlatformMemFreePool((PVOID)name);
+                return;
+            }
+        }
+
+        //
+        // If the call was for a registry key that contains a hypervisor specific string,
+        // The user-mode caller should just receive an error return code not a modified data buffer
+        //
+        for (UINT16 j = 1; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
+        {
+            if (wcsstr(name, HV_REGKEYS[j]) > 0)
+            {
+                //
+                // When the match is found, corrupt the buffer pointers in the registers
+                // and set the SYSRET callback trap flag
+                //
+                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+
+                VCpu->Regs->rdx = 0x0;
+                VCpu->Regs->r9 = 0x0;
+
+                TransparentSetTrapFlagAfterSyscall(VCpu,
+                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       SysNtOpenKey,
+                                                       &ContextParams);
+                
+                break;
+            }
+        }
+
+        //
+        //Clean up the allocated memory
+        //
+        PlatformMemFreePool((PVOID)name);
+    }  
 }
 
 /**
@@ -1435,6 +1608,45 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         // after the SYSRET, change the return code to STATUS_OBJECT_NAME_NOT_FOUND
         //
         VCpu->Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
+        break;
+    }
+
+    //
+    // Handle the return code modification after NtNtQueryValueKey system call
+    // 
+    // NOTE: No transparent mitigations of this call have been implemented
+    //
+    case SysNtQueryValueKey:
+    {
+        if (Params->OptionalParam1 == 1) {
+
+            if (!CheckAccessValidityAndSafety(Params->OptionalParam2, 16)) break;
+
+            LogInfo("Process: %x, on thread %x tried to read a Registry key which might contain hypervisor vendor data",
+                    ProcessId,
+                    ThreadId);
+            LogInfo("No action to mitigate this was performed, but the user-mode data buffer that this data was written is: %p", Params->OptionalParam2);
+
+            //
+            break;               // Comented out for hypervisor detection test passing, removes smbios data from the registry(as it appears to the user), which is not a valid windows setup
+            //
+        }
+        
+    }
+
+    //
+    // Handle the memory buffer modification after NtOpenKey system call and its derivatives
+    //
+    case SysNtOpenKey:
+    case SysNtOpenKeyEx:
+    case SysNtOpenKeyTransacted:
+    {
+        //
+        // In the entry handler, the Syscall number was changed to corrupt this call if the request was for a known hypervisor registry key
+        // after the SYSRET, change the return code to STATUS_OBJECT_NAME_NOT_FOUND
+        //
+        VCpu->Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
+
         break;
     }
 

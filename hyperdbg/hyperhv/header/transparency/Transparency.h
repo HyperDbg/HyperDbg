@@ -501,5 +501,11 @@ TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 VOID
 TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
+VOID
+TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
 UINT32
 TransparentGetRand();
